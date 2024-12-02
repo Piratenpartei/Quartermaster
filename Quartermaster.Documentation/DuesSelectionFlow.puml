@@ -1,0 +1,78 @@
+@startuml DuesSelectionFlow
+'https://plantuml.com/activity-diagram-beta
+
+!$FontSize = 16
+
+skinparam defaultTextAlignment center
+skinparam ActivityFontSize $FontSize
+skinparam ActivityDiamondFontSize $FontSize
+skinparam ActivityArrowFontSize $FontSize
+
+start
+if (Benutzer eingeloggt) then (Ja)
+else (Nein)
+    partition UserDataInput {
+        :Feld: Mitgliedsnummer;
+        :Feld: Vorname;
+        :Feld: Nachname;
+        :Feld: E-Mail;
+    }
+endif
+
+if (Beitrag nach Monatseinkommen) then (Ja)
+    partition SelectByMonthlyPay {
+        :Slider: für Monatseinkommen;
+        :Anzeige: für die Einstufung;
+    }
+elseif (Beitrag als 1% des Jahreseinkommens) then (Ja)
+    partition SelectOnePercentYearlyPay {
+        :Feld: für Jahreseinkommen;
+        :Anzeige: für den Beitrag (1%);
+    }
+elseif (Unter 18) then (Ja)
+    :Beitrag = 12€;
+elseif (Geminderter Beitrag) then (Ja)
+    partition SelectReduced {
+        :Feld: Begründung;
+        :Feld: Jahreswunschbeitrag;
+        :CheckBox: Ein Jahr vs. Dauerhaft;
+
+        if (Wunschbeitragshöhe) then (>= 12€)
+            :E-Mail an LaVo;
+            note left: LaVo entscheidet allein
+        else (< 12€ || Dauerhaft)
+            :E-Mail an LaVo mit CC an BuVo;
+            note right
+                Bei < 12€ gibt der LaVo eine Empfehlung an BuVo.
+                Bei >= 12€, dauerhaft entscheidet der LaVo
+                für ein Jahr und gibt Empfehlung an BuVo.
+            end note
+        endif
+
+        :Ticket im Bundes-Redmine erstellen;
+    }
+else
+    :Unreachable;
+    end
+endif
+
+partition PaymentOptionSelection {
+    :Checkbox: Lastschrift;
+
+    if (Lastschrift) then (Ja)
+        :Feld: Kontoinhaber;
+        :Feld: IBAN;
+    endif
+
+    :Dropdown: Jährlich, Quartalsweise,
+    Monatsweise nur mit Lastschrift und JB >= 36€;
+}
+
+partition Summary {
+    :Beitrag;
+    :Kontodaten, falls Lastschrift;
+    :Zahlungsweise;
+    :Absenden;
+}
+
+stop
