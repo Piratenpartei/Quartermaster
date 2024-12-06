@@ -49,7 +49,8 @@ elseif (Geminderter Beitrag) then (Ja)
             end note
         endif
 
-        :Ticket im Bundes-Redmine erstellen;
+        :Erneute Beitragseinstufung via SelectByMonthlyPay
+        (Falls der Minderungsantrag abgelehnt wird);
     }
 else
     :Unreachable;
