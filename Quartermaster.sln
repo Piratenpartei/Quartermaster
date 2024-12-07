@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quartermaster.Blazor", "Quartermaster.Blazor\Quartermaster.Blazor.csproj", "{A8A2DD02-4CA3-4BEC-B999-2D66B6C3A4FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{17F1D896-3BEB-429C-B106-615F92B217DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17F1D896-3BEB-429C-B106-615F92B217DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17F1D896-3BEB-429C-B106-615F92B217DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8A2DD02-4CA3-4BEC-B999-2D66B6C3A4FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8A2DD02-4CA3-4BEC-B999-2D66B6C3A4FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8A2DD02-4CA3-4BEC-B999-2D66B6C3A4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8A2DD02-4CA3-4BEC-B999-2D66B6C3A4FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

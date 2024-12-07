@@ -1,0 +1,16 @@
+﻿<a class="nav-link btn-hover-scale1" href="#" @onclick=ToggleDropdown>
+    @ButtonContent
+
+    @if (Collapsed) {
+        <i class="ps-1 bi bi-caret-down-fill"></i>
+    } else {
+        <i class="ps-1 bi bi-caret-up-fill"></i>
+    }
+</a>
+
+<ul class="dropdown-menu @(Collapsed ? "" : "show")">
+    <li><a class="dropdown-item" href="#">Action</a></li>
+    <li><a class="dropdown-item" href="#">Another action</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="#">Something else here</a></li>
+</ul>

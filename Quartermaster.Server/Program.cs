@@ -12,9 +12,7 @@ namespace Quartermaster.Server;
 
 public static class Program {
     public static void Main(string[] args) {
-        AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt");
-
-        return;
+        //AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt");
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -54,9 +52,18 @@ public static class Program {
         app.UseCors("Default");
         app.UseHttpsRedirection();
 
-        app.UseAuthorization();
+        app.UseRouting();
 
+        app.UseAuthorization();
         app.UseFastEndpoints();
+
+        app.UseBlazorFrameworkFiles();
+        app.UseStaticFiles();
+
+#pragma warning disable ASP0014 // MapFallbackToFile does not exist as direct mapping.
+        app.UseEndpoints(ep => ep.MapFallbackToFile("index.html"));
+#pragma warning restore ASP0014
+
         app.Run();
     }
 }

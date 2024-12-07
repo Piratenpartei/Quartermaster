@@ -1,0 +1,43 @@
+﻿@using Quartermaster.Blazor.Components
+@inherits LayoutComponentBase
+
+<div>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <a class="navbar-brand btn-hover-scale1" href="/">
+                Quartermaster
+            </a>
+            <button class="navbar-toggler btn-hover-scale1" type="button" @onclick=ToggleMenu>
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse @(Collapsed ? "" : "show")">
+                <ul class="navbar-nav me-auto mb-lg-0">
+                    <li class="nav-item">
+                        <NavMenuButton HRef="/">
+                            <i class="bi bi-house-door-fill pe-1"></i>Home
+                        </NavMenuButton>
+                    </li>
+                    @* <li class="nav-item">
+                        <NavMenuDropdown>
+                            <ButtonContent><i class="bi bi-house-door-fill pe-1"></i>Verwaltung</ButtonContent>
+                        </NavMenuDropdown>
+                    </li> *@
+                </ul>
+                <div>
+                    <button class="btn btn-hover-color-body-bg btn-hover-scale1" @onclick=ToggleDarkMode>
+                        @if (AppState.SelectedTheme == Theme.Dark) {
+                            <i class="bi bi-brightness-high-fill"></i>
+                        } else {
+                            <i class="bi bi-moon-fill"></i>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        @Body
+    </div>
+</div>

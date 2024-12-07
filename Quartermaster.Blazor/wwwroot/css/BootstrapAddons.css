@@ -1,0 +1,12 @@
+﻿.btn-hover-color-body-bg {
+    --bs-btn-hover-bg: var(--bs-body-bg);
+}
+
+.btn-hover-scale1 {
+    transform: scale(1);
+}
+
+.btn-hover-scale1:hover {
+    transform: scale(1.1);
+    transition: 0.3s;
+}
