@@ -10,7 +10,7 @@ public partial class NavMenuDropdown {
     [Parameter]
     public required RenderFragment DropdownContent { get; set; }
 
-    private void ToggleDropdown() {
-        Collapsed = !Collapsed;
-    }
+    private void ToggleDropdown() => Collapsed = !Collapsed;
+
+    private void OnFocusOut() => Collapsed = true;
 }
