@@ -365,3 +365,6 @@ FodyWeavers.xsd
 /PirateTools.Harbor/**/questions.json
 /PirateTools.Harbor/**/tokens.json
 /PirateTools.Harbor/**/membership_dues.json
+
+**/appsettings.json
+**/appsettings.Development.json
