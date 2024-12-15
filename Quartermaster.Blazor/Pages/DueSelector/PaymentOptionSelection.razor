@@ -1,0 +1,44 @@
+﻿@page "/DueSelector/PaymentOptionSelection/{ReturnUrl}"
+
+<div class="mb-3">
+    <h3>Kontoangaben und Zahlungsweise</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-3">
+    <p>
+        Wenn du deinen Beitrag via Lastschrift bezahlen möchtest, gib bitte deine Kontodaten ein.
+    </p>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" @bind=EntryState.IsDirectDeposit>
+        <label class="form-check-label">
+            Lastschrift
+        </label>
+    </div>
+    @if (EntryState.IsDirectDeposit)
+    {
+        <div class="mb-3">
+            <label class="form-label">Kontoinhaber</label>
+            <input type="email" class="form-control" @bind=EntryState.AccountHolder @bind:event="oninput" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">IBAN</label>
+            <input type="email" class="form-control" @bind=EntryState.IBAN @bind:event="oninput" />
+        </div>
+    }
+</div>
+
+<div class="mb-3">
+    <select class="form-select" @bind=EntryState.PaymentScedule>
+        <option value="@PaymentScedule.None">Bitte wähle deine Zahlungsweise aus</option>
+        <option value="@PaymentScedule.Annual">Jährlich (fällig zum 01.01 eines Jahres)</option>
+        <option value="@PaymentScedule.Quarterly">Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)</option>
+        <option value="@PaymentScedule.Monthly">Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)</option>
+    </select>
+</div>
+
+<div>
+    <a href="@ReturnUrl" class="btn btn-primary">Zurück</a>
+</div>

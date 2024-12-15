@@ -10,7 +10,20 @@ public class DueSelectorEntryState : EntryStateBase {
     public SelectedValuation SelectedValuation { get; set; }
     public decimal YearlyIncome { get; set; }
     public decimal MonthlyIncomeGroup { get; set; }
-    public decimal ReducedAmount { get; set; }
+    public decimal ReducedAmount { get; set; } = 12;
+
+    public string ReducedJustification { get; set; } = "";
+    public bool ReducedPermanent { get; set; }
+    public bool ReducedOneYear {
+        get => !ReducedPermanent;
+        set => ReducedPermanent = !value;
+    }
+
+    public bool IsDirectDeposit { get; set; }
+    public string AccountHolder { get; set; } = "";
+    public string IBAN { get; set; } = "";
+    public PaymentScedule PaymentScedule { get; set; }
+
 }
 
 public enum SelectedValuation {
@@ -19,4 +32,11 @@ public enum SelectedValuation {
     OnePercentYearlyPay,
     Underage,
     Reduced
+}
+
+public enum PaymentScedule {
+    None,
+    Annual,
+    Quarterly,
+    Monthly
 }

@@ -366,5 +366,5 @@ FodyWeavers.xsd
 /PirateTools.Harbor/**/tokens.json
 /PirateTools.Harbor/**/membership_dues.json
 
-**/appsettings.json
-**/appsettings.Development.json
+/Quartermaster.Server/appsettings.json
+/Quartermaster.Server/appsettings.Development.json

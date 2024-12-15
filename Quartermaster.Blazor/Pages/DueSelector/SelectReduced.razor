@@ -1,0 +1,74 @@
+﻿@page "/DueSelector/SelectReduced"
+
+<div class="mb-3">
+    <h3>Geminderter Beitrag</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-3">
+    <label class="form-label">Begründung</label>
+    <textarea class="form-control" @bind=EntryState.ReducedJustification @bind:event="oninput"></textarea>
+</div>
+<div class="mb-3">
+    <label class="form-label">Jahreswunschbeitrag</label>
+    <div class="input-group has-validation">
+        <span class="input-group-text">€</span>
+        <input type="number" class="form-control @(EntryState.ReducedAmount < 1 ? "is-invalid" : "")" min="1" @bind=EntryState.ReducedAmount @bind:event="oninput"/>
+        @if (EntryState.ReducedAmount < 1)
+        {
+          <div class="invalid-feedback">
+              Der Jahresbeitrag darf nicht kleiner als 1€ sein.
+          </div>
+        }
+    </div>
+</div>
+<div class="mb-3">
+    <div class="form-check">
+        <input class="form-check-input" type="radio" @bind=EntryState.ReducedOneYear>
+        <label class="form-check-label">
+            Ich beantrage den geminderten Beitrag für ein Jahr.
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" @bind=EntryState.ReducedPermanent>
+        <label class="form-check-label">
+            Ich beantrage einen dauerhaft geminderten Beitrag.
+        </label>
+    </div>
+</div>
+
+<div class="mb-3">
+    <h3>Beitragseinstufung</h3>
+    <p>
+        Im Fall einer Ablehnung des geminderten Beitrags benötigen wir dennoch deine Einstufung nach Monatseinkommen. 
+        Falls keine Einstufung vorgenommen wird, wirst du automatisch eingestuft.
+    </p>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="/DueSelector/SelectByMonthlyPay">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Einstufung nach Monatseinkommen</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div class="mb-3">
+    <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/SelectReduced")}")">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Überspringen</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div>
+    <a href="/DueSelector/DueTypeSelector" class="btn btn-primary">Zurück</a>
+</div>
