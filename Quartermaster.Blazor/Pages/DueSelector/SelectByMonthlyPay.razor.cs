@@ -16,7 +16,7 @@ public partial class SelectByMonthlyPay {
         if (EntryState == null)
             return 72;
 
-        return EntryState.MonthlyIncomeGroup switch {
+        EntryState.SelectedDue = EntryState.MonthlyIncomeGroup switch {
             >= 6000 => 600,
             >= 5000 => 480,
             >= 4000 => 360,
@@ -25,5 +25,7 @@ public partial class SelectByMonthlyPay {
             >= 2000 => 120,
             _ => 72
         };
+
+        return EntryState.SelectedDue;
     }
 }

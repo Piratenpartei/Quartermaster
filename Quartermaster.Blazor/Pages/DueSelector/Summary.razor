@@ -1,0 +1,82 @@
+﻿@page "/DueSelector/Summary"
+@using System.Globalization
+
+<div class="mb-3">
+    <h3>Zusammenfassung</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Dein gewählter Jahresbeitrag</h5>
+        @if (EntryState.SelectedValuation.Equals(SelectedValuation.MonthlyPayGroup) || EntryState.SelectedValuation.Equals(SelectedValuation.OnePercentYearlyPay))
+        {
+            <p class="card-text">Betrag: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></p>
+        }
+        else if (EntryState.SelectedValuation.Equals(SelectedValuation.Reduced))
+        {
+            <p class="card-text">Betrag: <strong>@EntryState.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></p>
+        }
+        else if (EntryState.SelectedValuation.Equals(SelectedValuation.Underage))
+        {
+            <p class="card-text">Betrag: <strong>12,00 €</strong></p>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Zahlungsart</h5>
+        @if (EntryState.IsDirectDeposit)
+        {
+            <p class="card-text">Du zahlst mit Lastschrift. Deine Kontodaten sind:</p>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Kontoinhaber:</strong> @EntryState.AccountHolder</li>
+                <li class="list-group-item"><strong>IBAN:</strong> @EntryState.IBAN</li>
+            </ul>
+        }
+        else
+        {
+            <p class="card-text">Du überweist den Beitrag selbst.</p>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Zahlungsplan</h5>
+        @if (EntryState.PaymentScedule.Equals(PaymentScedule.Annual))
+        {
+            <p class="card-text">Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.</p>
+        }
+        else if (EntryState.PaymentScedule.Equals(PaymentScedule.Quarterly))
+        {
+            <p class="card-text">Du zahlst deinen Beitrag quartalsweise. Je 1/4 des Beitrags ist fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.</p>
+        }
+        else if (EntryState.PaymentScedule.Equals(PaymentScedule.Monthly))
+        {
+            <p class="card-text">Du zahlst deinen Beitrag monatlich. Er wird jeweils am <strong>1. eines jeden Monats</strong> von deinem Konto abgebucht.</p>
+        }
+    </div>
+</div>
+
+<div class="mb-3">
+    <h3>Sind alle Daten korrekt?</h3>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="#">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Formular absenden</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div>
+    <a href="/DueSelector/PaymentOptionSelection" class="btn btn-primary">Zurück</a>
+</div>

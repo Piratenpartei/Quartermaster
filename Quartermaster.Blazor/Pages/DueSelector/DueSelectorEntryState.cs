@@ -11,6 +11,7 @@ public class DueSelectorEntryState : EntryStateBase {
     public decimal YearlyIncome { get; set; }
     public decimal MonthlyIncomeGroup { get; set; }
     public decimal ReducedAmount { get; set; } = 12;
+    public decimal SelectedDue { get; set; }
 
     public string ReducedJustification { get; set; } = "";
     public bool ReducedPermanent { get; set; }

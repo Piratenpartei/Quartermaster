@@ -9,9 +9,16 @@ public partial class SelectOnePercentYearlyPay {
 
     private DueSelectorEntryState? EntryState;
 
-    private decimal CalculatedPercentOfIncome => EntryState == null ? 0 : (EntryState.YearlyIncome * 0.01m);
-
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
+    }
+
+    private decimal CalculatedPercentOfIncome() {
+        if (EntryState != null) {
+            EntryState.SelectedDue = EntryState.YearlyIncome * 0.01m;
+            return EntryState.SelectedDue;
+        } else {
+            return 0;
+        }
     }
 }
