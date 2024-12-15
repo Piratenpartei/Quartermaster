@@ -12,4 +12,11 @@ public partial class DueTypeSelector {
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
+
+    private void SelectDueType(SelectedValuation selectedValuation) {
+        if (EntryState == null)
+            return;
+
+        EntryState.SelectedValuation = selectedValuation;
+    }
 }

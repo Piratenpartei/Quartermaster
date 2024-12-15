@@ -8,7 +8,7 @@
     return;
 
 <div class="mb-2">
-    <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay">
+    <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.OnePercentYearlyPay))>
         <div class="card-body d-flex justify-content-between">
             <div>
                 <span>Einstufung auf 1% des Jahreseinkommens</span>
@@ -20,7 +20,7 @@
 </div>
 
 <div class="mb-2">
-    <CardLink HRef="/DueSelector/SelectByMonthlyPay">
+    <CardLink HRef="/DueSelector/SelectByMonthlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.MonthlyPayGroup))>
         <div class="card-body d-flex justify-content-between">
             <div>
                 <span>Einstufung nach Monatseinkommen</span>
@@ -31,7 +31,8 @@
 </div>
 
 <div class="mb-2">
-    <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/DueTypeSelector")}")">
+    <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/DueTypeSelector")}")"
+              OnNavigate=@(() => SelectDueType(SelectedValuation.Underage))>
         <div class="card-body d-flex justify-content-between">
             <div>
                 <span>Ich bin noch nicht 18 Jahre alt</span>
@@ -42,7 +43,7 @@
 </div>
 
 <div class="mb-3">
-    <CardLink HRef="/DueSelector/SelectReduced">
+    <CardLink HRef="/DueSelector/SelectReduced" OnNavigate=@(() => SelectDueType(SelectedValuation.Reduced))>
         <div class="card-body d-flex justify-content-between">
             <div>
                 <span>Ich möchte den geminderten Beitrag beantragen</span>

@@ -7,4 +7,6 @@ public partial class CardLink {
     public required RenderFragment ChildContent { get; set; }
     [Parameter]
     public required string HRef { get; set; }
+    [Parameter]
+    public EventCallback OnNavigate { get; set; }
 }

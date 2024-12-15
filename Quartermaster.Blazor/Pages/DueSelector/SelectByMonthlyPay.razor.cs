@@ -10,6 +10,7 @@ public partial class SelectByMonthlyPay {
     private DueSelectorEntryState? EntryState;
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
+        Console.WriteLine(EntryState.SelectedValuation);
     }
 
     private decimal CalculateDues() {
