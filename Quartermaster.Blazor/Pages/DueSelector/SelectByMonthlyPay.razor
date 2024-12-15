@@ -1,0 +1,36 @@
+﻿@page "/DueSelector/SelectByMonthlyPay"
+@using System.Globalization
+
+<div class="mb-3">
+    <h3>Beitragseinstufung - Monatsnettoeinkommen</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-3">
+    <label class="form-label">
+        Monatsnettoeinkommen - Wähle die höchste Stufe die kleiner als dein Monatsnettoeinkommen ist und
+        deine familiären Verpflichtungen berücksichtigt.
+    </label>
+
+    <div class="from-group d-flex">
+        <input class="form-range" type="range" min="0" step="500" max="6000"
+               @bind=EntryState.MonthlyIncomeGroup @bind:event="oninput" />
+        <span style="min-width: 10em; text-align: right">
+            @EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))
+        </span>
+    </div>
+
+    <div class="mt-4">
+        <span>
+            Bei deinem Gehalt wird laut Satzung ein Jahresmitgliedsbeitrag von
+            @CalculateDues().ToString("C2", CultureInfo.GetCultureInfo("de-de")) fällig.
+        </span>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between">
+    <a href="/DueSelector/DueTypeSelector" class="btn btn-primary">Zurück</a>
+    <a href="#" class="btn btn-primary">Weiter</a>
+</div>

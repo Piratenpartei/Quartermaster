@@ -2,11 +2,21 @@
     --bs-btn-hover-bg: var(--bs-body-bg);
 }
 
-.btn-hover-scale1 {
+.hover-scale1 {
     transform: scale(1);
 }
 
-.btn-hover-scale1:hover {
+.hover-scale1:hover {
     transform: scale(1.1);
     transition: 0.3s;
+}
+
+.hover-interact.qm-bg-body {
+    background-color: var(--bs-body-bg);
+    transition: 0.3s;
+}
+
+.hover-interact.qm-hover-bg-secondary:hover {
+    background-color: var(--bs-secondary-bg);
+    transition: ease-in-out 0.3s;
 }

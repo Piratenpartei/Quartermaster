@@ -1,0 +1,54 @@
+﻿@page "/DueSelector/DueTypeSelector"
+
+<div class="mb-3">
+    <h3>Beitragseinstufung - Wie möchtest du dich einstufen?</h3>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Einstufung auf 1% des Jahreseinkommens</span>
+                <span class="fw-bold">Empfohlen</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="/DueSelector/SelectByMonthlyPay">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Einstufung nach Monatseinkommen</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="#">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Ich bin noch nicht 18 Jahre alt</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div class="mb-3">
+    <CardLink HRef="#">
+        <div class="card-body d-flex justify-content-between">
+            <div>
+                <span>Ich möchte den geminderten Beitrag beantragen</span>
+            </div>
+            <div><i class="bi bi-caret-right-fill fs-3"></i></div>
+        </div>
+    </CardLink>
+</div>
+
+<div>
+    <a href="/DueSelector/UserDataInput" class="btn btn-primary">Zurück</a>
+</div>
