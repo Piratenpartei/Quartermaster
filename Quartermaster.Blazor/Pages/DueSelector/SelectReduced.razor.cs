@@ -10,6 +10,8 @@ public partial class SelectReduced {
 
     private DueSelectorEntryState? EntryState;
 
+    private bool NextStepButtonHovered;
+
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }

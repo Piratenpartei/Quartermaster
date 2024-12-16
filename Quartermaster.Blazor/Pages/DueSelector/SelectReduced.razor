@@ -8,8 +8,13 @@
     return;
 
 <div class="mb-3">
+    @{
+        var isTxtValid = !string.IsNullOrEmpty(EntryState.ReducedJustification)
+            || !NextStepButtonHovered;
+    }
+
     <label class="form-label">Begründung</label>
-    <textarea class="form-control" @bind=EntryState.ReducedJustification @bind:event="oninput"></textarea>
+    <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" @bind=EntryState.ReducedJustification @bind:event="oninput"></textarea>
 </div>
 
 <div class="mb-3">
@@ -44,7 +49,7 @@
 </div>
 
 <div class="mb-2">
-    <CardLink HRef="/DueSelector/SelectByMonthlyPay" EnabledFunc=@CanContinue>
+    <CardLink HRef="/DueSelector/SelectByMonthlyPay" EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered>
         <span>Einstufung nach Monatseinkommen</span><br />
         @if (string.IsNullOrEmpty(EntryState.ReducedJustification)) {
             <span>Begründung ist ein Pflichtfeld.</span>
@@ -54,7 +59,7 @@
 
 <div class="mb-3">
     <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/SelectReduced")}")"
-              EnabledFunc=@CanContinue>
+              EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered>
         <span>Überspringen</span><br />
         @if (string.IsNullOrEmpty(EntryState.ReducedJustification)) {
             <span>Begründung ist ein Pflichtfeld.</span>
