@@ -17,6 +17,13 @@ public partial class PaymentOptionSelection {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
 
+    private void UseNameAsAccountHolder() {
+        if (EntryState == null)
+            return;
+
+        EntryState.AccountHolder = EntryState.Name;
+    }
+
     private bool DisabledPaymentSchedule(PaymentScedule paymentScedule) {
         if (EntryState == null)
             return false;
