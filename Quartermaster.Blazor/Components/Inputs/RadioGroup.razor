@@ -1,0 +1,14 @@
+﻿@typeparam E where E : Enum
+
+@foreach (var v in Enum.GetValues(typeof(E))) {
+    <div class="form-check">
+        <input class="form-check-input" type="radio" value="@v" checked="@(Value.Equals(v))" @onchange=OnChange>
+        <label class="form-check-label cursor-pointer" @onclick=@(() => OnChange(new() { Value = v }))>
+            @if (ToStringFunc != null) {
+                @ToStringFunc((E)v)
+            } else {
+                @v
+            }
+        </label>
+    </div>
+}
