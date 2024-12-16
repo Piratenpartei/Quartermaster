@@ -1,14 +1,33 @@
 ﻿@typeparam E where E : Enum
 
 @foreach (var v in Enum.GetValues(typeof(E))) {
+    if (ExcludeValueFunc != null && ExcludeValueFunc((E)v))
+        continue;
+
+    var disabled = false;
+    if (DisabledValueFunc != null && DisabledValueFunc((E)v))
+        disabled = true;
+
     <div class="form-check">
-        <input class="form-check-input" type="radio" value="@v" checked="@(Value.Equals(v))" @onchange=OnChange>
-        <label class="form-check-label cursor-pointer" @onclick=@(() => OnChange(new() { Value = v }))>
-            @if (ToStringFunc != null) {
-                @ToStringFunc((E)v)
-            } else {
-                @v
-            }
-        </label>
+        <input class="form-check-input cursor-pointer" disabled="@disabled" type="radio" value="@v"
+               checked="@(Value.Equals(v))" @onchange=OnChange>
+
+        @if (disabled) {
+            <label class="form-check-label">
+                @if (ToStringFunc != null) {
+                    @ToStringFunc((E)v)
+                } else {
+                    @v
+                }
+            </label>
+        } else {
+            <label class="form-check-label cursor-pointer" @onclick=@(() => OnChange(new() { Value = v }))>
+                @if (ToStringFunc != null) {
+                    @ToStringFunc((E)v)
+                } else {
+                    @v
+                }
+            </label>
+        }
     </div>
 }

@@ -19,7 +19,7 @@ public class DueSelectorEntryState : EntryStateBase {
     public bool IsDirectDeposit { get; set; }
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
-    public PaymentScedule PaymentScedule { get; set; }
+    public PaymentScedule PaymentScedule { get; set; } = PaymentScedule.Annual;
 }
 
 public enum SelectedValuation {

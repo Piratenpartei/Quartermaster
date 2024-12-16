@@ -10,6 +10,10 @@ public partial class RadioGroup<E> where E : Enum {
 
     [Parameter]
     public Func<E, string>? ToStringFunc { get; set; }
+    [Parameter]
+    public Func<E, bool>? ExcludeValueFunc { get; set; }
+    [Parameter]
+    public Func<E, bool>? DisabledValueFunc { get; set; }
 
     private void OnChange(ChangeEventArgs args) {
         if (args.Value == null)
