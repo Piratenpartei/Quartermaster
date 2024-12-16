@@ -8,10 +8,23 @@
     return;
 
 <div class="mb-2">
+    @{
+        var isValid = EntryState.YearlyIncome >= 7200;
+    }
+
     <label class="form-label">Jahresnettoeinkommen</label>
-    <div class="input-group">
+    <div class="input-group @(isValid ? "" : "has-validation")">
         <span class="input-group-text">€</span>
-        <input type="number" class="form-control" min="0" @bind=EntryState.YearlyIncome @bind:event="oninput" />
+        <input type="number" class="form-control @(isValid ? "" : "is-invalid")"
+               min="7200" @bind=EntryState.YearlyIncome @bind:event="oninput" />
+        
+        @if (!isValid) {
+            <div class="invalid-feedback">
+                Ein Jahreseinkommen unter 7.200 € würde einen Mitgliedsbeitrag unter 72 € ergeben.<br />
+                Falls dein Jahreseinkommen unter 7.200 € ist wähle bitte die Einschätzung nach Monatseinkommen aus.<br />
+                Alternativ kannst du den geminderten Beitrag beantragen.
+            </div>
+        }
     </div>
 </div>
 
@@ -25,5 +38,8 @@
 
 <div class="d-flex justify-content-between">
     <a href="/DueSelector/DueTypeSelector" class="btn btn-primary">Zurück</a>
-    <a href="/DueSelector/PaymentOptionSelection/@System.Net.WebUtility.UrlEncode("/DueSelector/SelectOnePercentYearlyPay")" class="btn btn-primary">Weiter</a>
+    <a href="/DueSelector/PaymentOptionSelection/@System.Net.WebUtility.UrlEncode("/DueSelector/SelectOnePercentYearlyPay")"
+       class="btn btn-primary @(isValid ? "" : "disabled")">
+       Weiter
+    </a>
 </div>

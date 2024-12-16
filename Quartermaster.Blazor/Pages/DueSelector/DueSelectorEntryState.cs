@@ -8,7 +8,9 @@ public class DueSelectorEntryState : EntryStateBase {
     public int MemberNumber { get; set; }
 
     public SelectedValuation SelectedValuation { get; set; }
-    public decimal YearlyIncome { get; set; }
+
+    // Yearly Income < 7200€ would result in a reduced membership fee
+    public decimal YearlyIncome { get; set; } = 7200;
     public decimal MonthlyIncomeGroup { get; set; }
     public decimal ReducedAmount { get; set; } = 12;
     public decimal SelectedDue { get; set; }
