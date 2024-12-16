@@ -7,9 +7,6 @@ public partial class SelectByMonthlyPay {
     [Inject]
     public required AppStateService AppState { get; set; }
 
-    [Parameter]
-    public required string ReturnUrl { get; set; }
-
     private DueSelectorEntryState? EntryState;
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
