@@ -1,19 +1,18 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
-namespace Quartermaster.Blazor.Pages.DueSelector {
-    public partial class PaymentOptionSelection {
+namespace Quartermaster.Blazor.Pages.DueSelector;
 
-        [Inject]
-        public required AppStateService AppState { get; set; }
+public partial class PaymentOptionSelection {
+    [Inject]
+    public required AppStateService AppState { get; set; }
 
-        [Parameter]
-        public required string ReturnUrl { get; set; }
+    [Parameter]
+    public required string ReturnUrl { get; set; }
 
-        private DueSelectorEntryState? EntryState;
+    private DueSelectorEntryState? EntryState;
 
-        protected override void OnInitialized() {
-            EntryState = AppState.GetEntryState<DueSelectorEntryState>();
-        }
+    protected override void OnInitialized() {
+        EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
 }

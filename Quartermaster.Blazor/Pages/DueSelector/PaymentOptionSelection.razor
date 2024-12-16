@@ -11,24 +11,23 @@
     <p>
         Wenn du deinen Beitrag via Lastschrift bezahlen möchtest, gib bitte deine Kontodaten ein.
     </p>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" @bind=EntryState.IsDirectDeposit>
-        <label class="form-check-label">
-            Lastschrift
-        </label>
-    </div>
-    @if (EntryState.IsDirectDeposit)
-    {
-        <div class="mb-3">
-            <label class="form-label">Kontoinhaber</label>
-            <input type="email" class="form-control" @bind=EntryState.AccountHolder @bind:event="oninput" />
-        </div>
-        <div class="mb-3">
-            <label class="form-label">IBAN</label>
-            <input type="email" class="form-control" @bind=EntryState.IBAN @bind:event="oninput" />
-        </div>
-    }
+
+    <Checkbox @bind-Value=EntryState.IsDirectDeposit>Lastschriftmandat erteilen</Checkbox>
 </div>
+
+@if (EntryState.IsDirectDeposit) {
+    <div class="mb-2">
+        <label class="form-label">Kontoinhaber</label>
+        <input type="email" class="form-control" @bind=EntryState.AccountHolder @bind:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">IBAN</label>
+        <input type="email" class="form-control" @bind=EntryState.IBAN @bind:event="oninput" />
+    </div>
+
+    <hr />
+}
 
 <div class="mb-3">
     <select class="form-select" @bind=EntryState.PaymentScedule>
@@ -39,7 +38,7 @@
     </select>
 </div>
 
-<div>
+<div class="d-flex justify-content-between">
     <a href="@ReturnUrl" class="btn btn-primary">Zurück</a>
     <a href="/DueSelector/Summary" class="btn btn-primary">Weiter</a>
 </div>
