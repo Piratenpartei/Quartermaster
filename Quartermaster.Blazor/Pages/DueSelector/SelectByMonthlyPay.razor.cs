@@ -7,6 +7,9 @@ public partial class SelectByMonthlyPay {
     [Inject]
     public required AppStateService AppState { get; set; }
 
+    [Parameter]
+    public required string ReturnUrl { get; set; }
+
     private DueSelectorEntryState? EntryState;
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
@@ -27,5 +30,13 @@ public partial class SelectByMonthlyPay {
         };
 
         return EntryState.SelectedDue;
+    }
+
+    private string GetPreviousUrl() {
+        if(EntryState != null && EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)) {
+            return "/DueSelector/SelectReduced";
+        } else {
+            return "/DueSelector/DueTypeSelector";
+        }
     }
 }

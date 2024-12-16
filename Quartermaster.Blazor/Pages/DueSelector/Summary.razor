@@ -1,4 +1,4 @@
-﻿@page "/DueSelector/Summary"
+﻿@page "/DueSelector/Summary/{ReturnUrl}"
 @using System.Globalization
 
 <div class="mb-3">
@@ -73,5 +73,5 @@
 </div>
 
 <div>
-    <a href="/DueSelector/PaymentOptionSelection" class="btn btn-primary">Zurück</a>
+    <a href="/DueSelector/PaymentOptionSelection/@System.Net.WebUtility.UrlEncode(ReturnUrl)" class="btn btn-primary">Zurück</a>
 </div>
