@@ -14,11 +14,23 @@ public partial class SelectReduced {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
 
-    private string TextForReducedTimeSpan(ReducedTimeSpan reducedTimeSpan) {
+    private static string TextForReducedTimeSpan(ReducedTimeSpan reducedTimeSpan) {
         return reducedTimeSpan switch {
             ReducedTimeSpan.OneYear => "Ich beantrage den geminderten Beitrag für ein Jahr.",
             ReducedTimeSpan.Permanent => "Ich beantrage einen dauerhaft geminderten Beitrag.",
             _ => throw new UnreachableException($"{reducedTimeSpan} is not a valid ReducedTimeSpan")
         };
+    }
+
+    private bool CanContinue() {
+        if (EntryState == null)
+            return true;
+
+        if (string.IsNullOrEmpty(EntryState.ReducedJustification))
+            return false;
+        if (EntryState.ReducedAmount < 1)
+            return false;
+
+        return true;
     }
 }

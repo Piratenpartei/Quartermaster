@@ -1,5 +1,15 @@
-﻿<a href="@HRef" class="text-decoration-none" @onclick=OnNavigate>
+﻿<a href="@HRef" class="text-decoration-none @(EnabledFunc() ? "" : "disabled")" @onclick=OnNavigate>
     <div class="card hover-interact qm-bg-body qm-hover-bg-secondary">
-        @ChildContent
+        <div class="card-body d-flex justify-content-between @(EnabledFunc() ? "" : "text-secondary")">
+            <div>
+                @ChildContent
+            </div>
+
+            @if (EnabledFunc()) {
+                <i class="bi bi-caret-right-fill text-primary fs-3"></i>
+            } else {
+                <i class="bi bi-ban fs-3"></i>
+            }
+        </div>
     </div>
 </a>
