@@ -11,7 +11,7 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5>Dein gewählter Jahresbeitrag</h5>
-        @if (EntryState.SelectedValuation.Equals(SelectedValuation.MonthlyPayGroup))
+        @if (EntryState.SelectedValuation == SelectedValuation.MonthlyPayGroup)
         {
             <p class="card-text">
                 Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
@@ -21,7 +21,7 @@
                 <strong>@EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong> berechnet.
             </p>
         }
-        else if (EntryState.SelectedValuation.Equals(SelectedValuation.OnePercentYearlyPay))
+        else if (EntryState.SelectedValuation == SelectedValuation.OnePercentYearlyPay)
         {
             <p class="card-text">
                 Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
@@ -31,7 +31,7 @@
                 <strong>@EntryState.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
             </p>
         }
-        else if (EntryState.SelectedValuation.Equals(SelectedValuation.Reduced))
+        else if (EntryState.SelectedValuation == SelectedValuation.Reduced)
         {
             <p class="card-text">
                 Du beantragst einen ermäßigten Jahresbeitrag in Höhe von
@@ -40,7 +40,7 @@
             <p class="card-text">
                 Deine Begründung für die Ermäßigung lautet: <i>@EntryState.ReducedJustification</i>
             </p>
-            @if(EntryState.ReducedTimeSpan.Equals(ReducedTimeSpan.Permanent)){
+            @if(EntryState.ReducedTimeSpan == ReducedTimeSpan.Permanent){
                 <p class ="card-text">
                     Du beantragst diesen geminderten Beitrag dauerhaft. Bei Genehmigung der Minderung ist im nächsten Jahr ist kein erneuter Antrag nötig.
                 </p>
@@ -58,10 +58,10 @@
                 </p>
             }
         }
-        else if (EntryState.SelectedValuation.Equals(SelectedValuation.Underage))
+        else if (EntryState.SelectedValuation == SelectedValuation.Underage)
         {
             <p class="card-text">
-                Da du minderjährig bist, beträgt dein Jahresbeitrag <strong>12,00 €</strong>.
+                Da du minderjährig bist, beträgt dein Jahresbeitrag <strong>@(12.ToString("C2", CultureInfo.GetCultureInfo("de-de")))</strong>.
             </p>
         }
     </div>
@@ -93,13 +93,13 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5>Zahlungsplan</h5>
-        @if (EntryState.PaymentScedule.Equals(PaymentScedule.Annual))
+        @if (EntryState.PaymentScedule == PaymentScedule.Annual)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.
             </p>
         }
-        else if (EntryState.PaymentScedule.Equals(PaymentScedule.Quarterly))
+        else if (EntryState.PaymentScedule == PaymentScedule.Quarterly)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag quartalsweise.
@@ -111,11 +111,11 @@
                 fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.
             </p>
         }
-        else if (EntryState.PaymentScedule.Equals(PaymentScedule.Monthly))
+        else if (EntryState.PaymentScedule == PaymentScedule.Monthly)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag monatlich.
-                @if (!EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)) {
+                @if (EntryState.SelectedValuation != SelectedValuation.Reduced) {
                     <span>Jeweils @((EntryState.SelectedDue / 12).ToString("C2", CultureInfo.GetCultureInfo("de-de"))) werden </span>
                 } else {
                     <span>Er wird jeweils </span>

@@ -30,7 +30,7 @@ public partial class SelectByMonthlyPay {
     }
 
     private string GetPreviousUrl() {
-        if(EntryState != null && EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)) {
+        if(EntryState != null && EntryState.SelectedValuation == SelectedValuation.Reduced) {
             return "/DueSelector/SelectReduced";
         } else {
             return "/DueSelector/DueTypeSelector";
