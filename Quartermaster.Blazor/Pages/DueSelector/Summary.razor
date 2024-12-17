@@ -11,27 +11,71 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5>Dein gewählter Jahresbeitrag</h5>
-        @if (EntryState.SelectedValuation.Equals(SelectedValuation.MonthlyPayGroup) || EntryState.SelectedValuation.Equals(SelectedValuation.OnePercentYearlyPay))
+        @if (EntryState.SelectedValuation.Equals(SelectedValuation.MonthlyPayGroup))
         {
-            <p class="card-text">Betrag: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></p>
+            <p class="card-text">
+                Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+            </p>
+            <p class="card-text">
+                Dieser Betrag wurde auf Grundlage deines Nettomonatseinkommens von
+                <strong>@EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong> berechnet.
+            </p>
+        }
+        else if (EntryState.SelectedValuation.Equals(SelectedValuation.OnePercentYearlyPay))
+        {
+            <p class="card-text">
+                Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+            </p>
+            <p class="card-text">
+                Dieser Betrag entspricht einem Prozent deines Jahreseinkommens von
+                <strong>@EntryState.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+            </p>
         }
         else if (EntryState.SelectedValuation.Equals(SelectedValuation.Reduced))
         {
-            <p class="card-text">Betrag: <strong>@EntryState.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></p>
+            <p class="card-text">
+                Du beantragst einen ermäßigten Jahresbeitrag in Höhe von
+                <strong>@EntryState.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+            </p>
+            <p class="card-text">
+                Deine Begründung für die Ermäßigung lautet: <i>@EntryState.ReducedJustification</i>
+            </p>
+            @if(EntryState.ReducedTimeSpan.Equals(ReducedTimeSpan.Permanent)){
+                <p class ="card-text">
+                    Du beantragst diesen geminderten Beitrag dauerhaft. Bei Genehmigung der Minderung ist im nächsten Jahr ist kein erneuter Antrag nötig.
+                </p>
+            } else {
+                <p class="card-text">
+                    Du beantragst diesen geminderten Beitrag für ein Jahr.
+                </p>
+            }
+            @if (EntryState.MonthlyIncomeGroup != 0)
+            {
+                <p class="card-text">
+                    Falls der Antrag auf Ermäßigung abgelehnt wird, wirst du nach deinem Nettomonatseinkommen in Höhe von
+                    <strong>@EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong> eingestuft.
+                    In diesem Fall wäre dein Jahresbeitrag <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                </p>
+            }
         }
         else if (EntryState.SelectedValuation.Equals(SelectedValuation.Underage))
         {
-            <p class="card-text">Betrag: <strong>12,00 €</strong></p>
+            <p class="card-text">
+                Da du minderjährig bist, beträgt dein Jahresbeitrag <strong>12,00 €</strong>.
+            </p>
         }
     </div>
 </div>
+
 
 <div class="card mb-3">
     <div class="card-body">
         <h5>Zahlungsart</h5>
         @if (EntryState.IsDirectDeposit)
         {
-            <p class="card-text">Du zahlst mit Lastschrift. Deine Kontodaten sind:</p>
+            <p class="card-text">
+                Du zahlst mit Lastschrift. Deine Kontodaten sind:
+            </p>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item"><strong>Kontoinhaber:</strong> @EntryState.AccountHolder</li>
                 <li class="list-group-item"><strong>IBAN:</strong> @EntryState.IBAN</li>
@@ -39,7 +83,9 @@
         }
         else
         {
-            <p class="card-text">Du überweist den Beitrag selbst.</p>
+            <p class="card-text">
+                Du überweist den Beitrag selbst.
+            </p>
         }
     </div>
 </div>
@@ -49,15 +95,33 @@
         <h5>Zahlungsplan</h5>
         @if (EntryState.PaymentScedule.Equals(PaymentScedule.Annual))
         {
-            <p class="card-text">Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.</p>
+            <p class="card-text">
+                Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.
+            </p>
         }
         else if (EntryState.PaymentScedule.Equals(PaymentScedule.Quarterly))
         {
-            <p class="card-text">Du zahlst deinen Beitrag quartalsweise. Je 1/4 des Beitrags ist fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.</p>
+            <p class="card-text">
+                Du zahlst deinen Beitrag quartalsweise.
+                @if (!EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)){
+                    <span>Jeweils @((EntryState.SelectedDue / 4).ToString("C2", CultureInfo.GetCultureInfo("de-de"))) sind </span>
+                } else {
+                    <span>Jeweils 1/4 deines Beitrags ist </span>
+                }
+                fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.
+            </p>
         }
         else if (EntryState.PaymentScedule.Equals(PaymentScedule.Monthly))
         {
-            <p class="card-text">Du zahlst deinen Beitrag monatlich. Er wird jeweils am <strong>1. eines jeden Monats</strong> von deinem Konto abgebucht.</p>
+            <p class="card-text">
+                Du zahlst deinen Beitrag monatlich.
+                @if (!EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)) {
+                    <span>Jeweils @((EntryState.SelectedDue / 12).ToString("C2", CultureInfo.GetCultureInfo("de-de"))) werden </span>
+                } else {
+                    <span>Er wird jeweils </span>
+                }
+                am <strong>1. eines jeden Monats</strong> von deinem Konto abgebucht.
+            </p>
         }
     </div>
 </div>

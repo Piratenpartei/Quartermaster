@@ -33,6 +33,7 @@ public partial class SelectReduced {
         if (EntryState.ReducedAmount < 1)
             return false;
 
+        EntryState.MonthlyIncomeGroup = 0;
         return true;
     }
 }

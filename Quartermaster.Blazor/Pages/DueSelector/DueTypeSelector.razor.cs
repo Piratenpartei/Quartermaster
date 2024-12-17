@@ -13,6 +13,13 @@ public partial class DueTypeSelector {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
 
+    private void HandleUnderage(SelectedValuation selectedValuation) {
+        SelectDueType(selectedValuation);
+        if (EntryState != null) {
+            EntryState.SelectedDue = 12;
+        }
+    }
+
     private void SelectDueType(SelectedValuation selectedValuation) {
         if (EntryState == null)
             return;

@@ -22,7 +22,7 @@
 
 <div class="mb-2">
     <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/DueTypeSelector")}")"
-              OnNavigate=@(() => SelectDueType(SelectedValuation.Underage))>
+              OnNavigate=@(() => HandleUnderage(SelectedValuation.Underage))>
         <span>Ich bin noch nicht 18 Jahre alt</span>
     </CardLink>
 </div>
