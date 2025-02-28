@@ -12,9 +12,9 @@ namespace Quartermaster.Server.EndpointProcessors;
 
 public class ChapterPermissionRequirement<TRequest> : IPreProcessor<TRequest>
     where TRequest : IChapterIdentifier {
-    private readonly DbContext _context;
+    private readonly SqlContext _context;
 
-    public ChapterPermissionRequirement(DbContext context) {
+    public ChapterPermissionRequirement(SqlContext context) {
         _context = context;
     }
 

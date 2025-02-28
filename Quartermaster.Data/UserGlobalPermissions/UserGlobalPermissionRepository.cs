@@ -7,9 +7,9 @@ using Quartermaster.Data.Permissions;
 namespace Quartermaster.Data.UserGlobalPermissions;
 
 public class UserGlobalPermissionRepository : RepositoryBase<Permission> {
-    private readonly DbContext _context;
+    private readonly SqlContext _context;
 
-    internal UserGlobalPermissionRepository(DbContext context) {
+    internal UserGlobalPermissionRepository(SqlContext context) {
         _context = context;
     }
 

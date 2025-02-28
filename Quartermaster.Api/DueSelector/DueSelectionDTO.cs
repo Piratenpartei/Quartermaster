@@ -1,10 +1,6 @@
-﻿using Quartermaster.Api.DueSelector;
-using Quartermaster.Blazor.Abstract;
-using Riok.Mapperly.Abstractions;
+﻿namespace Quartermaster.Api.DueSelector;
 
-namespace Quartermaster.Blazor.Pages.DueSelector;
-
-public class DueSelectorEntryState : EntryStateBase {
+public class DueSelectionDTO {
     public string Name { get; set; } = "";
     public string Email { get; set; } = "";
     public int MemberNumber { get; set; }
@@ -24,13 +20,6 @@ public class DueSelectorEntryState : EntryStateBase {
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
     public PaymentScedule PaymentScedule { get; set; } = PaymentScedule.Annual;
-
-    public DueSelectionDTO ToDTO() => DueSelectorMapper.ToApiDTO(this);
-}
-
-[Mapper]
-public static partial class DueSelectorMapper {
-    public static partial DueSelectionDTO ToApiDTO(DueSelectorEntryState entryState);
 }
 
 public enum SelectedValuation {

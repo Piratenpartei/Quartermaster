@@ -14,7 +14,7 @@
     }
 
     <label class="form-label">Begründung</label>
-    <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" @bind=EntryState.ReducedJustification @bind:event="oninput"></textarea>
+    <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" @bind=EntryState.ReducedJustification @bind:event="oninput" maxlength="2048"></textarea>
 </div>
 
 <div class="mb-3">

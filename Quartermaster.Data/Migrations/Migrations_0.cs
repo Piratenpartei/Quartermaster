@@ -17,6 +17,7 @@ public class Migrations_0 : Migration {
             .WithColumn("PhoneNumber").AsString(64).Nullable()
             .WithColumn("MembershipFee").AsDecimal()
             .WithColumn("MemberSince").AsDateTime()
+            .WithColumn("MemberNumber").AsInt32()
             .WithColumn("AddressStreet").AsString(256)
             .WithColumn("AddressHouseNbr").AsString(32)
             .WithColumn("AddressAdministrativeDivisionId").AsGuid()
@@ -52,7 +53,7 @@ public class Migrations_0 : Migration {
         Create.Table("Tokens")
             .WithColumn("Id").AsGuid().PrimaryKey()
             .WithColumn("UserId").AsGuid().Nullable()
-            .WithColumn("Content").AsString(256).Unique()
+            .WithColumn("Content").AsString(64).Unique() // SHA256
             .WithColumn("Type").AsInt32()
             .WithColumn("Expires").AsDateTime().Nullable()
             .WithColumn("ExtendType").AsInt32()
@@ -120,9 +121,33 @@ public class Migrations_0 : Migration {
         Create.ForeignKey("FK_ChapterAssociates_ChapterId_Chapters_Id")
             .FromTable("ChapterAssociates").ForeignColumn("ChapterId")
             .ToTable("Chapters").PrimaryColumn("Id");
+
+        Create.Table("DueSelections")
+            .WithColumn("Id").AsGuid()
+            .WithColumn("UserId").AsGuid().Nullable()
+            .WithColumn("Name").AsString().Nullable()
+            .WithColumn("EMail").AsString().Nullable()
+            .WithColumn("MemberNumber").AsString().Nullable()
+            .WithColumn("SelectedValuation").AsInt32()
+            .WithColumn("YearlyIncome").AsDecimal()
+            .WithColumn("MonthlyIncomeGroup").AsDecimal()
+            .WithColumn("ReducedAmount").AsDecimal()
+            .WithColumn("SelectedDue").AsDecimal()
+            .WithColumn("ReducedJustification").AsString(2048)
+            .WithColumn("ReducedTimeSpan").AsInt32()
+            .WithColumn("IsDirectDeposit").AsBoolean()
+            .WithColumn("AccountHolder").AsString(256)
+            .WithColumn("IBAN").AsString(64)
+            .WithColumn("PaymentSchedule").AsInt32();
+
+        Create.ForeignKey("FK_DueSelections_UserId_User_Id")
+            .FromTable("DueSelections").ForeignColumn("UserId")
+            .ToTable("Users").PrimaryColumn("Id");
     }
 
     public override void Down() {
+        Delete.ForeignKey("FK_DueSelections_UserId_User_Id");
+
         Delete.ForeignKey("FK_AdministrativeDivisions_ParentId_AdministrativeDivisions_Id");
 
         Delete.ForeignKey("FK_Users_CitizenshipAdminDivId_AdministrativeDivisions_Id");
@@ -152,5 +177,6 @@ public class Migrations_0 : Migration {
         Delete.Table("UserGlobalPermissions");
         Delete.Table("UserChapterPermissions");
         Delete.Table("ChapterAssociates");
+        Delete.Table("DueSelections");
     }
 }

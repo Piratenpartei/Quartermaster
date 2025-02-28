@@ -5,9 +5,9 @@ using System;
 namespace Quartermaster.Data.AdministrativeDivisions;
 
 public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDivision> {
-    private readonly DbContext _context;
+    private readonly SqlContext _context;
 
-    internal AdministrativeDivisionRepository(DbContext context) {
+    internal AdministrativeDivisionRepository(SqlContext context) {
         _context = context;
     }
 

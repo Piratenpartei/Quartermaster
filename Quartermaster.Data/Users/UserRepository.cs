@@ -6,9 +6,9 @@ using System;
 namespace Quartermaster.Data.Users;
 
 public class UserRepository : RepositoryBase<User> {
-    private readonly DbContext _context;
+    private readonly SqlContext _context;
 
-    public UserRepository(DbContext context) {
+    public UserRepository(SqlContext context) {
         _context = context;
     }
 

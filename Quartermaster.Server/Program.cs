@@ -6,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Api.Users;
 using Quartermaster.Data;
-using Quartermaster.Data.AdministrativeDivisions;
+using LinqToDB.AspNet;
+using LinqToDB;
 
 namespace Quartermaster.Server;
 
@@ -25,12 +26,16 @@ public static class Program {
 
         builder.Services.AddFluentMigratorCore()
             .ConfigureRunner(rb => {
-                rb.AddMySql8()
-                    .WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
-                    .ScanIn(typeof(DbContext).Assembly).For.Migrations();
+                var connStr = builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString");
+
+                rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
+                    .ScanIn(typeof(SqlContext).Assembly).For.Migrations();
             });
 
-        builder.Services.AddSingleton<DbContext>();
+        builder.Services.AddSingleton<SqlContext>();
+
+        builder.Services.AddLinqToDBContext<DbContext>((provider, options)
+            => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
 
         builder.Services.AddCors(opt => {
             opt.AddPolicy("Default", policy

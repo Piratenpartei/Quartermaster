@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Quartermaster.Server.Users;
 
 public class LoginEndpoint : Endpoint<LoginRequest, TokenDTO> {
-    public required DbContext DB { get; init; }
+    public required SqlContext DB { get; init; }
 
     public override void Configure() {
         Post("/api/users/login");

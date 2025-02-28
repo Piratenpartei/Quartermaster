@@ -1,19 +1,23 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
-namespace Quartermaster.Blazor.Pages.DueSelector {
-    public partial class Summary {
+namespace Quartermaster.Blazor.Pages.DueSelector; 
 
-        [Inject]
-        public required AppStateService AppState { get; set; }
+public partial class Summary {
 
-        [Parameter]
-        public required string ReturnUrl { get; set; }
+    [Inject]
+    public required AppStateService AppState { get; set; }
 
-        private DueSelectorEntryState? EntryState;
+    [Parameter]
+    public required string ReturnUrl { get; set; }
 
-        protected override void OnInitialized() {
-            EntryState = AppState.GetEntryState<DueSelectorEntryState>();
-        }
+    private DueSelectorEntryState? EntryState;
+
+    protected override void OnInitialized() {
+        EntryState = AppState.GetEntryState<DueSelectorEntryState>();
+    }
+
+    private async Task Submit() {
+
     }
 }

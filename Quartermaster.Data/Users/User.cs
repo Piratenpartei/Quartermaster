@@ -16,6 +16,7 @@ public class User {
     public string? PhoneNumber { get; set; }
     public decimal MembershipFee { get; set; }
     public DateTime MemberSince { get; set; }
+    public int MemberNumber { get; set; }
 
     public string AddressStreet { get; set; } = "";
     public string AddressHouseNbr { get; set; } = "";

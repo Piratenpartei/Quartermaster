@@ -8,9 +8,9 @@ public class TokenRepository {
 	private const string PossibleTokenCharacters
 		= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    private readonly DbContext _contenxt;
+    private readonly SqlContext _contenxt;
 
-	public TokenRepository(DbContext context) {
+	public TokenRepository(SqlContext context) {
 		_contenxt = context;
 	}
 

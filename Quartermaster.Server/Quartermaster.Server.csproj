@@ -7,10 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetSaml" Version="2.1.2" />
-    <PackageReference Include="FastEndpoints" Version="5.32.0" />
+    <PackageReference Include="FastEndpoints" Version="5.34.0" />
     <PackageReference Include="FluentMigrator" Version="6.2.0" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="linq2db.AspNet" Version="5.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.11" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
   </ItemGroup>

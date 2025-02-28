@@ -4,9 +4,9 @@ using System;
 namespace Quartermaster.Data.UserChapterPermissions;
 
 public class UserChapterPermissionRepository {
-    private readonly DbContext _context;
+    private readonly SqlContext _context;
 
-    public UserChapterPermissionRepository(DbContext context) {
+    public UserChapterPermissionRepository(SqlContext context) {
         _context = context;
     }
 

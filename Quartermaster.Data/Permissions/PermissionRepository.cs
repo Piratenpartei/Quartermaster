@@ -7,9 +7,9 @@ using System.Collections.Generic;
 namespace Quartermaster.Data.Permissions;
 
 public class PermissionRepository : RepositoryBase<Permission> {
-	private readonly DbContext _context;
+	private readonly SqlContext _context;
 
-	internal PermissionRepository(DbContext context) {
+	internal PermissionRepository(SqlContext context) {
 		_context = context;
 	}
 
