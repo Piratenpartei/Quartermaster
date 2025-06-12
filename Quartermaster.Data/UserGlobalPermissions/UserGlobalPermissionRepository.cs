@@ -9,7 +9,7 @@ namespace Quartermaster.Data.UserGlobalPermissions;
 public class UserGlobalPermissionRepository {
     private readonly DbContext _context;
 
-    internal UserGlobalPermissionRepository(DbContext context) {
+    public UserGlobalPermissionRepository(DbContext context) {
         _context = context;
     }
 

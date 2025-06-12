@@ -10,7 +10,7 @@ namespace Quartermaster.Data.Permissions;
 public class PermissionRepository {
 	private readonly DbContext _context;
 
-	internal PermissionRepository(DbContext context) {
+	public PermissionRepository(DbContext context) {
 		_context = context;
 	}
 

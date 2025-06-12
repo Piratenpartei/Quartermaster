@@ -1,7 +1,9 @@
 ﻿using FastEndpoints;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.UserChapterPermissions;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -12,10 +14,10 @@ namespace Quartermaster.Server.EndpointProcessors;
 
 public class ChapterPermissionRequirement<TRequest> : IPreProcessor<TRequest>
     where TRequest : IChapterIdentifier {
-    private readonly SqlContext _context;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public ChapterPermissionRequirement(SqlContext context) {
-        _context = context;
+    public ChapterPermissionRequirement(IServiceScopeFactory scopeFactory) {
+        _serviceScopeFactory = scopeFactory;
     }
 
     public Task PreProcessAsync(IPreProcessorContext<TRequest> ctx, CancellationToken ct) {
@@ -23,12 +25,18 @@ public class ChapterPermissionRequirement<TRequest> : IPreProcessor<TRequest>
         if (epDefinition == null || epDefinition.AllowedPermissions == null || epDefinition.AllowedPermissions.Count == 0)
             throw new UnreachableException();
 
+        if (ctx.Request == null)
+            return ctx.HttpContext.Response.SendErrorsAsync([], cancellation: ct);
+
         if (!ctx.HttpContext.Request.Headers.TryGetValue("UserId", out var userIdStr)
             || !Guid.TryParse(userIdStr, out var userId)) {
             return ctx.HttpContext.Response.SendForbiddenAsync(ct);
         }
 
-        if (!_context.ChapterPermissions.HasPermissionForChapter(userId, ctx.Request.ChapterId,
+        using var scope = _serviceScopeFactory.CreateScope();
+        var userChapterPermissionRepository = scope.Resolve<UserChapterPermissionRepository>();
+
+        if (!userChapterPermissionRepository.HasPermissionForChapter(userId, ctx.Request.ChapterId,
             epDefinition.AllowedPermissions[0])) {
             return ctx.HttpContext.Response.SendForbiddenAsync(ct);
         }

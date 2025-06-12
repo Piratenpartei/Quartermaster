@@ -1,9 +1,11 @@
 ﻿using FastEndpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartermaster.Data;
+using Quartermaster.Data.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +16,12 @@ using System.Threading.Tasks;
 namespace Quartermaster.Server.Authentication;
 
 public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticationHandlerOptions> {
-    private readonly DbContext _context;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public TokenAuthenticationHandler(IOptionsMonitor<TokenAuthenticationHandlerOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder, DbContext context) : base(options, logger, encoder) {
-        _context = context;
+        ILoggerFactory logger, UrlEncoder encoder, IServiceScopeFactory serviceScopeFactory)
+        : base(options, logger, encoder) {
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
@@ -34,7 +37,12 @@ public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticat
         if (!Guid.TryParse(userIdStr, out var userId))
             return Task.FromResult(AuthenticateResult.Fail(""));
 
-        if (!_context.Tokens.CheckToken(token!, userId))
+        using var scope = _serviceScopeFactory.CreateScope();
+        var tokenRepository = scope.Resolve<TokenRepository>();
+
+        // token is implicitely converted to string?, if the IsNullOrEmpty check above doesn't fail
+        // it won't be null here either.
+        if (!tokenRepository.CheckLoginToken(token!, userId, ""))
             return Task.FromResult(AuthenticateResult.Fail(""));
 
         var claims = new List<Claim>();
@@ -48,7 +56,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticat
     private bool IsPublicEndpoint()
         => Context.GetEndpoint()?
               .Metadata.OfType<EndpointDefinition>().FirstOrDefault()?
-              .AnonymousVerbs?.Any() is true;
+              .AnonymousVerbs?.Length > 0;
 }
 
 public class TokenAuthenticationHandlerOptions : AuthenticationSchemeOptions {

@@ -4,7 +4,6 @@ using Quartermaster.Blazor.Services;
 namespace Quartermaster.Blazor.Pages.DueSelector; 
 
 public partial class Summary {
-
     [Inject]
     public required AppStateService AppState { get; set; }
 

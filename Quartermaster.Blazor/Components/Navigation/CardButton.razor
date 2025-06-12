@@ -1,17 +1,15 @@
-﻿<div @onpointerenter=OnPointerEnter @onpointerleave=OnPointerLeave>
-    <button class="text-decoration-none @(EnabledFunc() ? "" : "disabled")" @onclick=OnClick>
-        <div class="card hover-interact qm-bg-body qm-hover-bg-secondary">
-            <div class="card-body d-flex justify-content-between @(EnabledFunc() ? "" : "text-secondary")">
-                <div>
-                    @ChildContent
-                </div>
-
-                @if (EnabledFunc()) {
-                    <i class="bi bi-caret-right-fill text-primary fs-3"></i>
-                } else {
-                    <i class="bi bi-ban fs-3"></i>
-                }
+﻿<div @onpointerenter=OnPointerEnter @onpointerleave=OnPointerLeave @onclick=OnClick>
+    <div class="card hover-interact qm-bg-body @(EnabledFunc() ? "qm-hover-bg-secondary cursor-pointer" : "")">
+        <div class="card-body d-flex justify-content-between @(EnabledFunc() ? "" : "text-secondary")">
+            <div>
+                @ChildContent
             </div>
+
+            @if (EnabledFunc()) {
+                <i class="bi bi-caret-right-fill text-primary fs-3"></i>
+            } else {
+                <i class="bi bi-ban fs-3"></i>
+            }
         </div>
-    </button>
+    </div>
 </div>

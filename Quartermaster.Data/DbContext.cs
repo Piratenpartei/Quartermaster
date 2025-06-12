@@ -18,6 +18,8 @@ public class DbContext : DataConnection {
     public ITable<AdministrativeDivision> AdministrativeDivisions => this.GetTable<AdministrativeDivision>();
     public ITable<User> Users => this.GetTable<User>();
 
+    public DbContext(DataOptions dataOptions) : base(dataOptions) { }
+
     public static void AddRepositories(IServiceCollection services) {
         services.AddScoped<TokenRepository>();
         services.AddScoped<PermissionRepository>();

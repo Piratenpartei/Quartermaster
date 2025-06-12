@@ -9,7 +9,7 @@ namespace Quartermaster.Data.AdministrativeDivisions;
 public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDivision> {
     private readonly DbContext _context;
 
-    internal AdministrativeDivisionRepository(DbContext context) {
+    public AdministrativeDivisionRepository(DbContext context) {
         _context = context;
     }
 
