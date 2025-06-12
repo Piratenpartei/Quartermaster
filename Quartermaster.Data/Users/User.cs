@@ -1,9 +1,12 @@
 ﻿using System;
+using LinqToDB.Mapping;
 
 namespace Quartermaster.Data.Users;
 
+[Table("Users", IsColumnAttributeRequired = false)]
 public class User {
-    public Guid Id { get; set; }
+    [PrimaryKey]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public string? Username { get; set; }
     public string EMail { get; set; } = "";

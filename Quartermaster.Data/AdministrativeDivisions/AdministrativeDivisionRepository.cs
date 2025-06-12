@@ -1,33 +1,22 @@
 ﻿using InterpolatedSql.Dapper;
+using LinqToDB;
 using Quartermaster.Data.Abstract;
 using System;
+using System.Linq;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
 public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDivision> {
-    private readonly SqlContext _context;
+    private readonly DbContext _context;
 
-    internal AdministrativeDivisionRepository(SqlContext context) {
+    internal AdministrativeDivisionRepository(DbContext context) {
         _context = context;
     }
 
-    public AdministrativeDivision? Get(Guid id) {
-        using var con = _context.GetConnection();
-        return con.SqlBuilder(
-            $"SELECT * FROM AdministrativeDivisions WHERE Id = {id}")
-            .QuerySingleOrDefault<AdministrativeDivision>();
-    }
+    public AdministrativeDivision? Get(Guid id)
+        => _context.AdministrativeDivisions.Where(ad => ad.Id == id).FirstOrDefault();
 
-    public Guid Create(AdministrativeDivision division) {
-        using var con = _context.GetConnection();
-        con.SqlBuilder(
-            $"INSERT INTO AdministrativeDivisions (Id, ParentId, Name, Depth, AdminCode, PostCode) " +
-            $"VALUES ({division.Id}, {division.ParentId}, {division.Name}, {division.Depth}, " +
-            $"{division.AdminCode}, {division.PostCode})")
-            .Execute();
-
-        return division.Id;
-    }
+    public void Create(AdministrativeDivision division) => _context.Insert(division);
 
     public void SupplementDefaults() {
         if (Get(Guid.Empty) == null) {

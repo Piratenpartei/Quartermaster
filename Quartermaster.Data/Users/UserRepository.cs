@@ -1,42 +1,25 @@
 ﻿using InterpolatedSql.Dapper;
+using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Data.Abstract;
 using System;
+using System.Linq;
 
 namespace Quartermaster.Data.Users;
 
-public class UserRepository : RepositoryBase<User> {
-    private readonly SqlContext _context;
+public class UserRepository {
+    private readonly DbContext _context;
 
-    public UserRepository(SqlContext context) {
+    public UserRepository(DbContext context) {
         _context = context;
     }
 
-    public User Create(User user) {
-        EnsureSetGuid(user, u => u.Id);
+    public void Create(User user) => _context.Insert(user);
 
-        using var con = _context.GetConnection();
-        con.SqlBuilder($"INSERT INTO Users (Id, Username, EMail, PasswordHash, FirstName," +
-            $"LastName, DateOfBirth, CitizenshipAdministrativeDivisionId, PhoneNumber," +
-            $"MembershipFee, MemberSince, AddressStreet, AddressHouseNbr, AddressAdministrativeDivisionId," +
-            $"ChapterId) VALUES ({user.Id}, {user.Username}, {user.EMail}, {user.PasswordHash}," +
-            $"{user.FirstName}, {user.LastName}, {user.DateOfBirth}, {user.CitizenshipAdministrativeDivisionId}," +
-            $"{user.PhoneNumber}, {user.MembershipFee}, {user.MemberSince}, {user.AddressStreet}," +
-            $"{user.AddressHouseNbr}, {user.AddressAdministrativeDivisionId}, {user.ChapterId})")
-            .Execute();
+    public User? GetById(Guid id) => _context.Users.Where(u => u.Id == id).FirstOrDefault();
 
-        return user;
-    }
-
-    public User? GetById(Guid id) {
-        using var con = _context.GetConnection();
-        return con.SqlBuilder($"SELECT * FROM Users WHERE Id = {id}").QuerySingleOrDefault<User>();
-    }
-
-    public User? GetByUsername(string username) {
-        using var con = _context.GetConnection();
-        return con.SqlBuilder($"SELECT * FROM Users WHERE UserName = {username}").QuerySingleOrDefault<User>();
-    }
+    public User? GetByUsername(string username)
+        => _context.Users.Where(u => u.Username == username).FirstOrDefault();
 
     public void SupplementDefaults(RootAccountSettings accountSettings) {
         var admin = GetByUsername(accountSettings.Username);
@@ -48,9 +31,12 @@ public class UserRepository : RepositoryBase<User> {
     }
 
     private User AddRootAccount(RootAccountSettings accountSettings) {
-        return Create(new User() {
+        var rootUser = new User() {
             Username = accountSettings.Username,
             PasswordHash = PasswordHashser.Hash(accountSettings.Password)
-        });
+        };
+
+        Create(rootUser);
+        return rootUser;
     }
 }

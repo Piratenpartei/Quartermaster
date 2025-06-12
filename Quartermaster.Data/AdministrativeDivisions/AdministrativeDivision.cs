@@ -1,9 +1,12 @@
 ﻿using System;
+using LinqToDB.Mapping;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
+[Table("AdministrativeDivisions", IsColumnAttributeRequired = false)]
 public class AdministrativeDivision {
-    public Guid Id { get; set; }
+    [PrimaryKey]
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? ParentId { get; set; }
 
     public string Name { get; set; } = "";

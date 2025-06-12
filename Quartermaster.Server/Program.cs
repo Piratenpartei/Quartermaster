@@ -8,6 +8,7 @@ using Quartermaster.Api.Users;
 using Quartermaster.Data;
 using LinqToDB.AspNet;
 using LinqToDB;
+using Quartermaster.Data.Migrations;
 
 namespace Quartermaster.Server;
 
@@ -29,13 +30,12 @@ public static class Program {
                 var connStr = builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString");
 
                 rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
-                    .ScanIn(typeof(SqlContext).Assembly).For.Migrations();
+                    .ScanIn(typeof(Migrations_0).Assembly).For.Migrations();
             });
-
-        builder.Services.AddSingleton<SqlContext>();
 
         builder.Services.AddLinqToDBContext<DbContext>((provider, options)
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
+        DbContext.AddRepositories(builder.Services);
 
         builder.Services.AddCors(opt => {
             opt.AddPolicy("Default", policy

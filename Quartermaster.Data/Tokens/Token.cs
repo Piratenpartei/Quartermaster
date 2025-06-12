@@ -11,7 +11,7 @@ namespace Quartermaster.Data.Tokens;
 [Table("Tokens", IsColumnAttributeRequired = false)]
 public class Token {
     [PrimaryKey]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? UserId { get; set; }
     public string Content { get; set; } = "";
     public TokenType Type { get; set; }
@@ -39,7 +39,8 @@ public enum ExtendType {
 
 public enum TokenSecurityScope {
     None,
-    IP
+    IP,
+    BrowserFingerprint
 }
 
 public static class TokenExtensions {
@@ -52,14 +53,14 @@ public static class TokenExtensions {
 
     private static string Hash(string str) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 
-    public static Token LoginUser(this DbContext db, Guid userId, string ip) {
+    public static Token LoginUser(this DbContext db, Guid userId, string fingerprint) {
         var userContent = GenerateSimpleTokenContent(256);
-        var serverContent = GenerateLoginTokenIP(userContent, ip);
+        var serverContent = GenerateLoginTokenIP(userContent, fingerprint);
         var token = new Token() {
             Content = serverContent,
             ExtendType = ExtendType.Usage,
             Id = Guid.NewGuid(),
-            SecurityScope = TokenSecurityScope.IP,
+            SecurityScope = TokenSecurityScope.BrowserFingerprint,
             Type = TokenType.Login,
             UserId = userId
         };
@@ -72,19 +73,21 @@ public static class TokenExtensions {
         return token;
     }
 
-    public static bool CheckLoginToken(this ITable<Token> tokenTable, string tokenContent, Guid userId, string? ip) {
+    public static bool CheckLoginToken(this ITable<Token> tokenTable, string tokenContent, Guid userId, string? fingerprint) {
         if (string.IsNullOrEmpty(tokenContent) || userId == Guid.Empty)
             return false;
 
-        var serverContent = GenerateLoginTokenIP(tokenContent, ip ?? "");
-        var token = tokenTable.Where(t => t.UserId == userId && t.Content == serverContent).SingleOrDefault();
+        var serverContent = GenerateLoginTokenIP(tokenContent, fingerprint ?? "");
+        var token = tokenTable.Where(t => t.UserId == userId && t.Content == serverContent).FirstOrDefault();
 
         if (token == null)
             return false;
 
-        if (token.Expires < DateTime.UtcNow) {
+        if (token.Expires != null && token.Expires < DateTime.UtcNow)
+            return false;
 
-        }
+        UpdateTokenExpiration(tokenTable, token);
+        return true;
     }
 
     public static bool CheckSimpleToken(this ITable<Token> tokenTable, string tokenContent, Guid userId) {
@@ -92,14 +95,19 @@ public static class TokenExtensions {
             return false;
 
         var hash = Hash(tokenContent);
-        var token = tokenTable.Where(t => t.UserId == userId && t.Content == hash).SingleOrDefault();
+        var token = tokenTable.Where(t => t.UserId == userId && t.Content == hash).FirstOrDefault();
         if (token == null || token.Expires < DateTime.UtcNow)
             return false;
 
-        //TODO: Grab expiration extension time from some Setting instead of blindly adding a day
-        if (token.Expires != null && token.ExtendType == ExtendType.Usage)
-            tokenTable.Where(t => t.Id == token.Id).Set(t => t.Expires, token.Expires.Value.AddDays(1)).Update();
-
+        UpdateTokenExpiration(tokenTable, token);
         return true;
+    }
+
+    private static void UpdateTokenExpiration(ITable<Token> tokenTable, Token token) {
+        if (token.Expires == null || token.ExtendType != ExtendType.Usage)
+            return;
+
+        //TODO: Grab expiration extension time from some Setting instead of blindly adding a day
+        tokenTable.Where(t => t.Id == token.Id).Set(t => t.Expires, token.Expires.Value.AddDays(1)).Update();
     }
 }
