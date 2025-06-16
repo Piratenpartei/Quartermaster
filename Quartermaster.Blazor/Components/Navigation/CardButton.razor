@@ -1,5 +1,6 @@
 ﻿<div @onpointerenter=OnPointerEnter @onpointerleave=OnPointerLeave @onclick=OnClick>
-    <div class="card hover-interact qm-bg-body @(EnabledFunc() ? "qm-hover-bg-secondary cursor-pointer" : "")">
+    <div class="card hover-interact qm-bg-body
+                @(EnabledFunc() ? "qm-hover-bg-secondary cursor-pointer border-" + CardBorderType : "")">
         <div class="card-body d-flex justify-content-between @(EnabledFunc() ? "" : "text-secondary")">
             <div>
                 @ChildContent

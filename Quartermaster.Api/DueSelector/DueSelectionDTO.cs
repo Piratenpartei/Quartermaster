@@ -7,8 +7,7 @@ public class DueSelectionDTO {
 
     public SelectedValuation SelectedValuation { get; set; }
 
-    // Yearly Income < 7200€ would result in a reduced membership fee
-    public decimal YearlyIncome { get; set; } = 7200;
+    public decimal YearlyIncome { get; set; }
     public decimal MonthlyIncomeGroup { get; set; }
     public decimal ReducedAmount { get; set; } = 12;
     public decimal SelectedDue { get; set; }

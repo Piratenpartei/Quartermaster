@@ -1,11 +1,14 @@
 ﻿using System;
+using LinqToDB.Mapping;
 using Quartermaster.Api.DueSelector;
 using Riok.Mapperly.Abstractions;
 
-namespace Quartermaster.Data.DueSelector; 
+namespace Quartermaster.Data.DueSelector;
 
+[Table("DueSelections", IsColumnAttributeRequired = false)]
 public class DueSelection {
-    public Guid Id { get; set; }
+    [PrimaryKey]
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? UserId { get; set; }
 
     public string? Name { get; set; }
@@ -25,7 +28,7 @@ public class DueSelection {
     public bool IsDirectDeposit { get; set; }
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
-    public PaymentScedule PaymentScedule { get; set; }
+    public PaymentScedule PaymentSchedule { get; set; }
 }
 
 [Mapper]

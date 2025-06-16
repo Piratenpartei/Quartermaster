@@ -26,4 +26,7 @@ public class AppStateService {
 
         throw new ArgumentException($"{typeof(T)} does not have a registered EntryState!");
     }
+
+    public void ResetEntryState<T>() where T : EntryStateBase, new()
+        => _entryStates[typeof(T)] = new T();
 }

@@ -11,6 +11,7 @@ public static class Program {
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
         builder.Services.AddSingleton<AppStateService>();
+        builder.Services.AddSingleton<ToastService>();
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

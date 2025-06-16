@@ -54,6 +54,8 @@ public static class Program {
         var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
         migrator.MigrateUp();
 
+        DbContext.SupplementDefaults(app.Services);
+
         app.UseCors("Default");
         app.UseHttpsRedirection();
 

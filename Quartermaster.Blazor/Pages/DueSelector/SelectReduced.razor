@@ -59,7 +59,7 @@
 
 <div class="mb-3">
     <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/SelectReduced")}")"
-              EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered>
+              EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered CardBorderType="warning">
         <span>Überspringen</span><br />
         @if (string.IsNullOrEmpty(EntryState.ReducedJustification)) {
             <span>Begründung ist ein Pflichtfeld.</span>

@@ -1,18 +1,14 @@
-﻿using Quartermaster.Data.Abstract;
+﻿using LinqToDB;
+using Quartermaster.Data.Abstract;
 
 namespace Quartermaster.Data.DueSelector; 
 
 public class DueSelectionRepository : RepositoryBase<DueSelection> {
-    private readonly SqlContext _context;
+    private readonly DbContext _context;
 
-    public DueSelectionRepository(SqlContext context) {
+    public DueSelectionRepository(DbContext context) {
         _context = context;
     }
 
-    //public DueSelection Create(DueSelection dueSelection) {
-    //    EnsureSetGuid(dueSelection, s => s.Id);
-
-    //    using var con = _context.GetConnection();
-
-    //}
+    public void Create(DueSelection selection) => _context.Insert(selection);
 }

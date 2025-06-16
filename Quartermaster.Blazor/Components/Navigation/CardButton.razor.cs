@@ -19,6 +19,9 @@ public partial class CardButton {
     [Parameter]
     public EventCallback<bool> HoveredChanged { get; set; }
 
+    [Parameter]
+    public string CardBorderType { get; set; } = "primary";
+
     private bool PointerInsideCard;
 
     public CardButton() {

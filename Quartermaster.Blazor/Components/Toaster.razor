@@ -1,0 +1,12 @@
+﻿<div class="toast-container">
+    @foreach (var toast in ToastService.Toasts) {
+        <div class="toast show @(toast.Type != "" ? "border-" + toast.Type : "")">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @toast.Content
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" @onclick=@(() => OnClose(toast))></button>
+            </div>
+        </div>
+    }
+</div>
