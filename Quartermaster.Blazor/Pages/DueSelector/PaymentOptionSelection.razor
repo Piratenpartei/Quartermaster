@@ -18,10 +18,11 @@
 <Collapsable Collapsed=!EntryState.IsDirectDeposit>
     <div class="mb-2">
         <label class="form-label">Kontoinhaber</label>
-        @if (EntryState.Name != EntryState.AccountHolder) {
+        @{ var fullName = EntryState.FirstName + " " + EntryState.LastName; }
+        @if (fullName != EntryState.AccountHolder) {
             <span> - </span>
             <a href="#" class="btn-link" @onclick=UseNameAsAccountHolder @onclick:preventDefault>
-                @EntryState.Name übernehmen
+                @fullName übernehmen
             </a>
         }
         <input type="email" class="form-control" @bind=EntryState.AccountHolder @bind:event="oninput" />

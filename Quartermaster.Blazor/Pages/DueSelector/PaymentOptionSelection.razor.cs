@@ -21,7 +21,7 @@ public partial class PaymentOptionSelection {
         if (EntryState == null)
             return;
 
-        EntryState.AccountHolder = EntryState.Name;
+        EntryState.AccountHolder = EntryState.FirstName + " " + EntryState.LastName;
     }
 
     private bool DisabledPaymentSchedule(PaymentScedule paymentScedule) {

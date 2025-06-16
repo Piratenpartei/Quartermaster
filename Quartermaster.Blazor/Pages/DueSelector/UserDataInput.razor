@@ -7,16 +7,22 @@
 @if (EntryState == null)
     return;
 
-<div class="mb-3">
-    <label class="form-label">Voller Name</label>
-    <input type="text" class="form-control" @bind=EntryState.Name @bind:event="oninput" />
+<div class="mb-3 d-flex flex-row">
+    <div class="flex-grow-1 pe-3">
+        <label class="form-label">Vorname <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.FirstName @bind:event="oninput" />
+    </div>
+    <div class="flex-grow-1">
+        <label class="form-label">Nachname <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.LastName @bind:event="oninput" />
+    </div>
 </div>
 <div class="mb-3">
-    <label class="form-label">E-Mail Adresse</label>
+    <label class="form-label">E-Mail Adresse <RequiredStar /></label>
     <input type="email" class="form-control" @bind=EntryState.Email @bind:event="oninput" />
 </div>
 <div class="mb-3">
-    <label class="form-label">Mitgliedsnummer</label>
+    <label class="form-label">Mitgliedsnummer <RequiredStar /></label>
     <input type="number" step="1" class="form-control" @bind=EntryState.MemberNumber @bind:event="oninput" />
 </div>
 

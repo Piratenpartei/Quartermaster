@@ -5,7 +5,8 @@ using Riok.Mapperly.Abstractions;
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public class DueSelectorEntryState : EntryStateBase {
-    public string Name { get; set; } = "";
+    public string FirstName { get; set; } = "";
+    public string LastName { get; set; } = "";
     public string Email { get; set; } = "";
     public int MemberNumber { get; set; }
 

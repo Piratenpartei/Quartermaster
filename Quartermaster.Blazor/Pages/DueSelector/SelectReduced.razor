@@ -13,8 +13,9 @@
             || !NextStepButtonHovered;
     }
 
-    <label class="form-label">Begründung</label>
-    <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" @bind=EntryState.ReducedJustification @bind:event="oninput" maxlength="2048"></textarea>
+    <label class="form-label">Begründung <RequiredStar /></label>
+    <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" @bind=EntryState.ReducedJustification
+              @bind:event="oninput" maxlength="2048"></textarea>
 </div>
 
 <div class="mb-3">
@@ -22,7 +23,7 @@
         var isInvalid = EntryState.ReducedAmount < 1;
     }
 
-    <label class="form-label">Jahreswunschbeitrag</label>
+    <label class="form-label">Jahreswunschbeitrag <RequiredStar /></label>
     <div class="input-group @(isInvalid ? "has-validation" : "")">
         <span class="input-group-text">€</span>
         <input type="number" class="form-control @(isInvalid ? "is-invalid" : "")" min="1"
