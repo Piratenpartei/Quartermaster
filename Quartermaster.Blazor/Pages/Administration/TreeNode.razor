@@ -1,0 +1,76 @@
+@using Quartermaster.Api.AdministrativeDivisions
+
+<div class="ms-3">
+    <div class="d-flex align-items-center py-1">
+        @if (Node.IsLeaf) {
+            <span class="me-2 text-secondary" style="width: 28px; text-align: center; display: inline-block;">
+                <i class="bi bi-dash"></i>
+            </span>
+        } else {
+            <button class="btn btn-sm btn-outline-secondary me-2 border-0"
+                    @onclick=Toggle style="width: 28px; height: 28px; padding: 0;">
+                @if (Node.Loading) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                } else if (Node.Expanded) {
+                    <i class="bi bi-chevron-down"></i>
+                } else {
+                    <i class="bi bi-chevron-right"></i>
+                }
+            </button>
+        }
+        <span class="me-2">@Node.Division.Name</span>
+        <span class="badge bg-secondary">@DepthLabel(Node.Division.Depth)</span>
+        @if (!string.IsNullOrEmpty(Node.Division.PostCodes)) {
+            <span class="ms-2 text-secondary small text-truncate" style="max-width: 200px;"
+                  title="@Node.Division.PostCodes">
+                PLZ: @Node.Division.PostCodes
+            </span>
+        }
+    </div>
+
+    @if (Node.Expanded && Node.Children != null) {
+        @foreach (var child in Node.Children) {
+            <TreeNode Node=child Http=Http />
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public required TreeNodeModel Node { get; set; }
+
+    [Parameter]
+    public required HttpClient Http { get; set; }
+
+    private async Task Toggle() {
+        if (Node.Loading)
+            return;
+
+        if (!Node.Expanded && Node.Children == null) {
+            Node.Loading = true;
+            StateHasChanged();
+
+            var children = await Http.GetFromJsonAsync<List<AdministrativeDivisionDTO>>(
+                $"/api/administrativedivisions/{Node.Division.Id}/children");
+
+            Node.Children = children?.Select(c => new TreeNodeModel(c)).ToList() ?? [];
+            Node.Loading = false;
+            Node.IsLeaf = Node.Children.Count == 0;
+        }
+
+        if (!Node.IsLeaf)
+            Node.Expanded = !Node.Expanded;
+        StateHasChanged();
+    }
+
+    private static string DepthLabel(int depth) => depth switch {
+        1 => "Welt",
+        3 => "Land",
+        4 => "Bundesland",
+        5 => "Regierungsbezirk",
+        6 => "Kreis",
+        7 => "Gemeinde",
+        8 => "Ort",
+        _ => depth.ToString()
+    };
+}

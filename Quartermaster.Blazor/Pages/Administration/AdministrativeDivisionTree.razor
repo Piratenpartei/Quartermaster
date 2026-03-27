@@ -1,0 +1,19 @@
+@page "/Administration/AdministrativeDivisionTree"
+
+<div class="mb-3">
+    <h3>Gemeindedatenbank - Struktur</h3>
+</div>
+
+@if (RootNodes == null) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+} else {
+    <div class="list-group">
+        @foreach (var node in RootNodes) {
+            <TreeNode Node=node Http=Http />
+        }
+    </div>
+}

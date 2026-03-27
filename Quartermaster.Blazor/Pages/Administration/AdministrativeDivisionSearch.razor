@@ -1,0 +1,50 @@
+@page "/Administration/AdministrativeDivisions"
+
+<div class="mb-3">
+    <h3>Gemeindedatenbank - Suche</h3>
+</div>
+
+<div class="mb-3">
+    <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control" placeholder="Name oder Postleitzahl..."
+               @bind=SearchQuery @bind:event="oninput" @onkeyup=OnSearchKeyUp />
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Ergebnisse
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Ebene</th>
+                <th>Verwaltungscode</th>
+                <th>Postleitzahlen</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var division in Response.Items) {
+                <tr>
+                    <td>@division.Name</td>
+                    <td>@DepthLabel(division.Depth)</td>
+                    <td><code>@division.AdminCode</code></td>
+                    <td class="text-truncate" style="max-width: 300px;" title="@division.PostCodes">
+                        @(division.PostCodes ?? "—")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}

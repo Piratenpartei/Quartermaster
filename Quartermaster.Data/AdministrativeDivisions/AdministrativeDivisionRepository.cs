@@ -35,6 +35,29 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
         }
     }
 
+    public List<AdministrativeDivision> GetRoots()
+        => _context.AdministrativeDivisions.Where(ad => ad.Depth == 1).OrderBy(ad => ad.Name).ToList();
+
+    public List<AdministrativeDivision> GetChildren(Guid parentId)
+        => _context.AdministrativeDivisions.Where(ad => ad.ParentId == parentId && ad.Id != parentId).OrderBy(ad => ad.Name).ToList();
+
+    public (List<AdministrativeDivision> Items, int TotalCount) Search(string? query, int page, int pageSize) {
+        var q = _context.AdministrativeDivisions.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query)) {
+            q = q.Where(ad => ad.Name.Contains(query)
+                || (ad.PostCodes != null && ad.PostCodes.Contains(query)));
+        }
+
+        var totalCount = q.Count();
+        var items = q.OrderBy(ad => ad.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (items, totalCount);
+    }
+
     public void SupplementFromFiles()
         => AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt", this);
     public void SupplementFromTestFiles()
