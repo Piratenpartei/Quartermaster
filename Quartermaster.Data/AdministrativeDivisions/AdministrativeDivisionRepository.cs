@@ -1,7 +1,9 @@
 ﻿using InterpolatedSql.Dapper;
 using LinqToDB;
+using LinqToDB.Data;
 using Quartermaster.Data.Abstract;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
@@ -18,7 +20,12 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
 
     public void Create(AdministrativeDivision division) => _context.Insert(division);
 
-    public void SupplementDefaults() {
+    public void CreateBulk(List<AdministrativeDivision> divisions) => _context.BulkCopy(divisions);
+
+    public void SupplementDefaults(bool includeFromFiles = false) {
+        if (includeFromFiles)
+            SupplementFromFiles();
+
         if (Get(Guid.Empty) == null) {
             Create(new AdministrativeDivision {
                 Id = Guid.Empty,
@@ -27,4 +34,9 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
             });
         }
     }
+
+    public void SupplementFromFiles()
+        => AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt", this);
+    public void SupplementFromTestFiles()
+        => AdministrativeDivisionLoader.Load("DE_Base_Test.txt", "DE_PostCodes_Test.txt", this);
 }

@@ -2,21 +2,24 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
-//AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt");
 public static class AdministrativeDivisionLoader {
-    public static void Load(string baseFilePath, string postcodeFilePath) {
+    public static void Load(string baseFilePath, string postcodeFilePath,
+        AdministrativeDivisionRepository adminDivRepo) {
         if (!File.Exists(baseFilePath) || !File.Exists(postcodeFilePath))
             throw new InvalidOperationException();
 
+        Console.WriteLine("Loading AdminDivs from files");
         var loadedDivisions = new Dictionary<string, AdminDivision>();
+        var otherDivisionsLookup = new Dictionary<string, List<AdminDivision>>();
+        var admin3Lookup = new Dictionary<string, List<AdminDivision>>();
         var world = AdminDivision.World;
         loadedDivisions.Add(world.GetAdminCode(), world);
 
         // Pass 1: Collect base data
+        Console.WriteLine("Loading AdminDivs: Pass 1");
         foreach (var line in File.ReadLines(baseFilePath)) {
             var adminDiv = AdminDivision.FromString(line);
             if (adminDiv == null)
@@ -33,9 +36,34 @@ public static class AdministrativeDivisionLoader {
 
             if (!loadedDivisions.ContainsKey(adminDiv.GetAdminCode()))
                 loadedDivisions.Add(adminDiv.GetAdminCode(), adminDiv);
+
+            if (adminDiv.Level == AdminLevel.Other) {
+                if (!otherDivisionsLookup.TryGetValue(adminDiv.GetParentAdminCode(), out var list)) {
+                    list = [];
+                    otherDivisionsLookup.Add(adminDiv.GetParentAdminCode(), list);
+                }
+
+                list.Add(adminDiv);
+            }
+
+            if (adminDiv.Level == AdminLevel.Admin3)
+                admin3Lookup.Add(adminDiv.GetAdminCode(), []);
         }
 
-        // Pass 2: Collect post codes
+        // Pass 2: Build Admin3 -> Admin4 Lookup
+        Console.WriteLine("Loading AdminDivs: Pass 2");
+        foreach (var adminDiv in loadedDivisions.Values) {
+            if (adminDiv.Level != AdminLevel.Admin4)
+                continue;
+
+            if (!admin3Lookup.TryGetValue(adminDiv.GetParentAdminCode(), out var list))
+                continue;
+
+            list.Add(adminDiv);
+        }
+
+        // Pass 3: Collect post codes
+        Console.WriteLine("Loading AdminDivs: Pass 3");
         foreach (var line in File.ReadLines(postcodeFilePath)) {
             var split = line.Split('\t');
             var postCodeStr = split[1];
@@ -50,50 +78,72 @@ public static class AdministrativeDivisionLoader {
 
             if (loadedDivisions.TryGetValue(admin3.ToString(), out var adminDiv))
                 adminDiv.PostCodes.Add(postCode);
-            if (loadedDivisions.TryGetValue(admin3 + "_" + name, out adminDiv))
-                adminDiv.PostCodes.Add(postCode);
+
+            if (admin3Lookup.TryGetValue(admin3.ToString(), out var admin4s)) {
+                foreach (var admin4 in admin4s) {
+                    if (admin4.Names.Contains(name)
+                        && otherDivisionsLookup.TryGetValue(admin4.GetAdminCode(), out var list)) {
+                        foreach (var ad in list)
+                            ad.PostCodes.Add(postCode);
+                    }
+                }
+            }
         }
 
-        File.WriteAllText(baseFilePath + ".json", JsonSerializer.Serialize(loadedDivisions));
+        // Pass 4: Pass PostCodes down
+        Console.WriteLine("Loading AdminDivs: Pass 4");
+        foreach (var adminDiv in loadedDivisions.Values) {
+            if (adminDiv.PostCodes.Count > 0 || adminDiv.Level < AdminLevel.Admin4)
+                continue;
 
-        var eberholzen = loadedDivisions.Values.FirstOrDefault(d
-            => d.Names.Any(n => n.Contains("Griedel")));
-        if (eberholzen == null) {
-            Console.WriteLine("Eberholzen is null");
-            return;
+            var parentCode = adminDiv.GetParentAdminCode();
+
+            if (adminDiv.Level == AdminLevel.Other) {
+                if (!loadedDivisions.TryGetValue(parentCode, out var a4))
+                    continue;
+
+                parentCode = a4.GetParentAdminCode();
+                foreach (var pc in a4.PostCodes)
+                    adminDiv.PostCodes.Add(pc);
+            }
+
+            if (adminDiv.PostCodes.Count == 0 && loadedDivisions.TryGetValue(parentCode, out var a3)) {
+                foreach (var pc in a3.PostCodes)
+                    adminDiv.PostCodes.Add(pc);
+            }
         }
 
-        var hierarchy = new List<AdminDivision> {
-            eberholzen
-        };
+        Console.WriteLine("Loading AdminDivs: Build");
+        var bulkData = new List<AdministrativeDivision>();
+        foreach (var adminDiv in loadedDivisions.Values.OrderBy(ad => ad.Level)) {
+            loadedDivisions.TryGetValue(adminDiv.GetParentAdminCode(), out var parent);
 
-        var currentAdminDiv = eberholzen;
-        while (currentAdminDiv.Level != AdminLevel.World) {
-            if (!loadedDivisions.TryGetValue(currentAdminDiv.GetParentAdminCode(), out var parent))
-                break;
-
-            currentAdminDiv = parent;
-            hierarchy.Add(currentAdminDiv);
-
-            if (currentAdminDiv.Level == AdminLevel.Undefined)
-                break;
+            bulkData.Add(new AdministrativeDivision {
+                Id = adminDiv.Id,
+                ParentId = parent?.Id,
+                Name = adminDiv.Names[0],
+                Depth = (int)adminDiv.Level,
+                AdminCode = adminDiv.GetAdminCode(),
+                PostCodes = string.Join(',', adminDiv.PostCodes)
+            });
         }
 
-        hierarchy.Reverse();
-        foreach (var adminDiv in hierarchy) {
-            Console.WriteLine($"Name: {adminDiv.Names[0]}, Level: {adminDiv.Level}, " +
-                $"PLZ: {(adminDiv.PostCodes.Count > 0 ? adminDiv.PostCodes.FirstOrDefault() : "N/A")}");
-        }
+        Console.WriteLine("Loading AdminDivs: Insert");
+        adminDivRepo.CreateBulk(bulkData);
+
+        Console.WriteLine("Loading AdminDivs: Done");
     }
 }
 
 internal class AdminDivision {
-    public static readonly AdminDivision World = new AdminDivision() {
+    public static readonly AdminDivision World = new() {
         CountryCode = "World",
         Level = AdminLevel.World,
         ParentLevel = AdminLevel.Undefined,
         Names = ["World"]
     };
+
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public List<string> Names { get; internal set; } = [];
     public HashSet<int> PostCodes { get; } = [];
@@ -117,7 +167,7 @@ internal class AdminDivision {
             AdminLevel.Admin2 => Admin2.ToString(),
             AdminLevel.Admin3 => Admin3.ToString(),
             AdminLevel.Admin4 => Admin4.ToString(),
-            AdminLevel.Other => Admin3 + "_" + Names[0],
+            AdminLevel.Other => Admin4 + "+" + Names[0],
             _ => CountryCode,
         };
     }

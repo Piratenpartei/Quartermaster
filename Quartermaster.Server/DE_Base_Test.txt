@@ -1,0 +1,16 @@
+2832819	Sibbesse	Sibbesse	Sibbesse,Zibbesse,Zibese,xi bei sai,Зиббессе,Зибесе,西贝塞	52.05	9.9	P	PPLA4	DE		06	00	03254	03254045	2810		191	Europe/Berlin	2018-04-14
+6552469	Adenstedt	Adenstedt	Adenstedt (Samtgemeinde Sibbesse),Ahnstie,Oahnstie	52	9.93333	A	ADM4H	DE		06	00	03254	03254001	1020		201	Europe/Berlin	2018-04-13
+6552489	Sibbesse	Sibbesse	03254045	52.05	9.9	A	ADM4	DE		06	00	03254	03254045	5766		191	Europe/Berlin	2022-10-25
+2805998	Wrisbergholzen	Wrisbergholzen	Wrisbergholzen	52.02977	9.91224	P	PPL	DE		06	00	03254	03254045	0		189	Europe/Berlin	2018-12-04
+2810148	Westfeld	Westfeld		52.05	9.91667	P	PPLA4	DE		06	00	03254	03254045	956		181	Europe/Berlin	2018-04-14
+2833203	Sellenstedt	Sellenstedt	Sellenstie,Sellstie	52.01426	9.93473	P	PPL	DE		06	00	03254	03254045	0		181	Europe/Berlin	2018-04-14
+2833523	Segeste	Segeste		52.03729	9.94417	P	PPL	DE		06	00	03254	03254045	0		144	Europe/Berlin	2018-04-14
+2854553	Petze	Petze		52.05407	9.93301	P	PPL	DE		06	00	03254	03254045	0		171	Europe/Berlin	2018-04-14
+2870016	Möllensen	Moellensen		52.06574	9.88983	P	PPL	DE		06	00	03254	03254045	0		150	Europe/Berlin	2018-04-14
+2899298	Hönze	Hoenze		52.06808	9.87708	P	PPL	DE		06	00	03254	03254045	0		140	Europe/Berlin	2018-04-14
+2918369	Grafelde	Grafelde	Grafeln,Groafeln	52.02335	9.92254	P	PPL	DE		06	00	03254	03254045	0		184	Europe/Berlin	2018-04-14
+2933994	Eberholzen	Eberholzen		52.05	9.85	P	PPLA4	DE		06	00	03254	03254045	633		210	Europe/Berlin	2020-11-12
+2958211	Almstedt	Almstedt	Al'mshtedt,Almshtet,almstd,Алмштет,Альмштедт,المستد	52.03243	9.96151	P	PPLA4	DE		06	00	03254	03254045	992		132	Europe/Berlin	2018-04-14
+2904789	Hildesheim	Hildesheim	Chilnteschaim,Gil'dehsgajm,Gil'desgajm,Hildesheim,Hildesheima,Hildesheimas,Hildesia,Hilmessen,Khil'deskhajm,Khildeskhajm,ZNO,hildeseuhaim,hirudesuhaimu,hyldshaym,hyldshyym,hylds‌haym,xi er de si hai mu,Χίλντεσχαϊμ,Гільдесгайм,Гільдэсгайм,Хилдесхайм,Хилдесхајм,Хильдесхайм,הילדסהיים,هيلدسهايم,هیلدس‌هایم,ہیلڈشیم,ヒルデスハイム,希尔德斯海姆,힐데스하임	52.15077	9.95112	P	PPLA3	DE		06	00	03254	03254021	103052	93	92	Europe/Berlin	2019-09-05
+6557424	Hildesheim	Hildesheim	03254021,Chilnteschaim,Gil'dehsgajm,Gil'desgajm,Hildeshaym,Hildesheim,Hildesheima,Hildesheimas,Hildesia,Hilmessen,Khil'deskhajm,Khildeskhajm,Stadt Hildesheim,haildeseym,hiladese'ima,hildase'ima,hildesa'ima,hildesaima,hildeseuhaim,hildeshaimi,hildeshim,hildis haim,hiltasim,hirudesuhaimu,hyldshaym,hyldshyym,xi di kan,xi er de si hai mu,Χίλντεσχαϊμ,Гільдесгайм,Гільдэсгайм,Хилдесхайм,Хилдесхајм,Хильдесхайм,Һилдесһайм,Հիլդեսհայմ,הילדסהיים,هيلدسهايم,هیلدس‌هایم,ھێلدس ھایم,ہیلڈشیم,ہیلڈیشیام,हिल्डशेइम,हिल्डेशाईम,হিলডেশেইম,હિલ્ડેશૈમ,ஹில்டஷிம்,హిల్డిస్ హైమ్,ಹೈಲ್ಡೆಶೇಯ್ಮ್,හිල්ඩසයිම්,ฮิลเดสไฮม์,ჰილდესჰაიმი,ヒルデスハイム,喜迪堪,希尔德斯海姆,希爾德斯海姆,힐데스하임	52.1531	9.95553	A	ADM4	DE		06	00	03254	03254021	100319		92	Europe/Berlin	2022-10-25
+2803461	Landkreis Hildesheim	Landkreis Hildesheim	Arrondissement de Hildesheim,Circondario di Hildesheim,DE925,Distrikto Hildesheim,Distrito de Hildesheim,HI,Hildesheim,Landkreis Hildesheim,Landkreis Hildesheim-Marienburg,Loundkring Hildesheim,Powiat Hildesheim,xi er de si hai mu xian,希尔德斯海姆县	52.12667	9.965	A	ADM3	DE		06	00	03254		274773		80	Europe/Berlin	2022-10-25

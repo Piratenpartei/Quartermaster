@@ -36,7 +36,7 @@ public class DbContext : DataConnection {
 
     public static void SupplementDefaults(IServiceProvider services) {
         using var scope = services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults();
+        scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults(true);
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(
             services.GetRequiredService<IOptions<RootAccountSettings>>().Value);

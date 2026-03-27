@@ -12,6 +12,6 @@ public class AdministrativeDivision {
     public string Name { get; set; } = "";
     public int Depth { get; set; }
 
-    public int? AdminCode { get; set; }
-    public string? PostCode { get; set; }
+    public string? AdminCode { get; set; }
+    public string? PostCodes { get; set; }
 }

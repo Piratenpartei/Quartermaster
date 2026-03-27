@@ -14,8 +14,6 @@ namespace Quartermaster.Server;
 
 public static class Program {
     public static void Main(string[] args) {
-        //AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt");
-
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
@@ -30,7 +28,7 @@ public static class Program {
                 var connStr = builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString");
 
                 rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
-                    .ScanIn(typeof(Migrations_0).Assembly).For.Migrations();
+                    .ScanIn(typeof(M001_InitialStructureMigration).Assembly).For.Migrations();
             });
 
         builder.Services.AddLinqToDBContext<DbContext>((provider, options)
@@ -52,6 +50,12 @@ public static class Program {
 
         using var scope = app.Services.CreateScope();
         var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+
+#if DEBUG
+        if (migrator.HasMigrationsToApplyDown(0))
+            migrator.MigrateDown(0);
+#endif
+
         migrator.MigrateUp();
 
         DbContext.SupplementDefaults(app.Services);

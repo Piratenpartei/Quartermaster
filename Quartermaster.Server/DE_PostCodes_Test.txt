@@ -1,0 +1,5 @@
+DE	31079	Adenstedt	Niedersachsen	NI		00	Landkreis Hildesheim	03254	51.9985	9.9352	4
+DE	31079	Eberholzen	Niedersachsen	NI		00	Landkreis Hildesheim	03254	52.05	9.85	4
+DE	31079	Westfeld	Niedersachsen	NI		00	Landkreis Hildesheim	03254	52.05	9.9167	4
+DE	31079	Sibbesse	Niedersachsen	NI		00	Landkreis Hildesheim	03254	52.05	9.9	4
+DE	31079	Almstedt	Niedersachsen	NI		00	Landkreis Hildesheim	03254	52.0324	9.9615	4
