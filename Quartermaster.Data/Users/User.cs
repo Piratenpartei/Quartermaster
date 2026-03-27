@@ -3,8 +3,10 @@ using LinqToDB.Mapping;
 
 namespace Quartermaster.Data.Users;
 
-[Table("Users", IsColumnAttributeRequired = false)]
+[Table(TableName, IsColumnAttributeRequired = false)]
 public class User {
+    public const string TableName = "Users";
+
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
 

@@ -3,8 +3,10 @@ using LinqToDB.Mapping;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
-[Table("AdministrativeDivisions", IsColumnAttributeRequired = false)]
+[Table(TableName, IsColumnAttributeRequired = false)]
 public class AdministrativeDivision {
+    public const string TableName = "AdministrativeDivisions";
+
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? ParentId { get; set; }

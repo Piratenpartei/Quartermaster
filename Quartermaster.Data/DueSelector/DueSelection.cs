@@ -5,15 +5,17 @@ using Riok.Mapperly.Abstractions;
 
 namespace Quartermaster.Data.DueSelector;
 
-[Table("DueSelections", IsColumnAttributeRequired = false)]
+[Table(TableName, IsColumnAttributeRequired = false)]
 public class DueSelection {
+    public const string TableName = "DueSelections";
+
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? UserId { get; set; }
 
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public string? Email { get; set; }
+    public string? EMail { get; set; }
     public int? MemberNumber { get; set; }
 
     public SelectedValuation SelectedValuation { get; set; }

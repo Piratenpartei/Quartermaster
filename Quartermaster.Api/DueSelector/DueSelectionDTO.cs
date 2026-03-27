@@ -3,7 +3,7 @@
 public class DueSelectionDTO {
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public string Email { get; set; } = "";
+    public string EMail { get; set; } = "";
     public int MemberNumber { get; set; }
 
     public SelectedValuation SelectedValuation { get; set; }

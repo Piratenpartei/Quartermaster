@@ -21,7 +21,7 @@ public partial class UserDataInput {
             return false;
         if (string.IsNullOrEmpty(EntryState.LastName))
             return false;
-        if (string.IsNullOrEmpty(EntryState.Email))
+        if (string.IsNullOrEmpty(EntryState.EMail))
             return false;
         if (EntryState.MemberNumber == 0)
             return false;

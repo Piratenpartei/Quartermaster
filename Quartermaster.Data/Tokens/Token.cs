@@ -8,8 +8,10 @@ using Quartermaster.Data.Users;
 
 namespace Quartermaster.Data.Tokens;
 
-[Table("Tokens", IsColumnAttributeRequired = false)]
+[Table(TableName, IsColumnAttributeRequired = false)]
 public class Token {
+    public const string TableName = "Tokens";
+
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? UserId { get; set; }
