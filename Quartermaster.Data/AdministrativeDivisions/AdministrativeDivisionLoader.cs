@@ -121,7 +121,7 @@ public static class AdministrativeDivisionLoader {
             bulkData.Add(new AdministrativeDivision {
                 Id = adminDiv.Id,
                 ParentId = parent?.Id,
-                Name = adminDiv.Names[0],
+                Name = PickGermanName(adminDiv.Names),
                 Depth = (int)adminDiv.Level,
                 AdminCode = adminDiv.GetAdminCode(),
                 PostCodes = string.Join(',', adminDiv.PostCodes)
@@ -132,6 +132,34 @@ public static class AdministrativeDivisionLoader {
         adminDivRepo.CreateBulk(bulkData);
 
         Console.WriteLine("Loading AdminDivs: Done");
+    }
+
+    private static readonly char[] GermanChars = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
+
+    private static readonly string[] GermanPrefixes = ["Land ", "Freistaat ", "Freie und Hansestadt ", "Freie Hansestadt "];
+
+    private static string PickGermanName(List<string> names) {
+        if (names.Count <= 1)
+            return names[0];
+
+        // Collect candidates from official German naming patterns (Land X, Freistaat X, etc.)
+        string? lastCandidate = null;
+        foreach (var name in names.Skip(1)) {
+            foreach (var prefix in GermanPrefixes) {
+                if (!name.StartsWith(prefix, StringComparison.Ordinal) || name.Length <= prefix.Length)
+                    continue;
+
+                var candidate = name[prefix.Length..];
+
+                // Prefer the variant with German-specific characters (umlauts)
+                if (candidate.IndexOfAny(GermanChars) >= 0)
+                    return candidate;
+
+                lastCandidate = candidate;
+            }
+        }
+
+        return lastCandidate ?? names[0];
     }
 }
 
