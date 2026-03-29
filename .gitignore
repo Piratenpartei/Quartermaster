@@ -368,3 +368,6 @@ FodyWeavers.xsd
 
 /Quartermaster.Server/appsettings.json
 /Quartermaster.Server/appsettings.Development.json
+
+# Local build config (SMB workaround)
+Directory.Build.props

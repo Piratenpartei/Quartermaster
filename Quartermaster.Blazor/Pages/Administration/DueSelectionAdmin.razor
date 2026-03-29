@@ -1,0 +1,73 @@
+@page "/Administration/DueSelections"
+@using Quartermaster.Api.DueSelector
+@using System.Globalization
+
+<div class="mb-3">
+    <h3>Verwaltung - Beitragseinstufungen</h3>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Status</label>
+    <select class="form-select" style="width: auto;" @onchange="OnStatusChanged">
+        <option value="">Alle</option>
+        <option value="0" selected>Ausstehend</option>
+        <option value="1">Genehmigt</option>
+        <option value="2">Abgelehnt</option>
+        <option value="3">Automatisch genehmigt</option>
+    </select>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Einstufungen
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>E-Mail</th>
+                <th>Gewählter Beitrag</th>
+                <th>Geminderter Betrag</th>
+                <th>Begründung</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ds in Response.Items) {
+                <tr>
+                    <td><a href="/Administration/DueSelections/@ds.Id">@ds.FirstName @ds.LastName</a></td>
+                    <td>@ds.EMail</td>
+                    <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                    <td>
+                        @if (ds.SelectedValuation == 4) {
+                            @ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))
+                        } else {
+                            <span class="text-secondary">—</span>
+                        }
+                    </td>
+                    <td class="text-truncate" style="max-width: 250px;" title="@ds.ReducedJustification">
+                        @(string.IsNullOrEmpty(ds.ReducedJustification) ? "—" : ds.ReducedJustification)
+                    </td>
+                    <td>
+                        @if (ds.Status == 0) {
+                            <span class="badge border border-warning text-warning-emphasis">Ausstehend</span>
+                        } else if (ds.Status == 1) {
+                            <span class="badge border border-success text-success-emphasis">Genehmigt</span>
+                        } else if (ds.Status == 2) {
+                            <span class="badge border border-danger text-danger-emphasis">Abgelehnt</span>
+                        } else {
+                            <span class="badge border border-info text-info-emphasis">Auto</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}

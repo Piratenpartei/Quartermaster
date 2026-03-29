@@ -1,0 +1,166 @@
+@page "/Administration/MembershipApplications/{Id:guid}"
+@using Quartermaster.Api.MembershipApplications
+@using System.Globalization
+
+<div class="mb-3">
+    <a href="/Administration/MembershipApplications" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (App == null) {
+    <div class="alert alert-danger">Antrag nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Mitgliedsantrag — @App.FirstName @App.LastName</h3>
+        @if (App.Status == 0) {
+            <span class="badge border border-warning text-warning-emphasis fs-6">Ausstehend</span>
+        } else if (App.Status == 1) {
+            <span class="badge border border-success text-success-emphasis fs-6">Genehmigt</span>
+        } else {
+            <span class="badge border border-danger text-danger-emphasis fs-6">Abgelehnt</span>
+        }
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Persönliche Daten</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Vorname</th><td>@App.FirstName</td></tr>
+                    <tr><th>Nachname</th><td>@App.LastName</td></tr>
+                    <tr><th>Geburtsdatum</th><td>@App.DateOfBirth.ToString("dd.MM.yyyy")</td></tr>
+                    <tr><th>Staatsangehörigkeit</th><td>@App.Citizenship</td></tr>
+                    <tr><th>E-Mail</th><td>@App.EMail</td></tr>
+                    <tr>
+                        <th>Telefon</th>
+                        <td>@(string.IsNullOrEmpty(App.PhoneNumber) ? "—" : App.PhoneNumber)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Adresse</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Straße</th><td>@App.AddressStreet @App.AddressHouseNbr</td></tr>
+                    <tr><th>PLZ / Ort</th><td>@App.AddressPostCode @App.AddressCity</td></tr>
+                    <tr><th>Gliederung</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "—" : App.ChapterName)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (App.DueSelection != null) {
+        var ds = App.DueSelection;
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Beitragseinstufung</h5>
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <th style="width:200px">Einstufungsart</th>
+                            <td>@ValuationLabel(ds.SelectedValuation)</td>
+                        </tr>
+                        <tr>
+                            <th>Jahresbeitrag</th>
+                            <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                        </tr>
+                        @if (ds.SelectedValuation == 4) {
+                            <tr>
+                                <th>Geminderter Betrag</th>
+                                <td>@ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                            </tr>
+                            <tr>
+                                <th>Begründung</th>
+                                <td>@ds.ReducedJustification</td>
+                            </tr>
+                        }
+                        <tr>
+                            <th>Beitragsstatus</th>
+                            <td>@DueStatusLabel(ds.Status)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Erklärungen</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width:200px">Konformitätserklärung</th>
+                        <td>
+                            @if (App.ConformityDeclarationAccepted) {
+                                <span><i class="bi bi-check-circle-fill text-success"></i> Akzeptiert</span>
+                            } else {
+                                <span><i class="bi bi-x-circle-fill text-danger"></i> Nicht akzeptiert</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Früherer Antrag abgelehnt</th>
+                        <td>
+                            @if (App.HasPriorDeclinedApplication) {
+                                <span><i class="bi bi-exclamation-triangle-fill text-warning"></i> Ja</span>
+                            } else {
+                                <span>Nein</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Mitglied anderer Partei</th>
+                        <td>
+                            @if (App.IsMemberOfAnotherParty) {
+                                <span><i class="bi bi-exclamation-triangle-fill text-warning"></i> Ja</span>
+                            } else {
+                                <span>Nein</span>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            @if (!string.IsNullOrEmpty(App.ApplicationText)) {
+                <hr />
+                <h6>Nachricht</h6>
+                <p class="mb-0">@App.ApplicationText</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Zeitangaben</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Eintritt zum</th><td>@App.EntryDate.ToString("dd.MM.yyyy")</td></tr>
+                    <tr><th>Eingereicht am</th><td>@App.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    @if (App.ProcessedAt != null) {
+                        <tr><th>Bearbeitet am</th><td>@App.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (App.Status == 0) {
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" @onclick="() => Process(1)">
+                <i class="bi bi-check-lg"></i> Genehmigen
+            </button>
+            <button class="btn btn-danger" @onclick="() => Process(2)">
+                <i class="bi bi-x-lg"></i> Ablehnen
+            </button>
+        </div>
+    }
+}

@@ -1,0 +1,133 @@
+@page "/Administration/DueSelections/{Id:guid}"
+@using Quartermaster.Api.DueSelector
+@using System.Globalization
+
+<div class="mb-3">
+    <a href="/Administration/DueSelections" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Selection == null) {
+    <div class="alert alert-danger">Einstufung nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Beitragseinstufung — @Selection.FirstName @Selection.LastName</h3>
+        @if (Selection.Status == 0) {
+            <span class="badge border border-warning text-warning-emphasis fs-6">Ausstehend</span>
+        } else if (Selection.Status == 1) {
+            <span class="badge border border-success text-success-emphasis fs-6">Genehmigt</span>
+        } else if (Selection.Status == 2) {
+            <span class="badge border border-danger text-danger-emphasis fs-6">Abgelehnt</span>
+        } else {
+            <span class="badge border border-info text-info-emphasis fs-6">Automatisch genehmigt</span>
+        }
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Person</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Vorname</th><td>@Selection.FirstName</td></tr>
+                    <tr><th>Nachname</th><td>@Selection.LastName</td></tr>
+                    <tr><th>E-Mail</th><td>@(Selection.EMail ?? "—")</td></tr>
+                    <tr>
+                        <th>Mitgliedsnummer</th>
+                        <td>@(Selection.MemberNumber?.ToString() ?? "—")</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Einstufung</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width:200px">Einstufungsart</th>
+                        <td>@ValuationLabel(Selection.SelectedValuation)</td>
+                    </tr>
+                    <tr>
+                        <th>Jahresbeitrag</th>
+                        <td><strong>@Selection.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></td>
+                    </tr>
+                    @if (Selection.SelectedValuation == 2) {
+                        <tr>
+                            <th>Jahreseinkommen</th>
+                            <td>@Selection.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                        </tr>
+                    }
+                    @if (Selection.SelectedValuation == 1) {
+                        <tr>
+                            <th>Monatseinkommen</th>
+                            <td>@Selection.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                        </tr>
+                    }
+                    @if (Selection.SelectedValuation == 4) {
+                        <tr>
+                            <th>Geminderter Betrag</th>
+                            <td>@Selection.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                        </tr>
+                        <tr>
+                            <th>Begründung</th>
+                            <td>@Selection.ReducedJustification</td>
+                        </tr>
+                        <tr>
+                            <th>Minderungszeitraum</th>
+                            <td>@(Selection.ReducedTimeSpan == 0 ? "Ein Jahr" : "Dauerhaft")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Zahlungsweise</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width:200px">Zahlungsart</th>
+                        <td>@(Selection.IsDirectDeposit ? "Lastschrift" : "Überweisung")</td>
+                    </tr>
+                    @if (Selection.IsDirectDeposit) {
+                        <tr><th>Kontoinhaber</th><td>@Selection.AccountHolder</td></tr>
+                        <tr><th>IBAN</th><td>@Selection.IBAN</td></tr>
+                    }
+                    <tr>
+                        <th>Zahlungsplan</th>
+                        <td>@PaymentLabel(Selection.PaymentSchedule)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Selection.ProcessedAt != null) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Bearbeitung</h5>
+                <p class="mb-0">Bearbeitet am @Selection.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")</p>
+            </div>
+        </div>
+    }
+
+    @if (Selection.Status == 0) {
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" @onclick="() => Process(1)">
+                <i class="bi bi-check-lg"></i> Genehmigen
+            </button>
+            <button class="btn btn-danger" @onclick="() => Process(2)">
+                <i class="bi bi-x-lg"></i> Ablehnen
+            </button>
+        </div>
+    }
+}

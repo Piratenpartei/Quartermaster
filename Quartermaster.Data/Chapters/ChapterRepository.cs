@@ -42,6 +42,27 @@ public class ChapterRepository {
         return chapters[0];
     }
 
+    public List<Guid> GetDescendantIds(Guid chapterId) {
+        var result = new List<Guid> { chapterId };
+        var queue = new Queue<Guid>();
+        queue.Enqueue(chapterId);
+
+        while (queue.Count > 0) {
+            var parentId = queue.Dequeue();
+            var children = _context.Chapters
+                .Where(c => c.ParentChapterId == parentId && c.Id != parentId)
+                .Select(c => c.Id)
+                .ToList();
+
+            foreach (var childId in children) {
+                result.Add(childId);
+                queue.Enqueue(childId);
+            }
+        }
+
+        return result;
+    }
+
     public void SupplementDefaults(AdministrativeDivisions.AdministrativeDivisionRepository adminDivRepo) {
         if (_context.Chapters.Any())
             return;

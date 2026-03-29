@@ -32,6 +32,18 @@ public class DueSelection {
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
     public PaymentScedule PaymentSchedule { get; set; }
+
+    // Processing
+    public DueSelectionStatus Status { get; set; }
+    public Guid? ProcessedByUserId { get; set; }
+    public DateTime? ProcessedAt { get; set; }
+}
+
+public enum DueSelectionStatus {
+    Pending,
+    Approved,
+    Rejected,
+    AutoApproved
 }
 
 [Mapper]

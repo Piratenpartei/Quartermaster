@@ -1,0 +1,76 @@
+@page "/Administration/MembershipApplications"
+@using Quartermaster.Api.MembershipApplications
+@using Quartermaster.Api.Chapters
+@using System.Globalization
+
+<div class="mb-3">
+    <h3>Verwaltung - Mitgliedsanträge</h3>
+</div>
+
+<div class="mb-3 d-flex gap-3">
+    <div>
+        <label class="form-label">Gliederung</label>
+        <select class="form-select" @onchange="OnChapterChanged">
+            <option value="">Alle Gliederungen</option>
+            @if (Chapters != null) {
+                @foreach (var chapter in Chapters) {
+                    <option value="@chapter.Id">@chapter.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div>
+        <label class="form-label">Status</label>
+        <select class="form-select" @onchange="OnStatusChanged">
+            <option value="">Alle</option>
+            <option value="0" selected>Ausstehend</option>
+            <option value="1">Genehmigt</option>
+            <option value="2">Abgelehnt</option>
+        </select>
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Anträge
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>E-Mail</th>
+                <th>Ort</th>
+                <th>Gliederung</th>
+                <th>Status</th>
+                <th>Eingereicht</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var app in Response.Items) {
+                <tr>
+                    <td><a href="/Administration/MembershipApplications/@app.Id">@app.FirstName @app.LastName</a></td>
+                    <td>@app.EMail</td>
+                    <td>@app.AddressCity</td>
+                    <td>@app.ChapterName</td>
+                    <td>
+                        @if (app.Status == 0) {
+                            <span class="badge border border-warning text-warning-emphasis">Ausstehend</span>
+                        } else if (app.Status == 1) {
+                            <span class="badge border border-success text-success-emphasis">Genehmigt</span>
+                        } else {
+                            <span class="badge border border-danger text-danger-emphasis">Abgelehnt</span>
+                        }
+                    </td>
+                    <td>@app.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}

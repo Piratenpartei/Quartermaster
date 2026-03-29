@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetSaml" Version="2.1.2" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
     <PackageReference Include="FastEndpoints" Version="5.34.0" />
     <PackageReference Include="FluentMigrator" Version="6.2.0" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />

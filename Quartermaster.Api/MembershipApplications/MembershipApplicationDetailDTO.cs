@@ -1,14 +1,10 @@
 using System;
-using LinqToDB.Mapping;
+using Quartermaster.Api.DueSelector;
 
-namespace Quartermaster.Data.MembershipApplications;
+namespace Quartermaster.Api.MembershipApplications;
 
-[Table(TableName, IsColumnAttributeRequired = false)]
-public class MembershipApplication {
-    public const string TableName = "MembershipApplications";
-
-    [PrimaryKey]
-    public Guid Id { get; set; } = Guid.NewGuid();
+public class MembershipApplicationDetailDTO {
+    public Guid Id { get; set; }
 
     // Personal data
     public string FirstName { get; set; } = "";
@@ -23,13 +19,13 @@ public class MembershipApplication {
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
-    public Guid? AddressAdministrativeDivisionId { get; set; }
 
     // Chapter
     public Guid? ChapterId { get; set; }
+    public string ChapterName { get; set; } = "";
 
-    // Dues (references the DueSelection created alongside)
-    public Guid? DueSelectionId { get; set; }
+    // Dues
+    public DueSelectionAdminDTO? DueSelection { get; set; }
 
     // Declarations
     public bool ConformityDeclarationAccepted { get; set; }
@@ -37,18 +33,11 @@ public class MembershipApplication {
     public bool IsMemberOfAnotherParty { get; set; }
     public string ApplicationText { get; set; } = "";
 
-    // Entry date
+    // Dates
     public DateTime EntryDate { get; set; }
     public DateTime SubmittedAt { get; set; }
 
     // Processing
-    public ApplicationStatus Status { get; set; }
-    public Guid? ProcessedByUserId { get; set; }
+    public int Status { get; set; }
     public DateTime? ProcessedAt { get; set; }
-}
-
-public enum ApplicationStatus {
-    Pending,
-    Approved,
-    Rejected
 }

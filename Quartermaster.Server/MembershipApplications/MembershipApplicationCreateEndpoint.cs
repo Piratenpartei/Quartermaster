@@ -28,6 +28,9 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
         Guid? dueSelectionId = null;
         if (req.DueSelection != null) {
             var dueSelection = DueSelectionMapper.FromDto(req.DueSelection);
+            dueSelection.Status = dueSelection.SelectedValuation == SelectedValuation.Reduced
+                ? DueSelectionStatus.Pending
+                : DueSelectionStatus.AutoApproved;
             _dueSelectionRepository.Create(dueSelection);
             dueSelectionId = dueSelection.Id;
         }
@@ -35,6 +38,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
         var application = MembershipApplicationMapper.FromDto(req);
         application.DueSelectionId = dueSelectionId;
         application.SubmittedAt = DateTime.UtcNow;
+        application.Status = ApplicationStatus.Pending;
         _applicationRepository.Create(application);
 
         await SendOkAsync(ct);

@@ -91,3 +91,18 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Konformitätserklärung | Conformity Declaration | Acceptance of party principles and statutes |
 | Eintritt zum | Entry Date | Date of joining |
 | Mitgliedsantrag absenden | Submit Membership Application | |
+
+## Administration
+
+| German | English | Notes |
+|---|---|---|
+| Ausstehend | Pending | Application/due selection status |
+| Genehmigt | Approved | |
+| Abgelehnt | Rejected | |
+| Automatisch genehmigt | Auto-Approved | Non-reduced dues |
+| Anträge | Applications | |
+| Einstufungen | Classifications / Selections | Due selections |
+| Aktionen | Actions | |
+| Eingereicht | Submitted | |
+| Gewählter Beitrag | Selected Dues | |
+| Geminderter Betrag | Reduced Amount | |

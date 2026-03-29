@@ -148,10 +148,17 @@ public class M001_InitialStructureMigration : Migration {
             .WithColumn(nameof(DueSelection.IsDirectDeposit)).AsBoolean()
             .WithColumn(nameof(DueSelection.AccountHolder)).AsString(256)
             .WithColumn(nameof(DueSelection.IBAN)).AsString(64)
-            .WithColumn(nameof(DueSelection.PaymentSchedule)).AsInt32();
+            .WithColumn(nameof(DueSelection.PaymentSchedule)).AsInt32()
+            .WithColumn(nameof(DueSelection.Status)).AsInt32()
+            .WithColumn(nameof(DueSelection.ProcessedByUserId)).AsGuid().Nullable()
+            .WithColumn(nameof(DueSelection.ProcessedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_DueSelections_UserId_User_Id")
             .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
+        Create.ForeignKey("FK_DueSelections_ProcessedByUserId_Users_Id")
+            .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.ProcessedByUserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
 
         Create.Table(MembershipApplication.TableName)
@@ -174,7 +181,10 @@ public class M001_InitialStructureMigration : Migration {
             .WithColumn(nameof(MembershipApplication.IsMemberOfAnotherParty)).AsBoolean()
             .WithColumn(nameof(MembershipApplication.ApplicationText)).AsString(2048)
             .WithColumn(nameof(MembershipApplication.EntryDate)).AsDateTime()
-            .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsDateTime();
+            .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsDateTime()
+            .WithColumn(nameof(MembershipApplication.Status)).AsInt32()
+            .WithColumn(nameof(MembershipApplication.ProcessedByUserId)).AsGuid().Nullable()
+            .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))
@@ -187,9 +197,18 @@ public class M001_InitialStructureMigration : Migration {
         Create.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.DueSelectionId))
             .ToTable(DueSelection.TableName).PrimaryColumn(nameof(DueSelection.Id));
+
+        Create.ForeignKey("FK_MemberApps_ProcessedByUserId_Users_Id")
+            .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.ProcessedByUserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
     }
 
     public override void Down() {
+        Delete.ForeignKey("FK_MemberApps_ProcessedByUserId_Users_Id")
+            .OnTable(MembershipApplication.TableName);
+        Delete.ForeignKey("FK_DueSelections_ProcessedByUserId_Users_Id")
+            .OnTable(DueSelection.TableName);
+
         Delete.ForeignKey("FK_DueSelections_UserId_User_Id")
             .OnTable(DueSelection.TableName);
 

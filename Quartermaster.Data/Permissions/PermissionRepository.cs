@@ -22,6 +22,10 @@ public class PermissionRepository {
     public void SupplementDefaults() {
 		AddIfNotExists(PermissionIdentifier.CreateUser, "Benutzer Erstellen", true);
 		AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
+        AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);
+        AddIfNotExists(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge Bearbeiten", false);
+        AddIfNotExists(PermissionIdentifier.ViewDueSelections, "Beitragseinstufungen Einsehen", false);
+        AddIfNotExists(PermissionIdentifier.ProcessDueSelections, "Beitragseinstufungen Bearbeiten", false);
 	}
 
 	private void AddIfNotExists(string identifier, string displayName, bool global) {
