@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Motions;
 
 namespace Quartermaster.Server.Admin;
 
@@ -15,9 +16,11 @@ public class DueSelectionDetailEndpoint
     : Endpoint<DueSelectionDetailRequest, DueSelectionDetailDTO> {
 
     private readonly DueSelectionRepository _dueSelectionRepo;
+    private readonly MotionRepository _motionRepo;
 
-    public DueSelectionDetailEndpoint(DueSelectionRepository dueSelectionRepo) {
+    public DueSelectionDetailEndpoint(DueSelectionRepository dueSelectionRepo, MotionRepository motionRepo) {
         _dueSelectionRepo = dueSelectionRepo;
+        _motionRepo = motionRepo;
     }
 
     public override void Configure() {
@@ -50,7 +53,8 @@ public class DueSelectionDetailEndpoint
             IBAN = ds.IBAN,
             PaymentSchedule = (int)ds.PaymentSchedule,
             Status = (int)ds.Status,
-            ProcessedAt = ds.ProcessedAt
+            ProcessedAt = ds.ProcessedAt,
+            LinkedMotionId = _motionRepo.GetByLinkedDueSelectionId(ds.Id)?.Id
         }, cancellation: ct);
     }
 }

@@ -1,0 +1,45 @@
+@page "/Motions/Create"
+@using Quartermaster.Api.Motions
+@using Quartermaster.Api.Chapters
+
+<div class="mb-3">
+    <h3>Antrag einreichen</h3>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Gliederung <RequiredStar /></label>
+    <select class="form-select" @bind="SelectedChapterId">
+        <option value="">- Bitte auswählen -</option>
+        @if (Chapters != null) {
+            @foreach (var chapter in Chapters) {
+                <option value="@chapter.Id">@chapter.Name</option>
+            }
+        }
+    </select>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Dein Name <RequiredStar /></label>
+    <input type="text" class="form-control" @bind="AuthorName" @bind:event="oninput" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Deine E-Mail Adresse <RequiredStar /></label>
+    <input type="email" class="form-control" @bind="AuthorEMail" @bind:event="oninput" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Titel des Antrags <RequiredStar /></label>
+    <input type="text" class="form-control" @bind="Title" @bind:event="oninput" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Antragstext <RequiredStar /></label>
+    <textarea class="form-control" rows="6" @bind="Text" @bind:event="oninput" maxlength="8192"></textarea>
+</div>
+
+<div class="d-flex justify-content-end">
+    <button class="btn btn-primary @(CanSubmit() ? "" : "disabled")" @onclick="Submit">
+        Antrag einreichen
+    </button>
+</div>

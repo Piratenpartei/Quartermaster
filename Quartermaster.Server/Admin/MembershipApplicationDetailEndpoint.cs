@@ -7,6 +7,7 @@ using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
 
 namespace Quartermaster.Server.Admin;
 
@@ -20,14 +21,17 @@ public class MembershipApplicationDetailEndpoint
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly DueSelectionRepository _dueSelectionRepo;
+    private readonly MotionRepository _motionRepo;
 
     public MembershipApplicationDetailEndpoint(
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
-        DueSelectionRepository dueSelectionRepo) {
+        DueSelectionRepository dueSelectionRepo,
+        MotionRepository motionRepo) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
+        _motionRepo = motionRepo;
     }
 
     public override void Configure() {
@@ -90,7 +94,8 @@ public class MembershipApplicationDetailEndpoint
             EntryDate = app.EntryDate,
             SubmittedAt = app.SubmittedAt,
             Status = (int)app.Status,
-            ProcessedAt = app.ProcessedAt
+            ProcessedAt = app.ProcessedAt,
+            LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id
         }, cancellation: ct);
     }
 }

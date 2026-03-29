@@ -4,9 +4,11 @@ using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
@@ -25,6 +27,9 @@ public class DbContext : DataConnection {
     public ITable<DueSelection> DueSelections => this.GetTable<DueSelection>();
     public ITable<Chapter> Chapters => this.GetTable<Chapter>();
     public ITable<MembershipApplication> MembershipApplications => this.GetTable<MembershipApplication>();
+    public ITable<ChapterOfficer> ChapterOfficers => this.GetTable<ChapterOfficer>();
+    public ITable<Motion> Motions => this.GetTable<Motion>();
+    public ITable<MotionVote> MotionVotes => this.GetTable<MotionVote>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -38,6 +43,8 @@ public class DbContext : DataConnection {
         services.AddScoped<DueSelectionRepository>();
         services.AddScoped<ChapterRepository>();
         services.AddScoped<MembershipApplicationRepository>();
+        services.AddScoped<ChapterOfficerRepository>();
+        services.AddScoped<MotionRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

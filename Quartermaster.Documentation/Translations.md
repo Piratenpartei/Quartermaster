@@ -106,3 +106,27 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Eingereicht | Submitted | |
 | Gewählter Beitrag | Selected Dues | |
 | Geminderter Betrag | Reduced Amount | |
+
+## Motions (Anträge)
+
+| German | English | Notes |
+|---|---|---|
+| Antrag | Motion | A formal proposal for chapter voting |
+| Anträge | Motions | |
+| Antrag einreichen | Submit Motion | |
+| Antragsteller | Author / Proposer | |
+| Antragstext | Motion Text | |
+| Abstimmung | Vote / Voting | |
+| Stimme | Vote (noun) | |
+| Dafür | Approve / In Favor | |
+| Dagegen | Deny / Against | |
+| Enthaltung | Abstain | |
+| Formal abgelehnt | Formally Rejected | Doesn't meet requirements |
+| Ohne Beschluss geschlossen | Closed Without Action | |
+| Umgesetzt | Realized / Implemented | |
+| Öffentlich | Public | |
+| Nicht öffentlich | Non-public | Contains personal data |
+| Vorstandsmitglied | Board Member / Officer | |
+| Vorsitzender | Chair | Captain |
+| Stellv. Vorsitzender | Vice Chair | FirstOfficer |
+| Schatzmeister | Treasurer | Quartermaster (pirate naming) |

@@ -4,9 +4,12 @@ using System.Linq;
 using Bogus;
 using LinqToDB;
 using Quartermaster.Data;
+using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
+using Quartermaster.Data.Users;
 
 namespace Quartermaster.Server.TestData;
 
@@ -124,6 +127,40 @@ public class TestDataSeeder {
             };
 
             _context.Insert(application);
+
+            // Spawn a single linked motion for the application (+ reduced dues if applicable)
+            var motionText = $"<p><strong>Mitgliedsantrag von {firstName} {lastName}</strong></p>"
+                + $"<ul><li><strong>E-Mail:</strong> {email}</li>"
+                + $"<li><strong>Adresse:</strong> {application.AddressStreet} {application.AddressHouseNbr}, "
+                + $"{application.AddressPostCode} {application.AddressCity}</li></ul>";
+
+            if (isReduced) {
+                motionText += $"<hr/><p><strong>Antrag auf Beitragsminderung</strong></p>"
+                    + $"<ul><li><strong>Gewünschter Betrag:</strong> {dueSelection.ReducedAmount:F2}€</li>"
+                    + $"<li><strong>Begründung:</strong> {dueSelection.ReducedJustification}</li></ul>"
+                    + $"<p><a href=\"/Administration/DueSelections/{dueSelection.Id}\">Einstufung ansehen</a></p>";
+            }
+
+            motionText += $"<p><a href=\"/Administration/MembershipApplications/{application.Id}\">Antrag ansehen</a></p>";
+
+            var motionTitle = isReduced
+                ? $"Mitgliedsantrag + Beitragsminderung: {firstName} {lastName}"
+                : $"Mitgliedsantrag: {firstName} {lastName}";
+
+            _context.Insert(new Motion {
+                Id = Guid.NewGuid(),
+                ChapterId = chapter.Id,
+                AuthorName = $"{firstName} {lastName}",
+                AuthorEMail = email,
+                Title = motionTitle,
+                Text = motionText,
+                IsPublic = false,
+                LinkedMembershipApplicationId = application.Id,
+                LinkedDueSelectionId = isReduced ? dueSelection.Id : null,
+                ApprovalStatus = MotionApprovalStatus.Pending,
+                CreatedAt = submittedAt
+            });
+
             created++;
         }
 
@@ -161,6 +198,73 @@ public class TestDataSeeder {
 
             _context.Insert(dueSelection);
             created++;
+        }
+
+        // Create test officer users (3 per state chapter)
+        var officerTypes = new[] { ChapterOfficerType.Captain, ChapterOfficerType.FirstOfficer, ChapterOfficerType.Quartermaster };
+        var officerUsers = new List<User>();
+
+        foreach (var chapter in stateChapters) {
+            for (var j = 0; j < 3; j++) {
+                var user = new User {
+                    Id = Guid.NewGuid(),
+                    Username = faker.Internet.UserName(),
+                    FirstName = faker.Name.FirstName(),
+                    LastName = faker.Name.LastName(),
+                    EMail = faker.Internet.Email(),
+                    ChapterId = chapter.Id,
+                    MemberSince = faker.Date.Past(5)
+                };
+                _context.Insert(user);
+                officerUsers.Add(user);
+
+                _context.Insert(new ChapterOfficer {
+                    UserId = user.Id,
+                    ChapterId = chapter.Id,
+                    AssociateType = officerTypes[j]
+                });
+            }
+        }
+
+        // Create test motions
+        var motionTitles = new[] {
+            "Antrag auf Änderung der Geschäftsordnung",
+            "Antrag auf Durchführung eines Stammtisches",
+            "Antrag auf Finanzierung von Wahlkampfmaterial",
+            "Antrag auf Erstellung einer neuen Webseite",
+            "Antrag auf Teilnahme am Stadtfest"
+        };
+
+        for (var i = 0; i < 15; i++) {
+            var chapter = faker.PickRandom(stateChapters);
+            var chapterOfficers = officerUsers.Where(u => u.ChapterId == chapter.Id).ToList();
+
+            var motion = new Motion {
+                Id = Guid.NewGuid(),
+                ChapterId = chapter.Id,
+                AuthorName = faker.Name.FullName(),
+                AuthorEMail = faker.Internet.Email(),
+                Title = faker.PickRandom(motionTitles),
+                Text = $"<p>{faker.Lorem.Paragraphs(2)}</p>",
+                IsPublic = faker.Random.Bool(0.7f),
+                ApprovalStatus = MotionApprovalStatus.Pending,
+                CreatedAt = faker.Date.Between(DateTime.UtcNow.AddMonths(-2), DateTime.UtcNow)
+            };
+            _context.Insert(motion);
+
+            if (faker.Random.Bool(0.6f)) {
+                foreach (var officer in chapterOfficers) {
+                    if (faker.Random.Bool(0.8f)) {
+                        _context.Insert(new MotionVote {
+                            Id = Guid.NewGuid(),
+                            MotionId = motion.Id,
+                            UserId = officer.Id,
+                            Vote = faker.PickRandom<VoteType>(),
+                            VotedAt = faker.Date.Between(motion.CreatedAt, DateTime.UtcNow)
+                        });
+                    }
+                }
+            }
         }
 
         return created;

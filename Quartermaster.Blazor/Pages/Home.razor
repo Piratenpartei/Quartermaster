@@ -1,7 +1,43 @@
-﻿@page "/"
+@page "/"
+@inject HttpClient Http
+@inject Quartermaster.Blazor.Services.ToastService ToastService
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Quartermaster</h1>
 
-Welcome to your new app.
+<p>Willkommen im Quartermaster.</p>
+
+<div class="card mt-4" style="max-width: 400px;">
+    <div class="card-body">
+        <h5>Entwicklerwerkzeuge</h5>
+        <button class="btn btn-outline-warning" @onclick="SeedTestData" disabled="@Seeding">
+            @if (Seeding) {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            }
+            Testdaten generieren
+        </button>
+    </div>
+</div>
+
+@code {
+    private bool Seeding;
+
+    private async Task SeedTestData() {
+        Seeding = true;
+        StateHasChanged();
+
+        try {
+            var result = await Http.PostAsync("/api/testdata/seed", null);
+            if (result.IsSuccessStatusCode)
+                ToastService.Toast("Testdaten wurden generiert!", "success");
+            else
+                ToastService.Toast("Fehler beim Generieren der Testdaten.", "danger");
+        } catch {
+            ToastService.Toast("Fehler beim Generieren der Testdaten.", "danger");
+        }
+
+        Seeding = false;
+        StateHasChanged();
+    }
+}

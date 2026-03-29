@@ -1,5 +1,6 @@
 using FluentMigrator;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
@@ -131,6 +132,40 @@ public class M001_InitialStructureMigration : Migration {
             .FromTable(ChapterOfficer.TableName).ForeignColumn(nameof(ChapterOfficer.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
 
+        Create.Table(Motion.TableName)
+            .WithColumn(nameof(Motion.Id)).AsGuid().PrimaryKey().Indexed()
+            .WithColumn(nameof(Motion.ChapterId)).AsGuid()
+            .WithColumn(nameof(Motion.AuthorName)).AsString(256)
+            .WithColumn(nameof(Motion.AuthorEMail)).AsString(256)
+            .WithColumn(nameof(Motion.Title)).AsString(512)
+            .WithColumn(nameof(Motion.Text)).AsString(8192)
+            .WithColumn(nameof(Motion.IsPublic)).AsBoolean()
+            .WithColumn(nameof(Motion.LinkedMembershipApplicationId)).AsGuid().Nullable()
+            .WithColumn(nameof(Motion.LinkedDueSelectionId)).AsGuid().Nullable()
+            .WithColumn(nameof(Motion.ApprovalStatus)).AsInt32()
+            .WithColumn(nameof(Motion.IsRealized)).AsBoolean()
+            .WithColumn(nameof(Motion.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(Motion.ResolvedAt)).AsDateTime().Nullable();
+
+        Create.ForeignKey("FK_Motions_ChapterId_Chapters_Id")
+            .FromTable(Motion.TableName).ForeignColumn(nameof(Motion.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.Table(MotionVote.TableName)
+            .WithColumn(nameof(MotionVote.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(MotionVote.MotionId)).AsGuid()
+            .WithColumn(nameof(MotionVote.UserId)).AsGuid()
+            .WithColumn(nameof(MotionVote.Vote)).AsInt32()
+            .WithColumn(nameof(MotionVote.VotedAt)).AsDateTime();
+
+        Create.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
+            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MotionId))
+            .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id));
+
+        Create.ForeignKey("FK_MotionVotes_UserId_Users_Id")
+            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
         Create.Table(DueSelection.TableName)
             .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(DueSelection.UserId)).AsGuid().Nullable()
@@ -204,6 +239,13 @@ public class M001_InitialStructureMigration : Migration {
     }
 
     public override void Down() {
+        Delete.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
+            .OnTable(MotionVote.TableName);
+        Delete.ForeignKey("FK_MotionVotes_UserId_Users_Id")
+            .OnTable(MotionVote.TableName);
+        Delete.ForeignKey("FK_Motions_ChapterId_Chapters_Id")
+            .OnTable(Motion.TableName);
+
         Delete.ForeignKey("FK_MemberApps_ProcessedByUserId_Users_Id")
             .OnTable(MembershipApplication.TableName);
         Delete.ForeignKey("FK_DueSelections_ProcessedByUserId_Users_Id")
@@ -255,6 +297,8 @@ public class M001_InitialStructureMigration : Migration {
         Delete.ForeignKey("FK_Tokens_UserId_User_Id")
             .OnTable(Token.TableName);
 
+        Delete.Table(MotionVote.TableName);
+        Delete.Table(Motion.TableName);
         Delete.Table(User.TableName);
         Delete.Table(AdministrativeDivision.TableName);
         Delete.Table(Chapter.TableName);

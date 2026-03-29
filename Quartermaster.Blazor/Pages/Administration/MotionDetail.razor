@@ -1,0 +1,149 @@
+@page "/Administration/Motions/{Id:guid}"
+@using Quartermaster.Api.Motions
+
+<div class="mb-3">
+    <a href="/Administration/Motions" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Motion == null) {
+    <div class="alert alert-danger">Antrag nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>@Motion.Title</h3>
+        <div class="d-flex gap-2">
+            @if (Motion.IsRealized) {
+                <span class="badge border border-success text-success-emphasis fs-6">Umgesetzt</span>
+            }
+            <span class="badge border fs-6 @ApprovalBadgeClass(Motion.ApprovalStatus)">
+                @ApprovalLabel(Motion.ApprovalStatus)
+            </span>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Details</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Antragsteller</th><td>@Motion.AuthorName</td></tr>
+                    <tr><th>E-Mail</th><td>@Motion.AuthorEMail</td></tr>
+                    <tr><th>Gliederung</th><td>@Motion.ChapterName</td></tr>
+                    <tr>
+                        <th>Sichtbarkeit</th>
+                        <td>@(Motion.IsPublic ? "Öffentlich" : "Nicht öffentlich (enthält personenbezogene Daten)")</td>
+                    </tr>
+                    <tr><th>Erstellt</th><td>@Motion.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    @if (Motion.ResolvedAt != null) {
+                        <tr><th>Beschlossen</th><td>@Motion.ResolvedAt.Value.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    }
+                    @if (Motion.LinkedMembershipApplicationId != null) {
+                        <tr>
+                            <th>Verknüpfung</th>
+                            <td><a href="/Administration/MembershipApplications/@Motion.LinkedMembershipApplicationId">Mitgliedsantrag ansehen</a></td>
+                        </tr>
+                    }
+                    @if (Motion.LinkedDueSelectionId != null) {
+                        <tr>
+                            <th>Verknüpfung</th>
+                            <td><a href="/Administration/DueSelections/@Motion.LinkedDueSelectionId">Beitragseinstufung ansehen</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Antragstext</h5>
+            <div>@((MarkupString)Motion.Text)</div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Abstimmung (@Motion.Votes.Count / @Motion.TotalOfficers Stimmen)</h5>
+
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Rolle</th>
+                        <th>Stimme</th>
+                        <th>Datum</th>
+                        <th>Abstimmen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var officer in Motion.Officers) {
+                        var existingVote = GetVoteForOfficer(officer.UserId);
+                        <tr>
+                            <td>@officer.UserName</td>
+                            <td>@OfficerRoleLabel(officer.OfficerRole)</td>
+                            <td>
+                                @if (existingVote != null) {
+                                    @if (existingVote.Vote == 0) {
+                                        <span class="text-success"><i class="bi bi-hand-thumbs-up-fill"></i> Dafür</span>
+                                    } else if (existingVote.Vote == 1) {
+                                        <span class="text-danger"><i class="bi bi-hand-thumbs-down-fill"></i> Dagegen</span>
+                                    } else {
+                                        <span class="text-secondary"><i class="bi bi-dash-circle"></i> Enthaltung</span>
+                                    }
+                                } else {
+                                    <span class="text-secondary">—</span>
+                                }
+                            </td>
+                            <td>@(existingVote?.VotedAt.ToString("dd.MM.yyyy HH:mm") ?? "")</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-success btn-sm @(existingVote?.Vote == 0 ? "active" : "")"
+                                            @onclick="() => CastVote(officer.UserId, 0)">
+                                        <i class="bi bi-hand-thumbs-up-fill"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm @(existingVote?.Vote == 1 ? "active" : "")"
+                                            @onclick="() => CastVote(officer.UserId, 1)">
+                                        <i class="bi bi-hand-thumbs-down-fill"></i>
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm @(existingVote?.Vote == 2 ? "active" : "")"
+                                            @onclick="() => CastVote(officer.UserId, 2)">
+                                        <i class="bi bi-dash-circle"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Motion.ApprovalStatus == 0) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Verwaltung</h5>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-warning btn-sm" @onclick="() => SetStatus(3)">
+                        <span>Formal ablehnen</span>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetStatus(4)">
+                        <span>Ohne Beschluss schließen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Motion.ApprovalStatus == 1 && !Motion.IsRealized) {
+        <div class="d-flex">
+            <button class="btn btn-success" @onclick="MarkRealized">
+                <i class="bi bi-check-circle"></i> Als umgesetzt markieren
+            </button>
+        </div>
+    }
+}

@@ -120,14 +120,11 @@
         </div>
     }
 
-    @if (Selection.Status == 0) {
-        <div class="d-flex gap-2">
-            <button class="btn btn-success" @onclick="() => Process(1)">
-                <i class="bi bi-check-lg"></i> Genehmigen
-            </button>
-            <button class="btn btn-danger" @onclick="() => Process(2)">
-                <i class="bi bi-x-lg"></i> Ablehnen
-            </button>
+    @if (Selection.LinkedMotionId != null) {
+        <div class="mb-3">
+            <a href="/Administration/Motions/@Selection.LinkedMotionId" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-text"></i> Zum Antrag / Abstimmung
+            </a>
         </div>
     }
 }

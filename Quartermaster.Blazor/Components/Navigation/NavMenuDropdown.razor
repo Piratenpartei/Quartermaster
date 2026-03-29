@@ -1,13 +1,15 @@
-﻿<button class="nav-link pe-auto" @onclick=ToggleDropdown @onfocusout=OnFocusOut>
-    @ButtonContent
+<div class="dropdown" @onfocusout=OnFocusOut>
+    <button class="nav-link pe-auto" @onclick=ToggleDropdown>
+        @ButtonContent
 
-    @if (Collapsed) {
-        <i class="ps-1 bi bi-caret-down-fill"></i>
-    } else {
-        <i class="ps-1 bi bi-caret-up-fill"></i>
-    }
-</button>
+        @if (Collapsed) {
+            <i class="ps-1 bi bi-caret-down-fill"></i>
+        } else {
+            <i class="ps-1 bi bi-caret-up-fill"></i>
+        }
+    </button>
 
-<ul class="dropdown-menu @(Collapsed ? "" : "show")">
-    @DropdownContent
-</ul>
+    <ul class="dropdown-menu @(Collapsed ? "" : "show")">
+        @DropdownContent
+    </ul>
+</div>

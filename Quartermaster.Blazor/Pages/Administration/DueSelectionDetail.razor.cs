@@ -4,17 +4,12 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.DueSelector;
-using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class DueSelectionDetail {
     [Inject]
     public required HttpClient Http { get; set; }
-    [Inject]
-    public required NavigationManager NavigationManager { get; set; }
-    [Inject]
-    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -29,14 +24,6 @@ public partial class DueSelectionDetail {
         } catch (HttpRequestException) { }
 
         Loading = false;
-    }
-
-    private async Task Process(int status) {
-        await Http.PostAsJsonAsync("/api/admin/dueselections/process",
-            new { Id = Id, Status = status });
-
-        ToastService.Toast(status == 1 ? "Einstufung genehmigt." : "Einstufung abgelehnt.", status == 1 ? "success" : "danger");
-        NavigationManager.NavigateTo("/Administration/DueSelections");
     }
 
     private static string ValuationLabel(int valuation) => valuation switch {

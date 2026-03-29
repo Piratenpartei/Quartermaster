@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Quartermaster.Blazor.Components.Navigation;
 
@@ -12,12 +13,10 @@ public partial class NavMenuDropdown {
 
     private void ToggleDropdown() => Collapsed = !Collapsed;
 
-    private async Task OnFocusOut() {
-        // Without a short delay the menu would close and the link would not be clicked ... because it would already be gone.
-        // We can replace this with the new popover api (good support) + css anchoring (basically no support atm)
-        // as soon as the support is good enough for both.
-        // NOTE: This isn't even working correct and needs a refactor, clicks > 100ms fail to navigate.
-        await Task.Delay(100);
+    private async Task OnFocusOut(FocusEventArgs e) {
+        // Delay to allow click events on dropdown items to fire before the menu closes.
+        // 200ms is enough for most click interactions.
+        await Task.Delay(200);
         Collapsed = true;
     }
 }

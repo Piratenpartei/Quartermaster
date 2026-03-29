@@ -40,4 +40,7 @@ public class MembershipApplicationDetailDTO {
     // Processing
     public int Status { get; set; }
     public DateTime? ProcessedAt { get; set; }
+
+    // Linked motion
+    public Guid? LinkedMotionId { get; set; }
 }
