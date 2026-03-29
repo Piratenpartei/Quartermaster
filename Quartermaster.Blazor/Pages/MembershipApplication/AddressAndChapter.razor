@@ -1,0 +1,96 @@
+@page "/MembershipApplication/Address"
+@using Quartermaster.Api.AdministrativeDivisions
+@using Quartermaster.Api.Chapters
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Adresse</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+@if (!EntryState.IsGermany) {
+    <div class="mb-3">
+        <label class="form-label">Land <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.AddressCountry @bind:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">PLZ <RequiredStar /></label>
+        <input type="text" class="form-control" style="width: 10em;" @bind=EntryState.AddressPostCode @bind:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ort <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.AddressCity @bind:event="oninput" />
+    </div>
+
+    <div class="mb-3 d-flex flex-row">
+        <div class="flex-grow-1 pe-3">
+            <label class="form-label">Straße <RequiredStar /></label>
+            <input type="text" class="form-control" @bind=EntryState.AddressStreet @bind:event="oninput" />
+        </div>
+        <div style="width: 8em;">
+            <label class="form-label">Hausnr. <RequiredStar /></label>
+            <input type="text" class="form-control" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
+        </div>
+    </div>
+} else {
+    <div class="mb-3">
+        <label class="form-label">Postleitzahl <RequiredStar /></label>
+        <div class="d-flex align-items-center">
+            <input type="text" class="form-control" style="width: 10em;" maxlength="5"
+                   value="@EntryState.AddressPostCode" @oninput="OnPostCodeInput" />
+            @if (SearchingPostCode) {
+                <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+            }
+        </div>
+    </div>
+
+    @if (MatchingDivisions != null && MatchingDivisions.Count > 0) {
+        <div class="mb-3">
+            <label class="form-label">Gemeinde <RequiredStar /></label>
+            <div style="max-height: 400px; overflow-y: auto;">
+                @foreach (var div in MatchingDivisions) {
+                    <div class="mb-1">
+                        <CardButton OnClick="@(() => SelectDivision(div))"
+                                    Selected="@(EntryState.AddressAdministrativeDivisionId == div.Id)"
+                                    CardBorderType="primary">
+                            <span>@div.Name</span>
+                        </CardButton>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (EntryState.AddressAdministrativeDivisionId != null) {
+        <div class="mb-3 d-flex flex-row">
+            <div class="flex-grow-1 pe-3">
+                <label class="form-label">Straße <RequiredStar /></label>
+                <input type="text" class="form-control" @bind=EntryState.AddressStreet @bind:event="oninput" />
+            </div>
+            <div style="width: 8em;">
+                <label class="form-label">Hausnr. <RequiredStar /></label>
+                <input type="text" class="form-control" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
+            </div>
+        </div>
+    }
+}
+
+@if (EntryState.ChapterName != null) {
+    <div class="mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5>Zugeordnete Gliederung</h5>
+                <p class="card-text mb-0">@EntryState.ChapterName</p>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="d-flex justify-content-between">
+    <a href="/MembershipApplication/CountrySelection" class="btn btn-primary">Zurück</a>
+    <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
+       href="/MembershipApplication/DuesTypeSelection">Weiter</a>
+</div>

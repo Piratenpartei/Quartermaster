@@ -70,3 +70,24 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Überspringen | Skip | |
 | Absenden | Submit | |
 | Pflichtfeld | Required Field | |
+
+## Membership Application (Mitgliedsantrag)
+
+| German | English | Notes |
+|---|---|---|
+| Mitgliedsantrag | Membership Application | |
+| Persönliche Daten | Personal Data | |
+| Geburtsdatum | Date of Birth | |
+| Staatsangehörigkeit | Citizenship | |
+| Telefonnummer | Phone Number | |
+| Adresse | Address | |
+| Gliederung | Chapter | Organizational unit within the party |
+| Zugeordnete Gliederung | Assigned Chapter | |
+| Straße | Street | |
+| Hausnr. | House Number | Abbreviated in UI |
+| PLZ | Post Code | Abbreviation of Postleitzahl |
+| Ort | City / Place | |
+| Erklärungen | Declarations | |
+| Konformitätserklärung | Conformity Declaration | Acceptance of party principles and statutes |
+| Eintritt zum | Entry Date | Date of joining |
+| Mitgliedsantrag absenden | Submit Membership Application | |

@@ -1,16 +1,9 @@
 using System;
-using LinqToDB.Mapping;
+using Quartermaster.Api.DueSelector;
 
-namespace Quartermaster.Data.MembershipApplications;
+namespace Quartermaster.Api.MembershipApplications;
 
-[Table(TableName, IsColumnAttributeRequired = false)]
-public class MembershipApplication {
-    public const string TableName = "MembershipApplications";
-
-    [PrimaryKey]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
-    // Personal data
+public class MembershipApplicationDTO {
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public DateTime DateOfBirth { get; set; }
@@ -18,26 +11,20 @@ public class MembershipApplication {
     public string EMail { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
 
-    // Address
     public string AddressStreet { get; set; } = "";
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
     public Guid? AddressAdministrativeDivisionId { get; set; }
 
-    // Chapter
     public Guid? ChapterId { get; set; }
 
-    // Dues (references the DueSelection created alongside)
-    public Guid? DueSelectionId { get; set; }
+    public DueSelectionDTO? DueSelection { get; set; }
 
-    // Declarations
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
     public string ApplicationText { get; set; } = "";
 
-    // Entry date
     public DateTime EntryDate { get; set; }
-    public DateTime SubmittedAt { get; set; }
 }

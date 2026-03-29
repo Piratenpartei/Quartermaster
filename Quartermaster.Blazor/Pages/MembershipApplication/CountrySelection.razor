@@ -1,0 +1,24 @@
+@page "/MembershipApplication/CountrySelection"
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Wo wohnst du?</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-2">
+    <CardLink HRef="/MembershipApplication/Address" OnNavigate=@(() => SelectCountry(true))>
+        <span>Ich wohne in Deutschland</span>
+    </CardLink>
+</div>
+
+<div class="mb-3">
+    <CardLink HRef="/MembershipApplication/Address" OnNavigate=@(() => SelectCountry(false))>
+        <span>Ich wohne in einem anderen Land</span>
+    </CardLink>
+</div>
+
+<div>
+    <a href="/MembershipApplication/PersonalData" class="btn btn-primary">Zurück</a>
+</div>

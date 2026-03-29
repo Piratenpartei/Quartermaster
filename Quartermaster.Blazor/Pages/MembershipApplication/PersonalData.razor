@@ -1,0 +1,45 @@
+@page "/MembershipApplication/PersonalData"
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Persönliche Daten</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-3 d-flex flex-row">
+    <div class="flex-grow-1 pe-3">
+        <label class="form-label">Vorname <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.FirstName @bind:event="oninput" />
+    </div>
+    <div class="flex-grow-1">
+        <label class="form-label">Nachname <RequiredStar /></label>
+        <input type="text" class="form-control" @bind=EntryState.LastName @bind:event="oninput" />
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Geburtsdatum <RequiredStar /></label>
+    <p class="text-secondary small">Das Mindestalter liegt bei 14 Jahren.</p>
+    <input type="date" class="form-control" @bind=EntryState.DateOfBirth />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Staatsangehörigkeit <RequiredStar /></label>
+    <input type="text" class="form-control" @bind=EntryState.Citizenship @bind:event="oninput" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">E-Mail Adresse <RequiredStar /></label>
+    <input type="email" class="form-control" @bind=EntryState.EMail @bind:event="oninput" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Telefonnummer</label>
+    <input type="tel" class="form-control" @bind=EntryState.PhoneNumber @bind:event="oninput" />
+</div>
+
+<div class="d-flex justify-content-end">
+    <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
+       href="/MembershipApplication/CountrySelection">Weiter</a>
+</div>

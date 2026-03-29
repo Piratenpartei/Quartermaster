@@ -1,12 +1,8 @@
 using System;
-using LinqToDB.Mapping;
 
-namespace Quartermaster.Data.Chapters;
+namespace Quartermaster.Api.Chapters;
 
-[Table(TableName, IsColumnAttributeRequired = false)]
-public class Chapter {
-    public const string TableName = "Chapters";
-
+public class ChapterDTO {
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
     public Guid? AdministrativeDivisionId { get; set; }

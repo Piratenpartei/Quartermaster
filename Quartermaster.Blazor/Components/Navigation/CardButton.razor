@@ -1,12 +1,14 @@
-﻿<div @onpointerenter=OnPointerEnter @onpointerleave=OnPointerLeave @onclick=OnClick>
+<div @onpointerenter=OnPointerEnter @onpointerleave=OnPointerLeave @onclick=OnClick>
     <div class="card hover-interact qm-bg-body
-                @(EnabledFunc() ? "qm-hover-bg-secondary cursor-pointer border-" + CardBorderType : "")">
+                @(EnabledFunc() ? "qm-hover-bg-secondary cursor-pointer border-" + (Selected ? "success" : CardBorderType) : "")">
         <div class="card-body d-flex justify-content-between @(EnabledFunc() ? "" : "text-secondary")">
             <div>
                 @ChildContent
             </div>
 
-            @if (EnabledFunc()) {
+            @if (Selected) {
+                <i class="bi bi-check-circle-fill text-success fs-3"></i>
+            } else if (EnabledFunc()) {
                 <i class="bi bi-caret-right-fill text-primary fs-3"></i>
             } else {
                 <i class="bi bi-ban fs-3"></i>

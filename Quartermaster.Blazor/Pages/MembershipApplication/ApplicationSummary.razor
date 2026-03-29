@@ -1,0 +1,93 @@
+@page "/MembershipApplication/Summary"
+@using System.Globalization
+@using Quartermaster.Blazor.Pages.DueSelector
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Zusammenfassung</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Persönliche Daten</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>Name:</strong> @EntryState.FirstName @EntryState.LastName</li>
+            <li class="list-group-item"><strong>Geburtsdatum:</strong> @EntryState.DateOfBirth?.ToString("dd.MM.yyyy")</li>
+            <li class="list-group-item"><strong>Staatsangehörigkeit:</strong> @EntryState.Citizenship</li>
+            <li class="list-group-item"><strong>E-Mail:</strong> @EntryState.EMail</li>
+            <li class="list-group-item"><strong>Telefon:</strong> @EntryState.PhoneNumber</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Adresse</h5>
+        <p class="card-text">
+            @EntryState.AddressStreet @EntryState.AddressHouseNbr<br />
+            @EntryState.AddressPostCode @EntryState.AddressCity
+        </p>
+        @if (EntryState.ChapterName != null) {
+            <p class="card-text"><strong>Gliederung:</strong> @EntryState.ChapterName</p>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Beitrag</h5>
+        @if (DuesState != null && DuesState.SelectedDue > 0) {
+            <p class="card-text">
+                Jahresbeitrag: <strong>@DuesState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>
+            </p>
+        } else {
+            <p class="card-text text-warning">Beitrag noch nicht eingestuft.</p>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Erklärungen</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                Konformitätserklärung: @(EntryState.ConformityDeclarationAccepted ? "Akzeptiert" : "Nicht akzeptiert")
+            </li>
+            @if (EntryState.HasPriorDeclinedApplication) {
+                <li class="list-group-item text-warning">Früherer Antrag wurde abgelehnt</li>
+            }
+            @if (EntryState.IsMemberOfAnotherParty) {
+                <li class="list-group-item">Mitglied einer anderen Partei</li>
+            }
+        </ul>
+        @if (!string.IsNullOrEmpty(EntryState.ApplicationText)) {
+            <p class="card-text mt-2"><em>@EntryState.ApplicationText</em></p>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <p class="card-text small text-secondary">
+            Die Piratenpartei Deutschland verarbeitet die in diesem Aufnahmeantrag enthaltenen Angaben zur Person
+            für ausschließlich interne Zwecke der Partei. Mit diesem Antrag auf Mitgliedschaft in der Partei
+            erteilst du die nach Art. 6 abs. 1 lit. b) der Datenschutz-Grundverordnung (DSGVO) notwendige Einwilligung.
+        </p>
+    </div>
+</div>
+
+<div class="mb-3">
+    <h3>Sind alle Daten korrekt?</h3>
+</div>
+
+<div class="mb-2">
+    <CardButton OnClick=@Submit>
+        <span>Mitgliedsantrag absenden</span>
+    </CardButton>
+</div>
+
+<div>
+    <a href="/MembershipApplication/Declarations" class="btn btn-primary">Zurück</a>
+</div>

@@ -1,0 +1,54 @@
+@page "/MembershipApplication/Declarations"
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Erklärungen</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-3">
+    <Checkbox @bind-Value=EntryState.ConformityDeclarationAccepted>
+        <strong>Konformitätserklärung</strong> <RequiredStar />
+    </Checkbox>
+    <p class="text-secondary small ms-4">
+        Ich erkenne die Grundsätze, politischen Ziele und die Satzung der Piratenpartei Deutschland an.
+    </p>
+</div>
+
+<div class="mb-3">
+    <Checkbox @bind-Value=NoPriorDeclinedApplication>
+        Es wurde in der Vergangenheit noch kein Mitgliedsantrag bei einer Gliederung der Piratenpartei Deutschland abgelehnt.
+    </Checkbox>
+    <p class="text-secondary small ms-4">
+        Wenn du dies nicht bestätigen kannst, gib uns in der Textbox weiter unten bitte die ablehnende Gliederung und das Datum der Ablehnung an.
+    </p>
+</div>
+
+<div class="mb-3">
+    <Checkbox @bind-Value=EntryState.IsMemberOfAnotherParty>
+        Ich bin bereits Mitglied in einer anderen Partei
+    </Checkbox>
+    <p class="text-secondary small ms-4">
+        Die gleichzeitige Mitgliedschaft in der Piratenpartei Deutschland und bei einer anderen Partei oder
+        Wählergruppe ist nicht ausgeschlossen. Die Mitgliedschaft in einer Organisation oder Vereinigung,
+        deren Zielsetzung den Zielen der Piratenpartei Deutschland widerspricht, ist nicht zulässig.
+    </p>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Eintritt zum</label>
+    <input type="date" class="form-control" @bind=EntryState.EntryDate />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">...was Du uns noch sagen möchtest:</label>
+    <textarea class="form-control" rows="4" @bind=EntryState.ApplicationText @bind:event="oninput"
+              maxlength="2048"></textarea>
+</div>
+
+<div class="d-flex justify-content-between">
+    <a href="/MembershipApplication/DuesTypeSelection" class="btn btn-primary">Zurück</a>
+    <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
+       href="/MembershipApplication/Summary">Weiter</a>
+</div>

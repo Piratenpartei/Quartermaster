@@ -1,43 +1,32 @@
 using System;
-using LinqToDB.Mapping;
+using Quartermaster.Blazor.Abstract;
+using Quartermaster.Blazor.Pages.DueSelector;
 
-namespace Quartermaster.Data.MembershipApplications;
+namespace Quartermaster.Blazor.Pages.MembershipApplication;
 
-[Table(TableName, IsColumnAttributeRequired = false)]
-public class MembershipApplication {
-    public const string TableName = "MembershipApplications";
-
-    [PrimaryKey]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
-    // Personal data
+public class MembershipApplicationEntryState : EntryStateBase {
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public DateTime DateOfBirth { get; set; }
-    public string Citizenship { get; set; } = "";
+    public DateTime? DateOfBirth { get; set; }
+    public string Citizenship { get; set; } = "Deutsch";
     public string EMail { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
 
-    // Address
+    public bool IsGermany { get; set; } = true;
+    public string AddressCountry { get; set; } = "Deutschland";
     public string AddressStreet { get; set; } = "";
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
     public Guid? AddressAdministrativeDivisionId { get; set; }
 
-    // Chapter
     public Guid? ChapterId { get; set; }
+    public string? ChapterName { get; set; }
 
-    // Dues (references the DueSelection created alongside)
-    public Guid? DueSelectionId { get; set; }
-
-    // Declarations
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
     public string ApplicationText { get; set; } = "";
 
-    // Entry date
-    public DateTime EntryDate { get; set; }
-    public DateTime SubmittedAt { get; set; }
+    public DateTime EntryDate { get; set; } = DateTime.Today;
 }

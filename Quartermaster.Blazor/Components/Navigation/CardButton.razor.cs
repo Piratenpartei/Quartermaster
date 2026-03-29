@@ -22,6 +22,9 @@ public partial class CardButton {
     [Parameter]
     public string CardBorderType { get; set; } = "primary";
 
+    [Parameter]
+    public bool Selected { get; set; }
+
     private bool PointerInsideCard;
 
     public CardButton() {

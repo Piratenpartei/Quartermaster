@@ -58,6 +58,18 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
         return (items, totalCount);
     }
 
+    public List<Guid> GetAncestorIds(Guid divisionId) {
+        var ids = new List<Guid>();
+        var current = Get(divisionId);
+        while (current != null) {
+            ids.Add(current.Id);
+            if (current.ParentId == null || current.ParentId == current.Id)
+                break;
+            current = Get(current.ParentId.Value);
+        }
+        return ids;
+    }
+
     public void SupplementFromFiles()
         => AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt", this);
     public void SupplementFromTestFiles()

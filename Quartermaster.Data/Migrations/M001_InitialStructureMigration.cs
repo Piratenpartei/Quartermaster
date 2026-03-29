@@ -54,10 +54,20 @@ public class M001_InitialStructureMigration : Migration {
 
         Create.Table(Chapter.TableName)
             .WithColumn(nameof(Chapter.Id)).AsGuid().PrimaryKey().Indexed()
-            .WithColumn(nameof(Chapter.Name)).AsString(256);
+            .WithColumn(nameof(Chapter.Name)).AsString(256)
+            .WithColumn(nameof(Chapter.AdministrativeDivisionId)).AsGuid().Nullable()
+            .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable();
 
         Create.ForeignKey("FK_Users_ChapterId_Chapters_Id")
             .FromTable(User.TableName).ForeignColumn(nameof(User.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.ForeignKey("FK_Chapters_AdministrativeDivisionId_AdministrativeDivisions_Id")
+            .FromTable(Chapter.TableName).ForeignColumn(nameof(Chapter.AdministrativeDivisionId))
+            .ToTable(AdministrativeDivision.TableName).PrimaryColumn(nameof(AdministrativeDivision.Id));
+
+        Create.ForeignKey("FK_Chapters_ParentChapterId_Chapters_Id")
+            .FromTable(Chapter.TableName).ForeignColumn(nameof(Chapter.ParentChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
 
         Create.Table(Token.TableName)
@@ -71,17 +81,6 @@ public class M001_InitialStructureMigration : Migration {
 
         Create.ForeignKey("FK_Tokens_UserId_User_Id")
             .FromTable(Token.TableName).ForeignColumn(nameof(Token.UserId))
-            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
-
-        Create.Table(MembershipApplication.TableName)
-            .WithColumn(nameof(MembershipApplication.Id)).AsGuid().PrimaryKey().Indexed()
-            .WithColumn(nameof(MembershipApplication.UserId)).AsGuid()
-            .WithColumn(nameof(MembershipApplication.HasPriorDeclinedApplication)).AsBoolean()
-            .WithColumn(nameof(MembershipApplication.IsMemberOfAnotherParty)).AsBoolean()
-            .WithColumn(nameof(MembershipApplication.ApplicationText)).AsString(2048);
-
-        Create.ForeignKey("FK_MembershipApplications_UserId_Users_Id")
-            .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
 
         Create.Table(Permission.TableName)
@@ -133,7 +132,7 @@ public class M001_InitialStructureMigration : Migration {
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
 
         Create.Table(DueSelection.TableName)
-            .WithColumn(nameof(DueSelection.Id)).AsGuid()
+            .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(DueSelection.UserId)).AsGuid().Nullable()
             .WithColumn(nameof(DueSelection.FirstName)).AsString()
             .WithColumn(nameof(DueSelection.LastName)).AsString()
@@ -154,6 +153,40 @@ public class M001_InitialStructureMigration : Migration {
         Create.ForeignKey("FK_DueSelections_UserId_User_Id")
             .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
+        Create.Table(MembershipApplication.TableName)
+            .WithColumn(nameof(MembershipApplication.Id)).AsGuid().PrimaryKey().Indexed()
+            .WithColumn(nameof(MembershipApplication.FirstName)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.LastName)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.DateOfBirth)).AsDateTime()
+            .WithColumn(nameof(MembershipApplication.Citizenship)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.EMail)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.PhoneNumber)).AsString(64)
+            .WithColumn(nameof(MembershipApplication.AddressStreet)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.AddressHouseNbr)).AsString(32)
+            .WithColumn(nameof(MembershipApplication.AddressPostCode)).AsString(16)
+            .WithColumn(nameof(MembershipApplication.AddressCity)).AsString(256)
+            .WithColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId)).AsGuid().Nullable()
+            .WithColumn(nameof(MembershipApplication.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(MembershipApplication.DueSelectionId)).AsGuid().Nullable()
+            .WithColumn(nameof(MembershipApplication.ConformityDeclarationAccepted)).AsBoolean()
+            .WithColumn(nameof(MembershipApplication.HasPriorDeclinedApplication)).AsBoolean()
+            .WithColumn(nameof(MembershipApplication.IsMemberOfAnotherParty)).AsBoolean()
+            .WithColumn(nameof(MembershipApplication.ApplicationText)).AsString(2048)
+            .WithColumn(nameof(MembershipApplication.EntryDate)).AsDateTime()
+            .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsDateTime();
+
+        Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
+            .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))
+            .ToTable(AdministrativeDivision.TableName).PrimaryColumn(nameof(AdministrativeDivision.Id));
+
+        Create.ForeignKey("FK_MembershipApplications_ChapterId_Chapters_Id")
+            .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
+            .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.DueSelectionId))
+            .ToTable(DueSelection.TableName).PrimaryColumn(nameof(DueSelection.Id));
     }
 
     public override void Down() {
@@ -170,7 +203,17 @@ public class M001_InitialStructureMigration : Migration {
 
         Delete.ForeignKey("FK_Users_ChapterId_Chapters_Id")
             .OnTable(User.TableName);
-        Delete.ForeignKey("FK_MembershipApplications_UserId_Users_Id")
+
+        Delete.ForeignKey("FK_Chapters_AdministrativeDivisionId_AdministrativeDivisions_Id")
+            .OnTable(Chapter.TableName);
+        Delete.ForeignKey("FK_Chapters_ParentChapterId_Chapters_Id")
+            .OnTable(Chapter.TableName);
+
+        Delete.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
+            .OnTable(MembershipApplication.TableName);
+        Delete.ForeignKey("FK_MembershipApplications_ChapterId_Chapters_Id")
+            .OnTable(MembershipApplication.TableName);
+        Delete.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
             .OnTable(MembershipApplication.TableName);
 
         Delete.ForeignKey("FK_UserGlobalPermissions_UserId_User_Id")

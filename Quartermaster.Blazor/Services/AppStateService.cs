@@ -1,6 +1,7 @@
 ﻿using Quartermaster.Blazor.Abstract;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Pages.DueSelector;
+using Quartermaster.Blazor.Pages.MembershipApplication;
 
 namespace Quartermaster.Blazor.Services;
 
@@ -11,6 +12,7 @@ public class AppStateService {
 
     public AppStateService() {
         SupplementEntryState<DueSelectorEntryState>();
+        SupplementEntryState<MembershipApplicationEntryState>();
     }
 
     private void SupplementEntryState<T>() where T : EntryStateBase, new() {

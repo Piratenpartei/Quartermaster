@@ -1,0 +1,41 @@
+@page "/MembershipApplication/DuesTypeSelection"
+@using Quartermaster.Blazor.Pages.DueSelector
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Beitragseinstufung</h3>
+    <p class="text-secondary">Bitte stufe deinen Mitgliedsbeitrag ein.</p>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="mb-2">
+    <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.OnePercentYearlyPay))>
+        <span>Einstufung auf 1% des Jahreseinkommens</span>
+        <span class="fw-bold">Empfohlen</span>
+    </CardLink>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="/DueSelector/SelectByMonthlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.MonthlyPayGroup))>
+        <span>Einstufung nach Monatseinkommen</span>
+    </CardLink>
+</div>
+
+<div class="mb-2">
+    <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/MembershipApplication/DuesTypeSelection")}")"
+              OnNavigate=@HandleUnderage>
+        <span>Ich bin noch nicht 18 Jahre alt</span><br />
+        <span>Unter 18 zahlst du automatisch nur 12€ im Jahr</span>
+    </CardLink>
+</div>
+
+<div class="mb-3">
+    <CardLink HRef="/DueSelector/SelectReduced" OnNavigate=@(() => SelectDueType(SelectedValuation.Reduced))>
+        <span>Ich möchte den geminderten Beitrag beantragen</span>
+    </CardLink>
+</div>
+
+<div>
+    <a href="/MembershipApplication/Address" class="btn btn-primary">Zurück</a>
+</div>
