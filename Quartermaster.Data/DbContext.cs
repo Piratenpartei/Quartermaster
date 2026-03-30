@@ -64,5 +64,7 @@ public class DbContext : DataConnection {
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(
             services.GetRequiredService<IOptions<RootAccountSettings>>().Value);
+        scope.ServiceProvider.GetRequiredService<ChapterOfficerRepository>().SupplementDefaults(
+            scope.ServiceProvider.GetRequiredService<ChapterRepository>());
     }
 }
