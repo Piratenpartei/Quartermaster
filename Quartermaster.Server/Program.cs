@@ -9,6 +9,7 @@ using Quartermaster.Data;
 using LinqToDB.AspNet;
 using LinqToDB;
 using Quartermaster.Data.Migrations;
+using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server;
 
@@ -34,6 +35,9 @@ public static class Program {
         builder.Services.AddLinqToDBContext<DbContext>((provider, options)
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
         DbContext.AddRepositories(builder.Services);
+
+        builder.Services.AddSingleton<MemberImportService>();
+        builder.Services.AddHostedService<MemberImportHostedService>();
 
         builder.Services.AddCors(opt => {
             opt.AddPolicy("Default", policy

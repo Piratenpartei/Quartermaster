@@ -1,0 +1,178 @@
+@page "/Administration/Members/{Id:guid}"
+@using Quartermaster.Api.Members
+@using System.Globalization
+
+<div class="mb-3">
+    <a href="/Administration/Members" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Member == null) {
+    <div class="alert alert-danger">Mitglied nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3>@Member.FirstName @Member.LastName</h3>
+            <span class="text-secondary">Mitgliedsnummer: @Member.MemberNumber</span>
+        </div>
+        @if (Member.ExitDate != null) {
+            <span class="badge border border-danger text-danger-emphasis fs-6">Ausgetreten</span>
+        } else if (Member.IsPending) {
+            <span class="badge border border-warning text-warning-emphasis fs-6">Schwebend</span>
+        } else {
+            <span class="badge border border-success text-success-emphasis fs-6">Aktiv</span>
+        }
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Persönliche Daten</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Vorname</th><td>@Member.FirstName</td></tr>
+                    <tr><th>Nachname</th><td>@Member.LastName</td></tr>
+                    <tr><th>Geburtsdatum</th><td>@(Member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
+                    <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "—")</td></tr>
+                    <tr><th>E-Mail</th><td>@(Member.EMail ?? "—")</td></tr>
+                    <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Adresse</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "—")</td></tr>
+                    <tr><th>PLZ / Ort</th><td>@Member.PostCode @Member.City</td></tr>
+                    <tr><th>Land</th><td>@(Member.Country ?? "—")</td></tr>
+                    <tr><th>Verwaltungsbezirk</th><td>@(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "—" : Member.ResidenceAdministrativeDivisionName)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Gliederung</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Gliederung</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
+                    <tr><th>Bundesland (CSV)</th><td>@(Member.FederalState ?? "—")</td></tr>
+                    <tr><th>Landkreis (CSV)</th><td>@(Member.County ?? "—")</td></tr>
+                    <tr><th>Gemeinde (CSV)</th><td>@(Member.Municipality ?? "—")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Mitgliedschaft</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Eintrittsdatum</th><td>@(Member.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
+                    <tr><th>Austrittsdatum</th><td>@(Member.ExitDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
+                    <tr><th>Aufnahmereferenz</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
+                    <tr><th>Beitrag</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    <tr><th>Geminderter Beitrag</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    @if (Member.FirstFee.HasValue) {
+                        <tr><th>Erstbeitrag</th><td>@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    }
+                    @if (Member.ReducedFeeEnd.HasValue) {
+                        <tr><th>Minderung bis</th><td>@Member.ReducedFeeEnd.Value.ToString("dd.MM.yyyy")</td></tr>
+                    }
+                    @if (Member.OpenFeeTotal.HasValue) {
+                        <tr><th>Offene Beiträge</th><td>@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Präferenzen</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width:200px">Stimmrecht</th>
+                        <td>
+                            @if (Member.HasVotingRights) {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            } else {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Umfragen</th>
+                        <td>
+                            @if (Member.ReceivesSurveys) {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            } else {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Aktionen</th>
+                        <td>
+                            @if (Member.ReceivesActions) {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            } else {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Newsletter</th>
+                        <td>
+                            @if (Member.ReceivesNewsletter) {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            } else {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Post-Rückläufer</th>
+                        <td>
+                            @if (Member.PostBounce) {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            } else {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>System</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Verknüpfter Benutzer</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : "Nicht verknüpft")</td></tr>
+                    <tr><th>Letzter Import</th><td>@Member.LastImportedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Audit Log</h5>
+            <p class="text-secondary mb-0">Wird in Kürze verfügbar sein.</p>
+        </div>
+    </div>
+}

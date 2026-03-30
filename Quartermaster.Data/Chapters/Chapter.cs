@@ -11,4 +11,6 @@ public class Chapter {
     public string Name { get; set; } = "";
     public Guid? AdministrativeDivisionId { get; set; }
     public Guid? ParentChapterId { get; set; }
+    public string? ShortCode { get; set; }
+    public string? ExternalCode { get; set; }
 }

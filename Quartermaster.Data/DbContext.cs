@@ -7,8 +7,10 @@ using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
@@ -30,6 +32,10 @@ public class DbContext : DataConnection {
     public ITable<ChapterOfficer> ChapterOfficers => this.GetTable<ChapterOfficer>();
     public ITable<Motion> Motions => this.GetTable<Motion>();
     public ITable<MotionVote> MotionVotes => this.GetTable<MotionVote>();
+    public ITable<SystemOption> SystemOptions => this.GetTable<SystemOption>();
+    public ITable<OptionDefinition> OptionDefinitions => this.GetTable<OptionDefinition>();
+    public ITable<Member> Members => this.GetTable<Member>();
+    public ITable<MemberImportLog> MemberImportLogs => this.GetTable<MemberImportLog>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -45,6 +51,8 @@ public class DbContext : DataConnection {
         services.AddScoped<MembershipApplicationRepository>();
         services.AddScoped<ChapterOfficerRepository>();
         services.AddScoped<MotionRepository>();
+        services.AddScoped<OptionRepository>();
+        services.AddScoped<MemberRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {
@@ -53,6 +61,7 @@ public class DbContext : DataConnection {
         scope.ServiceProvider.GetRequiredService<ChapterRepository>().SupplementDefaults(
             scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>());
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
+        scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(
             services.GetRequiredService<IOptions<RootAccountSettings>>().Value);
     }

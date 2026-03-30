@@ -1,0 +1,89 @@
+@page "/Administration/Members/Import"
+@using Quartermaster.Api.Members
+
+<div class="mb-3">
+    <a href="/Administration/Members" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Mitgliederliste
+    </a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Importverlauf</h3>
+    <button class="btn btn-primary" @onclick="TriggerImport" disabled="@Importing">
+        @if (Importing) {
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <span> Importiere...</span>
+        } else {
+            <i class="bi bi-download"></i>
+            <span> Manueller Import</span>
+        }
+    </button>
+</div>
+
+@if (ImportResult != null) {
+    <div class="alert alert-info alert-dismissible mb-3">
+        <button type="button" class="btn-close" @onclick="() => ImportResult = null"></button>
+        Import abgeschlossen: @ImportResult.TotalRecords Datensätze
+        (@ImportResult.NewRecords neu, @ImportResult.UpdatedRecords aktualisiert, @ImportResult.ErrorCount Fehler)
+        in @ImportResult.DurationMs ms.
+    </div>
+}
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    @if (Response.Items.Count == 0) {
+        <p class="text-secondary">Noch keine Importe durchgeführt.</p>
+    } else {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Zeitpunkt</th>
+                    <th>Datei</th>
+                    <th>Dauer</th>
+                    <th>Gesamt</th>
+                    <th>Neu</th>
+                    <th>Aktualisiert</th>
+                    <th>Fehler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Response.Items) {
+                    <tr>
+                        <td>@log.ImportedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@log.FileName</td>
+                        <td>@FormatDuration(log.DurationMs)</td>
+                        <td>@log.TotalRecords</td>
+                        <td>@log.NewRecords</td>
+                        <td>@log.UpdatedRecords</td>
+                        <td>
+                            @if (log.ErrorCount > 0) {
+                                <button class="badge border border-danger text-danger-emphasis btn p-1"
+                                        @onclick="() => ToggleErrors(log.Id)">
+                                    @log.ErrorCount
+                                </button>
+                            } else {
+                                <span class="badge border border-success text-success-emphasis">0</span>
+                            }
+                        </td>
+                    </tr>
+                    @if (ExpandedLogId == log.Id && log.Errors != null) {
+                        <tr>
+                            <td colspan="7">
+                                <div class="bg-body-secondary p-2 rounded small font-monospace">
+                                    @foreach (var error in ParseErrors(log.Errors)) {
+                                        <div>@error</div>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+    }
+}

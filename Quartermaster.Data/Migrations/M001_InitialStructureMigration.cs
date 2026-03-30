@@ -4,7 +4,9 @@ using Quartermaster.Data.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
@@ -57,7 +59,9 @@ public class M001_InitialStructureMigration : Migration {
             .WithColumn(nameof(Chapter.Id)).AsGuid().PrimaryKey().Indexed()
             .WithColumn(nameof(Chapter.Name)).AsString(256)
             .WithColumn(nameof(Chapter.AdministrativeDivisionId)).AsGuid().Nullable()
-            .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable();
+            .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(Chapter.ShortCode)).AsString(32).Nullable()
+            .WithColumn(nameof(Chapter.ExternalCode)).AsString(128).Nullable();
 
         Create.ForeignKey("FK_Users_ChapterId_Chapters_Id")
             .FromTable(User.TableName).ForeignColumn(nameof(User.ChapterId))
@@ -166,6 +170,24 @@ public class M001_InitialStructureMigration : Migration {
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
 
+        Create.Table(OptionDefinition.TableName)
+            .WithColumn(nameof(OptionDefinition.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(OptionDefinition.Identifier)).AsString(256).Unique()
+            .WithColumn(nameof(OptionDefinition.FriendlyName)).AsString(256)
+            .WithColumn(nameof(OptionDefinition.DataType)).AsInt32()
+            .WithColumn(nameof(OptionDefinition.IsOverridable)).AsBoolean()
+            .WithColumn(nameof(OptionDefinition.TemplateModels)).AsString(512);
+
+        Create.Table(SystemOption.TableName)
+            .WithColumn(nameof(SystemOption.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(SystemOption.Identifier)).AsString(256)
+            .WithColumn(nameof(SystemOption.Value)).AsString(8192)
+            .WithColumn(nameof(SystemOption.ChapterId)).AsGuid().Nullable();
+
+        Create.ForeignKey("FK_SystemOptions_ChapterId_Chapters_Id")
+            .FromTable(SystemOption.TableName).ForeignColumn(nameof(SystemOption.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
         Create.Table(DueSelection.TableName)
             .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(DueSelection.UserId)).AsGuid().Nullable()
@@ -236,9 +258,76 @@ public class M001_InitialStructureMigration : Migration {
         Create.ForeignKey("FK_MemberApps_ProcessedByUserId_Users_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.ProcessedByUserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
+        Create.Table(Member.TableName)
+            .WithColumn(nameof(Member.Id)).AsGuid().PrimaryKey().Indexed()
+            .WithColumn(nameof(Member.MemberNumber)).AsInt32().Unique()
+            .WithColumn(nameof(Member.AdmissionReference)).AsString(64).Nullable()
+            .WithColumn(nameof(Member.FirstName)).AsString(256)
+            .WithColumn(nameof(Member.LastName)).AsString(256)
+            .WithColumn(nameof(Member.Street)).AsString(256).Nullable()
+            .WithColumn(nameof(Member.Country)).AsString(16).Nullable()
+            .WithColumn(nameof(Member.PostCode)).AsString(16).Nullable()
+            .WithColumn(nameof(Member.City)).AsString(256).Nullable()
+            .WithColumn(nameof(Member.Phone)).AsString(64).Nullable()
+            .WithColumn(nameof(Member.EMail)).AsString(256).Nullable()
+            .WithColumn(nameof(Member.DateOfBirth)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.Citizenship)).AsString(64).Nullable()
+            .WithColumn(nameof(Member.MembershipFee)).AsDecimal()
+            .WithColumn(nameof(Member.ReducedFee)).AsDecimal()
+            .WithColumn(nameof(Member.FirstFee)).AsDecimal().Nullable()
+            .WithColumn(nameof(Member.OpenFeeTotal)).AsDecimal().Nullable()
+            .WithColumn(nameof(Member.ReducedFeeEnd)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.EntryDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.ExitDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.FederalState)).AsString(16).Nullable()
+            .WithColumn(nameof(Member.County)).AsString(256).Nullable()
+            .WithColumn(nameof(Member.Municipality)).AsString(256).Nullable()
+            .WithColumn(nameof(Member.IsPending)).AsBoolean()
+            .WithColumn(nameof(Member.HasVotingRights)).AsBoolean()
+            .WithColumn(nameof(Member.ReceivesSurveys)).AsBoolean()
+            .WithColumn(nameof(Member.ReceivesActions)).AsBoolean()
+            .WithColumn(nameof(Member.ReceivesNewsletter)).AsBoolean()
+            .WithColumn(nameof(Member.PostBounce)).AsBoolean()
+            .WithColumn(nameof(Member.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(Member.ResidenceAdministrativeDivisionId)).AsGuid().Nullable()
+            .WithColumn(nameof(Member.UserId)).AsGuid().Nullable()
+            .WithColumn(nameof(Member.LastImportedAt)).AsDateTime();
+
+        Create.ForeignKey("FK_Members_ChapterId_Chapters_Id")
+            .FromTable(Member.TableName).ForeignColumn(nameof(Member.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.ForeignKey("FK_Members_ResAdminDivId_AdminDivs_Id")
+            .FromTable(Member.TableName).ForeignColumn(nameof(Member.ResidenceAdministrativeDivisionId))
+            .ToTable(AdministrativeDivision.TableName).PrimaryColumn(nameof(AdministrativeDivision.Id));
+
+        Create.ForeignKey("FK_Members_UserId_Users_Id")
+            .FromTable(Member.TableName).ForeignColumn(nameof(Member.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
+        Create.Table(MemberImportLog.TableName)
+            .WithColumn(nameof(MemberImportLog.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(MemberImportLog.ImportedAt)).AsDateTime()
+            .WithColumn(nameof(MemberImportLog.FileName)).AsString(512)
+            .WithColumn(nameof(MemberImportLog.FileHash)).AsString(128)
+            .WithColumn(nameof(MemberImportLog.TotalRecords)).AsInt32()
+            .WithColumn(nameof(MemberImportLog.NewRecords)).AsInt32()
+            .WithColumn(nameof(MemberImportLog.UpdatedRecords)).AsInt32()
+            .WithColumn(nameof(MemberImportLog.ErrorCount)).AsInt32()
+            .WithColumn(nameof(MemberImportLog.Errors)).AsString(8192).Nullable()
+            .WithColumn(nameof(MemberImportLog.DurationMs)).AsInt64();
     }
 
     public override void Down() {
+        Execute.Sql($"DROP TABLE IF EXISTS `{MemberImportLog.TableName}`");
+        Execute.Sql($"DROP TABLE IF EXISTS `{Member.TableName}`");
+
+        Delete.ForeignKey("FK_SystemOptions_ChapterId_Chapters_Id")
+            .OnTable(SystemOption.TableName);
+        Delete.Table(SystemOption.TableName);
+        Delete.Table(OptionDefinition.TableName);
+
         Delete.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
             .OnTable(MotionVote.TableName);
         Delete.ForeignKey("FK_MotionVotes_UserId_Users_Id")
