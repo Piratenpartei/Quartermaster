@@ -154,6 +154,30 @@ public class ChapterRepository {
         SeedSubChapters(bundesverband.Id);
     }
 
+    public (List<Chapter> Items, int TotalCount) Search(string? query, int page, int pageSize) {
+        var q = _context.Chapters.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query)) {
+            q = q.Where(c => c.Name.Contains(query)
+                || (c.ShortCode != null && c.ShortCode.Contains(query))
+                || (c.ExternalCode != null && c.ExternalCode.Contains(query)));
+        }
+
+        var totalCount = q.Count();
+        var items = q.OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (items, totalCount);
+    }
+
+    public List<Chapter> GetRoots()
+        => _context.Chapters.Where(c => c.ParentChapterId == null).OrderBy(c => c.Name).ToList();
+
+    public List<Chapter> GetChildren(Guid parentId)
+        => _context.Chapters.Where(c => c.ParentChapterId == parentId && c.Id != parentId).OrderBy(c => c.Name).ToList();
+
     public List<Chapter> GetAncestorChain(Guid chapterId) {
         var chain = new List<Chapter>();
         var current = Get(chapterId);

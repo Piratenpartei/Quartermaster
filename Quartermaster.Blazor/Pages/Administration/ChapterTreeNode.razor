@@ -1,0 +1,64 @@
+@using Quartermaster.Api.Chapters
+
+<div class="ms-3">
+    <div class="d-flex align-items-center py-1">
+        @if (Node.IsLeaf) {
+            <span class="me-2 text-secondary" style="width: 28px; text-align: center; display: inline-block;">
+                <i class="bi bi-dash"></i>
+            </span>
+        } else {
+            <button class="btn btn-sm btn-outline-secondary me-2 border-0"
+                    @onclick="Toggle" style="width: 28px; height: 28px; padding: 0;">
+                @if (Node.Loading) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                } else if (Node.Expanded) {
+                    <i class="bi bi-chevron-down"></i>
+                } else {
+                    <i class="bi bi-chevron-right"></i>
+                }
+            </button>
+        }
+        <span class="me-2">@Node.Chapter.Name</span>
+        @if (!string.IsNullOrEmpty(Node.Chapter.ShortCode)) {
+            <span class="badge bg-secondary me-1">@Node.Chapter.ShortCode</span>
+        }
+        @if (!string.IsNullOrEmpty(Node.Chapter.ExternalCode)) {
+            <code class="small text-secondary">@Node.Chapter.ExternalCode</code>
+        }
+    </div>
+
+    @if (Node.Expanded && Node.Children != null) {
+        @foreach (var child in Node.Children) {
+            <ChapterTreeNode Node="child" Http="Http" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public required ChapterTreeNodeModel Node { get; set; }
+
+    [Parameter]
+    public required HttpClient Http { get; set; }
+
+    private async Task Toggle() {
+        if (Node.Loading)
+            return;
+
+        if (!Node.Expanded && Node.Children == null) {
+            Node.Loading = true;
+            StateHasChanged();
+
+            var children = await Http.GetFromJsonAsync<List<ChapterDTO>>(
+                $"/api/chapters/{Node.Chapter.Id}/children");
+
+            Node.Children = children?.Select(c => new ChapterTreeNodeModel(c)).ToList() ?? [];
+            Node.Loading = false;
+            Node.IsLeaf = Node.Children.Count == 0;
+        }
+
+        if (!Node.IsLeaf)
+            Node.Expanded = !Node.Expanded;
+        StateHasChanged();
+    }
+}

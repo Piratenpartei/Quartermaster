@@ -1,0 +1,60 @@
+@page "/Administration/Chapters"
+@using Quartermaster.Api.Chapters
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Gliederungen - Liste</h3>
+    <a href="/Administration/ChapterTree" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-diagram-3"></i> Struktur
+    </a>
+</div>
+
+<div class="mb-3">
+    <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control" placeholder="Name, Kürzel oder externer Code..."
+               @bind="SearchQuery" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Gliederungen
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Kürzel</th>
+                <th>Externer Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ch in Response.Items) {
+                <tr>
+                    <td>@ch.Name</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(ch.ShortCode)) {
+                            <span class="badge bg-secondary">@ch.ShortCode</span>
+                        } else {
+                            <span class="text-secondary">—</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(ch.ExternalCode)) {
+                            <code>@ch.ExternalCode</code>
+                        } else {
+                            <span class="text-secondary">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}
