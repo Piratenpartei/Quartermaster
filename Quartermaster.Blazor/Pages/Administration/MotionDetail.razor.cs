@@ -93,9 +93,9 @@ public partial class MotionDetail {
     private static string OfficerRoleLabel(string role) => role switch {
         "Captain" => "Vorsitzender",
         "FirstOfficer" => "Stellv. Vorsitzender",
-        "Quartermaster" => "Schatzmeister",
-        "Treasurer" => "Kassierer",
-        "ViceTreasurer" => "Stellv. Kassierer",
+        "Quartermaster" => "Quartiermeister",
+        "Treasurer" => "Schatzmeister",
+        "ViceTreasurer" => "Stellv. Schatzmeister",
         "PoliticalDirector" => "Pol. Geschäftsführer",
         "Member" => "Beisitzer",
         _ => role

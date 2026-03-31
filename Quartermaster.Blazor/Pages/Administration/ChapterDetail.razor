@@ -1,0 +1,93 @@
+@page "/Administration/Chapters/{Id:guid}"
+@using Quartermaster.Api.Chapters
+@using Quartermaster.Api.ChapterAssociates
+
+<div class="mb-3">
+    <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Detail == null) {
+    <div class="alert alert-danger">Gliederung nicht gefunden.</div>
+} else {
+    <div class="mb-3">
+        <h3>@Detail.Chapter.Name</h3>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Details</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Name</th><td>@Detail.Chapter.Name</td></tr>
+                    <tr><th>Kürzel</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
+                    <tr><th>Externer Code</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
+                    <tr>
+                        <th>Übergeordnete Gliederung</th>
+                        <td>
+                            @if (Detail.ParentChapterId.HasValue) {
+                                <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
+                            } else {
+                                <span>—</span>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Vorstand</h5>
+                <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Hinzufügen
+                </a>
+            </div>
+            @if (Detail.Officers.Count > 0) {
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Rolle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var officer in Detail.Officers) {
+                            <tr>
+                                <td>@officer.MemberFirstName @officer.MemberLastName</td>
+                                <td>@RoleLabel(officer.AssociateType)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            } else {
+                <p class="text-secondary mb-0">Keine Vorstandsmitglieder eingetragen.</p>
+            }
+        </div>
+    </div>
+
+    @if (Detail.Children.Count > 0) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Untergliederungen</h5>
+                <div class="list-group list-group-flush">
+                    @foreach (var child in Detail.Children) {
+                        <a href="/Administration/Chapters/@child.Id" class="list-group-item list-group-item-action">
+                            @child.Name
+                            @if (!string.IsNullOrEmpty(child.ShortCode)) {
+                                <span class="badge bg-secondary ms-1">@child.ShortCode</span>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}

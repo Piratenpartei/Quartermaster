@@ -7,6 +7,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Users;
@@ -200,26 +201,40 @@ public class TestDataSeeder {
             created++;
         }
 
-        // Create test officer users (3 per state chapter)
+        // Create test officer members (3 per state chapter)
         var officerTypes = new[] { ChapterOfficerType.Captain, ChapterOfficerType.FirstOfficer, ChapterOfficerType.Quartermaster };
-        var officerUsers = new List<User>();
+        var officerMembers = new List<Member>();
 
         foreach (var chapter in stateChapters) {
             for (var j = 0; j < 3; j++) {
+                var firstName = faker.Name.FirstName();
+                var lastName = faker.Name.LastName();
+
+                // Create a user for voting capability
                 var user = new User {
                     Id = Guid.NewGuid(),
-                    Username = faker.Internet.UserName(),
-                    FirstName = faker.Name.FirstName(),
-                    LastName = faker.Name.LastName(),
+                    FirstName = firstName,
+                    LastName = lastName,
                     EMail = faker.Internet.Email(),
                     ChapterId = chapter.Id,
                     MemberSince = faker.Date.Past(5)
                 };
                 _context.Insert(user);
-                officerUsers.Add(user);
+
+                var member = new Member {
+                    Id = Guid.NewGuid(),
+                    MemberNumber = faker.Random.Int(10000, 99999),
+                    FirstName = firstName,
+                    LastName = lastName,
+                    EMail = user.EMail,
+                    UserId = user.Id,
+                    LastImportedAt = DateTime.UtcNow
+                };
+                _context.Insert(member);
+                officerMembers.Add(member);
 
                 _context.Insert(new ChapterOfficer {
-                    UserId = user.Id,
+                    MemberId = member.Id,
                     ChapterId = chapter.Id,
                     AssociateType = officerTypes[j]
                 });
@@ -237,7 +252,10 @@ public class TestDataSeeder {
 
         for (var i = 0; i < 15; i++) {
             var chapter = faker.PickRandom(stateChapters);
-            var chapterOfficers = officerUsers.Where(u => u.ChapterId == chapter.Id).ToList();
+            var chapterMembers = officerMembers.Where(m => {
+                var off = _context.ChapterOfficers.FirstOrDefault(o => o.MemberId == m.Id && o.ChapterId == chapter.Id);
+                return off != null;
+            }).ToList();
 
             var motion = new Motion {
                 Id = Guid.NewGuid(),
@@ -253,12 +271,12 @@ public class TestDataSeeder {
             _context.Insert(motion);
 
             if (faker.Random.Bool(0.6f)) {
-                foreach (var officer in chapterOfficers) {
-                    if (faker.Random.Bool(0.8f)) {
+                foreach (var member in chapterMembers) {
+                    if (faker.Random.Bool(0.8f) && member.UserId.HasValue) {
                         _context.Insert(new MotionVote {
                             Id = Guid.NewGuid(),
                             MotionId = motion.Id,
-                            UserId = officer.Id,
+                            UserId = member.UserId.Value,
                             Vote = faker.PickRandom<VoteType>(),
                             VotedAt = faker.Date.Between(motion.CreatedAt, DateTime.UtcNow)
                         });

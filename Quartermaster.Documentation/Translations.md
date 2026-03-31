@@ -129,4 +129,8 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Vorstandsmitglied | Board Member / Officer | |
 | Vorsitzender | Chair | Captain |
 | Stellv. Vorsitzender | Vice Chair | FirstOfficer |
-| Schatzmeister | Treasurer | Quartermaster (pirate naming) |
+| Quartiermeister | Quartermaster | Pirate-themed role |
+| Schatzmeister | Treasurer | |
+| Stellv. Schatzmeister | Vice Treasurer | ViceTreasurer |
+| Pol. Geschäftsführer | Political Director | PoliticalDirector |
+| Beisitzer | Board Member | Member (generic officer) |

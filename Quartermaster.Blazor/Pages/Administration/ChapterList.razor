@@ -36,7 +36,7 @@
         <tbody>
             @foreach (var ch in Response.Items) {
                 <tr>
-                    <td>@ch.Name</td>
+                    <td><a href="/Administration/Chapters/@ch.Id">@ch.Name</a></td>
                     <td>
                         @if (!string.IsNullOrEmpty(ch.ShortCode)) {
                             <span class="badge bg-secondary">@ch.ShortCode</span>

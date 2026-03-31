@@ -1,0 +1,95 @@
+@page "/Administration/Chapters/{ChapterId:guid}/AddOfficer"
+@using Quartermaster.Api.ChapterAssociates
+@using Quartermaster.Api.Members
+
+<div class="mb-3">
+    <a href="/Administration/Chapters/@ChapterId" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Gliederung
+    </a>
+</div>
+
+<h3 class="mb-3">Vorstandsmitglied hinzufügen</h3>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>Mitglied suchen</h5>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" placeholder="Name oder Mitgliedsnummer..."
+                   @bind="SearchQuery" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
+        </div>
+
+        @if (SearchLoading) {
+            <div class="d-flex justify-content-center my-3">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+        } else if (SearchResults != null) {
+            @if (SearchResults.Items.Count == 0) {
+                <p class="text-secondary">Keine Mitglieder gefunden.</p>
+            } else {
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nr.</th>
+                            <th>Name</th>
+                            <th>Ort</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in SearchResults.Items) {
+                            <tr class="@(SelectedMemberId == m.Id ? "table-active" : "")">
+                                <td>@m.MemberNumber</td>
+                                <td>@m.FirstName @m.LastName</td>
+                                <td>@m.PostCode @m.City</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => SelectMember(m)">
+                                        <i class="bi bi-check"></i> Auswählen
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </div>
+</div>
+
+@if (SelectedMember != null) {
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Ausgewähltes Mitglied</h5>
+            <p class="mb-2">
+                <strong>@SelectedMember.FirstName @SelectedMember.LastName</strong>
+                <span class="text-secondary">(Nr. @SelectedMember.MemberNumber)</span>
+            </p>
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Rolle</label>
+                    <select class="form-select" @bind="SelectedRole">
+                        <option value="0">Vorsitzender</option>
+                        <option value="1">Stellv. Vorsitzender</option>
+                        <option value="2">Quartiermeister</option>
+                        <option value="3">Schatzmeister</option>
+                        <option value="4">Stellv. Schatzmeister</option>
+                        <option value="5">Pol. Geschäftsführer</option>
+                        <option value="6">Beisitzer</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-success" @onclick="AddOfficer" disabled="@Submitting">
+                        @if (Submitting) {
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            <span> Wird hinzugefügt...</span>
+                        } else {
+                            <i class="bi bi-plus-circle"></i>
+                            <span> Hinzufügen</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

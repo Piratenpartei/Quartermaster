@@ -16,7 +16,7 @@ using Quartermaster.Data.Users;
 namespace Quartermaster.Data.Migrations;
 
 [Migration(001)]
-public class M001_InitialStructureMigration : Migration {
+public class M001_InitialStructureMigration : MigrationBase {
     public override void Up() {
         Create.Table(User.TableName)
             .WithColumn(nameof(User.Id)).AsGuid().PrimaryKey().Indexed()
@@ -124,13 +124,11 @@ public class M001_InitialStructureMigration : Migration {
             .ToTable(Permission.TableName).PrimaryColumn(nameof(Permission.Id));
 
         Create.Table(ChapterOfficer.TableName)
-            .WithColumn(nameof(ChapterOfficer.UserId)).AsGuid()
+            .WithColumn(nameof(ChapterOfficer.MemberId)).AsGuid()
             .WithColumn(nameof(ChapterOfficer.ChapterId)).AsGuid()
             .WithColumn(nameof(ChapterOfficer.AssociateType)).AsInt32();
 
-        Create.ForeignKey("FK_ChapterAssociates_UserId_User_Id")
-            .FromTable(ChapterOfficer.TableName).ForeignColumn(nameof(ChapterOfficer.UserId))
-            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+        // FK_ChapterAssociates_MemberId is created after Members table below
 
         Create.ForeignKey("FK_ChapterAssociates_ChapterId_Chapters_Id")
             .FromTable(ChapterOfficer.TableName).ForeignColumn(nameof(ChapterOfficer.ChapterId))
@@ -306,6 +304,10 @@ public class M001_InitialStructureMigration : Migration {
             .FromTable(Member.TableName).ForeignColumn(nameof(Member.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
 
+        Create.ForeignKey("FK_ChapterAssociates_MemberId_Members_Id")
+            .FromTable(ChapterOfficer.TableName).ForeignColumn(nameof(ChapterOfficer.MemberId))
+            .ToTable(Member.TableName).PrimaryColumn(nameof(Member.Id));
+
         Create.Table(MemberImportLog.TableName)
             .WithColumn(nameof(MemberImportLog.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(MemberImportLog.ImportedAt)).AsDateTime()
@@ -320,83 +322,25 @@ public class M001_InitialStructureMigration : Migration {
     }
 
     public override void Down() {
-        Execute.Sql($"DROP TABLE IF EXISTS `{MemberImportLog.TableName}`");
-        Execute.Sql($"DROP TABLE IF EXISTS `{Member.TableName}`");
+        DisableForeignKeyChecks();
 
-        Delete.ForeignKey("FK_SystemOptions_ChapterId_Chapters_Id")
-            .OnTable(SystemOption.TableName);
-        Delete.Table(SystemOption.TableName);
-        Delete.Table(OptionDefinition.TableName);
+        DropTableIfExists(MemberImportLog.TableName);
+        DropTableIfExists(Member.TableName);
+        DropTableIfExists(SystemOption.TableName);
+        DropTableIfExists(OptionDefinition.TableName);
+        DropTableIfExists(MotionVote.TableName);
+        DropTableIfExists(Motion.TableName);
+        DropTableIfExists(MembershipApplication.TableName);
+        DropTableIfExists(DueSelection.TableName);
+        DropTableIfExists(ChapterOfficer.TableName);
+        DropTableIfExists(UserGlobalPermission.TableName);
+        DropTableIfExists(UserChapterPermission.TableName);
+        DropTableIfExists(Token.TableName);
+        DropTableIfExists(User.TableName);
+        DropTableIfExists(Chapter.TableName);
+        DropTableIfExists(AdministrativeDivision.TableName);
+        DropTableIfExists(Permission.TableName);
 
-        Delete.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
-            .OnTable(MotionVote.TableName);
-        Delete.ForeignKey("FK_MotionVotes_UserId_Users_Id")
-            .OnTable(MotionVote.TableName);
-        Delete.ForeignKey("FK_Motions_ChapterId_Chapters_Id")
-            .OnTable(Motion.TableName);
-
-        Delete.ForeignKey("FK_MemberApps_ProcessedByUserId_Users_Id")
-            .OnTable(MembershipApplication.TableName);
-        Delete.ForeignKey("FK_DueSelections_ProcessedByUserId_Users_Id")
-            .OnTable(DueSelection.TableName);
-
-        Delete.ForeignKey("FK_DueSelections_UserId_User_Id")
-            .OnTable(DueSelection.TableName);
-
-        Delete.ForeignKey("FK_AdministrativeDivisions_ParentId_AdministrativeDivisions_Id")
-            .OnTable(AdministrativeDivision.TableName);
-
-        Delete.ForeignKey("FK_Users_CitizenshipAdminDivId_AdministrativeDivisions_Id")
-            .OnTable(User.TableName);
-        Delete.ForeignKey("FK_Users_AddressAdminDivId_AdministrativeDivisions_Id")
-            .OnTable(User.TableName);
-
-        Delete.ForeignKey("FK_Users_ChapterId_Chapters_Id")
-            .OnTable(User.TableName);
-
-        Delete.ForeignKey("FK_Chapters_AdministrativeDivisionId_AdministrativeDivisions_Id")
-            .OnTable(Chapter.TableName);
-        Delete.ForeignKey("FK_Chapters_ParentChapterId_Chapters_Id")
-            .OnTable(Chapter.TableName);
-
-        Delete.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
-            .OnTable(MembershipApplication.TableName);
-        Delete.ForeignKey("FK_MembershipApplications_ChapterId_Chapters_Id")
-            .OnTable(MembershipApplication.TableName);
-        Delete.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
-            .OnTable(MembershipApplication.TableName);
-
-        Delete.ForeignKey("FK_UserGlobalPermissions_UserId_User_Id")
-            .OnTable(UserGlobalPermission.TableName);
-        Delete.ForeignKey("FK_UserGlobalPermissions_PermissionId_Permissions_Id")
-            .OnTable(UserGlobalPermission.TableName);
-
-        Delete.ForeignKey("FK_UserChapterPermissions_UserId_User_Id")
-            .OnTable(UserChapterPermission.TableName);
-        Delete.ForeignKey("FK_UserChapterPermissions_ChapterId_Chapters_Id")
-            .OnTable(UserChapterPermission.TableName);
-        Delete.ForeignKey("FK_UserChapterPermissions_PermissionId_Permissions_Id")
-            .OnTable(UserChapterPermission.TableName);
-
-        Delete.ForeignKey("FK_ChapterAssociates_UserId_User_Id")
-            .OnTable(ChapterOfficer.TableName);
-        Delete.ForeignKey("FK_ChapterAssociates_ChapterId_Chapters_Id")
-            .OnTable(ChapterOfficer.TableName);
-
-        Delete.ForeignKey("FK_Tokens_UserId_User_Id")
-            .OnTable(Token.TableName);
-
-        Delete.Table(MotionVote.TableName);
-        Delete.Table(Motion.TableName);
-        Delete.Table(User.TableName);
-        Delete.Table(AdministrativeDivision.TableName);
-        Delete.Table(Chapter.TableName);
-        Delete.Table(Token.TableName);
-        Delete.Table(MembershipApplication.TableName);
-        Delete.Table(Permission.TableName);
-        Delete.Table(UserGlobalPermission.TableName);
-        Delete.Table(UserChapterPermission.TableName);
-        Delete.Table(ChapterOfficer.TableName);
-        Delete.Table(DueSelection.TableName);
+        EnableForeignKeyChecks();
     }
 }

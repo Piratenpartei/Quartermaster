@@ -1,0 +1,60 @@
+@page "/Administration/ChapterOfficers"
+@using Quartermaster.Api.ChapterAssociates
+@using Quartermaster.Api.Chapters
+
+<div class="mb-3">
+    <h3>Vorstandsmitglieder</h3>
+</div>
+
+<div class="mb-3 d-flex gap-3">
+    <div class="flex-grow-1" style="max-width: 400px;">
+        <input type="text" class="form-control" placeholder="Name..."
+               @bind="SearchQuery" @bind:event="oninput" @onkeydown="OnSearchKeyDown" />
+    </div>
+    <div>
+        <select class="form-select" @onchange="OnChapterChanged">
+            <option value="">Alle Gliederungen</option>
+            @if (Chapters != null) {
+                @foreach (var chapter in Chapters) {
+                    <option value="@chapter.Id">@chapter.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-primary" @onclick="() => GoToPage(1)">
+            <i class="bi bi-search"></i> Suchen
+        </button>
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Vorstandsmitglieder
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Gliederung</th>
+                <th>Rolle</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Response.Items) {
+                <tr>
+                    <td>@o.MemberFirstName @o.MemberLastName</td>
+                    <td><a href="/Administration/Chapters/@o.ChapterId">@o.ChapterName</a></td>
+                    <td>@RoleLabel(o.AssociateType)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}

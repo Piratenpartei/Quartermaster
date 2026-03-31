@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.Motions;
+using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.Users;
 
 namespace Quartermaster.Server.Motions;
 
@@ -19,14 +19,14 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
-    private readonly UserRepository _userRepo;
+    private readonly DbContext _context;
 
     public MotionDetailEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        ChapterOfficerRepository officerRepo, UserRepository userRepo) {
+        ChapterOfficerRepository officerRepo, DbContext context) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
-        _userRepo = userRepo;
+        _context = context;
     }
 
     public override void Configure() {
@@ -44,26 +44,31 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
 
         var chapter = _chapterRepo.Get(motion.ChapterId);
         var officers = _officerRepo.GetForChapter(motion.ChapterId);
+        var officerMemberIds = officers.Select(o => o.MemberId).ToList();
+        var members = _context.Members.Where(m => officerMemberIds.Contains(m.Id)).ToList();
         var votes = _motionRepo.GetVotes(motion.Id);
 
-        var voteDtos = votes.Select(v => {
-            var user = _userRepo.GetById(v.UserId);
-            var officer = officers.FirstOrDefault(o => o.UserId == v.UserId);
+        var officerDtos = officers.Select(o => {
+            var member = members.FirstOrDefault(m => m.Id == o.MemberId);
             return new MotionVoteDTO {
-                UserId = v.UserId,
-                UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unbekannt",
-                OfficerRole = officer != null ? officer.AssociateType.ToString() : "",
-                Vote = (int)v.Vote,
-                VotedAt = v.VotedAt
+                UserId = member?.UserId ?? Guid.Empty,
+                UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                OfficerRole = o.AssociateType.ToString()
             };
         }).ToList();
 
-        var officerDtos = officers.Select(o => {
-            var user = _userRepo.GetById(o.UserId);
+        var voteDtos = votes.Select(v => {
+            // Find the member that has this UserId to get the officer role
+            var member = members.FirstOrDefault(m => m.UserId == v.UserId);
+            var officer = member != null
+                ? officers.FirstOrDefault(o => o.MemberId == member.Id)
+                : null;
             return new MotionVoteDTO {
-                UserId = o.UserId,
-                UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unbekannt",
-                OfficerRole = o.AssociateType.ToString()
+                UserId = v.UserId,
+                UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                OfficerRole = officer != null ? officer.AssociateType.ToString() : "",
+                Vote = (int)v.Vote,
+                VotedAt = v.VotedAt
             };
         }).ToList();
 

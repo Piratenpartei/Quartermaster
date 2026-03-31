@@ -1,6 +1,6 @@
 using LinqToDB;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.Users;
+using Quartermaster.Data.Members;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +21,42 @@ public class ChapterOfficerRepository {
         => _context.ChapterOfficers.Where(o => o.ChapterId == chapterId).Count();
 
     public void Create(ChapterOfficer officer) => _context.Insert(officer);
+
+    public (List<(ChapterOfficer Officer, Member Member, Chapter Chapter)> Items, int TotalCount) SearchAll(
+        string? query, Guid? chapterId, int page, int pageSize) {
+
+        var q = from o in _context.ChapterOfficers
+                join m in _context.Members on o.MemberId equals m.Id
+                join c in _context.Chapters on o.ChapterId equals c.Id
+                select new { Officer = o, Member = m, Chapter = c };
+
+        if (chapterId.HasValue)
+            q = q.Where(x => x.Officer.ChapterId == chapterId.Value);
+
+        if (!string.IsNullOrWhiteSpace(query)) {
+            if (int.TryParse(query, out var memberNum)) {
+                q = q.Where(x => x.Member.MemberNumber == memberNum);
+            } else {
+                q = q.Where(x => x.Member.FirstName.Contains(query) || x.Member.LastName.Contains(query));
+            }
+        }
+
+        var totalCount = q.Count();
+        var items = q.OrderBy(x => x.Chapter.Name).ThenBy(x => x.Member.LastName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList()
+            .Select(x => (x.Officer, x.Member, x.Chapter))
+            .ToList();
+
+        return (items, totalCount);
+    }
+
+    public void Delete(Guid memberId, Guid chapterId) {
+        _context.ChapterOfficers
+            .Where(o => o.MemberId == memberId && o.ChapterId == chapterId)
+            .Delete();
+    }
 
     public void SupplementDefaults(ChapterRepository chapterRepo) {
         if (_context.ChapterOfficers.Any())
@@ -47,6 +83,8 @@ public class ChapterOfficerRepository {
         });
     }
 
+    private static int _seedMemberCounter = -1;
+
     private void SeedChapterOfficers(string shortCode, string emailDomain,
         (string FirstName, string LastName, ChapterOfficerType Role)[] officers) {
 
@@ -57,18 +95,25 @@ public class ChapterOfficerRepository {
             return;
 
         foreach (var (firstName, lastName, role) in officers) {
-            var user = new User {
-                Id = Guid.NewGuid(),
-                FirstName = firstName,
-                LastName = lastName,
-                EMail = $"{firstName.ToLower().Replace(" ", ".")}.{lastName.ToLower()}@{emailDomain}",
-                ChapterId = chapter.Id,
-                MemberSince = DateTime.UtcNow
-            };
-            _context.Insert(user);
+            // Find existing member by name, or create one
+            var member = _context.Members
+                .Where(m => m.FirstName == firstName && m.LastName == lastName)
+                .FirstOrDefault();
+
+            if (member == null) {
+                member = new Member {
+                    Id = Guid.NewGuid(),
+                    MemberNumber = _seedMemberCounter--,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    EMail = $"{firstName.ToLower().Replace(" ", ".")}.{lastName.ToLower()}@{emailDomain}",
+                    LastImportedAt = DateTime.UtcNow
+                };
+                _context.Insert(member);
+            }
 
             Create(new ChapterOfficer {
-                UserId = user.Id,
+                MemberId = member.Id,
                 ChapterId = chapter.Id,
                 AssociateType = role
             });
