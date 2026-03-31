@@ -1,0 +1,79 @@
+@page "/Administration/Events/CreateFromTemplate/{TemplateId:guid}"
+@using Quartermaster.Api.Events
+
+<div class="mb-3">
+    <a href="/Administration/EventTemplates" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zu Vorlagen
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Template == null) {
+    <div class="alert alert-danger">Vorlage nicht gefunden.</div>
+} else {
+    <h3 class="mb-3">Event aus Vorlage: @Template.Name</h3>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Gliederung</label>
+                    <ChapterPicker @bind-Value="ChapterId" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Datum</label>
+                    <input type="date" class="form-control"
+                           value="@(EventDate?.ToString("yyyy-MM-dd"))"
+                           @onchange="(e) => EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null" />
+                </div>
+            </div>
+
+            @if (Variables.Count > 0) {
+                <h5 class="mb-3">Variablen</h5>
+
+                @foreach (var variable in Variables) {
+                    <div class="mb-3">
+                        <label class="form-label">@variable.Label</label>
+                        @if (variable.Type == "Date") {
+                            <input type="date" class="form-control" style="max-width: 300px;"
+                                   value="@variable.Value"
+                                   @onchange="(e) => variable.Value = e.Value?.ToString() ?? string.Empty" />
+                        } else if (variable.Type == "Time") {
+                            <input type="time" class="form-control" style="max-width: 300px;"
+                                   value="@variable.Value"
+                                   @onchange="(e) => variable.Value = e.Value?.ToString() ?? string.Empty" />
+                        } else if (variable.Type == "Number") {
+                            <input type="number" class="form-control" style="max-width: 300px;"
+                                   @bind="variable.Value" />
+                        } else if (variable.Type == "Chapter") {
+                            <ChapterPicker @bind-Value="variable.Value" />
+                        } else {
+                            <input type="text" class="form-control"
+                                   @bind="variable.Value" />
+                        }
+                    </div>
+                }
+            }
+
+            @if (!string.IsNullOrEmpty(ResolvedPublicName)) {
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">Vorschau: Öffentlicher Name</label>
+                    <div class="form-control-plaintext border rounded px-2 py-1 bg-body-secondary">@ResolvedPublicName</div>
+                </div>
+            }
+
+            <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
+                @if (Submitting) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span> Wird erstellt...</span>
+                } else {
+                    <i class="bi bi-plus-circle"></i>
+                    <span> Event erstellen</span>
+                }
+            </button>
+        </div>
+    </div>
+}

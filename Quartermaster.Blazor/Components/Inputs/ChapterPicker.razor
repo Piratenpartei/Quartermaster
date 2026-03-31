@@ -1,0 +1,64 @@
+@using Quartermaster.Api.Chapters
+
+@if (Chapters == null) {
+    <div class="spinner-border spinner-border-sm" role="status"></div>
+} else if (Chapters.Count <= 5) {
+    <select class="form-select @SizeClass" value="@Value" @onchange="OnDropdownChanged">
+        @if (AllowEmpty) {
+            <option value="">@EmptyLabel</option>
+        }
+        @foreach (var chapter in Chapters) {
+            <option value="@chapter.Id">@chapter.Name</option>
+        }
+    </select>
+} else if (Inline) {
+    <div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
+        <input type="text" class="form-control @SizeClass" placeholder="Gliederung..."
+               value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
+               style="border-radius: 0;" />
+        @if (ShowDropdown && FilteredChapters.Count > 0) {
+            <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
+                @foreach (var chapter in FilteredChapters.Take(20)) {
+                    <button type="button" class="list-group-item list-group-item-action py-1 small"
+                            @onclick="() => SelectChapter(chapter)">
+                        @chapter.Name
+                        @if (!string.IsNullOrEmpty(chapter.ShortCode)) {
+                            <span class="badge bg-secondary ms-1">@chapter.ShortCode</span>
+                        }
+                    </button>
+                }
+            </div>
+        }
+    </div>
+} else {
+    <div class="position-relative" tabindex="-1" @onfocusout="ScheduleClose">
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" placeholder="Gliederung suchen..."
+                   value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true" />
+            @if (!string.IsNullOrEmpty(Value)) {
+                <button class="btn btn-outline-secondary" type="button" @onclick="Clear">
+                    <i class="bi bi-x"></i>
+                </button>
+            }
+        </div>
+        @if (ShowDropdown && FilteredChapters.Count > 0) {
+            <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto;">
+                @foreach (var chapter in FilteredChapters.Take(20)) {
+                    <button type="button" class="list-group-item list-group-item-action py-1 small"
+                            @onclick="() => SelectChapter(chapter)">
+                        @chapter.Name
+                        @if (!string.IsNullOrEmpty(chapter.ShortCode)) {
+                            <span class="badge bg-secondary ms-1">@chapter.ShortCode</span>
+                        }
+                    </button>
+                }
+                @if (FilteredChapters.Count > 20) {
+                    <div class="list-group-item py-1 small text-secondary">
+                        ... @(FilteredChapters.Count - 20) weitere
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

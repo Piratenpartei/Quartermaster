@@ -1,0 +1,20 @@
+@using Quartermaster.Api.AdministrativeDivisions
+
+<div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
+    <input type="text" class="form-control @SizeClass" placeholder="PLZ, Name oder Code..."
+           value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
+           style="border-radius: 0;" />
+    @if (ShowDropdown && SearchResults != null && SearchResults.Count > 0) {
+        <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
+            @foreach (var div in SearchResults.Take(20)) {
+                <button type="button" class="list-group-item list-group-item-action py-1 small"
+                        @onclick="() => SelectDivision(div)">
+                    <span>@div.Name</span>
+                    @if (!string.IsNullOrEmpty(div.AdminCode)) {
+                        <code class="small text-secondary ms-1">@div.AdminCode</code>
+                    }
+                </button>
+            }
+        </div>
+    }
+</div>

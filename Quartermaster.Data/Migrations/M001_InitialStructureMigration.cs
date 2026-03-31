@@ -1,5 +1,6 @@
 using FluentMigrator;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -319,11 +320,62 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MemberImportLog.ErrorCount)).AsInt32()
             .WithColumn(nameof(MemberImportLog.Errors)).AsString(8192).Nullable()
             .WithColumn(nameof(MemberImportLog.DurationMs)).AsInt64();
+
+        Create.Table(EventTemplate.TableName)
+            .WithColumn(nameof(EventTemplate.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(EventTemplate.Name)).AsString(512)
+            .WithColumn(nameof(EventTemplate.PublicNameTemplate)).AsString(512)
+            .WithColumn(nameof(EventTemplate.DescriptionTemplate)).AsCustom("TEXT").Nullable()
+            .WithColumn(nameof(EventTemplate.Variables)).AsCustom("TEXT")
+            .WithColumn(nameof(EventTemplate.ChecklistItemTemplates)).AsCustom("TEXT")
+            .WithColumn(nameof(EventTemplate.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(EventTemplate.CreatedAt)).AsDateTime();
+
+        Create.ForeignKey("FK_EventTemplates_ChapterId_Chapters_Id")
+            .FromTable(EventTemplate.TableName).ForeignColumn(nameof(EventTemplate.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.Table(Event.TableName)
+            .WithColumn(nameof(Event.Id)).AsGuid().PrimaryKey().Indexed()
+            .WithColumn(nameof(Event.ChapterId)).AsGuid()
+            .WithColumn(nameof(Event.InternalName)).AsString(512)
+            .WithColumn(nameof(Event.PublicName)).AsString(512)
+            .WithColumn(nameof(Event.Description)).AsCustom("TEXT").Nullable()
+            .WithColumn(nameof(Event.EventDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Event.IsArchived)).AsBoolean()
+            .WithColumn(nameof(Event.EventTemplateId)).AsGuid().Nullable()
+            .WithColumn(nameof(Event.CreatedAt)).AsDateTime();
+
+        Create.ForeignKey("FK_Events_ChapterId_Chapters_Id")
+            .FromTable(Event.TableName).ForeignColumn(nameof(Event.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+
+        Create.ForeignKey("FK_Events_EventTemplateId_EventTemplates_Id")
+            .FromTable(Event.TableName).ForeignColumn(nameof(Event.EventTemplateId))
+            .ToTable(EventTemplate.TableName).PrimaryColumn(nameof(EventTemplate.Id));
+
+        Create.Table(EventChecklistItem.TableName)
+            .WithColumn(nameof(EventChecklistItem.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(EventChecklistItem.EventId)).AsGuid()
+            .WithColumn(nameof(EventChecklistItem.SortOrder)).AsInt32()
+            .WithColumn(nameof(EventChecklistItem.ItemType)).AsInt32()
+            .WithColumn(nameof(EventChecklistItem.Label)).AsString(1024)
+            .WithColumn(nameof(EventChecklistItem.IsCompleted)).AsBoolean()
+            .WithColumn(nameof(EventChecklistItem.CompletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(EventChecklistItem.Configuration)).AsCustom("TEXT").Nullable()
+            .WithColumn(nameof(EventChecklistItem.ResultId)).AsGuid().Nullable();
+
+        Create.ForeignKey("FK_EventChecklistItems_EventId_Events_Id")
+            .FromTable(EventChecklistItem.TableName).ForeignColumn(nameof(EventChecklistItem.EventId))
+            .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id));
     }
 
     public override void Down() {
         DisableForeignKeyChecks();
 
+        DropTableIfExists(EventChecklistItem.TableName);
+        DropTableIfExists(Event.TableName);
+        DropTableIfExists(EventTemplate.TableName);
         DropTableIfExists(MemberImportLog.TableName);
         DropTableIfExists(Member.TableName);
         DropTableIfExists(SystemOption.TableName);

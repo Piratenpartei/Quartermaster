@@ -39,6 +39,9 @@ public static class Program {
         builder.Services.AddSingleton<MemberImportService>();
         builder.Services.AddHostedService<MemberImportHostedService>();
 
+        builder.Services.AddSingleton<Quartermaster.Server.Events.MemberEmailService>();
+        builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
+
         builder.Services.AddCors(opt => {
             opt.AddPolicy("Default", policy
                 => policy.AllowAnyOrigin()
@@ -55,10 +58,11 @@ public static class Program {
         using var scope = app.Services.CreateScope();
         var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
 
-#if DEBUG
-        if (migrator.HasMigrationsToApplyDown(0))
-            migrator.MigrateDown(0);
-#endif
+// Down migration disabled to preserve data between restarts
+// #if DEBUG
+//         if (migrator.HasMigrationsToApplyDown(0))
+//             migrator.MigrateDown(0);
+// #endif
 
         migrator.MigrateUp();
 

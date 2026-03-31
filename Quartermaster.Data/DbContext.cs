@@ -7,6 +7,7 @@ using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
@@ -36,6 +37,9 @@ public class DbContext : DataConnection {
     public ITable<OptionDefinition> OptionDefinitions => this.GetTable<OptionDefinition>();
     public ITable<Member> Members => this.GetTable<Member>();
     public ITable<MemberImportLog> MemberImportLogs => this.GetTable<MemberImportLog>();
+    public ITable<Event> Events => this.GetTable<Event>();
+    public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
+    public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -53,6 +57,7 @@ public class DbContext : DataConnection {
         services.AddScoped<MotionRepository>();
         services.AddScoped<OptionRepository>();
         services.AddScoped<MemberRepository>();
+        services.AddScoped<EventRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

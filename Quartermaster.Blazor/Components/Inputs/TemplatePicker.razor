@@ -1,0 +1,18 @@
+@using Quartermaster.Api.Options
+
+<div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
+    <input type="text" class="form-control @SizeClass" placeholder="Template suchen..."
+           value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
+           disabled="@Disabled" style="border-radius: 0;" />
+    @if (ShowDropdown && FilteredTemplates.Count > 0) {
+        <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
+            @foreach (var tmpl in FilteredTemplates.Take(20)) {
+                <button type="button" class="list-group-item list-group-item-action py-1 small"
+                        @onclick="() => SelectTemplate(tmpl)">
+                    <span>@tmpl.FriendlyName</span>
+                    <code class="small text-secondary ms-1">@tmpl.Identifier</code>
+                </button>
+            }
+        </div>
+    }
+</div>

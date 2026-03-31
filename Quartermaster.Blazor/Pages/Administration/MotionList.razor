@@ -1,6 +1,5 @@
 @page "/Administration/Motions"
 @using Quartermaster.Api.Motions
-@using Quartermaster.Api.Chapters
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Vorstandsarbeit - Anträge</h3>
@@ -12,14 +11,7 @@
 <div class="mb-3 d-flex gap-3">
     <div>
         <label class="form-label">Gliederung</label>
-        <select class="form-select" @onchange="OnChapterChanged">
-            <option value="">Alle Gliederungen</option>
-            @if (Chapters != null) {
-                @foreach (var chapter in Chapters) {
-                    <option value="@chapter.Id">@chapter.Name</option>
-                }
-            }
-        </select>
+        <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
         <label class="form-label">Status</label>

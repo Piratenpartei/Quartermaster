@@ -1,0 +1,76 @@
+@page "/Administration/Events/{EventId:guid}/SaveAsTemplate"
+@using Quartermaster.Api.Events
+
+<div class="mb-3">
+    <a href="/Administration/Events/@EventId" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zum Event
+    </a>
+</div>
+
+<h3 class="mb-3">Als Vorlage speichern</h3>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Event == null) {
+    <div class="alert alert-danger">Event nicht gefunden.</div>
+} else {
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Vorlagenname</label>
+                <input type="text" class="form-control" @bind="TemplateName" />
+            </div>
+
+            <h5 class="mb-3">Variablen</h5>
+
+            @if (Variables.Count == 0) {
+                <div class="alert alert-info">
+                    Keine Variablen gefunden. Verwenden Sie <code>@("{{variableName}}")</code> in Texten, um Variablen zu definieren.
+                </div>
+            } else {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Bezeichnung</th>
+                            <th>Typ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var variable in Variables) {
+                            <tr>
+                                <td><code>@("{{" + variable.Name + "}}")</code></td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm"
+                                           @bind="variable.Label" />
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm" @bind="variable.Type">
+                                        <option value="Text">Text</option>
+                                        <option value="Date">Datum</option>
+                                        <option value="Time">Uhrzeit</option>
+                                        <option value="Number">Zahl</option>
+                                        <option value="OptionTemplate">Einstellungsvorlage</option>
+                                        <option value="Chapter">Gliederung</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <button class="btn btn-primary" @onclick="Save" disabled="@Saving">
+                @if (Saving) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span> Wird gespeichert...</span>
+                } else {
+                    <i class="bi bi-save"></i>
+                    <span> Vorlage speichern</span>
+                }
+            </button>
+        </div>
+    </div>
+}

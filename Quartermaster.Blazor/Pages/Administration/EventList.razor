@@ -1,0 +1,66 @@
+@page "/Administration/Events"
+@using Quartermaster.Api.Events
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Events</h3>
+    <div class="d-flex gap-2">
+        <a href="/Administration/Events/Create" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Neues Event
+        </a>
+        <a href="/Administration/EventTemplates" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-clipboard"></i> Aus Vorlage
+        </a>
+    </div>
+</div>
+
+<div class="mb-3 d-flex gap-3">
+    <div>
+        <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
+    </div>
+    <div class="form-check d-flex align-items-center">
+        <input class="form-check-input" type="checkbox" id="includeArchived"
+               @onchange="OnIncludeArchivedChanged" />
+        <label class="form-check-label ms-2" for="includeArchived">Archivierte anzeigen</label>
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Events
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Öffentlicher Name</th>
+                <th>Gliederung</th>
+                <th>Datum</th>
+                <th>Fortschritt</th>
+                <th>Erstellt</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Response.Items) {
+                <tr>
+                    <td><a href="/Administration/Events/@e.Id">@e.PublicName</a></td>
+                    <td>@e.ChapterName</td>
+                    <td>@(e.EventDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                    <td>
+                        @if (e.ChecklistTotal > 0) {
+                            <span>@e.ChecklistCompleted/@e.ChecklistTotal</span>
+                        } else {
+                            <span>—</span>
+                        }
+                    </td>
+                    <td>@e.CreatedAt.ToString("dd.MM.yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+}

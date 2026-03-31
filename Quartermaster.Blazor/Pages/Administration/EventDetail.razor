@@ -1,0 +1,293 @@
+@page "/Administration/Events/{Id:guid}"
+@using Quartermaster.Api.Events
+
+<div class="mb-3">
+    <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Event == null) {
+    <div class="alert alert-danger">Event nicht gefunden.</div>
+} else {
+    var completedCount = Event.ChecklistItems.Count(i => i.IsCompleted);
+    var totalCount = Event.ChecklistItems.Count;
+    var allDone = totalCount > 0 && completedCount == totalCount;
+
+    @* Header: editable title + badges *@
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <div class="d-flex align-items-center gap-2">
+            @if (EditingTitle) {
+                <div class="input-group flex-grow-1">
+                    <input type="text" class="form-control form-control-lg fw-bold"
+                           @bind="Event.InternalName" @bind:event="oninput" />
+                    <button class="btn btn-outline-primary" @onclick="SaveTitleEdit">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => EditingTitle = false">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            } else {
+                <h3 class="mb-0">@Event.InternalName</h3>
+                <button class="btn btn-sm btn-outline-secondary border-0" @onclick="() => EditingTitle = true"
+                        title="Bearbeiten">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            }
+        </div>
+        <div class="d-flex gap-2">
+            @if (allDone) {
+                <span class="badge border border-success text-success-emphasis fs-6">Erledigt</span>
+            } else if (totalCount > 0) {
+                <span class="badge border border-secondary text-secondary-emphasis fs-6">@completedCount/@totalCount</span>
+            }
+            @if (Event.IsArchived) {
+                <span class="badge border border-secondary text-secondary-emphasis fs-6">Archiviert</span>
+            }
+        </div>
+    </div>
+    <div class="text-secondary mb-3">
+        @Event.ChapterName
+        @if (Event.EventDate != null) {
+            <span> &mdash; @Event.EventDate.Value.ToString("dd.MM.yyyy")</span>
+        }
+        <span> &mdash; Erstellt @Event.CreatedAt.ToString("dd.MM.yyyy")</span>
+    </div>
+
+    @* Details card: subject + date + description *@
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col">
+                    <label class="form-label small text-secondary">Öffentlicher Name / Betreff</label>
+                    <input type="text" class="form-control" value="@Event.PublicName"
+                           @oninput="(e) => { Event.PublicName = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" />
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small text-secondary">Datum</label>
+                    <input type="date" class="form-control" style="width: 180px;"
+                           value="@(Event.EventDate?.ToString("yyyy-MM-dd"))"
+                           @onchange="(e) => { Event.EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null; MarkDirty(); }" />
+                </div>
+                <div class="col-auto d-flex align-items-end">
+                    <button class="btn btn-primary" style="width: 42px; height: 38px; padding: 0;"
+                            @onclick="SaveDetails" disabled="@(Saving || !IsDirty)" title="Speichern">
+                        @if (Saving) {
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                        } else {
+                            <i class="bi bi-floppy"></i>
+                        }
+                    </button>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-6">
+                    <label class="form-label small text-secondary mb-0">Beschreibung (Markdown)</label>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-secondary mb-0">Vorschau</label>
+                </div>
+            </div>
+            <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
+            <small class="text-secondary mt-1 d-block">
+                Verfügbare Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code> (Eventdatum)
+            </small>
+        </div>
+    </div>
+
+    @* Checklist card *@
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Checkliste (@completedCount/@totalCount)</h5>
+            </div>
+
+            @if (Event.ChecklistItems.Count == 0) {
+                <p class="text-secondary">Keine Einträge vorhanden.</p>
+            }
+
+            @foreach (var item in Event.ChecklistItems.OrderBy(i => i.SortOrder)) {
+                <div class="d-flex align-items-center py-2 border-bottom">
+                    @if (EditingItemId == item.Id) {
+                        <div class="flex-grow-1">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control"
+                                       @bind="EditingItemLabel" @bind:event="oninput" />
+                                @if (item.ItemType == 2) {
+                                    <TemplatePicker @bind-Value="EditingTemplateIdentifier" SizeClass="form-control-sm"
+                                                    Disabled="EditingUseDescription" />
+                                    <span class="input-group-text">
+                                        <input type="checkbox" class="form-check-input mt-0 me-1" checked="@EditingUseDescription"
+                                               @onchange="(e) => EditingUseDescription = (bool)(e.Value ?? false)" />
+                                        <small>Beschreibung ist E-Mail Inhalt</small>
+                                    </span>
+                                }
+                                @if (item.ItemType == 1) {
+                                    <ChapterPicker @bind-Value="EditingMotionChapterId" Inline="true" SizeClass="form-control-sm" />
+                                    <input type="text" class="form-control" placeholder="Antragstitel"
+                                           @bind="EditingMotionTitle" @bind:event="oninput" />
+                                }
+                                <button class="btn btn-outline-primary" @onclick="SaveEditingItem">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="CancelEditing">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            @if (item.ItemType == 2) {
+                                <div class="input-group input-group-sm mt-1">
+                                    <span class="input-group-text">Empfänger</span>
+                                    <select class="form-select" style="max-width: 200px;" @bind="EditingEmailTargetType">
+                                        <option value="Chapter">Gliederung</option>
+                                        <option value="AdministrativeDivision">Verwaltungsbezirk</option>
+                                        <option value="ManualAddresses">Manuelle Adressen</option>
+                                    </select>
+                                    @if (EditingEmailTargetType == "Chapter") {
+                                        <ChapterPicker @bind-Value="EditingEmailTargetId" Inline="true" SizeClass="form-control-sm" />
+                                    } else if (EditingEmailTargetType == "AdministrativeDivision") {
+                                        <AdminDivisionPicker @bind-Value="EditingEmailTargetId" SizeClass="form-control-sm" />
+                                    } else {
+                                        <input type="text" class="form-control" placeholder="email1@example.com, email2@example.com"
+                                               @bind="EditingManualAddresses" @bind:event="oninput" />
+                                    }
+                                </div>
+                            }
+                            @if (item.ItemType == 1) {
+                                <div class="mt-2">
+                                    <label class="form-label small text-secondary mb-0">Antragstext (Markdown)</label>
+                                    <MarkdownEditor @bind-Value="EditingMotionText" Rows="4" />
+                                    <small class="text-secondary">
+                                        Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code>
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                    } else {
+                        @* Big checkbox on the left *@
+                        <div class="me-3" style="min-width: 28px;">
+                            @if (item.ItemType == 0) {
+                                <input type="checkbox" class="form-check-input" style="width: 1.5em; height: 1.5em;"
+                                       checked="@item.IsCompleted"
+                                       @onchange="() => { if (item.IsCompleted) { UncheckItem(item.Id); } else { CheckTextItem(item.Id); } }" />
+                            } else if (item.IsCompleted) {
+                                <input type="checkbox" class="form-check-input" style="width: 1.5em; height: 1.5em;"
+                                       checked disabled />
+                            } else {
+                                <div style="width: 1.5em; height: 1.5em; border: 2px solid var(--bs-border-color); border-radius: .25em;"></div>
+                            }
+                        </div>
+
+                        @* Label + badge *@
+                        <div class="flex-grow-1">
+                            <span class="@(item.IsCompleted ? "text-decoration-line-through text-secondary" : "")">
+                                @item.Label
+                            </span>
+                            @if (item.ItemType == 1) {
+                                <span class="badge border border-primary text-primary-emphasis ms-1">Antrag</span>
+                            } else if (item.ItemType == 2) {
+                                <span class="badge border border-warning text-warning-emphasis ms-1">E-Mail</span>
+                                @if (IsUseDescription(item.Configuration)) {
+                                    <span class="badge border border-info text-info-emphasis ms-1">Beschreibung</span>
+                                }
+                            }
+                            @if (item.IsCompleted && item.CompletedAt != null) {
+                                <small class="text-secondary ms-2">@item.CompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                            }
+                        </div>
+
+                        @* Action buttons — right aligned, input-group for action pairs *@
+                        <div class="input-group input-group-sm ms-2" style="width: auto;">
+                            @if (item.ItemType == 1 && !item.IsCompleted) {
+                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
+                                    Erstellen & abhaken
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
+                                    Bereits erledigt
+                                </button>
+                            } else if (item.ItemType == 1 && item.IsCompleted && item.ResultId != null) {
+                                <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-primary">
+                                    <i class="bi bi-box-arrow-up-right"></i> Zum Antrag
+                                </a>
+                            }
+
+                            @if (item.ItemType == 2 && !item.IsCompleted) {
+                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
+                                    Senden & abhaken
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
+                                    Bereits erledigt
+                                </button>
+                                <button class="btn btn-outline-info" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            }
+
+                            <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, -1)"
+                                    title="Nach oben">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, 1)"
+                                    title="Nach unten">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="() => StartEditing(item)"
+                                    title="Bearbeiten">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" @onclick="() => DeleteChecklistItem(item.Id)"
+                                    title="Entfernen">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                @if (ExpandedPreviewItemId == item.Id) {
+                    <div class="card my-1 bg-body-secondary">
+                        <div class="card-body py-2">
+                            @if (PreviewCache.TryGetValue(item.Id, out var preview) && preview != null) {
+                                @((MarkupString)preview)
+                            } else {
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
+            @* Add new item *@
+            <div class="input-group input-group-sm pt-2">
+                <input type="text" class="form-control" placeholder="Neuer Eintrag..."
+                       @bind="NewItemLabel" @bind:event="oninput"
+                       @onkeydown="OnNewItemKeyDown" />
+                <select class="form-select" style="max-width: 200px;" @bind="NewItemType">
+                    <option value="0">Text</option>
+                    <option value="1">Antrag erstellen</option>
+                    <option value="2">E-Mail senden</option>
+                </select>
+                <button class="btn btn-outline-secondary" @onclick="() => AddItem(NewItemType)"
+                        disabled="@string.IsNullOrWhiteSpace(NewItemLabel)">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
+            <i class="bi bi-clipboard"></i> Als Vorlage speichern
+        </a>
+        <button class="btn btn-outline-warning" @onclick="ToggleArchive">
+            @if (Event.IsArchived) {
+                <span><i class="bi bi-archive"></i> Dearchivieren</span>
+            } else {
+                <span><i class="bi bi-archive"></i> Archivieren</span>
+            }
+        </button>
+    </div>
+}

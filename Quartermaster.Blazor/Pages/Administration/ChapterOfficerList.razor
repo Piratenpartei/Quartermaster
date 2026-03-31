@@ -1,6 +1,5 @@
 @page "/Administration/ChapterOfficers"
 @using Quartermaster.Api.ChapterAssociates
-@using Quartermaster.Api.Chapters
 
 <div class="mb-3">
     <h3>Vorstandsmitglieder</h3>
@@ -12,14 +11,7 @@
                @bind="SearchQuery" @bind:event="oninput" @onkeydown="OnSearchKeyDown" />
     </div>
     <div>
-        <select class="form-select" @onchange="OnChapterChanged">
-            <option value="">Alle Gliederungen</option>
-            @if (Chapters != null) {
-                @foreach (var chapter in Chapters) {
-                    <option value="@chapter.Id">@chapter.Name</option>
-                }
-            }
-        </select>
+        <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
         <button class="btn btn-primary" @onclick="() => GoToPage(1)">

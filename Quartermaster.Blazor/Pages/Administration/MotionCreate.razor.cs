@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -16,17 +14,12 @@ public partial class MotionCreate {
     [Inject]
     public required NavigationManager Navigation { get; set; }
 
-    private List<ChapterDTO>? Chapters;
     private string ChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
     private string AuthorEMail { get; set; } = "";
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
     private bool Submitting;
-
-    protected override async Task OnInitializedAsync() {
-        Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
-    }
 
     private async Task Submit() {
         if (!Guid.TryParse(ChapterId, out var chapterId) ||

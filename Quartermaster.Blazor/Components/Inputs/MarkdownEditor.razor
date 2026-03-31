@@ -1,0 +1,17 @@
+<div class="row">
+    <div class="col-md-6">
+        <textarea class="form-control font-monospace" rows="@Rows"
+                  value="@Value" @oninput="OnInput"></textarea>
+    </div>
+    <div class="col-md-6 d-flex flex-column">
+        <div class="card bg-body-secondary flex-grow-1">
+            <div class="card-body overflow-auto p-2">
+                @if (string.IsNullOrWhiteSpace(Value)) {
+                    <span class="text-secondary">...</span>
+                } else {
+                    @((MarkupString)RenderedHtml)
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
 
@@ -18,16 +16,11 @@ public partial class MotionCreate {
     [Inject]
     public required ToastService ToastService { get; set; }
 
-    private List<ChapterDTO>? Chapters;
     private string SelectedChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
     private string AuthorEMail { get; set; } = "";
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
-
-    protected override async Task OnInitializedAsync() {
-        Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
-    }
 
     private bool CanSubmit() {
         if (string.IsNullOrEmpty(SelectedChapterId))

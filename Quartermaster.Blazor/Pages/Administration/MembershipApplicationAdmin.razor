@@ -1,6 +1,5 @@
 @page "/Administration/MembershipApplications"
 @using Quartermaster.Api.MembershipApplications
-@using Quartermaster.Api.Chapters
 @using System.Globalization
 
 <div class="mb-3">
@@ -10,14 +9,7 @@
 <div class="mb-3 d-flex gap-3">
     <div>
         <label class="form-label">Gliederung</label>
-        <select class="form-select" @onchange="OnChapterChanged">
-            <option value="">Alle Gliederungen</option>
-            @if (Chapters != null) {
-                @foreach (var chapter in Chapters) {
-                    <option value="@chapter.Id">@chapter.Name</option>
-                }
-            }
-        </select>
+        <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
         <label class="form-label">Status</label>

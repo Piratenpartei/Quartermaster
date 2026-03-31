@@ -1,6 +1,5 @@
 @page "/Motions/Create"
 @using Quartermaster.Api.Motions
-@using Quartermaster.Api.Chapters
 
 <div class="mb-3">
     <h3>Antrag einreichen</h3>
@@ -8,14 +7,7 @@
 
 <div class="mb-3">
     <label class="form-label">Gliederung <RequiredStar /></label>
-    <select class="form-select" @bind="SelectedChapterId">
-        <option value="">- Bitte auswählen -</option>
-        @if (Chapters != null) {
-            @foreach (var chapter in Chapters) {
-                <option value="@chapter.Id">@chapter.Name</option>
-            }
-        }
-    </select>
+    <ChapterPicker @bind-Value="SelectedChapterId" />
 </div>
 
 <div class="mb-3">
