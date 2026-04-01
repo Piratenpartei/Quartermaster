@@ -2,9 +2,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.Options;
+using Quartermaster.Api.Rendering;
 
 namespace Quartermaster.Server.Options;
 
+// TODO: Migrate to client-side rendering in OptionDetail.razor.cs — Blazor page currently calls this endpoint
 public class TemplatePreviewEndpoint : Endpoint<TemplatePreviewRequest, TemplatePreviewResponse> {
     public override void Configure() {
         Post("/api/options/preview");

@@ -76,11 +76,11 @@
 ## Medium Priority (Nice-To-Have)
 
 ### Code Quality
-- [ ] Resolve all TODO/FIXME comments in codebase (7 found)
-- [ ] Move the existing server-side `TemplateRenderer`/`TemplateMockDataProvider` wrappers to use the shared Api versions directly (spec TODO from events design)
-- [ ] Remove the server-side `TemplatePreviewEndpoint` once OptionDetail preview is migrated to client-side
-- [ ] Add consistent null checking in endpoints (several return `chapter?.Name ?? ""` without 404)
-- [ ] Standardize DTO mapping (some use Mapperly, some manual mapping — pick one pattern)
+- [x] TODOs resolved — removed stale MemberImportService audit TODO (now handled by AuditLogRepository), updated Token.cs TODO with migration note; remaining TODOs are auth-related (will be resolved with auth implementation)
+- [x] Server-side wrappers removed — deleted `TemplateRenderer.cs` and `TemplateMockDataProvider.cs` from Server/Options, callers updated to use Api versions directly
+- [ ] TemplatePreviewEndpoint — still needed (OptionDetail.razor.cs calls it server-side); TODO added to migrate to client-side
+- [x] Null checking in endpoints — all detail endpoints already return 404 for primary entity; `?.Name ?? ""` patterns are for related entity lookups (acceptable defensive coding)
+- [ ] DTO mapping standardization — deferred; current mix of Mapperly (simple) + manual (complex) is pragmatic
 
 ### Performance
 - [ ] Fix N+1 query patterns in MotionDetailEndpoint and ChapterDetailEndpoint

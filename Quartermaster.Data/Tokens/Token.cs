@@ -109,7 +109,8 @@ public static class TokenExtensions {
         if (token.Expires == null || token.ExtendType != ExtendType.Usage)
             return;
 
-        //TODO: Grab expiration extension time from some Setting instead of blindly adding a day
+        // TODO: Move to TokenRepository or auth service — entities shouldn't access Options directly
+        // TODO: Grab expiration extension time from a setting instead of hardcoded one day
         tokenTable.Where(t => t.Id == token.Id).Set(t => t.Expires, token.Expires.Value.AddDays(1)).Update();
     }
 }

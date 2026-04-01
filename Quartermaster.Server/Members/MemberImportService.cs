@@ -74,7 +74,6 @@ public class MemberImportService {
                 if (existing != null) {
                     member.Id = existing.Id;
                     member.UserId = existing.UserId; // Preserve SSO link
-                    // TODO: Audit log - compare existing vs new fields for change tracking
                     memberRepo.Update(member);
                     updatedRecords++;
                 } else {
