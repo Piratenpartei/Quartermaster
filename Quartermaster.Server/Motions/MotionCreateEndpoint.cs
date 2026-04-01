@@ -2,18 +2,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
-using Markdig;
 using Quartermaster.Api.Motions;
+using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Motions;
 
 namespace Quartermaster.Server.Motions;
 
 public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     private readonly MotionRepository _motionRepo;
-
-    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
 
     public MotionCreateEndpoint(MotionRepository motionRepo) {
         _motionRepo = motionRepo;
@@ -30,7 +26,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
             AuthorName = req.AuthorName,
             AuthorEMail = req.AuthorEMail,
             Title = req.Title,
-            Text = Markdown.ToHtml(req.Text, MarkdownPipeline),
+            Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
             IsPublic = true,
             ApprovalStatus = MotionApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow

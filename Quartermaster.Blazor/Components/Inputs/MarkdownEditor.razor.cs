@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Markdig;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.Rendering;
 
 namespace Quartermaster.Blazor.Components.Inputs;
 
@@ -15,12 +15,11 @@ public partial class MarkdownEditor {
     [Parameter]
     public int Rows { get; set; } = 8;
 
+    [Parameter]
+    public SanitizationProfile Profile { get; set; } = SanitizationProfile.Standard;
+
     private string RenderedHtml = "";
     private CancellationTokenSource? _debounce;
-
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
 
     private async Task OnInput(ChangeEventArgs e) {
         Value = e.Value?.ToString() ?? "";
@@ -32,13 +31,13 @@ public partial class MarkdownEditor {
 
         try {
             await Task.Delay(300, token);
-            RenderedHtml = Markdown.ToHtml(Value, Pipeline);
+            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
             StateHasChanged();
         } catch (TaskCanceledException) { }
     }
 
     protected override void OnParametersSet() {
         if (!string.IsNullOrWhiteSpace(Value))
-            RenderedHtml = Markdown.ToHtml(Value, Pipeline);
+            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
     }
 }

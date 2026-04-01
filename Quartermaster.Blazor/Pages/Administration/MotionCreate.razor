@@ -1,5 +1,6 @@
 @page "/Administration/Motions/Create"
 @using Quartermaster.Api.Motions
+@using Quartermaster.Api.Rendering
 
 <div class="mb-3">
     <a href="/Administration/Motions" class="btn btn-sm btn-outline-secondary">
@@ -31,7 +32,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Antragstext (Markdown)</label>
-            <MarkdownEditor @bind-Value="Text" Rows="8" />
+            <MarkdownEditor @bind-Value="Text" Rows="8" Profile="SanitizationProfile.Strict" />
         </div>
         <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
             @if (Submitting) {

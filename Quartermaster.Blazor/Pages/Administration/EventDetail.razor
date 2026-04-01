@@ -1,5 +1,6 @@
 @page "/Administration/Events/{Id:guid}"
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.Rendering
 
 <div class="mb-3">
     <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">
@@ -160,7 +161,7 @@
                             @if (item.ItemType == 1) {
                                 <div class="mt-2">
                                     <label class="form-label small text-secondary mb-0">Antragstext (Markdown)</label>
-                                    <MarkdownEditor @bind-Value="EditingMotionText" Rows="4" />
+                                    <MarkdownEditor @bind-Value="EditingMotionText" Rows="4" Profile="SanitizationProfile.Strict" />
                                     <small class="text-secondary">
                                         Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code>
                                     </small>

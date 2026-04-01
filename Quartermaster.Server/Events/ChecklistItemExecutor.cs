@@ -1,6 +1,6 @@
 using System;
 using System.Text.Json;
-using Markdig;
+using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Motions;
 
@@ -9,10 +9,6 @@ namespace Quartermaster.Server.Events;
 public class ChecklistItemExecutor {
     private readonly MotionRepository _motionRepo;
     private readonly MemberEmailService _emailService;
-
-    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
 
     public ChecklistItemExecutor(MotionRepository motionRepo, MemberEmailService emailService) {
         _motionRepo = motionRepo;
@@ -40,7 +36,7 @@ public class ChecklistItemExecutor {
             AuthorName = "System (Event)",
             AuthorEMail = "",
             Title = config.MotionTitle,
-            Text = Markdown.ToHtml(config.MotionText, MarkdownPipeline),
+            Text = MarkdownService.ToHtml(config.MotionText, SanitizationProfile.Strict),
             IsPublic = false,
             ApprovalStatus = MotionApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow

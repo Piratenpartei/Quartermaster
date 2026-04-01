@@ -2,8 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
-using Markdig;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Rendering;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
@@ -14,10 +14,6 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     private readonly MembershipApplicationRepository _applicationRepository;
     private readonly DueSelectionRepository _dueSelectionRepository;
     private readonly MotionRepository _motionRepo;
-
-    private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
-        .UseAdvancedExtensions()
-        .Build();
 
     public MembershipApplicationCreateEndpoint(
         MembershipApplicationRepository applicationRepository,
@@ -78,7 +74,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
                 AuthorName = $"{application.FirstName} {application.LastName}",
                 AuthorEMail = application.EMail,
                 Title = title,
-                Text = Markdown.ToHtml(md, MarkdownPipeline),
+                Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
                 IsPublic = false,
                 LinkedMembershipApplicationId = application.Id,
                 LinkedDueSelectionId = isReduced ? dueSelectionId : null,

@@ -9,11 +9,12 @@
 ## If Statements
 
 - Never write code on the same line as an if statement; the body must be on the next line
-- If statements must always have braces `{}`, with one exception:
-  - A single simple statement on the following line (no else) may omit braces
+- If/for/foreach statements must always have braces `{}`, with one exception:
+  - A single simple statement on the following line (no else) may omit braces **only if the if/for/foreach itself fits on one line**
+  - If the condition or iterator spans multiple lines, braces are always required even for a single statement
 
 ```csharp
-// OK: single simple statement, no else
+// OK: single-line if, single simple statement, no else
 if (value == null)
     return;
 
@@ -23,6 +24,19 @@ if (value == null) {
 } else {
     return value;
 }
+
+// OK: multiline foreach with braces (required because foreach is multiline)
+foreach (var tag in new[] {
+    "p", "br", "b", "i", "em", "strong"
+}) {
+    sanitizer.AllowedTags.Add(tag);
+}
+
+// WRONG: multiline if/for/foreach without braces
+foreach (var tag in new[] {
+    "p", "br", "b"
+})
+    sanitizer.AllowedTags.Add(tag);
 
 // WRONG: no braces with else
 if (value == null)

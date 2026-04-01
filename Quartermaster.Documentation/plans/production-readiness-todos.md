@@ -15,10 +15,10 @@
 - [ ] SAML SSO integration for member-to-user linking (flow exists partially in `SamlLoginStartEndpoint`/`SamlLoginConsumeEndpoint`)
 
 ### XSS Prevention
-- [ ] Add HTML sanitization to all `(MarkupString)` usage in Blazor (3+ locations: MotionDetail, EventDetail, OptionDetail)
-- [ ] Sanitize Markdown→HTML output server-side before storing (MotionCreateEndpoint, MembershipApplicationCreateEndpoint, ChecklistItemExecutor)
-- [ ] Consider using a library like `HtmlSanitizer` NuGet package
-- [ ] Audit all Fluid template rendering for injection risks
+- [x] Add HTML sanitization to all `(MarkupString)` usage in Blazor — all 4 locations (MotionDetail, EventDetail, OptionDetail, MarkdownEditor) now use sanitized HTML via MarkdownService/TemplateRenderer
+- [x] Sanitize Markdown→HTML output server-side before storing — MotionCreateEndpoint, MembershipApplicationCreateEndpoint, ChecklistItemExecutor all use `MarkdownService.ToHtml()` with Strict profile
+- [x] Using `HtmlSanitizer` (Ganss.Xss) with two profiles: Strict (motions — formatting only, no clickable links/tables) and Standard (events/templates — formatting + links + tables)
+- [x] Audit Fluid template rendering — TemplateRenderer now sanitizes output via MarkdownService with Standard profile
 
 ### CORS & CSRF
 - [ ] Replace `AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()` with specific allowed origins
