@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Members;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -15,6 +16,9 @@ public partial class ChapterOfficerAdd {
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
+
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid ChapterId { get; set; }
@@ -52,8 +56,12 @@ public partial class ChapterOfficerAdd {
         SearchLoading = true;
         StateHasChanged();
 
-        SearchResults = await Http.GetFromJsonAsync<MemberSearchResponse>(
-            $"/api/members?query={Uri.EscapeDataString(SearchQuery)}&page=1&pageSize=10");
+        try {
+            SearchResults = await Http.GetFromJsonAsync<MemberSearchResponse>(
+                $"/api/members?query={Uri.EscapeDataString(SearchQuery)}&page=1&pageSize=10");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         SearchLoading = false;
         StateHasChanged();
@@ -72,12 +80,18 @@ public partial class ChapterOfficerAdd {
         Submitting = true;
         StateHasChanged();
 
-        await Http.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
-            MemberId = SelectedMemberId.Value,
-            ChapterId = ChapterId,
-            AssociateType = SelectedRole
-        });
+        try {
+            await Http.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
+                MemberId = SelectedMemberId.Value,
+                ChapterId = ChapterId,
+                AssociateType = SelectedRole
+            });
 
-        Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
+            Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+            Submitting = false;
+            StateHasChanged();
+        }
     }
 }

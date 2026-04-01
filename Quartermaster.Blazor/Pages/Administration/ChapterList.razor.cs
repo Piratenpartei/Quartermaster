@@ -5,12 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class ChapterList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private string SearchQuery { get; set; } = "";
     private int CurrentPage = 1;
@@ -49,9 +52,13 @@ public partial class ChapterList {
         Loading = true;
         StateHasChanged();
 
-        var query = string.IsNullOrWhiteSpace(SearchQuery) ? "" : SearchQuery;
-        Response = await Http.GetFromJsonAsync<ChapterSearchResponse>(
-            $"/api/chapters/search?query={Uri.EscapeDataString(query)}&page={CurrentPage}&pageSize={PageSize}");
+        try {
+            var query = string.IsNullOrWhiteSpace(SearchQuery) ? "" : SearchQuery;
+            Response = await Http.GetFromJsonAsync<ChapterSearchResponse>(
+                $"/api/chapters/search?query={Uri.EscapeDataString(query)}&page={CurrentPage}&pageSize={PageSize}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

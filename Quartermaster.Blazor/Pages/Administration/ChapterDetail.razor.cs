@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -20,6 +21,8 @@ public class ChapterDetailResponse {
 public partial class ChapterDetail {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -33,7 +36,9 @@ public partial class ChapterDetail {
 
         try {
             Detail = await Http.GetFromJsonAsync<ChapterDetailResponse>($"/api/chapters/{Id}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
     }

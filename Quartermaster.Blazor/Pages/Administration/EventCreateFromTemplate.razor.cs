@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Events;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -16,6 +17,9 @@ public partial class EventCreateFromTemplate {
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
+
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid TemplateId { get; set; }
@@ -46,7 +50,9 @@ public partial class EventCreateFromTemplate {
     protected override async Task OnInitializedAsync() {
         try {
             Template = await Http.GetFromJsonAsync<EventTemplateDetailDTO>($"/api/eventtemplates/{TemplateId}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         if (Template != null) {
             var parsed = JsonSerializer.Deserialize<List<JsonElement>>(Template.Variables) ?? new();
@@ -68,19 +74,25 @@ public partial class EventCreateFromTemplate {
         Submitting = true;
         StateHasChanged();
 
-        var variableValues = Variables.ToDictionary(v => v.Name, v => v.Value);
+        try {
+            var variableValues = Variables.ToDictionary(v => v.Name, v => v.Value);
 
-        var response = await Http.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
-            TemplateId = TemplateId,
-            ChapterId = chapterId,
-            EventDate = EventDate,
-            VariableValues = variableValues
-        });
+            var response = await Http.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
+                TemplateId = TemplateId,
+                ChapterId = chapterId,
+                EventDate = EventDate,
+                VariableValues = variableValues
+            });
 
-        if (response.IsSuccessStatusCode) {
-            var result = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
-            if (result != null)
-                Navigation.NavigateTo($"/Administration/Events/{result.Id}");
+            if (response.IsSuccessStatusCode) {
+                var result = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
+                if (result != null)
+                    Navigation.NavigateTo($"/Administration/Events/{result.Id}");
+            } else {
+                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
         }
 
         Submitting = false;

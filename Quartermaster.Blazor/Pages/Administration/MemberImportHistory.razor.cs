@@ -6,12 +6,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Members;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MemberImportHistory {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private MemberImportLogListResponse? Response;
     private MemberImportLogDTO? ImportResult;
@@ -32,8 +35,12 @@ public partial class MemberImportHistory {
         Loading = true;
         StateHasChanged();
 
-        Response = await Http.GetFromJsonAsync<MemberImportLogListResponse>(
-            $"/api/members/import/history?page={CurrentPage}&pageSize={PageSize}");
+        try {
+            Response = await Http.GetFromJsonAsync<MemberImportLogListResponse>(
+                $"/api/members/import/history?page={CurrentPage}&pageSize={PageSize}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();
@@ -54,8 +61,11 @@ public partial class MemberImportHistory {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
                 CurrentPage = 1;
                 await LoadHistory();
+            } else {
+                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
             }
-        } catch (Exception) {
+        } catch (Exception ex) {
+            ToastService.Error(ex);
             await LoadHistory();
         }
 

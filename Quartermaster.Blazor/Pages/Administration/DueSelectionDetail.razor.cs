@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class DueSelectionDetail {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -21,7 +24,9 @@ public partial class DueSelectionDetail {
         try {
             Selection = await Http.GetFromJsonAsync<DueSelectionDetailDTO>(
                 $"/api/admin/dueselections/{Id}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
     }

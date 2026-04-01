@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class ChapterOfficerList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private ChapterOfficerSearchResponse? Response;
     private bool Loading;
@@ -48,13 +51,17 @@ public partial class ChapterOfficerList {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/chapterofficers?page={CurrentPage}&pageSize={PageSize}";
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
-            url += $"&query={Uri.EscapeDataString(SearchQuery)}";
-        if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-            url += $"&chapterId={chapterId}";
+        try {
+            var url = $"/api/chapterofficers?page={CurrentPage}&pageSize={PageSize}";
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+                url += $"&query={Uri.EscapeDataString(SearchQuery)}";
+            if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
+                url += $"&chapterId={chapterId}";
 
-        Response = await Http.GetFromJsonAsync<ChapterOfficerSearchResponse>(url);
+            Response = await Http.GetFromJsonAsync<ChapterOfficerSearchResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Motions;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -13,6 +14,9 @@ public partial class MotionCreate {
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
+
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private string ChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
@@ -30,18 +34,24 @@ public partial class MotionCreate {
         Submitting = true;
         StateHasChanged();
 
-        var response = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
-            ChapterId = chapterId,
-            AuthorName = AuthorName,
-            AuthorEMail = AuthorEMail,
-            Title = Title,
-            Text = Text
-        });
+        try {
+            var response = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+                ChapterId = chapterId,
+                AuthorName = AuthorName,
+                AuthorEMail = AuthorEMail,
+                Title = Title,
+                Text = Text
+            });
 
-        if (response.IsSuccessStatusCode) {
-            var result = await response.Content.ReadFromJsonAsync<MotionDTO>();
-            if (result != null)
-                Navigation.NavigateTo($"/Administration/Motions/{result.Id}");
+            if (response.IsSuccessStatusCode) {
+                var result = await response.Content.ReadFromJsonAsync<MotionDTO>();
+                if (result != null)
+                    Navigation.NavigateTo($"/Administration/Motions/{result.Id}");
+            } else {
+                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
         }
 
         Submitting = false;

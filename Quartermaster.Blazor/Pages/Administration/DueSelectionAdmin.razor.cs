@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class DueSelectionAdmin {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private DueSelectionListResponse? Response;
     private bool Loading;
@@ -39,11 +42,15 @@ public partial class DueSelectionAdmin {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/admin/dueselections?page={CurrentPage}&pageSize={PageSize}";
-        if (SelectedStatus.HasValue)
-            url += $"&status={SelectedStatus.Value}";
+        try {
+            var url = $"/api/admin/dueselections?page={CurrentPage}&pageSize={PageSize}";
+            if (SelectedStatus.HasValue)
+                url += $"&status={SelectedStatus.Value}";
 
-        Response = await Http.GetFromJsonAsync<DueSelectionListResponse>(url);
+            Response = await Http.GetFromJsonAsync<DueSelectionListResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

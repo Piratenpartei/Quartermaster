@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MembershipApplicationAdmin {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private MembershipApplicationListResponse? Response;
     private bool Loading;
@@ -46,13 +49,17 @@ public partial class MembershipApplicationAdmin {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/admin/membershipapplications?page={CurrentPage}&pageSize={PageSize}";
-        if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-            url += $"&chapterId={chapterId}";
-        if (SelectedStatus.HasValue)
-            url += $"&status={SelectedStatus.Value}";
+        try {
+            var url = $"/api/admin/membershipapplications?page={CurrentPage}&pageSize={PageSize}";
+            if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
+                url += $"&chapterId={chapterId}";
+            if (SelectedStatus.HasValue)
+                url += $"&status={SelectedStatus.Value}";
 
-        Response = await Http.GetFromJsonAsync<MembershipApplicationListResponse>(url);
+            Response = await Http.GetFromJsonAsync<MembershipApplicationListResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

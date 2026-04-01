@@ -66,10 +66,10 @@
 - [ ] Add database indexes for common query patterns (member search by name, events by chapter)
 
 ### Error Handling
-- [ ] Add global exception handling middleware (FastEndpoints supports this)
-- [ ] Return proper HTTP status codes consistently (400 for validation, 404 for not found, 500 for server errors)
-- [ ] Add Blazor ErrorBoundary component to catch unhandled frontend errors
-- [ ] Add user-facing error messages for API failures in Blazor pages
+- [x] Global exception handler — `UseExceptionHandler` returns structured JSON for unhandled exceptions; `UseProblemDetails()` for FastEndpoints validation errors
+- [x] Consistent HTTP status codes — endpoints already use 400/404 properly; 500s now return structured error JSON
+- [x] Blazor ErrorBoundary — `AppErrorBoundary` wraps Router with German error message, configurable error contact from Options, recovery button
+- [x] User-facing error messages — toast notifications on ALL API failures across all 24 Blazor pages; `ClientConfigService` loads error contact on startup
 
 ---
 

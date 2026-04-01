@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Events;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class EventList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private EventSearchResponse? Response;
     private bool Loading;
@@ -46,11 +49,15 @@ public partial class EventList {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/events?page={CurrentPage}&pageSize={PageSize}&includeArchived={IncludeArchived}";
-        if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-            url += $"&chapterId={chapterId}";
+        try {
+            var url = $"/api/events?page={CurrentPage}&pageSize={PageSize}&includeArchived={IncludeArchived}";
+            if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
+                url += $"&chapterId={chapterId}";
 
-        Response = await Http.GetFromJsonAsync<EventSearchResponse>(url);
+            Response = await Http.GetFromJsonAsync<EventSearchResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

@@ -14,6 +14,9 @@ public partial class MainLayout {
     [Inject]
     public required IJSRuntime JS { get; set; }
 
+    [Inject]
+    public required Services.ClientConfigService ConfigService { get; set; }
+
     private void ToggleMenu() {
         Collapsed = !Collapsed;
     }
@@ -23,7 +26,10 @@ public partial class MainLayout {
         await SetTheme();
     }
 
-    protected override async Task OnInitializedAsync() => await SetTheme();
+    protected override async Task OnInitializedAsync() {
+        await ConfigService.LoadAsync();
+        await SetTheme();
+    }
 
     private async Task SetTheme() => await JS.InvokeVoidAsync("SetTheme", AppState.SelectedTheme.ToHtmlString());
 }

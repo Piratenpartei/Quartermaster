@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.Members;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MemberList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private MemberSearchResponse? Response;
     private bool Loading;
@@ -48,13 +51,17 @@ public partial class MemberList {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/members?page={CurrentPage}&pageSize={PageSize}";
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
-            url += $"&query={Uri.EscapeDataString(SearchQuery)}";
-        if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-            url += $"&chapterId={chapterId}";
+        try {
+            var url = $"/api/members?page={CurrentPage}&pageSize={PageSize}";
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+                url += $"&query={Uri.EscapeDataString(SearchQuery)}";
+            if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
+                url += $"&chapterId={chapterId}";
 
-        Response = await Http.GetFromJsonAsync<MemberSearchResponse>(url);
+            Response = await Http.GetFromJsonAsync<MemberSearchResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

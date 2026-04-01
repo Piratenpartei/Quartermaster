@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Rendering;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -19,6 +20,9 @@ public partial class EventDetail {
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
+
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -61,7 +65,9 @@ public partial class EventDetail {
         Loading = true;
         try {
             Event = await Http.GetFromJsonAsync<EventDetailDTO>($"/api/events/{Id}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
         Loading = false;
         IsDirty = false;
         StateHasChanged();
@@ -85,13 +91,17 @@ public partial class EventDetail {
         Saving = true;
         StateHasChanged();
 
-        await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
-            Id = Id,
-            InternalName = Event.InternalName,
-            PublicName = Event.PublicName,
-            Description = Event.Description,
-            EventDate = Event.EventDate
-        });
+        try {
+            await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
+                Id = Id,
+                InternalName = Event.InternalName,
+                PublicName = Event.PublicName,
+                Description = Event.Description,
+                EventDate = Event.EventDate
+            });
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Saving = false;
         IsDirty = false;
@@ -106,36 +116,52 @@ public partial class EventDetail {
 
     private async Task SaveIfDirty() {
         if (IsDirty && Event != null) {
-            await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
-                Id = Id,
-                InternalName = Event.InternalName,
-                PublicName = Event.PublicName,
-                Description = Event.Description,
-                EventDate = Event.EventDate
-            });
-            IsDirty = false;
+            try {
+                await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
+                    Id = Id,
+                    InternalName = Event.InternalName,
+                    PublicName = Event.PublicName,
+                    Description = Event.Description,
+                    EventDate = Event.EventDate
+                });
+                IsDirty = false;
+            } catch (HttpRequestException ex) {
+                ToastService.Error(ex);
+            }
         }
     }
 
     // Checklist actions
     private async Task CheckTextItem(Guid itemId) {
-        await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/check",
-            new { executeAction = false });
-        await SaveIfDirty();
-        await LoadEvent();
+        try {
+            await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/check",
+                new { executeAction = false });
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task UncheckItem(Guid itemId) {
-        await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/uncheck", new { });
-        await SaveIfDirty();
-        await LoadEvent();
+        try {
+            await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/uncheck", new { });
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task CheckActionItem(Guid itemId, bool executeAction) {
-        await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/check",
-            new { executeAction });
-        await SaveIfDirty();
-        await LoadEvent();
+        try {
+            await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/check",
+                new { executeAction });
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     // Add item
@@ -145,16 +171,20 @@ public partial class EventDetail {
 
         var nextSortOrder = Event?.ChecklistItems.Count ?? 0;
 
-        await Http.PostAsJsonAsync($"/api/events/{Id}/checklist", new ChecklistItemCreateRequest {
-            EventId = Id,
-            SortOrder = nextSortOrder,
-            ItemType = itemType,
-            Label = NewItemLabel,
-        });
+        try {
+            await Http.PostAsJsonAsync($"/api/events/{Id}/checklist", new ChecklistItemCreateRequest {
+                EventId = Id,
+                SortOrder = nextSortOrder,
+                ItemType = itemType,
+                Label = NewItemLabel,
+            });
 
-        NewItemLabel = "";
-        await SaveIfDirty();
-        await LoadEvent();
+            NewItemLabel = "";
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task OnNewItemKeyDown(KeyboardEventArgs e) {
@@ -213,42 +243,58 @@ public partial class EventDetail {
             config = JsonSerializer.Serialize(dict);
         }
 
-        await Http.PutAsJsonAsync($"/api/events/{Id}/checklist/{item.Id}", new ChecklistItemUpdateRequest {
-            EventId = Id,
-            ItemId = item.Id,
-            SortOrder = item.SortOrder,
-            ItemType = item.ItemType,
-            Label = EditingItemLabel,
-            Configuration = config
-        });
+        try {
+            await Http.PutAsJsonAsync($"/api/events/{Id}/checklist/{item.Id}", new ChecklistItemUpdateRequest {
+                EventId = Id,
+                ItemId = item.Id,
+                SortOrder = item.SortOrder,
+                ItemType = item.ItemType,
+                Label = EditingItemLabel,
+                Configuration = config
+            });
 
-        EditingItemId = null;
-        PreviewCache.Clear();
-        ExpandedPreviewItemId = null;
-        await SaveIfDirty();
-        await LoadEvent();
+            EditingItemId = null;
+            PreviewCache.Clear();
+            ExpandedPreviewItemId = null;
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task MoveItem(Guid itemId, int direction) {
-        await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/reorder",
-            new { eventId = Id, itemId, direction });
-        await SaveIfDirty();
-        await LoadEvent();
+        try {
+            await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/reorder",
+                new { eventId = Id, itemId, direction });
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task DeleteChecklistItem(Guid itemId) {
-        await Http.DeleteAsync($"/api/events/{Id}/checklist/{itemId}");
-        PreviewCache.Remove(itemId);
-        if (ExpandedPreviewItemId == itemId)
-            ExpandedPreviewItemId = null;
-        await SaveIfDirty();
-        await LoadEvent();
+        try {
+            await Http.DeleteAsync($"/api/events/{Id}/checklist/{itemId}");
+            PreviewCache.Remove(itemId);
+            if (ExpandedPreviewItemId == itemId)
+                ExpandedPreviewItemId = null;
+            await SaveIfDirty();
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task ToggleArchive() {
-        await SaveIfDirty();
-        await Http.PostAsync($"/api/events/{Id}/archive", null);
-        await LoadEvent();
+        try {
+            await SaveIfDirty();
+            await Http.PostAsync($"/api/events/{Id}/archive", null);
+            await LoadEvent();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task ToggleEmailPreview(Guid itemId, string? configuration) {

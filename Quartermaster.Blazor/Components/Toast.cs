@@ -3,4 +3,5 @@
 public class Toast {
     public string Content { get; set; } = "";
     public string Type { get; set; } = "";
+    public string? Details { get; set; }
 }

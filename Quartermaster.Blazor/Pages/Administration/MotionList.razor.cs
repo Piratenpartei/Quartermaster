@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Motions;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MotionList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private MotionListResponse? Response;
     private bool Loading;
@@ -46,13 +49,17 @@ public partial class MotionList {
         Loading = true;
         StateHasChanged();
 
-        var url = $"/api/motions?page={CurrentPage}&pageSize={PageSize}&includeNonPublic=true";
-        if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-            url += $"&chapterId={chapterId}";
-        if (SelectedStatus.HasValue)
-            url += $"&approvalStatus={SelectedStatus.Value}";
+        try {
+            var url = $"/api/motions?page={CurrentPage}&pageSize={PageSize}&includeNonPublic=true";
+            if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
+                url += $"&chapterId={chapterId}";
+            if (SelectedStatus.HasValue)
+                url += $"&approvalStatus={SelectedStatus.Value}";
 
-        Response = await Http.GetFromJsonAsync<MotionListResponse>(url);
+            Response = await Http.GetFromJsonAsync<MotionListResponse>(url);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
         StateHasChanged();

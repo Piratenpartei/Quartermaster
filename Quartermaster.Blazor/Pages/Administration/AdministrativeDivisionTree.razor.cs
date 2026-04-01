@@ -6,20 +6,27 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AdministrativeDivisions;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class AdministrativeDivisionTree {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private List<TreeNodeModel>? RootNodes;
 
     protected override async Task OnInitializedAsync() {
-        var roots = await Http.GetFromJsonAsync<List<AdministrativeDivisionDTO>>(
-            "/api/administrativedivisions/roots");
+        try {
+            var roots = await Http.GetFromJsonAsync<List<AdministrativeDivisionDTO>>(
+                "/api/administrativedivisions/roots");
 
-        RootNodes = roots?.Select(c => new TreeNodeModel(c)).ToList() ?? [];
+            RootNodes = roots?.Select(c => new TreeNodeModel(c)).ToList() ?? [];
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 }
 

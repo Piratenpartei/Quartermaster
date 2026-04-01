@@ -42,14 +42,18 @@ public partial class OptionDetail {
     };
 
     protected override async Task OnInitializedAsync() {
-        var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
-        Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
+        try {
+            var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
+            Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
 
-        var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
-        Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
+            var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
+            Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
 
-        if (Option?.DataType == 2 && !string.IsNullOrEmpty(Option.TemplateModels))
-            Schemas = BuildSchemas(Option.TemplateModels);
+            if (Option?.DataType == 2 && !string.IsNullOrEmpty(Option.TemplateModels))
+                Schemas = BuildSchemas(Option.TemplateModels);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
     }
@@ -133,38 +137,50 @@ public partial class OptionDetail {
         if (Option == null)
             return;
 
-        await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
-            Identifier = Option.Identifier,
-            ChapterId = null,
-            Value = Option.GlobalValue
-        });
-        ToastService.Toast("Gespeichert.", "success");
+        try {
+            await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+                Identifier = Option.Identifier,
+                ChapterId = null,
+                Value = Option.GlobalValue
+            });
+            ToastService.Toast("Gespeichert.", "success");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task SaveOverride(Guid chapterId, string value) {
         if (Option == null)
             return;
 
-        await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
-            Identifier = Option.Identifier,
-            ChapterId = chapterId,
-            Value = value
-        });
-        ToastService.Toast("Gespeichert.", "success");
+        try {
+            await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+                Identifier = Option.Identifier,
+                ChapterId = chapterId,
+                Value = value
+            });
+            ToastService.Toast("Gespeichert.", "success");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task AddOverride() {
         if (Option == null || !Guid.TryParse(NewOverrideChapterId, out var chapterId))
             return;
 
-        await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
-            Identifier = Option.Identifier,
-            ChapterId = chapterId,
-            Value = Option.GlobalValue
-        });
+        try {
+            await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+                Identifier = Option.Identifier,
+                ChapterId = chapterId,
+                Value = Option.GlobalValue
+            });
 
-        NewOverrideChapterId = "";
-        await ReloadOption();
+            NewOverrideChapterId = "";
+            await ReloadOption();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private void LoadOverrideForEditing(OptionOverrideDTO ov) {
@@ -204,18 +220,22 @@ public partial class OptionDetail {
         if (Option == null)
             return;
 
-        var result = await Http.PostAsJsonAsync("/api/options/preview", new TemplatePreviewRequest {
-            TemplateText = Option.GlobalValue,
-            TemplateModels = Option.TemplateModels
-        });
+        try {
+            var result = await Http.PostAsJsonAsync("/api/options/preview", new TemplatePreviewRequest {
+                TemplateText = Option.GlobalValue,
+                TemplateModels = Option.TemplateModels
+            });
 
-        var response = await result.Content.ReadFromJsonAsync<TemplatePreviewResponse>();
-        if (response?.Error != null) {
-            PreviewHtml = $"<p class=\"text-danger\">{response.Error}</p>";
-        } else {
-            PreviewHtml = response?.RenderedHtml ?? "";
+            var response = await result.Content.ReadFromJsonAsync<TemplatePreviewResponse>();
+            if (response?.Error != null) {
+                PreviewHtml = $"<p class=\"text-danger\">{response.Error}</p>";
+            } else {
+                PreviewHtml = response?.RenderedHtml ?? "";
+            }
+            StateHasChanged();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
         }
-        StateHasChanged();
     }
 
     private async Task InsertField(string fluidExpression) {
@@ -232,10 +252,14 @@ public partial class OptionDetail {
     }
 
     private async Task ReloadOption() {
-        var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
-        var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
-        Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
-        StateHasChanged();
+        try {
+            var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
+            var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
+            Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
+            StateHasChanged();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private static string DataTypeLabel(int dt) => dt switch {

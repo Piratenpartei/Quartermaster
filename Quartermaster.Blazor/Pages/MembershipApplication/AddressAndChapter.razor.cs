@@ -16,6 +16,8 @@ public partial class AddressAndChapter {
     public required AppStateService AppState { get; set; }
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
     private List<AdministrativeDivisionDTO>? MatchingDivisions;
@@ -67,7 +69,8 @@ public partial class AddressAndChapter {
             SearchingPostCode = false;
             StateHasChanged();
         } catch (TaskCanceledException) {
-        } catch (HttpRequestException) {
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
             SearchingPostCode = false;
             StateHasChanged();
         }
@@ -95,7 +98,8 @@ public partial class AddressAndChapter {
                 EntryState.ChapterId = chapter.Id;
                 EntryState.ChapterName = chapter.Name;
             }
-        } catch (HttpRequestException) {
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
             EntryState.ChapterId = null;
             EntryState.ChapterName = null;
         }

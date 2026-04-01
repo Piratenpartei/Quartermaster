@@ -4,12 +4,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Members;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MemberDetail {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -20,7 +23,9 @@ public partial class MemberDetail {
     protected override async Task OnInitializedAsync() {
         try {
             Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
 
         Loading = false;
     }

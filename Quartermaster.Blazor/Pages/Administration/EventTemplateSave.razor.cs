@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Events;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -17,6 +18,9 @@ public partial class EventTemplateSave {
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
+
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     [Parameter]
     public Guid EventId { get; set; }
@@ -30,8 +34,9 @@ public partial class EventTemplateSave {
     protected override async Task OnInitializedAsync() {
         try {
             Event = await Http.GetFromJsonAsync<EventDetailDTO>($"/api/events/{EventId}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
         }
-        catch (HttpRequestException) { }
 
         if (Event != null) {
             TemplateName = Event.InternalName;
@@ -76,19 +81,25 @@ public partial class EventTemplateSave {
         Saving = true;
         StateHasChanged();
 
-        var variablesJson = JsonSerializer.Serialize(Variables.Select(v => new {
-            name = v.Name,
-            label = v.Label,
-            type = v.Type
-        }));
+        try {
+            var variablesJson = JsonSerializer.Serialize(Variables.Select(v => new {
+                name = v.Name,
+                label = v.Label,
+                type = v.Type
+            }));
 
-        await Http.PostAsJsonAsync("/api/eventtemplates", new EventTemplateCreateRequest {
-            EventId = EventId,
-            Name = TemplateName,
-            Variables = variablesJson
-        });
+            await Http.PostAsJsonAsync("/api/eventtemplates", new EventTemplateCreateRequest {
+                EventId = EventId,
+                Name = TemplateName,
+                Variables = variablesJson
+            });
 
-        Navigation.NavigateTo($"/Administration/Events/{EventId}");
+            Navigation.NavigateTo($"/Administration/Events/{EventId}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+            Saving = false;
+            StateHasChanged();
+        }
     }
 
     public class VariableDefinition {

@@ -1,0 +1,19 @@
+@inherits ErrorBoundary
+@inject Quartermaster.Blazor.Services.ClientConfigService ConfigService
+
+@if (CurrentException is not null) {
+    <div class="container mt-4">
+        <div class="alert alert-danger">
+            <h4><i class="bi bi-exclamation-triangle"></i> Ein unerwarteter Fehler ist aufgetreten</h4>
+            <p>Die Anwendung hat einen Fehler festgestellt. Bitte lade die Seite neu.</p>
+            @if (!string.IsNullOrEmpty(ConfigService.ErrorContact)) {
+                <p class="mb-2">@ConfigService.ErrorContact</p>
+            }
+            <button class="btn btn-outline-danger" @onclick="Recover">
+                <i class="bi bi-arrow-clockwise"></i> Seite wiederherstellen
+            </button>
+        </div>
+    </div>
+} else {
+    @ChildContent
+}

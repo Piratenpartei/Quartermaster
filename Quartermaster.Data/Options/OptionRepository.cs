@@ -119,6 +119,14 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.certificate",
             "SAML: Zertifikat (Base64, ohne Header/Footer)",
             OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("general.error.contact",
+            "Fehlerkontakt (wird bei Fehlern angezeigt)",
+            OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.");
+
+        AddDefinitionIfNotExists("general.error.show_details",
+            "Fehlerdetails anzeigen (für Administratoren)",
+            OptionDataType.String, false, "", "false");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

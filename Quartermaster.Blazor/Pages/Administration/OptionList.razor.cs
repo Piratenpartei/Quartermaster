@@ -4,18 +4,25 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Options;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class OptionList {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required ToastService ToastService { get; set; }
 
     private List<OptionDefinitionDTO>? Options;
     private bool Loading = true;
 
     protected override async Task OnInitializedAsync() {
-        Options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
+        try {
+            Options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
         Loading = false;
     }
 

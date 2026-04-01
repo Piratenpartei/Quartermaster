@@ -32,41 +32,55 @@ public partial class MotionDetail {
         Loading = true;
         try {
             Motion = await Http.GetFromJsonAsync<MotionDetailDTO>($"/api/motions/{Id}");
-        } catch (HttpRequestException) { }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
         Loading = false;
     }
 
     private async Task CastVote(Guid userId, int vote) {
-        await Http.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
-            MotionId = Id,
-            UserId = userId,
-            Vote = vote
-        });
+        try {
+            await Http.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
+                MotionId = Id,
+                UserId = userId,
+                Vote = vote
+            });
 
-        await LoadMotion();
-        StateHasChanged();
+            await LoadMotion();
+            StateHasChanged();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task SetStatus(int status) {
-        await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
-            MotionId = Id,
-            ApprovalStatus = status
-        });
+        try {
+            await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+                MotionId = Id,
+                ApprovalStatus = status
+            });
 
-        ToastService.Toast("Status aktualisiert.", "success");
-        await LoadMotion();
-        StateHasChanged();
+            ToastService.Toast("Status aktualisiert.", "success");
+            await LoadMotion();
+            StateHasChanged();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task MarkRealized() {
-        await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
-            MotionId = Id,
-            IsRealized = true
-        });
+        try {
+            await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+                MotionId = Id,
+                IsRealized = true
+            });
 
-        ToastService.Toast("Als umgesetzt markiert.", "success");
-        await LoadMotion();
-        StateHasChanged();
+            ToastService.Toast("Als umgesetzt markiert.", "success");
+            await LoadMotion();
+            StateHasChanged();
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private MotionVoteDTO? GetVoteForOfficer(Guid userId)

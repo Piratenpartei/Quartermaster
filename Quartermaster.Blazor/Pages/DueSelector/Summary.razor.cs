@@ -48,7 +48,7 @@ public partial class Summary {
             NavigationManager.NavigateTo("/");
             ToastService.Toast("Danke für deine Einstufung!", "success");
         } else {
-            ToastService.Toast("Es ist ein Fehler aufgetreten, bitte versuche es später nochmal erneut.", "danger");
+            ToastService.Error();
         }
     }
 }

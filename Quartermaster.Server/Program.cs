@@ -77,12 +77,25 @@ public static class Program {
 
         app.UseHttpsRedirection();
 
+        app.UseExceptionHandler(appError => {
+            appError.Run(async context => {
+                context.Response.StatusCode = 500;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new {
+                    statusCode = 500,
+                    message = "Ein interner Serverfehler ist aufgetreten."
+                });
+            });
+        });
+
         app.UseRouting();
 
         app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
 
         app.UseAuthorization();
-        app.UseFastEndpoints();
+        app.UseFastEndpoints(c => {
+            c.Errors.UseProblemDetails();
+        });
 
         app.UseBlazorFrameworkFiles();
         app.UseStaticFiles();

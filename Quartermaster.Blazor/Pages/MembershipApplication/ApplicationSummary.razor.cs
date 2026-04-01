@@ -65,7 +65,7 @@ public partial class ApplicationSummary {
             NavigationManager.NavigateTo("/");
             ToastService.Toast("Dein Mitgliedsantrag wurde erfolgreich eingereicht!", "success");
         } else {
-            ToastService.Toast("Es ist ein Fehler aufgetreten, bitte versuche es später nochmal erneut.", "danger");
+            ToastService.Error();
         }
     }
 }
