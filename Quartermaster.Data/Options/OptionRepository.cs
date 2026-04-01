@@ -107,6 +107,18 @@ public class OptionRepository {
         AddDefinitionIfNotExists("member_import.polling_interval_minutes",
             "Mitgliederimport: Abfrageintervall (Minuten)",
             OptionDataType.Number, false, "", "10");
+
+        AddDefinitionIfNotExists("auth.saml.endpoint",
+            "SAML: Endpunkt-URL",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.saml.client_id",
+            "SAML: Client-ID",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.saml.certificate",
+            "SAML: Zertifikat (Base64, ohne Header/Footer)",
+            OptionDataType.String, false, "", "");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

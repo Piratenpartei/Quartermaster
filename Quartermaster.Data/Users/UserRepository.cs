@@ -28,7 +28,10 @@ public class UserRepository {
     public User? GetByUsername(string username)
         => _context.Users.Where(u => u.Username == username).FirstOrDefault();
 
-    public void SupplementDefaults(RootAccountSettings accountSettings) {
+    public void SupplementDefaults(RootAccountSettings? accountSettings) {
+        if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))
+            return;
+
         var admin = GetByUsername(accountSettings.Username);
         admin ??= AddRootAccount(accountSettings);
 
@@ -42,8 +45,8 @@ public class UserRepository {
 
     private User AddRootAccount(RootAccountSettings accountSettings) {
         var rootUser = new User() {
-            Username = accountSettings.Username,
-            PasswordHash = PasswordHashser.Hash(accountSettings.Password)
+            Username = accountSettings.Username!,
+            PasswordHash = PasswordHashser.Hash(accountSettings.Password!)
         };
 
         Create(rootUser);

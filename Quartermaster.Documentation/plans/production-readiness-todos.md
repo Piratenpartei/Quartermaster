@@ -33,10 +33,10 @@
 - [x] Validate required fields (ChapterId, names, enum ranges, Guid.Empty checks, conditional login fields)
 
 ### Configuration & Secrets
-- [ ] Remove hardcoded `Admin/Admin` default credentials from appsettings
-- [ ] Support environment variables for database connection string
-- [ ] Support secrets management for production deployment
-- [ ] Make SAML settings configurable per environment
+- [x] Remove hardcoded Admin/Admin — auto-seeding is `#if DEBUG` only; production uses `dotnet run -- init-admin` CLI command with interactive prompts
+- [x] Support environment variables — CLI command and default builder both support env vars; `appsettings.template.json` documents the required structure
+- [x] Secrets management — only connection string needed in appsettings for production; SAML moved to Options system (DB-stored, admin UI)
+- [x] SAML settings configurable — moved to Options system (`auth.saml.endpoint`, `auth.saml.client_id`, `auth.saml.certificate`), endpoints return 503 if unconfigured, `SamlSettings.cs` deleted
 
 ---
 

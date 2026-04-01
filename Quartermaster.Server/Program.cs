@@ -16,14 +16,20 @@ namespace Quartermaster.Server;
 
 public static class Program {
     public static void Main(string[] args) {
+        if (args.Length > 0 && args[0] == "init-admin") {
+            System.Environment.Exit(Quartermaster.Server.Cli.AdminInitCommand.Execute(args));
+            return;
+        }
+
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
         builder.Services.AddAuthorization();
 
         builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
+#if DEBUG
         builder.Services.Configure<RootAccountSettings>(builder.Configuration.GetSection("RootAccountSettings"));
-        builder.Services.Configure<SamlSettings>(builder.Configuration.GetSection("SamlSettings"));
+#endif
 
         builder.Services.AddFluentMigratorCore()
             .ConfigureRunner(rb => {

@@ -67,8 +67,12 @@ public class DbContext : DataConnection {
             scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>());
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
-        scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(
-            services.GetRequiredService<IOptions<RootAccountSettings>>().Value);
+#if DEBUG
+        var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;
+        if (!string.IsNullOrEmpty(rootSettings.Username) && !string.IsNullOrEmpty(rootSettings.Password)) {
+            scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(rootSettings);
+        }
+#endif
         scope.ServiceProvider.GetRequiredService<ChapterOfficerRepository>().SupplementDefaults(
             scope.ServiceProvider.GetRequiredService<ChapterRepository>());
     }
