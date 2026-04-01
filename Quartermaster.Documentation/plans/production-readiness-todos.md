@@ -83,10 +83,10 @@
 - [ ] DTO mapping standardization — deferred; current mix of Mapperly (simple) + manual (complex) is pragmatic
 
 ### Performance
-- [ ] Fix N+1 query patterns in MotionDetailEndpoint and ChapterDetailEndpoint
-- [ ] Add caching for chapter list (loaded on every page via ChapterPicker)
-- [ ] Optimize member email recipient resolution (currently loads all members)
-- [ ] Consider database connection pooling configuration
+- [x] N+1 query patterns — verified MotionDetailEndpoint and ChapterDetailEndpoint already batch member lookups correctly (single `WHERE IN` query)
+- [x] ChapterPicker caching — static cache in Blazor, fetched once per WASM session instead of on every component init
+- [x] Email recipient resolution — `GetByChapterIds()` and `GetByAdministrativeDivisionId()` replace loading all members; `FetchAllMembers()` removed
+- [x] Connection pooling — `pooling=true;max pool size=20;min pool size=5` added to template and dev connection strings
 
 ### Frontend Polish
 - [ ] Add loading indicators on all async operations

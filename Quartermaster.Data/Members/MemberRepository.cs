@@ -22,6 +22,18 @@ public class MemberRepository {
     public Member? GetByMemberNumber(int memberNumber)
         => _context.Members.Where(m => m.MemberNumber == memberNumber).FirstOrDefault();
 
+    public List<Member> GetByChapterIds(List<Guid> chapterIds) {
+        return _context.Members
+            .Where(m => m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))
+            .ToList();
+    }
+
+    public List<Member> GetByAdministrativeDivisionId(Guid divisionId) {
+        return _context.Members
+            .Where(m => m.ResidenceAdministrativeDivisionId == divisionId)
+            .ToList();
+    }
+
     public (List<Member> Items, int TotalCount) Search(
         string? query, Guid? chapterId, int page, int pageSize) {
 

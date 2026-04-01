@@ -127,35 +127,12 @@ public class EmailService {
     private List<Member> FetchTargetMembers(string targetType, Guid targetId) {
         if (targetType == "Chapter" && targetId != Guid.Empty) {
             var chapterIds = _chapterRepo.GetDescendantIds(targetId);
-            var allMembers = FetchAllMembers();
-            return allMembers
-                .Where(m => m.ChapterId.HasValue && chapterIds.Contains(m.ChapterId.Value))
-                .ToList();
+            return _memberRepo.GetByChapterIds(chapterIds);
         }
 
-        if (targetType == "AdministrativeDivision" && targetId != Guid.Empty) {
-            var allMembers = FetchAllMembers();
-            return allMembers
-                .Where(m => m.ResidenceAdministrativeDivisionId == targetId)
-                .ToList();
-        }
+        if (targetType == "AdministrativeDivision" && targetId != Guid.Empty)
+            return _memberRepo.GetByAdministrativeDivisionId(targetId);
 
         return new List<Member>();
-    }
-
-    private List<Member> FetchAllMembers() {
-        var page = 1;
-        const int pageSize = 500;
-        var allMembers = new List<Member>();
-
-        while (true) {
-            var (batch, _) = _memberRepo.Search(null, null, page, pageSize);
-            allMembers.AddRange(batch);
-            if (batch.Count < pageSize)
-                break;
-            page++;
-        }
-
-        return allMembers;
     }
 }
