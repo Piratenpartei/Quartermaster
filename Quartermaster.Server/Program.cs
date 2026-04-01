@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using FastEndpoints;
 using FluentMigrator.Runner;
 using FluentValidation;
@@ -10,6 +11,7 @@ using Quartermaster.Data;
 using LinqToDB.AspNet;
 using LinqToDB;
 using Quartermaster.Data.Migrations;
+using Quartermaster.Server.Email;
 using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server;
@@ -46,7 +48,9 @@ public static class Program {
         builder.Services.AddSingleton<MemberImportService>();
         builder.Services.AddHostedService<MemberImportHostedService>();
 
-        builder.Services.AddSingleton<Quartermaster.Server.Events.MemberEmailService>();
+        builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
+        builder.Services.AddScoped<EmailService>();
+        builder.Services.AddHostedService<EmailSendingBackgroundService>();
         builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
 
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,

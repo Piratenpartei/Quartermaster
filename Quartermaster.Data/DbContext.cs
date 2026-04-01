@@ -8,6 +8,7 @@ using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Email;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
@@ -41,6 +42,7 @@ public class DbContext : DataConnection {
     public ITable<Event> Events => this.GetTable<Event>();
     public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
+    public ITable<EmailLog> EmailLogs => this.GetTable<EmailLog>();
     public ITable<AuditLog.AuditLog> AuditLogs => this.GetTable<AuditLog.AuditLog>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
@@ -60,6 +62,7 @@ public class DbContext : DataConnection {
         services.AddScoped<OptionRepository>();
         services.AddScoped<MemberRepository>();
         services.AddScoped<EventRepository>();
+        services.AddScoped<EmailLogRepository>();
         services.AddScoped<AuditLogRepository>();
     }
 

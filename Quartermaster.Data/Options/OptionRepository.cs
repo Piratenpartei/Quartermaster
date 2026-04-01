@@ -136,6 +136,34 @@ public class OptionRepository {
         AddDefinitionIfNotExists("general.error.show_details",
             "Fehlerdetails anzeigen (für Administratoren)",
             OptionDataType.String, false, "", "false");
+
+        AddDefinitionIfNotExists("email.smtp.host",
+            "SMTP: Server",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("email.smtp.port",
+            "SMTP: Port",
+            OptionDataType.Number, false, "", "587");
+
+        AddDefinitionIfNotExists("email.smtp.username",
+            "SMTP: Benutzername",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("email.smtp.password",
+            "SMTP: Passwort",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("email.smtp.sender_address",
+            "SMTP: Absenderadresse",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("email.smtp.sender_name",
+            "SMTP: Absendername",
+            OptionDataType.String, false, "", "Quartermaster");
+
+        AddDefinitionIfNotExists("email.smtp.use_ssl",
+            "SMTP: SSL verwenden",
+            OptionDataType.String, false, "", "true");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

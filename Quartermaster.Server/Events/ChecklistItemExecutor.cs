@@ -3,14 +3,15 @@ using System.Text.Json;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Motions;
+using Quartermaster.Server.Email;
 
 namespace Quartermaster.Server.Events;
 
 public class ChecklistItemExecutor {
     private readonly MotionRepository _motionRepo;
-    private readonly MemberEmailService _emailService;
+    private readonly EmailService _emailService;
 
-    public ChecklistItemExecutor(MotionRepository motionRepo, MemberEmailService emailService) {
+    public ChecklistItemExecutor(MotionRepository motionRepo, EmailService emailService) {
         _motionRepo = motionRepo;
         _emailService = emailService;
     }
@@ -65,7 +66,8 @@ public class ChecklistItemExecutor {
 
         var (count, error) = _emailService.SendEmail(
             config.TargetType, config.TargetId, config.TemplateIdentifier,
-            descriptionOverride, config.ManualAddresses);
+            descriptionOverride, config.ManualAddresses,
+            "EventChecklistItem", item.Id);
         if (error != null)
             return (null, error);
 

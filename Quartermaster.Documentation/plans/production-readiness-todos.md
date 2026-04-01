@@ -51,13 +51,13 @@
 - [x] Audit log display on Event detail page — same table pattern added
 
 ### Email/Messaging System
-- [ ] Implement actual SMTP email sending (currently stubbed in `MemberEmailService`)
-- [ ] Add SMTP configuration options (server, port, credentials, sender address)
-- [ ] Design message bus abstraction for extensibility (email now, Slack/Matrix/webhook later)
-- [ ] Add email queue/retry mechanism (don't block request on SMTP)
-- [ ] Email template rendering with per-member personalization using Fluid
-- [ ] Email sending log (what was sent, to whom, when, success/failure)
-- [ ] Consider: outbox pattern for reliable message delivery
+- [x] SMTP email sending — MailKit via `EmailSendingBackgroundService`, replaces stubbed `MemberEmailService` (deleted)
+- [x] SMTP configuration — 7 options in Options system (host, port, username, password, sender address/name, SSL), admin UI configurable
+- [ ] Message bus abstraction — deferred; just EmailService for now, extract when second channel needed
+- [x] Email queue/retry — `Channel<EmailMessage>` with `BackgroundService` consumer, 3 retries with exponential backoff
+- [x] Per-member personalization — Fluid template rendering with `member.*` variables per recipient
+- [x] Email sending log — `EmailLog` table with recipient, subject, status, error, attempt count, source entity traceability (EntityType+EntityId); `GET /api/emaillogs` endpoint
+- [ ] Outbox pattern — deferred; in-memory Channel sufficient for now
 
 ### Data Integrity
 - [x] FK cascade behavior — CASCADE DELETE added for MotionVotes→Motions, ChecklistItems→Events, SystemOptions→Chapters, Tokens→Users (M002 migration)
