@@ -21,9 +21,9 @@
 - [x] Audit Fluid template rendering — TemplateRenderer now sanitizes output via MarkdownService with Standard profile
 
 ### CORS & CSRF
-- [ ] Replace `AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()` with specific allowed origins
-- [ ] Add CSRF protection for state-changing endpoints (POST/PUT/DELETE)
-- [ ] Set `SameSite` cookie attribute when session-based auth is implemented
+- [x] Removed permissive CORS policy entirely (same-origin app, not needed)
+- [x] Add CSRF protection for state-changing endpoints — antiforgery middleware validates X-CSRF-TOKEN header on all POST/PUT/DELETE to /api/*, Blazor DelegatingHandler fetches and attaches tokens transparently
+- [x] Set `SameSite=Strict` on antiforgery cookie; auth cookie will follow same pattern when implemented
 
 ### Input Validation
 - [x] Add FluentValidation validators for all request DTOs (18 validators using FastEndpoints `Validator<T>`, auto-discovered)

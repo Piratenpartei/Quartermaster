@@ -17,6 +17,7 @@ namespace Quartermaster.Server.TestData;
 public class TestDataSeeder {
     private readonly DbContext _context;
     private readonly ChapterRepository _chapterRepo;
+    private int _nextMemberNumber = 10000;
 
     public TestDataSeeder(DbContext context, ChapterRepository chapterRepo) {
         _context = context;
@@ -176,7 +177,7 @@ public class TestDataSeeder {
                 FirstName = firstName,
                 LastName = lastName,
                 EMail = faker.Internet.Email(firstName, lastName),
-                MemberNumber = faker.Random.Int(10000, 99999),
+                MemberNumber = _nextMemberNumber++,
                 SelectedValuation = isReduced
                     ? SelectedValuation.Reduced
                     : faker.PickRandom(SelectedValuation.MonthlyPayGroup, SelectedValuation.OnePercentYearlyPay),
@@ -223,7 +224,7 @@ public class TestDataSeeder {
 
                 var member = new Member {
                     Id = Guid.NewGuid(),
-                    MemberNumber = faker.Random.Int(10000, 99999),
+                    MemberNumber = _nextMemberNumber++,
                     FirstName = firstName,
                     LastName = lastName,
                     EMail = user.EMail,

@@ -13,7 +13,11 @@ public static class Program {
         builder.Services.AddSingleton<AppStateService>();
         builder.Services.AddSingleton<ToastService>();
 
-        builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+        builder.Services.AddTransient<Quartermaster.Blazor.Http.CsrfDelegatingHandler>();
+        builder.Services.AddHttpClient("Default", client => {
+            client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+        }).AddHttpMessageHandler<Quartermaster.Blazor.Http.CsrfDelegatingHandler>();
+        builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Default"));
 
         await builder.Build().RunAsync();
     }

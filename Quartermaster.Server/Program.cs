@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentMigrator.Runner;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Api.Users;
@@ -42,16 +43,16 @@ public static class Program {
         builder.Services.AddSingleton<Quartermaster.Server.Events.MemberEmailService>();
         builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
 
-        builder.Services.AddCors(opt => {
-            opt.AddPolicy("Default", policy
-                => policy.AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod());
-        });
-
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,
             filter: x => x.ValidatorType.BaseType?.GetGenericTypeDefinition() != typeof(Validator<>));
         builder.Services.AddFastEndpoints();
+        builder.Services.AddAntiforgery(options => {
+            options.HeaderName = "X-CSRF-TOKEN";
+            options.Cookie.Name = ".Quartermaster.Antiforgery";
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        });
 
         var app = builder.Build();
 
@@ -68,10 +69,11 @@ public static class Program {
 
         DbContext.SupplementDefaults(app.Services);
 
-        app.UseCors("Default");
         app.UseHttpsRedirection();
 
         app.UseRouting();
+
+        app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
 
         app.UseAuthorization();
         app.UseFastEndpoints();
