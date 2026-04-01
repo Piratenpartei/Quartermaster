@@ -4,6 +4,7 @@ using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
@@ -40,6 +41,7 @@ public class DbContext : DataConnection {
     public ITable<Event> Events => this.GetTable<Event>();
     public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
+    public ITable<AuditLog.AuditLog> AuditLogs => this.GetTable<AuditLog.AuditLog>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -58,6 +60,7 @@ public class DbContext : DataConnection {
         services.AddScoped<OptionRepository>();
         services.AddScoped<MemberRepository>();
         services.AddScoped<EventRepository>();
+        services.AddScoped<AuditLogRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

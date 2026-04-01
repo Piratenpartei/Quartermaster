@@ -18,8 +18,8 @@ public static class Program {
         }).AddHttpMessageHandler<Quartermaster.Blazor.Http.CsrfDelegatingHandler>();
         builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Default"));
 
-        builder.Services.AddSingleton<ClientConfigService>();
-        builder.Services.AddSingleton<ToastService>();
+        builder.Services.AddScoped<ClientConfigService>();
+        builder.Services.AddScoped<ToastService>();
 
         await builder.Build().RunAsync();
     }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Blazor.Services;
@@ -32,6 +33,7 @@ public partial class EventDetail {
     private bool Saving;
     private bool IsDirty;
     private bool EditingTitle;
+    private List<AuditLogDTO>? AuditLogs;
 
     // Add item
     private string NewItemLabel { get; set; } = "";
@@ -65,6 +67,7 @@ public partial class EventDetail {
         Loading = true;
         try {
             Event = await Http.GetFromJsonAsync<EventDetailDTO>($"/api/events/{Id}");
+            AuditLogs = await Http.GetFromJsonAsync<List<AuditLogDTO>>($"/api/auditlog?entityType=Event&entityId={Id}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

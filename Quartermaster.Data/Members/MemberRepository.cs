@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,12 @@ namespace Quartermaster.Data.Members;
 
 public class MemberRepository {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public MemberRepository(DbContext context) {
+    public MemberRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public Member? Get(Guid id)
@@ -45,9 +49,14 @@ public class MemberRepository {
         return (items, totalCount);
     }
 
-    public void Insert(Member member) => _context.Insert(member);
+    public void Insert(Member member) {
+        _context.Insert(member);
+        _auditLog.LogCreated("Member", member.Id);
+    }
 
     public void Update(Member member) {
+        var existing = _context.Members.Where(m => m.Id == member.Id).FirstOrDefault();
+
         _context.Members
             .Where(m => m.Id == member.Id)
             .Set(m => m.AdmissionReference, member.AdmissionReference)
@@ -81,6 +90,42 @@ public class MemberRepository {
             .Set(m => m.ResidenceAdministrativeDivisionId, member.ResidenceAdministrativeDivisionId)
             .Set(m => m.LastImportedAt, member.LastImportedAt)
             .Update();
+
+        if (existing != null)
+            LogMemberFieldChanges(existing, member);
+    }
+
+    private void LogMemberFieldChanges(Member old, Member updated) {
+        _auditLog.LogFieldChange("Member", updated.Id, "AdmissionReference", old.AdmissionReference, updated.AdmissionReference);
+        _auditLog.LogFieldChange("Member", updated.Id, "FirstName", old.FirstName, updated.FirstName);
+        _auditLog.LogFieldChange("Member", updated.Id, "LastName", old.LastName, updated.LastName);
+        _auditLog.LogFieldChange("Member", updated.Id, "Street", old.Street, updated.Street);
+        _auditLog.LogFieldChange("Member", updated.Id, "Country", old.Country, updated.Country);
+        _auditLog.LogFieldChange("Member", updated.Id, "PostCode", old.PostCode, updated.PostCode);
+        _auditLog.LogFieldChange("Member", updated.Id, "City", old.City, updated.City);
+        _auditLog.LogFieldChange("Member", updated.Id, "Phone", old.Phone, updated.Phone);
+        _auditLog.LogFieldChange("Member", updated.Id, "EMail", old.EMail, updated.EMail);
+        _auditLog.LogFieldChange("Member", updated.Id, "DateOfBirth", old.DateOfBirth?.ToString("o"), updated.DateOfBirth?.ToString("o"));
+        _auditLog.LogFieldChange("Member", updated.Id, "Citizenship", old.Citizenship, updated.Citizenship);
+        _auditLog.LogFieldChange("Member", updated.Id, "MembershipFee", old.MembershipFee.ToString(), updated.MembershipFee.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ReducedFee", old.ReducedFee.ToString(), updated.ReducedFee.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "FirstFee", old.FirstFee?.ToString(), updated.FirstFee?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "OpenFeeTotal", old.OpenFeeTotal?.ToString(), updated.OpenFeeTotal?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ReducedFeeEnd", old.ReducedFeeEnd?.ToString("o"), updated.ReducedFeeEnd?.ToString("o"));
+        _auditLog.LogFieldChange("Member", updated.Id, "EntryDate", old.EntryDate?.ToString("o"), updated.EntryDate?.ToString("o"));
+        _auditLog.LogFieldChange("Member", updated.Id, "ExitDate", old.ExitDate?.ToString("o"), updated.ExitDate?.ToString("o"));
+        _auditLog.LogFieldChange("Member", updated.Id, "FederalState", old.FederalState, updated.FederalState);
+        _auditLog.LogFieldChange("Member", updated.Id, "County", old.County, updated.County);
+        _auditLog.LogFieldChange("Member", updated.Id, "Municipality", old.Municipality, updated.Municipality);
+        _auditLog.LogFieldChange("Member", updated.Id, "IsPending", old.IsPending.ToString(), updated.IsPending.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "HasVotingRights", old.HasVotingRights.ToString(), updated.HasVotingRights.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ReceivesSurveys", old.ReceivesSurveys.ToString(), updated.ReceivesSurveys.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ReceivesActions", old.ReceivesActions.ToString(), updated.ReceivesActions.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ReceivesNewsletter", old.ReceivesNewsletter.ToString(), updated.ReceivesNewsletter.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "PostBounce", old.PostBounce.ToString(), updated.PostBounce.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ChapterId", old.ChapterId?.ToString(), updated.ChapterId?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "ResidenceAdministrativeDivisionId", old.ResidenceAdministrativeDivisionId?.ToString(), updated.ResidenceAdministrativeDivisionId?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "LastImportedAt", old.LastImportedAt.ToString("o"), updated.LastImportedAt.ToString("o"));
     }
 
     public void InsertImportLog(MemberImportLog log) => _context.Insert(log);

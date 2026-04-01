@@ -379,6 +379,18 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id))
             .OnDelete(System.Data.Rule.Cascade);
 
+        Create.Table(AuditLog.AuditLog.TableName)
+            .WithColumn("Id").AsGuid().PrimaryKey()
+            .WithColumn("EntityType").AsString(64)
+            .WithColumn("EntityId").AsGuid()
+            .WithColumn("Action").AsString(64)
+            .WithColumn("FieldName").AsString(256).Nullable()
+            .WithColumn("OldValue").AsCustom("TEXT").Nullable()
+            .WithColumn("NewValue").AsCustom("TEXT").Nullable()
+            .WithColumn("UserId").AsGuid().Nullable()
+            .WithColumn("UserDisplayName").AsString(256).Nullable()
+            .WithColumn("Timestamp").AsDateTime();
+
         // Secondary indexes
         Create.Index("IX_Members_LastName_FirstName").OnTable(Member.TableName)
             .OnColumn("LastName").Ascending().OnColumn("FirstName").Ascending();
@@ -390,6 +402,8 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Index("IX_MotionVotes_MotionId").OnTable(MotionVote.TableName).OnColumn("MotionId").Ascending();
         Create.Index("IX_ChapterAssociates_ChapterId").OnTable(ChapterOfficer.TableName).OnColumn("ChapterId").Ascending();
         Create.Index("IX_Tokens_UserId").OnTable(Token.TableName).OnColumn("UserId").Ascending();
+        Create.Index("IX_AuditLogs_EntityType_EntityId").OnTable(AuditLog.AuditLog.TableName)
+            .OnColumn("EntityType").Ascending().OnColumn("EntityId").Ascending();
     }
 
     public override void Down() {
@@ -414,6 +428,8 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(Chapter.TableName);
         DropTableIfExists(AdministrativeDivision.TableName);
         DropTableIfExists(Permission.TableName);
+
+        DropTableIfExists(AuditLog.AuditLog.TableName);
 
         EnableForeignKeyChecks();
     }

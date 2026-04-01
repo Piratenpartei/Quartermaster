@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using System;
@@ -9,9 +10,12 @@ namespace Quartermaster.Data.ChapterAssociates;
 
 public class ChapterOfficerRepository {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public ChapterOfficerRepository(DbContext context) {
+    public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public List<ChapterOfficer> GetForChapter(Guid chapterId)
@@ -20,7 +24,11 @@ public class ChapterOfficerRepository {
     public int CountForChapter(Guid chapterId)
         => _context.ChapterOfficers.Where(o => o.ChapterId == chapterId).Count();
 
-    public void Create(ChapterOfficer officer) => _context.Insert(officer);
+    public void Create(ChapterOfficer officer) {
+        _context.Insert(officer);
+        _auditLog.LogCreated("ChapterOfficer", officer.MemberId);
+        _auditLog.Log("ChapterOfficer", officer.MemberId, "Created", "ChapterId", null, officer.ChapterId.ToString());
+    }
 
     public (List<(ChapterOfficer Officer, Member Member, Chapter Chapter)> Items, int TotalCount) SearchAll(
         string? query, Guid? chapterId, int page, int pageSize) {
@@ -56,6 +64,8 @@ public class ChapterOfficerRepository {
         _context.ChapterOfficers
             .Where(o => o.MemberId == memberId && o.ChapterId == chapterId)
             .Delete();
+        _auditLog.LogDeleted("ChapterOfficer", memberId);
+        _auditLog.Log("ChapterOfficer", memberId, "Deleted", "ChapterId", chapterId.ToString(), null);
     }
 
     public void SupplementDefaults(ChapterRepository chapterRepo) {

@@ -1,5 +1,6 @@
 using LinqToDB;
 using Quartermaster.Data.Abstract;
+using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,15 +9,21 @@ namespace Quartermaster.Data.DueSelector;
 
 public class DueSelectionRepository : RepositoryBase<DueSelection> {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public DueSelectionRepository(DbContext context) {
+    public DueSelectionRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public DueSelection? Get(Guid id)
         => _context.DueSelections.Where(d => d.Id == id && d.DeletedAt == null).FirstOrDefault();
 
-    public void Create(DueSelection selection) => _context.Insert(selection);
+    public void Create(DueSelection selection) {
+        _context.Insert(selection);
+        _auditLog.LogCreated("DueSelection", selection.Id);
+    }
 
     public (List<DueSelection> Items, int TotalCount) List(
         DueSelectionStatus? status, int page, int pageSize) {
@@ -36,15 +43,19 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
     }
 
     public void UpdateStatus(Guid id, DueSelectionStatus status, Guid? processedByUserId) {
+        var existing = Get(id);
         _context.DueSelections
             .Where(d => d.Id == id)
             .Set(d => d.Status, status)
             .Set(d => d.ProcessedByUserId, processedByUserId)
             .Set(d => d.ProcessedAt, DateTime.UtcNow)
             .Update();
+        if (existing != null)
+            _auditLog.LogFieldChange("DueSelection", id, "Status", existing.Status.ToString(), status.ToString());
     }
 
     public void SoftDelete(Guid id) {
         _context.DueSelections.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
+        _auditLog.LogSoftDeleted("DueSelection", id);
     }
 }

@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
@@ -10,9 +11,12 @@ namespace Quartermaster.Data.Motions;
 
 public class MotionRepository {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public MotionRepository(DbContext context) {
+    public MotionRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public Motion? Get(Guid id)
@@ -24,7 +28,10 @@ public class MotionRepository {
     public Motion? GetByLinkedDueSelectionId(Guid dueSelectionId)
         => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId && m.DeletedAt == null).FirstOrDefault();
 
-    public void Create(Motion motion) => _context.Insert(motion);
+    public void Create(Motion motion) {
+        _context.Insert(motion);
+        _auditLog.LogCreated("Motion", motion.Id);
+    }
 
     public (List<Motion> Items, int TotalCount) List(
         Guid? chapterId, MotionApprovalStatus? status, bool includeNonPublic, int page, int pageSize) {
@@ -65,8 +72,11 @@ public class MotionRepository {
                 .Set(v => v.Vote, vote.Vote)
                 .Set(v => v.VotedAt, vote.VotedAt)
                 .Update();
+
+            _auditLog.LogFieldChange("MotionVote", existing.Id, "Vote", existing.Vote.ToString(), vote.Vote.ToString());
         } else {
             _context.Insert(vote);
+            _auditLog.LogCreated("MotionVote", vote.Id);
         }
     }
 
@@ -99,6 +109,8 @@ public class MotionRepository {
             .Set(m => m.ResolvedAt, DateTime.UtcNow)
             .Update();
 
+        _auditLog.LogFieldChange("Motion", motionId, "ApprovalStatus", motion.ApprovalStatus.ToString(), newStatus.Value.ToString());
+
         if (motion.LinkedMembershipApplicationId.HasValue) {
             var appStatus = newStatus == MotionApprovalStatus.Approved
                 ? ApplicationStatus.Approved
@@ -125,21 +137,30 @@ public class MotionRepository {
     }
 
     public void UpdateApprovalStatus(Guid id, MotionApprovalStatus status) {
+        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+
         _context.Motions
             .Where(m => m.Id == id)
             .Set(m => m.ApprovalStatus, status)
             .Set(m => m.ResolvedAt, DateTime.UtcNow)
             .Update();
+
+        _auditLog.LogFieldChange("Motion", id, "ApprovalStatus", existing?.ApprovalStatus.ToString(), status.ToString());
     }
 
     public void SetRealized(Guid id, bool realized) {
+        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+
         _context.Motions
             .Where(m => m.Id == id)
             .Set(m => m.IsRealized, realized)
             .Update();
+
+        _auditLog.LogFieldChange("Motion", id, "IsRealized", existing?.IsRealized.ToString(), realized.ToString());
     }
 
     public void SoftDelete(Guid id) {
         _context.Motions.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
+        _auditLog.LogSoftDeleted("Motion", id);
     }
 }

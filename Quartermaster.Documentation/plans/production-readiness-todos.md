@@ -43,12 +43,12 @@
 ## High Priority (Should-Have Before Production)
 
 ### Audit Log
-- [ ] Design audit log entity (Who, What, When, EntityType, EntityId, OldValue, NewValue)
-- [ ] Implement audit logging middleware or repository wrapper
-- [ ] Log changes to: Members, Events, ChapterOfficers, Motions, Options, MembershipApplications
-- [ ] Member import already has a TODO stub for change tracking (`MemberImportService.cs:77`)
-- [ ] Add audit log display on Member detail page (placeholder already exists)
-- [ ] Add audit log display on Event detail page
+- [x] Audit log entity — AuditLog with EntityType, EntityId, Action, FieldName, OldValue, NewValue, UserId (nullable), UserDisplayName, Timestamp; per-field change tracking
+- [x] Audit logging via AuditLogRepository injected into all data repositories; TODO markers for replacing "System" with authenticated user
+- [x] Logged: Members (29 fields compared on update), Events (CRUD + archive + checklist ops), ChapterOfficers (add/delete), Motions (CRUD + votes + status + resolve), Options (value changes), MembershipApplications (CRUD + status), DueSelections (CRUD + status)
+- [x] Member import change tracking — MemberRepository.Update now compares all fields and logs diffs via AuditLogRepository
+- [x] Audit log display on Member detail page — replaces placeholder with table (Zeitpunkt, Aktion, Feld, Alter/Neuer Wert, Benutzer)
+- [x] Audit log display on Event detail page — same table pattern added
 
 ### Email/Messaging System
 - [ ] Implement actual SMTP email sending (currently stubbed in `MemberEmailService`)

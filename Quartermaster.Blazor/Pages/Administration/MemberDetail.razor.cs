@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
 
@@ -19,10 +21,12 @@ public partial class MemberDetail {
 
     private MemberDetailDTO? Member;
     private bool Loading = true;
+    private List<AuditLogDTO>? AuditLogs;
 
     protected override async Task OnInitializedAsync() {
         try {
             Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
+            AuditLogs = await Http.GetFromJsonAsync<List<AuditLogDTO>>($"/api/auditlog?entityType=Member&entityId={Id}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

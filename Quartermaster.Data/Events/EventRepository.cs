@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,17 +8,25 @@ namespace Quartermaster.Data.Events;
 
 public class EventRepository {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public EventRepository(DbContext context) {
+    public EventRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public Event? Get(Guid id)
         => _context.Events.Where(e => e.Id == id && e.DeletedAt == null).FirstOrDefault();
 
-    public void Create(Event ev) => _context.Insert(ev);
+    public void Create(Event ev) {
+        _context.Insert(ev);
+        _auditLog.LogCreated("Event", ev.Id);
+    }
 
     public void Update(Event ev) {
+        var existing = _context.Events.Where(e => e.Id == ev.Id).FirstOrDefault();
+
         _context.Events
             .Where(e => e.Id == ev.Id)
             .Set(e => e.InternalName, ev.InternalName)
@@ -25,13 +34,24 @@ public class EventRepository {
             .Set(e => e.Description, ev.Description)
             .Set(e => e.EventDate, ev.EventDate)
             .Update();
+
+        if (existing != null) {
+            _auditLog.LogFieldChange("Event", ev.Id, "InternalName", existing.InternalName, ev.InternalName);
+            _auditLog.LogFieldChange("Event", ev.Id, "PublicName", existing.PublicName, ev.PublicName);
+            _auditLog.LogFieldChange("Event", ev.Id, "Description", existing.Description, ev.Description);
+            _auditLog.LogFieldChange("Event", ev.Id, "EventDate", existing.EventDate?.ToString("o"), ev.EventDate?.ToString("o"));
+        }
     }
 
     public void SetArchived(Guid id, bool archived) {
+        var existing = _context.Events.Where(e => e.Id == id).FirstOrDefault();
+
         _context.Events
             .Where(e => e.Id == id)
             .Set(e => e.IsArchived, archived)
             .Update();
+
+        _auditLog.LogFieldChange("Event", id, "IsArchived", existing?.IsArchived.ToString(), archived.ToString());
     }
 
     public (List<Event> Items, int TotalCount) Search(Guid? chapterId, bool includeArchived, int page, int pageSize) {
@@ -61,9 +81,14 @@ public class EventRepository {
     public EventChecklistItem? GetChecklistItem(Guid itemId)
         => _context.EventChecklistItems.Where(i => i.Id == itemId).FirstOrDefault();
 
-    public void CreateChecklistItem(EventChecklistItem item) => _context.Insert(item);
+    public void CreateChecklistItem(EventChecklistItem item) {
+        _context.Insert(item);
+        _auditLog.LogCreated("EventChecklistItem", item.Id);
+    }
 
     public void UpdateChecklistItem(EventChecklistItem item) {
+        var existing = _context.EventChecklistItems.Where(i => i.Id == item.Id).FirstOrDefault();
+
         _context.EventChecklistItems
             .Where(i => i.Id == item.Id)
             .Set(i => i.SortOrder, item.SortOrder)
@@ -71,6 +96,13 @@ public class EventRepository {
             .Set(i => i.Label, item.Label)
             .Set(i => i.Configuration, item.Configuration)
             .Update();
+
+        if (existing != null) {
+            _auditLog.LogFieldChange("EventChecklistItem", item.Id, "SortOrder", existing.SortOrder.ToString(), item.SortOrder.ToString());
+            _auditLog.LogFieldChange("EventChecklistItem", item.Id, "ItemType", existing.ItemType.ToString(), item.ItemType.ToString());
+            _auditLog.LogFieldChange("EventChecklistItem", item.Id, "Label", existing.Label, item.Label);
+            _auditLog.LogFieldChange("EventChecklistItem", item.Id, "Configuration", existing.Configuration, item.Configuration);
+        }
     }
 
     public void SwapChecklistItemOrder(Guid eventId, Guid itemId, int direction) {
@@ -100,6 +132,7 @@ public class EventRepository {
 
     public void DeleteChecklistItem(Guid itemId) {
         _context.EventChecklistItems.Where(i => i.Id == itemId).Delete();
+        _auditLog.LogDeleted("EventChecklistItem", itemId);
     }
 
     public void CheckItem(Guid itemId, Guid? resultId) {
@@ -109,6 +142,8 @@ public class EventRepository {
             .Set(i => i.CompletedAt, DateTime.UtcNow)
             .Set(i => i.ResultId, resultId)
             .Update();
+
+        _auditLog.LogFieldChange("EventChecklistItem", itemId, "IsCompleted", "False", "True");
     }
 
     public void UncheckItem(Guid itemId) {
@@ -117,6 +152,8 @@ public class EventRepository {
             .Set(i => i.IsCompleted, false)
             .Set(i => i.CompletedAt, (DateTime?)null)
             .Update();
+
+        _auditLog.LogFieldChange("EventChecklistItem", itemId, "IsCompleted", "True", "False");
     }
 
     public EventTemplate? GetTemplate(Guid id)
@@ -125,7 +162,10 @@ public class EventRepository {
     public List<EventTemplate> GetAllTemplates()
         => _context.EventTemplates.Where(t => t.DeletedAt == null).OrderBy(t => t.Name).ToList();
 
-    public void CreateTemplate(EventTemplate template) => _context.Insert(template);
+    public void CreateTemplate(EventTemplate template) {
+        _context.Insert(template);
+        _auditLog.LogCreated("EventTemplate", template.Id);
+    }
 
     public void DeleteTemplate(Guid id) {
         _context.EventTemplates.Where(t => t.Id == id).Delete();
@@ -133,9 +173,11 @@ public class EventRepository {
 
     public void SoftDelete(Guid id) {
         _context.Events.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
+        _auditLog.LogSoftDeleted("Event", id);
     }
 
     public void SoftDeleteTemplate(Guid id) {
         _context.EventTemplates.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
+        _auditLog.LogSoftDeleted("EventTemplate", id);
     }
 }

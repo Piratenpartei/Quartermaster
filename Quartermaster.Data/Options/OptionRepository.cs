@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,12 @@ namespace Quartermaster.Data.Options;
 
 public class OptionRepository {
     private readonly DbContext _context;
+    // TODO: Replace "System" with authenticated user when auth is implemented
+    private readonly AuditLogRepository _auditLog;
 
-    public OptionRepository(DbContext context) {
+    public OptionRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public List<OptionDefinition> GetAllDefinitions()
@@ -54,16 +58,21 @@ public class OptionRepository {
             : GetGlobalValue(identifier);
 
         if (existing != null) {
+            var oldValue = existing.Value;
             _context.SystemOptions
                 .Where(o => o.Id == existing.Id)
                 .Set(o => o.Value, value)
                 .Update();
+            _auditLog.LogFieldChange("SystemOption", existing.Id, identifier, oldValue, value);
         } else {
-            _context.Insert(new SystemOption {
+            var option = new SystemOption {
                 Identifier = identifier,
                 Value = value,
                 ChapterId = chapterId
-            });
+            };
+            _context.Insert(option);
+            _auditLog.LogCreated("SystemOption", option.Id);
+            _auditLog.LogFieldChange("SystemOption", option.Id, identifier, null, value);
         }
     }
 
