@@ -28,4 +28,5 @@ public class User {
     public Guid AddressAdministrativeDivisionId { get; set; }
 
     public Guid? ChapterId { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

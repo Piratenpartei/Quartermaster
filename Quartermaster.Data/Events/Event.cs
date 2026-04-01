@@ -17,4 +17,5 @@ public class Event {
     public bool IsArchived { get; set; }
     public Guid? EventTemplateId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

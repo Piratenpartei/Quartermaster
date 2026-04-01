@@ -41,11 +41,11 @@ public class MemberEmailService {
             List<Member> recipients;
             if (targetType == "Chapter" && targetId != Guid.Empty) {
                 var chapterIds = chapterRepo.GetDescendantIds(targetId);
-                var (members, _) = memberRepo.Search(null, null, 1, 100000);
-                recipients = members.Where(m => m.ChapterId.HasValue && chapterIds.Contains(m.ChapterId.Value)).ToList();
+                var allMembers = FetchAllMembers(memberRepo);
+                recipients = allMembers.Where(m => m.ChapterId.HasValue && chapterIds.Contains(m.ChapterId.Value)).ToList();
             } else if (targetType == "AdministrativeDivision" && targetId != Guid.Empty) {
-                var (members, _) = memberRepo.Search(null, null, 1, 100000);
-                recipients = members.Where(m => m.ResidenceAdministrativeDivisionId == targetId).ToList();
+                var allMembers = FetchAllMembers(memberRepo);
+                recipients = allMembers.Where(m => m.ResidenceAdministrativeDivisionId == targetId).ToList();
             } else {
                 return (0, "No target configured");
             }
@@ -83,5 +83,19 @@ public class MemberEmailService {
             _logger.LogInformation("  -> ... and {Count} more", emailAddresses.Count - 5);
 
         return (emailAddresses.Count, null);
+    }
+
+    private static List<Member> FetchAllMembers(MemberRepository memberRepo) {
+        var page = 1;
+        const int pageSize = 500;
+        var allMembers = new List<Member>();
+        while (true) {
+            var (batch, _) = memberRepo.Search(null, null, page, pageSize);
+            allMembers.AddRange(batch);
+            if (batch.Count < pageSize)
+                break;
+            page++;
+        }
+        return allMembers;
     }
 }

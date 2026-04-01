@@ -27,6 +27,7 @@ public class Motion {
 
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
 
 public enum MotionApprovalStatus {

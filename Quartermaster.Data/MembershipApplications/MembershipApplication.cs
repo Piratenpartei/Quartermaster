@@ -45,6 +45,7 @@ public class MembershipApplication {
     public ApplicationStatus Status { get; set; }
     public Guid? ProcessedByUserId { get; set; }
     public DateTime? ProcessedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
 
 public enum ApplicationStatus {

@@ -23,10 +23,11 @@ public class UserRepository {
 
     public void Create(User user) => _context.Insert(user);
 
-    public User? GetById(Guid id) => _context.Users.Where(u => u.Id == id).FirstOrDefault();
+    public User? GetById(Guid id)
+        => _context.Users.Where(u => u.Id == id && u.DeletedAt == null).FirstOrDefault();
 
     public User? GetByUsername(string username)
-        => _context.Users.Where(u => u.Username == username).FirstOrDefault();
+        => _context.Users.Where(u => u.Username == username && u.DeletedAt == null).FirstOrDefault();
 
     public void SupplementDefaults(RootAccountSettings? accountSettings) {
         if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))
@@ -51,5 +52,9 @@ public class UserRepository {
 
         Create(rootUser);
         return rootUser;
+    }
+
+    public void SoftDelete(Guid id) {
+        _context.Users.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
     }
 }

@@ -35,7 +35,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(User.AddressStreet)).AsString(256)
             .WithColumn(nameof(User.AddressHouseNbr)).AsString(32)
             .WithColumn(nameof(User.AddressAdministrativeDivisionId)).AsGuid()
-            .WithColumn(nameof(User.ChapterId)).AsGuid().Nullable();
+            .WithColumn(nameof(User.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(User.DeletedAt)).AsDateTime().Nullable();
 
         Create.Table(AdministrativeDivision.TableName)
             .WithColumn(nameof(AdministrativeDivision.Id)).AsGuid().PrimaryKey().Indexed()
@@ -87,7 +88,8 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.ForeignKey("FK_Tokens_UserId_User_Id")
             .FromTable(Token.TableName).ForeignColumn(nameof(Token.UserId))
-            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
+            .OnDelete(System.Data.Rule.Cascade);
 
         Create.Table(Permission.TableName)
             .WithColumn(nameof(Permission.Id)).AsGuid().PrimaryKey().Indexed()
@@ -148,7 +150,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Motion.ApprovalStatus)).AsInt32()
             .WithColumn(nameof(Motion.IsRealized)).AsBoolean()
             .WithColumn(nameof(Motion.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(Motion.ResolvedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Motion.ResolvedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(Motion.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_Motions_ChapterId_Chapters_Id")
             .FromTable(Motion.TableName).ForeignColumn(nameof(Motion.ChapterId))
@@ -163,7 +166,8 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MotionId))
-            .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id));
+            .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id))
+            .OnDelete(System.Data.Rule.Cascade);
 
         Create.ForeignKey("FK_MotionVotes_UserId_Users_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.UserId))
@@ -185,7 +189,8 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.ForeignKey("FK_SystemOptions_ChapterId_Chapters_Id")
             .FromTable(SystemOption.TableName).ForeignColumn(nameof(SystemOption.ChapterId))
-            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
+            .OnDelete(System.Data.Rule.Cascade);
 
         Create.Table(DueSelection.TableName)
             .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
@@ -207,7 +212,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(DueSelection.PaymentSchedule)).AsInt32()
             .WithColumn(nameof(DueSelection.Status)).AsInt32()
             .WithColumn(nameof(DueSelection.ProcessedByUserId)).AsGuid().Nullable()
-            .WithColumn(nameof(DueSelection.ProcessedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(DueSelection.ProcessedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(DueSelection.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_DueSelections_UserId_User_Id")
             .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.UserId))
@@ -240,7 +246,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsDateTime()
             .WithColumn(nameof(MembershipApplication.Status)).AsInt32()
             .WithColumn(nameof(MembershipApplication.ProcessedByUserId)).AsGuid().Nullable()
-            .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(MembershipApplication.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))
@@ -329,7 +336,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(EventTemplate.Variables)).AsCustom("TEXT")
             .WithColumn(nameof(EventTemplate.ChecklistItemTemplates)).AsCustom("TEXT")
             .WithColumn(nameof(EventTemplate.ChapterId)).AsGuid().Nullable()
-            .WithColumn(nameof(EventTemplate.CreatedAt)).AsDateTime();
+            .WithColumn(nameof(EventTemplate.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(EventTemplate.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_EventTemplates_ChapterId_Chapters_Id")
             .FromTable(EventTemplate.TableName).ForeignColumn(nameof(EventTemplate.ChapterId))
@@ -344,7 +352,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Event.EventDate)).AsDateTime().Nullable()
             .WithColumn(nameof(Event.IsArchived)).AsBoolean()
             .WithColumn(nameof(Event.EventTemplateId)).AsGuid().Nullable()
-            .WithColumn(nameof(Event.CreatedAt)).AsDateTime();
+            .WithColumn(nameof(Event.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(Event.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_Events_ChapterId_Chapters_Id")
             .FromTable(Event.TableName).ForeignColumn(nameof(Event.ChapterId))
@@ -367,7 +376,20 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.ForeignKey("FK_EventChecklistItems_EventId_Events_Id")
             .FromTable(EventChecklistItem.TableName).ForeignColumn(nameof(EventChecklistItem.EventId))
-            .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id));
+            .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        // Secondary indexes
+        Create.Index("IX_Members_LastName_FirstName").OnTable(Member.TableName)
+            .OnColumn("LastName").Ascending().OnColumn("FirstName").Ascending();
+        Create.Index("IX_Events_ChapterId").OnTable(Event.TableName).OnColumn("ChapterId").Ascending();
+        Create.Index("IX_Motions_ChapterId").OnTable(Motion.TableName).OnColumn("ChapterId").Ascending();
+        Create.Index("IX_Chapters_ShortCode").OnTable(Chapter.TableName).OnColumn("ShortCode").Ascending();
+        Create.Index("IX_Chapters_ExternalCode").OnTable(Chapter.TableName).OnColumn("ExternalCode").Ascending();
+        Create.Index("IX_EventChecklistItems_EventId").OnTable(EventChecklistItem.TableName).OnColumn("EventId").Ascending();
+        Create.Index("IX_MotionVotes_MotionId").OnTable(MotionVote.TableName).OnColumn("MotionId").Ascending();
+        Create.Index("IX_ChapterAssociates_ChapterId").OnTable(ChapterOfficer.TableName).OnColumn("ChapterId").Ascending();
+        Create.Index("IX_Tokens_UserId").OnTable(Token.TableName).OnColumn("UserId").Ascending();
     }
 
     public override void Down() {

@@ -16,4 +16,5 @@ public class EventTemplate {
     public string ChecklistItemTemplates { get; set; } = "[]";
     public Guid? ChapterId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

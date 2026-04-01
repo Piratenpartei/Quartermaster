@@ -14,14 +14,14 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
     }
 
     public DueSelection? Get(Guid id)
-        => _context.DueSelections.Where(d => d.Id == id).FirstOrDefault();
+        => _context.DueSelections.Where(d => d.Id == id && d.DeletedAt == null).FirstOrDefault();
 
     public void Create(DueSelection selection) => _context.Insert(selection);
 
     public (List<DueSelection> Items, int TotalCount) List(
         DueSelectionStatus? status, int page, int pageSize) {
 
-        var q = _context.DueSelections.AsQueryable();
+        var q = _context.DueSelections.Where(d => d.DeletedAt == null).AsQueryable();
 
         if (status != null)
             q = q.Where(d => d.Status == status.Value);
@@ -42,5 +42,9 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
             .Set(d => d.ProcessedByUserId, processedByUserId)
             .Set(d => d.ProcessedAt, DateTime.UtcNow)
             .Update();
+    }
+
+    public void SoftDelete(Guid id) {
+        _context.DueSelections.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
     }
 }

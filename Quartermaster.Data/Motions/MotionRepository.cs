@@ -16,20 +16,20 @@ public class MotionRepository {
     }
 
     public Motion? Get(Guid id)
-        => _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+        => _context.Motions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
 
     public Motion? GetByLinkedApplicationId(Guid applicationId)
-        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId).FirstOrDefault();
+        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.DeletedAt == null).FirstOrDefault();
 
     public Motion? GetByLinkedDueSelectionId(Guid dueSelectionId)
-        => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId).FirstOrDefault();
+        => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId && m.DeletedAt == null).FirstOrDefault();
 
     public void Create(Motion motion) => _context.Insert(motion);
 
     public (List<Motion> Items, int TotalCount) List(
         Guid? chapterId, MotionApprovalStatus? status, bool includeNonPublic, int page, int pageSize) {
 
-        var q = _context.Motions.AsQueryable();
+        var q = _context.Motions.Where(m => m.DeletedAt == null).AsQueryable();
 
         if (chapterId.HasValue)
             q = q.Where(m => m.ChapterId == chapterId.Value);
@@ -137,5 +137,9 @@ public class MotionRepository {
             .Where(m => m.Id == id)
             .Set(m => m.IsRealized, realized)
             .Update();
+    }
+
+    public void SoftDelete(Guid id) {
+        _context.Motions.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
     }
 }

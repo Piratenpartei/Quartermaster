@@ -60,10 +60,10 @@
 - [ ] Consider: outbox pattern for reliable message delivery
 
 ### Data Integrity
-- [ ] Review foreign key cascade behavior (currently no CASCADE DELETE configured)
-- [ ] Add proper deletion logic: soft-delete vs cascade for each entity relationship
-- [ ] Fix unbounded member query in MemberEmailService (hardcoded `pageSize: 100000`)
-- [ ] Add database indexes for common query patterns (member search by name, events by chapter)
+- [x] FK cascade behavior — CASCADE DELETE added for MotionVotes→Motions, ChecklistItems→Events, SystemOptions→Chapters, Tokens→Users (M002 migration)
+- [x] Deletion logic — soft-delete (DeletedAt column) for Event, Motion, MembershipApplication, DueSelection, User, EventTemplate; hard-delete for Members (legal requirement) and leaf records
+- [x] Unbounded member query — MemberEmailService replaced `pageSize:100000` with batched 500-per-page iteration
+- [x] Database indexes — 9 secondary indexes added: Member(LastName,FirstName), Event(ChapterId), Motion(ChapterId), Chapter(ShortCode), Chapter(ExternalCode), ChecklistItem(EventId), MotionVote(MotionId), ChapterOfficer(ChapterId), Token(UserId)
 
 ### Error Handling
 - [x] Global exception handler — `UseExceptionHandler` returns structured JSON for unhandled exceptions; `UseProblemDetails()` for FastEndpoints validation errors

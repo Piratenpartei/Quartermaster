@@ -13,7 +13,7 @@ public class EventRepository {
     }
 
     public Event? Get(Guid id)
-        => _context.Events.Where(e => e.Id == id).FirstOrDefault();
+        => _context.Events.Where(e => e.Id == id && e.DeletedAt == null).FirstOrDefault();
 
     public void Create(Event ev) => _context.Insert(ev);
 
@@ -35,7 +35,7 @@ public class EventRepository {
     }
 
     public (List<Event> Items, int TotalCount) Search(Guid? chapterId, bool includeArchived, int page, int pageSize) {
-        var q = _context.Events.AsQueryable();
+        var q = _context.Events.Where(e => e.DeletedAt == null).AsQueryable();
 
         if (chapterId.HasValue)
             q = q.Where(e => e.ChapterId == chapterId.Value);
@@ -120,14 +120,22 @@ public class EventRepository {
     }
 
     public EventTemplate? GetTemplate(Guid id)
-        => _context.EventTemplates.Where(t => t.Id == id).FirstOrDefault();
+        => _context.EventTemplates.Where(t => t.Id == id && t.DeletedAt == null).FirstOrDefault();
 
     public List<EventTemplate> GetAllTemplates()
-        => _context.EventTemplates.OrderBy(t => t.Name).ToList();
+        => _context.EventTemplates.Where(t => t.DeletedAt == null).OrderBy(t => t.Name).ToList();
 
     public void CreateTemplate(EventTemplate template) => _context.Insert(template);
 
     public void DeleteTemplate(Guid id) {
         _context.EventTemplates.Where(t => t.Id == id).Delete();
+    }
+
+    public void SoftDelete(Guid id) {
+        _context.Events.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
+    }
+
+    public void SoftDeleteTemplate(Guid id) {
+        _context.EventTemplates.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
     }
 }
