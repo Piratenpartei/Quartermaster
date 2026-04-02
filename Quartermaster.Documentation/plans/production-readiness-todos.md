@@ -13,6 +13,14 @@
 - [x] User permission management — admin UI for granting/revoking global and chapter-scoped permissions per user
 - [ ] SAML SSO — endpoints stubbed, completion deferred until testing with real IdP
 - [ ] Template roles — future TODO (e.g., "Chapter Officer" auto-applies permissions)
+- [ ] **Motion vote delegation hardening** — `MotionVoteEndpoint` allows voting on behalf of another user via `req.UserId`, but needs guardrails:
+  - a) Validate `req.UserId` is a chapter officer of the motion's chapter
+  - b) Validate the logged-in user is a chapter officer of the motion's chapter or a parent chapter
+  - c) Add a new chapter permission (e.g. `motions_vote_delegate`) that allows non-chapter users to cast votes for that specific chapter
+- [ ] **Add authorization to due selection list endpoint** — `GET /api/admin/dueselections` has no auth check; any authenticated user can read all 70+ due selection records including PII (names, emails, financial justifications). Add global `ViewDueSelections` or chapter-scoped `ViewDueSelections` permission check matching the detail endpoint pattern.
+- [ ] **Add authorization to member list endpoint** — `GET /api/members` has no auth check; any authenticated user can enumerate all 857+ members. Add `ViewMembers` permission check (global or chapter-scoped) matching the detail endpoint pattern.
+- [ ] **Add authorization to membership application list endpoint** — `GET /api/admin/membershipapplications` has no auth check; any authenticated user can read all applications including PII (names, emails, addresses). Add `ViewApplications` permission check matching the detail endpoint pattern.
+- [ ] **Add authorization to event template list endpoint** — `GET /api/eventtemplates` has no auth check; any authenticated user can list all templates. Add `ViewTemplates` permission check matching the detail endpoint pattern.
 
 ### XSS Prevention
 - [x] Add HTML sanitization to all `(MarkupString)` usage in Blazor — all 4 locations (MotionDetail, EventDetail, OptionDetail, MarkdownEditor) now use sanitized HTML via MarkdownService/TemplateRenderer
@@ -24,10 +32,11 @@
 - [x] Removed permissive CORS policy entirely (same-origin app, not needed)
 - [x] Add CSRF protection for state-changing endpoints — antiforgery middleware validates X-CSRF-TOKEN header on all POST/PUT/DELETE to /api/*, Blazor DelegatingHandler fetches and attaches tokens transparently
 - [x] Set `SameSite=Strict` on antiforgery cookie; auth cookie will follow same pattern when implemented
+- [ ] **Add security response headers** — currently missing: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, `Strict-Transport-Security` (HSTS), `Referrer-Policy: strict-origin-when-cross-origin`
 
 ### Input Validation
 - [x] Add FluentValidation validators for all request DTOs (18 validators using FastEndpoints `Validator<T>`, auto-discovered)
-- [ ] Validate page size limits (prevent requesting 100k records)
+- [ ] Validate page size limits (prevent requesting 100k records) — currently no upper bound enforced on `pageSize` query parameter
 - [x] Email validation: `Contains('@')` is sufficient — actual validation happens via confirmation email with click-to-verify link
 - [x] Validate string lengths match database column sizes (all string fields validated against DB column limits)
 - [x] Validate required fields (ChapterId, names, enum ranges, Guid.Empty checks, conditional login fields)
@@ -110,4 +119,5 @@
 - [ ] SSO/SAML member-to-user linking flow
 - [ ] More checklist item types (extensible enum designed for this)
 - [ ] Admin division search for email targets (AdminDivisionPicker created but backend needs proper member-by-division query)
-- [ ] Make events optionally public (currently only visible to logged-in users; may want public subject/description visibility)
+- [ ] Make events optionally public (currently only visible to logged-in users; may want public subject/description visibility) — also add authorization to `GET /api/events` list endpoint: public events visible to all, private events only to chapter officers of the chapter and parent chapters
+- [ ] **Login brute-force protection** — IP-based lockout after N failed attempts (PBKDF2 with 500k iterations already slows individual attempts; consider also increasing iteration count). Track failed attempts by IP, lock out after threshold, auto-unlock after cooldown period.
