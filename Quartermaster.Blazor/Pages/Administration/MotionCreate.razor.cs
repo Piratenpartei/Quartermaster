@@ -45,8 +45,10 @@ public partial class MotionCreate {
 
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<MotionDTO>();
-                if (result != null)
+                if (result != null) {
+                    ToastService.Toast("Antrag erstellt.", "success");
                     Navigation.NavigateTo($"/Administration/Motions/{result.Id}");
+                }
             } else {
                 ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
             }

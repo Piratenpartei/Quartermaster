@@ -86,8 +86,10 @@ public partial class EventCreateFromTemplate {
 
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
-                if (result != null)
+                if (result != null) {
+                    ToastService.Toast("Event erstellt.", "success");
                     Navigation.NavigateTo($"/Administration/Events/{result.Id}");
+                }
             } else {
                 ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
             }

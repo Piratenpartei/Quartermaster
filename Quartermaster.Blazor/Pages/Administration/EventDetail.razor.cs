@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Rendering;
+using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -28,6 +29,7 @@ public partial class EventDetail {
     [Parameter]
     public Guid Id { get; set; }
 
+    private ConfirmDialog ConfirmDialog = default!;
     private EventDetailDTO? Event;
     private bool Loading = true;
     private bool Saving;
@@ -102,6 +104,7 @@ public partial class EventDetail {
                 Description = Event.Description,
                 EventDate = Event.EventDate
             });
+            ToastService.Toast("Gespeichert.", "success");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -183,6 +186,7 @@ public partial class EventDetail {
             });
 
             NewItemLabel = "";
+            ToastService.Toast("Eintrag hinzugefügt.", "success");
             await SaveIfDirty();
             await LoadEvent();
         } catch (HttpRequestException ex) {
@@ -278,11 +282,15 @@ public partial class EventDetail {
     }
 
     private async Task DeleteChecklistItem(Guid itemId) {
+        if (!await ConfirmDialog.ShowAsync("Diesen Checklisteneintrag wirklich löschen?"))
+            return;
+
         try {
             await Http.DeleteAsync($"/api/events/{Id}/checklist/{itemId}");
             PreviewCache.Remove(itemId);
             if (ExpandedPreviewItemId == itemId)
                 ExpandedPreviewItemId = null;
+            ToastService.Toast("Eintrag gelöscht.", "success");
             await SaveIfDirty();
             await LoadEvent();
         } catch (HttpRequestException ex) {
@@ -291,9 +299,17 @@ public partial class EventDetail {
     }
 
     private async Task ToggleArchive() {
+        var isArchived = Event?.IsArchived ?? false;
+        var message = isArchived
+            ? "Dieses Event wirklich wiederherstellen?"
+            : "Dieses Event wirklich archivieren?";
+        if (!await ConfirmDialog.ShowAsync(message))
+            return;
+
         try {
             await SaveIfDirty();
             await Http.PostAsync($"/api/events/{Id}/archive", null);
+            ToastService.Toast(isArchived ? "Event wiederhergestellt." : "Event archiviert.", "success");
             await LoadEvent();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

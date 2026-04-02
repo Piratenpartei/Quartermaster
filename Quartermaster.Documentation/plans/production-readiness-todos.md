@@ -89,11 +89,11 @@
 - [x] Connection pooling — `pooling=true;max pool size=20;min pool size=5` added to template and dev connection strings
 
 ### Frontend Polish
-- [ ] Add loading indicators on all async operations
-- [ ] Add confirmation dialogs for destructive actions (delete checklist items, archive events)
-- [ ] Improve accessibility (ARIA labels on interactive components)
-- [ ] Add toast notifications for save/delete operations (ToastService exists but isn't used everywhere)
-- [ ] Mobile responsiveness review
+- [x] Loading indicators — already present on all 22+ pages (consistent spinner-border pattern)
+- [x] Confirmation dialogs — `ConfirmDialog` component (Bootstrap modal with async ShowAsync), wired to delete checklist items, delete templates, archive/restore events
+- [ ] Accessibility — ARIA labels on interactive components (deferred)
+- [x] Success toasts — added to 9 pages: EventDetail (save/add/delete/archive), EventCreate, EventCreateFromTemplate, EventTemplateSave, EventTemplateList, ChapterOfficerAdd, MotionCreate, MemberImportHistory
+- [ ] Mobile responsiveness review (deferred)
 
 ### Testing
 - [ ] Add unit tests for critical business logic (motion auto-resolution, member import, chapter resolution)

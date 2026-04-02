@@ -94,6 +94,7 @@ public partial class EventTemplateSave {
                 Variables = variablesJson
             });
 
+            ToastService.Toast("Vorlage gespeichert.", "success");
             Navigation.NavigateTo($"/Administration/Events/{EventId}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

@@ -59,6 +59,7 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import", null);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
+                ToastService.Toast("Import gestartet.", "success");
                 CurrentPage = 1;
                 await LoadHistory();
             } else {

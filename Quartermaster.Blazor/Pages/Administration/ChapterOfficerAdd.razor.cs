@@ -87,6 +87,7 @@ public partial class ChapterOfficerAdd {
                 AssociateType = SelectedRole
             });
 
+            ToastService.Toast("Vorstandsmitglied hinzugefügt.", "success");
             Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
