@@ -1,0 +1,4 @@
+USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend
+1001;REF001;Mueller;Anna;Hauptstr. 1;DE;30159;Hannover;0511-12345;anna@example.com;NI;;;48.00;0.00;1;1;1;1990-05-15;0;Niedersachsen;2020-01-01;NULL;48.00;Region Hannover;Hannover;DE;1;NULL;NULL;0
+1002;REF002;Schmidt;Max;Berliner Str. 5;DE;10115;Berlin;030-54321;max@example.com;BE;;;36.00;0.00;0;1;0;1985-03-20;0;Berlin;2019-06-15;NULL;36.00;Berlin;Berlin;DE;1;NULL;NULL;0
+1003;REF003;Weber;Lisa;NULL;NULL;NULL;NULL;NULL;NULL;NI;;;48.00;0.00;0;0;0;NULL;0;NULL;2021-11-01;NULL;NULL;NULL;NULL;NULL;0;NULL;NULL;0

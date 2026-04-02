@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Quartermaster.Server\Quartermaster.Server.csproj" />
     <ProjectReference Include="..\Quartermaster.Api\Quartermaster.Api.csproj" />
   </ItemGroup>

@@ -96,9 +96,9 @@
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing
-- [ ] Add unit tests for critical business logic (motion auto-resolution, member import, chapter resolution)
-- [ ] Add integration tests for API endpoints
-- [ ] Add end-to-end tests for key user flows (membership application, event creation from template)
+- [x] Unit tests for critical business logic — 53 new tests across 7 suites: ChapterRepository (14), OptionRepository.ResolveValue (9), MotionRepository.TryAutoResolve (11), MemberImportService (7), EmailService (7), UserRepository (5); test DB fixture with auto-migration and table cleanup
+- [ ] Integration tests for API endpoints (deferred)
+- [ ] End-to-end tests for key user flows (deferred)
 
 ---
 
