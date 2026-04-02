@@ -2,10 +2,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
 
@@ -17,19 +21,24 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
     public MemberDetailEndpoint(
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
-        AdministrativeDivisionRepository adminDivRepo) {
+        AdministrativeDivisionRepository adminDivRepo,
+        UserChapterPermissionRepository chapterPermRepo,
+        UserGlobalPermissionRepository globalPermRepo) {
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Get("/api/members/{Id}");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(MemberDetailRequest req, CancellationToken ct) {
@@ -37,6 +46,25 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
         if (member == null) {
             await SendNotFoundAsync(ct);
             return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
+        if (member.ChapterId.HasValue) {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.ViewMembers, _chapterRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
+        } else {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
         }
 
         var chapterName = "";

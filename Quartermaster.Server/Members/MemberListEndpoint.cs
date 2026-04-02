@@ -19,7 +19,6 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
 
     public override void Configure() {
         Get("/api/members");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(MemberSearchRequest req, CancellationToken ct) {

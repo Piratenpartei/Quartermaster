@@ -48,6 +48,11 @@ else
 if (value == null) return;
 ```
 
+## Blazor Components
+
+- Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)
+- This applies to all components and pages — keep markup and logic separated
+
 ## Documentation
 
 - Never write into README.md files; use `Quartermaster.Documentation/` directory instead

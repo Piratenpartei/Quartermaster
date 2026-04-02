@@ -5,27 +5,46 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
 public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, EventDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
-    public EventFromTemplateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo) {
+    public EventFromTemplateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo,
+        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Post("/api/events/from-template");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventFromTemplateRequest req, CancellationToken ct) {
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.CreateEvents, _globalPermRepo) &&
+            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, req.ChapterId, PermissionIdentifier.CreateEvents, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
         var template = _eventRepo.GetTemplate(req.TemplateId);
         if (template == null)
         {

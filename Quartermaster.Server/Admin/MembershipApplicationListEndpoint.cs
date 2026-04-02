@@ -23,7 +23,6 @@ public class MembershipApplicationListEndpoint
 
     public override void Configure() {
         Get("/api/admin/membershipapplications");
-        AllowAnonymous(); // TODO: Replace with auth when login UI exists
     }
 
     public override async Task HandleAsync(MembershipApplicationListRequest req, CancellationToken ct) {

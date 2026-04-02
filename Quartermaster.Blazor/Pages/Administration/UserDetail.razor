@@ -1,0 +1,103 @@
+@page "/Administration/Users/{Id:guid}"
+@using Quartermaster.Api.Permissions
+
+<div class="mb-3">
+    <a href="/Administration/Users" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (UserInfo == null) {
+    <div class="alert alert-danger">Benutzer nicht gefunden.</div>
+} else {
+    <h3>@UserInfo.FirstName @UserInfo.LastName</h3>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Benutzerdaten</h5>
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr><th style="width:200px">Benutzername</th><td>@(string.IsNullOrEmpty(UserInfo.Username) ? "---" : UserInfo.Username)</td></tr>
+                    <tr><th>E-Mail</th><td>@(string.IsNullOrEmpty(UserInfo.EMail) ? "---" : UserInfo.EMail)</td></tr>
+                    <tr><th>Vorname</th><td>@UserInfo.FirstName</td></tr>
+                    <tr><th>Nachname</th><td>@UserInfo.LastName</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Globale Berechtigungen</h5>
+            @if (GlobalPermissions != null && GlobalPermissions.Count > 0) {
+                @foreach (var perm in GlobalPermissions) {
+                    <div class="form-check">
+                        <input class="form-check-input cursor-pointer" type="checkbox"
+                               checked="@IsGlobalPermissionGranted(perm.Identifier)"
+                               @onchange="e => ToggleGlobalPermission(perm.Identifier, (bool)(e.Value ?? false))" />
+                        <label class="form-check-label cursor-pointer">
+                            @perm.DisplayName <span class="text-secondary small">(@perm.Identifier)</span>
+                        </label>
+                    </div>
+                }
+            } else {
+                <p class="text-secondary mb-0">Keine globalen Berechtigungen verfügbar.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Gliederungs-Berechtigungen</h5>
+
+            @if (UserPermissions?.ChapterPermissions != null && UserPermissions.ChapterPermissions.Count > 0) {
+                @foreach (var kvp in UserPermissions.ChapterPermissions) {
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <h6 class="mb-2">@GetChapterName(kvp.Key)</h6>
+                            @foreach (var permId in kvp.Value) {
+                                <span class="badge bg-primary me-1 mb-1">
+                                    @GetPermissionDisplayName(permId)
+                                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.5em;"
+                                            @onclick="() => RevokeChapterPermission(kvp.Key, permId)"></button>
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+            } else {
+                <p class="text-secondary">Keine Gliederungs-Berechtigungen vergeben.</p>
+            }
+
+            <hr />
+            <h6>Neue Gliederungs-Berechtigung hinzufügen</h6>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Gliederung</label>
+                    <ChapterPicker @bind-Value="NewChapterId" AllowEmpty="false" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Berechtigung</label>
+                    <select class="form-select" @bind="NewPermissionIdentifier">
+                        <option value="">-- Berechtigung auswählen --</option>
+                        @if (ChapterPermissions != null) {
+                            @foreach (var perm in ChapterPermissions) {
+                                <option value="@perm.Identifier">@perm.DisplayName (@perm.Identifier)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-success w-100" @onclick="AddChapterPermission"
+                            disabled="@(string.IsNullOrEmpty(NewChapterId) || string.IsNullOrEmpty(NewPermissionIdentifier))">
+                        <i class="bi bi-plus"></i> Hinzufügen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

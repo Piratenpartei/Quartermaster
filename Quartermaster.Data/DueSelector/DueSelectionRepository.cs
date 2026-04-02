@@ -9,7 +9,6 @@ namespace Quartermaster.Data.DueSelector;
 
 public class DueSelectionRepository : RepositoryBase<DueSelection> {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public DueSelectionRepository(DbContext context, AuditLogRepository auditLog) {

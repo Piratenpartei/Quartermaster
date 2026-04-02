@@ -16,7 +16,6 @@ public class ChapterOfficerListEndpoint : Endpoint<ChapterOfficerSearchRequest, 
 
     public override void Configure() {
         Get("/api/chapterofficers");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(ChapterOfficerSearchRequest req, CancellationToken ct) {

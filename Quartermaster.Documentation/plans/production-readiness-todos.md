@@ -3,16 +3,16 @@
 ## Critical (Must-Have Before Production)
 
 ### Authentication & Authorization
-- [ ] Replace ALL `AllowAnonymous()` endpoints with proper authentication (53+ endpoints)
-- [ ] Use the EXISTING Token infrastructure (`Token` entity, `TokenRepository`) — NOT JWT. Tokens are stored server-side so permission changes take effect immediately without waiting for token expiry
-- [ ] Auth flow: login → server creates Token → client stores token (cookie or header) → each request validated against DB
-- [ ] Token validation as a FastEndpoints preprocessor: look up token in DB, check expiry, resolve User + permissions
-- [ ] Wire up the existing `ChapterPermissionRequirement` preprocessor to relevant endpoints
-- [ ] Chapter-scoped permissions are HIERARCHICAL: a parent chapter's officers can administrate all child chapters (e.g., Bundesverband officer can manage NDS, NDS officer can manage NDS sub-chapters). Permission check must walk up the chapter ancestor chain.
-- [ ] Define permission matrix: which roles can access which endpoints
-- [ ] Endpoints that SHOULD remain anonymous: public motion submission, membership application, due selection, public motion listing
-- [ ] Implement login UI (currently no frontend login page exists)
-- [ ] SAML SSO integration for member-to-user linking (flow exists partially in `SamlLoginStartEndpoint`/`SamlLoginConsumeEndpoint`)
+- [x] Bearer token auth — `Authorization: Bearer <token>` header, TokenAuthenticationHandler validates against DB, checks expiry, resolves user + claims
+- [x] 25 permission identifiers defined (8 global, 17 chapter-scoped), seeded in PermissionRepository
+- [x] Auth flow — login returns token + user info + permissions (global + chapter-scoped); Blazor stores in localStorage, sends via DelegatingHandler
+- [x] Endpoint authorization — every admin endpoint has explicit permission check in HandleAsync; 20 endpoints remain anonymous (public APIs); list endpoints require auth-only; detail/edit/delete require specific permissions
+- [x] Hierarchical permissions — view/read permissions walk ancestor chain (parent chapter grant applies to children); write permissions are exact-match only
+- [x] Login UI — Login page with SSO card (disabled if SAML unconfigured) + manual login card; login/logout button in nav; redirect after login
+- [x] Audit log integration — CurrentUser populated from auth claims via middleware, AuditLogRepository uses real user instead of "System"
+- [x] User permission management — admin UI for granting/revoking global and chapter-scoped permissions per user
+- [ ] SAML SSO — endpoints stubbed, completion deferred until testing with real IdP
+- [ ] Template roles — future TODO (e.g., "Chapter Officer" auto-applies permissions)
 
 ### XSS Prevention
 - [x] Add HTML sanitization to all `(MarkupString)` usage in Blazor — all 4 locations (MotionDetail, EventDetail, OptionDetail, MarkdownEditor) now use sanitized HTML via MarkdownService/TemplateRenderer
@@ -110,3 +110,4 @@
 - [ ] SSO/SAML member-to-user linking flow
 - [ ] More checklist item types (extensible enum designed for this)
 - [ ] Admin division search for email targets (AdminDivisionPicker created but backend needs proper member-by-division query)
+- [ ] Make events optionally public (currently only visible to logged-in users; may want public subject/description visibility)

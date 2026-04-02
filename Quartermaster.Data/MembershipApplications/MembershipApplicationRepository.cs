@@ -8,7 +8,6 @@ namespace Quartermaster.Data.MembershipApplications;
 
 public class MembershipApplicationRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public MembershipApplicationRepository(DbContext context, AuditLogRepository auditLog) {
@@ -18,6 +17,11 @@ public class MembershipApplicationRepository {
 
     public MembershipApplication? Get(Guid id)
         => _context.MembershipApplications.Where(a => a.Id == id && a.DeletedAt == null).FirstOrDefault();
+
+    public MembershipApplication? GetByDueSelectionId(Guid dueSelectionId)
+        => _context.MembershipApplications
+            .Where(a => a.DueSelectionId == dueSelectionId && a.DeletedAt == null)
+            .FirstOrDefault();
 
     public void Create(MembershipApplication application) {
         _context.Insert(application);

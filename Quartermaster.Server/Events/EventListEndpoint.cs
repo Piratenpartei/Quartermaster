@@ -19,7 +19,6 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
 
     public override void Configure() {
         Get("/api/events");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventSearchRequest req, CancellationToken ct) {

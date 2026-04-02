@@ -21,10 +21,14 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
     public override async Task HandleAsync(CancellationToken ct) {
         var errorContact = _optionRepo.GetGlobalValue("general.error.contact")?.Value ?? "";
         var showDetails = _optionRepo.GetGlobalValue("general.error.show_details")?.Value ?? "false";
+        var samlEndpoint = _optionRepo.GetGlobalValue("auth.saml.endpoint")?.Value ?? "";
+        var samlButtonText = _optionRepo.GetGlobalValue("auth.saml.button_text")?.Value ?? "SSO Login";
 
         await SendAsync(new ClientConfigDTO {
             ErrorContact = errorContact,
-            ShowDetailedErrors = showDetails.Equals("true", System.StringComparison.OrdinalIgnoreCase)
+            ShowDetailedErrors = showDetails.Equals("true", System.StringComparison.OrdinalIgnoreCase),
+            SamlEnabled = !string.IsNullOrEmpty(samlEndpoint),
+            SamlButtonText = samlButtonText
         }, cancellation: ct);
     }
 }

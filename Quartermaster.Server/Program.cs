@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Channels;
 using FastEndpoints;
 using FluentMigrator.Runner;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +13,7 @@ using Quartermaster.Data;
 using LinqToDB.AspNet;
 using LinqToDB;
 using Quartermaster.Data.Migrations;
+using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Members;
 
@@ -26,6 +29,9 @@ public static class Program {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        builder.Services.AddAuthentication(TokenAuthenticationHandlerOptions.DefaultScheme)
+            .AddScheme<TokenAuthenticationHandlerOptions, TokenAuthenticationHandler>(
+                TokenAuthenticationHandlerOptions.DefaultScheme, null);
         builder.Services.AddAuthorization();
 
         builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
@@ -96,6 +102,17 @@ public static class Program {
 
         app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
 
+        app.UseAuthentication();
+        app.Use(async (context, next) => {
+            if (context.User.Identity?.IsAuthenticated == true) {
+                var idClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (idClaim != null && Guid.TryParse(idClaim.Value, out var userId)) {
+                    var auditLog = context.RequestServices.GetRequiredService<Quartermaster.Data.AuditLog.AuditLogRepository>();
+                    auditLog.SetCurrentUser(userId, context.User.Identity.Name ?? "System");
+                }
+            }
+            await next();
+        });
         app.UseAuthorization();
         app.UseFastEndpoints(c => {
             c.Errors.UseProblemDetails();

@@ -10,7 +10,6 @@ namespace Quartermaster.Data.ChapterAssociates;
 
 public class ChapterOfficerRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog) {

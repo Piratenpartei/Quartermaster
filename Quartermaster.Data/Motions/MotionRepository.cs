@@ -11,7 +11,6 @@ namespace Quartermaster.Data.Motions;
 
 public class MotionRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public MotionRepository(DbContext context, AuditLogRepository auditLog) {

@@ -2,8 +2,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
 
@@ -16,17 +19,29 @@ public class MemberImportHistoryEndpoint
     : Endpoint<MemberImportHistoryRequest, MemberImportLogListResponse> {
 
     private readonly MemberRepository _memberRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
-    public MemberImportHistoryEndpoint(MemberRepository memberRepo) {
+    public MemberImportHistoryEndpoint(MemberRepository memberRepo,
+        UserGlobalPermissionRepository globalPermRepo) {
         _memberRepo = memberRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Get("/api/members/import/history");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(MemberImportHistoryRequest req, CancellationToken ct) {
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
         var (items, totalCount) = _memberRepo.GetImportHistory(req.Page, req.PageSize);
 
         var dtos = items.Select(l => new MemberImportLogDTO {

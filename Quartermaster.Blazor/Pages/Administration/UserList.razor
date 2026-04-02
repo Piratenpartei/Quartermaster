@@ -1,0 +1,32 @@
+@page "/Administration/Users"
+
+<h3>Benutzer</h3>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Users != null) {
+    <div class="mb-2 text-secondary">
+        @Users.Count Benutzer
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Benutzername</th>
+                <th>Nachname</th>
+                <th>Vorname</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Users) {
+                <tr>
+                    <td><a href="/Administration/Users/@user.Id">@(string.IsNullOrEmpty(user.Username) ? "---" : user.Username)</a></td>
+                    <td>@user.LastName</td>
+                    <td>@user.FirstName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

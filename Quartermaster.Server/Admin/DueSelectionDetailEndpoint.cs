@@ -2,9 +2,15 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
 
@@ -17,22 +23,51 @@ public class DueSelectionDetailEndpoint
 
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MotionRepository _motionRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly MembershipApplicationRepository _applicationRepo;
+    private readonly ChapterRepository _chapterRepo;
 
-    public DueSelectionDetailEndpoint(DueSelectionRepository dueSelectionRepo, MotionRepository motionRepo) {
+    public DueSelectionDetailEndpoint(DueSelectionRepository dueSelectionRepo, MotionRepository motionRepo,
+        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
+        MembershipApplicationRepository applicationRepo, ChapterRepository chapterRepo) {
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
+        _applicationRepo = applicationRepo;
+        _chapterRepo = chapterRepo;
     }
 
     public override void Configure() {
         Get("/api/admin/dueselections/{Id}");
-        AllowAnonymous(); // TODO: Replace with auth when login UI exists
     }
 
     public override async Task HandleAsync(DueSelectionDetailRequest req, CancellationToken ct) {
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
         var ds = _dueSelectionRepo.Get(req.Id);
         if (ds == null) {
             await SendNotFoundAsync(ct);
             return;
+        }
+
+        var application = _applicationRepo.GetByDueSelectionId(ds.Id);
+        if (application?.ChapterId.HasValue == true) {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewDueSelections, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, application.ChapterId.Value, PermissionIdentifier.ViewDueSelections, _chapterRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
+        } else {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewDueSelections, _globalPermRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
         }
 
         await SendAsync(new DueSelectionDetailDTO {

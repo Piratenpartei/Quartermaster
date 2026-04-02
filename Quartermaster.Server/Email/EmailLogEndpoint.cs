@@ -4,8 +4,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Email;
 using Quartermaster.Data.Email;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Email;
 
@@ -18,17 +21,28 @@ public class EmailLogRequest {
 
 public class EmailLogEndpoint : Endpoint<EmailLogRequest, List<EmailLogDTO>> {
     private readonly EmailLogRepository _emailLogRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
-    public EmailLogEndpoint(EmailLogRepository emailLogRepo) {
+    public EmailLogEndpoint(EmailLogRepository emailLogRepo, UserGlobalPermissionRepository globalPermRepo) {
         _emailLogRepo = emailLogRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Get("/api/emaillogs");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EmailLogRequest req, CancellationToken ct) {
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEmailLogs, _globalPermRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
         List<EmailLog> logs;
         if (!string.IsNullOrEmpty(req.SourceEntityType) && req.SourceEntityId.HasValue) {
             logs = _emailLogRepo.GetForSource(req.SourceEntityType, req.SourceEntityId.Value);

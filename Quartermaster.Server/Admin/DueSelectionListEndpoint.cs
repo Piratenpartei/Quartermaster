@@ -18,7 +18,6 @@ public class DueSelectionListEndpoint
 
     public override void Configure() {
         Get("/api/admin/dueselections");
-        AllowAnonymous(); // TODO: Replace with auth when login UI exists
     }
 
     public override async Task HandleAsync(DueSelectionListRequest req, CancellationToken ct) {

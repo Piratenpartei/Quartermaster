@@ -15,6 +15,8 @@ public class ClientConfigService {
 
     public string ErrorContact => _config?.ErrorContact ?? "";
     public bool ShowDetailedErrors => _config?.ShowDetailedErrors ?? false;
+    public bool SamlEnabled => _config?.SamlEnabled ?? false;
+    public string SamlButtonText => _config?.SamlButtonText ?? "SSO Login";
 
     public async Task LoadAsync() {
         try {

@@ -1,14 +1,10 @@
-﻿using FastEndpoints;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Quartermaster.Data;
 using Quartermaster.Data.Tokens;
-using System;
+using Quartermaster.Data.Users;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -16,51 +12,42 @@ using System.Threading.Tasks;
 namespace Quartermaster.Server.Authentication;
 
 public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticationHandlerOptions> {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-
     public TokenAuthenticationHandler(IOptionsMonitor<TokenAuthenticationHandlerOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder, IServiceScopeFactory serviceScopeFactory)
-        : base(options, logger, encoder) {
-        _serviceScopeFactory = serviceScopeFactory;
-    }
+        ILoggerFactory logger, UrlEncoder encoder)
+        : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
-        if (IsPublicEndpoint())
+        var authHeader = Request.Headers["Authorization"].ToString();
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             return Task.FromResult(AuthenticateResult.NoResult());
 
-        if (!Request.Headers.TryGetValue(Options.TokenHeaderName, out var token)
-            || string.IsNullOrEmpty(token)
-            || !Request.Headers.TryGetValue(Options.UserIdHeaderName, out var userIdStr)) {
-            return Task.FromResult(AuthenticateResult.Fail(""));
-        }
+        var tokenContent = authHeader["Bearer ".Length..].Trim();
+        if (string.IsNullOrEmpty(tokenContent))
+            return Task.FromResult(AuthenticateResult.Fail("Empty token"));
 
-        if (!Guid.TryParse(userIdStr, out var userId))
-            return Task.FromResult(AuthenticateResult.Fail(""));
+        var tokenRepository = Context.RequestServices.GetRequiredService<TokenRepository>();
+        var token = tokenRepository.ValidateLoginToken(tokenContent);
+        if (token == null || token.UserId == null)
+            return Task.FromResult(AuthenticateResult.Fail("Invalid or expired token"));
 
-        using var scope = _serviceScopeFactory.CreateScope();
-        var tokenRepository = scope.Resolve<TokenRepository>();
+        var userRepository = Context.RequestServices.GetRequiredService<UserRepository>();
+        var user = userRepository.GetById(token.UserId.Value);
+        if (user == null)
+            return Task.FromResult(AuthenticateResult.Fail("User not found"));
 
-        // token is implicitely converted to string?, if the IsNullOrEmpty check above doesn't fail
-        // it won't be null here either.
-        if (!tokenRepository.CheckLoginToken(token!, userId, ""))
-            return Task.FromResult(AuthenticateResult.Fail(""));
+        var claims = new List<Claim> {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Username ?? user.EMail)
+        };
 
-        var claims = new List<Claim>();
+        var identity = new ClaimsIdentity(claims, Scheme.Name);
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-        var claimsIdentity = new ClaimsIdentity(claims, Scheme.Name);
-        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(claimsPrincipal, Scheme.Name)));
+        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
-
-    private bool IsPublicEndpoint()
-        => Context.GetEndpoint()?
-              .Metadata.OfType<EndpointDefinition>().FirstOrDefault()?
-              .AnonymousVerbs?.Length > 0;
 }
 
 public class TokenAuthenticationHandlerOptions : AuthenticationSchemeOptions {
     public const string DefaultScheme = "Token";
-    public string TokenHeaderName { get; set; } = "AuthToken";
-    public string UserIdHeaderName { get; set; } = "UserId";
 }

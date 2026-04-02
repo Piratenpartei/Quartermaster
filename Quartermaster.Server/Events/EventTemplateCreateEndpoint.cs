@@ -4,28 +4,50 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
 public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, EventTemplateDetailDTO> {
     private readonly EventRepository _eventRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly ChapterRepository _chapterRepo;
 
-    public EventTemplateCreateEndpoint(EventRepository eventRepo) {
+    public EventTemplateCreateEndpoint(EventRepository eventRepo,
+        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
+        ChapterRepository chapterRepo) {
         _eventRepo = eventRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
+        _chapterRepo = chapterRepo;
     }
 
     public override void Configure() {
         Post("/api/eventtemplates");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventTemplateCreateRequest req, CancellationToken ct) {
         var ev = _eventRepo.Get(req.EventId);
-        if (ev == null)
-        {
+        if (ev == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditTemplates, _globalPermRepo) &&
+            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.EditTemplates, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
             return;
         }
 

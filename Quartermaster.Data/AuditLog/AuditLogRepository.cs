@@ -7,12 +7,18 @@ namespace Quartermaster.Data.AuditLog;
 
 public class AuditLogRepository {
     private readonly DbContext _context;
+    private Guid? _currentUserId;
+    private string _currentUserDisplayName = "System";
 
     public AuditLogRepository(DbContext context) {
         _context = context;
     }
 
-    // TODO: Replace UserId=null and UserDisplayName="System" with actual authenticated user when auth is implemented
+    public void SetCurrentUser(Guid? userId, string displayName) {
+        _currentUserId = userId;
+        _currentUserDisplayName = displayName;
+    }
+
     public void Log(string entityType, Guid entityId, string action, string? fieldName = null, string? oldValue = null, string? newValue = null) {
         _context.Insert(new AuditLog {
             EntityType = entityType,
@@ -21,8 +27,8 @@ public class AuditLogRepository {
             FieldName = fieldName,
             OldValue = oldValue,
             NewValue = newValue,
-            UserId = null,
-            UserDisplayName = "System",
+            UserId = _currentUserId,
+            UserDisplayName = _currentUserDisplayName,
             Timestamp = DateTime.UtcNow
         });
     }

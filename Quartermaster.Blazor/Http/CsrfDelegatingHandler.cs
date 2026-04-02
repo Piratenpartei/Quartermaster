@@ -1,7 +1,9 @@
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Http;
 
@@ -10,6 +12,11 @@ public class CsrfDelegatingHandler : DelegatingHandler {
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken) {
+
+        // Add Bearer token for all requests if available
+        var authToken = AuthService.StaticToken;
+        if (!string.IsNullOrEmpty(authToken))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
 
         if (request.Method != HttpMethod.Get &&
             request.Method != HttpMethod.Head &&
@@ -26,7 +33,11 @@ public class CsrfDelegatingHandler : DelegatingHandler {
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // If we get a 403, token may have expired — refetch and retry once
+        // If we get a 401, token expired or invalid — clear auth state and notify UI
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            AuthService.NotifyTokenExpired();
+
+        // If we get a 403, CSRF token may have expired — refetch and retry once
         if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&
             request.Method != HttpMethod.Get) {
 

@@ -9,7 +9,6 @@ namespace Quartermaster.Data.Options;
 
 public class OptionRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public OptionRepository(DbContext context, AuditLogRepository auditLog) {
@@ -128,6 +127,10 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.certificate",
             "SAML: Zertifikat (Base64, ohne Header/Footer)",
             OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.saml.button_text",
+            "SAML: Login-Button Text",
+            OptionDataType.String, false, "", "SSO Login");
 
         AddDefinitionIfNotExists("general.error.contact",
             "Fehlerkontakt (wird bei Fehlern angezeigt)",

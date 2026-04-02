@@ -1,0 +1,37 @@
+@page "/Login"
+@inject Quartermaster.Blazor.Services.ClientConfigService ConfigService
+
+<PageTitle>Anmelden</PageTitle>
+
+<div class="d-flex justify-content-center mt-5">
+    <div class="row g-4" style="max-width: 700px; width: 100%;">
+        <div class="col-12 col-md-6">
+            @if (ConfigService.SamlEnabled) {
+                <a href="/api/users/SamlLoginStart" class="card text-decoration-none h-100 btn-hover-scale1">
+                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                        <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                        <h5 class="card-title">@ConfigService.SamlButtonText</h5>
+                        <p class="card-text text-body-secondary">Anmeldung via SSO</p>
+                    </div>
+                </a>
+            } else {
+                <div class="card h-100 text-body-tertiary" title="SSO ist nicht konfiguriert">
+                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                        <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                        <h5 class="card-title">SSO Login</h5>
+                        <p class="card-text">Nicht verfügbar</p>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-12 col-md-6">
+            <a href="/Login/Manual" class="card text-decoration-none h-100 btn-hover-scale1">
+                <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                    <i class="bi bi-person-fill fs-1 mb-2"></i>
+                    <h5 class="card-title">Manuell anmelden</h5>
+                    <p class="card-text text-body-secondary">Mit Benutzername und Passwort</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+@page "/Login/Manual"
+
+<PageTitle>Anmelden</PageTitle>
+
+<div class="d-flex justify-content-center mt-5">
+    <div class="card" style="max-width: 400px; width: 100%;">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Anmelden</h5>
+
+            <EditForm Model="this" OnValidSubmit="HandleLogin" FormName="loginForm">
+                <div class="mb-3">
+                    <label for="usernameOrEmail" class="form-label">Benutzername oder E-Mail</label>
+                    <input type="text" class="form-control" id="usernameOrEmail"
+                           @bind="UsernameOrEmail" @bind:event="oninput"
+                           disabled="@Submitting" autocomplete="username" />
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Passwort</label>
+                    <input type="password" class="form-control" id="password"
+                           @bind="Password" @bind:event="oninput"
+                           disabled="@Submitting" autocomplete="current-password" />
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="/Login" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Zurück
+                    </a>
+                    <button type="submit" class="btn btn-primary" disabled="@(Submitting || !IsFormValid)">
+                        @if (Submitting) {
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        }
+                        Anmelden
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>

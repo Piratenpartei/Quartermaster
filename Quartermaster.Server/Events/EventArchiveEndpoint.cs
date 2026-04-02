@@ -2,7 +2,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
@@ -12,20 +17,38 @@ public class EventArchiveRequest {
 
 public class EventArchiveEndpoint : Endpoint<EventArchiveRequest> {
     private readonly EventRepository _eventRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly ChapterRepository _chapterRepo;
 
-    public EventArchiveEndpoint(EventRepository eventRepo) {
+    public EventArchiveEndpoint(EventRepository eventRepo,
+        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
+        ChapterRepository chapterRepo) {
         _eventRepo = eventRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
+        _chapterRepo = chapterRepo;
     }
 
     public override void Configure() {
         Post("/api/events/{Id}/archive");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventArchiveRequest req, CancellationToken ct) {
         var ev = _eventRepo.Get(req.Id);
         if (ev == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.DeleteEvents, _globalPermRepo) &&
+            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.DeleteEvents, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
             return;
         }
 

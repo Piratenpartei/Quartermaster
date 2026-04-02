@@ -8,7 +8,6 @@ namespace Quartermaster.Data.Events;
 
 public class EventRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public EventRepository(DbContext context, AuditLogRepository auditLog) {

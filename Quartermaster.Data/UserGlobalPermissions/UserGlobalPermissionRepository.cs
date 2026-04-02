@@ -20,6 +20,12 @@ public class UserGlobalPermissionRepository {
     }
 
     public void AddForUser(Guid userId, Permission permission) {
+        var exists = _context.UserGlobalPermissions
+            .Where(ugp => ugp.UserId == userId && ugp.PermissionId == permission.Id)
+            .FirstOrDefault();
+        if (exists != null)
+            return;
+
         _context.Insert(new UserGlobalPermission {
             UserId = userId,
             PermissionId = permission.Id,

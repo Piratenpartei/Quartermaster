@@ -2,12 +2,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
 
@@ -22,21 +26,26 @@ public class MembershipApplicationDetailEndpoint
     private readonly ChapterRepository _chapterRepo;
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MotionRepository _motionRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
     public MembershipApplicationDetailEndpoint(
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
         DueSelectionRepository dueSelectionRepo,
-        MotionRepository motionRepo) {
+        MotionRepository motionRepo,
+        UserChapterPermissionRepository chapterPermRepo,
+        UserGlobalPermissionRepository globalPermRepo) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Get("/api/admin/membershipapplications/{Id}");
-        AllowAnonymous(); // TODO: Replace with auth when login UI exists
     }
 
     public override async Task HandleAsync(MembershipApplicationDetailRequest req, CancellationToken ct) {
@@ -44,6 +53,25 @@ public class MembershipApplicationDetailEndpoint
         if (app == null) {
             await SendNotFoundAsync(ct);
             return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
+        if (app.ChapterId.HasValue) {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, app.ChapterId.Value, PermissionIdentifier.ViewApplications, _chapterRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
+        } else {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
         }
 
         var chapterName = "";

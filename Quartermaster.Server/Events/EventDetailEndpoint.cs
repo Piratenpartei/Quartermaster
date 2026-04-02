@@ -3,9 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
@@ -16,21 +20,36 @@ public class EventDetailRequest {
 public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
 
-    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo) {
+    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo,
+        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
     }
 
     public override void Configure() {
         Get("/api/events/{Id}");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventDetailRequest req, CancellationToken ct) {
         var ev = _eventRepo.Get(req.Id);
         if (ev == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo) &&
+            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
             return;
         }
 

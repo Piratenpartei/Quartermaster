@@ -8,7 +8,6 @@ namespace Quartermaster.Data.Members;
 
 public class MemberRepository {
     private readonly DbContext _context;
-    // TODO: Replace "System" with authenticated user when auth is implemented
     private readonly AuditLogRepository _auditLog;
 
     public MemberRepository(DbContext context, AuditLogRepository auditLog) {
