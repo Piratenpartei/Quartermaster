@@ -34,7 +34,8 @@ public class MemberRepository {
     }
 
     public (List<Member> Items, int TotalCount) Search(
-        string? query, Guid? chapterId, int page, int pageSize) {
+        string? query, Guid? chapterId, int page, int pageSize,
+        List<Guid>? allowedChapterIds = null) {
 
         var q = _context.Members.AsQueryable();
 
@@ -50,6 +51,9 @@ public class MemberRepository {
 
         if (chapterId.HasValue)
             q = q.Where(m => m.ChapterId == chapterId.Value);
+
+        if (allowedChapterIds != null)
+            q = q.Where(m => m.ChapterId != null && allowedChapterIds.Contains(m.ChapterId.Value));
 
         var totalCount = q.Count();
         var items = q.OrderBy(m => m.LastName).ThenBy(m => m.FirstName)

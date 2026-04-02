@@ -25,12 +25,24 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
     }
 
     public (List<DueSelection> Items, int TotalCount) List(
-        DueSelectionStatus? status, int page, int pageSize) {
+        DueSelectionStatus? status, int page, int pageSize,
+        List<Guid>? allowedChapterIds = null) {
 
         var q = _context.DueSelections.Where(d => d.DeletedAt == null).AsQueryable();
 
         if (status != null)
             q = q.Where(d => d.Status == status.Value);
+
+        if (allowedChapterIds != null) {
+            var applicationDueSelectionIds = _context.MembershipApplications
+                .Where(a => a.DeletedAt == null
+                    && a.DueSelectionId != null
+                    && a.ChapterId != null
+                    && allowedChapterIds.Contains(a.ChapterId.Value))
+                .Select(a => a.DueSelectionId!.Value)
+                .ToList();
+            q = q.Where(d => applicationDueSelectionIds.Contains(d.Id));
+        }
 
         var totalCount = q.Count();
         var items = q.OrderByDescending(d => d.Id)

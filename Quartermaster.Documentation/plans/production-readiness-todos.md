@@ -17,10 +17,10 @@
   - a) Validate `req.UserId` is a chapter officer of the motion's chapter
   - b) Validate the logged-in user is a chapter officer of the motion's chapter or a parent chapter
   - c) Add a new chapter permission (e.g. `motions_vote_delegate`) that allows non-chapter users to cast votes for that specific chapter
-- [ ] **Add authorization to due selection list endpoint** — `GET /api/admin/dueselections` has no auth check; any authenticated user can read all 70+ due selection records including PII (names, emails, financial justifications). Add global `ViewDueSelections` or chapter-scoped `ViewDueSelections` permission check matching the detail endpoint pattern.
-- [ ] **Add authorization to member list endpoint** — `GET /api/members` has no auth check; any authenticated user can enumerate all 857+ members. Add `ViewMembers` permission check (global or chapter-scoped) matching the detail endpoint pattern.
-- [ ] **Add authorization to membership application list endpoint** — `GET /api/admin/membershipapplications` has no auth check; any authenticated user can read all applications including PII (names, emails, addresses). Add `ViewApplications` permission check matching the detail endpoint pattern.
-- [ ] **Add authorization to event template list endpoint** — `GET /api/eventtemplates` has no auth check; any authenticated user can list all templates. Add `ViewTemplates` permission check matching the detail endpoint pattern.
+- [x] **Add authorization to due selection list endpoint** — `GET /api/admin/dueselections` checks `ViewDueSelections` (global or chapter-scoped); chapter-scoped users see only due selections linked to their permitted chapters via MembershipApplication join
+- [x] **Add authorization to member list endpoint** — `GET /api/members` checks `ViewMembers` (global or chapter-scoped); chapter-scoped users see only members in their permitted chapters
+- [x] **Add authorization to membership application list endpoint** — `GET /api/admin/membershipapplications` checks `ViewApplications` (global or chapter-scoped); chapter filter intersected with auth-permitted chapters
+- [x] **Add authorization to event template list endpoint** — `GET /api/eventtemplates` checks `ViewTemplates` (global or chapter-scoped); chapter-scoped users see only templates for their permitted chapters
 
 ### XSS Prevention
 - [x] Add HTML sanitization to all `(MarkupString)` usage in Blazor — all 4 locations (MotionDetail, EventDetail, OptionDetail, MarkdownEditor) now use sanitized HTML via MarkdownService/TemplateRenderer

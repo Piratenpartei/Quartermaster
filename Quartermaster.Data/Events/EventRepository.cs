@@ -158,8 +158,14 @@ public class EventRepository {
     public EventTemplate? GetTemplate(Guid id)
         => _context.EventTemplates.Where(t => t.Id == id && t.DeletedAt == null).FirstOrDefault();
 
-    public List<EventTemplate> GetAllTemplates()
-        => _context.EventTemplates.Where(t => t.DeletedAt == null).OrderBy(t => t.Name).ToList();
+    public List<EventTemplate> GetAllTemplates(List<Guid>? allowedChapterIds = null) {
+        var q = _context.EventTemplates.Where(t => t.DeletedAt == null);
+
+        if (allowedChapterIds != null)
+            q = q.Where(t => t.ChapterId != null && allowedChapterIds.Contains(t.ChapterId.Value));
+
+        return q.OrderBy(t => t.Name).ToList();
+    }
 
     public void CreateTemplate(EventTemplate template) {
         _context.Insert(template);
