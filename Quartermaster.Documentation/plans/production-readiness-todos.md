@@ -13,10 +13,7 @@
 - [x] User permission management — admin UI for granting/revoking global and chapter-scoped permissions per user
 - [ ] SAML SSO — endpoints stubbed, completion deferred until testing with real IdP
 - [ ] Template roles — future TODO (e.g., "Chapter Officer" auto-applies permissions)
-- [ ] **Motion vote delegation hardening** — `MotionVoteEndpoint` allows voting on behalf of another user via `req.UserId`, but needs guardrails:
-  - a) Validate `req.UserId` is a chapter officer of the motion's chapter
-  - b) Validate the logged-in user is a chapter officer of the motion's chapter or a parent chapter
-  - c) Add a new chapter permission (e.g. `motions_vote_delegate`) that allows non-chapter users to cast votes for that specific chapter
+- [x] **Motion vote delegation hardening** — when `req.UserId != logged-in user`: (a) target must be a chapter officer of the motion's chapter (via User→Member→ChapterOfficer lookup), (b) caller must be an officer of the chapter or ancestor chain, OR (c) have `motions_vote_delegate` chapter permission. Self-voting unchanged.
 - [x] **Add authorization to due selection list endpoint** — `GET /api/admin/dueselections` checks `ViewDueSelections` (global or chapter-scoped); chapter-scoped users see only due selections linked to their permitted chapters via MembershipApplication join
 - [x] **Add authorization to member list endpoint** — `GET /api/members` checks `ViewMembers` (global or chapter-scoped); chapter-scoped users see only members in their permitted chapters
 - [x] **Add authorization to membership application list endpoint** — `GET /api/admin/membershipapplications` checks `ViewApplications` (global or chapter-scoped); chapter filter intersected with auth-permitted chapters

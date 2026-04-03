@@ -28,6 +28,7 @@ public static class PermissionIdentifier {
     public static readonly string ViewMotions = "motions_view";
     public static readonly string EditMotions = "motions_edit";
     public static readonly string VoteMotions = "motions_vote";
+    public static readonly string VoteDelegateMotions = "motions_vote_delegate";
 
     public static readonly string ViewMembers = "members_view";
     public static readonly string EditMembers = "members_edit";

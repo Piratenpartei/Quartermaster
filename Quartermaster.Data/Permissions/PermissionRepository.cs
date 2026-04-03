@@ -46,6 +46,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ViewMotions, "Anträge anzeigen", false);
         AddIfNotExists(PermissionIdentifier.EditMotions, "Anträge bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.VoteMotions, "Abstimmen", false);
+        AddIfNotExists(PermissionIdentifier.VoteDelegateMotions, "Stellvertretend Abstimmen", false);
         AddIfNotExists(PermissionIdentifier.ViewMembers, "Mitglieder anzeigen", false);
         AddIfNotExists(PermissionIdentifier.EditMembers, "Mitglieder bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.ViewOfficers, "Vorstand anzeigen", false);

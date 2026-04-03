@@ -59,6 +59,27 @@ public class ChapterOfficerRepository {
         return (items, totalCount);
     }
 
+    public bool IsOfficerByUserId(Guid userId, Guid chapterId) {
+        return _context.Members
+            .Where(m => m.UserId == userId)
+            .InnerJoin(_context.ChapterOfficers,
+                (m, o) => o.MemberId == m.Id && o.ChapterId == chapterId,
+                (m, o) => o)
+            .Any();
+    }
+
+    public bool IsOfficerByUserIdForAnyChapter(Guid userId, List<Guid> chapterIds) {
+        if (chapterIds.Count == 0)
+            return false;
+
+        return _context.Members
+            .Where(m => m.UserId == userId)
+            .InnerJoin(_context.ChapterOfficers,
+                (m, o) => o.MemberId == m.Id && chapterIds.Contains(o.ChapterId),
+                (m, o) => o)
+            .Any();
+    }
+
     public void Delete(Guid memberId, Guid chapterId) {
         _context.ChapterOfficers
             .Where(o => o.MemberId == memberId && o.ChapterId == chapterId)

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -46,10 +47,35 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
+
         if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteMotions, _globalPermRepo) &&
             !_chapterPermRepo.HasPermissionForChapter(userId.Value, motion.ChapterId, PermissionIdentifier.VoteMotions)) {
             await SendForbiddenAsync(ct);
             return;
+        }
+
+        // Delegation: voting on behalf of another user requires additional checks
+        if (req.UserId != userId.Value) {
+            // Target must be a chapter officer of the motion's chapter
+            if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
+                AddError("UserId", "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.");
+                await SendErrorsAsync(400, ct);
+                return;
+            }
+
+            // Caller must be an officer of the chapter or a parent chapter,
+            // OR have the motions_vote_delegate permission
+            var chapterAndAncestors = _chapterRepo.GetAncestorChain(motion.ChapterId)
+                .Select(c => c.Id).ToList();
+            var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(userId.Value, chapterAndAncestors);
+
+            if (!callerIsOfficer &&
+                !EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _chapterRepo)) {
+                AddError("UserId", "Keine Berechtigung zur stellvertretenden Abstimmung.");
+                await SendErrorsAsync(403, ct);
+                return;
+            }
         }
 
         var vote = (VoteType)req.Vote;
