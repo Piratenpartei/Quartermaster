@@ -11,6 +11,7 @@ using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Options;
+using Quartermaster.Api.Rendering;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -220,22 +221,15 @@ public partial class OptionDetail {
         if (Option == null)
             return;
 
-        try {
-            var result = await Http.PostAsJsonAsync("/api/options/preview", new TemplatePreviewRequest {
-                TemplateText = Option.GlobalValue,
-                TemplateModels = Option.TemplateModels
-            });
+        var mockData = TemplateMockDataProvider.GetMockData(Option.TemplateModels);
+        var (html, error) = await TemplateRenderer.RenderAsync(Option.GlobalValue, mockData);
 
-            var response = await result.Content.ReadFromJsonAsync<TemplatePreviewResponse>();
-            if (response?.Error != null) {
-                PreviewHtml = $"<p class=\"text-danger\">{response.Error}</p>";
-            } else {
-                PreviewHtml = response?.RenderedHtml ?? "";
-            }
-            StateHasChanged();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
+        if (error != null)
+            PreviewHtml = $"<p class=\"text-danger\">{error}</p>";
+        else
+            PreviewHtml = html ?? "";
+
+        StateHasChanged();
     }
 
     private async Task InsertField(string fluidExpression) {

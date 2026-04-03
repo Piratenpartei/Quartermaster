@@ -84,7 +84,7 @@
 ### Code Quality
 - [x] TODOs resolved — removed stale MemberImportService audit TODO (now handled by AuditLogRepository), updated Token.cs TODO with migration note; remaining TODOs are auth-related (will be resolved with auth implementation)
 - [x] Server-side wrappers removed — deleted `TemplateRenderer.cs` and `TemplateMockDataProvider.cs` from Server/Options, callers updated to use Api versions directly
-- [ ] TemplatePreviewEndpoint — still needed (OptionDetail.razor.cs calls it server-side); TODO added to migrate to client-side
+- [x] TemplatePreviewEndpoint — migrated to client-side: OptionDetail.razor.cs now calls TemplateRenderer and TemplateMockDataProvider directly; server endpoint and validator removed
 - [x] Null checking in endpoints — all detail endpoints already return 404 for primary entity; `?.Name ?? ""` patterns are for related entity lookups (acceptable defensive coding)
 - [ ] DTO mapping standardization — deferred; current mix of Mapperly (simple) + manual (complex) is pragmatic
 
