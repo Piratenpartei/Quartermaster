@@ -2,7 +2,7 @@ using System;
 
 namespace Quartermaster.Api.Motions;
 
-public class MotionListRequest {
+public class MotionListRequest : IPaginatedRequest {
     public Guid? ChapterId { get; set; }
     public int? ApprovalStatus { get; set; }
     public bool IncludeNonPublic { get; set; }

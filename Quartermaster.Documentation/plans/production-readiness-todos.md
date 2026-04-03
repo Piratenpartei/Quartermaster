@@ -36,7 +36,7 @@
 
 ### Input Validation
 - [x] Add FluentValidation validators for all request DTOs (18 validators using FastEndpoints `Validator<T>`, auto-discovered)
-- [ ] Validate page size limits (prevent requesting 100k records) — currently no upper bound enforced on `pageSize` query parameter
+- [x] Validate page size limits (prevent requesting 100k records) — 8 `Validator<T>` classes enforce `PageSize` between 1–100 and `Page >= 1` on all paginated endpoints
 - [x] Email validation: `Contains('@')` is sufficient — actual validation happens via confirmation email with click-to-verify link
 - [x] Validate string lengths match database column sizes (all string fields validated against DB column limits)
 - [x] Validate required fields (ChapterId, names, enum ranges, Guid.Empty checks, conditional login fields)
