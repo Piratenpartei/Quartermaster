@@ -13,7 +13,10 @@ public class CsrfDelegatingHandler : DelegatingHandler {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken) {
 
-        // Add Bearer token for all requests if available
+        // Wait for auth initialization before sending requests (prevents race condition on page reload)
+        if (!AuthService.Initialized)
+            await AuthService.WaitForInitialization;
+
         var authToken = AuthService.StaticToken;
         if (!string.IsNullOrEmpty(authToken))
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);

@@ -13,9 +13,16 @@ public class AuthService {
     private LoginResponse? _loginState;
 
     public static string? StaticToken { get; internal set; }
+    public static bool Initialized { get; private set; }
     public static event Action? OnTokenExpired;
 
+    private static TaskCompletionSource _initTcs = new();
+    public static Task WaitForInitialization => _initTcs.Task;
+
     internal static void NotifyTokenExpired() {
+        if (!Initialized)
+            return;
+
         StaticToken = null;
         OnTokenExpired?.Invoke();
     }
@@ -31,10 +38,30 @@ public class AuthService {
     public string? Token { get; private set; }
 
     public async Task<string?> GetTokenAsync() {
-        if (Token != null)
+        if (Token != null) {
+            Initialized = true;
+            _initTcs.TrySetResult();
             return Token;
+        }
+
         Token = await _js.InvokeAsync<string?>("authStorage.getToken");
         StaticToken = Token;
+        Initialized = true;
+        _initTcs.TrySetResult();
+
+        // Restore session state from server if we have a stored token
+        if (!string.IsNullOrEmpty(Token) && _loginState == null) {
+            try {
+                var request = new HttpRequestMessage(HttpMethod.Get, "/api/users/session");
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+                var response = await _http.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                    _loginState = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            } catch {
+                // Session restore failed — token may be invalid
+            }
+        }
+
         return Token;
     }
 
@@ -71,6 +98,8 @@ public class AuthService {
         _loginState = null;
         Token = null;
         StaticToken = null;
+        Initialized = false;
+        _initTcs = new TaskCompletionSource();
         await _js.InvokeVoidAsync("authStorage.removeToken");
     }
 
