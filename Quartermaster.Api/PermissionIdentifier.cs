@@ -6,6 +6,7 @@ public static class PermissionIdentifier {
     // Global permissions
     public static readonly string CreateUser = "users_create";
     public static readonly string ViewUsers = "users_view";
+    public static readonly string DeleteUsers = "users_delete";
 
     public static readonly string CreateChapter = "chapters_create";
 

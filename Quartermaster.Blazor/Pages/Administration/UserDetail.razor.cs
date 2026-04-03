@@ -25,6 +25,8 @@ public partial class UserDetail {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required NavigationManager Navigation { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -131,5 +133,16 @@ public partial class UserDetail {
     private string GetPermissionDisplayName(string identifier) {
         var perm = AllPermissions?.FirstOrDefault(p => p.Identifier == identifier);
         return perm?.DisplayName ?? identifier;
+    }
+
+    private async Task DeleteUser() {
+        try {
+            var response = await Http.DeleteAsync($"/api/users/{Id}");
+            response.EnsureSuccessStatusCode();
+            ToastService.Toast("Benutzer gelöscht.", "success");
+            Navigation.NavigateTo("/Administration/Users");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 }
