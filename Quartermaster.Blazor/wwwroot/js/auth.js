@@ -6,3 +6,12 @@ window.authStorage = {
     setReturnUrl: function(url) { localStorage.setItem('return_url', url); },
     removeReturnUrl: function() { localStorage.removeItem('return_url'); }
 };
+
+window.samlCallback = {
+    getToken: function() {
+        var hash = window.location.hash;
+        if (hash && hash.length > 1)
+            return hash.substring(1);
+        return null;
+    }
+};

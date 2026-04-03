@@ -23,12 +23,14 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
         var showDetails = _optionRepo.GetGlobalValue("general.error.show_details")?.Value ?? "false";
         var samlEndpoint = _optionRepo.GetGlobalValue("auth.saml.endpoint")?.Value ?? "";
         var samlButtonText = _optionRepo.GetGlobalValue("auth.saml.button_text")?.Value ?? "SSO Login";
+        var ssoSupportContact = _optionRepo.GetGlobalValue("auth.sso.support_contact")?.Value ?? "";
 
         await SendAsync(new ClientConfigDTO {
             ErrorContact = errorContact,
             ShowDetailedErrors = showDetails.Equals("true", System.StringComparison.OrdinalIgnoreCase),
             SamlEnabled = !string.IsNullOrEmpty(samlEndpoint),
-            SamlButtonText = samlButtonText
+            SamlButtonText = samlButtonText,
+            SsoSupportContact = ssoSupportContact
         }, cancellation: ct);
     }
 }

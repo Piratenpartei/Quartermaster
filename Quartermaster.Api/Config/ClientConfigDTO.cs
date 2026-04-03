@@ -5,4 +5,5 @@ public class ClientConfigDTO {
     public bool ShowDetailedErrors { get; set; }
     public bool SamlEnabled { get; set; }
     public string SamlButtonText { get; set; } = "";
+    public string SsoSupportContact { get; set; } = "";
 }

@@ -132,6 +132,10 @@ public class OptionRepository {
             "SAML: Login-Button Text",
             OptionDataType.String, false, "", "SSO Login");
 
+        AddDefinitionIfNotExists("auth.sso.support_contact",
+            "SSO: Support-Kontakt bei fehlgeschlagener Anmeldung",
+            OptionDataType.String, false, "", "");
+
         AddDefinitionIfNotExists("general.error.contact",
             "Fehlerkontakt (wird bei Fehlern angezeigt)",
             OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.");

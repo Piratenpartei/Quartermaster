@@ -11,7 +11,7 @@
 - [x] Login UI — Login page with SSO card (disabled if SAML unconfigured) + manual login card; login/logout button in nav; redirect after login
 - [x] Audit log integration — CurrentUser populated from auth claims via middleware, AuditLogRepository uses real user instead of "System"
 - [x] User permission management — admin UI for granting/revoking global and chapter-scoped permissions per user
-- [ ] SAML SSO — endpoints stubbed, completion deferred until testing with real IdP
+- [x] SAML SSO — complete: SamlLoginConsumeEndpoint validates response, extracts email (NameID or attribute fallback incl. OID), requires matching member, blocks exited members, creates/links user, issues token; SamlCallback Blazor page completes login; SessionEndpoint for token-based session recovery; configurable support contact for errors; email synced on member import
 - [ ] Template roles — future TODO (e.g., "Chapter Officer" auto-applies permissions)
 - [x] **Motion vote delegation hardening** — when `req.UserId != logged-in user`: (a) target must be a chapter officer of the motion's chapter (via User→Member→ChapterOfficer lookup), (b) caller must be an officer of the chapter or ancestor chain, OR (c) have `motions_vote_delegate` chapter permission. Self-voting unchanged.
 - [x] **Add authorization to due selection list endpoint** — `GET /api/admin/dueselections` checks `ViewDueSelections` (global or chapter-scoped); chapter-scoped users see only due selections linked to their permitted chapters via MembershipApplication join
@@ -99,6 +99,9 @@
 - [x] Confirmation dialogs — `ConfirmDialog` component (Bootstrap modal with async ShowAsync), wired to delete checklist items, delete templates, archive/restore events
 - [ ] Accessibility — ARIA labels on interactive components (deferred)
 - [x] Success toasts — added to 9 pages: EventDetail (save/add/delete/archive), EventCreate, EventCreateFromTemplate, EventTemplateSave, EventTemplateList, ChapterOfficerAdd, MotionCreate, MemberImportHistory
+- [ ] **Option detail page improvements** — show more detail, make input fields wider, improve overall layout
+- [ ] **Nav visibility based on permissions** — hide empty nav sections and remove orphaned spacers/dividers when user lacks permissions for all items in a group
+- [ ] **User settings page** — detail page to view own user settings, SSO details, and account info
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing

@@ -29,6 +29,9 @@ public class UserRepository {
     public User? GetByUsername(string username)
         => _context.Users.Where(u => u.Username == username && u.DeletedAt == null).FirstOrDefault();
 
+    public User? GetByEmail(string email)
+        => _context.Users.Where(u => u.EMail == email && u.DeletedAt == null).FirstOrDefault();
+
     public void SupplementDefaults(RootAccountSettings? accountSettings) {
         if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))
             return;
@@ -38,6 +41,12 @@ public class UserRepository {
 
         SupplementDefaultPermission(admin.Id, PermissionIdentifier.CreateUser);
         SupplementDefaultPermission(admin.Id, PermissionIdentifier.CreateChapter);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewOptions);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.EditOptions);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewUsers);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewAudit);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewEmailLogs);
+        SupplementDefaultPermission(admin.Id, PermissionIdentifier.TriggerMemberImport);
     }
 
     private void SupplementDefaultPermission(Guid userId, string identifier) {
@@ -52,6 +61,13 @@ public class UserRepository {
 
         Create(rootUser);
         return rootUser;
+    }
+
+    public void UpdateEmail(Guid id, string email) {
+        _context.Users
+            .Where(u => u.Id == id)
+            .Set(u => u.EMail, email)
+            .Update();
     }
 
     public void SoftDelete(Guid id) {

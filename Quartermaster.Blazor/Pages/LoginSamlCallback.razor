@@ -1,0 +1,17 @@
+@page "/Login/SamlCallback"
+
+<PageTitle>Anmeldung...</PageTitle>
+
+<div class="d-flex justify-content-center mt-5">
+    <div class="text-center">
+        @if (ErrorMessage != null) {
+            <div class="alert alert-danger">@ErrorMessage</div>
+            <a href="/Login" class="btn btn-outline-secondary mt-2">
+                <i class="bi bi-arrow-left"></i> Zurück zur Anmeldung
+            </a>
+        } else {
+            <div class="spinner-border" role="status"></div>
+            <p class="mt-2">Anmeldung wird abgeschlossen...</p>
+        }
+    </div>
+</div>

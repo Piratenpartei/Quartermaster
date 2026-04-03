@@ -17,8 +17,12 @@ public class ClientConfigService {
     public bool ShowDetailedErrors => _config?.ShowDetailedErrors ?? false;
     public bool SamlEnabled => _config?.SamlEnabled ?? false;
     public string SamlButtonText => _config?.SamlButtonText ?? "SSO Login";
+    public string SsoSupportContact => _config?.SsoSupportContact ?? "";
 
     public async Task LoadAsync() {
+        if (_config != null)
+            return;
+
         try {
             _config = await _http.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
         } catch {

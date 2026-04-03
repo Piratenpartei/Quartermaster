@@ -59,6 +59,14 @@ public class AuthService {
         return true;
     }
 
+    public Task CompleteSamlLoginAsync(string token, LoginResponse session) {
+        Token = token;
+        StaticToken = token;
+        session.Token = token;
+        _loginState = session;
+        return Task.CompletedTask;
+    }
+
     public async Task LogoutAsync() {
         _loginState = null;
         Token = null;

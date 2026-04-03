@@ -21,6 +21,16 @@ public class MemberRepository {
     public Member? GetByMemberNumber(int memberNumber)
         => _context.Members.Where(m => m.MemberNumber == memberNumber).FirstOrDefault();
 
+    public Member? GetByEmail(string email)
+        => _context.Members.Where(m => m.EMail == email).FirstOrDefault();
+
+    public void SetUserId(Guid memberId, Guid userId) {
+        _context.Members
+            .Where(m => m.Id == memberId)
+            .Set(m => m.UserId, userId)
+            .Update();
+    }
+
     public List<Member> GetByChapterIds(List<Guid> chapterIds) {
         return _context.Members
             .Where(m => m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))

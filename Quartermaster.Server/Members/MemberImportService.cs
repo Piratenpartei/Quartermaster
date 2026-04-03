@@ -14,6 +14,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.Users;
 
 namespace Quartermaster.Server.Members;
 
@@ -43,6 +44,7 @@ public class MemberImportService {
         var memberRepo = scope.ServiceProvider.GetRequiredService<MemberRepository>();
         var chapterRepo = scope.ServiceProvider.GetRequiredService<ChapterRepository>();
         var adminDivRepo = scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>();
+        var userRepo = scope.ServiceProvider.GetRequiredService<UserRepository>();
 
         // Pre-load chapter lookup: all chapters with ExternalCode
         var allChapters = chapterRepo.GetAll();
@@ -74,6 +76,11 @@ public class MemberImportService {
                 if (existing != null) {
                     member.Id = existing.Id;
                     member.UserId = existing.UserId; // Preserve SSO link
+
+                    // Sync email to linked user if it changed
+                    if (existing.UserId.HasValue && existing.EMail != member.EMail && !string.IsNullOrEmpty(member.EMail))
+                        userRepo.UpdateEmail(existing.UserId.Value, member.EMail);
+
                     memberRepo.Update(member);
                     updatedRecords++;
                 } else {
