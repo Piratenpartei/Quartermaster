@@ -71,7 +71,9 @@ public static class AdminInitCommand {
         }
 
         var settings = new RootAccountSettings { Username = username, Password = password };
-        userRepo.SupplementDefaults(settings);
+        var chapterRepo = scope.ServiceProvider.GetRequiredService<Quartermaster.Data.Chapters.ChapterRepository>();
+        var chapterPermRepo = scope.ServiceProvider.GetRequiredService<Quartermaster.Data.UserChapterPermissions.UserChapterPermissionRepository>();
+        userRepo.SupplementDefaults(settings, chapterRepo, chapterPermRepo);
 
         Console.WriteLine($"Admin-Benutzer '{username}' wurde erstellt.");
         return 0;

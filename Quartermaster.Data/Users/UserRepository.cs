@@ -2,7 +2,9 @@
 using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Data.Abstract;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Permissions;
+using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using System;
 using System.Linq;
@@ -32,21 +34,29 @@ public class UserRepository {
     public User? GetByEmail(string email)
         => _context.Users.Where(u => u.EMail == email && u.DeletedAt == null).FirstOrDefault();
 
-    public void SupplementDefaults(RootAccountSettings? accountSettings) {
+    public void SupplementDefaults(
+        RootAccountSettings? accountSettings,
+        ChapterRepository chapterRepo,
+        UserChapterPermissionRepository chapterPermRepo) {
+
         if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))
             return;
 
         var admin = GetByUsername(accountSettings.Username);
         admin ??= AddRootAccount(accountSettings);
 
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.CreateUser);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.CreateChapter);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewOptions);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.EditOptions);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewUsers);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewAudit);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.ViewEmailLogs);
-        SupplementDefaultPermission(admin.Id, PermissionIdentifier.TriggerMemberImport);
+        // Grant all global permissions
+        var allPermissions = _permissionRepository.GetAll();
+        foreach (var perm in allPermissions.Where(p => p.Global))
+            _userGlobalPermissionRepository.AddForUser(admin.Id, perm);
+
+        // Grant all chapter-scoped permissions for the federal chapter (Bundesverband = root chapter)
+        var roots = chapterRepo.GetRoots();
+        var bundesverband = roots.FirstOrDefault();
+        if (bundesverband != null) {
+            foreach (var perm in allPermissions.Where(p => !p.Global))
+                chapterPermRepo.AddForUser(admin.Id, bundesverband.Id, perm.Id);
+        }
     }
 
     private void SupplementDefaultPermission(Guid userId, string identifier) {
