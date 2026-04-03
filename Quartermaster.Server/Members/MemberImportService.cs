@@ -14,6 +14,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.Tokens;
 using Quartermaster.Data.Users;
 
 namespace Quartermaster.Server.Members;
@@ -45,6 +46,7 @@ public class MemberImportService {
         var chapterRepo = scope.ServiceProvider.GetRequiredService<ChapterRepository>();
         var adminDivRepo = scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>();
         var userRepo = scope.ServiceProvider.GetRequiredService<UserRepository>();
+        var tokenRepo = scope.ServiceProvider.GetRequiredService<TokenRepository>();
 
         // Pre-load chapter lookup: all chapters with ExternalCode
         var allChapters = chapterRepo.GetAll();
@@ -80,6 +82,10 @@ public class MemberImportService {
                     // Sync email to linked user if it changed
                     if (existing.UserId.HasValue && existing.EMail != member.EMail && !string.IsNullOrEmpty(member.EMail))
                         userRepo.UpdateEmail(existing.UserId.Value, member.EMail);
+
+                    // Invalidate all tokens when a member exits the party
+                    if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
+                        tokenRepo.DeleteAllForUser(existing.UserId.Value);
 
                     memberRepo.Update(member);
                     updatedRecords++;

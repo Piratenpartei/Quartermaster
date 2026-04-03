@@ -1,4 +1,5 @@
 ﻿using InterpolatedSql.Dapper;
+using LinqToDB;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,6 +21,10 @@ public class TokenRepository {
 
 	public bool CheckToken(string tokenContent, Guid userId)
 		=> _contenxt.Tokens.CheckSimpleToken(tokenContent, userId);
+
+    public void DeleteAllForUser(Guid userId) {
+        _contenxt.Tokens.Where(t => t.UserId == userId).Delete();
+    }
 
 	/// <summary>
 	/// Looks up a login token by its raw content (Bearer token value).

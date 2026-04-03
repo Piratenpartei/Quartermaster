@@ -106,7 +106,7 @@
 - [ ] **Dirty-state save buttons** — create a generic component/pattern for save buttons that are disabled until the form has unsaved changes; apply across all detail/edit pages
 - [ ] **Nav visibility based on permissions** — hide empty nav sections and remove orphaned spacers/dividers when user lacks permissions for all items in a group
 - [ ] **User settings page** — detail page to view own user settings, SSO details, and account info
-- [ ] **Invalidate tokens on member exit** — when a member's ExitDate is set during import, find their linked user and delete all active tokens to force logout
+- [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing
