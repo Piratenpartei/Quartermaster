@@ -104,7 +104,7 @@
 - [ ] **Admin user deletion** — add endpoint and UI for admins to delete users (new global permission `users_delete`); soft-delete with token invalidation
 - [x] **Root admin gets all permissions** — SupplementDefaults grants all global permissions and all chapter-scoped permissions for the Bundesverband (root chapter) to the root admin account
 - [ ] **Dirty-state save buttons** — create a generic component/pattern for save buttons that are disabled until the form has unsaved changes; apply across all detail/edit pages
-- [ ] **Nav visibility based on permissions** — hide empty nav sections and remove orphaned spacers/dividers when user lacks permissions for all items in a group
+- [x] **Nav visibility based on permissions** — Vorstandsarbeit and System dropdowns hidden when user has none of the required permissions; dividers grouped inside `RequirePermission` blocks to prevent orphans; added `AnyOfChapterPermissions` and `AnyOfPermissions` parameters to `RequirePermission` component
 - [ ] **User settings page** — detail page to view own user settings, SSO details, and account info
 - [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
 - [ ] Mobile responsiveness review (deferred)

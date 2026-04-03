@@ -1,4 +1,6 @@
-﻿namespace Quartermaster.Api;
+﻿using System.Collections.Generic;
+
+namespace Quartermaster.Api;
 
 public static class PermissionIdentifier {
     // Global permissions
@@ -38,4 +40,14 @@ public static class PermissionIdentifier {
 
     public static readonly string ViewTemplates = "templates_view";
     public static readonly string EditTemplates = "templates_edit";
+
+    // Permission groups for nav visibility
+    public static readonly List<string> BoardWorkPermissions = [
+        ViewMotions, ViewApplications, ViewDueSelections,
+        ViewMembers, ViewEvents, ViewTemplates
+    ];
+
+    public static readonly List<string> SystemPermissions = [
+        ViewOptions, ViewUsers, ViewOfficers
+    ];
 }

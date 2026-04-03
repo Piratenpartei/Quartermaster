@@ -27,7 +27,7 @@
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
-                <RequirePermission RequireAuth="true">
+                <RequirePermission AnyOfChapterPermissions="@PermissionIdentifier.BoardWorkPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>
                             <ButtonContent>Vorstandsarbeit</ButtonContent>
@@ -36,7 +36,6 @@
                                     <li><a class="dropdown-item" href="/Administration/Motions">Anträge</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewApplications">
-                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/MembershipApplications">Mitgliedsanträge</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewDueSelections">
@@ -68,7 +67,7 @@
                         </NavMenuDropdown>
                     </li>
                 </RequirePermission>
-                <RequirePermission RequireAuth="true">
+                <RequirePermission AnyOfPermissions="@PermissionIdentifier.SystemPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>
                             <ButtonContent>System</ButtonContent>
@@ -82,8 +81,8 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/Administration/Chapters">Gliederungen - Liste</a></li>
                                 <li><a class="dropdown-item" href="/Administration/ChapterTree">Gliederungen - Struktur</a></li>
-                                <li><hr class="dropdown-divider"></li>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewOfficers">
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/ChapterOfficers">Vorstandsmitglieder</a></li>
                                 </RequirePermission>
                             </DropdownContent>
