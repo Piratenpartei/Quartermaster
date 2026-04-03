@@ -12,6 +12,7 @@ using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -30,10 +31,10 @@ public partial class EventDetail {
     public Guid Id { get; set; }
 
     private ConfirmDialog ConfirmDialog = default!;
+    private DirtyForm _detailsForm = default!;
     private EventDetailDTO? Event;
     private bool Loading = true;
     private bool Saving;
-    private bool IsDirty;
     private bool EditingTitle;
     private List<AuditLogDTO>? AuditLogs;
 
@@ -74,18 +75,20 @@ public partial class EventDetail {
             ToastService.Error(ex);
         }
         Loading = false;
-        IsDirty = false;
+        _detailsForm?.Reset();
         StateHasChanged();
-    }
-
-    private void MarkDirty() {
-        IsDirty = true;
     }
 
     private void OnDescriptionChanged(string value) {
         if (Event != null) {
             Event.Description = value;
-            IsDirty = true;
+            _detailsForm?.MarkDirty();
+        }
+    }
+
+    private void OnDateChanged(string value) {
+        if (Event != null) {
+            Event.EventDate = DateTime.TryParse(value, out var d) ? d : null;
         }
     }
 
@@ -110,18 +113,18 @@ public partial class EventDetail {
         }
 
         Saving = false;
-        IsDirty = false;
+        _detailsForm.Reset();
         StateHasChanged();
     }
 
     private async Task SaveTitleEdit() {
         EditingTitle = false;
-        IsDirty = true;
+        _detailsForm.MarkDirty();
         await SaveDetails();
     }
 
     private async Task SaveIfDirty() {
-        if (IsDirty && Event != null) {
+        if (_detailsForm.IsDirty && Event != null) {
             try {
                 await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
                     Id = Id,
@@ -130,7 +133,7 @@ public partial class EventDetail {
                     Description = Event.Description,
                     EventDate = Event.EventDate
                 });
-                IsDirty = false;
+                _detailsForm.Reset();
             } catch (HttpRequestException ex) {
                 ToastService.Error(ex);
             }

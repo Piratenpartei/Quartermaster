@@ -12,6 +12,7 @@ using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Options;
 using Quartermaster.Api.Rendering;
+using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -34,6 +35,7 @@ public partial class OptionDetail {
     private bool ShowPreview;
     private OptionOverrideDTO? EditingOverride;
     private string EditingOverrideValue { get; set; } = "";
+    private DirtyForm _globalForm = default!;
     private CancellationTokenSource? _previewDebounce;
 
     private static readonly Dictionary<string, (string Prefix, Type Type)> ModelMap = new() {
@@ -115,11 +117,11 @@ public partial class OptionDetail {
         return type.Name;
     }
 
-    private async Task OnTemplateInput(ChangeEventArgs e) {
+    private async Task OnTemplateValueChanged(string value) {
         if (Option == null)
             return;
 
-        Option.GlobalValue = e.Value?.ToString() ?? "";
+        Option.GlobalValue = value;
 
         if (!ShowPreview)
             return;
@@ -144,6 +146,7 @@ public partial class OptionDetail {
                 ChapterId = null,
                 Value = Option.GlobalValue
             });
+            _globalForm.Reset();
             ToastService.Toast("Gespeichert.", "success");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

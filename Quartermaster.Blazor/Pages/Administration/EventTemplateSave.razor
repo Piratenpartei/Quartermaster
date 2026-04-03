@@ -62,7 +62,7 @@
                 </table>
             }
 
-            <button class="btn btn-primary" @onclick="Save" disabled="@Saving">
+            <button class="btn btn-primary" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(TemplateName))">
                 @if (Saving) {
                     <span class="spinner-border spinner-border-sm" role="status"></span>
                     <span> Wird gespeichert...</span>

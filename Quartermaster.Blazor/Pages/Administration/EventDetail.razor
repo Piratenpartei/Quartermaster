@@ -62,45 +62,39 @@
     </div>
 
     @* Details card: subject + date + description *@
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row g-3 mb-3">
-                <div class="col">
-                    <label class="form-label small text-secondary">Öffentlicher Name / Betreff</label>
-                    <input type="text" class="form-control" value="@Event.PublicName"
-                           @oninput="(e) => { Event.PublicName = e.Value?.ToString() ?? string.Empty; MarkDirty(); }" />
+    <DirtyForm @ref="_detailsForm">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col">
+                        <label class="form-label small text-secondary">Öffentlicher Name / Betreff</label>
+                        <FormInput @bind-Value="Event.PublicName" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-secondary">Datum</label>
+                        <FormInput Type="date" Value="@(Event.EventDate?.ToString("yyyy-MM-dd") ?? "")"
+                                   ValueChanged="OnDateChanged" CssClass="w-auto" />
+                    </div>
+                    <div class="col-auto d-flex align-items-end">
+                        <FormSaveButton OnClick="SaveDetails" Saving="Saving"
+                                        ButtonClass="btn-primary" Text="" SavingText="" />
+                    </div>
                 </div>
-                <div class="col-auto">
-                    <label class="form-label small text-secondary">Datum</label>
-                    <input type="date" class="form-control" style="width: 180px;"
-                           value="@(Event.EventDate?.ToString("yyyy-MM-dd"))"
-                           @onchange="(e) => { Event.EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null; MarkDirty(); }" />
+                <div class="row mb-1">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary mb-0">Beschreibung (Markdown)</label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary mb-0">Vorschau</label>
+                    </div>
                 </div>
-                <div class="col-auto d-flex align-items-end">
-                    <button class="btn btn-primary" style="width: 42px; height: 38px; padding: 0;"
-                            @onclick="SaveDetails" disabled="@(Saving || !IsDirty)" title="Speichern">
-                        @if (Saving) {
-                            <span class="spinner-border spinner-border-sm" role="status"></span>
-                        } else {
-                            <i class="bi bi-floppy"></i>
-                        }
-                    </button>
-                </div>
+                <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
+                <small class="text-secondary mt-1 d-block">
+                    Verfügbare Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code> (Eventdatum)
+                </small>
             </div>
-            <div class="row mb-1">
-                <div class="col-md-6">
-                    <label class="form-label small text-secondary mb-0">Beschreibung (Markdown)</label>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small text-secondary mb-0">Vorschau</label>
-                </div>
-            </div>
-            <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
-            <small class="text-secondary mt-1 d-block">
-                Verfügbare Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code> (Eventdatum)
-            </small>
         </div>
-    </div>
+    </DirtyForm>
 
     @* Checklist card *@
     <div class="card mb-3">
