@@ -24,6 +24,9 @@ public class MemberRepository {
     public Member? GetByEmail(string email)
         => _context.Members.Where(m => m.EMail == email).FirstOrDefault();
 
+    public Member? GetByUserId(Guid userId)
+        => _context.Members.Where(m => m.UserId == userId).FirstOrDefault();
+
     public void SetUserId(Guid memberId, Guid userId) {
         _context.Members
             .Where(m => m.Id == memberId)

@@ -105,7 +105,7 @@
 - [x] **Root admin gets all permissions** — SupplementDefaults grants all global permissions and all chapter-scoped permissions for the Bundesverband (root chapter) to the root admin account
 - [ ] **Dirty-state save buttons** — create a generic component/pattern for save buttons that are disabled until the form has unsaved changes; apply across all detail/edit pages
 - [x] **Nav visibility based on permissions** — Vorstandsarbeit and System dropdowns hidden when user has none of the required permissions; dividers grouped inside `RequirePermission` blocks to prevent orphans; added `AnyOfChapterPermissions` and `AnyOfPermissions` parameters to `RequirePermission` component
-- [ ] **User settings page** — detail page to view own user settings, SSO details, and account info
+- [x] **User settings page** — `/Settings` page shows own account info (name, email, login method), global permissions, and chapter permissions; username in nav links to settings page; uses existing AuthService session data (no extra API call)
 - [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
 - [ ] Mobile responsiveness review (deferred)
 

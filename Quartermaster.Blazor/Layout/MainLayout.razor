@@ -92,9 +92,9 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 @if (AuthService.IsAuthenticated) {
-                    <span class="text-body-secondary me-1">
+                    <a href="/Settings" class="text-body-secondary text-decoration-none me-1 btn-hover-scale1">
                         <i class="bi bi-person-fill"></i> @AuthService.CurrentUser?.DisplayName
-                    </span>
+                    </a>
                     <button class="btn btn-outline-secondary btn-sm btn-hover-scale1" @onclick=HandleLogout>
                         Abmelden
                     </button>

@@ -51,7 +51,8 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
                 User = new LoginUserInfo {
                     Id = user.Id,
                     Username = user.Username ?? "",
-                    DisplayName = BuildDisplayName(user)
+                    DisplayName = BuildDisplayName(user),
+                    EMail = user.EMail
                 },
                 Permissions = new LoginPermissions {
                     Global = globalPermissions,
