@@ -110,94 +110,125 @@ public class OptionRepository {
 
         AddDefinitionIfNotExists("member_import.file_path",
             "Mitgliederimport: Dateipfad",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Absoluter Pfad zur CSV-Exportdatei, z.B. /data/system_export.csv");
 
         AddDefinitionIfNotExists("member_import.polling_interval_minutes",
-            "Mitgliederimport: Abfrageintervall (Minuten)",
-            OptionDataType.Number, false, "", "10");
+            "Mitgliederimport: Abfrageintervall",
+            OptionDataType.Number, false, "", "10",
+            description: "Intervall in Minuten, in dem die Importdatei auf Änderungen geprüft wird.");
 
         AddDefinitionIfNotExists("auth.saml.endpoint",
             "SAML: Endpunkt-URL",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "SSO-Endpunkt des Identity Providers, z.B. https://keycloak.example.com/realms/master/protocol/saml");
 
         AddDefinitionIfNotExists("auth.saml.client_id",
             "SAML: Client-ID",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Die Entity-ID / Client-ID des SAML-Clients im Identity Provider.");
 
         AddDefinitionIfNotExists("auth.saml.certificate",
-            "SAML: Zertifikat (Base64, ohne Header/Footer)",
-            OptionDataType.String, false, "", "");
+            "SAML: Zertifikat",
+            OptionDataType.String, false, "", "",
+            description: "Base64-kodiertes Signaturzertifikat des Identity Providers (ohne BEGIN/END CERTIFICATE Header). Zu finden unter Realm Settings > Keys > RS256 > Certificate.");
 
         AddDefinitionIfNotExists("auth.saml.button_text",
             "SAML: Login-Button Text",
-            OptionDataType.String, false, "", "SSO Login");
+            OptionDataType.String, false, "", "SSO Login",
+            description: "Text, der auf dem SSO-Login-Button auf der Anmeldeseite angezeigt wird.");
 
         AddDefinitionIfNotExists("auth.sso.support_contact",
-            "SSO: Support-Kontakt bei fehlgeschlagener Anmeldung",
-            OptionDataType.String, false, "", "");
+            "SSO: Support-Kontakt",
+            OptionDataType.String, false, "", "",
+            description: "Kontaktinformation, die angezeigt wird, wenn eine SSO-Anmeldung fehlschlägt (z.B. E-Mail-Adresse oder URL).");
 
         AddDefinitionIfNotExists("auth.oidc.authority",
-            "OIDC: Authority-URL (z.B. https://keycloak/realms/master)",
-            OptionDataType.String, false, "", "");
+            "OIDC: Authority-URL",
+            OptionDataType.String, false, "", "",
+            description: "OpenID Connect Authority-URL, z.B. https://keycloak.example.com/realms/master");
 
         AddDefinitionIfNotExists("auth.oidc.client_id",
             "OIDC: Client-ID",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Die Client-ID des OIDC-Clients im Identity Provider.");
 
         AddDefinitionIfNotExists("auth.oidc.client_secret",
             "OIDC: Client-Secret",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Das Client-Secret des OIDC-Clients. Zu finden unter Clients > Credentials im Identity Provider.");
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
             "OIDC: Login-Button Text",
-            OptionDataType.String, false, "", "OpenID Login");
+            OptionDataType.String, false, "", "OpenID Login",
+            description: "Text, der auf dem OpenID-Login-Button auf der Anmeldeseite angezeigt wird.");
 
         AddDefinitionIfNotExists("general.error.contact",
-            "Fehlerkontakt (wird bei Fehlern angezeigt)",
-            OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.");
+            "Fehlerkontakt",
+            OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.",
+            description: "Wird bei Fehlern in der Anwendung als Kontakthinweis angezeigt.");
 
         AddDefinitionIfNotExists("general.error.show_details",
-            "Fehlerdetails anzeigen (für Administratoren)",
-            OptionDataType.String, false, "", "false");
+            "Fehlerdetails anzeigen",
+            OptionDataType.String, false, "", "false",
+            description: "Wenn 'true', werden technische Fehlerdetails in der UI angezeigt. Nur für Administratoren empfohlen.");
 
         AddDefinitionIfNotExists("email.smtp.host",
             "SMTP: Server",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Hostname des SMTP-Servers, z.B. smtp.example.com");
 
         AddDefinitionIfNotExists("email.smtp.port",
             "SMTP: Port",
-            OptionDataType.Number, false, "", "587");
+            OptionDataType.Number, false, "", "587",
+            description: "Port des SMTP-Servers. Standard: 587 (STARTTLS) oder 465 (SSL).");
 
         AddDefinitionIfNotExists("email.smtp.username",
             "SMTP: Benutzername",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Benutzername für die SMTP-Authentifizierung.");
 
         AddDefinitionIfNotExists("email.smtp.password",
             "SMTP: Passwort",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "Passwort für die SMTP-Authentifizierung.");
 
         AddDefinitionIfNotExists("email.smtp.sender_address",
             "SMTP: Absenderadresse",
-            OptionDataType.String, false, "", "");
+            OptionDataType.String, false, "", "",
+            description: "E-Mail-Adresse, die als Absender verwendet wird.");
 
         AddDefinitionIfNotExists("email.smtp.sender_name",
             "SMTP: Absendername",
-            OptionDataType.String, false, "", "Quartermaster");
+            OptionDataType.String, false, "", "Quartermaster",
+            description: "Name, der als Absender angezeigt wird.");
 
         AddDefinitionIfNotExists("email.smtp.use_ssl",
             "SMTP: SSL verwenden",
-            OptionDataType.String, false, "", "true");
+            OptionDataType.String, false, "", "true",
+            description: "Wenn 'true', wird eine verschlüsselte Verbindung zum SMTP-Server verwendet.");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,
-        OptionDataType dataType, bool isOverridable, string templateModels, string defaultValue) {
+        OptionDataType dataType, bool isOverridable, string templateModels, string defaultValue,
+        string description = "") {
 
-        if (GetDefinition(identifier) != null)
+        var existing = GetDefinition(identifier);
+        if (existing != null) {
+            if (existing.FriendlyName != friendlyName || (!string.IsNullOrEmpty(description) && existing.Description != description)) {
+                _context.OptionDefinitions
+                    .Where(d => d.Id == existing.Id)
+                    .Set(d => d.FriendlyName, friendlyName)
+                    .Set(d => d.Description, description)
+                    .Update();
+            }
             return;
+        }
 
         CreateDefinition(new OptionDefinition {
             Identifier = identifier,
             FriendlyName = friendlyName,
+            Description = description,
             DataType = dataType,
             IsOverridable = isOverridable,
             TemplateModels = templateModels

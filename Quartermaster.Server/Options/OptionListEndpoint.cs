@@ -61,6 +61,7 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
             return new OptionDefinitionDTO {
                 Identifier = def.Identifier,
                 FriendlyName = def.FriendlyName,
+                Description = def.Description,
                 DataType = (int)def.DataType,
                 IsOverridable = def.IsOverridable,
                 TemplateModels = def.TemplateModels,

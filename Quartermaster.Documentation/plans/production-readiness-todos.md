@@ -99,7 +99,7 @@
 - [x] Confirmation dialogs — `ConfirmDialog` component (Bootstrap modal with async ShowAsync), wired to delete checklist items, delete templates, archive/restore events
 - [ ] Accessibility — ARIA labels on interactive components (deferred)
 - [x] Success toasts — added to 9 pages: EventDetail (save/add/delete/archive), EventCreate, EventCreateFromTemplate, EventTemplateSave, EventTemplateList, ChapterOfficerAdd, MotionCreate, MemberImportHistory
-- [ ] **Option detail page improvements** — show more detail, make input fields wider, improve overall layout; add a description field to OptionDefinition (separate from FriendlyName) for help text, examples, and where to find values; remove examples from FriendlyName titles
+- [x] **Option detail page improvements** — added `Description` column to OptionDefinition (M002 migration); descriptions with examples/help text on all options; FriendlyNames cleaned up (no inline examples); description shown below identifier on detail page; input fields full-width (removed max-width constraint)
 - [x] **Auto-grant chapter permissions for officers** — ChapterOfficerAddEndpoint grants all `DefaultOfficerPermissions` (16 permissions) for the chapter to the officer's linked user; ChapterOfficerDeleteEndpoint revokes them. Permission list defined in `PermissionIdentifier.DefaultOfficerPermissions`.
 - [x] **Admin user deletion** — `DELETE /api/users/{id}` with `users_delete` global permission; soft-deletes user, invalidates all tokens; prevents self-deletion; delete button on user detail page (permission-gated)
 - [x] **Root admin gets all permissions** — SupplementDefaults grants all global permissions and all chapter-scoped permissions for the Bundesverband (root chapter) to the root admin account
