@@ -6,4 +6,6 @@ public class ClientConfigDTO {
     public bool SamlEnabled { get; set; }
     public string SamlButtonText { get; set; } = "";
     public string SsoSupportContact { get; set; } = "";
+    public bool OidcEnabled { get; set; }
+    public string OidcButtonText { get; set; } = "";
 }

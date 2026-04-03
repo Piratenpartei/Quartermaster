@@ -99,9 +99,13 @@
 - [x] Confirmation dialogs — `ConfirmDialog` component (Bootstrap modal with async ShowAsync), wired to delete checklist items, delete templates, archive/restore events
 - [ ] Accessibility — ARIA labels on interactive components (deferred)
 - [x] Success toasts — added to 9 pages: EventDetail (save/add/delete/archive), EventCreate, EventCreateFromTemplate, EventTemplateSave, EventTemplateList, ChapterOfficerAdd, MotionCreate, MemberImportHistory
-- [ ] **Option detail page improvements** — show more detail, make input fields wider, improve overall layout
+- [ ] **Option detail page improvements** — show more detail, make input fields wider, improve overall layout; add a description field to OptionDefinition (separate from FriendlyName) for help text, examples, and where to find values; remove examples from FriendlyName titles
+- [ ] **Admin user deletion** — add endpoint and UI for admins to delete users (new global permission `users_delete`); soft-delete with token invalidation
+- [ ] **Root admin gets all permissions** — SupplementDefaults should grant all global permissions and all chapter-scoped permissions for the federal chapter (Bundesverband) to the root admin account
+- [ ] **Dirty-state save buttons** — create a generic component/pattern for save buttons that are disabled until the form has unsaved changes; apply across all detail/edit pages
 - [ ] **Nav visibility based on permissions** — hide empty nav sections and remove orphaned spacers/dividers when user lacks permissions for all items in a group
 - [ ] **User settings page** — detail page to view own user settings, SSO details, and account info
+- [ ] **Invalidate tokens on member exit** — when a member's ExitDate is set during import, find their linked user and delete all active tokens to force logout
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing

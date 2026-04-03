@@ -136,6 +136,22 @@ public class OptionRepository {
             "SSO: Support-Kontakt bei fehlgeschlagener Anmeldung",
             OptionDataType.String, false, "", "");
 
+        AddDefinitionIfNotExists("auth.oidc.authority",
+            "OIDC: Authority-URL (z.B. https://keycloak/realms/master)",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.oidc.client_id",
+            "OIDC: Client-ID",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.oidc.client_secret",
+            "OIDC: Client-Secret",
+            OptionDataType.String, false, "", "");
+
+        AddDefinitionIfNotExists("auth.oidc.button_text",
+            "OIDC: Login-Button Text",
+            OptionDataType.String, false, "", "OpenID Login");
+
         AddDefinitionIfNotExists("general.error.contact",
             "Fehlerkontakt (wird bei Fehlern angezeigt)",
             OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.");

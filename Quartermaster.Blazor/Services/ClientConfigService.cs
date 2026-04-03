@@ -18,15 +18,17 @@ public class ClientConfigService {
     public bool SamlEnabled => _config?.SamlEnabled ?? false;
     public string SamlButtonText => _config?.SamlButtonText ?? "SSO Login";
     public string SsoSupportContact => _config?.SsoSupportContact ?? "";
+    public bool OidcEnabled => _config?.OidcEnabled ?? false;
+    public string OidcButtonText => _config?.OidcButtonText ?? "OpenID Login";
 
-    public async Task LoadAsync() {
-        if (_config != null)
+    public async Task LoadAsync(bool forceRefresh = false) {
+        if (_config != null && !forceRefresh)
             return;
 
         try {
             _config = await _http.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
         } catch {
-            _config = new ClientConfigDTO();
+            _config ??= new ClientConfigDTO();
         }
     }
 }

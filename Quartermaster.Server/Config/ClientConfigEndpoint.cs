@@ -24,13 +24,17 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
         var samlEndpoint = _optionRepo.GetGlobalValue("auth.saml.endpoint")?.Value ?? "";
         var samlButtonText = _optionRepo.GetGlobalValue("auth.saml.button_text")?.Value ?? "SSO Login";
         var ssoSupportContact = _optionRepo.GetGlobalValue("auth.sso.support_contact")?.Value ?? "";
+        var oidcAuthority = _optionRepo.GetGlobalValue("auth.oidc.authority")?.Value ?? "";
+        var oidcButtonText = _optionRepo.GetGlobalValue("auth.oidc.button_text")?.Value ?? "OpenID Login";
 
         await SendAsync(new ClientConfigDTO {
             ErrorContact = errorContact,
             ShowDetailedErrors = showDetails.Equals("true", System.StringComparison.OrdinalIgnoreCase),
             SamlEnabled = !string.IsNullOrEmpty(samlEndpoint),
             SamlButtonText = samlButtonText,
-            SsoSupportContact = ssoSupportContact
+            SsoSupportContact = ssoSupportContact,
+            OidcEnabled = !string.IsNullOrEmpty(oidcAuthority),
+            OidcButtonText = oidcButtonText
         }, cancellation: ct);
     }
 }

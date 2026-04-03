@@ -85,50 +85,19 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
 
         Logger.LogInformation("SAML login attempt for email: {Email}", email);
 
-        // Find member by email — SSO login requires an existing member
-        var member = _memberRepo.GetByEmail(email);
-        if (member == null) {
-            await SendRedirectAsync("/Login?error=saml_no_member", allowRemoteRedirects: false);
-            return;
+        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email, _memberRepo, _userRepo, _tokenRepo);
+
+        switch (result) {
+            case SsoLoginResult.NoMember:
+                await SendRedirectAsync("/Login?error=saml_no_member", allowRemoteRedirects: false);
+                return;
+            case SsoLoginResult.MemberExited:
+            case SsoLoginResult.UserDeleted:
+                await SendRedirectAsync("/Login?error=saml_member_exited", allowRemoteRedirects: false);
+                return;
         }
 
-        // Block exited members
-        if (member.ExitDate.HasValue) {
-            await SendRedirectAsync("/Login?error=saml_member_exited", allowRemoteRedirects: false);
-            return;
-        }
-
-        // Find or create user, link to member
-        var user = member.UserId.HasValue ? _userRepo.GetById(member.UserId.Value) : null;
-
-        if (user == null) {
-            // Also check if a user with this email already exists (e.g., manually created)
-            user = _userRepo.GetByEmail(email);
-
-            if (user == null) {
-                user = new User {
-                    EMail = email,
-                    Username = email,
-                    FirstName = member.FirstName ?? "",
-                    LastName = member.LastName ?? ""
-                };
-                _userRepo.Create(user);
-            }
-
-            // Link member to user
-            _memberRepo.SetUserId(member.Id, user.Id);
-        }
-
-        // Block soft-deleted users
-        if (user.DeletedAt.HasValue) {
-            await SendRedirectAsync("/Login?error=saml_member_exited", allowRemoteRedirects: false);
-            return;
-        }
-
-        var token = _tokenRepo.LoginUser(user.Id);
-
-        // Redirect to Blazor callback with token in URL fragment (not sent to server/logs)
-        await SendRedirectAsync($"/Login/SamlCallback#{token.Content}", allowRemoteRedirects: false);
+        await SendRedirectAsync($"/Login/SamlCallback#{tokenContent}", allowRemoteRedirects: false);
     }
 }
 
