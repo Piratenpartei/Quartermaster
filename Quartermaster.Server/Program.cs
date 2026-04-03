@@ -86,6 +86,7 @@ public static class Program {
         DbContext.SupplementDefaults(app.Services);
 
         app.UseHttpsRedirection();
+        app.UseMiddleware<Quartermaster.Server.Security.SecurityHeadersMiddleware>();
 
         app.UseExceptionHandler(appError => {
             appError.Run(async context => {

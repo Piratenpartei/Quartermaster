@@ -32,7 +32,7 @@
 - [x] Removed permissive CORS policy entirely (same-origin app, not needed)
 - [x] Add CSRF protection for state-changing endpoints — antiforgery middleware validates X-CSRF-TOKEN header on all POST/PUT/DELETE to /api/*, Blazor DelegatingHandler fetches and attaches tokens transparently
 - [x] Set `SameSite=Strict` on antiforgery cookie; auth cookie will follow same pattern when implemented
-- [ ] **Add security response headers** — currently missing: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, `Strict-Transport-Security` (HSTS), `Referrer-Policy: strict-origin-when-cross-origin`
+- [x] **Add security response headers** — `SecurityHeadersMiddleware` sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy` (self + wasm-unsafe-eval + unsafe-inline styles), `Strict-Transport-Security` (HTTPS only, 1 year), `Referrer-Policy: strict-origin-when-cross-origin`
 
 ### Input Validation
 - [x] Add FluentValidation validators for all request DTOs (18 validators using FastEndpoints `Validator<T>`, auto-discovered)
