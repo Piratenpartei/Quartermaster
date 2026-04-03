@@ -1,7 +1,10 @@
 using LinqToDB;
+using Quartermaster.Api;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.Permissions;
+using Quartermaster.Data.UserChapterPermissions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +14,15 @@ namespace Quartermaster.Data.ChapterAssociates;
 public class ChapterOfficerRepository {
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionRepository _permissionRepo;
 
-    public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog) {
+    public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog,
+        UserChapterPermissionRepository chapterPermRepo, PermissionRepository permissionRepo) {
         _context = context;
         _auditLog = auditLog;
+        _chapterPermRepo = chapterPermRepo;
+        _permissionRepo = permissionRepo;
     }
 
     public List<ChapterOfficer> GetForChapter(Guid chapterId)
@@ -78,6 +86,31 @@ public class ChapterOfficerRepository {
                 (m, o) => o.MemberId == m.Id && chapterIds.Contains(o.ChapterId),
                 (m, o) => o)
             .Any();
+    }
+
+    public void GrantDefaultPermissions(Guid userId, Guid chapterId) {
+        foreach (var permIdentifier in PermissionIdentifier.DefaultOfficerPermissions) {
+            var perm = _permissionRepo.GetByIdentifier(permIdentifier);
+            if (perm != null)
+                _chapterPermRepo.AddForUser(userId, chapterId, perm.Id);
+        }
+    }
+
+    public void RevokeDefaultPermissions(Guid userId, Guid chapterId) {
+        foreach (var permIdentifier in PermissionIdentifier.DefaultOfficerPermissions) {
+            var perm = _permissionRepo.GetByIdentifier(permIdentifier);
+            if (perm != null)
+                _chapterPermRepo.RemoveForUser(userId, chapterId, perm.Id);
+        }
+    }
+
+    public void GrantDefaultPermissionsForAllChapters(Guid memberId, Guid userId) {
+        var officerEntries = _context.ChapterOfficers
+            .Where(o => o.MemberId == memberId)
+            .ToList();
+
+        foreach (var entry in officerEntries)
+            GrantDefaultPermissions(userId, entry.ChapterId);
     }
 
     public void Delete(Guid memberId, Guid chapterId) {

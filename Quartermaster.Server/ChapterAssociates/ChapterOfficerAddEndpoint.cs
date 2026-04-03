@@ -5,6 +5,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
@@ -16,14 +17,16 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly MemberRepository _memberRepo;
 
     public ChapterOfficerAddEndpoint(ChapterOfficerRepository officerRepo,
         UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo) {
+        ChapterRepository chapterRepo, MemberRepository memberRepo) {
         _officerRepo = officerRepo;
         _chapterPermRepo = chapterPermRepo;
         _globalPermRepo = globalPermRepo;
         _chapterRepo = chapterRepo;
+        _memberRepo = memberRepo;
     }
 
     public override void Configure() {
@@ -47,6 +50,10 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
             ChapterId = req.ChapterId,
             AssociateType = (ChapterOfficerType)req.AssociateType
         });
+
+        var member = _memberRepo.Get(req.MemberId);
+        if (member?.UserId.HasValue == true)
+            _officerRepo.GrantDefaultPermissions(member.UserId.Value, req.ChapterId);
 
         await SendOkAsync(ct);
     }

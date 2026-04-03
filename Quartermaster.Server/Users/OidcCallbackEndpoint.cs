@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Tokens;
@@ -21,16 +22,19 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
     private readonly UserRepository _userRepo;
     private readonly MemberRepository _memberRepo;
     private readonly TokenRepository _tokenRepo;
+    private readonly ChapterOfficerRepository _officerRepo;
 
     public OidcCallbackEndpoint(
         OptionRepository optionRepo,
         UserRepository userRepo,
         MemberRepository memberRepo,
-        TokenRepository tokenRepo) {
+        TokenRepository tokenRepo,
+        ChapterOfficerRepository officerRepo) {
         _optionRepo = optionRepo;
         _userRepo = userRepo;
         _memberRepo = memberRepo;
         _tokenRepo = tokenRepo;
+        _officerRepo = officerRepo;
     }
 
     public override void Configure() {
@@ -117,7 +121,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
 
         Logger.LogInformation("OIDC login attempt for email: {Email}", email);
 
-        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email, _memberRepo, _userRepo, _tokenRepo);
+        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email, _memberRepo, _userRepo, _tokenRepo, _officerRepo);
 
         switch (result) {
             case SsoLoginResult.NoMember:

@@ -28,7 +28,9 @@ public class MotionRepositoryTests : IDisposable {
         _context = TestDatabaseFixture.CreateDbContext();
         var auditLog = new AuditLogRepository(_context);
         _motionRepo = new MotionRepository(_context, auditLog);
-        _officerRepo = new ChapterOfficerRepository(_context, auditLog);
+        var chapterPermRepo = new Quartermaster.Data.UserChapterPermissions.UserChapterPermissionRepository(_context);
+        var permissionRepo = new Quartermaster.Data.Permissions.PermissionRepository(_context);
+        _officerRepo = new ChapterOfficerRepository(_context, auditLog, chapterPermRepo, permissionRepo);
 
         // Seed an AdministrativeDivision for User FK constraints
         _adminDivId = Guid.NewGuid();

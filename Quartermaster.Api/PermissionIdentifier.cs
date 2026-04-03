@@ -50,4 +50,15 @@ public static class PermissionIdentifier {
     public static readonly List<string> SystemPermissions = [
         ViewOptions, ViewUsers, ViewOfficers
     ];
+
+    // Default permissions auto-granted to chapter officers
+    public static readonly List<string> DefaultOfficerPermissions = [
+        ViewMotions, EditMotions, VoteMotions,
+        ViewApplications, ProcessApplications,
+        ViewDueSelections, ProcessDueSelections,
+        ViewEvents, CreateEvents, EditEvents, DeleteEvents,
+        ViewMembers,
+        ViewOfficers,
+        ViewTemplates, EditTemplates
+    ];
 }

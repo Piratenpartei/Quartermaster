@@ -1,4 +1,5 @@
 using System;
+using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.Users;
@@ -17,7 +18,8 @@ public static class SsoLoginHelper {
         string email,
         MemberRepository memberRepo,
         UserRepository userRepo,
-        TokenRepository tokenRepo) {
+        TokenRepository tokenRepo,
+        ChapterOfficerRepository officerRepo) {
 
         var member = memberRepo.GetByEmail(email);
         if (member == null)
@@ -27,6 +29,7 @@ public static class SsoLoginHelper {
             return (SsoLoginResult.MemberExited, null);
 
         var user = member.UserId.HasValue ? userRepo.GetById(member.UserId.Value) : null;
+        var isNewLink = false;
 
         if (user == null) {
             user = userRepo.GetByEmail(email);
@@ -42,10 +45,15 @@ public static class SsoLoginHelper {
             }
 
             memberRepo.SetUserId(member.Id, user.Id);
+            isNewLink = true;
         }
 
         if (user.DeletedAt.HasValue)
             return (SsoLoginResult.UserDeleted, null);
+
+        // Grant officer permissions when a user is newly linked to a member
+        if (isNewLink)
+            officerRepo.GrantDefaultPermissionsForAllChapters(member.Id, user.Id);
 
         var token = tokenRepo.LoginUser(user.Id);
         return (SsoLoginResult.Success, token.Content);
