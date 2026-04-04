@@ -29,6 +29,8 @@ public class EmailSendingBackgroundService : BackgroundService {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+        RequeuePendingLogs();
+
         await foreach (var message in _channel.Reader.ReadAllAsync(stoppingToken)) {
             try {
                 await SendViaSmtp(message, stoppingToken);
@@ -38,6 +40,25 @@ public class EmailSendingBackgroundService : BackgroundService {
                 _logger.LogError(ex, "Failed to process email to {Recipient}", message.To);
                 await HandleFailure(message, ex.Message, stoppingToken);
             }
+        }
+    }
+
+    /// <summary>
+    /// On startup, re-enqueue any EmailLog entries still marked Pending.
+    /// These are messages that were queued in memory when the server last shut down
+    /// (crash or restart) and never got sent. The body is restored from the DB.
+    /// </summary>
+    private void RequeuePendingLogs() {
+        using var scope = _services.CreateScope();
+        var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
+        var pending = emailLogRepo.GetPending();
+
+        if (pending.Count == 0)
+            return;
+
+        _logger.LogInformation("Re-enqueuing {Count} pending email(s) after startup", pending.Count);
+        foreach (var log in pending) {
+            _channel.Writer.TryWrite(new EmailMessage(log.Id, log.Recipient, log.Subject, log.HtmlBody ?? ""));
         }
     }
 

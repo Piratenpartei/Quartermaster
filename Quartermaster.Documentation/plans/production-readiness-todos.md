@@ -63,7 +63,8 @@
 - [x] Email queue/retry — `Channel<EmailMessage>` with `BackgroundService` consumer, 3 retries with exponential backoff
 - [x] Per-member personalization — Fluid template rendering with `member.*` variables per recipient
 - [x] Email sending log — `EmailLog` table with recipient, subject, status, error, attempt count, source entity traceability (EntityType+EntityId); `GET /api/emaillogs` endpoint
-- [ ] Outbox pattern — deferred; in-memory Channel sufficient for now
+- [ ] Outbox pattern — partial fix applied: `HtmlBody` now persisted on `EmailLog`, and `EmailSendingBackgroundService` re-enqueues any Pending log entries on startup. This prevents email loss after a server crash/restart. **Simple fix chosen for now**: still uses in-memory `Channel<EmailMessage>` as the primary queue — if a crash happens mid-send (between channel write and SMTP completion), the email is only recovered on next restart rather than by a second worker. Revisit after production observation: may want to move to full DB-polling outbox if reliability becomes critical or if we need horizontal scaling.
+- [ ] **Batch SMTP sends / connection reuse** — currently `EmailSendingBackgroundService` creates a new SMTP connection per email (Connect → Auth → Send → Disconnect). For bulk sends (e.g., chapter-wide announcements), this is wasteful and slow. Optimization: drain a batch from the channel, open one connection, send all messages, then disconnect. Respect SMTP server rate limits and per-session send caps. May also enable SMTP pipelining if supported.
 
 ### Data Integrity
 - [x] FK cascade behavior — CASCADE DELETE added for MotionVotes→Motions, ChecklistItems→Events, SystemOptions→Chapters, Tokens→Users (M002 migration)

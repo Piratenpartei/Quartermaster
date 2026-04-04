@@ -408,7 +408,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(EmailLog.Error)).AsCustom("TEXT").Nullable()
             .WithColumn(nameof(EmailLog.AttemptCount)).AsInt32()
             .WithColumn(nameof(EmailLog.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(EmailLog.SentAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(EmailLog.SentAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(EmailLog.HtmlBody)).AsCustom("TEXT").Nullable();
 
         Create.Table(AuditLog.AuditLog.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()

@@ -39,4 +39,7 @@ public class EmailLog {
 
     [Column]
     public DateTime? SentAt { get; set; }
+
+    [Column]
+    public string? HtmlBody { get; set; }
 }

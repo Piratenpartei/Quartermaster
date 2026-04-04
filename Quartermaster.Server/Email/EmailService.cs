@@ -111,7 +111,7 @@ public class EmailService {
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;
 
-        // Create log entry
+        // Create log entry (body persisted so we can re-enqueue after server restart)
         var log = new EmailLog {
             Recipient = recipient,
             Subject = subject,
@@ -120,7 +120,8 @@ public class EmailService {
             SourceEntityId = sourceEntityId,
             Status = "Pending",
             AttemptCount = 0,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            HtmlBody = htmlBody
         };
         _emailLogRepo.Create(log);
 
