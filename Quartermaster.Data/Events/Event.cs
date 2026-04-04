@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Events;
 
 namespace Quartermaster.Data.Events;
 
@@ -14,7 +15,8 @@ public class Event {
     public string PublicName { get; set; } = "";
     public string? Description { get; set; }
     public DateTime? EventDate { get; set; }
-    public bool IsArchived { get; set; }
+    public EventStatus Status { get; set; } = EventStatus.Draft;
+    public EventVisibility Visibility { get; set; } = EventVisibility.Private;
     public Guid? EventTemplateId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }

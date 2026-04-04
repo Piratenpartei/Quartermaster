@@ -38,6 +38,8 @@
             <tr>
                 <th>Öffentlicher Name</th>
                 <th>Gliederung</th>
+                <th>Status</th>
+                <th>Sichtbarkeit</th>
                 <th>Datum</th>
                 <th>Fortschritt</th>
                 <th>Erstellt</th>
@@ -48,6 +50,8 @@
                 <tr>
                     <td><a href="/Administration/Events/@e.Id">@e.PublicName</a></td>
                     <td>@e.ChapterName</td>
+                    <td><span class="badge border @GetStatusBadgeClass(e.Status)">@StatusToLabel(e.Status)</span></td>
+                    <td><span class="badge border @GetVisibilityBadgeClass(e.Visibility)">@VisibilityToLabel(e.Visibility)</span></td>
                     <td>@(e.EventDate?.ToString("dd.MM.yyyy") ?? "—")</td>
                     <td>
                         @if (e.ChecklistTotal > 0) {

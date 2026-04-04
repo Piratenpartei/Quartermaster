@@ -75,6 +75,7 @@ public class ChecklistItemCheckEndpoint : Endpoint<ChecklistItemCheckRequest> {
         }
 
         _eventRepo.CheckItem(req.ItemId, resultId);
+        _eventRepo.RefreshStatus(req.EventId);
 
         await SendOkAsync(ct);
     }

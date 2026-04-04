@@ -51,6 +51,11 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
             return;
         }
 
+        if (ev.Status != EventStatus.Draft) {
+            ThrowError("Vorlagen können nur aus Entwurfs-Events erstellt werden.");
+            return;
+        }
+
         var checklistItems = _eventRepo.GetChecklistItems(req.EventId);
 
         var checklistTemplates = checklistItems

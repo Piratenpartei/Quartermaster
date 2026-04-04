@@ -48,9 +48,8 @@
             } else if (totalCount > 0) {
                 <span class="badge border border-secondary text-secondary-emphasis fs-6">@completedCount/@totalCount</span>
             }
-            @if (Event.IsArchived) {
-                <span class="badge border border-secondary text-secondary-emphasis fs-6">Archiviert</span>
-            }
+            <span class="badge border @StatusBadgeClass fs-6">@StatusLabel</span>
+            <span class="badge border @VisibilityBadgeClass fs-6">@VisibilityLabel</span>
         </div>
     </div>
     <div class="text-secondary mb-3">
@@ -74,6 +73,14 @@
                         <label class="form-label small text-secondary">Datum</label>
                         <FormInput Type="date" Value="@(Event.EventDate?.ToString("yyyy-MM-dd") ?? "")"
                                    ValueChanged="OnDateChanged" CssClass="w-auto" />
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label small text-secondary">Sichtbarkeit</label>
+                        <FormSelect Value="@(((int)Event.Visibility).ToString())" ValueChanged="OnVisibilityChanged" CssClass="w-auto">
+                            <option value="0">Öffentlich</option>
+                            <option value="1">Mitglieder</option>
+                            <option value="2">Intern</option>
+                        </FormSelect>
                     </div>
                     <div class="col-auto d-flex align-items-end">
                         <FormSaveButton OnClick="SaveDetails" Saving="Saving"
@@ -312,17 +319,17 @@
         </div>
     </div>
 
-    <div class="d-flex gap-2">
-        <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
-            <i class="bi bi-clipboard"></i> Als Vorlage speichern
-        </a>
-        <button class="btn btn-outline-warning" @onclick="ToggleArchive">
-            @if (Event.IsArchived) {
-                <span><i class="bi bi-archive"></i> Dearchivieren</span>
-            } else {
-                <span><i class="bi bi-archive"></i> Archivieren</span>
-            }
-        </button>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (Event.Status == EventStatus.Draft) {
+            <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
+                <i class="bi bi-clipboard"></i> Als Vorlage speichern
+            </a>
+        }
+        @foreach (var transition in AllowedTransitions) {
+            <button class="btn btn-outline-primary" @onclick="() => ChangeStatus(transition.Target)">
+                <i class="bi @transition.Icon"></i> @transition.Label
+            </button>
+        }
     </div>
 
     <ConfirmDialog @ref="ConfirmDialog" />

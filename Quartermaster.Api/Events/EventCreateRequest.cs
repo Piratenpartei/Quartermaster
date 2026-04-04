@@ -8,4 +8,5 @@ public class EventCreateRequest {
     public string PublicName { get; set; } = "";
     public string? Description { get; set; }
     public DateTime? EventDate { get; set; }
+    public EventVisibility Visibility { get; set; } = EventVisibility.Private;
 }

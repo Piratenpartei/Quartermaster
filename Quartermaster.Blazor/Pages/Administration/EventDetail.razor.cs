@@ -92,6 +92,13 @@ public partial class EventDetail {
         }
     }
 
+    private void OnVisibilityChanged(string value) {
+        if (Event != null && int.TryParse(value, out var v)) {
+            Event.Visibility = (EventVisibility)v;
+            _detailsForm?.MarkDirty();
+        }
+    }
+
     private async Task SaveDetails() {
         if (Event == null)
             return;
@@ -105,7 +112,8 @@ public partial class EventDetail {
                 InternalName = Event.InternalName,
                 PublicName = Event.PublicName,
                 Description = Event.Description,
-                EventDate = Event.EventDate
+                EventDate = Event.EventDate,
+                Visibility = Event.Visibility
             });
             ToastService.Toast("Gespeichert.", "success");
         } catch (HttpRequestException ex) {
@@ -301,23 +309,80 @@ public partial class EventDetail {
         }
     }
 
-    private async Task ToggleArchive() {
-        var isArchived = Event?.IsArchived ?? false;
-        var message = isArchived
-            ? "Dieses Event wirklich wiederherstellen?"
-            : "Dieses Event wirklich archivieren?";
-        if (!await ConfirmDialog.ShowAsync(message))
+    private async Task ChangeStatus(EventStatus target) {
+        if (Event == null)
+            return;
+
+        var confirmMessage = target switch {
+            EventStatus.Archived => "Dieses Event wirklich archivieren?",
+            EventStatus.Draft => "Dieses Event wirklich zurück in den Entwurfsstatus setzen?",
+            _ => null
+        };
+
+        if (confirmMessage != null && !await ConfirmDialog.ShowAsync(confirmMessage))
             return;
 
         try {
             await SaveIfDirty();
-            await Http.PostAsync($"/api/events/{Id}/archive", null);
-            ToastService.Toast(isArchived ? "Event wiederhergestellt." : "Event archiviert.", "success");
-            await LoadEvent();
+            var response = await Http.PutAsJsonAsync($"/api/events/{Id}/status", new { Id, Status = target });
+            if (response.IsSuccessStatusCode) {
+                ToastService.Toast($"Status geändert: {StatusToLabel(target)}.", "success");
+                await LoadEvent();
+            } else {
+                var body = await response.Content.ReadAsStringAsync();
+                ToastService.Error(details: body);
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
     }
+
+    private string StatusLabel => StatusToLabel(Event?.Status ?? EventStatus.Draft);
+    private string VisibilityLabel => VisibilityToLabel(Event?.Visibility ?? EventVisibility.Private);
+
+    private string StatusBadgeClass => Event?.Status switch {
+        EventStatus.Draft => "border-secondary text-secondary-emphasis",
+        EventStatus.Active => "border-primary text-primary-emphasis",
+        EventStatus.Completed => "border-success text-success-emphasis",
+        EventStatus.Archived => "border-secondary text-body-tertiary",
+        _ => "border-secondary"
+    };
+
+    private string VisibilityBadgeClass => Event?.Visibility switch {
+        EventVisibility.Public => "border-info text-info-emphasis",
+        EventVisibility.MembersOnly => "border-primary text-primary-emphasis",
+        EventVisibility.Private => "border-secondary text-secondary-emphasis",
+        _ => "border-secondary"
+    };
+
+    private List<(EventStatus Target, string Label, string Icon)> AllowedTransitions => Event?.Status switch {
+        EventStatus.Draft => [(EventStatus.Active, "Aktivieren", "bi-play-circle")],
+        EventStatus.Active => [
+            (EventStatus.Draft, "Zurück zu Entwurf", "bi-arrow-counterclockwise"),
+            (EventStatus.Completed, "Als abgeschlossen markieren", "bi-check-circle")
+        ],
+        EventStatus.Completed => [
+            (EventStatus.Active, "Zurück zu Aktiv", "bi-arrow-counterclockwise"),
+            (EventStatus.Archived, "Archivieren", "bi-archive")
+        ],
+        EventStatus.Archived => [(EventStatus.Completed, "Dearchivieren", "bi-box-arrow-up")],
+        _ => []
+    };
+
+    private static string StatusToLabel(EventStatus s) => s switch {
+        EventStatus.Draft => "Entwurf",
+        EventStatus.Active => "Aktiv",
+        EventStatus.Completed => "Abgeschlossen",
+        EventStatus.Archived => "Archiviert",
+        _ => s.ToString()
+    };
+
+    private static string VisibilityToLabel(EventVisibility v) => v switch {
+        EventVisibility.Public => "Öffentlich",
+        EventVisibility.MembersOnly => "Mitglieder",
+        EventVisibility.Private => "Intern",
+        _ => v.ToString()
+    };
 
     private async Task ToggleEmailPreview(Guid itemId, string? configuration) {
         if (ExpandedPreviewItemId == itemId) {

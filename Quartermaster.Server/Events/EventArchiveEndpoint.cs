@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.UserChapterPermissions;
@@ -52,7 +53,9 @@ public class EventArchiveEndpoint : Endpoint<EventArchiveRequest> {
             return;
         }
 
-        _eventRepo.SetArchived(ev.Id, !ev.IsArchived);
+        // Toggle between Archived and Completed (the "un-archive" target)
+        var newStatus = ev.Status == EventStatus.Archived ? EventStatus.Completed : EventStatus.Archived;
+        _eventRepo.SetStatus(ev.Id, newStatus);
         await SendOkAsync(ct);
     }
 }

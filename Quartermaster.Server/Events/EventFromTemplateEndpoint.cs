@@ -115,7 +115,8 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             PublicName = ev.PublicName,
             Description = ev.Description,
             EventDate = ev.EventDate,
-            IsArchived = false,
+            Status = ev.Status,
+            Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
             CreatedAt = ev.CreatedAt,
             ChecklistItems = checklistItemDtos

@@ -367,7 +367,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Event.PublicName)).AsString(512)
             .WithColumn(nameof(Event.Description)).AsCustom("TEXT").Nullable()
             .WithColumn(nameof(Event.EventDate)).AsDateTime().Nullable()
-            .WithColumn(nameof(Event.IsArchived)).AsBoolean()
+            .WithColumn(nameof(Event.Status)).AsInt32().WithDefaultValue(0)
+            .WithColumn(nameof(Event.Visibility)).AsInt32().WithDefaultValue(2)
             .WithColumn(nameof(Event.EventTemplateId)).AsGuid().Nullable()
             .WithColumn(nameof(Event.CreatedAt)).AsDateTime()
             .WithColumn(nameof(Event.DeletedAt)).AsDateTime().Nullable();

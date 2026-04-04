@@ -33,25 +33,36 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
 
     public override void Configure() {
         Get("/api/events/{Id}");
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(EventDetailRequest req, CancellationToken ct) {
-        var ev = _eventRepo.Get(req.Id);
+        var ev = _eventRepo.RefreshStatus(req.Id);
         if (ev == null) {
             await SendNotFoundAsync(ct);
             return;
         }
 
         var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
-            await SendUnauthorizedAsync(ct);
-            return;
+
+        // Visibility gate: Public events are always visible, MembersOnly needs auth, Private needs ViewEvents
+        if (ev.Visibility == EventVisibility.Private) {
+            if (userId == null) {
+                await SendUnauthorizedAsync(ct);
+                return;
+            }
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _chapterRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
+        } else if (ev.Visibility == EventVisibility.MembersOnly) {
+            if (userId == null) {
+                await SendUnauthorizedAsync(ct);
+                return;
+            }
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _chapterRepo)) {
-            await SendForbiddenAsync(ct);
-            return;
-        }
+        // Public: no check
 
         var chapter = _chapterRepo.Get(ev.ChapterId);
         var checklistItems = _eventRepo.GetChecklistItems(ev.Id);
@@ -75,7 +86,8 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
             PublicName = ev.PublicName,
             Description = ev.Description,
             EventDate = ev.EventDate,
-            IsArchived = ev.IsArchived,
+            Status = ev.Status,
+            Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
             CreatedAt = ev.CreatedAt,
             ChecklistItems = itemDtos

@@ -48,6 +48,7 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             PublicName = req.PublicName,
             Description = req.Description,
             EventDate = req.EventDate,
+            Visibility = req.Visibility,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -63,7 +64,8 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             PublicName = ev.PublicName,
             Description = ev.Description,
             EventDate = ev.EventDate,
-            IsArchived = ev.IsArchived,
+            Status = ev.Status,
+            Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
             CreatedAt = ev.CreatedAt
         }, cancellation: ct);

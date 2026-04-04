@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.Events;
 using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,44 @@ public class EventRepository {
     public Event? Get(Guid id)
         => _context.Events.Where(e => e.Id == id && e.DeletedAt == null).FirstOrDefault();
 
+    /// <summary>
+    /// Recomputes the event's status based on checklist completion and event date.
+    /// Applies only auto-transitions that promote status forward (Draft→Active→Completed).
+    /// Never auto-archives; never demotes a manually-set status.
+    /// Returns the updated event.
+    /// </summary>
+    public Event? RefreshStatus(Guid id) {
+        var ev = Get(id);
+        if (ev == null)
+            return null;
+
+        // Archived is terminal for auto-transitions
+        if (ev.Status == EventStatus.Archived)
+            return ev;
+
+        var items = GetChecklistItems(id);
+        var anyCompleted = items.Any(i => i.IsCompleted);
+        var allCompleted = items.Count > 0 && items.All(i => i.IsCompleted);
+        var dateInPast = ev.EventDate.HasValue && ev.EventDate.Value < DateTime.UtcNow;
+
+        var newStatus = ev.Status;
+
+        // Draft → Active: first item checked
+        if (ev.Status == EventStatus.Draft && anyCompleted)
+            newStatus = EventStatus.Active;
+
+        // Active → Completed: all items completed AND date passed
+        if (newStatus == EventStatus.Active && allCompleted && dateInPast)
+            newStatus = EventStatus.Completed;
+
+        if (newStatus != ev.Status) {
+            SetStatus(id, newStatus);
+            ev.Status = newStatus;
+        }
+
+        return ev;
+    }
+
     public void Create(Event ev) {
         _context.Insert(ev);
         _auditLog.LogCreated("Event", ev.Id);
@@ -32,6 +71,7 @@ public class EventRepository {
             .Set(e => e.PublicName, ev.PublicName)
             .Set(e => e.Description, ev.Description)
             .Set(e => e.EventDate, ev.EventDate)
+            .Set(e => e.Visibility, ev.Visibility)
             .Update();
 
         if (existing != null) {
@@ -39,28 +79,44 @@ public class EventRepository {
             _auditLog.LogFieldChange("Event", ev.Id, "PublicName", existing.PublicName, ev.PublicName);
             _auditLog.LogFieldChange("Event", ev.Id, "Description", existing.Description, ev.Description);
             _auditLog.LogFieldChange("Event", ev.Id, "EventDate", existing.EventDate?.ToString("o"), ev.EventDate?.ToString("o"));
+            _auditLog.LogFieldChange("Event", ev.Id, "Visibility", existing.Visibility.ToString(), ev.Visibility.ToString());
         }
     }
 
-    public void SetArchived(Guid id, bool archived) {
+    public void SetStatus(Guid id, EventStatus status) {
         var existing = _context.Events.Where(e => e.Id == id).FirstOrDefault();
 
         _context.Events
             .Where(e => e.Id == id)
-            .Set(e => e.IsArchived, archived)
+            .Set(e => e.Status, status)
             .Update();
 
-        _auditLog.LogFieldChange("Event", id, "IsArchived", existing?.IsArchived.ToString(), archived.ToString());
+        _auditLog.LogFieldChange("Event", id, "Status", existing?.Status.ToString(), status.ToString());
     }
 
-    public (List<Event> Items, int TotalCount) Search(Guid? chapterId, bool includeArchived, int page, int pageSize) {
+    public void SetVisibility(Guid id, EventVisibility visibility) {
+        var existing = _context.Events.Where(e => e.Id == id).FirstOrDefault();
+
+        _context.Events
+            .Where(e => e.Id == id)
+            .Set(e => e.Visibility, visibility)
+            .Update();
+
+        _auditLog.LogFieldChange("Event", id, "Visibility", existing?.Visibility.ToString(), visibility.ToString());
+    }
+
+    public (List<Event> Items, int TotalCount) Search(Guid? chapterId, bool includeArchived, int page, int pageSize,
+        List<EventVisibility>? allowedVisibilities = null) {
         var q = _context.Events.Where(e => e.DeletedAt == null).AsQueryable();
 
         if (chapterId.HasValue)
             q = q.Where(e => e.ChapterId == chapterId.Value);
 
         if (!includeArchived)
-            q = q.Where(e => !e.IsArchived);
+            q = q.Where(e => e.Status != EventStatus.Archived);
+
+        if (allowedVisibilities != null)
+            q = q.Where(e => allowedVisibilities.Contains(e.Visibility));
 
         var totalCount = q.Count();
         var items = q.OrderByDescending(e => e.CreatedAt)

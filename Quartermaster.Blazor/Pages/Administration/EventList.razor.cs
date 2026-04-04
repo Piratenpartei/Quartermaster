@@ -45,6 +45,36 @@ public partial class EventList {
         await Search();
     }
 
+    private static string StatusToLabel(EventStatus s) => s switch {
+        EventStatus.Draft => "Entwurf",
+        EventStatus.Active => "Aktiv",
+        EventStatus.Completed => "Abgeschlossen",
+        EventStatus.Archived => "Archiviert",
+        _ => s.ToString()
+    };
+
+    private static string VisibilityToLabel(EventVisibility v) => v switch {
+        EventVisibility.Public => "Öffentlich",
+        EventVisibility.MembersOnly => "Mitglieder",
+        EventVisibility.Private => "Intern",
+        _ => v.ToString()
+    };
+
+    private static string GetStatusBadgeClass(EventStatus s) => s switch {
+        EventStatus.Draft => "border-secondary text-secondary-emphasis",
+        EventStatus.Active => "border-primary text-primary-emphasis",
+        EventStatus.Completed => "border-success text-success-emphasis",
+        EventStatus.Archived => "border-secondary text-body-tertiary",
+        _ => "border-secondary"
+    };
+
+    private static string GetVisibilityBadgeClass(EventVisibility v) => v switch {
+        EventVisibility.Public => "border-info text-info-emphasis",
+        EventVisibility.MembersOnly => "border-primary text-primary-emphasis",
+        EventVisibility.Private => "border-secondary text-secondary-emphasis",
+        _ => "border-secondary"
+    };
+
     private async Task Search() {
         Loading = true;
         StateHasChanged();
