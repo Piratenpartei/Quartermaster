@@ -2,6 +2,7 @@ using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Quartermaster.Data;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Server.Members;
@@ -187,6 +188,146 @@ public class MemberImportServiceTests : IDisposable {
         } finally {
             File.Delete(tempPath);
         }
+    }
+
+    [Test]
+    public async Task ImportFromFile_ResolvesChapter_BezirkWithoutKreis() {
+        var bezirkId = Guid.NewGuid();
+        _context.Insert(new Chapter {
+            Id = bezirkId,
+            Name = "Bezirk Hannover",
+            ExternalCode = "H",
+            ParentChapterId = _lvNdsId
+        });
+
+        var tempPath = Path.GetTempFileName();
+        try {
+            var header = "USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend";
+            var row = "8002;REF;Test;Bezirk;NULL;NULL;NULL;NULL;NULL;NULL;NI;H;;48.00;0.00;0;0;0;NULL;0;NULL;NULL;NULL;NULL;NULL;NULL;NULL;0;NULL;NULL;0";
+            File.WriteAllText(tempPath, $"{header}\n{row}");
+
+            _service.ImportFromFile(tempPath);
+
+            var member = _context.Members.Where(m => m.MemberNumber == 8002).First();
+            await Assert.That(member.ChapterId).IsEqualTo(bezirkId);
+        } finally {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Test]
+    public async Task ImportFromFile_ResolvesAdminDivision_SinglePostcodeMatch() {
+        var divId = Guid.NewGuid();
+        _context.Insert(new AdministrativeDivision {
+            Id = divId,
+            Name = "Hannover",
+            Depth = 6,
+            AdminCode = "3241",
+            PostCodes = "30159"
+        });
+
+        var log = _service.ImportFromFile(_csvPath);
+
+        // Anna has postcode 30159 → matches Hannover
+        var anna = _context.Members.Where(m => m.MemberNumber == 1001).First();
+        await Assert.That(anna.ResidenceAdministrativeDivisionId).IsEqualTo(divId);
+    }
+
+    [Test]
+    public async Task ImportFromFile_ResolvesAdminDivision_MultipleMatchesWithCityDisambiguation() {
+        var hannoverId = Guid.NewGuid();
+        var otherDivId = Guid.NewGuid();
+        _context.Insert(new AdministrativeDivision {
+            Id = hannoverId,
+            Name = "Hannover",
+            Depth = 6,
+            AdminCode = "3241",
+            PostCodes = "30159"
+        });
+        _context.Insert(new AdministrativeDivision {
+            Id = otherDivId,
+            Name = "Langenhagen",
+            Depth = 7,
+            AdminCode = "3241001",
+            PostCodes = "30159,30855"
+        });
+
+        var log = _service.ImportFromFile(_csvPath);
+
+        // Anna has postcode 30159 and city "Hannover" → should match Hannover by city name
+        var anna = _context.Members.Where(m => m.MemberNumber == 1001).First();
+        await Assert.That(anna.ResidenceAdministrativeDivisionId).IsEqualTo(hannoverId);
+    }
+
+    [Test]
+    public async Task ImportFromFile_ResolvesAdminDivision_MultipleMatchesNoCityPicksFirst() {
+        var div1 = Guid.NewGuid();
+        var div2 = Guid.NewGuid();
+        _context.Insert(new AdministrativeDivision {
+            Id = div1,
+            Name = "Division A",
+            Depth = 6,
+            AdminCode = "9999",
+            PostCodes = "10115"
+        });
+        _context.Insert(new AdministrativeDivision {
+            Id = div2,
+            Name = "Division B",
+            Depth = 7,
+            AdminCode = "9999001",
+            PostCodes = "10115,10116"
+        });
+
+        // Create a CSV with postcode 10115 but no city
+        var tempPath = Path.GetTempFileName();
+        try {
+            var header = "USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend";
+            var row = "6001;REF;No;City;NULL;NULL;10115;NULL;NULL;NULL;;;;48.00;0.00;0;0;0;NULL;0;NULL;NULL;NULL;NULL;NULL;NULL;NULL;0;NULL;NULL;0";
+            File.WriteAllText(tempPath, $"{header}\n{row}");
+
+            _service.ImportFromFile(tempPath);
+
+            var member = _context.Members.Where(m => m.MemberNumber == 6001).First();
+            // Should be assigned to one of the matching divisions (not null)
+            await Assert.That(member.ResidenceAdministrativeDivisionId).IsNotNull();
+        } finally {
+            File.Delete(tempPath);
+        }
+    }
+
+    [Test]
+    public async Task ImportFromFile_NoPostcode_AdminDivisionStaysNull() {
+        // Lisa (member 1003) has no postcode in sample CSV
+        _context.Insert(new AdministrativeDivision {
+            Id = Guid.NewGuid(),
+            Name = "Hannover",
+            Depth = 6,
+            AdminCode = "3241",
+            PostCodes = "30159"
+        });
+
+        _service.ImportFromFile(_csvPath);
+
+        var lisa = _context.Members.Where(m => m.MemberNumber == 1003).First();
+        await Assert.That(lisa.ResidenceAdministrativeDivisionId).IsNull();
+    }
+
+    [Test]
+    public async Task ImportFromFile_NoMatchingPostcode_AdminDivisionStaysNull() {
+        // Seed division with different postcode
+        _context.Insert(new AdministrativeDivision {
+            Id = Guid.NewGuid(),
+            Name = "FarAway",
+            Depth = 6,
+            AdminCode = "9999",
+            PostCodes = "99999"
+        });
+
+        _service.ImportFromFile(_csvPath);
+
+        // Anna has 30159, no division has that postcode
+        var anna = _context.Members.Where(m => m.MemberNumber == 1001).First();
+        await Assert.That(anna.ResidenceAdministrativeDivisionId).IsNull();
     }
 
     public void Dispose() {

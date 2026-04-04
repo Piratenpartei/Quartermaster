@@ -115,7 +115,7 @@
 ### Testing
 - [x] Unit tests for critical business logic — 53 new tests across 7 suites: ChapterRepository (14), OptionRepository.ResolveValue (9), MotionRepository.TryAutoResolve (11), MemberImportService (7), EmailService (7), UserRepository (5); test DB fixture with auto-migration and table cleanup
 - [x] **Admin division import tests** — 12 tests: initial load, file hash skip, HasCompletedInitialLoad, DB log persistence, name/postcode change detection, new division adds, postcode-based remapping, parent fallback remapping, orphan handling, member/chapter reference updates, full statistics validation. Also fixed two bugs in change detection: FK-safe parent ID remapping for new divisions, and depth-ordered deletion with child re-parenting.
-- [ ] **Member import tests with chapters** — test member import with seeded chapters and admin divisions, verify chapter assignment by external code, verify admin division resolution by postcode
+- [x] **Member import tests with chapters** — 6 new tests: Bezirk-only chapter resolution, single postcode admin div match, multiple matches with city disambiguation, multiple matches without city, no postcode stays null, no matching postcode stays null. Total suite now 13 tests.
 - [ ] Integration tests for API endpoints (deferred)
 - [ ] End-to-end tests for key user flows (deferred)
 
