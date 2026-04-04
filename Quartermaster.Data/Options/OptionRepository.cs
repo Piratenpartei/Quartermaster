@@ -208,6 +208,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "true",
             description: "Wenn 'true', wird eine verschlüsselte Verbindung zum SMTP-Server verwendet.");
 
+        AddDefinitionIfNotExists("email.smtp.batch_size",
+            "SMTP: Batch-Größe",
+            OptionDataType.Number, false, "", "50",
+            description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl sofort verfügbarer weiterer Nachrichten mit, und sendet alle über eine einzige Verbindung. Standard: 50.");
+
         AddDefinitionIfNotExists("auth.lockout.max_attempts",
             "Login-Sperre: Max. Fehlversuche",
             OptionDataType.Number, false, "", "5",

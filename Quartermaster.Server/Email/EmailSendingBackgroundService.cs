@@ -1,9 +1,11 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using MailKit;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,6 +20,7 @@ public class EmailSendingBackgroundService : BackgroundService {
     private readonly IServiceProvider _services;
     private readonly ILogger<EmailSendingBackgroundService> _logger;
     private const int MaxRetries = 3;
+    private const int DefaultBatchSize = 50;
 
     public EmailSendingBackgroundService(
         Channel<EmailMessage> channel,
@@ -31,14 +34,20 @@ public class EmailSendingBackgroundService : BackgroundService {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         RequeuePendingLogs();
 
-        await foreach (var message in _channel.Reader.ReadAllAsync(stoppingToken)) {
+        while (!stoppingToken.IsCancellationRequested) {
             try {
-                await SendViaSmtp(message, stoppingToken);
+                // Block until at least one message is available
+                var first = await _channel.Reader.ReadAsync(stoppingToken);
+                var batch = new List<EmailMessage> { first };
+
+                // Drain additional immediately-available messages up to batch size
+                var batchSize = GetBatchSize();
+                while (batch.Count < batchSize && _channel.Reader.TryRead(out var next))
+                    batch.Add(next);
+
+                await ProcessBatchAsync(batch, stoppingToken);
             } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
                 break;
-            } catch (Exception ex) {
-                _logger.LogError(ex, "Failed to process email to {Recipient}", message.To);
-                await HandleFailure(message, ex.Message, stoppingToken);
             }
         }
     }
@@ -62,63 +71,115 @@ public class EmailSendingBackgroundService : BackgroundService {
         }
     }
 
-    private async Task SendViaSmtp(EmailMessage message, CancellationToken ct) {
+    private int GetBatchSize() {
+        using var scope = _services.CreateScope();
+        var optionRepo = scope.ServiceProvider.GetRequiredService<OptionRepository>();
+        var value = optionRepo.GetGlobalValue("email.smtp.batch_size")?.Value;
+        if (int.TryParse(value, out var parsed) && parsed > 0)
+            return parsed;
+        return DefaultBatchSize;
+    }
+
+    private async Task ProcessBatchAsync(List<EmailMessage> batch, CancellationToken ct) {
         using var scope = _services.CreateScope();
         var optionRepo = scope.ServiceProvider.GetRequiredService<OptionRepository>();
         var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
 
-        var host = optionRepo.GetGlobalValue("email.smtp.host")?.Value;
-        var portStr = optionRepo.GetGlobalValue("email.smtp.port")?.Value ?? "587";
-        var username = optionRepo.GetGlobalValue("email.smtp.username")?.Value;
-        var password = optionRepo.GetGlobalValue("email.smtp.password")?.Value;
-        var senderAddress = optionRepo.GetGlobalValue("email.smtp.sender_address")?.Value;
-        var senderName = optionRepo.GetGlobalValue("email.smtp.sender_name")?.Value ?? "Quartermaster";
-        var useSsl = optionRepo.GetGlobalValue("email.smtp.use_ssl")?.Value
-            ?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? true;
-
-        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(senderAddress)) {
-            emailLogRepo.IncrementAttempt(message.EmailLogId);
-            emailLogRepo.UpdateStatus(message.EmailLogId, "Failed",
-                "SMTP nicht konfiguriert.", null);
-            _logger.LogWarning("SMTP not configured, cannot send email to {Recipient}",
-                message.To);
+        var config = ReadSmtpConfig(optionRepo);
+        if (config == null) {
+            foreach (var msg in batch) {
+                emailLogRepo.IncrementAttempt(msg.EmailLogId);
+                emailLogRepo.UpdateStatus(msg.EmailLogId, "Failed", "SMTP nicht konfiguriert.", null);
+                _logger.LogWarning("SMTP not configured, cannot send email to {Recipient}", msg.To);
+            }
             return;
         }
 
-        if (!int.TryParse(portStr, out var port))
-            port = 587;
+        using var client = new SmtpClient();
+        var connected = false;
 
-        emailLogRepo.IncrementAttempt(message.EmailLogId);
+        try {
+            await client.ConnectAsync(config.Host, config.Port,
+                config.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, ct);
 
+            if (!string.IsNullOrEmpty(config.Username) && !string.IsNullOrEmpty(config.Password))
+                await client.AuthenticateAsync(config.Username, config.Password, ct);
+
+            connected = true;
+
+            for (int i = 0; i < batch.Count; i++) {
+                var msg = batch[i];
+                try {
+                    emailLogRepo.IncrementAttempt(msg.EmailLogId);
+                    await SendOneAsync(client, msg, config, ct);
+                    emailLogRepo.UpdateStatus(msg.EmailLogId, "Sent", null, DateTime.UtcNow);
+                    _logger.LogInformation("Email sent to {Recipient}", msg.To);
+                } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
+                    throw;
+                } catch (ServiceNotConnectedException) {
+                    // Connection dropped mid-batch — re-queue this message and the rest
+                    _logger.LogWarning("SMTP connection dropped, re-queueing remaining {Count} messages",
+                        batch.Count - i);
+                    for (int j = i; j < batch.Count; j++)
+                        await HandleFailure(batch[j], "SMTP-Verbindung abgebrochen.", ct);
+                    return;
+                } catch (Exception ex) {
+                    _logger.LogError(ex, "Failed to send email to {Recipient}", msg.To);
+                    await HandleFailure(msg, ex.Message, ct);
+                }
+            }
+        } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
+            // Shutdown — pending messages remain in DB with status Pending and get re-queued on next start
+        } catch (Exception ex) {
+            _logger.LogError(ex, "SMTP connection error, re-queueing {Count} messages", batch.Count);
+            foreach (var msg in batch)
+                await HandleFailure(msg, ex.Message, ct);
+        } finally {
+            if (connected) {
+                try {
+                    await client.DisconnectAsync(true, ct);
+                } catch {
+                    // best-effort disconnect
+                }
+            }
+        }
+    }
+
+    private async Task SendOneAsync(SmtpClient client, EmailMessage message, SmtpConfig config, CancellationToken ct) {
         var mimeMessage = new MimeMessage();
-        mimeMessage.From.Add(new MailboxAddress(senderName, senderAddress));
+        mimeMessage.From.Add(new MailboxAddress(config.SenderName, config.SenderAddress));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
         mimeMessage.Subject = message.Subject;
         mimeMessage.Body = new TextPart("html") { Text = message.HtmlBody };
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(host, port,
-            useSsl
-                ? MailKit.Security.SecureSocketOptions.StartTls
-                : MailKit.Security.SecureSocketOptions.None,
-            ct);
-
-        if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
-            await client.AuthenticateAsync(username, password, ct);
-
         await client.SendAsync(mimeMessage, ct);
-        await client.DisconnectAsync(true, ct);
-
-        emailLogRepo.UpdateStatus(message.EmailLogId, "Sent", null, DateTime.UtcNow);
-        _logger.LogInformation("Email sent to {Recipient}", message.To);
     }
 
-    private async Task HandleFailure(EmailMessage message, string error,
-        CancellationToken ct) {
+    private static SmtpConfig? ReadSmtpConfig(OptionRepository optionRepo) {
+        var host = optionRepo.GetGlobalValue("email.smtp.host")?.Value;
+        var senderAddress = optionRepo.GetGlobalValue("email.smtp.sender_address")?.Value;
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(senderAddress))
+            return null;
+
+        var portStr = optionRepo.GetGlobalValue("email.smtp.port")?.Value ?? "587";
+        if (!int.TryParse(portStr, out var port))
+            port = 587;
+
+        return new SmtpConfig(
+            host,
+            port,
+            optionRepo.GetGlobalValue("email.smtp.username")?.Value,
+            optionRepo.GetGlobalValue("email.smtp.password")?.Value,
+            senderAddress,
+            optionRepo.GetGlobalValue("email.smtp.sender_name")?.Value ?? "Quartermaster",
+            optionRepo.GetGlobalValue("email.smtp.use_ssl")?.Value?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? true
+        );
+    }
+
+    private async Task HandleFailure(EmailMessage message, string error, CancellationToken ct) {
         using var scope = _services.CreateScope();
         var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
 
-        emailLogRepo.IncrementAttempt(message.EmailLogId);
         var log = emailLogRepo.GetById(message.EmailLogId);
 
         if (log != null && log.AttemptCount < MaxRetries) {
@@ -130,4 +191,14 @@ public class EmailSendingBackgroundService : BackgroundService {
             emailLogRepo.UpdateStatus(message.EmailLogId, "Failed", error, null);
         }
     }
+
+    private record SmtpConfig(
+        string Host,
+        int Port,
+        string? Username,
+        string? Password,
+        string SenderAddress,
+        string SenderName,
+        bool UseSsl
+    );
 }
