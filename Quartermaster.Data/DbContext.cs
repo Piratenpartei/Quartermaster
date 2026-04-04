@@ -45,6 +45,7 @@ public class DbContext : DataConnection {
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
     public ITable<EmailLog> EmailLogs => this.GetTable<EmailLog>();
     public ITable<AuditLog.AuditLog> AuditLogs => this.GetTable<AuditLog.AuditLog>();
+    public ITable<LoginAttempt> LoginAttempts => this.GetTable<LoginAttempt>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -65,6 +66,7 @@ public class DbContext : DataConnection {
         services.AddScoped<EventRepository>();
         services.AddScoped<EmailLogRepository>();
         services.AddScoped<AuditLogRepository>();
+        services.AddScoped<LoginAttemptRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

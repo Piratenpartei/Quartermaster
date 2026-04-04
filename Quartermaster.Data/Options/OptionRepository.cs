@@ -207,6 +207,16 @@ public class OptionRepository {
             "SMTP: SSL verwenden",
             OptionDataType.String, false, "", "true",
             description: "Wenn 'true', wird eine verschlüsselte Verbindung zum SMTP-Server verwendet.");
+
+        AddDefinitionIfNotExists("auth.lockout.max_attempts",
+            "Login-Sperre: Max. Fehlversuche",
+            OptionDataType.Number, false, "", "5",
+            description: "Anzahl fehlgeschlagener Login-Versuche (pro IP+Benutzer) innerhalb der Sperrdauer, bevor eine Sperre greift. Standard: 5.");
+
+        AddDefinitionIfNotExists("auth.lockout.duration_minutes",
+            "Login-Sperre: Sperrdauer (Minuten)",
+            OptionDataType.Number, false, "", "15",
+            description: "Zeitfenster und Sperrdauer in Minuten: Fehlversuche werden in diesem Fenster gezählt, und die Sperre gilt so lange nach dem letzten Fehlversuch. Standard: 15.");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

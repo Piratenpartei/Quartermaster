@@ -1,0 +1,58 @@
+@page "/Administration/LoginLockouts"
+@using Quartermaster.Api.Users
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Gesperrte Logins</h3>
+    <button class="btn btn-sm btn-outline-secondary" @onclick="Load" disabled="@Loading">
+        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+    </button>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    @if (Response.Items.Count == 0) {
+        <p class="text-secondary">Aktuell sind keine Logins gesperrt.</p>
+    } else {
+        <div class="mb-2 text-secondary">
+            @Response.Items.Count gesperrte Kombination(en) (IP + Benutzer)
+        </div>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>IP-Adresse</th>
+                    <th>Benutzer</th>
+                    <th>Fehlversuche</th>
+                    <th>Letzter Versuch</th>
+                    <th>Gesperrt bis</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lockout in Response.Items) {
+                    <tr>
+                        <td class="font-monospace">@lockout.IpAddress</td>
+                        <td>@lockout.UsernameOrEmail</td>
+                        <td><span class="badge bg-danger">@lockout.FailedAttempts</span></td>
+                        <td>@lockout.LastAttemptAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</td>
+                        <td>@lockout.LockedUntil.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-success"
+                                    @onclick="() => Unlock(lockout)"
+                                    disabled="@(UnlockingKey == $"{lockout.IpAddress}|{lockout.UsernameOrEmail}")">
+                                @if (UnlockingKey == $"{lockout.IpAddress}|{lockout.UsernameOrEmail}") {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                } else {
+                                    <i class="bi bi-unlock"></i>
+                                    <span> Entsperren</span>
+                                }
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

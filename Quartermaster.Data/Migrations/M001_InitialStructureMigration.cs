@@ -438,6 +438,18 @@ public class M001_InitialStructureMigration : MigrationBase {
             .OnColumn(nameof(EmailLog.Status)).Ascending();
         Create.Index("IX_AuditLogs_EntityType_EntityId").OnTable(AuditLog.AuditLog.TableName)
             .OnColumn("EntityType").Ascending().OnColumn("EntityId").Ascending();
+
+        Create.Table(LoginAttempt.TableName)
+            .WithColumn(nameof(LoginAttempt.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(LoginAttempt.IpAddress)).AsString(64)
+            .WithColumn(nameof(LoginAttempt.UsernameOrEmail)).AsString(256)
+            .WithColumn(nameof(LoginAttempt.Success)).AsBoolean()
+            .WithColumn(nameof(LoginAttempt.AttemptedAt)).AsDateTime();
+
+        Create.Index("IX_LoginAttempts_Ip_User_AttemptedAt").OnTable(LoginAttempt.TableName)
+            .OnColumn(nameof(LoginAttempt.IpAddress)).Ascending()
+            .OnColumn(nameof(LoginAttempt.UsernameOrEmail)).Ascending()
+            .OnColumn(nameof(LoginAttempt.AttemptedAt)).Descending();
     }
 
     public override void Down() {
@@ -466,6 +478,7 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         DropTableIfExists(EmailLog.TableName);
         DropTableIfExists(AuditLog.AuditLog.TableName);
+        DropTableIfExists(LoginAttempt.TableName);
 
         EnableForeignKeyChecks();
     }

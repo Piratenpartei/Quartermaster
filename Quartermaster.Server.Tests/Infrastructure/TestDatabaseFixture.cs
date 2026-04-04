@@ -69,6 +69,7 @@ public static class TestDatabaseFixture {
             TRUNCATE TABLE UserChapterPermissions;
             TRUNCATE TABLE UserGlobalPermissions;
             TRUNCATE TABLE Tokens;
+            TRUNCATE TABLE LoginAttempts;
             TRUNCATE TABLE Users;
             TRUNCATE TABLE Chapters;
             TRUNCATE TABLE AdminDivisionImportLogs;
