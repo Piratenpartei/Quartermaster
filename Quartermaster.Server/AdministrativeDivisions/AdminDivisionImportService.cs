@@ -39,7 +39,7 @@ public class AdminDivisionImportService {
     public AdminDivisionImportLog Import() {
         var sw = Stopwatch.StartNew();
         var errors = new List<string>();
-        int added = 0, updated = 0, removed = 0, remapped = 0, orphaned = 0;
+        var changes = new ChangeResult();
 
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DbContext>();
@@ -51,15 +51,14 @@ public class AdminDivisionImportService {
         if (!File.Exists(baseFile) || !File.Exists(postcodeFile)) {
             _logger.LogWarning("Admin division files not found: {Base}, {PostCodes}", baseFile, postcodeFile);
             HasCompletedInitialLoad = true;
-            return CreateLog("", 0, 0, 0, 0, 0, 0, 1,
-                "Admin division files not found", 0);
+            return CreateLog("", 0, new ChangeResult(), 1, "Admin division files not found", 0);
         }
 
         var fileHash = ComputeFileHash(baseFile, postcodeFile);
         if (_lastFileHash == fileHash) {
             _logger.LogDebug("Admin division files unchanged, skipping import");
             HasCompletedInitialLoad = true;
-            return CreateLog(fileHash, 0, 0, 0, 0, 0, 0, 0, null, 0);
+            return CreateLog(fileHash, 0, new ChangeResult(), 0, null, 0);
         }
 
         List<AdministrativeDivision> parsed;
@@ -68,7 +67,7 @@ public class AdminDivisionImportService {
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
             HasCompletedInitialLoad = true;
-            return CreateLog(fileHash, 0, 0, 0, 0, 0, 0, 1, ex.Message, sw.ElapsedMilliseconds);
+            return CreateLog(fileHash, 0, new ChangeResult(), 1, ex.Message, sw.ElapsedMilliseconds);
         }
 
         var existingCount = context.AdministrativeDivisions.Count();
@@ -77,22 +76,17 @@ public class AdminDivisionImportService {
             // Fresh load — just bulk insert
             _logger.LogInformation("Loading {Count} admin divisions (initial load)", parsed.Count);
             adminDivRepo.CreateBulk(parsed);
-            added = parsed.Count;
+            changes.Added = parsed.Count;
         } else {
             // Change detection — compare parsed data with existing DB records
-            var result = ApplyChanges(context, adminDivRepo, parsed, errors);
-            added = result.Added;
-            updated = result.Updated;
-            removed = result.Removed;
-            remapped = result.Remapped;
-            orphaned = result.Orphaned;
+            changes = ApplyChanges(context, adminDivRepo, parsed, errors);
         }
 
         sw.Stop();
         _lastFileHash = fileHash;
         HasCompletedInitialLoad = true;
 
-        var log = CreateLog(fileHash, parsed.Count, added, updated, removed, remapped, orphaned,
+        var log = CreateLog(fileHash, parsed.Count, changes,
             errors.Count, errors.Count > 0 ? string.Join("\n", errors) : null, sw.ElapsedMilliseconds);
 
         // Persist log
@@ -100,18 +94,19 @@ public class AdminDivisionImportService {
 
         _logger.LogInformation(
             "Admin division import complete: {Total} total, {Added} added, {Updated} updated, {Removed} removed, {Remapped} remapped, {Orphaned} orphaned, {Errors} errors in {Duration}ms",
-            parsed.Count, added, updated, removed, remapped, orphaned, errors.Count, sw.ElapsedMilliseconds);
+            parsed.Count, changes.Added, changes.Updated, changes.Removed, changes.Remapped, changes.Orphaned,
+            errors.Count, sw.ElapsedMilliseconds);
 
         return log;
     }
 
-    private (int Added, int Updated, int Removed, int Remapped, int Orphaned) ApplyChanges(
+    private ChangeResult ApplyChanges(
         DbContext context,
         AdministrativeDivisionRepository adminDivRepo,
         List<AdministrativeDivision> parsed,
         List<string> errors) {
 
-        int added = 0, updated = 0, removed = 0, remapped = 0, orphaned = 0;
+        var result = new ChangeResult();
 
         var existing = context.AdministrativeDivisions.ToList();
         var existingByAdminCode = existing
@@ -132,11 +127,15 @@ public class AdminDivisionImportService {
             }
         }
 
-        // Find new divisions
+        // Build lookup from parsed Id to parsed division (for parent resolution)
+        var parsedById = parsed.ToDictionary(p => p.Id, p => p);
+
+        // Find new divisions (parsed list is ordered by depth, so parents are inserted first)
         foreach (var (adminCode, div) in parsedByAdminCode) {
             if (!existingByAdminCode.ContainsKey(adminCode)) {
+                RemapParentIdToExistingDb(div, parsedById, existingByAdminCode);
                 adminDivRepo.Create(div);
-                added++;
+                result.Added++;
             }
         }
 
@@ -151,40 +150,21 @@ public class AdminDivisionImportService {
                     .Set(d => d.Name, div.Name)
                     .Set(d => d.PostCodes, div.PostCodes)
                     .Update();
-                updated++;
+                result.Updated++;
             }
         }
 
-        // Find removed divisions
+        // Phase 1: Decide remap/orphan for removed divisions and update member/chapter references
+        var toDelete = new List<(AdministrativeDivision Division, AdministrativeDivision Replacement)>();
+
         foreach (var (adminCode, ex) in existingByAdminCode) {
             if (parsedByAdminCode.ContainsKey(adminCode))
                 continue;
 
-            // Try remapping by postcode
-            AdministrativeDivision? replacement = null;
-            if (!string.IsNullOrEmpty(ex.PostCodes)) {
-                var firstPostcode = ex.PostCodes.Split(',').FirstOrDefault();
-                if (firstPostcode != null && parsedByPostcode.TryGetValue(firstPostcode, out var candidate)) {
-                    // Verify the candidate exists in DB (may have just been added)
-                    var candidateInDb = existingByAdminCode.GetValueOrDefault(candidate.AdminCode ?? "")
-                        ?? context.AdministrativeDivisions
-                            .Where(d => d.AdminCode == candidate.AdminCode)
-                            .FirstOrDefault();
-
-                    if (candidateInDb != null)
-                        replacement = candidateInDb;
-                }
-            }
-
-            // Try parent division as fallback
-            if (replacement == null && ex.ParentId.HasValue) {
-                var parent = existing.FirstOrDefault(e => e.Id == ex.ParentId.Value);
-                if (parent != null && parsedByAdminCode.ContainsKey(parent.AdminCode ?? ""))
-                    replacement = parent;
-            }
+            var replacement = FindReplacement(ex, existing, parsedByAdminCode, parsedByPostcode,
+                existingByAdminCode, context);
 
             if (replacement != null) {
-                // Remap members and chapters
                 var membersUpdated = context.Members
                     .Where(m => m.ResidenceAdministrativeDivisionId == ex.Id)
                     .Set(m => m.ResidenceAdministrativeDivisionId, replacement.Id)
@@ -195,18 +175,13 @@ public class AdminDivisionImportService {
                     .Set(c => c.AdministrativeDivisionId, replacement.Id)
                     .Update();
 
-                // Delete the old division
-                context.AdministrativeDivisions
-                    .Where(d => d.Id == ex.Id)
-                    .Delete();
-
-                remapped++;
+                toDelete.Add((ex, replacement));
+                result.Remapped++;
                 if (membersUpdated > 0 || chaptersUpdated > 0) {
                     errors.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters moved");
                 }
             } else {
-                // Orphan — keep in DB, log for admin review
-                orphaned++;
+                result.Orphaned++;
                 var memberCount = context.Members
                     .Where(m => m.ResidenceAdministrativeDivisionId == ex.Id)
                     .Count();
@@ -217,26 +192,97 @@ public class AdminDivisionImportService {
                 errors.Add($"ORPHANED division '{ex.Name}' ({adminCode}): no replacement found. {memberCount} members, {chapterCount} chapters still reference it.");
             }
 
-            removed++;
+            result.Removed++;
         }
 
-        return (added, updated, removed, remapped, orphaned);
+        // Phase 2: Delete remapped divisions (deepest first to respect FK constraints)
+        foreach (var (div, replacement) in toDelete.OrderByDescending(x => x.Division.Depth)) {
+            // Re-parent any remaining children (orphans or not yet deleted) to the replacement
+            context.AdministrativeDivisions
+                .Where(d => d.ParentId == div.Id && d.Id != div.Id)
+                .Set(d => d.ParentId, replacement.Id)
+                .Update();
+
+            context.AdministrativeDivisions
+                .Where(d => d.Id == div.Id)
+                .Delete();
+        }
+
+        return result;
     }
 
-    private static AdminDivisionImportLog CreateLog(string fileHash, int total, int added, int updated,
-        int removed, int remapped, int orphaned, int errorCount, string? errors, long durationMs) {
+    private static void RemapParentIdToExistingDb(
+        AdministrativeDivision div,
+        Dictionary<Guid, AdministrativeDivision> parsedById,
+        Dictionary<string, AdministrativeDivision> existingByAdminCode) {
+
+        if (!div.ParentId.HasValue)
+            return;
+        if (!parsedById.TryGetValue(div.ParentId.Value, out var parsedParent))
+            return;
+        if (string.IsNullOrEmpty(parsedParent.AdminCode))
+            return;
+        if (!existingByAdminCode.TryGetValue(parsedParent.AdminCode, out var dbParent))
+            return;
+
+        div.ParentId = dbParent.Id;
+    }
+
+    private static AdministrativeDivision? FindReplacement(
+        AdministrativeDivision removed,
+        List<AdministrativeDivision> existing,
+        Dictionary<string, AdministrativeDivision> parsedByAdminCode,
+        Dictionary<string, AdministrativeDivision> parsedByPostcode,
+        Dictionary<string, AdministrativeDivision> existingByAdminCode,
+        DbContext context) {
+
+        // Try remapping by postcode
+        if (!string.IsNullOrEmpty(removed.PostCodes)) {
+            var firstPostcode = removed.PostCodes.Split(',').FirstOrDefault();
+            if (firstPostcode != null && parsedByPostcode.TryGetValue(firstPostcode, out var candidate)) {
+                var candidateInDb = existingByAdminCode.GetValueOrDefault(candidate.AdminCode ?? "")
+                    ?? context.AdministrativeDivisions
+                        .Where(d => d.AdminCode == candidate.AdminCode)
+                        .FirstOrDefault();
+
+                if (candidateInDb != null)
+                    return candidateInDb;
+            }
+        }
+
+        // Try parent division as fallback
+        if (!removed.ParentId.HasValue)
+            return null;
+
+        var parent = existing.FirstOrDefault(e => e.Id == removed.ParentId.Value);
+        if (parent != null && parsedByAdminCode.ContainsKey(parent.AdminCode ?? ""))
+            return parent;
+
+        return null;
+    }
+
+    private static AdminDivisionImportLog CreateLog(string fileHash, int total, ChangeResult changes,
+        int errorCount, string? errors, long durationMs) {
         return new AdminDivisionImportLog {
             ImportedAt = DateTime.UtcNow,
             FileHash = fileHash,
             TotalRecords = total,
-            AddedRecords = added,
-            UpdatedRecords = updated,
-            RemovedRecords = removed,
-            RemappedRecords = remapped,
-            OrphanedRecords = orphaned,
+            AddedRecords = changes.Added,
+            UpdatedRecords = changes.Updated,
+            RemovedRecords = changes.Removed,
+            RemappedRecords = changes.Remapped,
+            OrphanedRecords = changes.Orphaned,
             ErrorCount = errorCount,
             Errors = errors,
             DurationMs = durationMs
         };
+    }
+
+    public class ChangeResult {
+        public int Added { get; set; }
+        public int Updated { get; set; }
+        public int Removed { get; set; }
+        public int Remapped { get; set; }
+        public int Orphaned { get; set; }
     }
 }

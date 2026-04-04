@@ -48,6 +48,44 @@ else
 if (value == null) return;
 ```
 
+## Complex Conditionals
+
+- If an `if` statement needs more than two lines for its conditions, extract it into a method using guard clauses
+- Rule of thumb: simple conditions (e.g., null checks) can have up to 4 in one `if`; complex conditions should be extracted sooner
+- The extracted method should use early returns (guard clauses) checking one condition at a time
+
+```csharp
+// OK: simple conditions, fits naturally
+if (value != null && value.IsValid && items.Count > 0)
+    Process(value);
+
+// WRONG: too many complex conditions stacked in one if
+if (div.ParentId.HasValue
+    && parsedById.TryGetValue(div.ParentId.Value, out var parsedParent)
+    && !string.IsNullOrEmpty(parsedParent.AdminCode)
+    && existingByAdminCode.TryGetValue(parsedParent.AdminCode, out var dbParent)) {
+    div.ParentId = dbParent.Id;
+}
+
+// RIGHT: extract into a method with guard clauses
+private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
+    if (!div.ParentId.HasValue)
+        return null;
+    if (!parsedById.TryGetValue(div.ParentId.Value, out var parsedParent))
+        return null;
+    if (string.IsNullOrEmpty(parsedParent.AdminCode))
+        return null;
+    if (!existingByAdminCode.TryGetValue(parsedParent.AdminCode, out var dbParent))
+        return null;
+    return dbParent.Id;
+}
+```
+
+## Tuples
+
+- Tuples are capped at 3 values maximum
+- For return types with more than 3 values, create a named class or record instead
+
 ## Blazor Components
 
 - Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)
