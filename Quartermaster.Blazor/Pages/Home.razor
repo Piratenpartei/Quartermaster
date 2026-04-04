@@ -1,43 +1,146 @@
 @page "/"
-@inject HttpClient Http
-@inject Quartermaster.Blazor.Services.ToastService ToastService
+@using Quartermaster.Api.Dashboard
+@using System.Globalization
 
 <PageTitle>Home</PageTitle>
 
-<h1>Quartermaster</h1>
+<h1 class="mb-4">Quartermaster</h1>
 
-<p>Willkommen im Quartermaster.</p>
-
-<div class="card mt-4" style="max-width: 400px;">
-    <div class="card-body">
-        <h5>Entwicklerwerkzeuge</h5>
-        <button class="btn btn-outline-warning" @onclick="SeedTestData" disabled="@Seeding">
-            @if (Seeding) {
-                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-            }
-            Testdaten generieren
-        </button>
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
     </div>
-</div>
+} else if (Dashboard != null) {
+    @if (Dashboard.PendingApplications != null) {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-plus"></i> Offene Mitgliedsanträge
+                    <span class="badge bg-secondary ms-2">@Dashboard.PendingApplications.TotalCount</span>
+                </h5>
+                <a href="/Administration/MembershipApplications" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
+            </div>
+            @if (Dashboard.PendingApplications.Items.Count == 0) {
+                <div class="card-body text-secondary">Keine offenen Anträge.</div>
+            } else {
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Gliederung</th>
+                            <th>Eingereicht</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in Dashboard.PendingApplications.Items) {
+                            <tr>
+                                <td><a href="/Administration/MembershipApplications/@app.Id">@app.FirstName @app.LastName</a></td>
+                                <td>@app.ChapterName</td>
+                                <td>@app.SubmittedAt.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
 
-@code {
-    private bool Seeding;
+    @if (Dashboard.PendingDueSelections != null) {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-currency-euro"></i> Offene Beitragseinstufungen
+                    <span class="badge bg-secondary ms-2">@Dashboard.PendingDueSelections.TotalCount</span>
+                </h5>
+                <a href="/Administration/DueSelections" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
+            </div>
+            @if (Dashboard.PendingDueSelections.Items.Count == 0) {
+                <div class="card-body text-secondary">Keine offenen Einstufungen.</div>
+            } else {
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="text-end">Gewählter Beitrag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ds in Dashboard.PendingDueSelections.Items) {
+                            <tr>
+                                <td><a href="/Administration/DueSelections/@ds.Id">@ds.FirstName @ds.LastName</a></td>
+                                <td class="text-end">@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
 
-    private async Task SeedTestData() {
-        Seeding = true;
-        StateHasChanged();
+    @if (Dashboard.OpenMotions != null) {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-text"></i> Offene Anträge
+                    <span class="badge bg-secondary ms-2">@Dashboard.OpenMotions.TotalCount</span>
+                </h5>
+                <a href="/Administration/Motions" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
+            </div>
+            @if (Dashboard.OpenMotions.Items.Count == 0) {
+                <div class="card-body text-secondary">Keine offenen Anträge.</div>
+            } else {
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Titel</th>
+                            <th>Gliederung</th>
+                            <th>Erstellt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Dashboard.OpenMotions.Items) {
+                            <tr>
+                                <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
+                                <td>@m.ChapterName</td>
+                                <td>@m.CreatedAt.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
 
-        try {
-            var result = await Http.PostAsync("/api/testdata/seed", null);
-            if (result.IsSuccessStatusCode)
-                ToastService.Toast("Testdaten wurden generiert!", "success");
-            else
-                ToastService.Toast("Fehler beim Generieren der Testdaten.", "danger");
-        } catch {
-            ToastService.Toast("Fehler beim Generieren der Testdaten.", "danger");
-        }
+    @if (Dashboard.UpcomingEvents != null && Dashboard.UpcomingEvents.Count > 0) {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-event"></i> Kommende Events
+                </h5>
+                <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
+            </div>
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Gliederung</th>
+                        <th>Datum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Dashboard.UpcomingEvents) {
+                        <tr>
+                            <td><a href="/Administration/Events/@ev.Id">@ev.PublicName</a></td>
+                            <td>@ev.ChapterName</td>
+                            <td>@(ev.EventDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 
-        Seeding = false;
-        StateHasChanged();
+    @if (!HasAnyWidget) {
+        <p class="text-secondary">Willkommen im Quartermaster.</p>
     }
 }

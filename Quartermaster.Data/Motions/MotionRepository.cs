@@ -55,6 +55,28 @@ public class MotionRepository {
         return (items, totalCount);
     }
 
+    public int CountOpen(List<Guid>? allowedChapterIds) {
+        var q = _context.Motions
+            .Where(m => m.DeletedAt == null && m.ApprovalStatus == MotionApprovalStatus.Pending);
+
+        if (allowedChapterIds != null)
+            q = q.Where(m => allowedChapterIds.Contains(m.ChapterId));
+
+        return q.Count();
+    }
+
+    public (List<Motion> Items, int TotalCount) ListOpen(List<Guid>? allowedChapterIds, int limit) {
+        var q = _context.Motions
+            .Where(m => m.DeletedAt == null && m.ApprovalStatus == MotionApprovalStatus.Pending);
+
+        if (allowedChapterIds != null)
+            q = q.Where(m => allowedChapterIds.Contains(m.ChapterId));
+
+        var total = q.Count();
+        var items = q.OrderByDescending(m => m.CreatedAt).Take(limit).ToList();
+        return (items, total);
+    }
+
     public List<MotionVote> GetVotes(Guid motionId)
         => _context.MotionVotes.Where(v => v.MotionId == motionId).ToList();
 

@@ -127,6 +127,23 @@ public class EventRepository {
         return (items, totalCount);
     }
 
+    public List<Event> GetUpcoming(List<EventVisibility>? allowedVisibilities, List<Guid>? allowedChapterIds, int limit) {
+        var now = DateTime.UtcNow;
+        var q = _context.Events
+            .Where(e => e.DeletedAt == null
+                && e.Status != EventStatus.Archived
+                && e.EventDate != null
+                && e.EventDate >= now);
+
+        if (allowedVisibilities != null)
+            q = q.Where(e => allowedVisibilities.Contains(e.Visibility));
+
+        if (allowedChapterIds != null)
+            q = q.Where(e => allowedChapterIds.Contains(e.ChapterId));
+
+        return q.OrderBy(e => e.EventDate).Take(limit).ToList();
+    }
+
     public List<EventChecklistItem> GetChecklistItems(Guid eventId)
         => _context.EventChecklistItems
             .Where(i => i.EventId == eventId)

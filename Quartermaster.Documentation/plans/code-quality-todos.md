@@ -55,3 +55,12 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **Task:** Walk through the existing test suites and identify edge cases that should be covered. Areas to consider: empty/null inputs, boundary values (0, 1, max), unicode/special characters, timezone edge cases, concurrent modifications, FK cascade behaviors under various delete orders, permission inheritance with deeply-nested chapter trees, malformed CSV rows, duplicate member numbers, expired/invalid tokens, race conditions in background services.
 - **Why:** Tests grew organically alongside features; coverage is adequate for happy paths but edge cases likely vary in depth across suites.
 - **How to apply:** Pick one suite at a time during code quality pass, list missing scenarios, add focused tests.
+
+### ToList vs IEnumerable on endpoint returns
+- **Task:** Audit endpoint DTO construction for unnecessary `.ToList()` calls. Many endpoints shape data with LINQ (`items.Select(...).ToList()`) then pass to `SendAsync`. The JSON serializer can consume `IEnumerable<T>` directly, so eager materialization may be avoidable — potentially saving allocations on large responses.
+- **Caveats to verify per site:**
+  - LinqToDB queries that are still open (deferred execution) — must stay enumerable only if DbContext lifetime is sufficient, otherwise keep `.ToList()`.
+  - Dictionary lookups inside `Select` that reference scope-captured state — safe.
+  - Cases where the list is used twice (e.g., count + iterate) — keep `.ToList()`.
+- **Why:** Pure performance — avoid double allocation when we build a list just to immediately serialize it.
+- **How to apply:** grep for `.ToList();` in `Quartermaster.Server/`, inspect each return path, remove where the DTO list is write-only and deterred execution is safe. Benchmark before/after on a large list endpoint (members, events) to confirm measurable impact before applying broadly.
