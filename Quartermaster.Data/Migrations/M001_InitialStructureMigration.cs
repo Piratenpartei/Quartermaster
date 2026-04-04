@@ -330,6 +330,20 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MemberImportLog.Errors)).AsString(8192).Nullable()
             .WithColumn(nameof(MemberImportLog.DurationMs)).AsInt64();
 
+        Create.Table(AdminDivisionImportLog.TableName)
+            .WithColumn(nameof(AdminDivisionImportLog.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(AdminDivisionImportLog.ImportedAt)).AsDateTime()
+            .WithColumn(nameof(AdminDivisionImportLog.FileHash)).AsString(128)
+            .WithColumn(nameof(AdminDivisionImportLog.TotalRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.AddedRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.UpdatedRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.RemovedRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.RemappedRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.OrphanedRecords)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.ErrorCount)).AsInt32()
+            .WithColumn(nameof(AdminDivisionImportLog.Errors)).AsString(8192).Nullable()
+            .WithColumn(nameof(AdminDivisionImportLog.DurationMs)).AsInt64();
+
         Create.Table(EventTemplate.TableName)
             .WithColumn(nameof(EventTemplate.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(EventTemplate.Name)).AsString(512)
@@ -432,6 +446,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(Event.TableName);
         DropTableIfExists(EventTemplate.TableName);
         DropTableIfExists(MemberImportLog.TableName);
+        DropTableIfExists(AdminDivisionImportLog.TableName);
         DropTableIfExists(Member.TableName);
         DropTableIfExists(SystemOption.TableName);
         DropTableIfExists(OptionDefinition.TableName);

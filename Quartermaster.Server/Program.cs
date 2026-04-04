@@ -51,6 +51,9 @@ public static class Program {
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
         DbContext.AddRepositories(builder.Services);
 
+        builder.Services.AddSingleton<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportService>();
+        builder.Services.AddHostedService<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportHostedService>();
+
         builder.Services.AddSingleton<MemberImportService>();
         builder.Services.AddHostedService<MemberImportHostedService>();
 

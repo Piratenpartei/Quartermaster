@@ -8,10 +8,13 @@ namespace Quartermaster.Data.AdministrativeDivisions;
 public static class AdministrativeDivisionLoader {
     public static void Load(string baseFilePath, string postcodeFilePath,
         AdministrativeDivisionRepository adminDivRepo) {
-        if (!File.Exists(baseFilePath) || !File.Exists(postcodeFilePath))
-            throw new InvalidOperationException();
+        var data = Parse(baseFilePath, postcodeFilePath);
+        adminDivRepo.CreateBulk(data);
+    }
 
-        Console.WriteLine("Loading AdminDivs from files");
+    public static List<AdministrativeDivision> Parse(string baseFilePath, string postcodeFilePath) {
+        if (!File.Exists(baseFilePath) || !File.Exists(postcodeFilePath))
+            throw new InvalidOperationException($"Admin division files not found: {baseFilePath}, {postcodeFilePath}");
         var loadedDivisions = new Dictionary<string, AdminDivision>();
         var otherDivisionsLookup = new Dictionary<string, List<AdminDivision>>();
         var admin3Lookup = new Dictionary<string, List<AdminDivision>>();
@@ -19,7 +22,6 @@ public static class AdministrativeDivisionLoader {
         loadedDivisions.Add(world.GetAdminCode(), world);
 
         // Pass 1: Collect base data
-        Console.WriteLine("Loading AdminDivs: Pass 1");
         foreach (var line in File.ReadLines(baseFilePath)) {
             var adminDiv = AdminDivision.FromString(line);
             if (adminDiv == null)
@@ -51,7 +53,6 @@ public static class AdministrativeDivisionLoader {
         }
 
         // Pass 2: Build Admin3 -> Admin4 Lookup
-        Console.WriteLine("Loading AdminDivs: Pass 2");
         foreach (var adminDiv in loadedDivisions.Values) {
             if (adminDiv.Level != AdminLevel.Admin4)
                 continue;
@@ -63,7 +64,6 @@ public static class AdministrativeDivisionLoader {
         }
 
         // Pass 3: Collect post codes
-        Console.WriteLine("Loading AdminDivs: Pass 3");
         foreach (var line in File.ReadLines(postcodeFilePath)) {
             var split = line.Split('\t');
             var postCodeStr = split[1];
@@ -91,7 +91,6 @@ public static class AdministrativeDivisionLoader {
         }
 
         // Pass 4: Pass PostCodes down
-        Console.WriteLine("Loading AdminDivs: Pass 4");
         foreach (var adminDiv in loadedDivisions.Values) {
             if (adminDiv.PostCodes.Count > 0 || adminDiv.Level < AdminLevel.Admin4)
                 continue;
@@ -113,7 +112,6 @@ public static class AdministrativeDivisionLoader {
             }
         }
 
-        Console.WriteLine("Loading AdminDivs: Build");
         var bulkData = new List<AdministrativeDivision>();
         foreach (var adminDiv in loadedDivisions.Values.OrderBy(ad => ad.Level)) {
             loadedDivisions.TryGetValue(adminDiv.GetParentAdminCode(), out var parent);
@@ -128,10 +126,7 @@ public static class AdministrativeDivisionLoader {
             });
         }
 
-        Console.WriteLine("Loading AdminDivs: Insert");
-        adminDivRepo.CreateBulk(bulkData);
-
-        Console.WriteLine("Loading AdminDivs: Done");
+        return bulkData;
     }
 
     private static readonly char[] GermanChars = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];

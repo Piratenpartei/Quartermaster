@@ -22,10 +22,7 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
 
     public void CreateBulk(List<AdministrativeDivision> divisions) => _context.BulkCopy(divisions);
 
-    public void SupplementDefaults(bool includeFromFiles = false) {
-        if (includeFromFiles)
-            SupplementFromFiles();
-
+    public void SupplementDefaults() {
         if (Get(Guid.Empty) == null) {
             Create(new AdministrativeDivision {
                 Id = Guid.Empty,
@@ -70,8 +67,4 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
         return ids;
     }
 
-    public void SupplementFromFiles()
-        => AdministrativeDivisionLoader.Load("DE_Base.txt", "DE_PostCodes.txt", this);
-    public void SupplementFromTestFiles()
-        => AdministrativeDivisionLoader.Load("DE_Base_Test.txt", "DE_PostCodes_Test.txt", this);
 }

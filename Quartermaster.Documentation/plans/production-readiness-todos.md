@@ -107,10 +107,14 @@
 - [x] **Nav visibility based on permissions** — Vorstandsarbeit and System dropdowns hidden when user has none of the required permissions; dividers grouped inside `RequirePermission` blocks to prevent orphans; added `AnyOfChapterPermissions` and `AnyOfPermissions` parameters to `RequirePermission` component
 - [x] **User settings page** — `/Settings` page shows own account info (name, email, login method), global permissions, and chapter permissions; username in nav links to settings page; uses existing AuthService session data (no extra API call)
 - [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
+- [ ] **Background service status admin page** — admin page showing import service statuses (member import + admin division import): last run, result, trigger buttons, error details from import logs
+- [ ] **Member list orphan filter** — add filter on member list to view members with orphaned admin divisions; add manual admin division reassignment on member detail page for orphaned divisions
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing
 - [x] Unit tests for critical business logic — 53 new tests across 7 suites: ChapterRepository (14), OptionRepository.ResolveValue (9), MotionRepository.TryAutoResolve (11), MemberImportService (7), EmailService (7), UserRepository (5); test DB fixture with auto-migration and table cleanup
+- [ ] **Admin division import tests** — test with seeded DB data and known input files: initial load, change detection (added/updated/removed divisions), postcode-based remapping, orphan handling, member/chapter reference updates
+- [ ] **Member import tests with chapters** — test member import with seeded chapters and admin divisions, verify chapter assignment by external code, verify admin division resolution by postcode
 - [ ] Integration tests for API endpoints (deferred)
 - [ ] End-to-end tests for key user flows (deferred)
 

@@ -7,29 +7,34 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.AdministrativeDivisions;
 
 namespace Quartermaster.Server.Members;
 
 public class MemberImportHostedService : BackgroundService {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly MemberImportService _importService;
+    private readonly AdminDivisionImportService _adminDivImportService;
     private readonly ILogger<MemberImportHostedService> _logger;
     private string? _lastFileHash;
 
     public MemberImportHostedService(
         IServiceScopeFactory scopeFactory,
         MemberImportService importService,
+        AdminDivisionImportService adminDivImportService,
         ILogger<MemberImportHostedService> logger) {
         _scopeFactory = scopeFactory;
         _importService = importService;
+        _adminDivImportService = adminDivImportService;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         _logger.LogInformation("Member import hosted service started");
 
-        // Wait a bit for the app to fully initialize
-        await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+        // Wait for admin division import to complete first
+        while (!_adminDivImportService.HasCompletedInitialLoad && !stoppingToken.IsCancellationRequested)
+            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested) {
             try {

@@ -39,6 +39,7 @@ public class DbContext : DataConnection {
     public ITable<OptionDefinition> OptionDefinitions => this.GetTable<OptionDefinition>();
     public ITable<Member> Members => this.GetTable<Member>();
     public ITable<MemberImportLog> MemberImportLogs => this.GetTable<MemberImportLog>();
+    public ITable<AdminDivisionImportLog> AdminDivisionImportLogs => this.GetTable<AdminDivisionImportLog>();
     public ITable<Event> Events => this.GetTable<Event>();
     public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
@@ -68,9 +69,8 @@ public class DbContext : DataConnection {
 
     public static void SupplementDefaults(IServiceProvider services) {
         using var scope = services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults(true);
-        scope.ServiceProvider.GetRequiredService<ChapterRepository>().SupplementDefaults(
-            scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>());
+        // AdminDivs loaded via background service (AdminDivisionImportHostedService)
+        scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
 #if DEBUG
@@ -82,7 +82,5 @@ public class DbContext : DataConnection {
                 scope.ServiceProvider.GetRequiredService<UserChapterPermissionRepository>());
         }
 #endif
-        scope.ServiceProvider.GetRequiredService<ChapterOfficerRepository>().SupplementDefaults(
-            scope.ServiceProvider.GetRequiredService<ChapterRepository>());
     }
 }
