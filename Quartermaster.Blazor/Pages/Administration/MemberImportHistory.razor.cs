@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
 
@@ -20,8 +22,11 @@ public partial class MemberImportHistory {
     private MemberImportLogDTO? ImportResult;
     private bool Loading = true;
     private bool Importing;
+    private bool Uploading;
+    private IBrowserFile? SelectedFile;
     private int CurrentPage = 1;
     private const int PageSize = 25;
+    private const long MaxFileSize = 20 * 1024 * 1024;
     private Guid? ExpandedLogId;
 
     private int TotalPages => Response == null ? 0
@@ -51,6 +56,57 @@ public partial class MemberImportHistory {
         await LoadHistory();
     }
 
+    private void OnFileSelected(InputFileChangeEventArgs e) {
+        var file = e.File;
+
+        if (!file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)) {
+            ToastService.Error("Nur CSV-Dateien sind erlaubt.");
+            SelectedFile = null;
+            return;
+        }
+
+        if (file.Size > MaxFileSize) {
+            ToastService.Error($"Datei zu groß. Maximum {MaxFileSize / 1024 / 1024} MB.");
+            SelectedFile = null;
+            return;
+        }
+
+        SelectedFile = file;
+    }
+
+    private async Task UploadFile() {
+        if (SelectedFile == null)
+            return;
+
+        Uploading = true;
+        StateHasChanged();
+
+        try {
+            using var content = new MultipartFormDataContent();
+            using var stream = SelectedFile.OpenReadStream(MaxFileSize);
+            var streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+            content.Add(streamContent, "File", SelectedFile.Name);
+
+            var response = await Http.PostAsync("/api/members/import/upload", content);
+            if (response.IsSuccessStatusCode) {
+                ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
+                ToastService.Toast("Import abgeschlossen.", "success");
+                SelectedFile = null;
+                CurrentPage = 1;
+                await LoadHistory();
+            } else {
+                var body = await response.Content.ReadAsStringAsync();
+                ToastService.Error(details: body);
+            }
+        } catch (Exception ex) {
+            ToastService.Error(ex);
+        }
+
+        Uploading = false;
+        StateHasChanged();
+    }
+
     private async Task TriggerImport() {
         Importing = true;
         StateHasChanged();
@@ -59,7 +115,7 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import", null);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
-                ToastService.Toast("Import gestartet.", "success");
+                ToastService.Toast("Import abgeschlossen.", "success");
                 CurrentPage = 1;
                 await LoadHistory();
             } else {
@@ -90,5 +146,13 @@ public partial class MemberImportHistory {
         if (ms < 1000)
             return $"{ms}ms";
         return $"{ms / 1000.0:F1}s";
+    }
+
+    private static string FormatFileSize(long bytes) {
+        if (bytes < 1024)
+            return $"{bytes} B";
+        if (bytes < 1024 * 1024)
+            return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / 1024.0 / 1024.0:F1} MB";
     }
 }

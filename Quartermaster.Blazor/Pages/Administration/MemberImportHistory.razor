@@ -1,5 +1,6 @@
 @page "/Administration/Members/Import"
 @using Quartermaster.Api.Members
+@using Microsoft.AspNetCore.Components.Forms
 
 <div class="mb-3">
     <a href="/Administration/Members" class="btn btn-sm btn-outline-secondary">
@@ -18,6 +19,32 @@
             <span> Manueller Import</span>
         }
     </button>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title mb-3">CSV-Datei hochladen</h5>
+        <div class="d-flex align-items-end gap-3">
+            <div class="flex-grow-1">
+                <label class="form-label small text-secondary">CSV-Datei auswählen</label>
+                <InputFile class="form-control" OnChange="OnFileSelected" accept=".csv" disabled="@Uploading" />
+            </div>
+            <button class="btn btn-primary" @onclick="UploadFile" disabled="@(SelectedFile == null || Uploading)">
+                @if (Uploading) {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span> Importiere...</span>
+                } else {
+                    <i class="bi bi-upload"></i>
+                    <span> Hochladen &amp; Importieren</span>
+                }
+            </button>
+        </div>
+        @if (SelectedFile != null) {
+            <div class="mt-2 small text-secondary">
+                @SelectedFile.Name (@FormatFileSize(SelectedFile.Size))
+            </div>
+        }
+    </div>
 </div>
 
 @if (ImportResult != null) {

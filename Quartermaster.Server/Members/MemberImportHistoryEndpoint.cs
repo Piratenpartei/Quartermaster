@@ -37,7 +37,7 @@ public class MemberImportHistoryEndpoint
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo)) {
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

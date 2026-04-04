@@ -34,9 +34,9 @@ public class MemberImportService {
         return Convert.ToHexStringLower(hash);
     }
 
-    public MemberImportLog ImportFromFile(string filePath) {
+    public MemberImportLog ImportFromFile(string filePath, string? displayFileName = null) {
         var sw = Stopwatch.StartNew();
-        var fileName = Path.GetFileName(filePath);
+        var fileName = displayFileName ?? Path.GetFileName(filePath);
         var fileHash = ComputeFileHash(filePath);
         var errors = new List<string>();
         int totalRecords = 0, newRecords = 0, updatedRecords = 0;

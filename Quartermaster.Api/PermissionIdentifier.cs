@@ -16,6 +16,7 @@ public static class PermissionIdentifier {
     public static readonly string ViewAudit = "audit_view";
     public static readonly string ViewEmailLogs = "emaillogs_view";
     public static readonly string TriggerMemberImport = "member_import_trigger";
+    public static readonly string ViewAllMembers = "members_view_all";
 
     // Chapter-scoped permissions
     public static readonly string ViewApplications = "applications_view";
@@ -49,7 +50,7 @@ public static class PermissionIdentifier {
     ];
 
     public static readonly List<string> SystemPermissions = [
-        ViewOptions, ViewUsers, ViewOfficers
+        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport
     ];
 
     // Default permissions auto-granted to chapter officers

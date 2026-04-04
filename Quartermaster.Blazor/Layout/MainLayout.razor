@@ -85,6 +85,11 @@
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/ChapterOfficers">Vorstandsmitglieder</a></li>
                                 </RequirePermission>
+                                <RequirePermission GlobalPermission="@PermissionIdentifier.ViewAllMembers">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/Members">Mitglieder</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Members/Import">Mitgliederimport</a></li>
+                                </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
                     </li>

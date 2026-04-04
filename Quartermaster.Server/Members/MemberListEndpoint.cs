@@ -41,7 +41,8 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
         }
 
         var allowedChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+            userId.Value, PermissionIdentifier.ViewAllMembers, PermissionIdentifier.ViewMembers,
+            _globalPermRepo, _chapterPermRepo, _chapterRepo);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

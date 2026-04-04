@@ -107,7 +107,7 @@
 - [x] **Nav visibility based on permissions** — Vorstandsarbeit and System dropdowns hidden when user has none of the required permissions; dividers grouped inside `RequirePermission` blocks to prevent orphans; added `AnyOfChapterPermissions` and `AnyOfPermissions` parameters to `RequirePermission` component
 - [x] **User settings page** — `/Settings` page shows own account info (name, email, login method), global permissions, and chapter permissions; username in nav links to settings page; uses existing AuthService session data (no extra API call)
 - [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
-- [ ] **Manual member CSV import via web UI** — upload page for importing member CSVs through the browser (needed for trial period: manual imports + DB resets before broad rollout)
+- [x] **Manual member CSV import via web UI** — `POST /api/members/import/upload` accepts multipart CSV, saves to temp, runs `ImportFromFile()`, returns import log; upload card added to existing MemberImportHistory page with `InputFile` component, client-side validation (.csv, 20MB limit), file size display, spinner during import
 - [ ] **Background service status admin page** — admin page showing import service statuses (member import + admin division import): last run, result, trigger buttons, error details from import logs
 - [ ] **Member list orphan filter** — add filter on member list to view members with orphaned admin divisions; add manual admin division reassignment on member detail page for orphaned divisions
 - [ ] Mobile responsiveness review (deferred)
