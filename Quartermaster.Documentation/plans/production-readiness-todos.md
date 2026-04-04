@@ -128,6 +128,6 @@
 - [ ] Event status lifecycle (Draft → Active → Completed → Archived)
 - [ ] SSO/SAML member-to-user linking flow
 - [ ] More checklist item types (extensible enum designed for this)
-- [ ] Admin division search for email targets (AdminDivisionPicker created but backend needs proper member-by-division query)
+- [x] Admin division search for email targets — added `GetDescendantIds` to `AdministrativeDivisionRepository` (BFS traversal mirroring chapter pattern) and `GetByAdministrativeDivisionIds` to `MemberRepository`; `EmailService.FetchTargetMembers` now resolves all descendant divisions so targeting a state reaches all members in cities/counties beneath it. 2 new tests verify hierarchy traversal and leaf-only targeting.
 - [ ] Make events optionally public (currently only visible to logged-in users; may want public subject/description visibility) — also add authorization to `GET /api/events` list endpoint: public events visible to all, private events only to chapter officers of the chapter and parent chapters
 - [x] **Login brute-force protection** — `LoginAttempts` table logs every attempt (success/fail) with IP+username. Lockout triggers when `max_attempts` failures occur for a (IP, user) pair within `duration_minutes`. Both configurable via options system (`auth.lockout.max_attempts`, `auth.lockout.duration_minutes`). Locked requests return 429 without revealing account state. Admin page at `/Administration/LoginLockouts` lists all active lockouts with unlock button; nav link under System > Benutzer.

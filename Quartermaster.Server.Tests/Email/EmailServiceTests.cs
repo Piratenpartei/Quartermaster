@@ -2,6 +2,7 @@ using System.Threading.Channels;
 using LinqToDB;
 using Microsoft.Extensions.Logging.Abstractions;
 using Quartermaster.Data;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Email;
@@ -31,10 +32,11 @@ public class EmailServiceTests : IDisposable {
         _optionRepo = new OptionRepository(_context, auditLog);
         var memberRepo = new MemberRepository(_context, auditLog);
         _chapterRepo = new ChapterRepository(_context);
+        var adminDivRepo = new AdministrativeDivisionRepository(_context);
         _channel = Channel.CreateUnbounded<EmailMessage>();
 
         _service = new EmailService(
-            emailLogRepo, _optionRepo, memberRepo, _chapterRepo,
+            emailLogRepo, _optionRepo, memberRepo, _chapterRepo, adminDivRepo,
             _channel, NullLogger<EmailService>.Instance);
 
         // Seed chapter
@@ -201,6 +203,91 @@ public class EmailServiceTests : IDisposable {
             null, null);
 
         await Assert.That(count).IsEqualTo(3);
+        await Assert.That(error).IsNull();
+    }
+
+    [Test]
+    public async Task SendEmail_AdminDivisionTarget_IncludesDescendants() {
+        // Seed 3-level hierarchy: State → County → City
+        var stateId = Guid.NewGuid();
+        var countyId = Guid.NewGuid();
+        var cityId = Guid.NewGuid();
+
+        _context.Insert(new AdministrativeDivision {
+            Id = stateId, Name = "State", Depth = 4, AdminCode = "ST"
+        });
+        _context.Insert(new AdministrativeDivision {
+            Id = countyId, Name = "County", Depth = 5, AdminCode = "CNT", ParentId = stateId
+        });
+        _context.Insert(new AdministrativeDivision {
+            Id = cityId, Name = "City", Depth = 6, AdminCode = "CITY", ParentId = countyId
+        });
+
+        // Seed members at different levels
+        _context.Insert(new Member {
+            MemberNumber = 9001, FirstName = "StateResident", LastName = "S",
+            EMail = "state@test.com",
+            ResidenceAdministrativeDivisionId = stateId,
+            LastImportedAt = DateTime.UtcNow
+        });
+        _context.Insert(new Member {
+            MemberNumber = 9002, FirstName = "CountyResident", LastName = "C",
+            EMail = "county@test.com",
+            ResidenceAdministrativeDivisionId = countyId,
+            LastImportedAt = DateTime.UtcNow
+        });
+        _context.Insert(new Member {
+            MemberNumber = 9003, FirstName = "CityResident", LastName = "Ci",
+            EMail = "city@test.com",
+            ResidenceAdministrativeDivisionId = cityId,
+            LastImportedAt = DateTime.UtcNow
+        });
+
+        _optionRepo.SetValue("test.template", null, "Hello");
+
+        // Targeting the state should reach all 3 (state + descendants)
+        var (count, error) = _service.SendEmail(
+            "AdministrativeDivision", stateId, "test.template",
+            null, null);
+
+        await Assert.That(count).IsEqualTo(3);
+        await Assert.That(error).IsNull();
+    }
+
+    [Test]
+    public async Task SendEmail_AdminDivisionTarget_LeafReachesOnlyLeafMembers() {
+        // Same hierarchy but target the leaf (city)
+        var stateId = Guid.NewGuid();
+        var cityId = Guid.NewGuid();
+
+        _context.Insert(new AdministrativeDivision {
+            Id = stateId, Name = "State", Depth = 4, AdminCode = "ST2"
+        });
+        _context.Insert(new AdministrativeDivision {
+            Id = cityId, Name = "City", Depth = 6, AdminCode = "CITY2", ParentId = stateId
+        });
+
+        _context.Insert(new Member {
+            MemberNumber = 9101, FirstName = "StateResident", LastName = "S",
+            EMail = "state@test.com",
+            ResidenceAdministrativeDivisionId = stateId,
+            LastImportedAt = DateTime.UtcNow
+        });
+        _context.Insert(new Member {
+            MemberNumber = 9102, FirstName = "CityResident", LastName = "Ci",
+            EMail = "city@test.com",
+            ResidenceAdministrativeDivisionId = cityId,
+            LastImportedAt = DateTime.UtcNow
+        });
+
+        _optionRepo.SetValue("test.template", null, "Hello");
+
+        // Targeting the city should only reach the city resident (no ancestors)
+        var (count, error) = _service.SendEmail(
+            "AdministrativeDivision", cityId, "test.template",
+            null, null);
+
+        await Assert.That(count).IsEqualTo(1);
         await Assert.That(error).IsNull();
     }
 

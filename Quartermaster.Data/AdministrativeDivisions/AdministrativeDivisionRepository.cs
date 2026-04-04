@@ -65,6 +65,27 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
         return (items, totalCount);
     }
 
+    public List<Guid> GetDescendantIds(Guid divisionId) {
+        var result = new List<Guid> { divisionId };
+        var queue = new Queue<Guid>();
+        queue.Enqueue(divisionId);
+
+        while (queue.Count > 0) {
+            var parentId = queue.Dequeue();
+            var children = _context.AdministrativeDivisions
+                .Where(d => d.ParentId == parentId && d.Id != parentId)
+                .Select(d => d.Id)
+                .ToList();
+
+            foreach (var childId in children) {
+                result.Add(childId);
+                queue.Enqueue(childId);
+            }
+        }
+
+        return result;
+    }
+
     public List<Guid> GetAncestorIds(Guid divisionId) {
         var ids = new List<Guid>();
         var current = Get(divisionId);

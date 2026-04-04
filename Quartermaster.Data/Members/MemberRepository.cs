@@ -46,6 +46,13 @@ public class MemberRepository {
             .ToList();
     }
 
+    public List<Member> GetByAdministrativeDivisionIds(List<Guid> divisionIds) {
+        return _context.Members
+            .Where(m => m.ResidenceAdministrativeDivisionId != null
+                && divisionIds.Contains(m.ResidenceAdministrativeDivisionId.Value))
+            .ToList();
+    }
+
     public (List<Member> Items, int TotalCount) Search(
         string? query, Guid? chapterId, int page, int pageSize,
         List<Guid>? allowedChapterIds = null, bool orphanedOnly = false) {

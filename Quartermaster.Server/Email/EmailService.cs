@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Rendering;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
@@ -16,6 +17,7 @@ public class EmailService {
     private readonly OptionRepository _optionRepo;
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly Channel<EmailMessage> _emailChannel;
     private readonly ILogger<EmailService> _logger;
 
@@ -24,12 +26,14 @@ public class EmailService {
         OptionRepository optionRepo,
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
+        AdministrativeDivisionRepository adminDivRepo,
         Channel<EmailMessage> emailChannel,
         ILogger<EmailService> logger) {
         _emailLogRepo = emailLogRepo;
         _optionRepo = optionRepo;
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
+        _adminDivRepo = adminDivRepo;
         _emailChannel = emailChannel;
         _logger = logger;
     }
@@ -130,8 +134,10 @@ public class EmailService {
             return _memberRepo.GetByChapterIds(chapterIds);
         }
 
-        if (targetType == "AdministrativeDivision" && targetId != Guid.Empty)
-            return _memberRepo.GetByAdministrativeDivisionId(targetId);
+        if (targetType == "AdministrativeDivision" && targetId != Guid.Empty) {
+            var divisionIds = _adminDivRepo.GetDescendantIds(targetId);
+            return _memberRepo.GetByAdministrativeDivisionIds(divisionIds);
+        }
 
         return new List<Member>();
     }
