@@ -126,7 +126,7 @@
 ## Low Priority (Future Enhancements)
 
 ### Features Mentioned in Specs
-- [ ] Public-facing event page (mentioned as future scope in events design)
+- [x] Public-facing event page — `/Events` (public list) and `/Events/{id}` (public detail) pages, anonymous access. Uses existing list/detail endpoints which already filter by visibility (anonymous users see Public only). Detail page renders event description as markdown (Standard sanitization profile) with `{{date}}` variable replacement. MembersOnly/Private events return "Event ist nicht öffentlich verfügbar" message. No admin UI elements shown (no checklist, no audit log, no actions).
 - [x] Event status lifecycle — `EventStatus` enum (Draft/Active/Completed/Archived) replaces `IsArchived`. Auto-transitions: Draft→Active on first checklist check, Active→Completed when all items done AND event date passed (computed in `RefreshStatus` called from detail endpoint + check endpoint). Manual transitions via `PUT /api/events/{id}/status` with allowed-transition matrix (Draft↔Active, Active↔Completed, Completed↔Archived). Template creation restricted to Draft events. UI shows status badges on list/detail + context-appropriate transition buttons.
 - [x] SSO/SAML member-to-user linking flow — `SsoLoginHelper.ProcessSsoLogin` auto-links on email match: finds member by SSO email → reuses/creates user → links to member → auto-grants officer permissions. Blocks exited members and deleted users. Fails cleanly with NoMember if no email match (by design — no manual linking flow needed).
 - [ ] More checklist item types (extensible enum designed for this)

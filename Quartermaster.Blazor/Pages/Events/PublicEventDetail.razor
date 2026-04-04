@@ -1,0 +1,36 @@
+@page "/Events/{Id:guid}"
+@using Quartermaster.Api.Events
+
+<PageTitle>Event</PageTitle>
+
+<div class="mb-3">
+    <a href="/Events" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (NotFound) {
+    <div class="alert alert-warning">
+        Dieses Event ist nicht öffentlich verfügbar.
+    </div>
+} else if (Event != null) {
+    <h1>@Event.PublicName</h1>
+    <div class="text-secondary mb-4">
+        @Event.ChapterName
+        @if (Event.EventDate.HasValue) {
+            <span> &mdash; @Event.EventDate.Value.ToString("dd.MM.yyyy")</span>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(DescriptionHtml)) {
+        <div class="card">
+            <div class="card-body">
+                @((MarkupString)DescriptionHtml)
+            </div>
+        </div>
+    }
+}

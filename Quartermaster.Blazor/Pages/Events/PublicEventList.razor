@@ -1,0 +1,33 @@
+@page "/Events"
+@using Quartermaster.Api.Events
+
+<PageTitle>Events</PageTitle>
+
+<h1 class="mb-4">Events</h1>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response == null || Response.Items.Count == 0) {
+    <p class="text-secondary">Aktuell sind keine öffentlichen Events angekündigt.</p>
+} else {
+    <div class="list-group">
+        @foreach (var ev in Response.Items) {
+            <a href="/Events/@ev.Id" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">@ev.PublicName</h5>
+                        <small class="text-secondary">@ev.ChapterName</small>
+                    </div>
+                    @if (ev.EventDate.HasValue) {
+                        <span class="text-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            @ev.EventDate.Value.ToString("dd.MM.yyyy")
+                        </span>
+                    }
+                </div>
+            </a>
+        }
+    </div>
+}
