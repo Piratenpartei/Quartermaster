@@ -16,4 +16,5 @@ public class AdministrativeDivision {
 
     public string? AdminCode { get; set; }
     public string? PostCodes { get; set; }
+    public bool IsOrphaned { get; set; }
 }

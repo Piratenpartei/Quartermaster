@@ -1,0 +1,74 @@
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FastEndpoints;
+using LinqToDB;
+using Quartermaster.Api;
+using Quartermaster.Data;
+using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.Members;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
+
+namespace Quartermaster.Server.Members;
+
+public class MemberAdminDivisionUpdateRequest {
+    public Guid Id { get; set; }
+    public Guid? ResidenceAdministrativeDivisionId { get; set; }
+}
+
+public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpdateRequest> {
+    private readonly MemberRepository _memberRepo;
+    private readonly AdministrativeDivisionRepository _adminDivRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly DbContext _context;
+
+    public MemberAdminDivisionUpdateEndpoint(
+        MemberRepository memberRepo,
+        AdministrativeDivisionRepository adminDivRepo,
+        UserGlobalPermissionRepository globalPermRepo,
+        DbContext context) {
+        _memberRepo = memberRepo;
+        _adminDivRepo = adminDivRepo;
+        _globalPermRepo = globalPermRepo;
+        _context = context;
+    }
+
+    public override void Configure() {
+        Put("/api/members/{Id}/admindivision");
+    }
+
+    public override async Task HandleAsync(MemberAdminDivisionUpdateRequest req, CancellationToken ct) {
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
+        var member = _memberRepo.Get(req.Id);
+        if (member == null) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+
+        if (req.ResidenceAdministrativeDivisionId.HasValue) {
+            var div = _adminDivRepo.Get(req.ResidenceAdministrativeDivisionId.Value);
+            if (div == null) {
+                ThrowError("Verwaltungsbezirk nicht gefunden.");
+                return;
+            }
+        }
+
+        _context.Members
+            .Where(m => m.Id == req.Id)
+            .Set(m => m.ResidenceAdministrativeDivisionId, req.ResidenceAdministrativeDivisionId)
+            .Update();
+
+        await SendOkAsync(ct);
+    }
+}

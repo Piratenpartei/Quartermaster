@@ -48,7 +48,7 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
             return;
         }
 
-        var (items, totalCount) = _memberRepo.Search(req.Query, req.ChapterId, req.Page, req.PageSize, allowedChapterIds);
+        var (items, totalCount) = _memberRepo.Search(req.Query, req.ChapterId, req.Page, req.PageSize, allowedChapterIds, req.OrphanedOnly);
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id, c => c.Name);
 
         var dtos = items.Select(m => new MemberDTO {

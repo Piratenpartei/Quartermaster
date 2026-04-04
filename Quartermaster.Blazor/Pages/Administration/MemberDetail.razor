@@ -53,7 +53,33 @@
                     <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "—")</td></tr>
                     <tr><th>PLZ / Ort</th><td>@Member.PostCode @Member.City</td></tr>
                     <tr><th>Land</th><td>@(Member.Country ?? "—")</td></tr>
-                    <tr><th>Verwaltungsbezirk</th><td>@(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "—" : Member.ResidenceAdministrativeDivisionName)</td></tr>
+                    <tr>
+                        <th>Verwaltungsbezirk</th>
+                        <td>
+                            @if (Member.IsAdminDivisionOrphaned) {
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span>@Member.ResidenceAdministrativeDivisionName</span>
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle"></i> Verwaist
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-end gap-2">
+                                    <div class="flex-grow-1">
+                                        <AdminDivisionPicker Value="@NewAdminDivId" ValueChanged="OnAdminDivChanged" />
+                                    </div>
+                                    <button class="btn btn-sm btn-primary" @onclick="SaveAdminDivision" disabled="@(string.IsNullOrEmpty(NewAdminDivId) || SavingAdminDiv)">
+                                        @if (SavingAdminDiv) {
+                                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                                        } else {
+                                            <span>Zuweisen</span>
+                                        }
+                                    </button>
+                                </div>
+                            } else {
+                                @(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "—" : Member.ResidenceAdministrativeDivisionName)
+                            }
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

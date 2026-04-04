@@ -144,11 +144,12 @@ public class AdminDivisionImportService {
             if (!existingByAdminCode.TryGetValue(adminCode, out var ex))
                 continue;
 
-            if (ex.Name != div.Name || ex.PostCodes != div.PostCodes) {
+            if (ex.Name != div.Name || ex.PostCodes != div.PostCodes || ex.IsOrphaned) {
                 context.AdministrativeDivisions
                     .Where(d => d.Id == ex.Id)
                     .Set(d => d.Name, div.Name)
                     .Set(d => d.PostCodes, div.PostCodes)
+                    .Set(d => d.IsOrphaned, false)
                     .Update();
                 result.Updated++;
             }
@@ -181,6 +182,12 @@ public class AdminDivisionImportService {
                     errors.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters moved");
                 }
             } else {
+                // Mark as orphaned in DB
+                context.AdministrativeDivisions
+                    .Where(d => d.Id == ex.Id)
+                    .Set(d => d.IsOrphaned, true)
+                    .Update();
+
                 result.Orphaned++;
                 var memberCount = context.Members
                     .Where(m => m.ResidenceAdministrativeDivisionId == ex.Id)

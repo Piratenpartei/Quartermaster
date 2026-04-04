@@ -22,6 +22,8 @@ public partial class MemberDetail {
     private MemberDetailDTO? Member;
     private bool Loading = true;
     private List<AuditLogDTO>? AuditLogs;
+    private string NewAdminDivId = "";
+    private bool SavingAdminDiv;
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -32,5 +34,35 @@ public partial class MemberDetail {
         }
 
         Loading = false;
+    }
+
+    private void OnAdminDivChanged(string value) {
+        NewAdminDivId = value;
+    }
+
+    private async Task SaveAdminDivision() {
+        if (string.IsNullOrEmpty(NewAdminDivId) || !Guid.TryParse(NewAdminDivId, out var divId))
+            return;
+
+        SavingAdminDiv = true;
+        StateHasChanged();
+
+        try {
+            var response = await Http.PutAsJsonAsync($"/api/members/{Id}/admindivision",
+                new { ResidenceAdministrativeDivisionId = divId });
+
+            if (response.IsSuccessStatusCode) {
+                ToastService.Toast("Verwaltungsbezirk zugewiesen.", "success");
+                Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
+                NewAdminDivId = "";
+            } else {
+                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+
+        SavingAdminDiv = false;
+        StateHasChanged();
     }
 }

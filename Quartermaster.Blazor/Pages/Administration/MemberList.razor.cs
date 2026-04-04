@@ -21,6 +21,7 @@ public partial class MemberList {
     private const int PageSize = 25;
     private string? SearchQuery;
     private string SelectedChapterIdString = "";
+    private bool OrphanedOnly;
 
     private int TotalPages => Response == null ? 0
         : (int)Math.Ceiling((double)Response.TotalCount / PageSize);
@@ -57,6 +58,8 @@ public partial class MemberList {
                 url += $"&query={Uri.EscapeDataString(SearchQuery)}";
             if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
                 url += $"&chapterId={chapterId}";
+            if (OrphanedOnly)
+                url += "&orphanedOnly=true";
 
             Response = await Http.GetFromJsonAsync<MemberSearchResponse>(url);
         } catch (HttpRequestException ex) {

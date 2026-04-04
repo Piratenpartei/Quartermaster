@@ -48,7 +48,7 @@ public class MemberRepository {
 
     public (List<Member> Items, int TotalCount) Search(
         string? query, Guid? chapterId, int page, int pageSize,
-        List<Guid>? allowedChapterIds = null) {
+        List<Guid>? allowedChapterIds = null, bool orphanedOnly = false) {
 
         var q = _context.Members.AsQueryable();
 
@@ -67,6 +67,15 @@ public class MemberRepository {
 
         if (allowedChapterIds != null)
             q = q.Where(m => m.ChapterId != null && allowedChapterIds.Contains(m.ChapterId.Value));
+
+        if (orphanedOnly) {
+            var orphanedIds = _context.AdministrativeDivisions
+                .Where(d => d.IsOrphaned)
+                .Select(d => d.Id)
+                .ToList();
+            q = q.Where(m => m.ResidenceAdministrativeDivisionId != null
+                && orphanedIds.Contains(m.ResidenceAdministrativeDivisionId.Value));
+        }
 
         var totalCount = q.Count();
         var items = q.OrderBy(m => m.LastName).ThenBy(m => m.FirstName)

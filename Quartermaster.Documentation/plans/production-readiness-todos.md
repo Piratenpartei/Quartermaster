@@ -109,7 +109,7 @@
 - [x] **Invalidate tokens on member exit** — during member import, when ExitDate is newly set and member has a linked user, all tokens for that user are deleted via `TokenRepository.DeleteAllForUser()` to force immediate logout
 - [x] **Manual member CSV import via web UI** — `POST /api/members/import/upload` accepts multipart CSV, saves to temp, runs `ImportFromFile()`, returns import log; upload card added to existing MemberImportHistory page with `InputFile` component, client-side validation (.csv, 20MB limit), file size display, spinner during import
 - [x] **Background service status admin page** — `/Administration/ImportStatus` shows both services: latest run stats, error details, collapsible history tables; CSV upload link; nav under System. Added `ViewAllMembers` global permission, admin div import history endpoint, `GetPermittedChapterIds` overload for split global/chapter permission checks.
-- [ ] **Member list orphan filter** — add filter on member list to view members with orphaned admin divisions; add manual admin division reassignment on member detail page for orphaned divisions
+- [x] **Member list orphan filter** — added `IsOrphaned` flag to `AdministrativeDivision` entity (set during import, cleared when division reappears); `OrphanedOnly` filter on member search request/repository/endpoint; checkbox toggle on member list UI; orphan warning badge + `AdminDivisionPicker` reassignment on member detail page; `PUT /api/members/{id}/admindivision` endpoint for manual reassignment
 - [ ] Mobile responsiveness review (deferred)
 
 ### Testing

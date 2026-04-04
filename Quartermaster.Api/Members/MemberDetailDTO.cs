@@ -36,6 +36,7 @@ public class MemberDetailDTO {
     public string ChapterName { get; set; } = "";
     public Guid? ResidenceAdministrativeDivisionId { get; set; }
     public string ResidenceAdministrativeDivisionName { get; set; } = "";
+    public bool IsAdminDivisionOrphaned { get; set; }
     public Guid? UserId { get; set; }
     public DateTime LastImportedAt { get; set; }
 }

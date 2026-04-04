@@ -54,14 +54,13 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             return;
         }
 
-        if (member.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.ViewMembers, _chapterRepo)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMembers, _globalPermRepo)) {
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
+            if (member.ChapterId.HasValue) {
+                if (!_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.ViewMembers, _chapterRepo)) {
+                    await SendForbiddenAsync(ct);
+                    return;
+                }
+            } else {
                 await SendForbiddenAsync(ct);
                 return;
             }
@@ -75,10 +74,13 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
         }
 
         var adminDivName = "";
+        var isAdminDivOrphaned = false;
         if (member.ResidenceAdministrativeDivisionId.HasValue) {
             var div = _adminDivRepo.Get(member.ResidenceAdministrativeDivisionId.Value);
-            if (div != null)
+            if (div != null) {
                 adminDivName = div.Name;
+                isAdminDivOrphaned = div.IsOrphaned;
+            }
         }
 
         await SendAsync(new MemberDetailDTO {
@@ -115,6 +117,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             ChapterName = chapterName,
             ResidenceAdministrativeDivisionId = member.ResidenceAdministrativeDivisionId,
             ResidenceAdministrativeDivisionName = adminDivName,
+            IsAdminDivisionOrphaned = isAdminDivOrphaned,
             UserId = member.UserId,
             LastImportedAt = member.LastImportedAt
         }, cancellation: ct);

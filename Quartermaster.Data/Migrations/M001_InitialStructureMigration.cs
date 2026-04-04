@@ -45,7 +45,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(AdministrativeDivision.Name)).AsString(256)
             .WithColumn(nameof(AdministrativeDivision.Depth)).AsInt32()
             .WithColumn(nameof(AdministrativeDivision.AdminCode)).AsString(256).Nullable()
-            .WithColumn(nameof(AdministrativeDivision.PostCodes)).AsString(2048).Nullable();
+            .WithColumn(nameof(AdministrativeDivision.PostCodes)).AsString(2048).Nullable()
+            .WithColumn(nameof(AdministrativeDivision.IsOrphaned)).AsBoolean().WithDefaultValue(false);
 
         Create.ForeignKey("FK_AdministrativeDivisions_ParentId_AdministrativeDivisions_Id")
             .FromTable(AdministrativeDivision.TableName).ForeignColumn(nameof(AdministrativeDivision.ParentId))
