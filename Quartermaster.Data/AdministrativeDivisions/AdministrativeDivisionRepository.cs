@@ -55,6 +55,16 @@ public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDiv
         return (items, totalCount);
     }
 
+    public (List<AdminDivisionImportLog> Items, int TotalCount) GetImportHistory(int page, int pageSize) {
+        var q = _context.AdminDivisionImportLogs.AsQueryable();
+        var totalCount = q.Count();
+        var items = q.OrderByDescending(l => l.ImportedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        return (items, totalCount);
+    }
+
     public List<Guid> GetAncestorIds(Guid divisionId) {
         var ids = new List<Guid>();
         var current = Get(divisionId);

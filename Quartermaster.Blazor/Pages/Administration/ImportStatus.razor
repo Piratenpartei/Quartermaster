@@ -1,0 +1,218 @@
+@page "/Administration/ImportStatus"
+@using Quartermaster.Api.Members
+@using Quartermaster.Api.AdministrativeDivisions
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Importstatus</h3>
+</div>
+
+@* --- Member Import --- *@
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Mitgliederimport</h5>
+        <a href="/Administration/Members/Import" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-upload"></i> CSV hochladen
+        </a>
+    </div>
+    <div class="card-body">
+        @if (MemberLoading) {
+            <div class="d-flex justify-content-center my-3">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+        } else if (MemberHistory != null && MemberHistory.Items.Count > 0) {
+            var latest = MemberHistory.Items[0];
+            <div class="row g-3 mb-3">
+                <div class="col-auto">
+                    <span class="text-secondary small">Letzter Import</span><br />
+                    @latest.ImportedAt.ToString("dd.MM.yyyy HH:mm")
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Datei</span><br />
+                    @latest.FileName
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Dauer</span><br />
+                    @FormatDuration(latest.DurationMs)
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Gesamt</span><br />
+                    @latest.TotalRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Neu</span><br />
+                    @latest.NewRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Aktualisiert</span><br />
+                    @latest.UpdatedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Fehler</span><br />
+                    @if (latest.ErrorCount > 0) {
+                        <span class="badge bg-danger">@latest.ErrorCount</span>
+                    } else {
+                        <span class="badge bg-success">0</span>
+                    }
+                </div>
+            </div>
+            @if (latest.ErrorCount > 0 && latest.Errors != null) {
+                <div class="bg-body-secondary p-2 rounded small font-monospace mb-3" style="max-height: 200px; overflow-y: auto;">
+                    @foreach (var error in ParseErrors(latest.Errors)) {
+                        <div>@error</div>
+                    }
+                </div>
+            }
+            <details>
+                <summary class="text-secondary small" style="cursor: pointer;">Verlauf (@MemberHistory.TotalCount Einträge)</summary>
+                <table class="table table-striped table-sm mt-2">
+                    <thead>
+                        <tr>
+                            <th>Zeitpunkt</th>
+                            <th>Datei</th>
+                            <th>Dauer</th>
+                            <th>Gesamt</th>
+                            <th>Neu</th>
+                            <th>Aktualisiert</th>
+                            <th>Fehler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in MemberHistory.Items) {
+                            <tr>
+                                <td>@log.ImportedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@log.FileName</td>
+                                <td>@FormatDuration(log.DurationMs)</td>
+                                <td>@log.TotalRecords</td>
+                                <td>@log.NewRecords</td>
+                                <td>@log.UpdatedRecords</td>
+                                <td>
+                                    @if (log.ErrorCount > 0) {
+                                        <span class="badge bg-danger">@log.ErrorCount</span>
+                                    } else {
+                                        <span class="badge bg-success">0</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </details>
+        } else {
+            <p class="text-secondary mb-0">Noch keine Importe durchgeführt.</p>
+        }
+    </div>
+</div>
+
+@* --- Admin Division Import --- *@
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Verwaltungsgebiete-Import</h5>
+    </div>
+    <div class="card-body">
+        @if (AdminDivLoading) {
+            <div class="d-flex justify-content-center my-3">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+        } else if (AdminDivHistory != null && AdminDivHistory.Items.Count > 0) {
+            var latest = AdminDivHistory.Items[0];
+            <div class="row g-3 mb-3">
+                <div class="col-auto">
+                    <span class="text-secondary small">Letzter Import</span><br />
+                    @latest.ImportedAt.ToString("dd.MM.yyyy HH:mm")
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Dauer</span><br />
+                    @FormatDuration(latest.DurationMs)
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Gesamt</span><br />
+                    @latest.TotalRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Hinzugefügt</span><br />
+                    @latest.AddedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Aktualisiert</span><br />
+                    @latest.UpdatedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Entfernt</span><br />
+                    @latest.RemovedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Umgemappt</span><br />
+                    @latest.RemappedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Verwaist</span><br />
+                    @if (latest.OrphanedRecords > 0) {
+                        <span class="badge bg-warning text-dark">@latest.OrphanedRecords</span>
+                    } else {
+                        <span>0</span>
+                    }
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">Fehler</span><br />
+                    @if (latest.ErrorCount > 0) {
+                        <span class="badge bg-danger">@latest.ErrorCount</span>
+                    } else {
+                        <span class="badge bg-success">0</span>
+                    }
+                </div>
+            </div>
+            @if (latest.Errors != null) {
+                <div class="bg-body-secondary p-2 rounded small font-monospace mb-3" style="max-height: 200px; overflow-y: auto;">
+                    @foreach (var line in latest.Errors.Split('\n')) {
+                        <div>@line</div>
+                    }
+                </div>
+            }
+            <details>
+                <summary class="text-secondary small" style="cursor: pointer;">Verlauf (@AdminDivHistory.TotalCount Einträge)</summary>
+                <table class="table table-striped table-sm mt-2">
+                    <thead>
+                        <tr>
+                            <th>Zeitpunkt</th>
+                            <th>Dauer</th>
+                            <th>Gesamt</th>
+                            <th>Neu</th>
+                            <th>Aktualisiert</th>
+                            <th>Entfernt</th>
+                            <th>Verwaist</th>
+                            <th>Fehler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in AdminDivHistory.Items) {
+                            <tr>
+                                <td>@log.ImportedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@FormatDuration(log.DurationMs)</td>
+                                <td>@log.TotalRecords</td>
+                                <td>@log.AddedRecords</td>
+                                <td>@log.UpdatedRecords</td>
+                                <td>@log.RemovedRecords</td>
+                                <td>
+                                    @if (log.OrphanedRecords > 0) {
+                                        <span class="badge bg-warning text-dark">@log.OrphanedRecords</span>
+                                    } else {
+                                        <span>0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (log.ErrorCount > 0) {
+                                        <span class="badge bg-danger">@log.ErrorCount</span>
+                                    } else {
+                                        <span class="badge bg-success">0</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </details>
+        } else {
+            <p class="text-secondary mb-0">Noch keine Importe durchgeführt.</p>
+        }
+    </div>
+</div>
