@@ -27,6 +27,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Benutzerdaten</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Benutzername</th><td>@(string.IsNullOrEmpty(UserInfo.Username) ? "---" : UserInfo.Username)</td></tr>
@@ -35,6 +36,7 @@
                     <tr><th>Nachname</th><td>@UserInfo.LastName</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

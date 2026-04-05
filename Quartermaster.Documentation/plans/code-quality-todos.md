@@ -60,6 +60,29 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **Task:** Search for region-separator style comments (e.g., `// ---------- X ----------`, `#region`, banner comments that don't describe specific code) and remove them. If code needs visual separation, it should be split into separate methods/files instead.
 - **How to apply:** `grep -rn "^// ----" --include="*.cs"` and review each hit.
 
+### Frontend: extract components for common patterns
+- **Task:** Scan the Blazor frontend for repeated markup patterns and extract them into reusable components.
+- **Likely candidates:**
+  - Admin page header (title + action buttons right-aligned, e.g., "Back" + "New X" buttons)
+  - Card + header + optional "Alle anzeigen" link (dashboard widgets, import status cards)
+  - Empty-state message ("Keine X vorhanden.")
+  - Loading spinner centered in container (repeated `<div class="d-flex justify-content-center my-4"><div class="spinner-border"></div></div>`)
+  - Status/visibility badges with consistent styling per value (event status, motion status, role scope)
+  - Confirmation delete button (outline-danger + trash icon + ConfirmDialog wiring)
+  - Table-with-card wrapper (header + table inside card-body)
+- **How to apply:** Walk the Pages/ directory, identify ≥3 repeated instances of a pattern, extract a component into `Components/`, migrate callers. Measure: lines removed per call site.
+
+### A11y: wire up form label associations properly
+- **Task:** 74 `<label class="form-label">` elements across ~24 files don't have `for=` attributes linking them to their inputs. Currently works in practice for screen readers due to DOM adjacency (Bootstrap's standard pattern), but not semantically correct. Click-on-label-to-focus-input doesn't work either.
+- **Fix:** Either generate unique IDs for each input + matching `for=` on labels, OR nest inputs inside `<label>` elements (valid HTML — no `for`/`id` needed).
+- **Alternative:** Enhance `FormInput`/`FormSelect`/`FormTextarea` components to auto-generate IDs internally and accept a `Label` parameter that handles the association.
+- **High-traffic forms to prioritize:** `Login/Manual.razor`, `MembershipApplication/*`, `Motions/Create.razor`, `DueSelector/*`, `EventDetail.razor`.
+
+### Server error messages: identifiers instead of German strings
+- **Task:** Replace hard-coded German error messages returned from server endpoints (e.g., `ThrowError("Vorlagen können nur aus Entwurfs-Events erstellt werden.")`) with stable identifier codes (e.g., `"error.events.template_requires_draft"`). The frontend translates identifiers into user-facing strings.
+- **Why:** Makes future i18n trivial, decouples server from display language, enables translation of error messages per locale.
+- **How to apply:** Introduce an error catalog (constants or an enum) as the single source of truth for identifiers; refactor `ThrowError`/`AddError` calls to use identifiers; build a translation table on the frontend for the German strings. Touches many endpoints — do in waves.
+
 ### Test coverage review
 - **Task:** Walk through the existing test suites and identify edge cases that should be covered. Areas to consider: empty/null inputs, boundary values (0, 1, max), unicode/special characters, timezone edge cases, concurrent modifications, FK cascade behaviors under various delete orders, permission inheritance with deeply-nested chapter trees, malformed CSV rows, duplicate member numbers, expired/invalid tokens, race conditions in background services.
 - **Why:** Tests grew organically alongside features; coverage is adequate for happy paths but edge cases likely vary in depth across suites.

@@ -27,17 +27,17 @@
                 <div class="input-group flex-grow-1">
                     <input type="text" class="form-control form-control-lg fw-bold"
                            @bind="Event.InternalName" @bind:event="oninput" />
-                    <button class="btn btn-outline-primary" @onclick="SaveTitleEdit">
+                    <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="SaveTitleEdit">
                         <i class="bi bi-check-lg"></i>
                     </button>
-                    <button class="btn btn-outline-secondary" @onclick="() => EditingTitle = false">
+                    <button class="btn btn-outline-secondary" aria-label="Abbrechen" @onclick="() => EditingTitle = false">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
             } else {
                 <h3 class="mb-0">@Event.InternalName</h3>
                 <button class="btn btn-sm btn-outline-secondary border-0" @onclick="() => EditingTitle = true"
-                        title="Bearbeiten">
+                        title="Bearbeiten" aria-label="Bearbeiten">
                     <i class="bi bi-pencil"></i>
                 </button>
             }
@@ -135,10 +135,10 @@
                                     <input type="text" class="form-control" placeholder="Antragstitel"
                                            @bind="EditingMotionTitle" @bind:event="oninput" />
                                 }
-                                <button class="btn btn-outline-primary" @onclick="SaveEditingItem">
+                                <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="SaveEditingItem">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
-                                <button class="btn btn-outline-secondary" @onclick="CancelEditing">
+                                <button class="btn btn-outline-secondary" aria-label="Abbrechen" @onclick="CancelEditing">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
@@ -225,25 +225,25 @@
                                 <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
                                     Bereits erledigt
                                 </button>
-                                <button class="btn btn-outline-info" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
+                                <button class="btn btn-outline-info" aria-label="E-Mail-Vorschau" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
                                     <i class="bi bi-eye"></i>
                                 </button>
                             }
 
                             <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, -1)"
-                                    title="Nach oben">
+                                    title="Nach oben" aria-label="Nach oben">
                                 <i class="bi bi-chevron-up"></i>
                             </button>
                             <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, 1)"
-                                    title="Nach unten">
+                                    title="Nach unten" aria-label="Nach unten">
                                 <i class="bi bi-chevron-down"></i>
                             </button>
                             <button class="btn btn-outline-secondary" @onclick="() => StartEditing(item)"
-                                    title="Bearbeiten">
+                                    title="Bearbeiten" aria-label="Bearbeiten">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-danger" @onclick="() => DeleteChecklistItem(item.Id)"
-                                    title="Entfernen">
+                                    title="Entfernen" aria-label="Entfernen">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -273,7 +273,7 @@
                     <option value="1">Antrag erstellen</option>
                     <option value="2">E-Mail senden</option>
                 </select>
-                <button class="btn btn-outline-secondary" @onclick="() => AddItem(NewItemType)"
+                <button class="btn btn-outline-secondary" aria-label="Eintrag hinzufügen" @onclick="() => AddItem(NewItemType)"
                         disabled="@string.IsNullOrWhiteSpace(NewItemLabel)">
                     <i class="bi bi-plus-lg"></i>
                 </button>

@@ -32,6 +32,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Persönliche Daten</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@Member.FirstName</td></tr>
@@ -42,12 +43,14 @@
                     <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Adresse</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "—")</td></tr>
@@ -82,12 +85,14 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Gliederung</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Gliederung</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
@@ -96,12 +101,14 @@
                     <tr><th>Gemeinde (CSV)</th><td>@(Member.Municipality ?? "—")</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Mitgliedschaft</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Eintrittsdatum</th><td>@(Member.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
@@ -120,12 +127,14 @@
                     }
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Präferenzen</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr>
@@ -180,18 +189,21 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>System</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Verknüpfter Benutzer</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : "Nicht verknüpft")</td></tr>
                     <tr><th>Letzter Import</th><td>@Member.LastImportedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

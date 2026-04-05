@@ -29,6 +29,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Persönliche Daten</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@App.FirstName</td></tr>
@@ -42,12 +43,14 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Adresse</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Straße</th><td>@App.AddressStreet @App.AddressHouseNbr</td></tr>
@@ -55,6 +58,7 @@
                     <tr><th>Gliederung</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "—" : App.ChapterName)</td></tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -63,6 +67,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h5>Beitragseinstufung</h5>
+                <div class="table-responsive">
                 <table class="table table-borderless mb-0">
                     <tbody>
                         <tr>
@@ -89,6 +94,7 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     }
@@ -96,6 +102,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Erklärungen</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr>
@@ -130,6 +137,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
             @if (!string.IsNullOrEmpty(App.ApplicationText)) {
                 <hr />
                 <h6>Nachricht</h6>
@@ -141,6 +149,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Zeitangaben</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Eintritt zum</th><td>@App.EntryDate.ToString("dd.MM.yyyy")</td></tr>
@@ -150,6 +159,7 @@
                     }
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

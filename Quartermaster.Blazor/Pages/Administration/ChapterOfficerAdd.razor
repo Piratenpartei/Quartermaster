@@ -27,6 +27,7 @@
             @if (SearchResults.Items.Count == 0) {
                 <p class="text-secondary">Keine Mitglieder gefunden.</p>
             } else {
+                <div class="table-responsive">
                 <table class="table table-sm table-hover">
                     <thead>
                         <tr>
@@ -51,6 +52,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             }
         }
     </div>

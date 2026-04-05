@@ -29,6 +29,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Details</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Antragsteller</th><td>@Motion.AuthorName</td></tr>
@@ -56,6 +57,7 @@
                     }
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -70,6 +72,7 @@
         <div class="card-body">
             <h5>Abstimmung (@Motion.Votes.Count / @Motion.TotalOfficers Stimmen)</h5>
 
+            <div class="table-responsive">
             <table class="table table-sm mb-0">
                 <thead>
                     <tr>
@@ -103,15 +106,15 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-success btn-sm @(existingVote?.Vote == 0 ? "active" : "")"
-                                            @onclick="() => CastVote(officer.UserId, 0)">
+                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.UserId, 0)">
                                         <i class="bi bi-hand-thumbs-up-fill"></i>
                                     </button>
                                     <button class="btn btn-danger btn-sm @(existingVote?.Vote == 1 ? "active" : "")"
-                                            @onclick="() => CastVote(officer.UserId, 1)">
+                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.UserId, 1)">
                                         <i class="bi bi-hand-thumbs-down-fill"></i>
                                     </button>
                                     <button class="btn btn-secondary btn-sm @(existingVote?.Vote == 2 ? "active" : "")"
-                                            @onclick="() => CastVote(officer.UserId, 2)">
+                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.UserId, 2)">
                                         <i class="bi bi-dash-circle"></i>
                                     </button>
                                 </div>
@@ -120,6 +123,7 @@
                     }
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

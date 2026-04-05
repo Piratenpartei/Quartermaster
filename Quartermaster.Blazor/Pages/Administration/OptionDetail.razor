@@ -63,6 +63,7 @@
                         <h5>Gliederungs-Überschreibungen</h5>
 
                         @if (Option.Overrides.Count > 0) {
+                            <div class="table-responsive">
                             <table class="table table-sm mb-3">
                                 <thead>
                                     <tr>
@@ -86,7 +87,7 @@
                                                         <input type="@(Option.DataType == 1 ? "number" : "text")"
                                                                class="form-control" value="@ov.Value"
                                                                @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
-                                                        <button class="btn btn-outline-primary" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
+                                                        <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
                                                             <i class="bi bi-save"></i>
                                                         </button>
                                                     </div>
@@ -96,6 +97,7 @@
                                     }
                                 </tbody>
                             </table>
+                            </div>
                         } else {
                             <p class="text-secondary">Keine Überschreibungen vorhanden.</p>
                         }
@@ -152,6 +154,7 @@
                                 <code>@schema.VariablePrefix</code>
                                 <span class="text-secondary small">(@schema.ModelName)</span>
                             </h6>
+                            <div class="table-responsive">
                             <table class="table table-sm table-borderless mb-0">
                                 <tbody>
                                     @foreach (var field in schema.Fields) {
@@ -162,7 +165,7 @@
                                             </td>
                                             <td class="py-0 text-end" style="width: 40px;">
                                                 <button class="btn btn-outline-secondary btn-sm py-0 px-1"
-                                                        title="In Template einfügen"
+                                                        title="In Template einfügen" aria-label="In Template einfügen"
                                                         @onclick="() => InsertField(field.FluidExpression)">
                                                     <i class="bi bi-plus-circle" style="font-size: 0.75rem;"></i>
                                                 </button>
@@ -171,6 +174,7 @@
                                     }
                                 </tbody>
                             </table>
+                            </div>
                         }
                     </div>
                 </div>

@@ -30,6 +30,7 @@
                     Keine Variablen gefunden. Verwenden Sie <code>@("{{variableName}}")</code> in Texten, um Variablen zu definieren.
                 </div>
             } else {
+                <div class="table-responsive">
                 <table class="table table-sm">
                     <thead>
                         <tr>
@@ -60,6 +61,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             }
 
             <button class="btn btn-primary" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(TemplateName))">

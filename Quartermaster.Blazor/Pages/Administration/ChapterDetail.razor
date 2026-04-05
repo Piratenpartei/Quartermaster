@@ -22,6 +22,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Details</h5>
+            <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Name</th><td>@Detail.Chapter.Name</td></tr>
@@ -39,6 +40,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 
@@ -51,6 +53,7 @@
                 </a>
             </div>
             @if (Detail.Officers.Count > 0) {
+                <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr>
@@ -67,6 +70,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             } else {
                 <p class="text-secondary mb-0">Keine Vorstandsmitglieder eingetragen.</p>
             }
