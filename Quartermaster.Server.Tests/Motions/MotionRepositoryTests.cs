@@ -13,7 +13,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Motions;
 
-[NotInParallel]
 public class MotionRepositoryTests : IDisposable {
     private DbContext _context = default!;
     private MotionRepository _motionRepo = default!;

@@ -36,7 +36,7 @@ public class AdminDivisionImportService {
         return Convert.ToHexStringLower(SHA256.HashData(combined));
     }
 
-    public AdminDivisionImportLog Import() {
+    public AdminDivisionImportLog Import(string? dataDirectory = null) {
         var sw = Stopwatch.StartNew();
         var errors = new List<string>();
         var changes = new ChangeResult();
@@ -45,8 +45,9 @@ public class AdminDivisionImportService {
         var context = scope.ServiceProvider.GetRequiredService<DbContext>();
         var adminDivRepo = scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>();
 
-        var baseFile = "DE_Base.txt";
-        var postcodeFile = "DE_PostCodes.txt";
+        var dir = dataDirectory ?? Directory.GetCurrentDirectory();
+        var baseFile = Path.Combine(dir, "DE_Base.txt");
+        var postcodeFile = Path.Combine(dir, "DE_PostCodes.txt");
 
         if (!File.Exists(baseFile) || !File.Exists(postcodeFile)) {
             _logger.LogWarning("Admin division files not found: {Base}, {PostCodes}", baseFile, postcodeFile);

@@ -7,7 +7,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Options;
 
-[NotInParallel]
 public class OptionRepositoryTests : IDisposable {
     private DbContext _context = default!;
     private OptionRepository _repo = default!;

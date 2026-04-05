@@ -12,7 +12,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Users;
 
-[NotInParallel]
 public class UserRepositoryTests : IDisposable {
     private DbContext _context = default!;
     private UserRepository _userRepo = default!;

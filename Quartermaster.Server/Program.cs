@@ -19,7 +19,7 @@ using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server;
 
-public static class Program {
+public partial class Program {
     public static void Main(string[] args) {
         if (args.Length > 0 && args[0] == "init-admin") {
             System.Environment.Exit(Quartermaster.Server.Cli.AdminInitCommand.Execute(args));
@@ -28,7 +28,35 @@ public static class Program {
 
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        ConfigureServices(builder);
+
+        builder.Services.AddFluentMigratorCore()
+            .ConfigureRunner(rb => {
+                rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
+                    .ScanIn(typeof(M001_InitialStructureMigration).Assembly).For.Migrations();
+            });
+
+        var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope()) {
+            var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+            migrator.MigrateUp();
+        }
+
+        DbContext.SupplementDefaults(app.Services);
+
+        app.UseHttpsRedirection();
+        ConfigureMiddleware(app);
+
+        app.Run();
+    }
+
+    /// <summary>
+    /// Registers services used by the production app. Does not register the FluentMigrator
+    /// runner (tests handle migrations separately) or the HttpsRedirection middleware.
+    /// Both <see cref="Main"/> and the E2E test factory call this method.
+    /// </summary>
+    public static void ConfigureServices(WebApplicationBuilder builder) {
         builder.Services.AddAuthentication(TokenAuthenticationHandlerOptions.DefaultScheme)
             .AddScheme<TokenAuthenticationHandlerOptions, TokenAuthenticationHandler>(
                 TokenAuthenticationHandlerOptions.DefaultScheme, null);
@@ -38,14 +66,6 @@ public static class Program {
 #if DEBUG
         builder.Services.Configure<RootAccountSettings>(builder.Configuration.GetSection("RootAccountSettings"));
 #endif
-
-        builder.Services.AddFluentMigratorCore()
-            .ConfigureRunner(rb => {
-                var connStr = builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString");
-
-                rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
-                    .ScanIn(typeof(M001_InitialStructureMigration).Assembly).For.Migrations();
-            });
 
         builder.Services.AddLinqToDBContext<DbContext>((provider, options)
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
@@ -72,23 +92,13 @@ public static class Program {
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         });
+    }
 
-        var app = builder.Build();
-
-        using var scope = app.Services.CreateScope();
-        var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-
-// Down migration disabled to preserve data between restarts
-// #if DEBUG
-//         if (migrator.HasMigrationsToApplyDown(0))
-//             migrator.MigrateDown(0);
-// #endif
-
-        migrator.MigrateUp();
-
-        DbContext.SupplementDefaults(app.Services);
-
-        app.UseHttpsRedirection();
+    /// <summary>
+    /// Wires up HTTP middleware. Excludes the HTTPS redirection and migration steps
+    /// (those are host-specific). Both <see cref="Main"/> and the E2E test factory call this.
+    /// </summary>
+    public static void ConfigureMiddleware(WebApplication app) {
         app.UseMiddleware<Quartermaster.Server.Security.SecurityHeadersMiddleware>();
 
         app.UseExceptionHandler(appError => {
@@ -128,7 +138,5 @@ public static class Program {
 #pragma warning disable ASP0014 // MapFallbackToFile does not exist as direct mapping.
         app.UseEndpoints(ep => ep.MapFallbackToFile("index.html"));
 #pragma warning restore ASP0014
-
-        app.Run();
     }
 }

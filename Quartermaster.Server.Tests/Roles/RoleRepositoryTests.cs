@@ -12,7 +12,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Roles;
 
-[NotInParallel]
 public class RoleRepositoryTests : IDisposable {
     private DbContext _context = default!;
     private RoleRepository _roleRepo = default!;

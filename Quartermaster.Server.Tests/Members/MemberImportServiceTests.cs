@@ -10,7 +10,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Members;
 
-[NotInParallel]
 public class MemberImportServiceTests : IDisposable {
     private DbContext _context = default!;
     private IServiceProvider _serviceProvider = default!;

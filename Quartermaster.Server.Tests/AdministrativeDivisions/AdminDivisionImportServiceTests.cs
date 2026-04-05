@@ -10,13 +10,11 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.AdministrativeDivisions;
 
-[NotInParallel]
 public class AdminDivisionImportServiceTests : IDisposable {
     private DbContext _context = default!;
     private IServiceProvider _serviceProvider = default!;
     private AdminDivisionImportService _service = default!;
     private string _tempDir = default!;
-    private string _originalDir = default!;
 
     [Before(Test)]
     public void Setup() {
@@ -29,13 +27,10 @@ public class AdminDivisionImportServiceTests : IDisposable {
 
         _tempDir = Path.Combine(Path.GetTempPath(), "qm_test_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
-        _originalDir = Directory.GetCurrentDirectory();
-        Directory.SetCurrentDirectory(_tempDir);
     }
 
     public void Dispose() {
         _context?.Dispose();
-        Directory.SetCurrentDirectory(_originalDir);
         if (Directory.Exists(_tempDir))
             Directory.Delete(_tempDir, true);
     }
@@ -113,7 +108,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
 
     [Test]
     public async Task Import_FilesNotFound_ReturnsErrorLog() {
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         await Assert.That(log.ErrorCount).IsEqualTo(1);
         await Assert.That(log.Errors).IsNotNull();
@@ -123,9 +118,9 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_SameFileHash_SkipsImport() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         await Assert.That(log.TotalRecords).IsEqualTo(0);
         await Assert.That(log.AddedRecords).IsEqualTo(0);
@@ -137,7 +132,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
 
         await Assert.That(_service.HasCompletedInitialLoad).IsFalse();
 
-        _service.Import();
+        _service.Import(_tempDir);
 
         await Assert.That(_service.HasCompletedInitialLoad).IsTrue();
     }
@@ -150,7 +145,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
     public async Task Import_EmptyDatabase_BulkInsertsAllDivisions() {
         WriteInitialFiles();
 
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         await Assert.That(log.AddedRecords).IsGreaterThan(0);
         await Assert.That(log.UpdatedRecords).IsEqualTo(0);
@@ -171,7 +166,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
     public async Task Import_EmptyDatabase_PersistsLogToDatabase() {
         WriteInitialFiles();
 
-        _service.Import();
+        _service.Import(_tempDir);
 
         var logs = _context.AdminDivisionImportLogs.ToList();
         await Assert.That(logs.Count).IsEqualTo(1);
@@ -187,10 +182,10 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_NameChanged_UpdatesDivision() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         WriteChangedFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var hildesheim = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3254").First();
@@ -200,10 +195,10 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_NewDivision_AddedToDatabase() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         WriteChangedFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var goslar = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3257").FirstOrDefault();
@@ -218,10 +213,10 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_RemovedDivision_RemappedByPostcode() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         WriteChangedFiles();
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         // Wedemark (3255) removed, postcode 30900 maps to Goslar (3257)
         var wedemark = _context.AdministrativeDivisions
@@ -238,11 +233,11 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_RemovedDivision_RemappedByParent() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         // EmptyCounty (3258) has no postcodes, parent 254 (Region Hannover) still in new data
         WriteChangedFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var emptyCounty = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3258").FirstOrDefault();
@@ -252,11 +247,11 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_RemovedDivision_OrphanedWhenNoReplacement() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         // OrphanCounty (9471): postcode 95000 not in new data, parent 47 also removed
         WriteChangedFiles();
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         // Orphaned divisions are kept in DB
         var orphan = _context.AdministrativeDivisions
@@ -273,7 +268,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_RemappedDivision_UpdatesMemberReferences() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var wedemark = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3255").First();
@@ -287,7 +282,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
         });
 
         WriteChangedFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var member = _context.Members.Where(m => m.Id == memberId).First();
         var goslar = _context.AdministrativeDivisions
@@ -298,7 +293,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_RemappedDivision_UpdatesChapterReferences() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var wedemark = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3255").First();
@@ -310,7 +305,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
         });
 
         WriteChangedFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         var chapter = _context.Chapters.Where(c => c.Id == chapterId).First();
         var goslar = _context.AdministrativeDivisions
@@ -325,10 +320,10 @@ public class AdminDivisionImportServiceTests : IDisposable {
     [Test]
     public async Task Import_ChangeDetection_LogHasCorrectStatistics() {
         WriteInitialFiles();
-        _service.Import();
+        _service.Import(_tempDir);
 
         WriteChangedFiles();
-        var log = _service.Import();
+        var log = _service.Import(_tempDir);
 
         // 1 new division (Goslar)
         await Assert.That(log.AddedRecords).IsEqualTo(1);

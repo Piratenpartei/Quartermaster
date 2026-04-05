@@ -5,7 +5,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Chapters;
 
-[NotInParallel]
 public class ChapterRepositoryTests : IDisposable {
     private DbContext _context = default!;
     private ChapterRepository _repo = default!;

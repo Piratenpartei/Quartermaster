@@ -83,10 +83,9 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **Why:** Makes future i18n trivial, decouples server from display language, enables translation of error messages per locale.
 - **How to apply:** Introduce an error catalog (constants or an enum) as the single source of truth for identifiers; refactor `ThrowError`/`AddError` calls to use identifiers; build a translation table on the frontend for the German strings. Touches many endpoints — do in waves.
 
-### Test coverage review
-- **Task:** Walk through the existing test suites and identify edge cases that should be covered. Areas to consider: empty/null inputs, boundary values (0, 1, max), unicode/special characters, timezone edge cases, concurrent modifications, FK cascade behaviors under various delete orders, permission inheritance with deeply-nested chapter trees, malformed CSV rows, duplicate member numbers, expired/invalid tokens, race conditions in background services.
-- **Why:** Tests grew organically alongside features; coverage is adequate for happy paths but edge cases likely vary in depth across suites.
-- **How to apply:** Pick one suite at a time during code quality pass, list missing scenarios, add focused tests.
+### Test coverage review — ✅ DONE
+- Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).
+- Remaining for future: deeper per-suite audits of ChapterRepository, OptionRepository, MemberImportService, AdminDivisionImportService for their specific edge cases (timezone, duplicates, malformed input).
 
 ### ToList vs IEnumerable on endpoint returns
 - **Task:** Audit endpoint DTO construction for unnecessary `.ToList()` calls. Many endpoints shape data with LINQ (`items.Select(...).ToList()`) then pass to `SendAsync`. The JSON serializer can consume `IEnumerable<T>` directly, so eager materialization may be avoidable — potentially saving allocations on large responses.

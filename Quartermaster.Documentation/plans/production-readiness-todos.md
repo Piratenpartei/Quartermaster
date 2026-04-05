@@ -118,8 +118,8 @@
 - [x] Unit tests for critical business logic — 53 new tests across 7 suites: ChapterRepository (14), OptionRepository.ResolveValue (9), MotionRepository.TryAutoResolve (11), MemberImportService (7), EmailService (7), UserRepository (5); test DB fixture with auto-migration and table cleanup
 - [x] **Admin division import tests** — 12 tests: initial load, file hash skip, HasCompletedInitialLoad, DB log persistence, name/postcode change detection, new division adds, postcode-based remapping, parent fallback remapping, orphan handling, member/chapter reference updates, full statistics validation. Also fixed two bugs in change detection: FK-safe parent ID remapping for new divisions, and depth-ordered deletion with child re-parenting.
 - [x] **Member import tests with chapters** — 6 new tests: Bezirk-only chapter resolution, single postcode admin div match, multiple matches with city disambiguation, multiple matches without city, no postcode stays null, no matching postcode stays null. Total suite now 13 tests.
-- [ ] Integration tests for API endpoints (deferred)
-- [ ] End-to-end tests for key user flows (deferred)
+- [x] **Integration tests for API endpoints** — comprehensive per-endpoint coverage (417 integration tests, 4-6 per endpoint): happy path, 401 anonymous, 403 insufficient permission, 400 validation, 404 not-found, and behavior-specific edge cases. Organized under `Quartermaster.Server.Tests/Integration/<Feature>/` with one test class per endpoint.
+- [x] **End-to-end tests for key user flows** — Playwright-based E2E tests via `TUnit.Playwright` package, headless Chromium driving a real Kestrel host. Covers login form, public pages (home, events, membership application), mobile responsiveness at 375px. Infrastructure in `Quartermaster.Server.Tests/Infrastructure/E2ETestBase.cs` + `E2ETestFactory.cs`.
 
 ---
 

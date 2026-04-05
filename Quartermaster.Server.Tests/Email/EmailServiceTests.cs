@@ -13,7 +13,6 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Email;
 
-[NotInParallel]
 public class EmailServiceTests : IDisposable {
     private DbContext _context = default!;
     private EmailService _service = default!;
