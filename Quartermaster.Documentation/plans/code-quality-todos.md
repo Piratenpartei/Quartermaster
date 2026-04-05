@@ -51,6 +51,15 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 
 ## Other
 
+### One-class-per-file audit
+- **Task:** Walk the whole codebase and flag any file with multiple top-level classes/structs that don't qualify for the allowed exceptions (pure-data classes grouped together, or a request class paired with its endpoint). Split violations into separate files.
+- **Why:** Newly-added style rule; older code hasn't been audited.
+- **How to apply:** `grep -r "^public class" --include="*.cs"` per file; if a file has ≥2 matches, check whether the exceptions apply.
+
+### Region-separator comment audit
+- **Task:** Search for region-separator style comments (e.g., `// ---------- X ----------`, `#region`, banner comments that don't describe specific code) and remove them. If code needs visual separation, it should be split into separate methods/files instead.
+- **How to apply:** `grep -rn "^// ----" --include="*.cs"` and review each hit.
+
 ### Test coverage review
 - **Task:** Walk through the existing test suites and identify edge cases that should be covered. Areas to consider: empty/null inputs, boundary values (0, 1, max), unicode/special characters, timezone edge cases, concurrent modifications, FK cascade behaviors under various delete orders, permission inheritance with deeply-nested chapter trees, malformed CSV rows, duplicate member numbers, expired/invalid tokens, race conditions in background services.
 - **Why:** Tests grew organically alongside features; coverage is adequate for happy paths but edge cases likely vary in depth across suites.

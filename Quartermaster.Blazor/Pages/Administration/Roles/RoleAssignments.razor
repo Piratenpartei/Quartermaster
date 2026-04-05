@@ -1,0 +1,101 @@
+@page "/Administration/Roles/Assignments"
+@using Quartermaster.Api.Roles
+
+<div class="mb-3">
+    <a href="/Administration/Roles" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zu den Rollen
+    </a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Rollenzuweisungen</h3>
+    <button class="btn btn-sm btn-primary" @onclick="() => ShowingCreateForm = !ShowingCreateForm">
+        <i class="bi bi-plus-circle"></i> Neue Zuweisung
+    </button>
+</div>
+
+@if (ShowingCreateForm) {
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Neue Zuweisung</h5>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Benutzer</label>
+                    <select class="form-select" @bind="NewUserId">
+                        <option value="">— Benutzer wählen —</option>
+                        @if (Users != null) {
+                            @foreach (var u in Users) {
+                                <option value="@u.Id">@($"{u.FirstName} {u.LastName}") (@u.Username)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Rolle</label>
+                    <select class="form-select" @bind="NewRoleId" @bind:after="OnRoleChanged">
+                        <option value="">— Rolle wählen —</option>
+                        @if (Roles != null) {
+                            @foreach (var r in Roles) {
+                                <option value="@r.Id">@r.Name (@(r.Scope == 0 ? "Global" : "Chapter"))</option>
+                            }
+                        }
+                    </select>
+                </div>
+                @if (SelectedRoleScope == 1) {
+                    <div class="col-md-4">
+                        <label class="form-label">Gliederung</label>
+                        <ChapterPicker @bind-Value="NewChapterIdString" AllowEmpty="true" />
+                    </div>
+                }
+                <div class="col-auto">
+                    <button class="btn btn-primary" @onclick="CreateAssignment" disabled="@Creating">
+                        @if (Creating) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+                        <span> Zuweisen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Assignments != null) {
+    @if (Assignments.Count == 0) {
+        <p class="text-secondary">Keine Zuweisungen vorhanden.</p>
+    } else {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Benutzer</th>
+                    <th>Rolle</th>
+                    <th>Gliederung</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Assignments) {
+                    <tr>
+                        <td>@a.UserDisplayName</td>
+                        <td>
+                            @a.RoleName
+                            @if (a.RoleScope == 0) {
+                                <span class="badge border border-info text-info-emphasis ms-2">Global</span>
+                            }
+                        </td>
+                        <td>@(a.ChapterName ?? "—")</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveAssignment(a)">
+                                <i class="bi bi-x-circle"></i> Entfernen
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

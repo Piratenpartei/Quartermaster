@@ -15,6 +15,7 @@ using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
+using Quartermaster.Data.Roles;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -46,6 +47,9 @@ public class DbContext : DataConnection {
     public ITable<EmailLog> EmailLogs => this.GetTable<EmailLog>();
     public ITable<AuditLog.AuditLog> AuditLogs => this.GetTable<AuditLog.AuditLog>();
     public ITable<LoginAttempt> LoginAttempts => this.GetTable<LoginAttempt>();
+    public ITable<Role> Roles => this.GetTable<Role>();
+    public ITable<RolePermission> RolePermissions => this.GetTable<RolePermission>();
+    public ITable<UserRoleAssignment> UserRoleAssignments => this.GetTable<UserRoleAssignment>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -67,6 +71,7 @@ public class DbContext : DataConnection {
         services.AddScoped<EmailLogRepository>();
         services.AddScoped<AuditLogRepository>();
         services.AddScoped<LoginAttemptRepository>();
+        services.AddScoped<RoleRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {
@@ -74,6 +79,7 @@ public class DbContext : DataConnection {
         // AdminDivs loaded via background service (AdminDivisionImportHostedService)
         scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
+        scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
 #if DEBUG
         var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;

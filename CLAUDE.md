@@ -86,6 +86,21 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - Tuples are capped at 3 values maximum
 - For return types with more than 3 values, create a named class or record instead
 
+## One Class Per File
+
+- Never put two top-level classes or structs in one file
+- Exceptions:
+  - Pure data classes (only properties, no logic) — e.g., a DTO file can contain multiple related DTOs
+  - A request class paired with its endpoint class (or similar narrow pairings)
+- Enums are not classes/structs and may coexist with a related class in the same file
+- Nested types (inside a class) are fine
+
+## No Region-Separator Comments
+
+- Never write comments whose purpose is to visually separate sections of code (e.g., `// ---------- Users ----------` or `#region`)
+- If code needs separation into visual groups, it usually needs to be split into separate methods or files instead
+- Regular explanatory comments on specific lines/blocks are fine
+
 ## Blazor Components
 
 - Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)

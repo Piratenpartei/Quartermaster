@@ -35,6 +35,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ViewEmailLogs, "E-Mail-Log anzeigen", true);
         AddIfNotExists(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);
         AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
+        AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
 
         // Chapter-scoped permissions
         AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);

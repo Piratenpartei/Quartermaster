@@ -3,8 +3,7 @@ using Quartermaster.Api;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.Permissions;
-using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.Roles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,15 +13,12 @@ namespace Quartermaster.Data.ChapterAssociates;
 public class ChapterOfficerRepository {
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly PermissionRepository _permissionRepo;
+    private readonly RoleRepository _roleRepo;
 
-    public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog,
-        UserChapterPermissionRepository chapterPermRepo, PermissionRepository permissionRepo) {
+    public ChapterOfficerRepository(DbContext context, AuditLogRepository auditLog, RoleRepository roleRepo) {
         _context = context;
         _auditLog = auditLog;
-        _chapterPermRepo = chapterPermRepo;
-        _permissionRepo = permissionRepo;
+        _roleRepo = roleRepo;
     }
 
     public List<ChapterOfficer> GetForChapter(Guid chapterId)
@@ -89,19 +85,17 @@ public class ChapterOfficerRepository {
     }
 
     public void GrantDefaultPermissions(Guid userId, Guid chapterId) {
-        foreach (var permIdentifier in PermissionIdentifier.DefaultOfficerPermissions) {
-            var perm = _permissionRepo.GetByIdentifier(permIdentifier);
-            if (perm != null)
-                _chapterPermRepo.AddForUser(userId, chapterId, perm.Id);
-        }
+        var officerRole = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer);
+        if (officerRole == null)
+            return;
+        _roleRepo.Assign(userId, officerRole.Id, chapterId);
     }
 
     public void RevokeDefaultPermissions(Guid userId, Guid chapterId) {
-        foreach (var permIdentifier in PermissionIdentifier.DefaultOfficerPermissions) {
-            var perm = _permissionRepo.GetByIdentifier(permIdentifier);
-            if (perm != null)
-                _chapterPermRepo.RemoveForUser(userId, chapterId, perm.Id);
-        }
+        var officerRole = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer);
+        if (officerRole == null)
+            return;
+        _roleRepo.Revoke(userId, officerRole.Id, chapterId);
     }
 
     public void GrantDefaultPermissionsForAllChapters(Guid memberId, Guid userId) {

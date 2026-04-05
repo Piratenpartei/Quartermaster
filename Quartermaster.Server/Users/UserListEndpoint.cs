@@ -5,18 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Users;
 using Quartermaster.Data;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
-
-public class UserListItem {
-    public Guid Id { get; set; }
-    public string Username { get; set; } = "";
-    public string FirstName { get; set; } = "";
-    public string LastName { get; set; } = "";
-}
 
 public class UserListEndpoint : EndpointWithoutRequest<List<UserListItem>> {
     private readonly DbContext _context;

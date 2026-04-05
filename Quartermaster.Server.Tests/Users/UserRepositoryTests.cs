@@ -4,6 +4,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Permissions;
+using Quartermaster.Data.Roles;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
@@ -25,10 +26,11 @@ public class UserRepositoryTests : IDisposable {
         TestDatabaseFixture.CleanAllTables();
         _context = TestDatabaseFixture.CreateDbContext();
         _permissionRepo = new PermissionRepository(_context);
-        _userGlobalPermissionRepo = new UserGlobalPermissionRepository(_context);
+        var roleRepo = new RoleRepository(_context);
+        _userGlobalPermissionRepo = new UserGlobalPermissionRepository(_context, roleRepo);
         _userRepo = new UserRepository(_context, _userGlobalPermissionRepo, _permissionRepo);
         _chapterRepo = new ChapterRepository(_context);
-        _chapterPermRepo = new UserChapterPermissionRepository(_context);
+        _chapterPermRepo = new UserChapterPermissionRepository(_context, roleRepo);
 
         // Seed an AdministrativeDivision with Guid.Empty for User FK defaults
         _context.Insert(new AdministrativeDivision {

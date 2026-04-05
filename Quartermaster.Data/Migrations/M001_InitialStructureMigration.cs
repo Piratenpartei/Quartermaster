@@ -10,6 +10,7 @@ using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
+using Quartermaster.Data.Roles;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -452,6 +453,52 @@ public class M001_InitialStructureMigration : MigrationBase {
             .OnColumn(nameof(LoginAttempt.IpAddress)).Ascending()
             .OnColumn(nameof(LoginAttempt.UsernameOrEmail)).Ascending()
             .OnColumn(nameof(LoginAttempt.AttemptedAt)).Descending();
+
+        Create.Table(Role.TableName)
+            .WithColumn(nameof(Role.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(Role.Identifier)).AsString(128).Unique()
+            .WithColumn(nameof(Role.Name)).AsString(256)
+            .WithColumn(nameof(Role.Description)).AsString(1024)
+            .WithColumn(nameof(Role.Scope)).AsInt32()
+            .WithColumn(nameof(Role.IsSystem)).AsBoolean();
+
+        Create.Table(RolePermission.TableName)
+            .WithColumn(nameof(RolePermission.RoleId)).AsGuid()
+            .WithColumn(nameof(RolePermission.PermissionIdentifier)).AsString(128);
+
+        Create.Index("IX_RolePermissions_RoleId").OnTable(RolePermission.TableName)
+            .OnColumn(nameof(RolePermission.RoleId)).Ascending();
+
+        Create.ForeignKey("FK_RolePermissions_RoleId_Roles_Id")
+            .FromTable(RolePermission.TableName).ForeignColumn(nameof(RolePermission.RoleId))
+            .ToTable(Role.TableName).PrimaryColumn(nameof(Role.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.Table(UserRoleAssignment.TableName)
+            .WithColumn(nameof(UserRoleAssignment.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(UserRoleAssignment.UserId)).AsGuid()
+            .WithColumn(nameof(UserRoleAssignment.RoleId)).AsGuid()
+            .WithColumn(nameof(UserRoleAssignment.ChapterId)).AsGuid().Nullable();
+
+        Create.Index("IX_UserRoleAssignments_UserId").OnTable(UserRoleAssignment.TableName)
+            .OnColumn(nameof(UserRoleAssignment.UserId)).Ascending();
+        Create.Index("IX_UserRoleAssignments_RoleId").OnTable(UserRoleAssignment.TableName)
+            .OnColumn(nameof(UserRoleAssignment.RoleId)).Ascending();
+
+        Create.ForeignKey("FK_UserRoleAssignments_UserId_Users_Id")
+            .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.ForeignKey("FK_UserRoleAssignments_RoleId_Roles_Id")
+            .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.RoleId))
+            .ToTable(Role.TableName).PrimaryColumn(nameof(Role.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.ForeignKey("FK_UserRoleAssignments_ChapterId_Chapters_Id")
+            .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
+            .OnDelete(System.Data.Rule.Cascade);
     }
 
     public override void Down() {
@@ -481,6 +528,9 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(EmailLog.TableName);
         DropTableIfExists(AuditLog.AuditLog.TableName);
         DropTableIfExists(LoginAttempt.TableName);
+        DropTableIfExists(UserRoleAssignment.TableName);
+        DropTableIfExists(RolePermission.TableName);
+        DropTableIfExists(Role.TableName);
 
         EnableForeignKeyChecks();
     }

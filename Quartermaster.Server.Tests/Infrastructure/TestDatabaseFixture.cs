@@ -74,6 +74,9 @@ public static class TestDatabaseFixture {
             TRUNCATE TABLE Chapters;
             TRUNCATE TABLE AdminDivisionImportLogs;
             TRUNCATE TABLE AdministrativeDivisions;
+            TRUNCATE TABLE UserRoleAssignments;
+            TRUNCATE TABLE RolePermissions;
+            TRUNCATE TABLE Roles;
             TRUNCATE TABLE Permissions;
             SET FOREIGN_KEY_CHECKS = 1;
             """;

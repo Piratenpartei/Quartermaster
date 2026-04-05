@@ -1,0 +1,75 @@
+@page "/Administration/Roles/{Id:guid}"
+@using Quartermaster.Api.Roles
+
+<div class="mb-3">
+    <a href="/Administration/Roles" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Liste
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Role == null) {
+    <div class="alert alert-warning">Rolle nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>@Role.Name</h3>
+        <div class="d-flex gap-2">
+            @if (Role.Scope == 0) {
+                <span class="badge border border-info text-info-emphasis fs-6">Global</span>
+            } else {
+                <span class="badge border border-primary text-primary-emphasis fs-6">Chapter-scoped</span>
+            }
+            @if (Role.IsSystem) {
+                <span class="badge bg-secondary fs-6">System</span>
+            }
+        </div>
+    </div>
+
+    @if (Role.IsSystem) {
+        <div class="alert alert-info">
+            Diese Systemrolle ist gesperrt und kann nicht bearbeitet werden. Änderungen an den Berechtigungen erfolgen über Code-Updates.
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" @bind="Role.Name" disabled="@Role.IsSystem" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Beschreibung</label>
+                <textarea class="form-control" @bind="Role.Description" rows="2" disabled="@Role.IsSystem"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Berechtigungen</label>
+                @if (AvailablePermissions != null) {
+                    <div class="border rounded p-2" style="max-height: 400px; overflow-y: auto;">
+                        @foreach (var perm in FilteredPermissions) {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="perm_@perm.Identifier"
+                                       checked="@Role.Permissions.Contains(perm.Identifier)"
+                                       disabled="@Role.IsSystem"
+                                       @onchange="e => TogglePerm(perm.Identifier, (bool)e.Value!)" />
+                                <label class="form-check-label" for="perm_@perm.Identifier">
+                                    @perm.DisplayName <small class="text-secondary">(@perm.Identifier)</small>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            @if (!Role.IsSystem) {
+                <button class="btn btn-primary" @onclick="SaveRole" disabled="@Saving">
+                    @if (Saving) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+                    <span> Speichern</span>
+                </button>
+            }
+        </div>
+    </div>
+}

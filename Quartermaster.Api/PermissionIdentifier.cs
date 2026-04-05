@@ -18,6 +18,8 @@ public static class PermissionIdentifier {
     public static readonly string TriggerMemberImport = "member_import_trigger";
     public static readonly string ViewAllMembers = "members_view_all";
 
+    public static readonly string ManageRoles = "roles_manage";
+
     // Chapter-scoped permissions
     public static readonly string ViewApplications = "applications_view";
     public static readonly string ProcessApplications = "applications_process";
@@ -50,8 +52,13 @@ public static class PermissionIdentifier {
     ];
 
     public static readonly List<string> SystemPermissions = [
-        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport
+        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport, ManageRoles
     ];
+
+    // Well-known role identifiers (seeded as system roles)
+    public static class SystemRole {
+        public const string ChapterOfficer = "chapter_officer";
+    }
 
     // Default permissions auto-granted to chapter officers
     public static readonly List<string> DefaultOfficerPermissions = [
