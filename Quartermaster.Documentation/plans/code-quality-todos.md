@@ -87,6 +87,22 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).
 - Remaining for future: deeper per-suite audits of ChapterRepository, OptionRepository, MemberImportService, AdminDivisionImportService for their specific edge cases (timezone, duplicates, malformed input).
 
+### Endpoint behavior review (discovered during integration test pass)
+
+Integration tests surfaced a handful of endpoint behaviors that look questionable. Review each, decide if it's a bug or intentional, fix or document. All have failing tests that encode the desired behavior — tests fail today and will pass once behavior is fixed.
+
+**Security (highest priority):**
+- **`MotionListEndpoint` / `MotionDetailEndpoint` do not enforce `IsPublic` server-side.** List endpoint accepts anonymous `IncludeNonPublic=true` and returns private motions. Detail endpoint is fully anonymous with no `IsPublic` check — anyone with a motion ID reads any motion. Fix: require `ViewMotions` (chapter-scoped) for non-public motions in both list and detail; ignore client `IncludeNonPublic=true` for anonymous callers. Failing tests: `MotionAccessControlTests` in `Integration/Motions/`.
+
+**Permission misuse:**
+- **`MemberAdminDivisionUpdateEndpoint` gates on `ViewAllMembers` (global, view-only) for a write operation.** Should use `EditMembers` (chapter-scoped) consistent with other member edits, combined with chapter scoping. Also does not recompute the orphan flag after updating `ResidenceAdministrativeDivisionId`. Failing tests: `MemberAdminDivisionAuthorizationTests`.
+
+**Semantics review (may be intentional):**
+- **`EventArchiveEndpoint` / archive transitions in `EventStatusUpdateEndpoint` require `DeleteEvents`, not `EditEvents`.** Archiving is destructive-ish, so gating on delete may be intentional — but worth documenting the distinction (or aligning with `EditEvents` if we decide delete-level permission is overkill).
+- **`ChecklistItemCheckEndpoint` is not idempotent.** Rejects already-completed items with 400. For `CreateMotion`/`SendEmail` items this is correct (irreversible side effects). For `Text` items, re-checking should probably be a no-op. Decide: split behavior by item type, or document the non-idempotence.
+- **`RoleAssignmentDeleteEndpoint` and `ChapterOfficerDeleteEndpoint` return 200 OK for non-existent records.** Idempotent-delete is a valid pattern but differs from other endpoints' 404 convention. Pick one and apply consistently.
+- **`MembershipApplicationProcessEndpoint` / `DueSelectionProcessEndpoint` reject `Pending` as target status.** Correct — these endpoints only accept terminal transitions (Approved/Rejected). Not a bug, but worth asserting with a test.
+
 ### ToList vs IEnumerable on endpoint returns
 - **Task:** Audit endpoint DTO construction for unnecessary `.ToList()` calls. Many endpoints shape data with LINQ (`items.Select(...).ToList()`) then pass to `SendAsync`. The JSON serializer can consume `IEnumerable<T>` directly, so eager materialization may be avoidable — potentially saving allocations on large responses.
 - **Caveats to verify per site:**
