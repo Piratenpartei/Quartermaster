@@ -14,17 +14,12 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// <summary>
 /// Per-worker MySQL database fixture. Workers are leased per test instance from a bounded
 /// pool (<c>quartermaster_test_w{N}</c>), allowing tests to run in parallel without conflicts.
-/// Databases are created + migrated lazily and reused for the lifetime of the process.
-/// <para>
-/// A test calls <see cref="Acquire"/> in its constructor and <see cref="Release"/> on dispose;
-/// leases are pinned to the test instance and therefore survive async thread-hops.
-/// </para>
+/// Each worker owns ONE <see cref="IntegrationTestFactory"/> shared across all tests that
+/// lease that worker — avoids ~500 factory boots per test run (now only ~8).
 /// </summary>
 public static class TestDatabaseFixture {
     private const string ServerConnectionString = "server=localhost;user id=root;";
 
-    // Pool size caps max concurrent DBs in use. Matches a reasonable parallelism for
-    // integration tests without exhausting MySQL connections or file handles.
     private const int PoolSize = 8;
     private static readonly SemaphoreSlim _poolSemaphore = new(PoolSize, PoolSize);
     private static readonly ConcurrentQueue<int> _availableIds = new();
@@ -33,10 +28,6 @@ public static class TestDatabaseFixture {
     private static readonly ThreadLocal<int> _workerId =
         new(() => Interlocked.Increment(ref _workerCounter) - 1);
 
-    // Wrap WorkerDatabase in Lazy<T> so that ConcurrentDictionary.GetOrAdd's value-factory
-    // (which CAN be called by multiple threads concurrently for the same key) doesn't end up
-    // running schema migrations twice in parallel on the same DB — which races when both
-    // threads try to CREATE TABLE simultaneously.
     private static readonly ConcurrentDictionary<int, Lazy<WorkerDatabase>> _byWorker = new();
 
     private static WorkerDatabase GetOrCreate(int id) {
@@ -45,10 +36,6 @@ public static class TestDatabaseFixture {
         ).Value;
     }
 
-    /// <summary>
-    /// Leases a worker database for the calling test. Blocks if the pool is exhausted.
-    /// Callers MUST invoke <see cref="Release"/> with the returned id when the test ends.
-    /// </summary>
     public static WorkerDatabase Acquire() {
         _poolSemaphore.Wait();
         if (!_availableIds.TryDequeue(out var id))
@@ -81,10 +68,6 @@ public static class TestDatabaseFixture {
     public static void CleanAllTables()
         => ForCurrentWorker().CleanAllTables();
 
-    /// <summary>
-    /// Drops all worker databases. Called from assembly-level teardown unless
-    /// QM_TEST_KEEP_DB=1 is set in the environment.
-    /// </summary>
     public static void DropAllWorkerDatabases() {
         foreach (var lazy in _byWorker.Values) {
             if (lazy.IsValueCreated)
@@ -100,6 +83,24 @@ public sealed class WorkerDatabase {
     public int WorkerId { get; }
     public string DatabaseName { get; }
     public string ConnectionString { get; }
+
+    /// <summary>
+    /// Shared <see cref="IntegrationTestFactory"/> for all tests leasing this worker.
+    /// Created lazily on first access; disposed when the worker DB is dropped.
+    /// </summary>
+    private IntegrationTestFactory? _factory;
+    private readonly object _factoryLock = new();
+
+    public IntegrationTestFactory Factory {
+        get {
+            if (_factory != null)
+                return _factory;
+            lock (_factoryLock) {
+                _factory ??= new IntegrationTestFactory(ConnectionString);
+            }
+            return _factory;
+        }
+    }
 
     internal WorkerDatabase(int workerId) {
         WorkerId = workerId;
@@ -162,6 +163,10 @@ public sealed class WorkerDatabase {
     }
 
     internal void Drop() {
+        lock (_factoryLock) {
+            _factory?.Dispose();
+            _factory = null;
+        }
         using var conn = new MySqlConnector.MySqlConnection(ServerConnectionString);
         conn.Open();
         using var cmd = conn.CreateCommand();
