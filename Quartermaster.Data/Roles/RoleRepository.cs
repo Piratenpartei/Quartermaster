@@ -31,7 +31,7 @@ public class RoleRepository {
     public void Create(Role role) => _context.Insert(role);
 
     public void SupplementDefaults() {
-        // Seed "Chapter Officer" system role (locked, ChapterScoped)
+        // Seed "Chapter Officer" system role (locked, ChapterScoped, inherits to children)
         var officer = GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer);
         if (officer == null) {
             officer = new Role {
@@ -40,13 +40,38 @@ public class RoleRepository {
                 Name = "Vorstand",
                 Description = "Systemrolle: Automatisch zugewiesen an eingetragene Vorstandsmitglieder.",
                 Scope = RoleScope.ChapterScoped,
-                IsSystem = true
+                IsSystem = true,
+                InheritsToChildren = true
             };
             Create(officer);
+        } else if (!officer.InheritsToChildren) {
+            // Correct drift — officers should always inherit.
+            _context.Roles.Where(r => r.Id == officer.Id)
+                .Set(r => r.InheritsToChildren, true).Update();
         }
 
-        // Always refresh permissions on this locked role to match the current DefaultOfficerPermissions list
+        // Seed "General Chapter Delegate" system role (locked, ChapterScoped, does NOT inherit)
+        var delegateRole = GetByIdentifier(PermissionIdentifier.SystemRole.GeneralChapterDelegate);
+        if (delegateRole == null) {
+            delegateRole = new Role {
+                Id = Guid.NewGuid(),
+                Identifier = PermissionIdentifier.SystemRole.GeneralChapterDelegate,
+                Name = "Delegierter",
+                Description = "Systemrolle: Delegierter einer Gliederung. Gleiche Rechte wie Vorstand, aber ohne Vererbung in untergeordnete Gliederungen.",
+                Scope = RoleScope.ChapterScoped,
+                IsSystem = true,
+                InheritsToChildren = false
+            };
+            Create(delegateRole);
+        } else if (delegateRole.InheritsToChildren) {
+            // Correct drift — delegates must never inherit.
+            _context.Roles.Where(r => r.Id == delegateRole.Id)
+                .Set(r => r.InheritsToChildren, false).Update();
+        }
+
+        // Always refresh permissions on locked system roles to match DefaultOfficerPermissions.
         SetPermissions(officer.Id, PermissionIdentifier.DefaultOfficerPermissions);
+        SetPermissions(delegateRole.Id, PermissionIdentifier.DefaultOfficerPermissions);
     }
 
     public void Update(Role role) {
@@ -116,7 +141,8 @@ public class RoleRepository {
 
     /// <summary>
     /// Returns the set of permission identifiers a user has via role assignments
-    /// for a given chapter (includes Global roles too).
+    /// for a given chapter (includes Global roles too). Used for direct (exact-chapter)
+    /// permission checks — the role's InheritsToChildren flag is ignored here.
     /// </summary>
     public HashSet<string> GetChapterPermissionsViaRoles(Guid userId, Guid chapterId) {
         var result = (
@@ -128,6 +154,46 @@ public class RoleRepository {
         ).Distinct().ToList();
 
         return new HashSet<string>(result);
+    }
+
+    /// <summary>
+    /// Returns permission identifiers the user has on <paramref name="chapterId"/> via role
+    /// assignments, but ONLY from roles with <c>InheritsToChildren = true</c>.
+    /// Used by ancestor-chain walks in permission inheritance — permissions from
+    /// non-inheriting roles (e.g. delegates) are excluded so they don't bleed into
+    /// descendant chapters.
+    /// </summary>
+    public HashSet<string> GetInheritableChapterPermissionsViaRoles(Guid userId, Guid chapterId) {
+        var result = (
+            from a in _context.UserRoleAssignments
+            join r in _context.Roles on a.RoleId equals r.Id
+            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
+            where a.UserId == userId
+                && (a.ChapterId == chapterId || a.ChapterId == null)
+                && r.InheritsToChildren
+            select rp.PermissionIdentifier
+        ).Distinct().ToList();
+
+        return new HashSet<string>(result);
+    }
+
+    /// <summary>
+    /// Returns true if the user holds a direct role assignment to the given chapter for
+    /// any of the specified role identifiers. No inheritance applied — this is an
+    /// exact-match check on the user-role-assignment's ChapterId.
+    /// </summary>
+    public bool HasDirectRoleAssignment(Guid userId, Guid chapterId, params string[] roleIdentifiers) {
+        if (roleIdentifiers.Length == 0)
+            return false;
+        var idList = roleIdentifiers.ToList(); // LinqToDB needs List<T> for .Contains translation
+        return (
+            from a in _context.UserRoleAssignments
+            join r in _context.Roles on a.RoleId equals r.Id
+            where a.UserId == userId
+                && a.ChapterId == chapterId
+                && idList.Contains(r.Identifier)
+            select a.Id
+        ).Any();
     }
 
     /// <summary>

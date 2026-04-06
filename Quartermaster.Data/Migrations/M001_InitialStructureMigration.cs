@@ -1,6 +1,7 @@
 using FluentMigrator;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -165,7 +166,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MotionVote.MotionId)).AsGuid()
             .WithColumn(nameof(MotionVote.UserId)).AsGuid()
             .WithColumn(nameof(MotionVote.Vote)).AsInt32()
-            .WithColumn(nameof(MotionVote.VotedAt)).AsDateTime();
+            .WithColumn(nameof(MotionVote.VotedAt)).AsDateTime()
+            .WithColumn(nameof(MotionVote.MeetingId)).AsGuid().Nullable();
 
         Create.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MotionId))
@@ -460,7 +462,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Role.Name)).AsString(256)
             .WithColumn(nameof(Role.Description)).AsString(1024)
             .WithColumn(nameof(Role.Scope)).AsInt32()
-            .WithColumn(nameof(Role.IsSystem)).AsBoolean();
+            .WithColumn(nameof(Role.IsSystem)).AsBoolean()
+            .WithColumn(nameof(Role.InheritsToChildren)).AsBoolean().WithDefaultValue(true);
 
         Create.Table(RolePermission.TableName)
             .WithColumn(nameof(RolePermission.RoleId)).AsGuid()
@@ -499,6 +502,74 @@ public class M001_InitialStructureMigration : MigrationBase {
             .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
             .OnDelete(System.Data.Rule.Cascade);
+
+        Create.Table(Meeting.TableName)
+            .WithColumn(nameof(Meeting.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(Meeting.ChapterId)).AsGuid()
+            .WithColumn(nameof(Meeting.Title)).AsString(200)
+            .WithColumn(nameof(Meeting.MeetingDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Meeting.Location)).AsString(500).Nullable()
+            .WithColumn(nameof(Meeting.Description)).AsString(10000).Nullable()
+            .WithColumn(nameof(Meeting.Status)).AsInt32()
+            .WithColumn(nameof(Meeting.Visibility)).AsInt32()
+            .WithColumn(nameof(Meeting.StartedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(Meeting.CompletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(Meeting.ArchivedPdfPath)).AsString(500).Nullable()
+            .WithColumn(nameof(Meeting.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(Meeting.DeletedAt)).AsDateTime().Nullable();
+
+        Create.Index("IX_Meetings_ChapterId").OnTable(Meeting.TableName)
+            .OnColumn(nameof(Meeting.ChapterId)).Ascending();
+        Create.Index("IX_Meetings_Status").OnTable(Meeting.TableName)
+            .OnColumn(nameof(Meeting.Status)).Ascending();
+        Create.Index("IX_Meetings_MeetingDate").OnTable(Meeting.TableName)
+            .OnColumn(nameof(Meeting.MeetingDate)).Descending();
+
+        Create.ForeignKey("FK_Meetings_ChapterId_Chapters_Id")
+            .FromTable(Meeting.TableName).ForeignColumn(nameof(Meeting.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
+            .OnDelete(System.Data.Rule.None);
+
+        Create.Table(AgendaItem.TableName)
+            .WithColumn(nameof(AgendaItem.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(AgendaItem.MeetingId)).AsGuid()
+            .WithColumn(nameof(AgendaItem.ParentId)).AsGuid().Nullable()
+            .WithColumn(nameof(AgendaItem.SortOrder)).AsInt32()
+            .WithColumn(nameof(AgendaItem.Title)).AsString(500)
+            .WithColumn(nameof(AgendaItem.ItemType)).AsInt32()
+            .WithColumn(nameof(AgendaItem.MotionId)).AsGuid().Nullable()
+            .WithColumn(nameof(AgendaItem.Notes)).AsString(20000).Nullable()
+            .WithColumn(nameof(AgendaItem.Resolution)).AsString(5000).Nullable()
+            .WithColumn(nameof(AgendaItem.StartedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(AgendaItem.CompletedAt)).AsDateTime().Nullable();
+
+        Create.Index("IX_AgendaItems_MeetingId_ParentId_SortOrder").OnTable(AgendaItem.TableName)
+            .OnColumn(nameof(AgendaItem.MeetingId)).Ascending()
+            .OnColumn(nameof(AgendaItem.ParentId)).Ascending()
+            .OnColumn(nameof(AgendaItem.SortOrder)).Ascending();
+
+        Create.ForeignKey("FK_AgendaItems_MeetingId_Meetings_Id")
+            .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.MeetingId))
+            .ToTable(Meeting.TableName).PrimaryColumn(nameof(Meeting.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.ForeignKey("FK_AgendaItems_ParentId_AgendaItems_Id")
+            .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.ParentId))
+            .ToTable(AgendaItem.TableName).PrimaryColumn(nameof(AgendaItem.Id))
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.ForeignKey("FK_AgendaItems_MotionId_Motions_Id")
+            .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.MotionId))
+            .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id))
+            .OnDelete(System.Data.Rule.SetNull);
+
+        Create.Index("IX_MotionVotes_MeetingId").OnTable(MotionVote.TableName)
+            .OnColumn(nameof(MotionVote.MeetingId)).Ascending();
+
+        Create.ForeignKey("FK_MotionVotes_MeetingId_Meetings_Id")
+            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MeetingId))
+            .ToTable(Meeting.TableName).PrimaryColumn(nameof(Meeting.Id))
+            .OnDelete(System.Data.Rule.SetNull);
     }
 
     public override void Down() {
@@ -531,6 +602,8 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(UserRoleAssignment.TableName);
         DropTableIfExists(RolePermission.TableName);
         DropTableIfExists(Role.TableName);
+        DropTableIfExists(AgendaItem.TableName);
+        DropTableIfExists(Meeting.TableName);
 
         EnableForeignKeyChecks();
     }

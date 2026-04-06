@@ -1,0 +1,295 @@
+@page "/Administration/Meetings/{Id:guid}"
+@using Quartermaster.Api.AuditLog
+@using Quartermaster.Api.Meetings
+
+<div class="mb-3">
+    <a href="/Administration/Meetings" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Meeting == null) {
+    <div class="alert alert-danger">Sitzung nicht gefunden.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <h3 class="mb-0">@Meeting.Title</h3>
+        <div class="d-flex gap-2">
+            <span class="badge border @GetStatusBadgeClass(Meeting.Status) fs-6">@StatusToLabel(Meeting.Status)</span>
+            <span class="badge border @GetVisibilityBadgeClass(Meeting.Visibility) fs-6">@VisibilityToLabel(Meeting.Visibility)</span>
+        </div>
+    </div>
+    <div class="text-secondary mb-3">
+        @Meeting.ChapterName
+        @if (Meeting.MeetingDate != null) {
+            <span> &mdash; @Meeting.MeetingDate.Value.ToString("dd.MM.yyyy HH:mm")</span>
+        }
+        @if (!string.IsNullOrEmpty(Meeting.Location)) {
+            <span> &mdash; @Meeting.Location</span>
+        }
+    </div>
+
+    @if (IsEditableMode) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary mb-0">Titel</label>
+                        <input type="text" class="form-control" @bind="Meeting.Title" maxlength="200" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary mb-0">Datum &amp; Uhrzeit</label>
+                        <input type="datetime-local" class="form-control"
+                               value="@(Meeting.MeetingDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+                               @onchange="OnDateChanged" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary mb-0">Sichtbarkeit</label>
+                        <select class="form-select" value="@((int)Meeting.Visibility)" @onchange="OnVisibilityChanged">
+                            <option value="0">Öffentlich</option>
+                            <option value="1">Privat</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary mb-0">Ort</label>
+                        <input type="text" class="form-control" @bind="Meeting.Location" maxlength="500" />
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button class="btn btn-primary btn-sm" @onclick="SaveMeta" disabled="@SavingMeta">
+                            @if (SavingMeta) {
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                            }
+                            <i class="bi bi-check-lg"></i> Speichern
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-1">
+                    <label class="form-label small text-secondary mb-0">Beschreibung (Markdown)</label>
+                </div>
+                <MarkdownEditor Value="@Meeting.Description" ValueChanged="OnDescriptionChanged" Rows="4" />
+            </div>
+        </div>
+    }
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(ActiveTab == "agenda" ? "active" : "")" @onclick="@(() => ActiveTab = "agenda")">
+                Agenda
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(ActiveTab == "protocol" ? "active" : "")" @onclick="@(() => OnTabChanged("protocol"))">
+                Protokoll
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(ActiveTab == "audit" ? "active" : "")" @onclick="@(() => OnTabChanged("audit"))">
+                Audit-Log
+            </button>
+        </li>
+    </ul>
+
+    @if (ActiveTab == "agenda") {
+        @if (Meeting.Status == MeetingStatus.InProgress) {
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body p-2">
+                            <h6 class="px-2 pt-1">Fortschritt</h6>
+                            <AgendaItemTree Items="@Meeting.AgendaItems"
+                                            Mode="AgendaTreeMode.MinuteTaking"
+                                            ActiveItemId="@SelectedActiveItemId"
+                                            OnSelectActive="OnSelectActiveItem" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    @if (SelectedActiveItem == null) {
+                        <div class="alert alert-secondary">Wähle links einen Tagesordnungspunkt aus.</div>
+                    } else {
+                        var active = SelectedActiveItem;
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h4 class="mb-0">@active.Title</h4>
+                                    <div class="d-flex gap-2">
+                                        @if (active.StartedAt == null) {
+                                            <button class="btn btn-warning btn-sm" @onclick="() => StartAgendaItem(active.Id)">
+                                                <i class="bi bi-play-circle"></i> Jetzt starten
+                                            </button>
+                                        } else if (active.CompletedAt == null) {
+                                            <button class="btn btn-success btn-sm" @onclick="() => CompleteAgendaItem(active.Id)">
+                                                <i class="bi bi-check-circle"></i> TOP abschließen
+                                            </button>
+                                        } else {
+                                            <span class="badge border border-success text-success-emphasis">Abgeschlossen</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                @if (active.ItemType == AgendaItemType.Motion && active.MotionId.HasValue) {
+                                    <div class="alert alert-primary py-2">
+                                        <strong>Antrag:</strong> @active.MotionTitle
+                                        <a href="/Administration/Motions/@active.MotionId" target="_blank" class="ms-2">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Abstimmung:</strong>
+                                        <span class="ms-2 text-success">Ja: @active.MotionVoteApproveCount</span>
+                                        <span class="ms-2 text-danger">Nein: @active.MotionVoteDenyCount</span>
+                                        <span class="ms-2 text-secondary">Enthaltung: @active.MotionVoteAbstainCount</span>
+                                    </div>
+                                    @if (CurrentUserId != null) {
+                                        <div class="mb-2 d-flex gap-2">
+                                            <button class="btn btn-success btn-sm" @onclick="() => CastVote(active.Id, 0)">
+                                                <i class="bi bi-hand-thumbs-up-fill"></i> Ja
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" @onclick="() => CastVote(active.Id, 1)">
+                                                <i class="bi bi-hand-thumbs-down-fill"></i> Nein
+                                            </button>
+                                            <button class="btn btn-secondary btn-sm" @onclick="() => CastVote(active.Id, 2)">
+                                                <i class="bi bi-dash-circle"></i> Enthaltung
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm ms-auto" @onclick="() => CloseVote(active.Id)">
+                                                Abstimmung beenden
+                                            </button>
+                                        </div>
+                                    }
+                                }
+
+                                <div class="mb-2">
+                                    <label class="form-label small text-secondary mb-0">Notizen</label>
+                                    <textarea class="form-control font-monospace" rows="10"
+                                              value="@ActiveItemNotes" @oninput="OnNotesInput"></textarea>
+                                    @if (NotesSaving) {
+                                        <small class="text-secondary"><i class="bi bi-cloud-arrow-up"></i> Speichere...</small>
+                                    } else if (NotesSavedAt != null) {
+                                        <small class="text-secondary"><i class="bi bi-cloud-check"></i> Gespeichert @NotesSavedAt.Value.ToString("HH:mm:ss")</small>
+                                    }
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small text-secondary mb-0">Beschluss</label>
+                                    <input type="text" class="form-control" value="@ActiveItemResolution"
+                                           @oninput="OnResolutionInput" @onblur="SaveActiveItemResolution" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        } else if (IsEditableMode) {
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Tagesordnung</h5>
+                        <button class="btn btn-sm btn-primary" @onclick="@(() => AddAgendaItem(null))">
+                            <i class="bi bi-plus-circle"></i> Neuer TOP
+                        </button>
+                    </div>
+                    <AgendaItemTree Items="@Meeting.AgendaItems"
+                                    Mode="AgendaTreeMode.Editor"
+                                    ChapterId="@Meeting.ChapterId.ToString()"
+                                    OnAddChild="AddAgendaItemChild"
+                                    OnDelete="DeleteAgendaItem"
+                                    OnReorder="ReorderAgendaItem"
+                                    OnUpdate="UpdateAgendaItem" />
+                </div>
+            </div>
+        } else {
+            <div class="card">
+                <div class="card-body">
+                    <h5>Tagesordnung</h5>
+                    <AgendaItemTree Items="@Meeting.AgendaItems" Mode="AgendaTreeMode.ReadOnly" />
+                </div>
+            </div>
+        }
+    } else if (ActiveTab == "protocol") {
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Protokoll</h5>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-sm btn-outline-secondary" href="@($"/api/meetings/{Id}/protocol?format=md{(RequiresDraft ? "&draft=true" : "")}")" target="_blank">
+                            <i class="bi bi-download"></i> Als Markdown
+                        </a>
+                        <a class="btn btn-sm btn-outline-secondary" href="@($"/api/meetings/{Id}/protocol?format=pdf{(RequiresDraft ? "&draft=true" : "")}")" target="_blank">
+                            <i class="bi bi-file-earmark-pdf"></i> Als PDF
+                        </a>
+                    </div>
+                </div>
+                @if (ProtocolLoading) {
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                } else if (!string.IsNullOrEmpty(ProtocolHtml)) {
+                    @((MarkupString)ProtocolHtml)
+                } else {
+                    <p class="text-secondary">Kein Protokoll verfügbar.</p>
+                }
+            </div>
+        </div>
+    } else if (ActiveTab == "audit") {
+        <div class="card">
+            <div class="card-body">
+                <h5>Audit-Log</h5>
+                @if (AuditLogs == null) {
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                } else if (AuditLogs.Count == 0) {
+                    <p class="text-secondary mb-0">Keine Einträge vorhanden.</p>
+                } else {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Zeitpunkt</th>
+                                    <th>Aktion</th>
+                                    <th>Feld</th>
+                                    <th>Alter Wert</th>
+                                    <th>Neuer Wert</th>
+                                    <th>Benutzer</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in AuditLogs) {
+                                    <tr>
+                                        <td class="text-nowrap">@log.Timestamp.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>@log.Action</td>
+                                        <td>@(log.FieldName ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.NewValue">@(log.NewValue ?? "-")</td>
+                                        <td>@(log.UserDisplayName ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="d-flex gap-2 flex-wrap mt-3">
+        @if (Meeting.Status == MeetingStatus.Archived && !string.IsNullOrEmpty(Meeting.ArchivedPdfPath)) {
+            <a class="btn btn-outline-primary" href="@($"/api/meetings/{Id}/protocol?format=pdf")" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i> PDF-Snapshot herunterladen
+            </a>
+        }
+        @foreach (var transition in AllowedTransitions) {
+            <button class="btn btn-outline-primary" @onclick="() => ChangeStatus(transition.Target)">
+                <i class="bi @transition.Icon"></i> @transition.Label
+            </button>
+        }
+        @if (Meeting.Status == MeetingStatus.Draft) {
+            <button class="btn btn-outline-danger ms-auto" @onclick="DeleteMeeting">
+                <i class="bi bi-trash"></i> Löschen
+            </button>
+        }
+    </div>
+
+    <ConfirmDialog @ref="ConfirmDialog" />
+}

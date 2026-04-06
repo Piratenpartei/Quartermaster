@@ -28,22 +28,50 @@ public class UserChapterPermissionRepository {
                 return true;
         }
 
-        // Role-derived grant (chapter-scoped or global role applying to this chapter)
+        // Role-derived grant — any role assigned to this chapter (or Global) counts,
+        // regardless of InheritsToChildren (that flag only affects ancestor-walk).
         return _roleRepo.GetChapterPermissionsViaRoles(userId, chapterId).Contains(identifier);
     }
 
     public bool HasPermissionWithInheritance(
         Guid userId, Guid chapterId, string identifier, ChapterRepository chapterRepo) {
-        if (IsViewPermission(identifier)) {
-            var ancestors = chapterRepo.GetAncestorChain(chapterId);
-            foreach (var ancestor in ancestors) {
-                if (HasPermissionForChapter(userId, ancestor.Id, identifier))
-                    return true;
-            }
-            return false;
+        if (!IsViewPermission(identifier))
+            return HasPermissionForChapter(userId, chapterId, identifier);
+
+        // Exact-chapter match: all role grants count (even from non-inheriting roles).
+        if (HasPermissionForChapter(userId, chapterId, identifier))
+            return true;
+
+        // Walk true ancestors; only grants from roles with InheritsToChildren=true apply.
+        // GetAncestorChain starts with the chapter itself, so skip(1) for ancestors only.
+        var chain = chapterRepo.GetAncestorChain(chapterId);
+        foreach (var ancestor in chain.Skip(1)) {
+            if (HasInheritablePermissionForChapter(userId, ancestor.Id, identifier))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Like <see cref="HasPermissionForChapter"/> but excludes grants from roles marked
+    /// as non-inheriting (e.g. delegates). Used when walking the ancestor chain for
+    /// inheritance — a delegate of Chapter A must not see Chapter B just because B is a
+    /// descendant of A.
+    /// </summary>
+    private bool HasInheritablePermissionForChapter(Guid userId, Guid chapterId, string identifier) {
+        // Direct UserChapterPermission grants always inherit — the flag is per-role, not
+        // per-direct-grant, and direct grants don't go through any role.
+        var permission = _context.Permissions.Where(p => p.Identifier == identifier).FirstOrDefault();
+        if (permission != null) {
+            var direct = _context.UserChapterPermissions
+                .Where(ucp => ucp.UserId == userId && ucp.ChapterId == chapterId && ucp.PermissionId == permission.Id)
+                .FirstOrDefault();
+            if (direct != null)
+                return true;
         }
 
-        return HasPermissionForChapter(userId, chapterId, identifier);
+        // Role-derived: only count roles with InheritsToChildren = true.
+        return _roleRepo.GetInheritableChapterPermissionsViaRoles(userId, chapterId).Contains(identifier);
     }
 
     public Dictionary<Guid, List<string>> GetAllForUser(Guid userId) {

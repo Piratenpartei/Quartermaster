@@ -50,6 +50,8 @@ public class DbContext : DataConnection {
     public ITable<Role> Roles => this.GetTable<Role>();
     public ITable<RolePermission> RolePermissions => this.GetTable<RolePermission>();
     public ITable<UserRoleAssignment> UserRoleAssignments => this.GetTable<UserRoleAssignment>();
+    public ITable<Meetings.Meeting> Meetings => this.GetTable<Meetings.Meeting>();
+    public ITable<Meetings.AgendaItem> AgendaItems => this.GetTable<Meetings.AgendaItem>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -72,6 +74,8 @@ public class DbContext : DataConnection {
         services.AddScoped<AuditLogRepository>();
         services.AddScoped<LoginAttemptRepository>();
         services.AddScoped<RoleRepository>();
+        services.AddScoped<Meetings.MeetingRepository>();
+        services.AddScoped<Meetings.AgendaItemRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

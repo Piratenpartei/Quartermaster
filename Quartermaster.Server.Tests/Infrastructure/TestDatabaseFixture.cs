@@ -128,6 +128,8 @@ public sealed class WorkerDatabase {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             SET FOREIGN_KEY_CHECKS = 0;
+            TRUNCATE TABLE AgendaItems;
+            TRUNCATE TABLE Meetings;
             TRUNCATE TABLE AuditLogs;
             TRUNCATE TABLE EmailLogs;
             TRUNCATE TABLE EventChecklistItems;

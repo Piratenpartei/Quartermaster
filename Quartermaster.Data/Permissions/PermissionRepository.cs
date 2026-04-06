@@ -56,6 +56,10 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.EditOfficers, "Vorstand bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.ViewTemplates, "Vorlagen anzeigen", false);
         AddIfNotExists(PermissionIdentifier.EditTemplates, "Vorlagen bearbeiten", false);
+        AddIfNotExists(PermissionIdentifier.ViewMeetings, "Sitzungen anzeigen", false);
+        AddIfNotExists(PermissionIdentifier.CreateMeetings, "Sitzungen erstellen", false);
+        AddIfNotExists(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
+        AddIfNotExists(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
 	}
 
 	private void AddIfNotExists(string identifier, string displayName, bool global) {

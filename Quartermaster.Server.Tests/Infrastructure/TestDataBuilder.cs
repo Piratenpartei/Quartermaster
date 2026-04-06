@@ -10,6 +10,7 @@ using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
@@ -18,6 +19,7 @@ using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.Meetings;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -389,6 +391,49 @@ public sealed class TestDataBuilder {
             RoleId = roleId,
             ChapterId = chapterId
         });
+    }
+
+    public Meeting SeedMeeting(
+        Guid chapterId,
+        string title = "Test Sitzung",
+        MeetingStatus status = MeetingStatus.Draft,
+        MeetingVisibility visibility = MeetingVisibility.Private,
+        DateTime? meetingDate = null,
+        string? location = null,
+        string? description = null) {
+        var meeting = new Meeting {
+            Id = Guid.NewGuid(),
+            ChapterId = chapterId,
+            Title = title,
+            Status = status,
+            Visibility = visibility,
+            MeetingDate = meetingDate,
+            Location = location,
+            Description = description,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.Insert(meeting);
+        return meeting;
+    }
+
+    public AgendaItem SeedAgendaItem(
+        Guid meetingId,
+        Guid? parentId = null,
+        string title = "TOP",
+        AgendaItemType itemType = AgendaItemType.Discussion,
+        Guid? motionId = null,
+        int sortOrder = 0) {
+        var item = new AgendaItem {
+            Id = Guid.NewGuid(),
+            MeetingId = meetingId,
+            ParentId = parentId,
+            SortOrder = sortOrder,
+            Title = title,
+            ItemType = itemType,
+            MotionId = motionId
+        };
+        _db.Insert(item);
+        return item;
     }
 
     public void AddPermissionToRole(Guid roleId, string permissionIdentifier) {

@@ -6,6 +6,11 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 
 public static class GlobalTestHooks {
     [Before(Assembly)]
+    public static void SetQuestPdfLicense() {
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+    }
+
+    [Before(Assembly)]
     public static void VerifyMySqlAvailable() {
         try {
             using var conn = new MySqlConnection("server=localhost;user id=root;");

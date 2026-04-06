@@ -14,6 +14,11 @@ public class MotionVote {
     public Guid UserId { get; set; }
     public VoteType Vote { get; set; }
     public DateTime VotedAt { get; set; }
+    /// <summary>
+    /// Set when this vote was cast as part of a meeting's agenda-item voting.
+    /// Null for async votes outside a meeting context.
+    /// </summary>
+    public Guid? MeetingId { get; set; }
 }
 
 public enum VoteType {

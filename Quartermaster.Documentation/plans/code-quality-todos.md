@@ -87,6 +87,11 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).
 - Remaining for future: deeper per-suite audits of ChapterRepository, OptionRepository, MemberImportService, AdminDivisionImportService for their specific edge cases (timezone, duplicates, malformed input).
 
+### DTO mapping standardization
+- **Task:** Pick a single mapping style and apply it consistently. Currently the codebase mixes Mapperly (for simple entity↔DTO pairs) with hand-written mapping code (for complex projections that do joins or reshaping).
+- **Why:** The mix is pragmatic today but inconsistent — new contributors need to learn which side of the line they're on for each DTO, and some hand-written mappers duplicate logic Mapperly could generate. Standardizing reduces cognitive load and cuts boilerplate.
+- **How to apply:** Audit `Quartermaster.Data/**/*Mapper.cs` and inline mapping in endpoints. Decide on one of: (a) Mapperly everywhere (add `[MapProperty]`/`[MapperIgnoreSource]` annotations for the complex cases), or (b) hand-written everywhere (delete the Mapperly partial classes, replace `ToDto()` calls with explicit constructors). Option (a) is likely less code overall.
+
 ### Endpoint behavior review (discovered during integration test pass)
 
 Integration tests surfaced a handful of endpoint behaviors that look questionable. Review each, decide if it's a bug or intentional, fix or document. All have failing tests that encode the desired behavior — tests fail today and will pass once behavior is fixed.

@@ -28,6 +28,10 @@ public partial class Program {
 
         var builder = WebApplication.CreateBuilder(args);
 
+        // QuestPDF is MIT-licensed Community edition (free for orgs under €1M annual revenue).
+        // License must be set before any QuestPDF API is used.
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
         ConfigureServices(builder);
 
         builder.Services.AddFluentMigratorCore()
@@ -81,6 +85,7 @@ public partial class Program {
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
         builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
+        builder.Services.AddScoped<Quartermaster.Server.Meetings.MeetingLifecycleService>();
 
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,
             filter: x => x.ValidatorType.BaseType?.GetGenericTypeDefinition() != typeof(Validator<>));

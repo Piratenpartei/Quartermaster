@@ -1,0 +1,86 @@
+@page "/Administration/Meetings"
+@using Quartermaster.Api.Meetings
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Sitzungen</h3>
+    <a href="/Administration/Meetings/Create" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle"></i> Neue Sitzung
+    </a>
+</div>
+
+<div class="mb-3 d-flex gap-3 flex-wrap align-items-end">
+    <div style="min-width: 220px;">
+        <label class="form-label small text-secondary mb-0">Gliederung</label>
+        <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
+    </div>
+    <div>
+        <label class="form-label small text-secondary mb-0">Status</label>
+        <select class="form-select" value="@StatusFilter" @onchange="OnStatusFilterChanged">
+            <option value="">Alle</option>
+            <option value="0">Entwurf</option>
+            <option value="1">Geplant</option>
+            <option value="2">Laufend</option>
+            <option value="3">Abgeschlossen</option>
+            <option value="4">Archiviert</option>
+        </select>
+    </div>
+    <div>
+        <label class="form-label small text-secondary mb-0">Sichtbarkeit</label>
+        <select class="form-select" value="@VisibilityFilter" @onchange="OnVisibilityFilterChanged">
+            <option value="">Alle</option>
+            <option value="0">Öffentlich</option>
+            <option value="1">Privat</option>
+        </select>
+    </div>
+    <div>
+        <label class="form-label small text-secondary mb-0">Datum von</label>
+        <input type="date" class="form-control" value="@DateFromFilter" @onchange="OnDateFromChanged" />
+    </div>
+    <div>
+        <label class="form-label small text-secondary mb-0">Datum bis</label>
+        <input type="date" class="form-control" value="@DateToFilter" @onchange="OnDateToChanged" />
+    </div>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Response != null) {
+    <div class="mb-2 text-secondary">
+        @Response.TotalCount Sitzungen
+    </div>
+
+    @if (Response.Items.Count == 0) {
+        <div class="alert alert-secondary">Keine Sitzungen vorhanden.</div>
+    } else {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Titel</th>
+                        <th>Gliederung</th>
+                        <th>Datum</th>
+                        <th>Status</th>
+                        <th>Sichtbarkeit</th>
+                        <th>TOPs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Response.Items) {
+                        <tr>
+                            <td><a href="/Administration/Meetings/@m.Id">@m.Title</a></td>
+                            <td>@m.ChapterName</td>
+                            <td>@(m.MeetingDate?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+                            <td><span class="badge border @GetStatusBadgeClass(m.Status)">@StatusToLabel(m.Status)</span></td>
+                            <td><span class="badge border @GetVisibilityBadgeClass(m.Visibility)">@VisibilityToLabel(m.Visibility)</span></td>
+                            <td>@m.AgendaItemCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+    }
+}

@@ -1,0 +1,121 @@
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FastEndpoints;
+using Quartermaster.Api;
+using Quartermaster.Api.Meetings;
+using Quartermaster.Data.ChapterAssociates;
+using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Meetings;
+using Quartermaster.Data.Motions;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
+
+namespace Quartermaster.Server.Meetings;
+
+/// <summary>
+/// Casts a vote on the motion linked to an agenda item, tagging the vote with the
+/// meeting's ID so it's attributed to that meeting session. Delegation rules match
+/// the existing <c>MotionVoteEndpoint</c>.
+/// </summary>
+public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
+    private readonly MeetingRepository _meetingRepo;
+    private readonly AgendaItemRepository _agendaRepo;
+    private readonly MotionRepository _motionRepo;
+    private readonly ChapterOfficerRepository _officerRepo;
+    private readonly ChapterRepository _chapterRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+
+    public AgendaItemVoteEndpoint(
+        MeetingRepository meetingRepo,
+        AgendaItemRepository agendaRepo,
+        MotionRepository motionRepo,
+        ChapterOfficerRepository officerRepo,
+        ChapterRepository chapterRepo,
+        UserChapterPermissionRepository chapterPermRepo,
+        UserGlobalPermissionRepository globalPermRepo) {
+        _meetingRepo = meetingRepo;
+        _agendaRepo = agendaRepo;
+        _motionRepo = motionRepo;
+        _officerRepo = officerRepo;
+        _chapterRepo = chapterRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _globalPermRepo = globalPermRepo;
+    }
+
+    public override void Configure() {
+        Post("/api/meetings/{MeetingId}/agenda/{ItemId}/vote");
+    }
+
+    public override async Task HandleAsync(AgendaItemVoteRequest req, CancellationToken ct) {
+        var meeting = _meetingRepo.Get(req.MeetingId);
+        if (meeting == null) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+        if (meeting.Status != MeetingStatus.InProgress) {
+            ThrowError("Abstimmung nur während laufender Sitzung möglich.");
+            return;
+        }
+
+        var item = _agendaRepo.Get(req.ItemId);
+        if (item == null || item.MeetingId != meeting.Id) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+        if (item.ItemType != AgendaItemType.Motion || !item.MotionId.HasValue) {
+            ThrowError("TOP ist kein Antragspunkt.");
+            return;
+        }
+
+        var motion = _motionRepo.Get(item.MotionId.Value);
+        if (motion == null) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+
+        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        if (userId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteMotions, _globalPermRepo) &&
+            !_chapterPermRepo.HasPermissionForChapter(userId.Value, motion.ChapterId, PermissionIdentifier.VoteMotions)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
+        // Delegation check — same as MotionVoteEndpoint.
+        if (req.UserId != userId.Value) {
+            if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
+                AddError("UserId", "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.");
+                await SendErrorsAsync(400, ct);
+                return;
+            }
+            var chapterAndAncestors = _chapterRepo.GetAncestorChain(motion.ChapterId).Select(c => c.Id).ToList();
+            var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(userId.Value, chapterAndAncestors);
+            if (!callerIsOfficer &&
+                !EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _chapterRepo)) {
+                AddError("UserId", "Keine Berechtigung zur stellvertretenden Abstimmung.");
+                await SendErrorsAsync(403, ct);
+                return;
+            }
+        }
+
+        _motionRepo.CastVote(new MotionVote {
+            Id = Guid.NewGuid(),
+            MotionId = motion.Id,
+            UserId = req.UserId,
+            Vote = (VoteType)req.Vote,
+            VotedAt = DateTime.UtcNow,
+            MeetingId = meeting.Id
+        });
+
+        await SendOkAsync(ct);
+    }
+}

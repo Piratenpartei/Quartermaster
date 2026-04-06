@@ -92,6 +92,7 @@ public class MotionRepository {
                 .Where(v => v.Id == existing.Id)
                 .Set(v => v.Vote, vote.Vote)
                 .Set(v => v.VotedAt, vote.VotedAt)
+                .Set(v => v.MeetingId, vote.MeetingId)
                 .Update();
 
             _auditLog.LogFieldChange("MotionVote", existing.Id, "Vote", existing.Vote.ToString(), vote.Vote.ToString());
@@ -111,6 +112,13 @@ public class MotionRepository {
             return false;
 
         var votes = GetVotes(motionId);
+
+        // If any vote was cast in the context of a meeting, skip auto-resolve.
+        // Meeting-linked motions require explicit close (via close-vote endpoint or the
+        // on-complete sweep). Manual resolve via MotionStatusEndpoint still works.
+        if (votes.Any(v => v.MeetingId != null))
+            return false;
+
         var approveCount = votes.Count(v => v.Vote == VoteType.Approve);
         var denyCount = votes.Count(v => v.Vote == VoteType.Deny);
         var majority = (officerCount / 2) + 1;

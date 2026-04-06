@@ -45,10 +45,15 @@ public static class PermissionIdentifier {
     public static readonly string ViewTemplates = "templates_view";
     public static readonly string EditTemplates = "templates_edit";
 
+    public static readonly string ViewMeetings = "meetings_view";
+    public static readonly string CreateMeetings = "meetings_create";
+    public static readonly string EditMeetings = "meetings_edit";
+    public static readonly string DeleteMeetings = "meetings_delete";
+
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
         ViewMotions, ViewApplications, ViewDueSelections,
-        ViewMembers, ViewEvents, ViewTemplates
+        ViewMembers, ViewEvents, ViewTemplates, ViewMeetings
     ];
 
     public static readonly List<string> SystemPermissions = [
@@ -58,6 +63,7 @@ public static class PermissionIdentifier {
     // Well-known role identifiers (seeded as system roles)
     public static class SystemRole {
         public const string ChapterOfficer = "chapter_officer";
+        public const string GeneralChapterDelegate = "general_chapter_delegate";
     }
 
     // Default permissions auto-granted to chapter officers
@@ -68,6 +74,7 @@ public static class PermissionIdentifier {
         ViewEvents, CreateEvents, EditEvents, DeleteEvents,
         ViewMembers,
         ViewOfficers,
-        ViewTemplates, EditTemplates
+        ViewTemplates, EditTemplates,
+        ViewMeetings, CreateMeetings, EditMeetings
     ];
 }
