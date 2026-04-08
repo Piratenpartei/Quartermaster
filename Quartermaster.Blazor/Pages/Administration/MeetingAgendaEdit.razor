@@ -1,0 +1,46 @@
+@page "/Administration/Meetings/{Id:guid}/Edit"
+@using Quartermaster.Api.Meetings
+
+<div class="mb-3 d-flex gap-2">
+    <a href="/Administration/Meetings/@Id" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Sitzung
+    </a>
+    @if (Meeting != null && Meeting.Status == MeetingStatus.InProgress) {
+        <a href="/Administration/Meetings/@Id/Live" class="btn btn-sm btn-outline-warning">
+            <i class="bi bi-broadcast"></i> Zur laufenden Sitzung
+        </a>
+    }
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Meeting == null) {
+    <div class="alert alert-danger">Sitzung nicht gefunden.</div>
+} else {
+    <h3 class="mb-3">Agenda bearbeiten: @Meeting.Title</h3>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Tagesordnung</h5>
+                <button class="btn btn-sm btn-primary" @onclick="@(() => AddAgendaItem(null))">
+                    <i class="bi bi-plus-circle"></i> Neuer TOP
+                </button>
+            </div>
+            <AgendaItemTree Items="@Meeting.AgendaItems"
+                            Mode="AgendaTreeMode.Editor"
+                            ChapterId="@Meeting.ChapterId.ToString()"
+                            OnAddChild="AddAgendaItemChild"
+                            OnDelete="DeleteAgendaItem"
+                            OnReorder="ReorderAgendaItem"
+                            OnUpdate="UpdateAgendaItem"
+                            OnIndent="IndentAgendaItem"
+                            OnOutdent="OutdentAgendaItem"
+                            OnImportMotions="ImportMotions" />
+        </div>
+    </div>
+}
+
+<ConfirmDialog @ref="ConfirmDialog" />

@@ -9,7 +9,7 @@
     var item = entry.Item;
     var isEditing = EditingItemId == item.Id;
     var isActive = ActiveItemId == item.Id;
-    var rowClass = isActive ? "border-start border-3 border-primary" : "";
+    var rowClass = Mode == AgendaTreeMode.MinuteTaking ? GetProgressRowClass(item, isActive) : "";
 
     <div class="d-flex align-items-start py-2 border-bottom @rowClass" style="padding-left: @(entry.Depth * 2)rem;">
         @if (Mode == AgendaTreeMode.MinuteTaking) {
@@ -38,6 +38,8 @@
                         <option value="2">Protokoll</option>
                         <option value="3">Pause</option>
                         <option value="4">Information</option>
+                        <option value="5">Abschnitt</option>
+                        <option value="6">Anwesenheit</option>
                     </select>
                     <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="() => SaveEdit(item)">
                         <i class="bi bi-check-lg"></i>
@@ -54,7 +56,7 @@
                 }
             } else {
                 @if (Mode == AgendaTreeMode.MinuteTaking) {
-                    <button class="btn btn-link text-start text-decoration-none p-0 fw-semibold"
+                    <button class="btn btn-link text-start text-decoration-none p-0 fw-semibold @(item.CompletedAt != null ? "text-muted" : "")"
                             @onclick="() => OnSelectActive.InvokeAsync(item.Id)">
                         @item.Title
                     </button>
@@ -69,27 +71,43 @@
         </div>
 
         @if (Mode == AgendaTreeMode.Editor && !isEditing) {
-            <div class="input-group input-group-sm ms-2" style="width: auto;">
-                <button class="btn btn-outline-secondary" @onclick="() => OnAddChild.InvokeAsync(item.Id)"
-                        title="Unterpunkt hinzufügen" aria-label="Unterpunkt hinzufügen">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, -1))"
-                        title="Nach oben" aria-label="Nach oben">
-                    <i class="bi bi-chevron-up"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, 1))"
-                        title="Nach unten" aria-label="Nach unten">
-                    <i class="bi bi-chevron-down"></i>
-                </button>
-                <button class="btn btn-outline-secondary" @onclick="() => StartEdit(item)"
-                        title="Bearbeiten" aria-label="Bearbeiten">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-outline-danger" @onclick="() => OnDelete.InvokeAsync(item.Id)"
-                        title="Löschen" aria-label="Löschen">
-                    <i class="bi bi-trash"></i>
-                </button>
+            <div class="d-flex gap-1 ms-2" style="flex-shrink: 0;">
+                @if (item.ItemType == AgendaItemType.Section) {
+                    <button class="btn btn-sm btn-outline-primary" @onclick="() => OnImportMotions.InvokeAsync(item.Id)"
+                            title="Offene Anträge importieren" aria-label="Offene Anträge importieren">
+                        <i class="bi bi-download"></i>
+                    </button>
+                }
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <button class="btn btn-outline-secondary" @onclick="() => OnAddChild.InvokeAsync(item.Id)"
+                            title="Unterpunkt hinzufügen" aria-label="Unterpunkt hinzufügen">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => OnOutdent.InvokeAsync(item.Id)"
+                            title="Ausrücken" aria-label="Ausrücken">
+                        <i class="bi bi-chevron-bar-left"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => OnIndent.InvokeAsync(item.Id)"
+                            title="Einrücken" aria-label="Einrücken">
+                        <i class="bi bi-chevron-bar-right"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, -1))"
+                            title="Nach oben" aria-label="Nach oben">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, 1))"
+                            title="Nach unten" aria-label="Nach unten">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="() => StartEdit(item)"
+                            title="Bearbeiten" aria-label="Bearbeiten">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" @onclick="() => OnDelete.InvokeAsync(item.Id)"
+                            title="Löschen" aria-label="Löschen">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </div>
         }
     </div>

@@ -10,6 +10,8 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Server.Authentication;
 
@@ -33,6 +35,8 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly OptionRepository _optionRepo;
     private readonly RoleRepository _roleRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
 
     public MeetingProtocolEndpoint(
         MeetingRepository meetingRepo,
@@ -40,13 +44,17 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
         MotionRepository motionRepo,
         ChapterRepository chapterRepo,
         OptionRepository optionRepo,
-        RoleRepository roleRepo) {
+        RoleRepository roleRepo,
+        UserGlobalPermissionRepository globalPermRepo,
+        UserChapterPermissionRepository chapterPermRepo) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _optionRepo = optionRepo;
         _roleRepo = roleRepo;
+        _globalPermRepo = globalPermRepo;
+        _chapterPermRepo = chapterPermRepo;
     }
 
     public override void Configure() {
@@ -62,7 +70,7 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
         }
 
         var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (!MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo)) {
+        if (!MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendNotFoundAsync(ct); // 404, not 403 — don't leak private meeting existence
             return;
         }

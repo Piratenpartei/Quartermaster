@@ -188,4 +188,13 @@ public class AgendaItemRepository {
                 && a.CompletedAt == null)
             .Set(a => a.CompletedAt, now).Update();
     }
+
+    /// <summary>
+    /// Resets CompletedAt to null, effectively re-opening a completed agenda item.
+    /// Used when meetings jump around and a previously-completed item needs revisiting.
+    /// </summary>
+    public void ResetCompletion(Guid itemId) {
+        _context.AgendaItems.Where(a => a.Id == itemId)
+            .Set(a => a.CompletedAt, (DateTime?)null).Update();
+    }
 }

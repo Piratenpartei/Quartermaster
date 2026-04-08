@@ -36,6 +36,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);
         AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
+        AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
 
         // Chapter-scoped permissions
         AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);

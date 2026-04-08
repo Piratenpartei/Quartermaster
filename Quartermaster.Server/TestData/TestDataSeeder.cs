@@ -29,8 +29,10 @@ public class TestDataSeeder {
         if (chapters.Count == 0)
             return 0;
 
-        // State chapters only (not Bundesverband)
+        // State chapters only (not Bundesverband); fall back to all chapters if none have parents
         var stateChapters = chapters.Where(c => c.ParentChapterId != null).ToList();
+        if (stateChapters.Count == 0)
+            stateChapters = chapters;
 
         var germanCities = new[] {
             "Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main", "Stuttgart",

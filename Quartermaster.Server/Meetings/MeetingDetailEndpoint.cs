@@ -11,6 +11,8 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -24,6 +26,8 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
     private readonly AgendaItemRepository _agendaRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly RoleRepository _roleRepo;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly DbContext _db;
 
     public MeetingDetailEndpoint(
@@ -31,11 +35,15 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
         AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo,
         RoleRepository roleRepo,
+        UserGlobalPermissionRepository globalPermRepo,
+        UserChapterPermissionRepository chapterPermRepo,
         DbContext db) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _roleRepo = roleRepo;
+        _globalPermRepo = globalPermRepo;
+        _chapterPermRepo = chapterPermRepo;
         _db = db;
     }
 
@@ -52,7 +60,7 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
         }
 
         var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (!MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo)) {
+        if (!MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             // Don't leak existence of private meetings
             await SendNotFoundAsync(ct);
             return;
@@ -83,12 +91,78 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                     Abstain: g.Count(v => v.Vote == VoteType.Abstain)
                 ));
 
-        var dto = MeetingDtoBuilder.BuildMeetingDetailDTO(
-            meeting,
-            chapter?.Name ?? "",
-            agendaItems,
-            motionsById,
-            voteTallies);
+        // Build per-officer vote lists for Motion and Presence agenda items.
+        var officers = _db.ChapterOfficers
+            .Where(o => o.ChapterId == meeting.ChapterId)
+            .ToList();
+        var officerMemberIds = officers.Select(o => o.MemberId).ToList();
+        var officerMembers = _db.Members
+            .Where(m => officerMemberIds.Contains(m.Id))
+            .ToList();
+        var allVotes = motionIds.Count > 0
+            ? _db.MotionVotes.Where(v => motionIds.Contains(v.MotionId)).ToList()
+            : new List<Data.Motions.MotionVote>();
+
+        var itemDtos = agendaItems
+            .OrderBy(a => a.ParentId.HasValue ? 1 : 0)
+            .ThenBy(a => a.ParentId)
+            .ThenBy(a => a.SortOrder)
+            .Select(a => {
+                List<AgendaItemOfficerVoteDTO>? officerVotes = null;
+                if (a.ItemType == Api.Meetings.AgendaItemType.Motion && a.MotionId.HasValue) {
+                    var motionVotes = allVotes.Where(v => v.MotionId == a.MotionId.Value).ToList();
+                    officerVotes = officers.Select(o => {
+                        var member = officerMembers.FirstOrDefault(m => m.Id == o.MemberId);
+                        var vote = member?.UserId != null
+                            ? motionVotes.FirstOrDefault(v => v.UserId == member.UserId.Value)
+                            : null;
+                        return new AgendaItemOfficerVoteDTO {
+                            UserId = member?.UserId ?? Guid.Empty,
+                            UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                            OfficerRole = o.AssociateType.ToString(),
+                            Vote = vote != null ? (int?)vote.Vote : null
+                        };
+                    }).ToList();
+                } else if (a.ItemType == Api.Meetings.AgendaItemType.Presence) {
+                    // Presence stored as JSON array of user ID strings in Resolution field
+                    var presentIds = new HashSet<string>();
+                    if (!string.IsNullOrWhiteSpace(a.Resolution)) {
+                        try {
+                            var parsed = System.Text.Json.JsonSerializer.Deserialize<List<string>>(a.Resolution);
+                            if (parsed != null)
+                                presentIds = new HashSet<string>(parsed);
+                        } catch { }
+                    }
+                    officerVotes = officers.Select(o => {
+                        var member = officerMembers.FirstOrDefault(m => m.Id == o.MemberId);
+                        var odUserId = member?.UserId ?? Guid.Empty;
+                        return new AgendaItemOfficerVoteDTO {
+                            UserId = odUserId,
+                            UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                            OfficerRole = o.AssociateType.ToString(),
+                            IsPresent = presentIds.Contains(odUserId.ToString())
+                        };
+                    }).ToList();
+                }
+                return MeetingDtoBuilder.BuildAgendaItemDTO(a, motionsById, voteTallies, officerVotes);
+            })
+            .ToList();
+
+        var dto = new MeetingDetailDTO {
+            Id = meeting.Id,
+            ChapterId = meeting.ChapterId,
+            ChapterName = chapter?.Name ?? "",
+            Title = meeting.Title,
+            MeetingDate = meeting.MeetingDate,
+            Status = meeting.Status,
+            Visibility = meeting.Visibility,
+            Location = meeting.Location,
+            Description = meeting.Description,
+            StartedAt = meeting.StartedAt,
+            CompletedAt = meeting.CompletedAt,
+            ArchivedPdfPath = meeting.ArchivedPdfPath,
+            AgendaItems = itemDtos
+        };
 
         await SendAsync(dto, cancellation: ct);
     }

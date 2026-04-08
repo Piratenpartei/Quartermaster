@@ -20,6 +20,11 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageRoles = "roles_manage";
 
+    // System-wide override permissions (global, prefixed with system_)
+    // These grant the permission across ALL chapters regardless of chapter-scoped grants.
+    // Applied to the root admin by default.
+    public static readonly string SystemVote = "system_vote";
+
     // Chapter-scoped permissions
     public static readonly string ViewApplications = "applications_view";
     public static readonly string ProcessApplications = "applications_process";

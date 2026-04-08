@@ -1,0 +1,196 @@
+@page "/Administration/Meetings/{Id:guid}/Live"
+@using System.Linq
+@using Quartermaster.Api.Meetings
+
+<div class="mb-3 d-flex gap-2">
+    <a href="/Administration/Meetings/@Id" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Zurück zur Sitzung
+    </a>
+    <a href="/Administration/Meetings/@Id/Edit" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-pencil-square"></i> Agenda bearbeiten
+    </a>
+</div>
+
+@if (Loading) {
+    <div class="d-flex justify-content-center my-4">
+        <div class="spinner-border" role="status"></div>
+    </div>
+} else if (Meeting == null) {
+    <div class="alert alert-danger">Sitzung nicht gefunden.</div>
+} else if (Meeting.Status != MeetingStatus.InProgress) {
+    <div class="alert alert-warning">Diese Sitzung ist nicht aktiv.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">@Meeting.Title <span class="badge border border-warning text-warning-emphasis fs-6">Laufend</span></h3>
+        <button class="btn btn-outline-success" @onclick="FinishMeeting">
+            <i class="bi bi-check2-all"></i> Sitzung beenden
+        </button>
+    </div>
+
+    <div class="d-flex gap-3">
+        <div style="width: 20rem; min-width: 20rem;">
+            <div class="card">
+                <div class="card-body p-2">
+                    <h6 class="px-2 pt-1">Fortschritt</h6>
+                    @foreach (var entry in FlatItems) {
+                        var item = entry.Item;
+                        var isActive = SelectedActiveItemId == item.Id;
+                        var rowBg = GetProgressRowClass(item, isActive);
+
+                        <div class="d-flex align-items-center py-1 px-2 rounded @rowBg"
+                             style="padding-left: @(entry.Depth * 1.5 + 0.5)rem; cursor: pointer;"
+                             @onclick="() => OnSelectActiveItem(item.Id)">
+                            <div class="me-2" style="min-width: 22px;">
+                                @if (item.CompletedAt != null) {
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                } else if (item.StartedAt != null) {
+                                    <i class="bi bi-play-circle-fill text-warning"></i>
+                                } else {
+                                    <i class="bi bi-circle text-secondary"></i>
+                                }
+                            </div>
+                            <span class="small @(item.CompletedAt != null ? "text-muted" : "")">
+                                <span class="text-secondary me-1">@entry.Number</span> @item.Title
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="flex-grow-1" style="min-width: 0;">
+            @if (SelectedActiveItem == null) {
+                <div class="alert alert-secondary">Einen Tagesordnungspunkt links auswählen.</div>
+            } else {
+                var active = SelectedActiveItem;
+                var activeEntry = FlatItems.FirstOrDefault(e => e.Item.Id == active.Id);
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="mb-0">
+                                @if (activeEntry != null) {
+                                    <span class="text-secondary me-1">@activeEntry.Number</span>
+                                }
+                                @active.Title
+                            </h4>
+                            <div class="d-flex gap-2 align-items-center">
+                                @if (active.StartedAt == null) {
+                                    <button class="btn btn-warning btn-sm" @onclick="() => StartAgendaItem(active.Id)">
+                                        <i class="bi bi-play-circle"></i> Jetzt starten
+                                    </button>
+                                } else if (active.CompletedAt == null) {
+                                    <button class="btn btn-success btn-sm" @onclick="() => CompleteAgendaItem(active.Id)">
+                                        <i class="bi bi-check-circle"></i> TOP abschließen
+                                    </button>
+                                } else {
+                                    <span class="badge bg-success d-flex align-items-center">Abgeschlossen</span>
+                                    <button class="btn btn-outline-warning btn-sm" @onclick="() => ReopenAgendaItem(active.Id)">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Neu öffnen
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        @if (active.ItemType == AgendaItemType.Motion && active.MotionId.HasValue) {
+                            <div class="alert alert-primary py-2">
+                                <strong>Antrag:</strong> @active.MotionTitle
+                                <a href="/Administration/Motions/@active.MotionId" target="_blank" class="ms-2">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                                @if (active.MotionApprovalStatus.HasValue) {
+                                    <span class="ms-2 badge border @GetMotionStatusBadgeClass(active.MotionApprovalStatus.Value)">
+                                        @GetMotionStatusLabel(active.MotionApprovalStatus.Value)
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="mb-3">
+                                <h6>Abstimmung</h6>
+                                @if (active.OfficerVotes != null && active.OfficerVotes.Count > 0) {
+                                    <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover table-bordered mb-1">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Amt</th>
+                                                <th>Stimme</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var officer in active.OfficerVotes) {
+                                                <tr>
+                                                    <td>@officer.UserName</td>
+                                                    <td>@officer.OfficerRole</td>
+                                                    <td>
+                                                        <div class="d-flex gap-1">
+                                                            <button class="btn btn-sm @(officer.Vote == 0 ? "btn-success" : "btn-outline-success")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 0)">Ja</button>
+                                                            <button class="btn btn-sm @(officer.Vote == 1 ? "btn-danger" : "btn-outline-danger")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 1)">Nein</button>
+                                                            <button class="btn btn-sm @(officer.Vote == 2 ? "btn-secondary" : "btn-outline-secondary")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 2)">Enthaltung</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    </div>
+                                }
+                                <div class="d-flex gap-3 small text-secondary">
+                                    <span class="text-success">Ja: @active.MotionVoteApproveCount</span>
+                                    <span class="text-danger">Nein: @active.MotionVoteDenyCount</span>
+                                    <span>Enthaltung: @active.MotionVoteAbstainCount</span>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm mt-1" @onclick="() => CloseVote(active.Id)">
+                                    Abstimmung beenden
+                                </button>
+                            </div>
+                        }
+
+                        @if (active.ItemType == AgendaItemType.Presence && active.OfficerVotes != null) {
+                            <div class="mb-3">
+                                <h6>Anwesenheit</h6>
+                                <div class="table-responsive">
+                                <table class="table table-sm table-striped table-hover table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Amt</th>
+                                            <th>Anwesend</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var officer in active.OfficerVotes) {
+                                            <tr>
+                                                <td>@officer.UserName</td>
+                                                <td>@officer.OfficerRole</td>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input"
+                                                           checked="@officer.IsPresent"
+                                                           @onchange="() => TogglePresence(active.Id, officer.UserId, !officer.IsPresent)" />
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mb-2">
+                            <MarkdownEditorWithPreview Value="@ActiveItemNotes"
+                                                       ValueChanged="OnNotesChanged" Rows="10" />
+                            @if (NotesSaving) {
+                                <small class="text-secondary"><i class="bi bi-cloud-arrow-up"></i> Speichere...</small>
+                            } else if (NotesSavedAt != null) {
+                                <small class="text-secondary"><i class="bi bi-cloud-check"></i> Gespeichert @NotesSavedAt.Value.ToString("HH:mm:ss")</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<ConfirmDialog @ref="ConfirmDialog" />

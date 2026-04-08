@@ -1,0 +1,21 @@
+@using Quartermaster.Blazor.Components.Forms
+
+<div class="row">
+    <div class="col-md-6">
+        <label class="form-label small text-secondary mb-1">Markdown</label>
+        <textarea class="form-control font-monospace" rows="@Rows"
+                  value="@Value" @oninput="OnInput"></textarea>
+    </div>
+    <div class="col-md-6 d-flex flex-column">
+        <label class="form-label small text-secondary mb-1">Vorschau</label>
+        <div class="card bg-body-secondary flex-grow-1">
+            <div class="card-body overflow-auto p-2">
+                @if (string.IsNullOrWhiteSpace(Value)) {
+                    <span class="text-secondary">...</span>
+                } else {
+                    @((MarkupString)RenderedHtml)
+                }
+            </div>
+        </div>
+    </div>
+</div>

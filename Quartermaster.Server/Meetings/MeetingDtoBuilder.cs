@@ -61,7 +61,8 @@ public static class MeetingDtoBuilder {
     public static AgendaItemDTO BuildAgendaItemDTO(
         AgendaItem item,
         Dictionary<Guid, Motion> motionsById,
-        Dictionary<Guid, (int Approve, int Deny, int Abstain)> voteTalliesByMotionId) {
+        Dictionary<Guid, (int Approve, int Deny, int Abstain)> voteTalliesByMotionId,
+        List<AgendaItemOfficerVoteDTO>? officerVotes = null) {
 
         string? motionTitle = null;
         int? motionApprovalStatus = null;
@@ -94,7 +95,8 @@ public static class MeetingDtoBuilder {
             Notes = item.Notes,
             Resolution = item.Resolution,
             StartedAt = item.StartedAt,
-            CompletedAt = item.CompletedAt
+            CompletedAt = item.CompletedAt,
+            OfficerVotes = officerVotes
         };
     }
 }

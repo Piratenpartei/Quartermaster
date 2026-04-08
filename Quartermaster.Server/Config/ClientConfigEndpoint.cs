@@ -34,7 +34,12 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
             SamlButtonText = samlButtonText,
             SsoSupportContact = ssoSupportContact,
             OidcEnabled = !string.IsNullOrEmpty(oidcAuthority),
-            OidcButtonText = oidcButtonText
+            OidcButtonText = oidcButtonText,
+#if DEBUG
+            IsDebug = true
+#else
+            IsDebug = false
+#endif
         }, cancellation: ct);
     }
 }

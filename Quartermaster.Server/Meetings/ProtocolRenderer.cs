@@ -36,8 +36,6 @@ public static class ProtocolRenderer {
             sb.AppendLine();
         }
 
-        sb.AppendLine("---");
-        sb.AppendLine();
         sb.AppendLine("## Tagesordnung");
         sb.AppendLine();
 
@@ -67,7 +65,7 @@ public static class ProtocolRenderer {
         Dictionary<System.Guid, List<AgendaItemDTO>> childrenByParent) {
         // Heading with hierarchical number
         sb.Append(new string('#', headingLevel))
-          .Append(' ').Append(number).Append(" — ").AppendLine(item.Title);
+          .Append(' ').Append(number).Append("  ").AppendLine(item.Title);
 
         // Type label
         sb.Append('*').Append('(').Append(ItemTypeLabel(item.ItemType)).Append(')').AppendLine("*");
@@ -117,6 +115,8 @@ public static class ProtocolRenderer {
         AgendaItemType.Protocol => "Protokoll",
         AgendaItemType.Break => "Pause",
         AgendaItemType.Information => "Information",
+        AgendaItemType.Section => "Abschnitt",
+        AgendaItemType.Presence => "Anwesenheit",
         _ => type.ToString()
     };
 }

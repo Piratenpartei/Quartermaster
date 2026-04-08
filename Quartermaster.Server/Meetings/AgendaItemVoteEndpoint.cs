@@ -83,14 +83,17 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             return;
         }
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteMotions, _globalPermRepo) &&
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.SystemVote, _globalPermRepo) &&
+            !EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteMotions, _globalPermRepo) &&
             !_chapterPermRepo.HasPermissionForChapter(userId.Value, motion.ChapterId, PermissionIdentifier.VoteMotions)) {
             await SendForbiddenAsync(ct);
             return;
         }
 
-        // Delegation check — same as MotionVoteEndpoint.
-        if (req.UserId != userId.Value) {
+        // Delegation check — system_vote holders can vote for anyone, otherwise
+        // standard delegation rules apply.
+        var hasSystemVote = EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.SystemVote, _globalPermRepo);
+        if (req.UserId != userId.Value && !hasSystemVote) {
             if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
                 AddError("UserId", "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.");
                 await SendErrorsAsync(400, ct);

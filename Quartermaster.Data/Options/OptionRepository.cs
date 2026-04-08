@@ -222,6 +222,18 @@ public class OptionRepository {
             "Login-Sperre: Sperrdauer (Minuten)",
             OptionDataType.Number, false, "", "15",
             description: "Zeitfenster und Sperrdauer in Minuten: Fehlversuche werden in diesem Fenster gezählt, und die Sperre gilt so lange nach dem letzten Fehlversuch. Standard: 15.");
+
+        AddDefinitionIfNotExists("meetings.protocol.archive_dir",
+            "Sitzungen: Protokoll-Archivpfad",
+            OptionDataType.String, false, "", "",
+            description: "Absoluter Pfad, unter dem archivierte Sitzungsprotokolle als PDF gespeichert werden. Standard: ./data/protocols");
+
+        AddDefinitionIfNotExists("meetings.motion_notes_template",
+            "Sitzungen: Antragsnotiz-Vorlage",
+            OptionDataType.Template, true,
+            "MotionDTO",
+            "**Antrag:** {{ motion.Title }}\n\n**Antragsteller:** {{ motion.AuthorName }}\n\n{{ motion.Text }}\n\n---\n\n**Diskussion:**\n",
+            description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEMail, motion.Text");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

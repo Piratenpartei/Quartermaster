@@ -54,6 +54,15 @@ public partial class AgendaItemTree {
     [Parameter]
     public EventCallback<Guid> OnSelectActive { get; set; }
 
+    [Parameter]
+    public EventCallback<Guid> OnIndent { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnOutdent { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnImportMotions { get; set; }
+
     private Guid? EditingItemId;
     private string EditingTitle = "";
     private int EditingItemType;
@@ -128,6 +137,8 @@ public partial class AgendaItemTree {
         AgendaItemType.Protocol => "Protokoll",
         AgendaItemType.Break => "Pause",
         AgendaItemType.Information => "Information",
+        AgendaItemType.Section => "Abschnitt",
+        AgendaItemType.Presence => "Anwesenheit",
         _ => t.ToString()
     };
 
@@ -137,6 +148,16 @@ public partial class AgendaItemTree {
         AgendaItemType.Protocol => "border-info text-info-emphasis",
         AgendaItemType.Break => "border-warning text-warning-emphasis",
         AgendaItemType.Information => "border-success text-success-emphasis",
+        AgendaItemType.Section => "border-dark text-dark-emphasis",
+        AgendaItemType.Presence => "border-info text-info-emphasis",
         _ => "border-secondary"
     };
+
+    private static string GetProgressRowClass(AgendaItemDTO item, bool isActive) {
+        if (item.CompletedAt != null)
+            return "bg-success-subtle";
+        if (isActive)
+            return "bg-primary-subtle";
+        return "";
+    }
 }

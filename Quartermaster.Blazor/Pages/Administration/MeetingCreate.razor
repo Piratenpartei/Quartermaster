@@ -46,7 +46,7 @@
         </div>
         <div class="mb-3">
             <label class="form-label">Beschreibung (Markdown)</label>
-            <MarkdownEditor @bind-Value="Description" Rows="6" />
+            <MarkdownEditorWithPreview @bind-Value="Description" Rows="6" />
         </div>
         <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
             @if (Submitting) {

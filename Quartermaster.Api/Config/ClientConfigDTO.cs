@@ -8,4 +8,5 @@ public class ClientConfigDTO {
     public string SsoSupportContact { get; set; } = "";
     public bool OidcEnabled { get; set; }
     public string OidcButtonText { get; set; } = "";
+    public bool IsDebug { get; set; }
 }

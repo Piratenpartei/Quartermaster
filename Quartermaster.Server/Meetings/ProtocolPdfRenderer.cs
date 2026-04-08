@@ -161,6 +161,8 @@ public static class ProtocolPdfRenderer {
         AgendaItemType.Protocol => "Protokoll",
         AgendaItemType.Break => "Pause",
         AgendaItemType.Information => "Information",
+        AgendaItemType.Section => "Abschnitt",
+        AgendaItemType.Presence => "Anwesenheit",
         _ => type.ToString()
     };
 }

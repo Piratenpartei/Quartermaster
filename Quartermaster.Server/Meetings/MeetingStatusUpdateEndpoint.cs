@@ -91,6 +91,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
             (MeetingStatus.Scheduled, MeetingStatus.Draft) => true,
             (MeetingStatus.Scheduled, MeetingStatus.InProgress) => true,
             (MeetingStatus.InProgress, MeetingStatus.Completed) => true,
+            (MeetingStatus.Completed, MeetingStatus.InProgress) => true,
             (MeetingStatus.Completed, MeetingStatus.Archived) => true,
             (MeetingStatus.Archived, MeetingStatus.Completed) => true,
             _ => false

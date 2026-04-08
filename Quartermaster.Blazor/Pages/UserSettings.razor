@@ -120,4 +120,19 @@
             </div>
         </div>
     </div>
+
+    @if (IsDebug) {
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5>Entwicklung</h5>
+                <p class="text-secondary small mb-2">Diese Optionen sind nur im Entwicklungsmodus sichtbar.</p>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="SeedTestData" disabled="@Seeding">
+                    @if (Seeding) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+                    <i class="bi bi-database-add"></i> Testdaten erstellen
+                </button>
+            </div>
+        </div>
+    }
 }

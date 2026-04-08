@@ -17,8 +17,13 @@ public partial class UserSettings {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required ClientConfigService ConfigService { get; set; }
+
     private UserSettingsDTO? Settings;
     private bool Loading = true;
+    private bool Seeding;
+    private bool IsDebug => ConfigService.IsDebug;
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -28,5 +33,24 @@ public partial class UserSettings {
         }
 
         Loading = false;
+    }
+
+    private async Task SeedTestData() {
+        Seeding = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PostAsync("/api/testdata/seed", null);
+            if (resp.IsSuccessStatusCode) {
+                var result = await resp.Content.ReadAsStringAsync();
+                ToastService.Toast("Testdaten erstellt.", "success");
+            } else {
+                var body = await resp.Content.ReadAsStringAsync();
+                ToastService.Error(details: $"HTTP {(int)resp.StatusCode}: {body}");
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+        Seeding = false;
+        StateHasChanged();
     }
 }

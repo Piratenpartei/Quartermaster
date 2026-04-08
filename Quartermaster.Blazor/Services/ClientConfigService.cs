@@ -20,6 +20,7 @@ public class ClientConfigService {
     public string SsoSupportContact => _config?.SsoSupportContact ?? "";
     public bool OidcEnabled => _config?.OidcEnabled ?? false;
     public string OidcButtonText => _config?.OidcButtonText ?? "OpenID Login";
+    public bool IsDebug => _config?.IsDebug ?? false;
 
     public async Task LoadAsync(bool forceRefresh = false) {
         if (_config != null && !forceRefresh)
