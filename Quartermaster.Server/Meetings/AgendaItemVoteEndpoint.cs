@@ -102,8 +102,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             var chapterAndAncestors = _chapterRepo.GetAncestorChain(motion.ChapterId).Select(c => c.Id).ToList();
             var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(userId.Value, chapterAndAncestors);
             if (!callerIsOfficer &&
-                !EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _chapterRepo)) {
+                !EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 AddError("UserId", "Keine Berechtigung zur stellvertretenden Abstimmung.");
                 await SendErrorsAsync(403, ct);
                 return;

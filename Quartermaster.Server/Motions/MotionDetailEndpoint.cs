@@ -56,8 +56,7 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
                 await SendNotFoundAsync(ct);
                 return;
             }
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMotions, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.ViewMotions, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.ViewMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendNotFoundAsync(ct);
                 return;
             }

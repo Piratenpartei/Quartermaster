@@ -42,8 +42,7 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMotions, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.EditMotions, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.EditMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

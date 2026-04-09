@@ -54,16 +54,14 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             return;
         }
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
-            if (member.ChapterId.HasValue) {
-                if (!_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.ViewMembers, _chapterRepo)) {
-                    await SendForbiddenAsync(ct);
-                    return;
-                }
-            } else {
+        if (!member.ChapterId.HasValue) {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
+        } else if (!EndpointAuthorizationHelper.HasPermission(userId.Value, member.ChapterId.Value, PermissionIdentifier.ViewAllMembers, PermissionIdentifier.ViewMembers, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         var chapterName = "";

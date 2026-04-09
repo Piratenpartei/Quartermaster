@@ -4,42 +4,10 @@ Accumulated during feature work. Fix in a dedicated code quality review pass.
 
 ---
 
-## Complex Conditionals (extract to methods with guard clauses)
+## Complex Conditionals (extract to methods with guard clauses) — ✅ DONE
 
-### MotionVoteEndpoint — 3-line delegation auth check
-- [MotionVoteEndpoint.cs:72](../../../Quartermaster.Server/Motions/MotionVoteEndpoint.cs#L72)
-- **Issue:** 3-condition `if` spanning 3 lines — extract to a method like `CanDelegateVote()`
-```csharp
-if (!callerIsOfficer &&
-    !EndpointAuthorizationHelper.HasGlobalPermission(...) &&
-    !_chapterPermRepo.HasPermissionWithInheritance(...)) {
-```
-
-### Repeated 2-line permission check pattern (DRY violation)
-- **Issue:** ~22 endpoints repeat the same 2-line permission check: `!HasGlobalPermission(x) && !HasPermissionWithInheritance(x)`. Each instance is borderline (2 simple conditions), but the repetition is the real problem. Extract into `EndpointAuthorizationHelper.HasPermission(userId, chapterId, permission, ...)` or similar.
-- **Locations:**
-  - [ChapterOfficerAddEndpoint.cs:42](../../../Quartermaster.Server/ChapterAssociates/ChapterOfficerAddEndpoint.cs#L42)
-  - [ChapterOfficerDeleteEndpoint.cs:47](../../../Quartermaster.Server/ChapterAssociates/ChapterOfficerDeleteEndpoint.cs#L47)
-  - [DueSelectionDetailEndpoint.cs:61](../../../Quartermaster.Server/Admin/DueSelectionDetailEndpoint.cs#L61)
-  - [DueSelectionProcessEndpoint.cs:56](../../../Quartermaster.Server/Admin/DueSelectionProcessEndpoint.cs#L56)
-  - [MembershipApplicationDetailEndpoint.cs:65](../../../Quartermaster.Server/Admin/MembershipApplicationDetailEndpoint.cs#L65)
-  - [MembershipApplicationProcessEndpoint.cs:52](../../../Quartermaster.Server/Admin/MembershipApplicationProcessEndpoint.cs#L52)
-  - [ChecklistItemAddEndpoint.cs:46](../../../Quartermaster.Server/Events/ChecklistItemAddEndpoint.cs#L46)
-  - [ChecklistItemCheckEndpoint.cs:48](../../../Quartermaster.Server/Events/ChecklistItemCheckEndpoint.cs#L48)
-  - [ChecklistItemDeleteEndpoint.cs:45](../../../Quartermaster.Server/Events/ChecklistItemDeleteEndpoint.cs#L45)
-  - [ChecklistItemReorderEndpoint.cs:51](../../../Quartermaster.Server/Events/ChecklistItemReorderEndpoint.cs#L51)
-  - [ChecklistItemUncheckEndpoint.cs:45](../../../Quartermaster.Server/Events/ChecklistItemUncheckEndpoint.cs#L45)
-  - [ChecklistItemUpdateEndpoint.cs:45](../../../Quartermaster.Server/Events/ChecklistItemUpdateEndpoint.cs#L45)
-  - [EventArchiveEndpoint.cs:49](../../../Quartermaster.Server/Events/EventArchiveEndpoint.cs#L49)
-  - [EventCreateEndpoint.cs:39](../../../Quartermaster.Server/Events/EventCreateEndpoint.cs#L39)
-  - [EventDetailEndpoint.cs:50](../../../Quartermaster.Server/Events/EventDetailEndpoint.cs#L50)
-  - [EventFromTemplateEndpoint.cs:42](../../../Quartermaster.Server/Events/EventFromTemplateEndpoint.cs#L42)
-  - [EventTemplateCreateEndpoint.cs:48](../../../Quartermaster.Server/Events/EventTemplateCreateEndpoint.cs#L48)
-  - [EventTemplateDeleteEndpoint.cs:51](../../../Quartermaster.Server/Events/EventTemplateDeleteEndpoint.cs#L51)
-  - [EventTemplateDetailEndpoint.cs:52](../../../Quartermaster.Server/Events/EventTemplateDetailEndpoint.cs#L52)
-  - [EventUpdateEndpoint.cs:45](../../../Quartermaster.Server/Events/EventUpdateEndpoint.cs#L45)
-  - [MemberDetailEndpoint.cs:58](../../../Quartermaster.Server/Members/MemberDetailEndpoint.cs#L58)
-  - [MotionStatusEndpoint.cs:45](../../../Quartermaster.Server/Motions/MotionStatusEndpoint.cs#L45)
+- [x] **Repeated 2-line permission check pattern** — extracted `EndpointAuthorizationHelper.HasPermission(userId, chapterId, permission, globalPermRepo, chapterPermRepo, chapterRepo)` that combines `HasGlobalPermission` + `HasPermissionWithInheritance` into a single call. Also added a split-permission overload for cases where global and chapter permission identifiers differ (e.g., `ViewAllMembers` globally vs `ViewMembers` per chapter). Replaced across 37+ endpoints in Events, Meetings, Admin, Members, Motions, and ChapterAssociates directories.
+- [x] **MotionVoteEndpoint / AgendaItemVoteEndpoint 3-line delegation check** — reduced from 3 conditions to 2 by using `HasPermission` for the delegation permission check (`!callerIsOfficer && !HasPermission(VoteDelegateMotions)`).
 
 ---
 

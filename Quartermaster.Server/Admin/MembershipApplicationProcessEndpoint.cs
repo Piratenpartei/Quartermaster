@@ -49,8 +49,7 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
         }
 
         if (application.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ProcessApplications, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, application.ChapterId.Value, PermissionIdentifier.ProcessApplications, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, application.ChapterId.Value, PermissionIdentifier.ProcessApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

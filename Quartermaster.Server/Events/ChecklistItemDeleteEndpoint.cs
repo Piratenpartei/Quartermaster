@@ -42,8 +42,7 @@ public class ChecklistItemDeleteEndpoint : Endpoint<ChecklistItemDeleteRequest> 
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditEvents, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.EditEvents, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, PermissionIdentifier.EditEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

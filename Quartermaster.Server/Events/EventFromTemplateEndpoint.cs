@@ -39,8 +39,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.CreateEvents, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, req.ChapterId, PermissionIdentifier.CreateEvents, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, req.ChapterId, PermissionIdentifier.CreateEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

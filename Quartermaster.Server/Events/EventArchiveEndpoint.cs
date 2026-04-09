@@ -47,8 +47,7 @@ public class EventArchiveEndpoint : Endpoint<EventArchiveRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.DeleteEvents, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.DeleteEvents, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, PermissionIdentifier.DeleteEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

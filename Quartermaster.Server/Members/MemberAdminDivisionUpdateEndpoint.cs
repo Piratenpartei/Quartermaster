@@ -60,12 +60,14 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
             return;
         }
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMembers, _globalPermRepo)) {
-            if (!member.ChapterId.HasValue ||
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.EditMembers, _chapterRepo)) {
+        if (!member.ChapterId.HasValue) {
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMembers, _globalPermRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
+        } else if (!EndpointAuthorizationHelper.HasPermission(userId.Value, member.ChapterId.Value, PermissionIdentifier.EditMembers, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         if (req.ResidenceAdministrativeDivisionId.HasValue) {

@@ -51,8 +51,7 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
                 await SendUnauthorizedAsync(ct);
                 return;
             }
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

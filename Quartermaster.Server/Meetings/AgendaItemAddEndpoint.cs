@@ -52,8 +52,7 @@ public class AgendaItemAddEndpoint : Endpoint<AgendaItemCreateRequest, AgendaIte
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMeetings, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, meeting.ChapterId, PermissionIdentifier.EditMeetings, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, PermissionIdentifier.EditMeetings, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

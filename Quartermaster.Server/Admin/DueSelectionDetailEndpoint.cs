@@ -58,8 +58,7 @@ public class DueSelectionDetailEndpoint
 
         var application = _applicationRepo.GetByDueSelectionId(ds.Id);
         if (application?.ChapterId.HasValue == true) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewDueSelections, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, application.ChapterId.Value, PermissionIdentifier.ViewDueSelections, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, application.ChapterId.Value, PermissionIdentifier.ViewDueSelections, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

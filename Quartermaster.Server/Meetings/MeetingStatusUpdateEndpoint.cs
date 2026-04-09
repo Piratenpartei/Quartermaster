@@ -54,8 +54,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
             ? PermissionIdentifier.DeleteMeetings
             : PermissionIdentifier.EditMeetings;
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, requiredPerm, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, meeting.ChapterId, requiredPerm, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, requiredPerm, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -62,8 +62,7 @@ public class MembershipApplicationDetailEndpoint
         }
 
         if (app.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, app.ChapterId.Value, PermissionIdentifier.ViewApplications, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, app.ChapterId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

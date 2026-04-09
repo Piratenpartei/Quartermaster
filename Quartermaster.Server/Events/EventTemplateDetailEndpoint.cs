@@ -49,8 +49,7 @@ public class EventTemplateDetailEndpoint : Endpoint<EventTemplateDetailRequest, 
         }
 
         if (template.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewTemplates, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, template.ChapterId.Value, PermissionIdentifier.ViewTemplates, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, template.ChapterId.Value, PermissionIdentifier.ViewTemplates, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

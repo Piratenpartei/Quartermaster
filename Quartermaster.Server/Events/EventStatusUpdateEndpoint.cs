@@ -54,8 +54,7 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
             ? PermissionIdentifier.DeleteEvents
             : PermissionIdentifier.EditEvents;
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, requiredPerm, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, ev.ChapterId, requiredPerm, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, requiredPerm, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

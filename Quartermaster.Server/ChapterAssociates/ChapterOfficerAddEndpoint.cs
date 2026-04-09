@@ -39,8 +39,7 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditOfficers, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, req.ChapterId, PermissionIdentifier.EditOfficers, _chapterRepo)) {
+        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, req.ChapterId, PermissionIdentifier.EditOfficers, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
             await SendForbiddenAsync(ct);
             return;
         }

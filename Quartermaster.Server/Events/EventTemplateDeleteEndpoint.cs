@@ -48,8 +48,7 @@ public class EventTemplateDeleteEndpoint : Endpoint<EventTemplateDeleteRequest> 
         }
 
         if (template.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditTemplates, _globalPermRepo) &&
-                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, template.ChapterId.Value, PermissionIdentifier.EditTemplates, _chapterRepo)) {
+            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, template.ChapterId.Value, PermissionIdentifier.EditTemplates, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
