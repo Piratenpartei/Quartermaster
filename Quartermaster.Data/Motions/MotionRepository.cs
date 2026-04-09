@@ -33,7 +33,8 @@ public class MotionRepository {
     }
 
     public (List<Motion> Items, int TotalCount) List(
-        Guid? chapterId, MotionApprovalStatus? status, bool includeNonPublic, int page, int pageSize) {
+        Guid? chapterId, MotionApprovalStatus? status, bool includeNonPublic, int page, int pageSize,
+        List<Guid>? nonPublicChapterIds = null) {
 
         var q = _context.Motions.Where(m => m.DeletedAt == null).AsQueryable();
 
@@ -43,8 +44,14 @@ public class MotionRepository {
         if (status != null)
             q = q.Where(m => m.ApprovalStatus == status.Value);
 
-        if (!includeNonPublic)
+        if (!includeNonPublic) {
             q = q.Where(m => m.IsPublic);
+        } else if (nonPublicChapterIds != null) {
+            // User has ViewMotions on specific chapters only — show public motions
+            // everywhere, plus non-public motions from permitted chapters.
+            q = q.Where(m => m.IsPublic || nonPublicChapterIds.Contains(m.ChapterId));
+        }
+        // nonPublicChapterIds == null means global permission — no filtering needed.
 
         var totalCount = q.Count();
         var items = q.OrderByDescending(m => m.CreatedAt)

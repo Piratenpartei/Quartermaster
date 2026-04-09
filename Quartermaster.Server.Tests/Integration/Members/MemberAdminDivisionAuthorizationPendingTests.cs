@@ -9,13 +9,9 @@ using Quartermaster.Server.Tests.Infrastructure;
 namespace Quartermaster.Server.Tests.Integration.Members;
 
 /// <summary>
-/// PENDING: These tests encode the desired authorization + side-effect behavior for
-/// MemberAdminDivisionUpdateEndpoint. They FAIL today because:
-///   1. The endpoint gates on <c>ViewAllMembers</c> (global, view-only) instead of the
-///      chapter-scoped <c>EditMembers</c> write permission.
-///   2. The endpoint does not recompute the member's orphan flag after changing the
-///      residence admin division (even though orphan state is a derived field of that FK).
-/// See: code-quality-todos.md "Endpoint behavior review".
+/// Tests for MemberAdminDivisionUpdateEndpoint authorization: requires <c>EditMembers</c>
+/// (chapter-scoped) instead of the global-only <c>ViewAllMembers</c>. Write operations
+/// must use a write permission scoped to the member's chapter.
 /// </summary>
 public class MemberAdminDivisionAuthorizationPendingTests : IntegrationTestBase {
     [Test]

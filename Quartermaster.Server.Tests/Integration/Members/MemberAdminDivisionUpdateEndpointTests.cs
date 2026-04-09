@@ -22,7 +22,7 @@ public class MemberAdminDivisionUpdateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Returns_403_when_user_lacks_view_all_members_permission() {
+    public async Task Returns_403_when_user_lacks_edit_members_permission() {
         var chapter = Builder.SeedChapter();
         var member = Builder.SeedMember(chapter.Id);
         var (_, token) = Builder.SeedAuthenticatedUser();
@@ -35,7 +35,7 @@ public class MemberAdminDivisionUpdateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Returns_404_when_member_not_found() {
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewAllMembers });
+            globalPermissions: new[] { PermissionIdentifier.EditMembers });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PutAsJsonAsync($"/api/members/{Guid.NewGuid()}/admindivision",
             new { ResidenceAdministrativeDivisionId = (Guid?)null });
@@ -47,7 +47,7 @@ public class MemberAdminDivisionUpdateEndpointTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter();
         var member = Builder.SeedMember(chapter.Id);
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewAllMembers });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMembers } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PutAsJsonAsync($"/api/members/{member.Id}/admindivision",
             new { ResidenceAdministrativeDivisionId = Guid.NewGuid() });
@@ -60,7 +60,7 @@ public class MemberAdminDivisionUpdateEndpointTests : IntegrationTestBase {
         var member = Builder.SeedMember(chapter.Id);
         var div = Builder.SeedAdminDivision("New Division");
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewAllMembers });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMembers } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PutAsJsonAsync($"/api/members/{member.Id}/admindivision",
             new { ResidenceAdministrativeDivisionId = div.Id });
@@ -77,7 +77,7 @@ public class MemberAdminDivisionUpdateEndpointTests : IntegrationTestBase {
         member.ResidenceAdministrativeDivisionId = div.Id;
         Db.Update(member);
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewAllMembers });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMembers } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PutAsJsonAsync($"/api/members/{member.Id}/admindivision",
             new { ResidenceAdministrativeDivisionId = (Guid?)null });

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
+using Quartermaster.Api;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -36,12 +37,14 @@ public class MotionListEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Includes_non_public_when_flag_set() {
+    public async Task Includes_non_public_when_flag_set_and_user_has_permission() {
         var chapter = Builder.SeedChapter("Chapter");
         Builder.SeedMotion(chapter.Id, title: "Public");
         var nonPublic = Builder.SeedMotion(chapter.Id, title: "Hidden");
         Db.Motions.Where(m => m.Id == nonPublic.Id).Set(m => m.IsPublic, false).Update();
-        using var client = AnonymousClient();
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.ViewMotions } });
+        using var client = AuthenticatedClient(token);
         var response = await client.GetAsync("/api/motions?IncludeNonPublic=true");
         var result = await response.Content.ReadFromJsonAsync<MotionListResponse>();
         await Assert.That(result!.Items.Count).IsEqualTo(2);

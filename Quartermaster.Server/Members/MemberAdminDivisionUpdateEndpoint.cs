@@ -7,7 +7,9 @@ using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
@@ -22,16 +24,22 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
     private readonly MemberRepository _memberRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly ChapterRepository _chapterRepo;
     private readonly DbContext _context;
 
     public MemberAdminDivisionUpdateEndpoint(
         MemberRepository memberRepo,
         AdministrativeDivisionRepository adminDivRepo,
         UserGlobalPermissionRepository globalPermRepo,
+        UserChapterPermissionRepository chapterPermRepo,
+        ChapterRepository chapterRepo,
         DbContext context) {
         _memberRepo = memberRepo;
         _adminDivRepo = adminDivRepo;
         _globalPermRepo = globalPermRepo;
+        _chapterPermRepo = chapterPermRepo;
+        _chapterRepo = chapterRepo;
         _context = context;
     }
 
@@ -45,15 +53,19 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
-            await SendForbiddenAsync(ct);
-            return;
-        }
 
         var member = _memberRepo.Get(req.Id);
         if (member == null) {
             await SendNotFoundAsync(ct);
             return;
+        }
+
+        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMembers, _globalPermRepo)) {
+            if (!member.ChapterId.HasValue ||
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, member.ChapterId.Value, PermissionIdentifier.EditMembers, _chapterRepo)) {
+                await SendForbiddenAsync(ct);
+                return;
+            }
         }
 
         if (req.ResidenceAdministrativeDivisionId.HasValue) {

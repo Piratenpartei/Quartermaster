@@ -3,11 +3,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Motions;
 
@@ -20,13 +24,18 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly DbContext _context;
+    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly UserChapterPermissionRepository _chapterPermRepo;
 
     public MotionDetailEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        ChapterOfficerRepository officerRepo, DbContext context) {
+        ChapterOfficerRepository officerRepo, DbContext context,
+        UserGlobalPermissionRepository globalPermRepo, UserChapterPermissionRepository chapterPermRepo) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
         _context = context;
+        _globalPermRepo = globalPermRepo;
+        _chapterPermRepo = chapterPermRepo;
     }
 
     public override void Configure() {
@@ -36,10 +45,22 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
 
     public override async Task HandleAsync(MotionDetailRequest req, CancellationToken ct) {
         var motion = _motionRepo.Get(req.Id);
-        if (motion == null)
-        {
+        if (motion == null) {
             await SendNotFoundAsync(ct);
             return;
+        }
+
+        if (!motion.IsPublic) {
+            var userId = EndpointAuthorizationHelper.GetUserId(User);
+            if (userId == null) {
+                await SendNotFoundAsync(ct);
+                return;
+            }
+            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewMotions, _globalPermRepo) &&
+                !_chapterPermRepo.HasPermissionWithInheritance(userId.Value, motion.ChapterId, PermissionIdentifier.ViewMotions, _chapterRepo)) {
+                await SendNotFoundAsync(ct);
+                return;
+            }
         }
 
         var chapter = _chapterRepo.Get(motion.ChapterId);

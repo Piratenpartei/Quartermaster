@@ -10,13 +10,9 @@ using Quartermaster.Server.Tests.Infrastructure;
 namespace Quartermaster.Server.Tests.Integration.Motions;
 
 /// <summary>
-/// PENDING: These tests encode the desired security behavior for motion access control.
-/// They FAIL today because the server does not enforce <c>IsPublic</c> visibility —
-/// anonymous callers can read any private motion they have the ID for, and listing
-/// with <c>IncludeNonPublic=true</c> returns private motions to anyone.
-/// When the endpoints are fixed to require <c>ViewMotions</c> (chapter-scoped, with
-/// inheritance) for non-public motions, these tests will start passing.
-/// See: code-quality-todos.md "Endpoint behavior review".
+/// Tests for motion access control: non-public motions require <c>ViewMotions</c>
+/// permission (chapter-scoped, with inheritance). Anonymous users and users without
+/// the permission see only public motions.
 /// </summary>
 public class MotionAccessControlPendingTests : IntegrationTestBase {
     [Test]

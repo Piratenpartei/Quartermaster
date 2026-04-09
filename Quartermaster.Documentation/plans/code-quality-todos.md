@@ -103,21 +103,19 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **Why:** The mix is pragmatic today but inconsistent — new contributors need to learn which side of the line they're on for each DTO, and some hand-written mappers duplicate logic Mapperly could generate. Standardizing reduces cognitive load and cuts boilerplate.
 - **How to apply:** Audit `Quartermaster.Data/**/*Mapper.cs` and inline mapping in endpoints. Decide on one of: (a) Mapperly everywhere (add `[MapProperty]`/`[MapperIgnoreSource]` annotations for the complex cases), or (b) hand-written everywhere (delete the Mapperly partial classes, replace `ToDto()` calls with explicit constructors). Option (a) is likely less code overall.
 
-### Endpoint behavior review (discovered during integration test pass)
+### Endpoint behavior review (discovered during integration test pass) — ✅ DONE
 
-Integration tests surfaced a handful of endpoint behaviors that look questionable. Review each, decide if it's a bug or intentional, fix or document. All have failing tests that encode the desired behavior — tests fail today and will pass once behavior is fixed.
+**Security — FIXED:**
+- [x] **`MotionListEndpoint` / `MotionDetailEndpoint` now enforce `IsPublic` server-side.** List endpoint ignores `IncludeNonPublic=true` for anonymous/unauthorized callers; authenticated users with `ViewMotions` (chapter-scoped, with inheritance) see non-public motions only for their permitted chapters. Detail endpoint returns 404 for non-public motions when caller lacks `ViewMotions` on the motion's chapter. Tests in `MotionAccessControlPendingTests` now pass.
 
-**Security (highest priority):**
-- **`MotionListEndpoint` / `MotionDetailEndpoint` do not enforce `IsPublic` server-side.** List endpoint accepts anonymous `IncludeNonPublic=true` and returns private motions. Detail endpoint is fully anonymous with no `IsPublic` check — anyone with a motion ID reads any motion. Fix: require `ViewMotions` (chapter-scoped) for non-public motions in both list and detail; ignore client `IncludeNonPublic=true` for anonymous callers. Failing tests: `MotionAccessControlTests` in `Integration/Motions/`.
+**Permission misuse — FIXED:**
+- [x] **`MemberAdminDivisionUpdateEndpoint` now gates on `EditMembers` (chapter-scoped).** Changed from global `ViewAllMembers` to `EditMembers` with chapter-scoped inheritance check against the member's chapter. Tests in `MemberAdminDivisionAuthorizationPendingTests` now pass. Note: orphan flag recomputation was not needed — orphan state lives on the `AdministrativeDivision` entity (set during imports), not on the member.
 
-**Permission misuse:**
-- **`MemberAdminDivisionUpdateEndpoint` gates on `ViewAllMembers` (global, view-only) for a write operation.** Should use `EditMembers` (chapter-scoped) consistent with other member edits, combined with chapter scoping. Also does not recompute the orphan flag after updating `ResidenceAdministrativeDivisionId`. Failing tests: `MemberAdminDivisionAuthorizationTests`.
-
-**Semantics review (may be intentional):**
-- **`EventArchiveEndpoint` / archive transitions in `EventStatusUpdateEndpoint` require `DeleteEvents`, not `EditEvents`.** Archiving is destructive-ish, so gating on delete may be intentional — but worth documenting the distinction (or aligning with `EditEvents` if we decide delete-level permission is overkill).
-- **`ChecklistItemCheckEndpoint` is not idempotent.** Rejects already-completed items with 400. For `CreateMotion`/`SendEmail` items this is correct (irreversible side effects). For `Text` items, re-checking should probably be a no-op. Decide: split behavior by item type, or document the non-idempotence.
-- **`RoleAssignmentDeleteEndpoint` and `ChapterOfficerDeleteEndpoint` return 200 OK for non-existent records.** Idempotent-delete is a valid pattern but differs from other endpoints' 404 convention. Pick one and apply consistently.
-- **`MembershipApplicationProcessEndpoint` / `DueSelectionProcessEndpoint` reject `Pending` as target status.** Correct — these endpoints only accept terminal transitions (Approved/Rejected). Not a bug, but worth asserting with a test.
+**Semantics review — documented decisions (no changes needed):**
+- **`EventArchiveEndpoint` requires `DeleteEvents`:** Intentional — archiving is a destructive-ish operation, gating on delete permission is appropriate. Documented via existing test assertions.
+- **`ChecklistItemCheckEndpoint` non-idempotency:** Intentional for all item types — `CreateMotion`/`SendEmail` have irreversible side effects, and `Text` items benefit from consistent behavior. Documented via `Rejects_already_completed_item` test.
+- **`RoleAssignmentDeleteEndpoint` and `ChapterOfficerDeleteEndpoint` return 200 for non-existent records:** Intentional idempotent-delete pattern. Documented via `Returns_OK_for_nonexistent_*` tests.
+- **`MembershipApplicationProcessEndpoint` / `DueSelectionProcessEndpoint` reject `Pending`:** Correct — only terminal transitions allowed. Documented via `Rejects_invalid_target_status_Pending` tests.
 
 ### ToList vs IEnumerable on endpoint returns
 - **Task:** Audit endpoint DTO construction for unnecessary `.ToList()` calls. Many endpoints shape data with LINQ (`items.Select(...).ToList()`) then pass to `SendAsync`. The JSON serializer can consume `IEnumerable<T>` directly, so eager materialization may be avoidable — potentially saving allocations on large responses.
