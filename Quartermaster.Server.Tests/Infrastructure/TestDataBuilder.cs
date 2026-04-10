@@ -396,7 +396,7 @@ public sealed class TestDataBuilder {
     public Meeting SeedMeeting(
         Guid chapterId,
         string title = "Test Sitzung",
-        MeetingStatus status = MeetingStatus.Draft,
+        MeetingStatus status = MeetingStatus.Scheduled,
         MeetingVisibility visibility = MeetingVisibility.Private,
         DateTime? meetingDate = null,
         string? location = null,

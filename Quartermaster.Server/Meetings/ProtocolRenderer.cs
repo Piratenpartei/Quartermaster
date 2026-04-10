@@ -63,9 +63,9 @@ public static class ProtocolRenderer {
         string number,
         int headingLevel,
         Dictionary<System.Guid, List<AgendaItemDTO>> childrenByParent) {
-        // Heading with hierarchical number
+        // Heading with hierarchical number, e.g. "## 2.1 — Title"
         sb.Append(new string('#', headingLevel))
-          .Append(' ').Append(number).Append("  ").AppendLine(item.Title);
+          .Append(' ').Append(number).Append(" — ").AppendLine(item.Title);
 
         // Type label
         sb.Append('*').Append('(').Append(ItemTypeLabel(item.ItemType)).Append(')').AppendLine("*");
