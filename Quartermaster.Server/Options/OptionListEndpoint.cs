@@ -59,6 +59,7 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
                 }).ToList();
 
             return new OptionDefinitionDTO {
+                Id = def.Id,
                 Identifier = def.Identifier,
                 FriendlyName = def.FriendlyName,
                 Description = def.Description,

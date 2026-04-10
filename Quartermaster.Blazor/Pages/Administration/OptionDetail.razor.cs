@@ -24,7 +24,7 @@ public partial class OptionDetail {
     public required ToastService ToastService { get; set; }
 
     [Parameter]
-    public string Identifier { get; set; } = "";
+    public Guid Id { get; set; }
 
     private OptionDefinitionDTO? Option;
     private List<ChapterDTO>? Chapters;
@@ -46,11 +46,10 @@ public partial class OptionDetail {
 
     protected override async Task OnInitializedAsync() {
         try {
-            var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
             Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
 
             var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
-            Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
+            Option = options?.FirstOrDefault(o => o.Id == Id);
 
             if (Option?.DataType == 2 && !string.IsNullOrEmpty(Option.TemplateModels))
                 Schemas = BuildSchemas(Option.TemplateModels);
@@ -250,9 +249,8 @@ public partial class OptionDetail {
 
     private async Task ReloadOption() {
         try {
-            var decodedIdentifier = System.Net.WebUtility.UrlDecode(Identifier);
             var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
-            Option = options?.FirstOrDefault(o => o.Identifier == decodedIdentifier);
+            Option = options?.FirstOrDefault(o => o.Id == Id);
             StateHasChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

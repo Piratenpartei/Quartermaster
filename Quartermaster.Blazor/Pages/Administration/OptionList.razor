@@ -24,7 +24,7 @@
         <tbody>
             @foreach (var opt in Options) {
                 <tr>
-                    <td><a href="/Administration/Options/@System.Net.WebUtility.UrlEncode(opt.Identifier)">@opt.FriendlyName</a></td>
+                    <td><a href="/Administration/Options/@opt.Id">@opt.FriendlyName</a></td>
                     <td><code>@opt.Identifier</code></td>
                     <td><span class="badge border @DataTypeBadge(opt.DataType)">@DataTypeLabel(opt.DataType)</span></td>
                     <td>

@@ -55,10 +55,10 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).
 - Remaining for future: deeper per-suite audits of ChapterRepository, OptionRepository, MemberImportService, AdminDivisionImportService for their specific edge cases (timezone, duplicates, malformed input).
 
-### Better toast notifications
-- **Task:** Replace permanent toasts with auto-disappearing ones for success messages ("Gespeichert", "Aktualisiert"). Error toasts should stay until dismissed. Consider a sliding timeout (3-5s for success, persistent for error).
-- **Why:** Current toasts stack up and require manual dismissal, cluttering the UI during routine save operations.
-- **How to apply:** Update `ToastService` to accept a duration parameter; default success toasts to 3s auto-dismiss; default error toasts to persistent. Update all `Toast(...)` call sites that use "success" to use the new auto-dismiss behavior.
+### Better toast notifications — ✅ DONE
+- [x] Added `DurationMs` property to `Toast` model (nullable int — null means persistent).
+- [x] `ToastService` now sets `DurationMs = 3000` for success/default toasts, `null` for error/danger toasts.
+- [x] `Toaster` component schedules auto-removal via `System.Threading.Timer` for toasts with a duration. Implements `IDisposable` to clean up timers. Error toasts remain until manually dismissed.
 
 ### SignalR for live meeting updates + collaborative editing
 - **Task:** Add SignalR hub for real-time push to meeting participants. Two use cases: (1) live meeting page auto-updates when another officer votes or completes an agenda item, (2) collaborative editing for agenda item notes (prerequisite for the collaborative writing feature deferred from v1).

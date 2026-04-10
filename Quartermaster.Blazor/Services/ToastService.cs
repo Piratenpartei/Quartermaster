@@ -12,13 +12,16 @@ public class ToastService {
     internal Toaster? Toaster { get; set; }
     internal List<Toast> Toasts { get; } = [];
 
+    private const int DefaultSuccessDurationMs = 3000;
+
     public void Toast(string str) {
-        Toasts.Add(new Toast { Content = str });
+        Toasts.Add(new Toast { Content = str, DurationMs = DefaultSuccessDurationMs });
         Toaster?.UpdateToasts();
     }
 
     public void Toast(string str, string type) {
-        Toasts.Add(new Toast { Content = str, Type = type });
+        var duration = type == "danger" ? (int?)null : DefaultSuccessDurationMs;
+        Toasts.Add(new Toast { Content = str, Type = type, DurationMs = duration });
         Toaster?.UpdateToasts();
     }
 
@@ -26,7 +29,7 @@ public class ToastService {
         var contact = _configService.ErrorContact;
         var content = string.IsNullOrEmpty(contact) ? message : $"{message} {contact}";
         var detailText = _configService.ShowDetailedErrors ? details : null;
-        Toasts.Add(new Toast { Content = content, Type = "danger", Details = detailText });
+        Toasts.Add(new Toast { Content = content, Type = "danger", Details = detailText, DurationMs = null });
         Toaster?.UpdateToasts();
     }
 

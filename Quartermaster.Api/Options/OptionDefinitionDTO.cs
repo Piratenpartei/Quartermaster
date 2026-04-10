@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Quartermaster.Api.Options;
 
 public class OptionDefinitionDTO {
+    public Guid Id { get; set; }
     public string Identifier { get; set; } = "";
     public string FriendlyName { get; set; } = "";
     public string Description { get; set; } = "";
