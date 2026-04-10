@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.DueSelector;
 
@@ -8,30 +9,30 @@ public class DueSelectionDTOValidator : Validator<DueSelectionDTO> {
     public DueSelectionDTOValidator() {
         RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage("Vorname darf nicht leer sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.FirstNameRequired);
 
         RuleFor(x => x.LastName)
             .NotEmpty()
-            .WithMessage("Nachname darf nicht leer sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.LastNameRequired);
 
         RuleFor(x => x.EMail)
             .Must(e => string.IsNullOrEmpty(e) || e.Contains('@'))
-            .WithMessage("E-Mail-Adresse muss ein @ enthalten.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.EmailInvalid);
 
         RuleFor(x => x.SelectedDue)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("Beitrag darf nicht negativ sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.AmountNotNegative);
 
         RuleFor(x => x.AccountHolder)
             .MaximumLength(256)
-            .WithMessage("Kontoinhaber darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.AccountHolderMaxLength);
 
         RuleFor(x => x.IBAN)
             .MaximumLength(64)
-            .WithMessage("IBAN darf maximal 64 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.IbanMaxLength);
 
         RuleFor(x => x.ReducedJustification)
             .MaximumLength(2048)
-            .WithMessage("Begründung darf maximal 2048 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.JustificationMaxLength);
     }
 }

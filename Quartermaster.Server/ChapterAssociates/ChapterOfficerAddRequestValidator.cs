@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.ChapterAssociates;
 
@@ -8,14 +9,14 @@ public class ChapterOfficerAddRequestValidator : Validator<ChapterOfficerAddRequ
     public ChapterOfficerAddRequestValidator() {
         RuleFor(x => x.MemberId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Mitglied muss ausgewählt werden.");
+            .WithMessage(I18nKey.Error.Chapter.Officer.MemberRequired);
 
         RuleFor(x => x.ChapterId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Gliederung muss ausgewählt werden.");
+            .WithMessage(I18nKey.Error.Chapter.Officer.ChapterRequired);
 
         RuleFor(x => x.AssociateType)
             .InclusiveBetween(0, 6)
-            .WithMessage("Ungültiger Vorstandstyp.");
+            .WithMessage(I18nKey.Error.Chapter.Officer.InvalidOfficerType);
     }
 }

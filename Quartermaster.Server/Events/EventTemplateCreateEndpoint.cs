@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.UserChapterPermissions;
@@ -51,7 +52,7 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
         }
 
         if (ev.Status != EventStatus.Draft) {
-            ThrowError("Vorlagen können nur aus Entwurfs-Events erstellt werden.");
+            ThrowError(I18nKey.Error.Event.Template.OnlyFromDraft);
             return;
         }
 

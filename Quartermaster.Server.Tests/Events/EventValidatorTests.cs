@@ -1,6 +1,7 @@
 using System;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.Events;
 
 namespace Quartermaster.Server.Tests.Events;
@@ -32,7 +33,7 @@ public class EventCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ChapterId)
-            .WithErrorMessage("Gliederung muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Event.ChapterRequired);
     }
 
     [Test]
@@ -46,7 +47,7 @@ public class EventCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.InternalName)
-            .WithErrorMessage("Interner Name darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.InternalNameRequired);
     }
 
     [Test]
@@ -60,7 +61,7 @@ public class EventCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.InternalName)
-            .WithErrorMessage("Interner Name darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.InternalNameMaxLength);
     }
 
     [Test]
@@ -87,7 +88,7 @@ public class EventCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.PublicName)
-            .WithErrorMessage("Öffentlicher Name darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.PublicNameRequired);
     }
 
     [Test]
@@ -101,7 +102,7 @@ public class EventCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.PublicName)
-            .WithErrorMessage("Öffentlicher Name darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.PublicNameMaxLength);
     }
 
     [Test]
@@ -145,7 +146,7 @@ public class EventUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Id)
-            .WithErrorMessage("Event-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.IdRequired);
     }
 
     [Test]
@@ -159,7 +160,7 @@ public class EventUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.InternalName)
-            .WithErrorMessage("Interner Name darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.InternalNameRequired);
     }
 
     [Test]
@@ -173,7 +174,7 @@ public class EventUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.InternalName)
-            .WithErrorMessage("Interner Name darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.InternalNameMaxLength);
     }
 
     [Test]
@@ -187,7 +188,7 @@ public class EventUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.PublicName)
-            .WithErrorMessage("Öffentlicher Name darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.PublicNameRequired);
     }
 
     [Test]
@@ -201,7 +202,7 @@ public class EventUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.PublicName)
-            .WithErrorMessage("Öffentlicher Name darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.PublicNameMaxLength);
     }
 }
 
@@ -230,7 +231,7 @@ public class EventFromTemplateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.TemplateId)
-            .WithErrorMessage("Vorlage muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Template.TemplateRequired);
     }
 
     [Test]
@@ -243,7 +244,7 @@ public class EventFromTemplateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ChapterId)
-            .WithErrorMessage("Gliederung muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Template.ChapterRequired);
     }
 
     [Test]
@@ -285,7 +286,7 @@ public class EventTemplateCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.EventId)
-            .WithErrorMessage("Event muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Template.EventRequired);
     }
 
     [Test]
@@ -298,7 +299,7 @@ public class EventTemplateCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Vorlagenname darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Template.NameRequired);
     }
 
     [Test]
@@ -311,7 +312,7 @@ public class EventTemplateCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Name)
-            .WithErrorMessage("Vorlagenname darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Template.NameMaxLength);
     }
 
     [Test]

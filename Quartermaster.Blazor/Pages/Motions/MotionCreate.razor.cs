@@ -52,7 +52,7 @@ public partial class MotionCreate {
             NavigationManager.NavigateTo("/");
             ToastService.Toast("Dein Antrag wurde eingereicht!", "success");
         } else {
-            ToastService.Error(details: $"HTTP {(int)result.StatusCode}");
+            await ToastService.ErrorAsync(result);
         }
     }
 }

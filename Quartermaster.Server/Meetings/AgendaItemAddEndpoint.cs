@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -60,28 +61,29 @@ public class AgendaItemAddEndpoint : Endpoint<AgendaItemCreateRequest, AgendaIte
         if (req.ParentId.HasValue) {
             var parent = _agendaRepo.Get(req.ParentId.Value);
             if (parent == null || parent.MeetingId != req.MeetingId) {
-                ThrowError("Übergeordneter Tagesordnungspunkt gehört nicht zu dieser Sitzung.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.ParentNotInMeeting);
                 return;
             }
             var parentDepth = _agendaRepo.GetDepth(parent.Id);
             if (parentDepth + 1 > AgendaItemRepository.MaxDepth) {
-                ThrowError($"Maximale Verschachtelungstiefe von {AgendaItemRepository.MaxDepth} überschritten.");
+                ThrowError(I18nParams.With(I18nKey.Error.Meeting.Agenda.MaxDepthExceeded,
+                    ("maxDepth", AgendaItemRepository.MaxDepth.ToString())));
                 return;
             }
         }
 
         if (req.ItemType == AgendaItemType.Motion) {
             if (!req.MotionId.HasValue) {
-                ThrowError("Für Antragspunkte muss ein Antrag verknüpft werden.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.MotionLinkRequired);
                 return;
             }
             var motion = _motionRepo.Get(req.MotionId.Value);
             if (motion == null) {
-                ThrowError("Verknüpfter Antrag wurde nicht gefunden.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.LinkedMotionNotFound);
                 return;
             }
             if (motion.ChapterId != meeting.ChapterId) {
-                ThrowError("Der Antrag gehört nicht zur selben Gliederung wie die Sitzung.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.MotionChapterMismatch);
                 return;
             }
         }

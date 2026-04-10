@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Roles;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Roles;
@@ -45,27 +46,27 @@ public class RoleAssignmentCreateEndpoint : Endpoint<RoleAssignmentCreateRequest
 
         var role = _roleRepo.Get(req.RoleId);
         if (role == null) {
-            ThrowError("Rolle nicht gefunden.");
+            ThrowError(I18nKey.Error.User.RoleAssignment.RoleNotFound);
             return;
         }
         var targetUser = _userRepo.GetById(req.UserId);
         if (targetUser == null) {
-            ThrowError("Benutzer nicht gefunden.");
+            ThrowError(I18nKey.Error.User.RoleAssignment.UserNotFound);
             return;
         }
 
         if (role.Scope == RoleScope.ChapterScoped) {
             if (!req.ChapterId.HasValue) {
-                ThrowError("Chapter-scoped Rollen benötigen eine Gliederung.");
+                ThrowError(I18nKey.Error.User.RoleAssignment.ChapterRequired);
                 return;
             }
             if (_chapterRepo.Get(req.ChapterId.Value) == null) {
-                ThrowError("Gliederung nicht gefunden.");
+                ThrowError(I18nKey.Error.User.RoleAssignment.ChapterNotFound);
                 return;
             }
         } else {
             if (req.ChapterId.HasValue) {
-                ThrowError("Globale Rollen haben keine Gliederung.");
+                ThrowError(I18nKey.Error.User.RoleAssignment.GlobalNoChapter);
                 return;
             }
         }

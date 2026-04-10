@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.UserChapterPermissions;
@@ -60,7 +61,9 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
         }
 
         if (!IsTransitionAllowed(ev.Status, req.Status)) {
-            ThrowError($"Übergang von {ev.Status} zu {req.Status} ist nicht erlaubt.");
+            ThrowError(I18nParams.With(I18nKey.Error.Event.Status.TransitionInvalid,
+                ("from", ev.Status.ToString()),
+                ("to", req.Status.ToString())));
             return;
         }
 

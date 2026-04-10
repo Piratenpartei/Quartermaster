@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Admin;
 
@@ -7,10 +8,10 @@ public class DueSelectionProcessRequestValidator : Validator<DueSelectionProcess
     public DueSelectionProcessRequestValidator() {
         RuleFor(x => x.Id)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Beitragsauswahl-ID darf nicht leer sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.IdRequired);
 
         RuleFor(x => x.Status)
             .InclusiveBetween(1, 2)
-            .WithMessage("Status muss 'Genehmigt' oder 'Abgelehnt' sein.");
+            .WithMessage(I18nKey.Error.Admin.DueSelection.StatusInvalid);
     }
 }

@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -63,16 +64,16 @@ public class AgendaItemUpdateEndpoint : Endpoint<AgendaItemUpdateRequest> {
 
         if (req.ItemType == AgendaItemType.Motion) {
             if (!req.MotionId.HasValue) {
-                ThrowError("Für Antragspunkte muss ein Antrag verknüpft werden.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.MotionLinkRequired);
                 return;
             }
             var motion = _motionRepo.Get(req.MotionId.Value);
             if (motion == null) {
-                ThrowError("Verknüpfter Antrag wurde nicht gefunden.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.LinkedMotionNotFound);
                 return;
             }
             if (motion.ChapterId != meeting.ChapterId) {
-                ThrowError("Der Antrag gehört nicht zur selben Gliederung wie die Sitzung.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.MotionChapterMismatch);
                 return;
             }
         }

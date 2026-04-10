@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Chapters;
@@ -77,7 +78,7 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
 
         // Only Completed/Archived are exportable by default; draft=true allows preview.
         if (meeting.Status != MeetingStatus.Completed && meeting.Status != MeetingStatus.Archived && !req.Draft) {
-            ThrowError("Protokoll ist erst nach Abschluss der Sitzung verfügbar. (Für Live-Vorschau draft=true angeben.)");
+            ThrowError(I18nKey.Error.Meeting.ProtocolNotAvailable);
             return;
         }
 
@@ -119,7 +120,7 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
             return;
         }
 
-        ThrowError($"Unbekanntes Format '{format}'. Erlaubt: md, html, pdf.");
+        ThrowError(I18nParams.With(I18nKey.Error.Meeting.ProtocolUnknownFormat, ("format", format)));
     }
 
     private MeetingDetailDTO BuildDetail(Meeting meeting) {

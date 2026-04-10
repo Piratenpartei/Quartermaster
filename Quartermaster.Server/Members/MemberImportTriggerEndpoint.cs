@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
@@ -45,7 +46,7 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
         var filePath = _optionRepo.ResolveValue("member_import.file_path", null, _chapterRepo);
 
         if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath)) {
-            ThrowError("Import file path is not configured or file does not exist.");
+            ThrowError(I18nKey.Error.Member.Import.FilePathNotConfigured);
             return;
         }
 

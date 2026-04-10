@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
@@ -45,7 +46,7 @@ public class UserDeleteEndpoint : Endpoint<UserDeleteRequest> {
 
         // Prevent self-deletion
         if (callerId.Value == req.Id) {
-            AddError("Id", "Der eigene Benutzer kann nicht gelöscht werden.");
+            AddError("Id", I18nKey.Error.User.DeleteSelfForbidden);
             await SendErrorsAsync(400, ct);
             return;
         }

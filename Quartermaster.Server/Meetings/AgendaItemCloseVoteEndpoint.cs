@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -56,7 +57,7 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
             return;
         }
         if (meeting.Status != MeetingStatus.InProgress) {
-            ThrowError("Abstimmung kann nur während laufender Sitzung geschlossen werden.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.CloseVoteRequiresInProgress);
             return;
         }
 
@@ -66,7 +67,7 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
             return;
         }
         if (item.ItemType != AgendaItemType.Motion || !item.MotionId.HasValue) {
-            ThrowError("TOP ist kein Antragspunkt.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.NotMotionItem);
             return;
         }
 

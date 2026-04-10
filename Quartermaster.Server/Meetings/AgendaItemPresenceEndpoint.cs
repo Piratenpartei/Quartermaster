@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -55,7 +56,7 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
             return;
         }
         if (meeting.Status != MeetingStatus.InProgress) {
-            ThrowError("Anwesenheit nur während laufender Sitzung erfassbar.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.PresenceRequiresInProgress);
             return;
         }
         var item = _agendaRepo.Get(req.ItemId);
@@ -64,7 +65,7 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
             return;
         }
         if (item.ItemType != AgendaItemType.Presence) {
-            ThrowError("TOP ist kein Anwesenheitspunkt.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.NotPresenceItem);
             return;
         }
         var userId = EndpointAuthorizationHelper.GetUserId(User);

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -64,7 +65,7 @@ public class AgendaItemCompleteEndpoint : Endpoint<AgendaItemCompleteRequest> {
         }
 
         if (meeting.Status != MeetingStatus.InProgress) {
-            ThrowError("Tagesordnungspunkte können nur während einer laufenden Sitzung abgeschlossen werden.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.CompleteRequiresInProgress);
             return;
         }
 

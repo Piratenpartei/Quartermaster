@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.UserChapterPermissions;
@@ -54,7 +55,7 @@ public class ChecklistItemUncheckEndpoint : Endpoint<ChecklistItemUncheckRequest
         }
 
         if (item.ItemType != ChecklistItemType.Text) {
-            ThrowError("Only text items can be unchecked.");
+            ThrowError(I18nKey.Error.Event.Checklist.OnlyTextCanBeUnchecked);
             return;
         }
 

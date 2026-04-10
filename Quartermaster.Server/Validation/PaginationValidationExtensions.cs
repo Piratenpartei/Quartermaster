@@ -1,5 +1,6 @@
 using FluentValidation;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Validation;
 
@@ -9,10 +10,10 @@ public static class PaginationValidationExtensions {
 
         validator.RuleFor(x => x.Page)
             .GreaterThanOrEqualTo(1)
-            .WithMessage("Seite muss mindestens 1 sein.");
+            .WithMessage(I18nKey.Error.Validation.PageMin);
 
         validator.RuleFor(x => x.PageSize)
             .InclusiveBetween(1, 100)
-            .WithMessage("Seitengröße muss zwischen 1 und 100 liegen.");
+            .WithMessage(I18nKey.Error.Validation.PageSizeRange);
     }
 }

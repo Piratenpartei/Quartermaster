@@ -1,6 +1,7 @@
 using System;
 using FastEndpoints;
 using FluentValidation;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 
 namespace Quartermaster.Server.Meetings.Validators;
@@ -9,16 +10,16 @@ public class AgendaItemCreateRequestValidator : Validator<AgendaItemCreateReques
     public AgendaItemCreateRequestValidator() {
         RuleFor(x => x.MeetingId)
             .NotEqual(Guid.Empty)
-            .WithMessage("Sitzung muss angegeben werden.");
+            .WithMessage(I18nKey.Error.Meeting.Agenda.MeetingRequired);
 
         RuleFor(x => x.Title)
             .NotEmpty()
-            .WithMessage("Titel darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Meeting.Agenda.TitleRequired)
             .MaximumLength(200)
-            .WithMessage("Titel darf maximal 200 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Meeting.Agenda.TitleMaxLength);
 
         RuleFor(x => x.ItemType)
             .IsInEnum()
-            .WithMessage("Ungültiger Tagesordnungspunkt-Typ.");
+            .WithMessage(I18nKey.Error.Meeting.Agenda.ItemTypeInvalid);
     }
 }

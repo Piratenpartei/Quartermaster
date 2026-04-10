@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 
 namespace Quartermaster.Server.MembershipApplications;
@@ -8,64 +9,64 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
     public MembershipApplicationDTOValidator() {
         RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage("Vorname darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.FirstNameRequired)
             .MaximumLength(256)
-            .WithMessage("Vorname darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.FirstNameMaxLength);
 
         RuleFor(x => x.LastName)
             .NotEmpty()
-            .WithMessage("Nachname darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.LastNameRequired)
             .MaximumLength(256)
-            .WithMessage("Nachname darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.LastNameMaxLength);
 
         RuleFor(x => x.EMail)
             .NotEmpty()
-            .WithMessage("E-Mail-Adresse darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.EmailRequired)
             .Must(e => e != null && e.Contains('@'))
-            .WithMessage("E-Mail-Adresse muss ein @ enthalten.")
+            .WithMessage(I18nKey.Error.Admin.Application.EmailInvalid)
             .MaximumLength(256)
-            .WithMessage("E-Mail-Adresse darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.EmailMaxLength);
 
         RuleFor(x => x.Citizenship)
             .NotEmpty()
-            .WithMessage("Staatsangehörigkeit darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.NationalityRequired)
             .MaximumLength(256)
-            .WithMessage("Staatsangehörigkeit darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.NationalityMaxLength);
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(64)
-            .WithMessage("Telefonnummer darf maximal 64 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.PhoneMaxLength);
 
         RuleFor(x => x.AddressStreet)
             .NotEmpty()
-            .WithMessage("Straße darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.StreetRequired)
             .MaximumLength(256)
-            .WithMessage("Straße darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.StreetMaxLength);
 
         RuleFor(x => x.AddressHouseNbr)
             .NotEmpty()
-            .WithMessage("Hausnummer darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.HouseNumberRequired)
             .MaximumLength(32)
-            .WithMessage("Hausnummer darf maximal 32 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.HouseNumberMaxLength);
 
         RuleFor(x => x.AddressPostCode)
             .NotEmpty()
-            .WithMessage("Postleitzahl darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.PostalCodeRequired)
             .MaximumLength(16)
-            .WithMessage("Postleitzahl darf maximal 16 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.PostalCodeMaxLength);
 
         RuleFor(x => x.AddressCity)
             .NotEmpty()
-            .WithMessage("Stadt darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Admin.Application.CityRequired)
             .MaximumLength(256)
-            .WithMessage("Stadt darf maximal 256 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.CityMaxLength);
 
         RuleFor(x => x.ApplicationText)
             .MaximumLength(2048)
-            .WithMessage("Antragstext darf maximal 2048 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.BodyMaxLength);
 
         RuleFor(x => x.ConformityDeclarationAccepted)
             .Equal(true)
-            .WithMessage("Die Grundsatzerklärung muss akzeptiert werden.");
+            .WithMessage(I18nKey.Error.Admin.Application.DeclarationRequired);
     }
 }

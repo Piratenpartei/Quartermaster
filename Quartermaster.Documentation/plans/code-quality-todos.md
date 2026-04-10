@@ -43,10 +43,29 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] Verified end-to-end in Chrome: click-on-label now focuses the input (the key a11y win).
 - **Intentionally skipped** (~16 labels): compound Blazor components like `<ChapterPicker>`, `<AdminDivisionPicker>`, `<RadioGroup>`, `<Checkbox>`, `<MarkdownEditor>` that render multiple child elements with no stable single focusable target. These labels stay without `for=` — screen readers still associate via DOM proximity (Bootstrap's standard pattern). Fixing them would require threading `Id` parameters through each picker component, which is a much larger refactor with unclear benefit.
 
-### Server error messages: identifiers instead of German strings
-- **Task:** Replace hard-coded German error messages returned from server endpoints (e.g., `ThrowError("Vorlagen können nur aus Entwurfs-Events erstellt werden.")`) with stable identifier codes (e.g., `"error.events.template_requires_draft"`). The frontend translates identifiers into user-facing strings.
-- **Why:** Makes future i18n trivial, decouples server from display language, enables translation of error messages per locale.
-- **How to apply:** Introduce an error catalog (constants or an enum) as the single source of truth for identifiers; refactor `ThrowError`/`AddError` calls to use identifiers; build a translation table on the frontend for the German strings. Touches many endpoints — do in waves.
+### Server error messages: identifiers instead of German strings — ✅ DONE (infrastructure)
+- [x] **Built generic i18n infrastructure** in `Quartermaster.Api/I18n/`:
+  - `I18nKey.cs` — central catalog of ~150 stable identifier constants grouped by feature (e.g., `I18nKey.Error.Motion.TitleRequired`)
+  - `I18nService.cs` — translation service that loads embedded JSON locale files via reflection. Supports `{placeholder}` substitution and falls back to the raw key for missing translations.
+  - `I18nParams.cs` — helper for building query-string-encoded parameterized keys (e.g., `I18nParams.With(key, ("from", "Draft"), ("to", "Completed"))` → `"...?from=Draft&to=Completed"`)
+  - `de.json` — embedded resource with all German translations
+  - Both server and client load the same JSON via reflection on `Quartermaster.Api`'s embedded resources (single source of truth)
+- [x] **Migrated 53 server files** (~166 string sites): 32 files in Meetings/Events area + 21 files in Users/Roles/Motions/Members/Admin area. Both `ThrowError`/`AddError` and FluentValidation `.WithMessage()` calls now reference `I18nKey` constants. 4 parameterized errors use `I18nParams.With(...)`.
+- [x] **API wire format decoupled**: validation errors now return `{"name":"authorEMail","reason":"error.motion.email_invalid"}` instead of `{"name":"authorEMail","reason":"E-Mail-Adresse muss ein @ enthalten."}`. Any API consumer (current Blazor frontend, future mobile app, integrations, tests) gets language-independent codes.
+- [x] **Frontend translation pipeline wired up**:
+  - `I18nService` registered as singleton in Blazor DI
+  - `Http/ApiErrorHelper.cs` parses the FastEndpoints error response shape and translates each `reason` field via `I18nService`
+  - `ToastService.ErrorAsync(HttpResponseMessage)` reads the response body, translates the errors, and displays a German error toast
+  - `ToastService.Translate(key)` exposed for callers needing the raw translated string
+- [x] **Updated 89 validator test assertions** across 9 test files from German strings to `I18nKey` references. All 915 tests passing.
+- [x] **End-to-end verified in Chrome**: submitted a motion form with an invalid email, observed the API return `error.motion.email_invalid`, and saw the German translation `"E-Mail-Adresse muss ein @ enthalten."` appear in a translated error toast.
+
+**Open**: 45 frontend page call sites still use the legacy `ToastService.Error(ex)` pattern (generic "Ein Fehler ist aufgetreten") instead of the new `ToastService.ErrorAsync(response)` that surfaces specific translated errors. Migrating them is a separate UX-improvement pass — see "Frontend page error-handling migration" below.
+
+### Frontend page error-handling migration
+- **Task:** Migrate 45 page call sites from `ToastService.Error(ex)` (generic error) to `await ToastService.ErrorAsync(response)` (translated specific errors from the API). Currently only `MotionCreate.razor.cs` uses the new pattern as a reference.
+- **Why:** Users currently see "Ein Fehler ist aufgetreten" for any failed API call. With the i18n pipeline complete, they could see specific messages like "E-Mail-Adresse muss ein @ enthalten." that pinpoint the issue.
+- **How to apply:** For each page that has a `if (response.IsSuccessStatusCode) { ... } else { ToastService.Error(...); }` pattern, replace the else branch with `await ToastService.ErrorAsync(response);`. For pages that wrap the call in `try/catch (HttpRequestException)`, refactor to check the response status code instead so the body is parseable.
 
 ### Test coverage review — ✅ DONE
 - Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).

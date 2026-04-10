@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
@@ -36,7 +37,7 @@ public class LoginLockoutUnlockEndpoint : Endpoint<LoginLockoutUnlockRequest> {
         }
 
         if (string.IsNullOrWhiteSpace(req.IpAddress) || string.IsNullOrWhiteSpace(req.UsernameOrEmail)) {
-            ThrowError("IP-Adresse und Benutzername sind erforderlich.");
+            ThrowError(I18nKey.Error.User.Login.UnlockIpAndUsernameRequired);
             return;
         }
 

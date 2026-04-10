@@ -1,6 +1,7 @@
 using System;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.Events;
 
 namespace Quartermaster.Server.Tests.Events;
@@ -33,7 +34,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.EventId)
-            .WithErrorMessage("Event muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.EventRequired);
     }
 
     [Test]
@@ -47,7 +48,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Label)
-            .WithErrorMessage("Bezeichnung darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.LabelRequired);
     }
 
     [Test]
@@ -61,7 +62,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Label)
-            .WithErrorMessage("Bezeichnung darf maximal 1024 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.LabelMaxLength);
     }
 
     [Test]
@@ -107,7 +108,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ItemType)
-            .WithErrorMessage("Ungültiger Checklistentyp.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.TypeInvalid);
     }
 }
 
@@ -141,7 +142,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.EventId)
-            .WithErrorMessage("Event muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.EventRequired);
     }
 
     [Test]
@@ -156,7 +157,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ItemId)
-            .WithErrorMessage("Element-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.ItemIdRequired);
     }
 
     [Test]
@@ -171,7 +172,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Label)
-            .WithErrorMessage("Bezeichnung darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.LabelRequired);
     }
 
     [Test]
@@ -186,7 +187,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Label)
-            .WithErrorMessage("Bezeichnung darf maximal 1024 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.LabelMaxLength);
     }
 
     [Test]
@@ -235,7 +236,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ItemType)
-            .WithErrorMessage("Ungültiger Checklistentyp.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.TypeInvalid);
     }
 }
 
@@ -279,7 +280,7 @@ public class ChecklistItemReorderRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.EventId)
-            .WithErrorMessage("Event muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.EventRequired);
     }
 
     [Test]
@@ -293,7 +294,7 @@ public class ChecklistItemReorderRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ItemId)
-            .WithErrorMessage("Element-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.ItemIdRequired);
     }
 
     [Test]
@@ -326,6 +327,6 @@ public class ChecklistItemReorderRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Direction)
-            .WithErrorMessage("Richtung muss -1 (hoch) oder 1 (runter) sein.");
+            .WithErrorMessage(I18nKey.Error.Event.Checklist.ReorderDirectionInvalid);
     }
 }

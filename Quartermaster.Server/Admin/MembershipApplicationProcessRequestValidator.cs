@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Admin;
 
@@ -7,10 +8,10 @@ public class MembershipApplicationProcessRequestValidator : Validator<Membership
     public MembershipApplicationProcessRequestValidator() {
         RuleFor(x => x.Id)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Antrags-ID darf nicht leer sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.IdRequired);
 
         RuleFor(x => x.Status)
             .InclusiveBetween(1, 2)
-            .WithMessage("Status muss 'Genehmigt' oder 'Abgelehnt' sein.");
+            .WithMessage(I18nKey.Error.Admin.Application.StatusInvalid);
     }
 }

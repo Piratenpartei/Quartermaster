@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.UserChapterPermissions;
@@ -57,7 +58,7 @@ public class ChecklistItemCheckEndpoint : Endpoint<ChecklistItemCheckRequest> {
         }
 
         if (item.IsCompleted) {
-            ThrowError("Item is already completed.");
+            ThrowError(I18nKey.Error.Event.Checklist.AlreadyCompleted);
             return;
         }
 

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -64,7 +65,7 @@ public class AgendaItemDeleteEndpoint : Endpoint<AgendaItemDeleteRequest> {
         }
 
         if (meeting.Status != MeetingStatus.Draft && meeting.Status != MeetingStatus.Scheduled) {
-            ThrowError("Tagesordnungspunkte können nur bei Sitzungen im Status Entwurf oder Geplant gelöscht werden.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.DeleteStatusInvalid);
             return;
         }
 

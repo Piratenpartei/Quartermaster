@@ -1,6 +1,7 @@
 using System;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.ChapterAssociates;
 
 namespace Quartermaster.Server.Tests.ChapterAssociates;
@@ -32,7 +33,7 @@ public class ChapterOfficerAddRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.MemberId)
-            .WithErrorMessage("Mitglied muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Chapter.Officer.MemberRequired);
     }
 
     [Test]
@@ -46,7 +47,7 @@ public class ChapterOfficerAddRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ChapterId)
-            .WithErrorMessage("Gliederung muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Chapter.Officer.ChapterRequired);
     }
 
     [Test]
@@ -79,6 +80,6 @@ public class ChapterOfficerAddRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AssociateType)
-            .WithErrorMessage("Ungültiger Vorstandstyp.");
+            .WithErrorMessage(I18nKey.Error.Chapter.Officer.InvalidOfficerType);
     }
 }

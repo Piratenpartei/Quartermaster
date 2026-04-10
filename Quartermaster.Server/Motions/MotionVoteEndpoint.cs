@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -61,7 +62,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
         if (req.UserId != userId.Value && !hasSystemVote) {
             // Target must be a chapter officer of the motion's chapter
             if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
-                AddError("UserId", "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.");
+                AddError("UserId", I18nKey.Error.Motion.Vote.TargetNotOfficer);
                 await SendErrorsAsync(400, ct);
                 return;
             }
@@ -74,7 +75,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
 
             if (!callerIsOfficer &&
                 !EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
-                AddError("UserId", "Keine Berechtigung zur stellvertretenden Abstimmung.");
+                AddError("UserId", I18nKey.Error.Motion.Vote.NoProxyPermission);
                 await SendErrorsAsync(403, ct);
                 return;
             }

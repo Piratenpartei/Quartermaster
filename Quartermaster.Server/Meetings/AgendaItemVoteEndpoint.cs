@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -57,7 +58,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             return;
         }
         if (meeting.Status != MeetingStatus.InProgress) {
-            ThrowError("Abstimmung nur während laufender Sitzung möglich.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.VoteRequiresInProgress);
             return;
         }
 
@@ -67,7 +68,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             return;
         }
         if (item.ItemType != AgendaItemType.Motion || !item.MotionId.HasValue) {
-            ThrowError("TOP ist kein Antragspunkt.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.NotMotionItem);
             return;
         }
 
@@ -95,7 +96,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
         var hasSystemVote = EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.SystemVote, _globalPermRepo);
         if (req.UserId != userId.Value && !hasSystemVote) {
             if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
-                AddError("UserId", "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.");
+                AddError("UserId", I18nKey.Error.Meeting.Agenda.VoteTargetNotOfficer);
                 await SendErrorsAsync(400, ct);
                 return;
             }
@@ -103,7 +104,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(userId.Value, chapterAndAncestors);
             if (!callerIsOfficer &&
                 !EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
-                AddError("UserId", "Keine Berechtigung zur stellvertretenden Abstimmung.");
+                AddError("UserId", I18nKey.Error.Meeting.Agenda.VoteNoProxyPermission);
                 await SendErrorsAsync(403, ct);
                 return;
             }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
 using Quartermaster.Data;
 using LinqToDB.AspNet;
@@ -74,6 +75,16 @@ public partial class Program {
         builder.Services.AddLinqToDBContext<DbContext>((provider, options)
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
         DbContext.AddRepositories(builder.Services);
+
+        // I18n: load the German translation file from wwwroot at startup. The
+        // same file is also served as a static asset at /i18n/de.json so that
+        // the Blazor WASM client and external API consumers can fetch it.
+        // Single source of truth, no embedding.
+        builder.Services.AddSingleton<I18nService>(_ => {
+            var path = System.IO.Path.Combine(builder.Environment.WebRootPath ?? "wwwroot", "i18n", "de.json");
+            var json = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : "";
+            return new I18nService(json);
+        });
 
         builder.Services.AddSingleton<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportService>();
         builder.Services.AddHostedService<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportHostedService>();

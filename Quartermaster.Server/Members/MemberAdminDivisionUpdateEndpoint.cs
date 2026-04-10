@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
@@ -73,7 +74,7 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
         if (req.ResidenceAdministrativeDivisionId.HasValue) {
             var div = _adminDivRepo.Get(req.ResidenceAdministrativeDivisionId.Value);
             if (div == null) {
-                ThrowError("Verwaltungsbezirk nicht gefunden.");
+                ThrowError(I18nKey.Error.Member.AdminDivision.NotFound);
                 return;
             }
         }

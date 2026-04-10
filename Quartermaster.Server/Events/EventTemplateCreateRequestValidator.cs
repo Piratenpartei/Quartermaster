@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Events;
 
@@ -8,12 +9,12 @@ public class EventTemplateCreateRequestValidator : Validator<EventTemplateCreate
     public EventTemplateCreateRequestValidator() {
         RuleFor(x => x.EventId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Event muss angegeben werden.");
+            .WithMessage(I18nKey.Error.Event.Template.EventRequired);
 
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage("Vorlagenname darf nicht leer sein.")
+            .WithMessage(I18nKey.Error.Event.Template.NameRequired)
             .MaximumLength(512)
-            .WithMessage("Vorlagenname darf maximal 512 Zeichen lang sein.");
+            .WithMessage(I18nKey.Error.Event.Template.NameMaxLength);
     }
 }

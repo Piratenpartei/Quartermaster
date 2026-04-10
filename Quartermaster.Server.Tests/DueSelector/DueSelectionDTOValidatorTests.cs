@@ -1,6 +1,7 @@
 using System;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.DueSelector;
 
 namespace Quartermaster.Server.Tests.DueSelector;
@@ -43,7 +44,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("Vorname darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.FirstNameRequired);
     }
 
     [Test]
@@ -54,7 +55,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-            .WithErrorMessage("Nachname darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.LastNameRequired);
     }
 
     [Test]
@@ -75,7 +76,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("E-Mail-Adresse muss ein @ enthalten.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.EmailInvalid);
     }
 
     [Test]
@@ -96,7 +97,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.SelectedDue)
-            .WithErrorMessage("Beitrag darf nicht negativ sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.AmountNotNegative);
     }
 
     [Test]
@@ -127,7 +128,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.AccountHolder)
-            .WithErrorMessage("Kontoinhaber darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.AccountHolderMaxLength);
     }
 
     [Test]
@@ -158,7 +159,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.IBAN)
-            .WithErrorMessage("IBAN darf maximal 64 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.IbanMaxLength);
     }
 
     [Test]
@@ -189,7 +190,7 @@ public class DueSelectionDTOValidatorTests {
         var result = _validator.TestValidate(selection);
 
         result.ShouldHaveValidationErrorFor(x => x.ReducedJustification)
-            .WithErrorMessage("Begründung darf maximal 2048 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.JustificationMaxLength);
     }
 
     [Test]

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
@@ -42,13 +43,13 @@ public class MemberImportUploadEndpoint : Endpoint<MemberImportUploadRequest, Me
         }
 
         if (req.File == null || req.File.Length == 0) {
-            ThrowError("Keine Datei hochgeladen.");
+            ThrowError(I18nKey.Error.Member.Import.NoFileUploaded);
             return;
         }
 
         var ext = Path.GetExtension(req.File.FileName);
         if (!string.Equals(ext, ".csv", System.StringComparison.OrdinalIgnoreCase)) {
-            ThrowError("Nur CSV-Dateien sind erlaubt.");
+            ThrowError(I18nKey.Error.Member.Import.OnlyCsvAllowed);
             return;
         }
 

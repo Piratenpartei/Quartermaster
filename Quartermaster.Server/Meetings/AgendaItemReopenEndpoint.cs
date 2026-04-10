@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -50,7 +51,7 @@ public class AgendaItemReopenEndpoint : Endpoint<AgendaItemReopenRequest> {
             return;
         }
         if (meeting.Status != MeetingStatus.InProgress) {
-            ThrowError("Tagesordnungspunkt kann nur während laufender Sitzung neu geöffnet werden.");
+            ThrowError(I18nKey.Error.Meeting.Agenda.ReopenRequiresInProgress);
             return;
         }
         var item = _agendaRepo.Get(req.ItemId);

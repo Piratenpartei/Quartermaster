@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -60,16 +61,17 @@ public class AgendaItemMoveEndpoint : Endpoint<AgendaItemMoveRequest> {
         if (req.NewParentId.HasValue) {
             var newParent = _agendaRepo.Get(req.NewParentId.Value);
             if (newParent == null || newParent.MeetingId != req.MeetingId) {
-                ThrowError("Neuer übergeordneter Tagesordnungspunkt gehört nicht zu dieser Sitzung.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.NewParentNotInMeeting);
                 return;
             }
             if (_agendaRepo.WouldCreateCycle(req.ItemId, req.NewParentId.Value)) {
-                ThrowError("Die Verschiebung würde einen Zyklus erzeugen.");
+                ThrowError(I18nKey.Error.Meeting.Agenda.MoveWouldCycle);
                 return;
             }
             var newParentDepth = _agendaRepo.GetDepth(req.NewParentId.Value);
             if (newParentDepth + 1 > AgendaItemRepository.MaxDepth) {
-                ThrowError($"Maximale Verschachtelungstiefe von {AgendaItemRepository.MaxDepth} überschritten.");
+                ThrowError(I18nParams.With(I18nKey.Error.Meeting.Agenda.MaxDepthExceeded,
+                    ("maxDepth", AgendaItemRepository.MaxDepth.ToString())));
                 return;
             }
         }

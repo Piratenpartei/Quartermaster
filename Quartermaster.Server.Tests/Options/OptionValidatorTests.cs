@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
 using Quartermaster.Server.Options;
 
@@ -29,7 +30,7 @@ public class OptionUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Identifier)
-            .WithErrorMessage("Bezeichner darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Option.IdentifierRequired);
     }
 
     [Test]
@@ -42,7 +43,7 @@ public class OptionUpdateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Value)
-            .WithErrorMessage("Wert darf maximal 8192 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Option.ValueMaxLength);
     }
 
     [Test]

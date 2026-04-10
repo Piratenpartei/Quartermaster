@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
 using Quartermaster.Server.Users;
 
@@ -57,9 +58,9 @@ public class LoginRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Username)
-            .WithErrorMessage("Benutzername oder E-Mail muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("Benutzername oder E-Mail muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
     }
 
     [Test]
@@ -73,9 +74,9 @@ public class LoginRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Username)
-            .WithErrorMessage("Benutzername oder E-Mail muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("Benutzername oder E-Mail muss angegeben werden.");
+            .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
     }
 
     [Test]
@@ -88,7 +89,7 @@ public class LoginRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Password)
-            .WithErrorMessage("Das Passwort muss mindestens 12 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.User.Login.PasswordMinLength);
     }
 
     [Test]
@@ -113,6 +114,6 @@ public class LoginRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Password)
-            .WithErrorMessage("Das Passwort muss mindestens 12 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.User.Login.PasswordMinLength);
     }
 }

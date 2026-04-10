@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Events;
 
@@ -8,10 +9,10 @@ public class EventFromTemplateRequestValidator : Validator<EventFromTemplateRequ
     public EventFromTemplateRequestValidator() {
         RuleFor(x => x.TemplateId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Vorlage muss ausgewählt werden.");
+            .WithMessage(I18nKey.Error.Event.Template.TemplateRequired);
 
         RuleFor(x => x.ChapterId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Gliederung muss ausgewählt werden.");
+            .WithMessage(I18nKey.Error.Event.Template.ChapterRequired);
     }
 }

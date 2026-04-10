@@ -1,5 +1,6 @@
 using System;
 using FluentValidation.TestHelper;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.Admin;
 
 namespace Quartermaster.Server.Tests.Admin;
@@ -29,7 +30,7 @@ public class DueSelectionProcessRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Id)
-            .WithErrorMessage("Beitragsauswahl-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.IdRequired);
     }
 
     [Test]
@@ -59,7 +60,7 @@ public class DueSelectionProcessRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Status)
-            .WithErrorMessage("Status muss 'Genehmigt' oder 'Abgelehnt' sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.StatusInvalid);
     }
 }
 
@@ -88,7 +89,7 @@ public class MembershipApplicationProcessRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Id)
-            .WithErrorMessage("Antrags-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.IdRequired);
     }
 
     [Test]
@@ -118,6 +119,6 @@ public class MembershipApplicationProcessRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Status)
-            .WithErrorMessage("Status muss 'Genehmigt' oder 'Abgelehnt' sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.StatusInvalid);
     }
 }

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
@@ -43,7 +44,7 @@ public class RoleDeleteEndpoint : Endpoint<RoleDeleteRequest> {
             return;
         }
         if (role.IsSystem) {
-            ThrowError("Systemrollen können nicht gelöscht werden.");
+            ThrowError(I18nKey.Error.User.Role.SystemNotDeletable);
             return;
         }
 

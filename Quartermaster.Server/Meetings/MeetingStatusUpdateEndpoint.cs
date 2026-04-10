@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -60,12 +61,14 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
         }
 
         if (!IsTransitionAllowed(meeting.Status, req.Status)) {
-            ThrowError($"Übergang von {meeting.Status} zu {req.Status} ist nicht erlaubt.");
+            ThrowError(I18nParams.With(I18nKey.Error.Meeting.Status.TransitionInvalid,
+                ("from", meeting.Status.ToString()),
+                ("to", req.Status.ToString())));
             return;
         }
 
         if (req.Status == MeetingStatus.Scheduled && !meeting.MeetingDate.HasValue) {
-            ThrowError("Sitzungsdatum muss gesetzt sein, bevor die Sitzung geplant werden kann.");
+            ThrowError(I18nKey.Error.Meeting.Status.DateRequiredForScheduled);
             return;
         }
 

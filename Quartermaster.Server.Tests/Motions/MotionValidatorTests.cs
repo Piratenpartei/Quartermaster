@@ -1,5 +1,6 @@
 using System;
 using FluentValidation.TestHelper;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Server.Motions;
 
@@ -36,7 +37,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.ChapterId)
-            .WithErrorMessage("Gliederung muss ausgewählt werden.");
+            .WithErrorMessage(I18nKey.Error.Motion.ChapterRequired);
     }
 
     [Test]
@@ -52,7 +53,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AuthorName)
-            .WithErrorMessage("Name des Antragstellers darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.SubmitterNameRequired);
     }
 
     [Test]
@@ -68,7 +69,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AuthorName)
-            .WithErrorMessage("Name des Antragstellers darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.SubmitterNameMaxLength);
     }
 
     [Test]
@@ -99,7 +100,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
-            .WithErrorMessage("E-Mail-Adresse darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.EmailRequired);
     }
 
     [Test]
@@ -115,7 +116,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
-            .WithErrorMessage("E-Mail-Adresse muss ein @ enthalten.");
+            .WithErrorMessage(I18nKey.Error.Motion.EmailInvalid);
     }
 
     [Test]
@@ -131,7 +132,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
-            .WithErrorMessage("E-Mail-Adresse darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.EmailMaxLength);
     }
 
     [Test]
@@ -162,7 +163,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
-            .WithErrorMessage("Titel darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.TitleRequired);
     }
 
     [Test]
@@ -178,7 +179,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
-            .WithErrorMessage("Titel darf maximal 512 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.TitleMaxLength);
     }
 
     [Test]
@@ -209,7 +210,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Text)
-            .WithErrorMessage("Antragstext darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.BodyRequired);
     }
 
     [Test]
@@ -225,7 +226,7 @@ public class MotionCreateRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Text)
-            .WithErrorMessage("Antragstext darf maximal 8192 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.BodyMaxLength);
     }
 
     [Test]
@@ -283,7 +284,7 @@ public class MotionStatusRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.MotionId)
-            .WithErrorMessage("Antrags-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.Status.MotionIdRequired);
     }
 }
 
@@ -340,7 +341,7 @@ public class MotionVoteRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.MotionId)
-            .WithErrorMessage("Antrags-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.Vote.MotionIdRequired);
     }
 
     [Test]
@@ -354,7 +355,7 @@ public class MotionVoteRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage("Benutzer-ID darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Motion.Vote.UserIdRequired);
     }
 
     [Test]
@@ -368,7 +369,7 @@ public class MotionVoteRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Vote)
-            .WithErrorMessage("Ungültige Abstimmung.");
+            .WithErrorMessage(I18nKey.Error.Motion.Vote.InvalidVote);
     }
 
     [Test]
@@ -382,6 +383,6 @@ public class MotionVoteRequestValidatorTests {
         var result = _validator.TestValidate(request);
 
         result.ShouldHaveValidationErrorFor(x => x.Vote)
-            .WithErrorMessage("Ungültige Abstimmung.");
+            .WithErrorMessage(I18nKey.Error.Motion.Vote.InvalidVote);
     }
 }

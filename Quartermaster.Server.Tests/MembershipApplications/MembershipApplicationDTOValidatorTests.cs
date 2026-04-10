@@ -1,6 +1,7 @@
 using System;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Server.MembershipApplications;
 
@@ -46,7 +47,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("Vorname darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.FirstNameRequired);
     }
 
     [Test]
@@ -57,7 +58,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("Vorname darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.FirstNameMaxLength);
     }
 
     [Test]
@@ -78,7 +79,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-            .WithErrorMessage("Nachname darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.LastNameRequired);
     }
 
     [Test]
@@ -89,7 +90,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-            .WithErrorMessage("Nachname darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.LastNameMaxLength);
     }
 
     [Test]
@@ -110,7 +111,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("E-Mail-Adresse darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.EmailRequired);
     }
 
     [Test]
@@ -121,7 +122,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("E-Mail-Adresse muss ein @ enthalten.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.EmailInvalid);
     }
 
     [Test]
@@ -132,7 +133,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.EMail)
-            .WithErrorMessage("E-Mail-Adresse darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.EmailMaxLength);
     }
 
     [Test]
@@ -163,7 +164,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.Citizenship)
-            .WithErrorMessage("Staatsangehörigkeit darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.NationalityRequired);
     }
 
     [Test]
@@ -174,7 +175,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.Citizenship)
-            .WithErrorMessage("Staatsangehörigkeit darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.NationalityMaxLength);
     }
 
     [Test]
@@ -205,7 +206,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.PhoneNumber)
-            .WithErrorMessage("Telefonnummer darf maximal 64 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.PhoneMaxLength);
     }
 
     [Test]
@@ -226,7 +227,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressStreet)
-            .WithErrorMessage("Straße darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.StreetRequired);
     }
 
     [Test]
@@ -237,7 +238,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressStreet)
-            .WithErrorMessage("Straße darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.StreetMaxLength);
     }
 
     [Test]
@@ -258,7 +259,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressHouseNbr)
-            .WithErrorMessage("Hausnummer darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.HouseNumberRequired);
     }
 
     [Test]
@@ -269,7 +270,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressHouseNbr)
-            .WithErrorMessage("Hausnummer darf maximal 32 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.HouseNumberMaxLength);
     }
 
     [Test]
@@ -290,7 +291,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressPostCode)
-            .WithErrorMessage("Postleitzahl darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.PostalCodeRequired);
     }
 
     [Test]
@@ -301,7 +302,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressPostCode)
-            .WithErrorMessage("Postleitzahl darf maximal 16 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.PostalCodeMaxLength);
     }
 
     [Test]
@@ -322,7 +323,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressCity)
-            .WithErrorMessage("Stadt darf nicht leer sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.CityRequired);
     }
 
     [Test]
@@ -333,7 +334,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.AddressCity)
-            .WithErrorMessage("Stadt darf maximal 256 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.CityMaxLength);
     }
 
     [Test]
@@ -364,7 +365,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.ApplicationText)
-            .WithErrorMessage("Antragstext darf maximal 2048 Zeichen lang sein.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.BodyMaxLength);
     }
 
     [Test]
@@ -385,7 +386,7 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldHaveValidationErrorFor(x => x.ConformityDeclarationAccepted)
-            .WithErrorMessage("Die Grundsatzerklärung muss akzeptiert werden.");
+            .WithErrorMessage(I18nKey.Error.Admin.Application.DeclarationRequired);
     }
 
     [Test]

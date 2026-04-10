@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Roles;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
@@ -43,11 +44,11 @@ public class RoleUpdateEndpoint : Endpoint<RoleUpdateRequest> {
             return;
         }
         if (role.IsSystem) {
-            ThrowError("Systemrollen können nicht bearbeitet werden.");
+            ThrowError(I18nKey.Error.User.Role.SystemNotEditable);
             return;
         }
         if (string.IsNullOrWhiteSpace(req.Name)) {
-            ThrowError("Name ist erforderlich.");
+            ThrowError(I18nKey.Error.User.Role.NameRequired);
             return;
         }
 

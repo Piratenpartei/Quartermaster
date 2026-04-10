@@ -1,5 +1,6 @@
 using FastEndpoints;
 using FluentValidation;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Server.Events;
 
@@ -7,14 +8,14 @@ public class ChecklistItemReorderRequestValidator : Validator<ChecklistItemReord
     public ChecklistItemReorderRequestValidator() {
         RuleFor(x => x.EventId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Event muss angegeben werden.");
+            .WithMessage(I18nKey.Error.Event.Checklist.EventRequired);
 
         RuleFor(x => x.ItemId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage("Element-ID darf nicht leer sein.");
+            .WithMessage(I18nKey.Error.Event.Checklist.ItemIdRequired);
 
         RuleFor(x => x.Direction)
             .Must(d => d == -1 || d == 1)
-            .WithMessage("Richtung muss -1 (hoch) oder 1 (runter) sein.");
+            .WithMessage(I18nKey.Error.Event.Checklist.ReorderDirectionInvalid);
     }
 }
