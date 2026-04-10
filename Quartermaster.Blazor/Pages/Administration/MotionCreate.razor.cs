@@ -50,7 +50,7 @@ public partial class MotionCreate {
                     Navigation.NavigateTo($"/Administration/Motions/{result.Id}");
                 }
             } else {
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

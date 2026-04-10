@@ -44,7 +44,7 @@ public partial class EventCreate {
                     Navigation.NavigateTo($"/Administration/Events/{result.Id}");
                 }
             } else {
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

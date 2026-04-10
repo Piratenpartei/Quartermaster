@@ -53,18 +53,17 @@ public partial class ApplicationSummary {
             EntryDate = EntryState.EntryDate
         };
 
-        var okResponse = false;
         try {
             var result = await Http.PostAsJsonAsync("/api/membershipapplications", dto);
-            okResponse = result.IsSuccessStatusCode;
-        } catch (HttpRequestException) { }
-
-        if (okResponse) {
-            AppState.ResetEntryState<MembershipApplicationEntryState>();
-            AppState.ResetEntryState<DueSelectorEntryState>();
-            NavigationManager.NavigateTo("/");
-            ToastService.Toast("Dein Mitgliedsantrag wurde erfolgreich eingereicht!", "success");
-        } else {
+            if (result.IsSuccessStatusCode) {
+                AppState.ResetEntryState<MembershipApplicationEntryState>();
+                AppState.ResetEntryState<DueSelectorEntryState>();
+                NavigationManager.NavigateTo("/");
+                ToastService.Toast("Dein Mitgliedsantrag wurde erfolgreich eingereicht!", "success");
+            } else {
+                await ToastService.ErrorAsync(result);
+            }
+        } catch (HttpRequestException) {
             ToastService.Error();
         }
     }

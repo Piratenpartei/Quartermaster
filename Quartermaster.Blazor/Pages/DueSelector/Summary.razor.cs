@@ -37,17 +37,16 @@ public partial class Summary {
         if (EntryState == null)
             throw new UnreachableException();
 
-        var okResponse = false;
         try {
             var result = await Http.PostAsJsonAsync("/api/dueselector", EntryState.ToDTO());
-            okResponse = result.IsSuccessStatusCode;
-        } catch (HttpRequestException) { }
-
-        if (okResponse) {
-            AppState.ResetEntryState<DueSelectorEntryState>();
-            NavigationManager.NavigateTo("/");
-            ToastService.Toast("Danke für deine Einstufung!", "success");
-        } else {
+            if (result.IsSuccessStatusCode) {
+                AppState.ResetEntryState<DueSelectorEntryState>();
+                NavigationManager.NavigateTo("/");
+                ToastService.Toast("Danke für deine Einstufung!", "success");
+            } else {
+                await ToastService.ErrorAsync(result);
+            }
+        } catch (HttpRequestException) {
             ToastService.Error();
         }
     }

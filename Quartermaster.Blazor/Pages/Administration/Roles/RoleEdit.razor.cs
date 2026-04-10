@@ -65,8 +65,7 @@ public partial class RoleEdit {
             if (response.IsSuccessStatusCode) {
                 ToastService.Toast("Gespeichert.", "success");
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

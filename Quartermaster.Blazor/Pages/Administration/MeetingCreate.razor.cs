@@ -53,8 +53,7 @@ public partial class MeetingCreate {
                     Navigation.NavigateTo($"/Administration/Meetings/{result.Id}");
                 }
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}: {body}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

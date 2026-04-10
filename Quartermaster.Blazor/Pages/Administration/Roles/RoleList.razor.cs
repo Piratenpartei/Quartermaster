@@ -88,8 +88,7 @@ public partial class RoleList {
                 ShowingCreateForm = false;
                 await Load();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -105,8 +104,7 @@ public partial class RoleList {
                 ToastService.Toast("Rolle gelöscht.", "success");
                 await Load();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

@@ -289,8 +289,7 @@ public partial class MeetingDetail {
                 ToastService.Toast("Offene Anträge importiert.", "success");
                 await LoadMeeting();
             } else {
-                var body = await resp.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(resp);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -333,8 +332,7 @@ public partial class MeetingDetail {
                 ToastService.Toast($"Status geändert: {targetLabel}.", "success");
                 await LoadMeeting();
             } else {
-                var body = await resp.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(resp);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

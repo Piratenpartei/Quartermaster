@@ -336,8 +336,7 @@ public partial class EventDetail {
                 ToastService.Toast($"Status geändert: {targetLabel}.", "success");
                 await LoadEvent();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

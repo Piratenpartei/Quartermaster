@@ -56,7 +56,7 @@ public partial class MemberDetail {
                 Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
                 NewAdminDivId = "";
             } else {
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

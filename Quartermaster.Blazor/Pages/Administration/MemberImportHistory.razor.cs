@@ -96,8 +96,7 @@ public partial class MemberImportHistory {
                 CurrentPage = 1;
                 await LoadHistory();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (Exception ex) {
             ToastService.Error(ex);
@@ -119,7 +118,7 @@ public partial class MemberImportHistory {
                 CurrentPage = 1;
                 await LoadHistory();
             } else {
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (Exception ex) {
             ToastService.Error(ex);

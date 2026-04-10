@@ -95,8 +95,7 @@ public partial class RoleAssignments {
                 ShowingCreateForm = false;
                 await Load();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -112,8 +111,7 @@ public partial class RoleAssignments {
                 ToastService.Toast("Zuweisung entfernt.", "success");
                 await Load();
             } else {
-                var body = await response.Content.ReadAsStringAsync();
-                ToastService.Error(details: body);
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

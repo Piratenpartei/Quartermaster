@@ -44,8 +44,7 @@ public partial class UserSettings {
                 var result = await resp.Content.ReadAsStringAsync();
                 ToastService.Toast("Testdaten erstellt.", "success");
             } else {
-                var body = await resp.Content.ReadAsStringAsync();
-                ToastService.Error(details: $"HTTP {(int)resp.StatusCode}: {body}");
+                await ToastService.ErrorAsync(resp);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

@@ -48,7 +48,7 @@ public partial class LoginLockouts {
                 ToastService.Toast("Sperre aufgehoben.", "success");
                 await Load();
             } else {
-                ToastService.Error(details: $"HTTP {(int)response.StatusCode}");
+                await ToastService.ErrorAsync(response);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

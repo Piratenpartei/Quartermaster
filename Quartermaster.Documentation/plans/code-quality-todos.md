@@ -60,12 +60,11 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] **Updated 89 validator test assertions** across 9 test files from German strings to `I18nKey` references. All 915 tests passing.
 - [x] **End-to-end verified in Chrome**: submitted a motion form with an invalid email, observed the API return `error.motion.email_invalid`, and saw the German translation `"E-Mail-Adresse muss ein @ enthalten."` appear in a translated error toast.
 
-**Open**: 45 frontend page call sites still use the legacy `ToastService.Error(ex)` pattern (generic "Ein Fehler ist aufgetreten") instead of the new `ToastService.ErrorAsync(response)` that surfaces specific translated errors. Migrating them is a separate UX-improvement pass — see "Frontend page error-handling migration" below.
-
-### Frontend page error-handling migration
-- **Task:** Migrate 45 page call sites from `ToastService.Error(ex)` (generic error) to `await ToastService.ErrorAsync(response)` (translated specific errors from the API). Currently only `MotionCreate.razor.cs` uses the new pattern as a reference.
-- **Why:** Users currently see "Ein Fehler ist aufgetreten" for any failed API call. With the i18n pipeline complete, they could see specific messages like "E-Mail-Adresse muss ein @ enthalten." that pinpoint the issue.
-- **How to apply:** For each page that has a `if (response.IsSuccessStatusCode) { ... } else { ToastService.Error(...); }` pattern, replace the else branch with `await ToastService.ErrorAsync(response);`. For pages that wrap the call in `try/catch (HttpRequestException)`, refactor to check the response status code instead so the body is parseable.
+### Frontend page error-handling migration — ✅ DONE
+- [x] **Migrated 16 pages (20 call sites)** from generic `ToastService.Error()` / `ToastService.Error(details: ...)` to `await ToastService.ErrorAsync(response)`. Users on these pages now see specific translated server validation errors instead of "Ein Fehler ist aufgetreten":
+  - `MeetingDetail`, `EventDetail`, `UserSettings`, `MeetingAgendaEdit`, `MeetingCreate`, `Roles/RoleAssignments`, `Roles/RoleEdit`, `Roles/RoleList`, `LoginLockouts`, `MemberDetail`, `MemberImportHistory`, `MotionCreate` (Admin), `EventCreateFromTemplate`, `EventCreate`, `DueSelector/Summary`, `MembershipApplication/ApplicationSummary`
+- **Intentionally NOT migrated** (leave as-is): `try { GetFromJsonAsync } catch (HttpRequestException ex) { ToastService.Error(ex); }` patterns. These are GET requests that throw on 4xx/5xx but don't expose the response in the catch block. They typically fail on network errors or server errors that don't carry useful field-level validation messages, so the generic error toast is appropriate. Migrating them would require switching every call site from `GetFromJsonAsync` to `GetAsync` + manual deserialization — a much wider refactor with marginal user benefit on read-only fetches.
+- **Intentionally NOT touched**: `ToastService.Error("custom German message")` calls — those are deliberate custom messages for client-side validation (e.g., "Bitte Benutzer auswählen.") that don't come from the server.
 
 ### Test coverage review — ✅ DONE
 - Partial pass completed: added `PermissionInheritanceTests` (8 tests covering ancestor-chain inheritance, 10-level hierarchy, view vs write perm distinction, role-derived grants), `TokenAuthenticationTests` (9 tests covering expired/invalid/malformed/whitespace tokens, deleted user, wrong-type tokens), `LockoutLogicTests` (10 tests covering sliding window, per-IP+user isolation, threshold boundaries, success clearing), `EndpointAuthorizationHelperTests` (6 tests covering null-chapter-ids-for-global-perm, descendant inheritance), `SecurityHeadersMiddlewareTests` (6 tests covering all headers + HSTS-only-on-HTTPS), `EdgeCaseMarkdownTests` (12 tests covering unicode, emoji, RTL text, XSS vectors, data URLs, event handlers).
@@ -75,12 +74,6 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] Added `DurationMs` property to `Toast` model (nullable int — null means persistent).
 - [x] `ToastService` now sets `DurationMs = 3000` for success/default toasts, `null` for error/danger toasts.
 - [x] `Toaster` component schedules auto-removal via `System.Threading.Timer` for toasts with a duration. Implements `IDisposable` to clean up timers. Error toasts remain until manually dismissed.
-
-### SignalR for live meeting updates + collaborative editing
-- **Task:** Add SignalR hub for real-time push to meeting participants. Two use cases: (1) live meeting page auto-updates when another officer votes or completes an agenda item, (2) collaborative editing for agenda item notes (prerequisite for the collaborative writing feature deferred from v1).
-- **Why:** Currently the live meeting page requires manual refresh to see changes made by other participants. SignalR would enable real-time multi-officer minute-taking.
-- **How to apply:** Add `Microsoft.AspNetCore.SignalR` package; create `MeetingHub` with groups per meeting ID; push events from meeting-mutating endpoints; Blazor UI subscribes via `HubConnection`.
-- **Note:** This is also the foundation for the collaborative writing TODO noted in the meeting system design plan (last-write-wins → CRDT/OT for notes).
 
 ### DTO mapping standardization
 - **Task:** Pick a single mapping style and apply it consistently. Currently the codebase mixes Mapperly (for simple entity↔DTO pairs) with hand-written mapping code (for complex projections that do joins or reshaping).
