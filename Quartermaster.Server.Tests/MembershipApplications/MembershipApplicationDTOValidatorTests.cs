@@ -38,8 +38,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    // --- FirstName ---
-
     [Test]
     public void EmptyFirstName_ShouldHaveError() {
         var application = ValidApplication();
@@ -72,8 +70,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.FirstName);
     }
 
-    // --- LastName ---
-
     [Test]
     public void EmptyLastName_ShouldHaveError() {
         var application = ValidApplication();
@@ -105,8 +101,6 @@ public class MembershipApplicationDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.LastName);
     }
-
-    // --- EMail ---
 
     [Test]
     public void EmptyEMail_ShouldHaveError() {
@@ -161,8 +155,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.EMail);
     }
 
-    // --- Citizenship ---
-
     [Test]
     public void EmptyCitizenship_ShouldHaveError() {
         var application = ValidApplication();
@@ -195,8 +187,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.Citizenship);
     }
 
-    // --- PhoneNumber (optional, only max length) ---
-
     [Test]
     public void EmptyPhoneNumber_ShouldHaveNoError() {
         var application = ValidApplication();
@@ -227,8 +217,6 @@ public class MembershipApplicationDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.PhoneNumber);
     }
-
-    // --- AddressStreet ---
 
     [Test]
     public void EmptyAddressStreet_ShouldHaveError() {
@@ -262,8 +250,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.AddressStreet);
     }
 
-    // --- AddressHouseNbr ---
-
     [Test]
     public void EmptyAddressHouseNbr_ShouldHaveError() {
         var application = ValidApplication();
@@ -295,8 +281,6 @@ public class MembershipApplicationDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.AddressHouseNbr);
     }
-
-    // --- AddressPostCode ---
 
     [Test]
     public void EmptyAddressPostCode_ShouldHaveError() {
@@ -330,8 +314,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.AddressPostCode);
     }
 
-    // --- AddressCity ---
-
     [Test]
     public void EmptyAddressCity_ShouldHaveError() {
         var application = ValidApplication();
@@ -364,8 +346,6 @@ public class MembershipApplicationDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.AddressCity);
     }
 
-    // --- ApplicationText (optional, only max length) ---
-
     [Test]
     public void EmptyApplicationText_ShouldHaveNoError() {
         var application = ValidApplication();
@@ -396,8 +376,6 @@ public class MembershipApplicationDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.ApplicationText);
     }
-
-    // --- ConformityDeclarationAccepted ---
 
     [Test]
     public void ConformityDeclarationNotAccepted_ShouldHaveError() {

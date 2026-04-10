@@ -35,8 +35,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
             Directory.Delete(_tempDir, true);
     }
 
-    #region File helpers
-
     private void WriteFiles(string[] baseLines, string[] postcodeLines) {
         File.WriteAllText(Path.Combine(_tempDir, "DE_Base.txt"), string.Join("\n", baseLines));
         File.WriteAllText(Path.Combine(_tempDir, "DE_PostCodes.txt"), string.Join("\n", postcodeLines));
@@ -102,10 +100,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
             ]);
     }
 
-    #endregion
-
-    #region File handling
-
     [Test]
     public async Task Import_FilesNotFound_ReturnsErrorLog() {
         var log = _service.Import(_tempDir);
@@ -136,10 +130,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
 
         await Assert.That(_service.HasCompletedInitialLoad).IsTrue();
     }
-
-    #endregion
-
-    #region Initial load
 
     [Test]
     public async Task Import_EmptyDatabase_BulkInsertsAllDivisions() {
@@ -175,10 +165,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
         await Assert.That(logs[0].DurationMs).IsGreaterThanOrEqualTo(0);
     }
 
-    #endregion
-
-    #region Change detection — updates
-
     [Test]
     public async Task Import_NameChanged_UpdatesDivision() {
         WriteInitialFiles();
@@ -205,10 +191,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
         await Assert.That(goslar).IsNotNull();
         await Assert.That(goslar!.Name).IsEqualTo("Goslar");
     }
-
-    #endregion
-
-    #region Change detection — removals and remapping
 
     [Test]
     public async Task Import_RemovedDivision_RemappedByPostcode() {
@@ -261,10 +243,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
         await Assert.That(log.OrphanedRecords).IsGreaterThan(0);
     }
 
-    #endregion
-
-    #region Change detection — reference updates
-
     [Test]
     public async Task Import_RemappedDivision_UpdatesMemberReferences() {
         WriteInitialFiles();
@@ -313,10 +291,6 @@ public class AdminDivisionImportServiceTests : IDisposable {
         await Assert.That(chapter.AdministrativeDivisionId).IsEqualTo(goslar.Id);
     }
 
-    #endregion
-
-    #region Change detection — log statistics
-
     [Test]
     public async Task Import_ChangeDetection_LogHasCorrectStatistics() {
         WriteInitialFiles();
@@ -338,6 +312,4 @@ public class AdminDivisionImportServiceTests : IDisposable {
         await Assert.That(log.TotalRecords).IsGreaterThan(0);
         await Assert.That(log.DurationMs).IsGreaterThanOrEqualTo(0);
     }
-
-    #endregion
 }

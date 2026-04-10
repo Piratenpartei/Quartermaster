@@ -98,8 +98,6 @@ public class RoleRepository {
         }
     }
 
-    // ---------- Assignments ----------
-
     public List<UserRoleAssignment> GetAssignmentsForUser(Guid userId)
         => _context.UserRoleAssignments.Where(a => a.UserId == userId).ToList();
 

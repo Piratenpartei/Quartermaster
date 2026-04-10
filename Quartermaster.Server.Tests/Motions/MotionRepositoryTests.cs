@@ -110,8 +110,6 @@ public class MotionRepositoryTests : IDisposable {
         });
     }
 
-    // --- TryAutoResolve ---
-
     [Test]
     public async Task TryAutoResolve_MotionNotFound_ReturnsFalse() {
         var result = _motionRepo.TryAutoResolve(Guid.NewGuid(), _officerRepo);

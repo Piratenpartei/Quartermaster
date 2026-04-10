@@ -42,8 +42,6 @@ public class UserRepositoryTests : IDisposable {
         _permissionRepo.SupplementDefaults();
     }
 
-    // --- SupplementDefaults ---
-
     [Test]
     public async Task SupplementDefaults_NullSettings_NoUserCreated() {
         _userRepo.SupplementDefaults(null, _chapterRepo, _chapterPermRepo);

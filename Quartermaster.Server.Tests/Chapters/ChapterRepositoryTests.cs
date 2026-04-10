@@ -53,8 +53,6 @@ public class ChapterRepositoryTests : IDisposable {
         });
     }
 
-    // --- GetAncestorChain ---
-
     [Test]
     public async Task GetAncestorChain_LeafNode_ReturnsFullChain() {
         var chain = _repo.GetAncestorChain(_kreisId);
@@ -89,8 +87,6 @@ public class ChapterRepositoryTests : IDisposable {
 
         await Assert.That(chain.Count).IsEqualTo(0);
     }
-
-    // --- GetDescendantIds ---
 
     [Test]
     public async Task GetDescendantIds_Root_ReturnsAllDescendants() {
@@ -130,8 +126,6 @@ public class ChapterRepositoryTests : IDisposable {
         await Assert.That(ids.Count).IsEqualTo(1);
         await Assert.That(ids).Contains(nonExistent);
     }
-
-    // --- FindByExternalCodeAndParent ---
 
     [Test]
     public async Task FindByExternalCodeAndParent_ExactMatch_ReturnsChapter() {

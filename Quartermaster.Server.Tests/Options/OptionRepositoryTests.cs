@@ -58,8 +58,6 @@ public class OptionRepositoryTests : IDisposable {
         });
     }
 
-    // --- ResolveValue ---
-
     [Test]
     public async Task ResolveValue_NoChapterId_ReturnsGlobalValue() {
         _repo.SetValue("test.option", null, "global-value");

@@ -92,6 +92,7 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - Exceptions:
   - Pure data classes (only properties, no logic) — e.g., a DTO file can contain multiple related DTOs
   - A request class paired with its endpoint class (or similar narrow pairings)
+  - Test files may contain multiple test classes when they cover the same region/feature of code (e.g., several validator test classes for the same feature, multiple endpoint test classes for one resource)
 - Enums are not classes/structs and may coexist with a related class in the same file
 - Nested types (inside a class) are fine
 

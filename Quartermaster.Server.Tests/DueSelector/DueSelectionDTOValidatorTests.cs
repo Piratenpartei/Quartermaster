@@ -35,8 +35,6 @@ public class DueSelectionDTOValidatorTests {
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    // --- FirstName ---
-
     [Test]
     public void EmptyFirstName_ShouldHaveError() {
         var selection = ValidDueSelection();
@@ -48,8 +46,6 @@ public class DueSelectionDTOValidatorTests {
             .WithErrorMessage("Vorname darf nicht leer sein.");
     }
 
-    // --- LastName ---
-
     [Test]
     public void EmptyLastName_ShouldHaveError() {
         var selection = ValidDueSelection();
@@ -60,8 +56,6 @@ public class DueSelectionDTOValidatorTests {
         result.ShouldHaveValidationErrorFor(x => x.LastName)
             .WithErrorMessage("Nachname darf nicht leer sein.");
     }
-
-    // --- EMail (optional, but must contain @ if provided) ---
 
     [Test]
     public void EmptyEMail_ShouldHaveNoError() {
@@ -94,8 +88,6 @@ public class DueSelectionDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.EMail);
     }
 
-    // --- SelectedDue ---
-
     [Test]
     public void NegativeSelectedDue_ShouldHaveError() {
         var selection = ValidDueSelection();
@@ -126,8 +118,6 @@ public class DueSelectionDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.SelectedDue);
     }
-
-    // --- AccountHolder ---
 
     [Test]
     public void AccountHolderExceedsMaxLength_ShouldHaveError() {
@@ -160,8 +150,6 @@ public class DueSelectionDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.AccountHolder);
     }
 
-    // --- IBAN ---
-
     [Test]
     public void IBANExceedsMaxLength_ShouldHaveError() {
         var selection = ValidDueSelection();
@@ -192,8 +180,6 @@ public class DueSelectionDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.IBAN);
     }
-
-    // --- ReducedJustification ---
 
     [Test]
     public void ReducedJustificationExceedsMaxLength_ShouldHaveError() {
