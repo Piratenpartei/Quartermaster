@@ -1,16 +1,10 @@
 @page "/Administration/Roles/{Id:guid}"
 @using Quartermaster.Api.Roles
 
-<div class="mb-3">
-    <a href="/Administration/Roles" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Liste
-    </a>
-</div>
+<PageBackLink Href="/Administration/Roles" Text="Zurück zur Liste" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Role == null) {
     <div class="alert alert-warning">Rolle nicht gefunden.</div>
 } else {

@@ -2,16 +2,10 @@
 @using Quartermaster.Api.Options
 @using Quartermaster.Api.Chapters
 
-<div class="mb-3">
-    <a href="/Administration/Options" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Administration/Options" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Option == null) {
     <div class="alert alert-danger">Einstellung nicht gefunden.</div>
 } else {
@@ -99,7 +93,7 @@
                             </table>
                             </div>
                         } else {
-                            <p class="text-secondary">Keine Überschreibungen vorhanden.</p>
+                            <EmptyState Message="Keine Überschreibungen vorhanden." />
                         }
 
                         @if (EditingOverride != null) {

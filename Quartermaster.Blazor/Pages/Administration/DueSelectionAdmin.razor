@@ -18,9 +18,7 @@
 </div>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Response != null) {
     <div class="mb-2 text-secondary">
         @Response.TotalCount Einstufungen

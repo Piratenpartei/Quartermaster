@@ -3,16 +3,10 @@
 @using Quartermaster.Api.Events
 @using Quartermaster.Api.Rendering
 
-<div class="mb-3">
-    <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Administration/Events" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Event == null) {
     <div class="alert alert-danger">Event nicht gefunden.</div>
 } else {
@@ -111,7 +105,7 @@
             </div>
 
             @if (Event.ChecklistItems.Count == 0) {
-                <p class="text-secondary">Keine Einträge vorhanden.</p>
+                <EmptyState Message="Keine Einträge vorhanden." />
             }
 
             @foreach (var item in Event.ChecklistItems.OrderBy(i => i.SortOrder)) {
@@ -287,7 +281,7 @@
             @if (AuditLogs == null) {
                 <div class="spinner-border spinner-border-sm" role="status"></div>
             } else if (AuditLogs.Count == 0) {
-                <p class="text-secondary mb-0">Keine Einträge vorhanden.</p>
+                <EmptyState Message="Keine Einträge vorhanden." />
             } else {
                 <div class="table-responsive">
                     <table class="table table-sm table-striped mb-0">

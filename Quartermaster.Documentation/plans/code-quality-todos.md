@@ -28,17 +28,17 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **Task:** Search for region-separator style comments (e.g., `// ---------- X ----------`, `#region`, banner comments that don't describe specific code) and remove them. If code needs visual separation, it should be split into separate methods/files instead.
 - **How to apply:** `grep -rn "^// ----" --include="*.cs"` and review each hit.
 
-### Frontend: extract components for common patterns
-- **Task:** Scan the Blazor frontend for repeated markup patterns and extract them into reusable components.
-- **Likely candidates:**
-  - Admin page header (title + action buttons right-aligned, e.g., "Back" + "New X" buttons)
-  - Card + header + optional "Alle anzeigen" link (dashboard widgets, import status cards)
-  - Empty-state message ("Keine X vorhanden.")
-  - Loading spinner centered in container (repeated `<div class="d-flex justify-content-center my-4"><div class="spinner-border"></div></div>`)
-  - Status/visibility badges with consistent styling per value (event status, motion status, role scope)
-  - Confirmation delete button (outline-danger + trash icon + ConfirmDialog wiring)
-  - Table-with-card wrapper (header + table inside card-body)
-- **How to apply:** Walk the Pages/ directory, identify ≥3 repeated instances of a pattern, extract a component into `Components/`, migrate callers. Measure: lines removed per call site.
+### Frontend: extract components for common patterns — partial ✅
+- [x] **`LoadingSpinner` component** — wraps the centered `spinner-border` pattern. Replaced ~40 usages across the Pages directory. Supports `Small` and `CssClass` parameters for variants.
+- [x] **`EmptyState` component** — wraps the "Keine X vorhanden" pattern. Replaced 9 usages across 8 files.
+- [x] **`PageBackLink` component** — wraps the standard back button (`<div class="mb-3">` + `btn-outline-secondary` link + arrow-left icon). Replaced 18 usages. Defaults `Text` to "Zurück zur Übersicht".
+
+**Still open** (not yet extracted):
+- Admin page header with title + action buttons (multi-button toolbars)
+- Card + header + optional "Alle anzeigen" link (dashboard widgets)
+- Status/visibility badges with consistent styling per value
+- Confirmation delete button (outline-danger + trash icon + ConfirmDialog wiring)
+- Table-with-card wrapper
 
 ### A11y: wire up form label associations properly
 - **Task:** 74 `<label class="form-label">` elements across ~24 files don't have `for=` attributes linking them to their inputs. Currently works in practice for screen readers due to DOM adjacency (Bootstrap's standard pattern), but not semantically correct. Click-on-label-to-focus-input doesn't work either.

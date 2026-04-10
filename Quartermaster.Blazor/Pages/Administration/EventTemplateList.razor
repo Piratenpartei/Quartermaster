@@ -9,9 +9,7 @@
 </div>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Templates != null && Templates.Count > 0) {
     <div class="table-responsive">
     <table class="table table-striped table-hover">
@@ -48,9 +46,7 @@
     </table>
     </div>
 } else {
-    <div class="alert alert-info">
-        Keine Vorlagen vorhanden. Erstellen Sie eine Vorlage aus einem bestehenden Event.
-    </div>
+    <EmptyState Message="Keine Vorlagen vorhanden. Erstellen Sie eine Vorlage aus einem bestehenden Event." />
 }
 
 <ConfirmDialog @ref="ConfirmDialog" />

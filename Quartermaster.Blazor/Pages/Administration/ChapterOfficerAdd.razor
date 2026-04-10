@@ -2,11 +2,7 @@
 @using Quartermaster.Api.ChapterAssociates
 @using Quartermaster.Api.Members
 
-<div class="mb-3">
-    <a href="/Administration/Chapters/@ChapterId" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Gliederung
-    </a>
-</div>
+<PageBackLink Href="@($"/Administration/Chapters/{ChapterId}")" Text="Zurück zur Gliederung" />
 
 <h3 class="mb-3">Vorstandsmitglied hinzufügen</h3>
 
@@ -20,12 +16,10 @@
         </div>
 
         @if (SearchLoading) {
-            <div class="d-flex justify-content-center my-3">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-            </div>
+            <LoadingSpinner Small="true" CssClass="my-3" />
         } else if (SearchResults != null) {
             @if (SearchResults.Items.Count == 0) {
-                <p class="text-secondary">Keine Mitglieder gefunden.</p>
+                <EmptyState Message="Keine Mitglieder gefunden." />
             } else {
                 <div class="table-responsive">
                 <table class="table table-sm table-hover">

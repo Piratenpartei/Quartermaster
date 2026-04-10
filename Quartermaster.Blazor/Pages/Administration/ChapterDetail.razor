@@ -2,16 +2,10 @@
 @using Quartermaster.Api.Chapters
 @using Quartermaster.Api.ChapterAssociates
 
-<div class="mb-3">
-    <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Administration/Chapters" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Detail == null) {
     <div class="alert alert-danger">Gliederung nicht gefunden.</div>
 } else {

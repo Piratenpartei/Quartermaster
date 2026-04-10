@@ -16,9 +16,7 @@
     </div>
     <div class="card-body">
         @if (MemberLoading) {
-            <div class="d-flex justify-content-center my-3">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-            </div>
+            <LoadingSpinner Small="true" CssClass="my-3" />
         } else if (MemberHistory != null && MemberHistory.Items.Count > 0) {
             var latest = MemberHistory.Items[0];
             <div class="row g-3 mb-3">
@@ -112,9 +110,7 @@
     </div>
     <div class="card-body">
         @if (AdminDivLoading) {
-            <div class="d-flex justify-content-center my-3">
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-            </div>
+            <LoadingSpinner Small="true" CssClass="my-3" />
         } else if (AdminDivHistory != null && AdminDivHistory.Items.Count > 0) {
             var latest = AdminDivHistory.Items[0];
             <div class="row g-3 mb-3">

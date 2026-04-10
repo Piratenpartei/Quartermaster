@@ -9,9 +9,7 @@
 </div>
 
 @if (RootNodes == null) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else {
     <div class="list-group">
         @foreach (var node in RootNodes) {

@@ -6,9 +6,7 @@
 <h1 class="mb-4">Events</h1>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Response == null || Response.Items.Count == 0) {
     <p class="text-secondary">Aktuell sind keine öffentlichen Events angekündigt.</p>
 } else {

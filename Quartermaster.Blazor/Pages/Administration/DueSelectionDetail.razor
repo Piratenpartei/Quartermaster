@@ -2,16 +2,10 @@
 @using Quartermaster.Api.DueSelector
 @using System.Globalization
 
-<div class="mb-3">
-    <a href="/Administration/DueSelections" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Administration/DueSelections" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Selection == null) {
     <div class="alert alert-danger">Einstufung nicht gefunden.</div>
 } else {

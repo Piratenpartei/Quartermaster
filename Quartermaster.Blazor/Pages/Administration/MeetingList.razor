@@ -43,16 +43,14 @@
 </div>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Response != null) {
     <div class="mb-2 text-secondary">
         @Response.TotalCount Sitzungen
     </div>
 
     @if (Response.Items.Count == 0) {
-        <div class="alert alert-secondary">Keine Sitzungen vorhanden.</div>
+        <EmptyState Message="Keine Sitzungen vorhanden." />
     } else {
         <div class="table-responsive">
             <table class="table table-striped table-hover">

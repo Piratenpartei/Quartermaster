@@ -4,9 +4,7 @@
 <PageTitle>Einstellungen</PageTitle>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Settings == null) {
     <div class="alert alert-warning">Du bist nicht angemeldet.</div>
 } else {

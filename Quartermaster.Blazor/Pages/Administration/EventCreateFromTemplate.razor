@@ -1,16 +1,10 @@
 @page "/Administration/Events/CreateFromTemplate/{TemplateId:guid}"
 @using Quartermaster.Api.Events
 
-<div class="mb-3">
-    <a href="/Administration/EventTemplates" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zu Vorlagen
-    </a>
-</div>
+<PageBackLink Href="/Administration/EventTemplates" Text="Zurück zu Vorlagen" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Template == null) {
     <div class="alert alert-danger">Vorlage nicht gefunden.</div>
 } else {

@@ -2,16 +2,10 @@
 @using Quartermaster.Api.AuditLog
 @using Quartermaster.Api.Meetings
 
-<div class="mb-3">
-    <a href="/Administration/Meetings" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Administration/Meetings" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Meeting == null) {
     <div class="alert alert-danger">Sitzung nicht gefunden.</div>
 } else {
@@ -154,7 +148,7 @@
                 @if (AuditLogs == null) {
                     <div class="spinner-border spinner-border-sm" role="status"></div>
                 } else if (AuditLogs.Count == 0) {
-                    <p class="text-secondary mb-0">Keine Einträge vorhanden.</p>
+                    <EmptyState Message="Keine Einträge vorhanden." />
                 } else {
                     <div class="table-responsive">
                         <table class="table table-sm table-striped mb-0">

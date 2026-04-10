@@ -3,16 +3,10 @@
 
 <PageTitle>Event</PageTitle>
 
-<div class="mb-3">
-    <a href="/Events" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
-    </a>
-</div>
+<PageBackLink Href="/Events" />
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (NotFound) {
     <div class="alert alert-warning">
         Dieses Event ist nicht öffentlich verfügbar.

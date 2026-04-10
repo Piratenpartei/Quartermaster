@@ -6,9 +6,7 @@
 </div>
 
 @if (Loading) {
-    <div class="d-flex justify-content-center my-4">
-        <div class="spinner-border" role="status"></div>
-    </div>
+    <LoadingSpinner />
 } else if (Options != null) {
     <div class="table-responsive">
     <table class="table table-striped table-hover">
