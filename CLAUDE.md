@@ -107,6 +107,13 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)
 - This applies to all components and pages — keep markup and logic separated
 
+## DTO ↔ Entity Mapping
+
+- All entity-to-DTO and DTO-to-entity mapping is **hand-written and inline** at the call site
+- Do not introduce mapping libraries (Mapperly, AutoMapper, etc.)
+- Do not extract single-purpose `*Mapper` helper classes either — keep the mapping visible where the data is shaped
+- The visibility tradeoff is intentional: a few extra `new XxxDTO { ... }` blocks at the use site are easier to review than indirection through a mapper, and code review catches missing/wrong properties
+
 ## Documentation
 
 - Never write into README.md files; use `Quartermaster.Documentation/` directory instead

@@ -23,7 +23,14 @@ public class AdministrativeDivisionSearchEndpoint : Endpoint<AdministrativeDivis
         var (items, totalCount) = _repository.Search(req.Query, req.Page, req.PageSize);
 
         await SendAsync(new AdministrativeDivisionSearchResponse {
-            Items = items.Select(ad => ad.ToDto()).ToList(),
+            Items = items.Select(ad => new AdministrativeDivisionDTO {
+                Id = ad.Id,
+                ParentId = ad.ParentId,
+                Name = ad.Name,
+                Depth = ad.Depth,
+                AdminCode = ad.AdminCode,
+                PostCodes = ad.PostCodes
+            }).ToList(),
             TotalCount = totalCount,
             Page = req.Page,
             PageSize = req.PageSize

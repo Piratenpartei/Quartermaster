@@ -2,14 +2,14 @@
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.DueSelector;
-using Quartermaster.Data.DueSelector;
+using DataDueSelector = Quartermaster.Data.DueSelector;
 
 namespace Quartermaster.Server.DueSelector;
 
 public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
-    private readonly DueSelectionRepository _dueSelectionRepository;
+    private readonly DataDueSelector.DueSelectionRepository _dueSelectionRepository;
 
-    public DueSelectionCreateEndpoint(DueSelectionRepository dueSelectionRepository) {
+    public DueSelectionCreateEndpoint(DataDueSelector.DueSelectionRepository dueSelectionRepository) {
         _dueSelectionRepository = dueSelectionRepository;
     }
 
@@ -19,7 +19,24 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
     }
 
     public override async Task HandleAsync(DueSelectionDTO req, CancellationToken ct) {
-        _dueSelectionRepository.Create(DueSelectionMapper.FromDto(req));
+        var dueSelection = new DataDueSelector.DueSelection {
+            FirstName = req.FirstName,
+            LastName = req.LastName,
+            EMail = req.EMail,
+            MemberNumber = req.MemberNumber,
+            SelectedValuation = (DataDueSelector.SelectedValuation)(int)req.SelectedValuation,
+            YearlyIncome = req.YearlyIncome,
+            MonthlyIncomeGroup = req.MonthlyIncomeGroup,
+            ReducedAmount = req.ReducedAmount,
+            SelectedDue = req.SelectedDue,
+            ReducedJustification = req.ReducedJustification,
+            ReducedTimeSpan = (DataDueSelector.ReducedTimeSpan)(int)req.ReducedTimeSpan,
+            IsDirectDeposit = req.IsDirectDeposit,
+            AccountHolder = req.AccountHolder,
+            IBAN = req.IBAN,
+            PaymentSchedule = (DataDueSelector.PaymentScedule)(int)req.PaymentScedule
+        };
+        _dueSelectionRepository.Create(dueSelection);
         await SendOkAsync(ct);
     }
 }

@@ -27,6 +27,14 @@ public class ChapterChildrenEndpoint : Endpoint<ChapterChildrenRequest, List<Cha
 
     public override async Task HandleAsync(ChapterChildrenRequest req, CancellationToken ct) {
         var children = _chapterRepo.GetChildren(req.ParentId);
-        await SendAsync(children.Select(c => c.ToDto()).ToList(), cancellation: ct);
+        var dtos = children.Select(c => new ChapterDTO {
+            Id = c.Id,
+            Name = c.Name,
+            ShortCode = c.ShortCode,
+            AdministrativeDivisionId = c.AdministrativeDivisionId,
+            ExternalCode = c.ExternalCode,
+            ParentChapterId = c.ParentChapterId
+        }).ToList();
+        await SendAsync(dtos, cancellation: ct);
     }
 }

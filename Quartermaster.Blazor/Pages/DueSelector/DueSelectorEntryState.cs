@@ -1,6 +1,5 @@
-﻿using Quartermaster.Api.DueSelector;
-using Quartermaster.Blazor.Abstract;
-using Riok.Mapperly.Abstractions;
+﻿using Quartermaster.Blazor.Abstract;
+using ApiDueSelector = Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
@@ -26,12 +25,23 @@ public class DueSelectorEntryState : EntryStateBase {
     public string IBAN { get; set; } = "";
     public PaymentScedule PaymentScedule { get; set; } = PaymentScedule.Annual;
 
-    public DueSelectionDTO ToDTO() => DueSelectorMapper.ToApiDTO(this);
-}
-
-[Mapper]
-public static partial class DueSelectorMapper {
-    public static partial DueSelectionDTO ToApiDTO(DueSelectorEntryState entryState);
+    public ApiDueSelector.DueSelectionDTO ToDTO() => new ApiDueSelector.DueSelectionDTO {
+        FirstName = FirstName,
+        LastName = LastName,
+        EMail = EMail,
+        MemberNumber = MemberNumber,
+        SelectedValuation = (ApiDueSelector.SelectedValuation)(int)SelectedValuation,
+        YearlyIncome = YearlyIncome,
+        MonthlyIncomeGroup = MonthlyIncomeGroup,
+        ReducedAmount = ReducedAmount,
+        SelectedDue = SelectedDue,
+        ReducedJustification = ReducedJustification,
+        ReducedTimeSpan = (ApiDueSelector.ReducedTimeSpan)(int)ReducedTimeSpan,
+        IsDirectDeposit = IsDirectDeposit,
+        AccountHolder = AccountHolder,
+        IBAN = IBAN,
+        PaymentScedule = (ApiDueSelector.PaymentScedule)(int)PaymentScedule
+    };
 }
 
 public enum SelectedValuation {

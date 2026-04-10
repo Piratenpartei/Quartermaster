@@ -22,6 +22,14 @@ public class AdministrativeDivisionRootsEndpoint : EndpointWithoutRequest<List<A
 
     public override async Task HandleAsync(CancellationToken ct) {
         var roots = _repository.GetRoots();
-        await SendAsync(roots.Select(ad => ad.ToDto()).ToList(), cancellation: ct);
+        var dtos = roots.Select(ad => new AdministrativeDivisionDTO {
+            Id = ad.Id,
+            ParentId = ad.ParentId,
+            Name = ad.Name,
+            Depth = ad.Depth,
+            AdminCode = ad.AdminCode,
+            PostCodes = ad.PostCodes
+        }).ToList();
+        await SendAsync(dtos, cancellation: ct);
     }
 }

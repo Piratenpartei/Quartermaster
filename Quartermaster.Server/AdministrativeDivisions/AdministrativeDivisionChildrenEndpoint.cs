@@ -27,6 +27,14 @@ public class AdministrativeDivisionChildrenEndpoint : Endpoint<AdministrativeDiv
 
     public override async Task HandleAsync(AdministrativeDivisionChildrenRequest req, CancellationToken ct) {
         var children = _repository.GetChildren(req.Id);
-        await SendAsync(children.Select(ad => ad.ToDto()).ToList(), cancellation: ct);
+        var dtos = children.Select(ad => new AdministrativeDivisionDTO {
+            Id = ad.Id,
+            ParentId = ad.ParentId,
+            Name = ad.Name,
+            Depth = ad.Depth,
+            AdminCode = ad.AdminCode,
+            PostCodes = ad.PostCodes
+        }).ToList();
+        await SendAsync(dtos, cancellation: ct);
     }
 }

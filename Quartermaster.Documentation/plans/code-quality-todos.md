@@ -75,10 +75,14 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] `ToastService` now sets `DurationMs = 3000` for success/default toasts, `null` for error/danger toasts.
 - [x] `Toaster` component schedules auto-removal via `System.Threading.Timer` for toasts with a duration. Implements `IDisposable` to clean up timers. Error toasts remain until manually dismissed.
 
-### DTO mapping standardization
-- **Task:** Pick a single mapping style and apply it consistently. Currently the codebase mixes Mapperly (for simple entity↔DTO pairs) with hand-written mapping code (for complex projections that do joins or reshaping).
-- **Why:** The mix is pragmatic today but inconsistent — new contributors need to learn which side of the line they're on for each DTO, and some hand-written mappers duplicate logic Mapperly could generate. Standardizing reduces cognitive load and cuts boilerplate.
-- **How to apply:** Audit `Quartermaster.Data/**/*Mapper.cs` and inline mapping in endpoints. Decide on one of: (a) Mapperly everywhere (add `[MapProperty]`/`[MapperIgnoreSource]` annotations for the complex cases), or (b) hand-written everywhere (delete the Mapperly partial classes, replace `ToDto()` calls with explicit constructors). Option (a) is likely less code overall.
+### DTO mapping standardization — ✅ DONE (hand-written-only)
+- [x] **Removed Mapperly entirely.** Standardized on hand-written inline mapping at the call site. Convention added to `CLAUDE.md`.
+- [x] **Deleted 5 mapper files**: `ChapterMapper.cs`, `AdministrativeDivisionMapper.cs`, `MembershipApplicationMapper.cs`, `TokenMapper.cs` (was dead code with no callers), and the nested `DueSelectionMapper` in `DueSelection.cs`. Also removed the Blazor-side `DueSelectorMapper` in `DueSelectorEntryState.cs`.
+- [x] **Removed `Riok.Mapperly` NuGet package** from both `Quartermaster.Data.csproj` and `Quartermaster.Blazor.csproj`. One less dependency.
+- [x] **Inlined 13 call sites** with explicit `new XxxDTO { ... }` / `new XxxEntity { ... }` constructors: 6 Chapter mappings, 3 AdministrativeDivision mappings, 2 DueSelection mappings, 1 MembershipApplication mapping, 1 Blazor `DueSelectorEntryState.ToDTO()`. For cross-namespace enum casts (Api vs Data) used a namespace alias `using DataDueSelector = Quartermaster.Data.DueSelector;` where needed.
+- [x] **Bug found and fixed**: `DueSelectionMapper.FromDto()` was silently dropping `PaymentSchedule` because of a property name typo (DTO had `PaymentScedule`, entity had `PaymentSchedule`). The Mapperly-generated mapper produced an `RMG020` warning that no one had noticed, so user-selected payment schedules never persisted. Hand-written mapping now correctly maps `dto.PaymentScedule → entity.PaymentSchedule`.
+- [x] **All RMG warnings gone.** Build is now down to 1 unrelated warning (`ChapterRequirement.cs` null-deref) from ~13 Mapperly RMG warnings before. Cleaner build output.
+- [x] **All 915 tests still passing.** End-to-end smoke tested chapters and admin division endpoints in Chrome — same response shape as before.
 
 ### Endpoint behavior review (discovered during integration test pass) — ✅ DONE
 

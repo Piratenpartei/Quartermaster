@@ -1,7 +1,5 @@
 ﻿using System;
 using LinqToDB.Mapping;
-using Quartermaster.Api.DueSelector;
-using Riok.Mapperly.Abstractions;
 
 namespace Quartermaster.Data.DueSelector;
 
@@ -45,11 +43,6 @@ public enum DueSelectionStatus {
     Approved,
     Rejected,
     AutoApproved
-}
-
-[Mapper]
-public static partial class DueSelectionMapper {
-    public static partial DueSelection FromDto(DueSelectionDTO dto);
 }
 
 public enum SelectedValuation {

@@ -33,7 +33,23 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
         Guid? dueSelectionId = null;
         var isReduced = false;
         if (req.DueSelection != null) {
-            var dueSelection = DueSelectionMapper.FromDto(req.DueSelection);
+            var dueSelection = new DueSelection {
+                FirstName = req.DueSelection.FirstName,
+                LastName = req.DueSelection.LastName,
+                EMail = req.DueSelection.EMail,
+                MemberNumber = req.DueSelection.MemberNumber,
+                SelectedValuation = (SelectedValuation)(int)req.DueSelection.SelectedValuation,
+                YearlyIncome = req.DueSelection.YearlyIncome,
+                MonthlyIncomeGroup = req.DueSelection.MonthlyIncomeGroup,
+                ReducedAmount = req.DueSelection.ReducedAmount,
+                SelectedDue = req.DueSelection.SelectedDue,
+                ReducedJustification = req.DueSelection.ReducedJustification,
+                ReducedTimeSpan = (ReducedTimeSpan)(int)req.DueSelection.ReducedTimeSpan,
+                IsDirectDeposit = req.DueSelection.IsDirectDeposit,
+                AccountHolder = req.DueSelection.AccountHolder,
+                IBAN = req.DueSelection.IBAN,
+                PaymentSchedule = (PaymentScedule)(int)req.DueSelection.PaymentScedule
+            };
             isReduced = dueSelection.SelectedValuation == SelectedValuation.Reduced;
             dueSelection.Status = isReduced
                 ? DueSelectionStatus.Pending
@@ -42,10 +58,28 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             dueSelectionId = dueSelection.Id;
         }
 
-        var application = MembershipApplicationMapper.FromDto(req);
-        application.DueSelectionId = dueSelectionId;
-        application.SubmittedAt = DateTime.UtcNow;
-        application.Status = ApplicationStatus.Pending;
+        var application = new MembershipApplication {
+            FirstName = req.FirstName,
+            LastName = req.LastName,
+            DateOfBirth = req.DateOfBirth,
+            Citizenship = req.Citizenship,
+            EMail = req.EMail,
+            PhoneNumber = req.PhoneNumber,
+            AddressStreet = req.AddressStreet,
+            AddressHouseNbr = req.AddressHouseNbr,
+            AddressPostCode = req.AddressPostCode,
+            AddressCity = req.AddressCity,
+            AddressAdministrativeDivisionId = req.AddressAdministrativeDivisionId,
+            ChapterId = req.ChapterId,
+            ConformityDeclarationAccepted = req.ConformityDeclarationAccepted,
+            HasPriorDeclinedApplication = req.HasPriorDeclinedApplication,
+            IsMemberOfAnotherParty = req.IsMemberOfAnotherParty,
+            ApplicationText = req.ApplicationText,
+            EntryDate = req.EntryDate,
+            DueSelectionId = dueSelectionId,
+            SubmittedAt = DateTime.UtcNow,
+            Status = ApplicationStatus.Pending
+        };
         _applicationRepository.Create(application);
 
         // Spawn a single linked motion for chapter approval
