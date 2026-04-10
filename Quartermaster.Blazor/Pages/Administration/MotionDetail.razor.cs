@@ -86,24 +86,6 @@ public partial class MotionDetail {
     private MotionVoteDTO? GetVoteForOfficer(Guid userId)
         => Motion?.Votes.FirstOrDefault(v => v.UserId == userId);
 
-    private static string ApprovalLabel(int status) => status switch {
-        0 => "Ausstehend",
-        1 => "Genehmigt",
-        2 => "Abgelehnt",
-        3 => "Formal abgelehnt",
-        4 => "Ohne Beschluss",
-        _ => "Unbekannt"
-    };
-
-    private static string ApprovalBadgeClass(int status) => status switch {
-        0 => "border-warning text-warning-emphasis",
-        1 => "border-success text-success-emphasis",
-        2 => "border-danger text-danger-emphasis",
-        3 => "border-secondary text-secondary-emphasis",
-        4 => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary text-secondary-emphasis"
-    };
-
     private static string OfficerRoleLabel(string role) => role switch {
         "Captain" => "Vorsitzender",
         "FirstOfficer" => "Stellv. Vorsitzender",

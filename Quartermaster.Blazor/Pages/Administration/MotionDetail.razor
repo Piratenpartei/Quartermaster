@@ -14,9 +14,7 @@
             @if (Motion.IsRealized) {
                 <span class="badge border border-success text-success-emphasis fs-6">Umgesetzt</span>
             }
-            <span class="badge border fs-6 @ApprovalBadgeClass(Motion.ApprovalStatus)">
-                @ApprovalLabel(Motion.ApprovalStatus)
-            </span>
+            <MotionApprovalBadge Status="@Motion.ApprovalStatus" />
         </div>
     </div>
 

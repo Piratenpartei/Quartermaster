@@ -1,12 +1,13 @@
 @page "/Administration/Motions"
 @using Quartermaster.Api.Motions
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Vorstandsarbeit - Anträge</h3>
-    <a href="/Administration/Motions/Create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Neuer Antrag
-    </a>
-</div>
+<PageHeader Title="Vorstandsarbeit - Anträge">
+    <Actions>
+        <a href="/Administration/Motions/Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Neuer Antrag
+        </a>
+    </Actions>
+</PageHeader>
 
 <div class="mb-3 d-flex gap-3">
     <div>
@@ -60,9 +61,7 @@
                         }
                     </td>
                     <td>
-                        <span class="badge border @ApprovalBadgeClass(motion.ApprovalStatus)">
-                            @ApprovalLabel(motion.ApprovalStatus)
-                        </span>
+                        <MotionApprovalBadge Status="@motion.ApprovalStatus" />
                     </td>
                     <td>
                         @if (motion.IsRealized) {

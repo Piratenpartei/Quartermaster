@@ -42,8 +42,8 @@
             } else if (totalCount > 0) {
                 <span class="badge border border-secondary text-secondary-emphasis fs-6">@completedCount/@totalCount</span>
             }
-            <span class="badge border @StatusBadgeClass fs-6">@StatusLabel</span>
-            <span class="badge border @VisibilityBadgeClass fs-6">@VisibilityLabel</span>
+            <EventStatusBadge Status="@Event.Status" />
+            <EventVisibilityBadge Visibility="@Event.Visibility" />
         </div>
     </div>
     <div class="text-secondary mb-3">
@@ -236,10 +236,7 @@
                                     title="Bearbeiten" aria-label="Bearbeiten">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-outline-danger" @onclick="() => DeleteChecklistItem(item.Id)"
-                                    title="Entfernen" aria-label="Entfernen">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <DeleteButton OnClick="() => DeleteChecklistItem(item.Id)" Text="" AriaLabel="Entfernen" Small="false" />
                         </div>
                     }
                 </div>

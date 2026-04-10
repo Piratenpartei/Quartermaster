@@ -1,12 +1,13 @@
 @page "/Administration/Meetings"
 @using Quartermaster.Api.Meetings
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Sitzungen</h3>
-    <a href="/Administration/Meetings/Create" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-circle"></i> Neue Sitzung
-    </a>
-</div>
+<PageHeader Title="Sitzungen">
+    <Actions>
+        <a href="/Administration/Meetings/Create" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Neue Sitzung
+        </a>
+    </Actions>
+</PageHeader>
 
 <div class="mb-3 d-flex gap-3 flex-wrap align-items-end">
     <div style="min-width: 220px;">
@@ -70,8 +71,8 @@
                             <td><a href="/Administration/Meetings/@m.Id">@m.Title</a></td>
                             <td>@m.ChapterName</td>
                             <td>@(m.MeetingDate?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
-                            <td><span class="badge border @GetStatusBadgeClass(m.Status)">@StatusToLabel(m.Status)</span></td>
-                            <td><span class="badge border @GetVisibilityBadgeClass(m.Visibility)">@VisibilityToLabel(m.Visibility)</span></td>
+                            <td><MeetingStatusBadge Status="@m.Status" /></td>
+                            <td><MeetingVisibilityBadge Visibility="@m.Visibility" /></td>
                             <td>@m.AgendaItemCount</td>
                         </tr>
                     }

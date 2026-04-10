@@ -4,18 +4,19 @@
 
 <PageBackLink Href="/Administration/Members" Text="Zurück zur Mitgliederliste" />
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Importverlauf</h3>
-    <button class="btn btn-primary" @onclick="TriggerImport" disabled="@Importing">
-        @if (Importing) {
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            <span> Importiere...</span>
-        } else {
-            <i class="bi bi-download"></i>
-            <span> Manueller Import</span>
-        }
-    </button>
-</div>
+<PageHeader Title="Importverlauf">
+    <Actions>
+        <button class="btn btn-primary" @onclick="TriggerImport" disabled="@Importing">
+            @if (Importing) {
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                <span> Importiere...</span>
+            } else {
+                <i class="bi bi-download"></i>
+                <span> Manueller Import</span>
+            }
+        </button>
+    </Actions>
+</PageHeader>
 
 <div class="card mb-3">
     <div class="card-body">

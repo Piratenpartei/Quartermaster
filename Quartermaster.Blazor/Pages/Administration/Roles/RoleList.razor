@@ -1,17 +1,16 @@
 @page "/Administration/Roles"
 @using Quartermaster.Api.Roles
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Rollen</h3>
-    <div class="d-flex gap-2">
+<PageHeader Title="Rollen">
+    <Actions>
         <a href="/Administration/Roles/Assignments" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-person-badge"></i> Zuweisungen
         </a>
         <button class="btn btn-sm btn-primary" @onclick="ShowCreateForm">
             <i class="bi bi-plus-circle"></i> Neue Rolle
         </button>
-    </div>
-</div>
+    </Actions>
+</PageHeader>
 
 @if (Loading) {
     <LoadingSpinner />
@@ -51,9 +50,7 @@
                     </td>
                     <td class="text-end">
                         @if (!r.IsSystem) {
-                            <button class="btn btn-sm btn-outline-danger" aria-label="Rolle löschen" @onclick="() => DeleteRole(r)">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <DeleteButton OnClick="() => DeleteRole(r)" Text="" AriaLabel="Rolle löschen" />
                         }
                     </td>
                 </tr>

@@ -258,20 +258,6 @@ public partial class MeetingLive : IDisposable {
         _ => "\u2014"
     };
 
-    private static string GetMotionStatusLabel(int status) => status switch {
-        0 => "Ausstehend",
-        1 => "Angenommen",
-        2 => "Abgelehnt",
-        _ => "Unbekannt"
-    };
-
-    private static string GetMotionStatusBadgeClass(int status) => status switch {
-        0 => "border-secondary text-secondary-emphasis",
-        1 => "border-success text-success-emphasis",
-        2 => "border-danger text-danger-emphasis",
-        _ => "border-secondary"
-    };
-
     private static List<AgendaTreeEntry> BuildFlatList(List<AgendaItemDTO> items) {
         var result = new List<AgendaTreeEntry>();
         var byParent = items

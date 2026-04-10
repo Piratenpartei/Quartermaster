@@ -66,36 +66,6 @@ public partial class MeetingList {
         await Search();
     }
 
-    private static string StatusToLabel(MeetingStatus s) => s switch {
-        MeetingStatus.Draft => "Entwurf",
-        MeetingStatus.Scheduled => "Geplant",
-        MeetingStatus.InProgress => "Laufend",
-        MeetingStatus.Completed => "Abgeschlossen",
-        MeetingStatus.Archived => "Archiviert",
-        _ => s.ToString()
-    };
-
-    private static string VisibilityToLabel(MeetingVisibility v) => v switch {
-        MeetingVisibility.Public => "Öffentlich",
-        MeetingVisibility.Private => "Privat",
-        _ => v.ToString()
-    };
-
-    private static string GetStatusBadgeClass(MeetingStatus s) => s switch {
-        MeetingStatus.Draft => "border-secondary text-secondary-emphasis",
-        MeetingStatus.Scheduled => "border-primary text-primary-emphasis",
-        MeetingStatus.InProgress => "border-warning text-warning-emphasis",
-        MeetingStatus.Completed => "border-success text-success-emphasis",
-        MeetingStatus.Archived => "border-secondary text-body-tertiary",
-        _ => "border-secondary"
-    };
-
-    private static string GetVisibilityBadgeClass(MeetingVisibility v) => v switch {
-        MeetingVisibility.Public => "border-info text-info-emphasis",
-        MeetingVisibility.Private => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary"
-    };
-
     private async Task Search() {
         Loading = true;
         StateHasChanged();

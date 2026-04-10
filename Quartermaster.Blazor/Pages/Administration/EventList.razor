@@ -1,17 +1,16 @@
 @page "/Administration/Events"
 @using Quartermaster.Api.Events
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Events</h3>
-    <div class="d-flex gap-2">
+<PageHeader Title="Events">
+    <Actions>
         <a href="/Administration/Events/Create" class="btn btn-sm btn-primary">
             <i class="bi bi-plus-circle"></i> Neues Event
         </a>
         <a href="/Administration/EventTemplates" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-clipboard"></i> Aus Vorlage
         </a>
-    </div>
-</div>
+    </Actions>
+</PageHeader>
 
 <div class="mb-3 d-flex gap-3">
     <div>
@@ -49,8 +48,8 @@
                 <tr>
                     <td><a href="/Administration/Events/@e.Id">@e.PublicName</a></td>
                     <td>@e.ChapterName</td>
-                    <td><span class="badge border @GetStatusBadgeClass(e.Status)">@StatusToLabel(e.Status)</span></td>
-                    <td><span class="badge border @GetVisibilityBadgeClass(e.Visibility)">@VisibilityToLabel(e.Visibility)</span></td>
+                    <td><EventStatusBadge Status="@e.Status" /></td>
+                    <td><EventVisibilityBadge Visibility="@e.Visibility" /></td>
                     <td>@(e.EventDate?.ToString("dd.MM.yyyy") ?? "—")</td>
                     <td>
                         @if (e.ChecklistTotal > 0) {

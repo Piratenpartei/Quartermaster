@@ -65,21 +65,4 @@ public partial class MotionList {
         StateHasChanged();
     }
 
-    private static string ApprovalLabel(int status) => status switch {
-        0 => "Ausstehend",
-        1 => "Genehmigt",
-        2 => "Abgelehnt",
-        3 => "Formal abgelehnt",
-        4 => "Ohne Beschluss",
-        _ => "Unbekannt"
-    };
-
-    private static string ApprovalBadgeClass(int status) => status switch {
-        0 => "border-warning text-warning-emphasis",
-        1 => "border-success text-success-emphasis",
-        2 => "border-danger text-danger-emphasis",
-        3 => "border-secondary text-secondary-emphasis",
-        4 => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary text-secondary-emphasis"
-    };
 }

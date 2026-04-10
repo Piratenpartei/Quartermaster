@@ -10,119 +10,98 @@
     <LoadingSpinner />
 } else if (Dashboard != null) {
     @if (Dashboard.PendingApplications != null) {
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-person-plus"></i> Offene Mitgliedsanträge
-                    <span class="badge bg-secondary ms-2">@Dashboard.PendingApplications.TotalCount</span>
-                </h5>
-                <a href="/Administration/MembershipApplications" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
-            </div>
-            @if (Dashboard.PendingApplications.Items.Count == 0) {
-                <div class="card-body text-secondary">Keine offenen Anträge.</div>
-            } else {
-                <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead>
+        <DashboardCard Icon="bi-person-plus"
+                       Title="Offene Mitgliedsanträge"
+                       TotalCount="@Dashboard.PendingApplications.TotalCount"
+                       AllUrl="/Administration/MembershipApplications"
+                       IsEmpty="@(Dashboard.PendingApplications.Items.Count == 0)"
+                       EmptyMessage="Keine offenen Anträge.">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Gliederung</th>
+                        <th>Eingereicht</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Dashboard.PendingApplications.Items) {
                         <tr>
-                            <th>Name</th>
-                            <th>Gliederung</th>
-                            <th>Eingereicht</th>
+                            <td><a href="/Administration/MembershipApplications/@app.Id">@app.FirstName @app.LastName</a></td>
+                            <td>@app.ChapterName</td>
+                            <td>@app.SubmittedAt.ToString("dd.MM.yyyy")</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var app in Dashboard.PendingApplications.Items) {
-                            <tr>
-                                <td><a href="/Administration/MembershipApplications/@app.Id">@app.FirstName @app.LastName</a></td>
-                                <td>@app.ChapterName</td>
-                                <td>@app.SubmittedAt.ToString("dd.MM.yyyy")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                </div>
-            }
-        </div>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </DashboardCard>
     }
 
     @if (Dashboard.PendingDueSelections != null) {
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-currency-euro"></i> Offene Beitragseinstufungen
-                    <span class="badge bg-secondary ms-2">@Dashboard.PendingDueSelections.TotalCount</span>
-                </h5>
-                <a href="/Administration/DueSelections" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
-            </div>
-            @if (Dashboard.PendingDueSelections.Items.Count == 0) {
-                <div class="card-body text-secondary">Keine offenen Einstufungen.</div>
-            } else {
-                <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead>
+        <DashboardCard Icon="bi-currency-euro"
+                       Title="Offene Beitragseinstufungen"
+                       TotalCount="@Dashboard.PendingDueSelections.TotalCount"
+                       AllUrl="/Administration/DueSelections"
+                       IsEmpty="@(Dashboard.PendingDueSelections.Items.Count == 0)"
+                       EmptyMessage="Keine offenen Einstufungen.">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="text-end">Gewählter Beitrag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ds in Dashboard.PendingDueSelections.Items) {
                         <tr>
-                            <th>Name</th>
-                            <th class="text-end">Gewählter Beitrag</th>
+                            <td><a href="/Administration/DueSelections/@ds.Id">@ds.FirstName @ds.LastName</a></td>
+                            <td class="text-end">@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ds in Dashboard.PendingDueSelections.Items) {
-                            <tr>
-                                <td><a href="/Administration/DueSelections/@ds.Id">@ds.FirstName @ds.LastName</a></td>
-                                <td class="text-end">@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                </div>
-            }
-        </div>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </DashboardCard>
     }
 
     @if (Dashboard.OpenMotions != null) {
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-file-text"></i> Offene Anträge
-                    <span class="badge bg-secondary ms-2">@Dashboard.OpenMotions.TotalCount</span>
-                </h5>
-                <a href="/Administration/Motions" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
-            </div>
-            @if (Dashboard.OpenMotions.Items.Count == 0) {
-                <div class="card-body text-secondary">Keine offenen Anträge.</div>
-            } else {
-                <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead>
+        <DashboardCard Icon="bi-file-text"
+                       Title="Offene Anträge"
+                       TotalCount="@Dashboard.OpenMotions.TotalCount"
+                       AllUrl="/Administration/Motions"
+                       IsEmpty="@(Dashboard.OpenMotions.Items.Count == 0)"
+                       EmptyMessage="Keine offenen Anträge.">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Titel</th>
+                        <th>Gliederung</th>
+                        <th>Erstellt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Dashboard.OpenMotions.Items) {
                         <tr>
-                            <th>Titel</th>
-                            <th>Gliederung</th>
-                            <th>Erstellt</th>
+                            <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
+                            <td>@m.ChapterName</td>
+                            <td>@m.CreatedAt.ToString("dd.MM.yyyy")</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var m in Dashboard.OpenMotions.Items) {
-                            <tr>
-                                <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
-                                <td>@m.ChapterName</td>
-                                <td>@m.CreatedAt.ToString("dd.MM.yyyy")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-                </div>
-            }
-        </div>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </DashboardCard>
     }
 
     @if (Dashboard.UpcomingEvents != null && Dashboard.UpcomingEvents.Count > 0) {
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-event"></i> Kommende Events
-                </h5>
-                <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
-            </div>
+        <DashboardCard Icon="bi-calendar-event"
+                       Title="Kommende Events"
+                       AllUrl="/Administration/Events"
+                       IsEmpty="false">
             <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
                 <thead>
@@ -143,7 +122,7 @@
                 </tbody>
             </table>
             </div>
-        </div>
+        </DashboardCard>
     }
 
     @if (!HasAnyWidget) {

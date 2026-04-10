@@ -1,0 +1,7 @@
+<button type="button"
+        class="btn @(Small ? "btn-sm " : "")btn-outline-danger @CssClass"
+        aria-label="@AriaLabel"
+        disabled="@Disabled"
+        @onclick="OnClick">
+    <i class="bi bi-trash"></i>@(string.IsNullOrEmpty(Text) ? "" : " " + Text)
+</button>

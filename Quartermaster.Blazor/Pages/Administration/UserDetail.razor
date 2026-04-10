@@ -9,14 +9,13 @@
 } else if (UserInfo == null) {
     <div class="alert alert-danger">Benutzer nicht gefunden.</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">@UserInfo.FirstName @UserInfo.LastName</h3>
-        <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteUsers">
-            <button class="btn btn-outline-danger btn-sm" @onclick="DeleteUser">
-                <i class="bi bi-trash"></i> Benutzer löschen
-            </button>
-        </RequirePermission>
-    </div>
+    <PageHeader Title="@($"{UserInfo.FirstName} {UserInfo.LastName}")">
+        <Actions>
+            <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteUsers">
+                <DeleteButton OnClick="DeleteUser" Text="Benutzer löschen" />
+            </RequirePermission>
+        </Actions>
+    </PageHeader>
 
     <div class="card mb-3">
         <div class="card-body">

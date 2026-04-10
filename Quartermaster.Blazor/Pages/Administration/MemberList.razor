@@ -1,12 +1,13 @@
 @page "/Administration/Members"
 @using Quartermaster.Api.Members
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Mitglieder</h3>
-    <a href="/Administration/Members/Import" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-clock-history"></i> Importverlauf
-    </a>
-</div>
+<PageHeader Title="Mitglieder">
+    <Actions>
+        <a href="/Administration/Members/Import" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-clock-history"></i> Importverlauf
+        </a>
+    </Actions>
+</PageHeader>
 
 <div class="mb-3 d-flex gap-3 flex-wrap align-items-center">
     <div class="flex-grow-1" style="max-width: 400px;">

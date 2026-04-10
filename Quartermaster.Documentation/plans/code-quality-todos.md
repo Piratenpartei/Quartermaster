@@ -28,17 +28,15 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] Found 8 files with separator comments (39 total: 25 `// --- X ---` style + 14 `#region`/`#endregion` directives in `AdminDivisionImportServiceTests.cs`).
 - [x] Removed all separator comments while preserving test code, docstrings, and explanatory comments.
 
-### Frontend: extract components for common patterns — partial ✅
+### Frontend: extract components for common patterns — ✅ DONE
 - [x] **`LoadingSpinner` component** — wraps the centered `spinner-border` pattern. Replaced ~40 usages across the Pages directory. Supports `Small` and `CssClass` parameters for variants.
 - [x] **`EmptyState` component** — wraps the "Keine X vorhanden" pattern. Replaced 9 usages across 8 files.
 - [x] **`PageBackLink` component** — wraps the standard back button (`<div class="mb-3">` + `btn-outline-secondary` link + arrow-left icon). Replaced 18 usages. Defaults `Text` to "Zurück zur Übersicht".
-
-**Still open** (not yet extracted):
-- Admin page header with title + action buttons (multi-button toolbars)
-- Card + header + optional "Alle anzeigen" link (dashboard widgets)
-- Status/visibility badges with consistent styling per value
-- Confirmation delete button (outline-danger + trash icon + ConfirmDialog wiring)
-- Table-with-card wrapper
+- [x] **`PageHeader` component** — wraps the `d-flex justify-content-between align-items-center mb-3` admin page header with title + optional `Actions` RenderFragment. Replaced 13 usages across list/detail pages.
+- [x] **Status badge components** — created `EventStatusBadge`, `EventVisibilityBadge`, `MeetingStatusBadge`, `MeetingVisibilityBadge`, `MotionApprovalBadge`. Each component bakes in the German label + Bootstrap border CSS class for the relevant enum value. Replaced badge usages and removed 24 duplicate helper methods/properties from 7 page code-behinds.
+- [x] **`DeleteButton` component** — wraps the `btn-outline-danger` + `bi-trash` icon button pattern. Supports `Text`, `AriaLabel` (for icon-only mode), `Small`, `CssClass`, `Disabled`. Replaced 5 usages.
+- [x] **`DashboardCard` component** — wraps the `Home.razor` widget pattern: card → header (optional icon + title + optional total count badge + "Alle anzeigen" link) → empty state OR ChildContent. Replaced 4 widgets in `Home.razor`. The 2 cards in `ImportStatus.razor` were intentionally NOT migrated — they're a different pattern (stats grid + collapsible history, not dashboard widgets).
+- **Decided NOT to extract a table-with-card wrapper.** The 18 files using `<div class="card mb-3">` with a table inside have too many variations to consolidate cleanly: some have `card-header`, some don't; some have action buttons in the header; some contain tables, some `list-group`, some forms; some put the title in `card-body`, some in `card-header`. The shared part is just the 1-line `<div class="card mb-3">` wrapper, which is idiomatic Bootstrap and doesn't benefit from extraction — a component would shift boilerplate without reducing it.
 
 ### A11y: wire up form label associations properly
 - **Task:** 74 `<label class="form-label">` elements across ~24 files don't have `for=` attributes linking them to their inputs. Currently works in practice for screen readers due to DOM adjacency (Bootstrap's standard pattern), but not semantically correct. Click-on-label-to-focus-input doesn't work either.

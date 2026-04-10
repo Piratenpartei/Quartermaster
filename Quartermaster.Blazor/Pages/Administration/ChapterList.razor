@@ -1,12 +1,13 @@
 @page "/Administration/Chapters"
 @using Quartermaster.Api.Chapters
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Gliederungen - Liste</h3>
-    <a href="/Administration/ChapterTree" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-diagram-3"></i> Struktur
-    </a>
-</div>
+<PageHeader Title="Gliederungen - Liste">
+    <Actions>
+        <a href="/Administration/ChapterTree" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-diagram-3"></i> Struktur
+        </a>
+    </Actions>
+</PageHeader>
 
 <div class="mb-3">
     <div class="input-group">

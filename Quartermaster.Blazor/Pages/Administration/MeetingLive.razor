@@ -95,8 +95,8 @@
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
                                 @if (active.MotionApprovalStatus.HasValue) {
-                                    <span class="ms-2 badge border @GetMotionStatusBadgeClass(active.MotionApprovalStatus.Value)">
-                                        @GetMotionStatusLabel(active.MotionApprovalStatus.Value)
+                                    <span class="ms-2">
+                                        <MotionApprovalBadge Status="@active.MotionApprovalStatus.Value" />
                                     </span>
                                 }
                             </div>

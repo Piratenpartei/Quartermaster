@@ -1,12 +1,13 @@
 @page "/Administration/LoginLockouts"
 @using Quartermaster.Api.Users
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Gesperrte Logins</h3>
-    <button class="btn btn-sm btn-outline-secondary" @onclick="Load" disabled="@Loading">
-        <i class="bi bi-arrow-clockwise"></i> Aktualisieren
-    </button>
-</div>
+<PageHeader Title="Gesperrte Logins">
+    <Actions>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="Load" disabled="@Loading">
+            <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+        </button>
+    </Actions>
+</PageHeader>
 
 @if (Loading) {
     <div class="d-flex justify-content-center my-4">

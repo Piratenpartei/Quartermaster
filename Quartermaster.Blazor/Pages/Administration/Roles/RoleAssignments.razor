@@ -7,12 +7,13 @@
     </a>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Rollenzuweisungen</h3>
-    <button class="btn btn-sm btn-primary" @onclick="() => ShowingCreateForm = !ShowingCreateForm">
-        <i class="bi bi-plus-circle"></i> Neue Zuweisung
-    </button>
-</div>
+<PageHeader Title="Rollenzuweisungen">
+    <Actions>
+        <button class="btn btn-sm btn-primary" @onclick="() => ShowingCreateForm = !ShowingCreateForm">
+            <i class="bi bi-plus-circle"></i> Neue Zuweisung
+        </button>
+    </Actions>
+</PageHeader>
 
 @if (ShowingCreateForm) {
     <div class="card mb-3">

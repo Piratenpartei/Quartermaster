@@ -322,7 +322,15 @@ public partial class MeetingDetail {
                 Status = target
             });
             if (resp.IsSuccessStatusCode) {
-                ToastService.Toast($"Status geändert: {StatusToLabel(target)}.", "success");
+                var targetLabel = target switch {
+                    MeetingStatus.Draft => "Entwurf",
+                    MeetingStatus.Scheduled => "Geplant",
+                    MeetingStatus.InProgress => "Laufend",
+                    MeetingStatus.Completed => "Abgeschlossen",
+                    MeetingStatus.Archived => "Archiviert",
+                    _ => target.ToString()
+                };
+                ToastService.Toast($"Status geändert: {targetLabel}.", "success");
                 await LoadMeeting();
             } else {
                 var body = await resp.Content.ReadAsStringAsync();
@@ -360,33 +368,4 @@ public partial class MeetingDetail {
         _ => new List<(MeetingStatus, string, string)>()
     };
 
-    private static string StatusToLabel(MeetingStatus s) => s switch {
-        MeetingStatus.Draft => "Entwurf",
-        MeetingStatus.Scheduled => "Geplant",
-        MeetingStatus.InProgress => "Laufend",
-        MeetingStatus.Completed => "Abgeschlossen",
-        MeetingStatus.Archived => "Archiviert",
-        _ => s.ToString()
-    };
-
-    private static string VisibilityToLabel(MeetingVisibility v) => v switch {
-        MeetingVisibility.Public => "Öffentlich",
-        MeetingVisibility.Private => "Privat",
-        _ => v.ToString()
-    };
-
-    private static string GetStatusBadgeClass(MeetingStatus s) => s switch {
-        MeetingStatus.Draft => "border-secondary text-secondary-emphasis",
-        MeetingStatus.Scheduled => "border-primary text-primary-emphasis",
-        MeetingStatus.InProgress => "border-warning text-warning-emphasis",
-        MeetingStatus.Completed => "border-success text-success-emphasis",
-        MeetingStatus.Archived => "border-secondary text-body-tertiary",
-        _ => "border-secondary"
-    };
-
-    private static string GetVisibilityBadgeClass(MeetingVisibility v) => v switch {
-        MeetingVisibility.Public => "border-info text-info-emphasis",
-        MeetingVisibility.Private => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary"
-    };
 }

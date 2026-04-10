@@ -1,12 +1,13 @@
 @page "/Administration/ChapterTree"
 @using Quartermaster.Api.Chapters
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Gliederungen - Struktur</h3>
-    <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-list-ul"></i> Liste
-    </a>
-</div>
+<PageHeader Title="Gliederungen - Struktur">
+    <Actions>
+        <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-list-ul"></i> Liste
+        </a>
+    </Actions>
+</PageHeader>
 
 @if (RootNodes == null) {
     <LoadingSpinner />
