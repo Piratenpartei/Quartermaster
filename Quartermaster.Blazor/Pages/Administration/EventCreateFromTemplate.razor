@@ -18,8 +18,8 @@
                     <ChapterPicker @bind-Value="ChapterId" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Datum</label>
-                    <input type="date" class="form-control"
+                    <label for="eventDate" class="form-label">Datum</label>
+                    <input type="date" class="form-control" id="eventDate"
                            value="@(EventDate?.ToString("yyyy-MM-dd"))"
                            @onchange="(e) => EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null" />
                 </div>

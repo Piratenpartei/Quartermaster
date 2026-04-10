@@ -14,17 +14,17 @@
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <label class="form-label">Antragsteller (Name)</label>
-                <input type="text" class="form-control" @bind="AuthorName" />
+                <label for="authorName" class="form-label">Antragsteller (Name)</label>
+                <input type="text" class="form-control" id="authorName" @bind="AuthorName" />
             </div>
             <div class="col-md-6">
-                <label class="form-label">Antragsteller (E-Mail)</label>
-                <input type="email" class="form-control" @bind="AuthorEMail" />
+                <label for="authorEMail" class="form-label">Antragsteller (E-Mail)</label>
+                <input type="email" class="form-control" id="authorEMail" @bind="AuthorEMail" />
             </div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Titel</label>
-            <input type="text" class="form-control" @bind="Title" />
+            <label for="title" class="form-label">Titel</label>
+            <input type="text" class="form-control" id="title" @bind="Title" />
         </div>
         <div class="mb-3">
             <label class="form-label">Antragstext (Markdown)</label>

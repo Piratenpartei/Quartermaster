@@ -84,8 +84,8 @@
                     <ChapterPicker @bind-Value="NewChapterId" AllowEmpty="false" />
                 </div>
                 <div class="col-md-5">
-                    <label class="form-label">Berechtigung</label>
-                    <select class="form-select" @bind="NewPermissionIdentifier">
+                    <label for="permissionIdentifier" class="form-label">Berechtigung</label>
+                    <select id="permissionIdentifier" class="form-select" @bind="NewPermissionIdentifier">
                         <option value="">-- Berechtigung auswählen --</option>
                         @if (ChapterPermissions != null) {
                             @foreach (var perm in ChapterPermissions) {

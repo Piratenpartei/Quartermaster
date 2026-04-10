@@ -9,21 +9,21 @@
 
 <div class="mb-3 d-flex flex-row">
     <div class="flex-grow-1 pe-3">
-        <label class="form-label">Vorname <RequiredStar /></label>
-        <input type="text" class="form-control" @bind=EntryState.FirstName @bind:event="oninput" />
+        <label for="firstName" class="form-label">Vorname <RequiredStar /></label>
+        <input type="text" class="form-control" id="firstName" @bind=EntryState.FirstName @bind:event="oninput" />
     </div>
     <div class="flex-grow-1">
-        <label class="form-label">Nachname <RequiredStar /></label>
-        <input type="text" class="form-control" @bind=EntryState.LastName @bind:event="oninput" />
+        <label for="lastName" class="form-label">Nachname <RequiredStar /></label>
+        <input type="text" class="form-control" id="lastName" @bind=EntryState.LastName @bind:event="oninput" />
     </div>
 </div>
 <div class="mb-3">
-    <label class="form-label">E-Mail Adresse <RequiredStar /></label>
-    <input type="email" class="form-control" @bind=EntryState.EMail @bind:event="oninput" />
+    <label for="eMail" class="form-label">E-Mail Adresse <RequiredStar /></label>
+    <input type="email" class="form-control" id="eMail" @bind=EntryState.EMail @bind:event="oninput" />
 </div>
 <div class="mb-3">
-    <label class="form-label">Mitgliedsnummer <RequiredStar /></label>
-    <input type="number" step="1" class="form-control" @bind=EntryState.MemberNumber @bind:event="oninput" />
+    <label for="memberNumber" class="form-label">Mitgliedsnummer <RequiredStar /></label>
+    <input type="number" step="1" class="form-control" id="memberNumber" @bind=EntryState.MemberNumber @bind:event="oninput" />
 </div>
 
 <div class="d-flex justify-content-end">

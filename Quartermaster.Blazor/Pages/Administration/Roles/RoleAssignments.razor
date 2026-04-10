@@ -21,8 +21,8 @@
             <h5>Neue Zuweisung</h5>
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label">Benutzer</label>
-                    <select class="form-select" @bind="NewUserId">
+                    <label for="newUserId" class="form-label">Benutzer</label>
+                    <select class="form-select" id="newUserId" @bind="NewUserId">
                         <option value="">— Benutzer wählen —</option>
                         @if (Users != null) {
                             @foreach (var u in Users) {
@@ -32,8 +32,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Rolle</label>
-                    <select class="form-select" @bind="NewRoleId" @bind:after="OnRoleChanged">
+                    <label for="newRoleId" class="form-label">Rolle</label>
+                    <select class="form-select" id="newRoleId" @bind="NewRoleId" @bind:after="OnRoleChanged">
                         <option value="">— Rolle wählen —</option>
                         @if (Roles != null) {
                             @foreach (var r in Roles) {

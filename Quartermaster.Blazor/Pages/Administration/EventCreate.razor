@@ -12,8 +12,8 @@
             <ChapterPicker @bind-Value="ChapterId" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" @bind="InternalName" placeholder="Interner Name des Events" />
+            <label for="internalName" class="form-label">Name</label>
+            <input type="text" class="form-control" id="internalName" @bind="InternalName" placeholder="Interner Name des Events" />
         </div>
         <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
             @if (Submitting) {

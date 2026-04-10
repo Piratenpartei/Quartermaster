@@ -11,35 +11,35 @@
 
 @if (!EntryState.IsGermany) {
     <div class="mb-3">
-        <label class="form-label">Land <RequiredStar /></label>
-        <input type="text" class="form-control" @bind=EntryState.AddressCountry @bind:event="oninput" />
+        <label for="addressCountry" class="form-label">Land <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressCountry" @bind=EntryState.AddressCountry @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">PLZ <RequiredStar /></label>
-        <input type="text" class="form-control" style="width: 10em;" @bind=EntryState.AddressPostCode @bind:event="oninput" />
+        <label for="addressPostCode" class="form-label">PLZ <RequiredStar /></label>
+        <input type="text" class="form-control" style="width: 10em;" id="addressPostCode" @bind=EntryState.AddressPostCode @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Ort <RequiredStar /></label>
-        <input type="text" class="form-control" @bind=EntryState.AddressCity @bind:event="oninput" />
+        <label for="addressCity" class="form-label">Ort <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressCity" @bind=EntryState.AddressCity @bind:event="oninput" />
     </div>
 
     <div class="mb-3 d-flex flex-row">
         <div class="flex-grow-1 pe-3">
-            <label class="form-label">Straße <RequiredStar /></label>
-            <input type="text" class="form-control" @bind=EntryState.AddressStreet @bind:event="oninput" />
+            <label for="addressStreet" class="form-label">Straße <RequiredStar /></label>
+            <input type="text" class="form-control" id="addressStreet" @bind=EntryState.AddressStreet @bind:event="oninput" />
         </div>
         <div style="width: 8em;">
-            <label class="form-label">Hausnr. <RequiredStar /></label>
-            <input type="text" class="form-control" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
+            <label for="addressHouseNbr" class="form-label">Hausnr. <RequiredStar /></label>
+            <input type="text" class="form-control" id="addressHouseNbr" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
         </div>
     </div>
 } else {
     <div class="mb-3">
-        <label class="form-label">Postleitzahl <RequiredStar /></label>
+        <label for="addressPostCodeDe" class="form-label">Postleitzahl <RequiredStar /></label>
         <div class="d-flex align-items-center">
-            <input type="text" class="form-control" style="width: 10em;" maxlength="5"
+            <input type="text" class="form-control" style="width: 10em;" maxlength="5" id="addressPostCodeDe"
                    value="@EntryState.AddressPostCode" @oninput="OnPostCodeInput" />
             @if (SearchingPostCode) {
                 <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
@@ -67,12 +67,12 @@
     @if (EntryState.AddressAdministrativeDivisionId != null) {
         <div class="mb-3 d-flex flex-row">
             <div class="flex-grow-1 pe-3">
-                <label class="form-label">Straße <RequiredStar /></label>
-                <input type="text" class="form-control" @bind=EntryState.AddressStreet @bind:event="oninput" />
+                <label for="addressStreetDe" class="form-label">Straße <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressStreetDe" @bind=EntryState.AddressStreet @bind:event="oninput" />
             </div>
             <div style="width: 8em;">
-                <label class="form-label">Hausnr. <RequiredStar /></label>
-                <input type="text" class="form-control" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
+                <label for="addressHouseNbrDe" class="form-label">Hausnr. <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressHouseNbrDe" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
             </div>
         </div>
     }

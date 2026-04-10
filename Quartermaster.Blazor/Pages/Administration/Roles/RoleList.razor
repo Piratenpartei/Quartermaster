@@ -65,16 +65,16 @@
         <div class="card-body">
             <h5>Neue Rolle erstellen</h5>
             <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" @bind="NewName" />
+                <label for="newName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="newName" @bind="NewName" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Beschreibung</label>
-                <textarea class="form-control" @bind="NewDescription" rows="2"></textarea>
+                <label for="newDescription" class="form-label">Beschreibung</label>
+                <textarea class="form-control" id="newDescription" @bind="NewDescription" rows="2"></textarea>
             </div>
             <div class="mb-3">
-                <label class="form-label">Scope</label>
-                <select class="form-select" @bind="NewScope" @bind:after="OnScopeChanged">
+                <label for="newScope" class="form-label">Scope</label>
+                <select class="form-select" id="newScope" @bind="NewScope" @bind:after="OnScopeChanged">
                     <option value="0">Global</option>
                     <option value="1">Chapter-scoped</option>
                 </select>

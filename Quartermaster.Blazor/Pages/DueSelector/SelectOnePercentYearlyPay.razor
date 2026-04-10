@@ -12,10 +12,10 @@
         var isValid = EntryState.YearlyIncome >= 7200;
     }
 
-    <label class="form-label">Jahresnettoeinkommen</label>
+    <label for="yearlyIncome" class="form-label">Jahresnettoeinkommen</label>
     <div class="input-group @(isValid ? "" : "has-validation")">
         <span class="input-group-text">€</span>
-        <input type="number" class="form-control @(isValid ? "" : "is-invalid")"
+        <input type="number" class="form-control @(isValid ? "" : "is-invalid")" id="yearlyIncome"
                min="7200" @bind=EntryState.YearlyIncome @bind:event="oninput" />
         
         @if (!isValid) {
@@ -29,10 +29,10 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Dein Jahresbeitrag wäre dann</label>
+    <label for="calculatedYearlyDue" class="form-label">Dein Jahresbeitrag wäre dann</label>
     <div class="input-group">
         <span class="input-group-text">€</span>
-        <input type="number" class="form-control" value="@CalculatedPercentOfIncome()" readonly disabled />
+        <input type="number" class="form-control" id="calculatedYearlyDue" value="@CalculatedPercentOfIncome()" readonly disabled />
     </div>
 </div>
 

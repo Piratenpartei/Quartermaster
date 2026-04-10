@@ -9,13 +9,13 @@
     return;
 
 <div class="mb-3">
-    <label class="form-label">
+    <label for="monthlyIncomeGroup" class="form-label">
         Monatsnettoeinkommen - Wähle die höchste Stufe die kleiner als dein Monatsnettoeinkommen ist und
         deine familiären Verpflichtungen berücksichtigt.
     </label>
 
     <div class="from-group d-flex">
-        <input class="form-range" type="range" min="0" step="500" max="6000"
+        <input class="form-range" type="range" min="0" step="500" max="6000" id="monthlyIncomeGroup"
                @bind=EntryState.MonthlyIncomeGroup @bind:event="oninput" />
         <span style="min-width: 10em; text-align: right">
             @EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))

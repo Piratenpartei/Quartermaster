@@ -17,7 +17,7 @@
 
 <Collapsable Collapsed=!EntryState.IsDirectDeposit>
     <div class="mb-2">
-        <label class="form-label">Kontoinhaber</label>
+        <label for="accountHolder" class="form-label">Kontoinhaber</label>
         @{ var fullName = EntryState.FirstName + " " + EntryState.LastName; }
         @if (fullName != EntryState.AccountHolder) {
             <span> - </span>
@@ -25,12 +25,12 @@
                 @fullName übernehmen
             </a>
         }
-        <input type="email" class="form-control" @bind=EntryState.AccountHolder @bind:event="oninput" />
+        <input type="email" class="form-control" id="accountHolder" @bind=EntryState.AccountHolder @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">IBAN</label>
-        <input type="email" class="form-control" @bind=EntryState.IBAN @bind:event="oninput" />
+        <label for="iban" class="form-label">IBAN</label>
+        <input type="email" class="form-control" id="iban" @bind=EntryState.IBAN @bind:event="oninput" />
     </div>
 
     <hr />

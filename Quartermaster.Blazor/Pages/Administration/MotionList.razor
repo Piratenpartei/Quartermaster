@@ -15,8 +15,8 @@
         <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
-        <label class="form-label">Status</label>
-        <select class="form-select" @onchange="OnStatusChanged">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" class="form-select" @onchange="OnStatusChanged">
             <option value="">Alle</option>
             <option value="0" selected>Ausstehend</option>
             <option value="1">Genehmigt</option>

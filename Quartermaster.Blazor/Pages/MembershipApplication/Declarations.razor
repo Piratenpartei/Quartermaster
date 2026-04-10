@@ -37,13 +37,13 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Eintritt zum</label>
-    <input type="date" class="form-control" @bind=EntryState.EntryDate />
+    <label for="entryDate" class="form-label">Eintritt zum</label>
+    <input type="date" class="form-control" id="entryDate" @bind=EntryState.EntryDate />
 </div>
 
 <div class="mb-3">
-    <label class="form-label">...was Du uns noch sagen möchtest:</label>
-    <textarea class="form-control" rows="4" @bind=EntryState.ApplicationText @bind:event="oninput"
+    <label for="applicationText" class="form-label">...was Du uns noch sagen möchtest:</label>
+    <textarea class="form-control" rows="4" id="applicationText" @bind=EntryState.ApplicationText @bind:event="oninput"
               maxlength="2048"></textarea>
 </div>
 

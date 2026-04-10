@@ -12,17 +12,17 @@
             <ChapterPicker @bind-Value="ChapterId" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Titel</label>
-            <input type="text" class="form-control" @bind="Title" maxlength="200" placeholder="Titel der Sitzung" />
+            <label for="title" class="form-label">Titel</label>
+            <input type="text" class="form-control" id="title" @bind="Title" maxlength="200" placeholder="Titel der Sitzung" />
         </div>
         <div class="row g-3 mb-3">
             <div class="col-md-6">
-                <label class="form-label">Datum &amp; Uhrzeit</label>
-                <input type="datetime-local" class="form-control" @bind="MeetingDate" />
+                <label for="meetingDate" class="form-label">Datum &amp; Uhrzeit</label>
+                <input type="datetime-local" class="form-control" id="meetingDate" @bind="MeetingDate" />
             </div>
             <div class="col-md-6">
-                <label class="form-label">Ort</label>
-                <input type="text" class="form-control" @bind="Location" maxlength="500" placeholder="Ort (optional)" />
+                <label for="location" class="form-label">Ort</label>
+                <input type="text" class="form-control" id="location" @bind="Location" maxlength="500" placeholder="Ort (optional)" />
             </div>
         </div>
         <div class="mb-3">

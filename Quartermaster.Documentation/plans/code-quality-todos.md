@@ -38,11 +38,10 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - [x] **`DashboardCard` component** — wraps the `Home.razor` widget pattern: card → header (optional icon + title + optional total count badge + "Alle anzeigen" link) → empty state OR ChildContent. Replaced 4 widgets in `Home.razor`. The 2 cards in `ImportStatus.razor` were intentionally NOT migrated — they're a different pattern (stats grid + collapsible history, not dashboard widgets).
 - **Decided NOT to extract a table-with-card wrapper.** The 18 files using `<div class="card mb-3">` with a table inside have too many variations to consolidate cleanly: some have `card-header`, some don't; some have action buttons in the header; some contain tables, some `list-group`, some forms; some put the title in `card-body`, some in `card-header`. The shared part is just the 1-line `<div class="card mb-3">` wrapper, which is idiomatic Bootstrap and doesn't benefit from extraction — a component would shift boilerplate without reducing it.
 
-### A11y: wire up form label associations properly
-- **Task:** 74 `<label class="form-label">` elements across ~24 files don't have `for=` attributes linking them to their inputs. Currently works in practice for screen readers due to DOM adjacency (Bootstrap's standard pattern), but not semantically correct. Click-on-label-to-focus-input doesn't work either.
-- **Fix:** Either generate unique IDs for each input + matching `for=` on labels, OR nest inputs inside `<label>` elements (valid HTML — no `for`/`id` needed).
-- **Alternative:** Enhance `FormInput`/`FormSelect`/`FormTextarea` components to auto-generate IDs internally and accept a `Label` parameter that handles the association.
-- **High-traffic forms to prioritize:** `Login/Manual.razor`, `MembershipApplication/*`, `Motions/Create.razor`, `DueSelector/*`, `EventDetail.razor`.
+### A11y: wire up form label associations properly — ✅ DONE
+- [x] Added matching `id`/`for` attributes to **53 label-input pairs across 22 files**. IDs follow camelCase naming derived from the C# field/property (e.g., `@bind="AuthorName"` → `id="authorName"`).
+- [x] Verified end-to-end in Chrome: click-on-label now focuses the input (the key a11y win).
+- **Intentionally skipped** (~16 labels): compound Blazor components like `<ChapterPicker>`, `<AdminDivisionPicker>`, `<RadioGroup>`, `<Checkbox>`, `<MarkdownEditor>` that render multiple child elements with no stable single focusable target. These labels stay without `for=` — screen readers still associate via DOM proximity (Bootstrap's standard pattern). Fixing them would require threading `Id` parameters through each picker component, which is a much larger refactor with unclear benefit.
 
 ### Server error messages: identifiers instead of German strings
 - **Task:** Replace hard-coded German error messages returned from server endpoints (e.g., `ThrowError("Vorlagen können nur aus Entwurfs-Events erstellt werden.")`) with stable identifier codes (e.g., `"error.events.template_requires_draft"`). The frontend translates identifiers into user-facing strings.
@@ -83,11 +82,14 @@ No remaining violations found. The `AdminDivisionImportService.ApplyChanges` tup
 - **`RoleAssignmentDeleteEndpoint` and `ChapterOfficerDeleteEndpoint` return 200 for non-existent records:** Intentional idempotent-delete pattern. Documented via `Returns_OK_for_nonexistent_*` tests.
 - **`MembershipApplicationProcessEndpoint` / `DueSelectionProcessEndpoint` reject `Pending`:** Correct — only terminal transitions allowed. Documented via `Rejects_invalid_target_status_Pending` tests.
 
-### ToList vs IEnumerable on endpoint returns
-- **Task:** Audit endpoint DTO construction for unnecessary `.ToList()` calls. Many endpoints shape data with LINQ (`items.Select(...).ToList()`) then pass to `SendAsync`. The JSON serializer can consume `IEnumerable<T>` directly, so eager materialization may be avoidable — potentially saving allocations on large responses.
-- **Caveats to verify per site:**
-  - LinqToDB queries that are still open (deferred execution) — must stay enumerable only if DbContext lifetime is sufficient, otherwise keep `.ToList()`.
-  - Dictionary lookups inside `Select` that reference scope-captured state — safe.
-  - Cases where the list is used twice (e.g., count + iterate) — keep `.ToList()`.
-- **Why:** Pure performance — avoid double allocation when we build a list just to immediately serialize it.
-- **How to apply:** grep for `.ToList();` in `Quartermaster.Server/`, inspect each return path, remove where the DTO list is write-only and deterred execution is safe. Benchmark before/after on a large list endpoint (members, events) to confirm measurable impact before applying broadly.
+### ToList vs IEnumerable on endpoint returns — ❌ CLOSED (not worth doing)
+
+**Decision:** Audited and closed without changes. The realistic savings are in the noise and the risk of runtime errors outweighs them.
+
+**Reasoning:**
+1. **All paginated endpoints cap at 100 items** via `PaginationValidationExtensions.AddPaginationRules` (`PageSize` between 1–100). Maximum saving per response is ~824 bytes (one List header + 100-element pointer array), which is negligible compared to the kilobytes already allocated for JSON serialization buffers and the DTOs themselves.
+2. **Most `.ToList()` calls are structurally required** because the receiving DTO field is typed as `List<T>` (e.g., `MemberSearchResponse.Items`, `MeetingDetailDTO.AgendaItems`). Removing materialization would require changing DTO field types to `IEnumerable<T>` — a wire-format-compatible but breaking-for-internal-callers contract change with large blast radius.
+3. **Risk vs reward is bad.** Removing `.ToList()` from any chain that touches a LinqToDB query causes runtime errors when the DbContext is disposed before serialization. Hard to test, fails only under load.
+4. **Repository methods already return materialized `List<T>`** (e.g., `MemberRepository.Search`, `MotionRepository.List`). The `.Select(...).ToList()` chain in endpoints runs purely on in-memory data, so there's no deferred-execution problem — but also no significant allocation to save.
+
+If a future workload turns out to be allocation-bound on a specific endpoint (which would only show up in a large profile), revisit that single endpoint with measurements.

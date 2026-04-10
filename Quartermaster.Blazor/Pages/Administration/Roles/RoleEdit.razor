@@ -31,12 +31,12 @@
     <div class="card">
         <div class="card-body">
             <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" @bind="Role.Name" disabled="@Role.IsSystem" />
+                <label for="roleName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="roleName" @bind="Role.Name" disabled="@Role.IsSystem" />
             </div>
             <div class="mb-3">
-                <label class="form-label">Beschreibung</label>
-                <textarea class="form-control" @bind="Role.Description" rows="2" disabled="@Role.IsSystem"></textarea>
+                <label for="roleDescription" class="form-label">Beschreibung</label>
+                <textarea class="form-control" id="roleDescription" @bind="Role.Description" rows="2" disabled="@Role.IsSystem"></textarea>
             </div>
             <div class="mb-3">
                 <label class="form-label">Berechtigungen</label>
