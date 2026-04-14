@@ -28,16 +28,19 @@ public class AgendaItemReopenEndpoint : Endpoint<AgendaItemReopenRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemReopenEndpoint(
         MeetingRepository meetingRepo, AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo, UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        UserGlobalPermissionRepository globalPermRepo,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _chapterPermRepo = chapterPermRepo;
         _globalPermRepo = globalPermRepo;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -70,6 +73,7 @@ public class AgendaItemReopenEndpoint : Endpoint<AgendaItemReopenRequest> {
         }
 
         _agendaRepo.ResetCompletion(req.ItemId);
+        await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "reopened");
         await SendOkAsync(ct);
     }
 }

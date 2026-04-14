@@ -37,6 +37,7 @@ public static class Program {
         builder.Services.AddScoped<ClientConfigService>();
         builder.Services.AddScoped<ToastService>();
         builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<MeetingHubClient>();
 
         await builder.Build().RunAsync();
     }

@@ -234,6 +234,11 @@ public class OptionRepository {
             "MotionDTO",
             "**Antrag:** {{ motion.Title }}\n\n**Antragsteller:** {{ motion.AuthorName }}\n\n{{ motion.Text }}\n\n---\n\n**Diskussion:**\n",
             description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEMail, motion.Text");
+
+        AddDefinitionIfNotExists("meetings.collab.save_interval_seconds",
+            "Sitzungen: Kollaborative Notizen – Speicherintervall (Sekunden)",
+            OptionDataType.Number, false, "", "10",
+            description: "Intervall in Sekunden, in dem der Server einen Snapshot der kollaborativ bearbeiteten Notizen persistiert. Niedrigere Werte reduzieren den Datenverlust bei Verbindungsabbrüchen, erhöhen aber die DB-Last. Standard: 10.");
     }
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,

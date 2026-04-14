@@ -451,8 +451,10 @@ public sealed class TestDataBuilder {
         string[]? globalPermissions = null,
         Dictionary<Guid, string[]>? chapterPermissions = null,
         string? email = null,
-        string? password = null) {
-        var user = SeedUser(email: email, password: password);
+        string? password = null,
+        string firstName = "Test",
+        string lastName = "User") {
+        var user = SeedUser(email: email, password: password, firstName: firstName, lastName: lastName);
 
         if (globalPermissions != null) {
             foreach (var perm in globalPermissions) {

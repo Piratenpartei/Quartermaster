@@ -130,3 +130,35 @@ a.disabled {
 code {
     color: #c02d76;
 }
+
+/* CodeMirror 5 host: sized to match the old textarea (10 rows ~240px). */
+.cm-host .CodeMirror {
+    height: 240px;
+    font-size: 14px;
+}
+
+/* Presence pills above the collaborative editor */
+.presence-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: 0 0 0 2px var(--bs-body-bg);
+}
+
+/* Remote cursor labels from y-codemirror: show the name on hover rather
+   than permanently hiding it. The library adds `hide-name` when idle. */
+.cm-host .remote-caret > div {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.cm-host .remote-caret:hover > div,
+.cm-host .remote-caret:not(.hide-name) > div {
+    opacity: 1;
+}

@@ -1,0 +1,75 @@
+@using Quartermaster.Blazor.Components.Forms
+
+@if (_editor?.IsReadOnly == true) {
+    <div class="alert alert-secondary py-1 px-2 mb-2 small">
+        <i class="bi bi-lock"></i> Schreibgeschützt
+    </div>
+}
+@if (_editor != null && !_editor.HubConnected) {
+    <div class="alert alert-warning py-1 px-2 mb-2 small">
+        <i class="bi bi-wifi-off"></i> Verbindung wird wiederhergestellt…
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-end mb-1">
+            <label class="form-label small text-secondary mb-0">Markdown</label>
+            <div class="d-flex align-items-center gap-2">
+                @if (_editor != null) {
+                    <small class="text-secondary">
+                        @switch (_editor.CurrentSaveState) {
+                            case CodeMirrorEditor.SaveState.Saving:
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <text>Wird gespeichert…</text>
+                                break;
+                            case CodeMirrorEditor.SaveState.Dirty:
+                                <i class="bi bi-pencil"></i>
+                                <text>Ungespeicherte Änderungen</text>
+                                break;
+                            case CodeMirrorEditor.SaveState.Failed:
+                                <i class="bi bi-exclamation-triangle text-warning"></i>
+                                <text>Speichern fehlgeschlagen</text>
+                                break;
+                            case CodeMirrorEditor.SaveState.Saved when _editor.LastSavedAt.HasValue:
+                                <i class="bi bi-cloud-check"></i>
+                                <text>Gespeichert @_editor.LastSavedAt.Value.ToString("HH:mm:ss")</text>
+                                break;
+                        }
+                    </small>
+                }
+                @if (_editor?.CurrentPresence?.Count > 0) {
+                    <div class="d-flex gap-1" title="Aktive Bearbeiter">
+                        @foreach (var peer in _editor.CurrentPresence) {
+                            <span class="presence-pill"
+                                  style="background-color: @peer.Color"
+                                  title="@peer.Name">
+                                @(Initials(peer.Name))
+                            </span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <CodeMirrorEditor @ref="_editor"
+                          Value="@Value"
+                          ValueChanged="OnInput"
+                          CssClass="cm-host border rounded"
+                          AgendaItemId="@AgendaItemId"
+                          HubClient="@HubClient"
+                          CurrentUserId="@CurrentUserId"
+                          CurrentUserName="@CurrentUserName" />
+    </div>
+    <div class="col-md-6 d-flex flex-column">
+        <label class="form-label small text-secondary mb-1">Vorschau</label>
+        <div class="card bg-body-secondary flex-grow-1">
+            <div class="card-body overflow-auto p-2">
+                @if (string.IsNullOrWhiteSpace(Value)) {
+                    <span class="text-secondary">...</span>
+                } else {
+                    @((MarkupString)RenderedHtml)
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -29,6 +29,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemVoteEndpoint(
         MeetingRepository meetingRepo,
@@ -37,7 +38,8 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
         ChapterOfficerRepository officerRepo,
         ChapterRepository chapterRepo,
         UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        UserGlobalPermissionRepository globalPermRepo,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _motionRepo = motionRepo;
@@ -45,6 +47,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
         _chapterRepo = chapterRepo;
         _chapterPermRepo = chapterPermRepo;
         _globalPermRepo = globalPermRepo;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -119,6 +122,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             MeetingId = meeting.Id
         });
 
+        await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "vote_cast");
         await SendOkAsync(ct);
     }
 }

@@ -33,16 +33,19 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemPresenceEndpoint(
         MeetingRepository meetingRepo, AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo, UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        UserGlobalPermissionRepository globalPermRepo,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _chapterPermRepo = chapterPermRepo;
         _globalPermRepo = globalPermRepo;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -97,6 +100,7 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
             presentIds.Remove(userIdStr);
 
         _agendaRepo.UpdateResolution(req.ItemId, JsonSerializer.Serialize(presentIds.ToList()));
+        await _notifier.NotifyPresenceChangedAsync(req.MeetingId, req.ItemId, req.UserId, req.Present);
         await SendOkAsync(ct);
     }
 }

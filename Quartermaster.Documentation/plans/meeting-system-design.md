@@ -560,7 +560,7 @@ Sequential; each phase ends at a point where the system is demoable.
 - Meeting visibility: **Public/Private** two-state; Private = direct-only officer/delegate access on meeting's chapter
 
 **Deferred to v2 (tracked as follow-up todos, not blockers):**
-- **Collaborative note-taking** — v1 uses last-write-wins on the Notes field. v2 should support simple collaborative editing for the notes textarea (e.g., OT/CRDT for plain text, or server-push "locked by X" indicator). Add to `code-quality-todos.md` when Phase 8 completes.
+- **Collaborative note-taking** — ✅ **Implemented in 2026-04** via Yjs CRDT + SignalR relay hub + per-character authorship. See section 14 below and `2026-04-10-collaborative-meeting-notes.md` for the design and phased implementation plan.
 - **Attendance tracking** — v1 uses free-text in Description. v2 could add a lightweight attendee list entity.
 - **Protocol template per-chapter** — v1 uses one global Fluid template in Options. Per-chapter override can be added later.
 - **Meeting recurrence / series** — v1 supports this via a "Duplicate meeting" action cloning the prior agenda. Full recurrence rules deferred.
@@ -575,3 +575,33 @@ Sequential; each phase ends at a point where the system is demoable.
 - **Vote-during-meeting vs async vote conflicts:** if a motion received async votes before its meeting agenda item runs, the auto-resolve sweep will tally them alongside meeting votes. Whether that's desired is a UX question — surface a warning in the close-vote UI if the motion already has votes when the meeting item starts.
 - **Protocol disk writes:** archived PDFs accumulate. Plan for the `protocols_dir` to be mounted on durable storage (not ephemeral container FS) and included in backups. Document in deployment guide.
 - **Role inheritance flag is a breaking behavior change for existing custom roles:** existing custom roles are defaulted to `InheritsToChildren=true`, preserving current semantics. But administrators creating *new* custom roles need to understand the flag. Add clear UI copy on the role-create form.
+
+---
+
+## 14. Collaborative note editing (implemented 2026-04)
+
+Replaces the Phase 8 debounced REST autosave with real-time CRDT-based collaborative editing of the agenda item notes field. The full design and phase-by-phase implementation live in `2026-04-10-collaborative-meeting-notes.md`; this section is a high-level pointer for readers of the meeting system design doc.
+
+**Goals delivered:**
+- Multiple officers can type in the same notes field simultaneously; all edits merge with guaranteed convergence (Yjs CRDT).
+- Live cursor positions and presence pills show who is currently editing.
+- Every character is tinted with its author's color and a German hover tooltip identifies the writer.
+- Line numbers + markdown syntax highlighting in the notes editor.
+
+**Stack:**
+- **Client**: CodeMirror 5 (vendored UMD, no npm) + Yjs + y-protocols/awareness + y-codemirror CM5 binding, all served from `wwwroot/js/collab-editor/`. Loaded lazily on first entry to the live meeting page.
+- **Server**: SignalR hub (`MeetingHub`, mapped at `/hubs/meeting`) acts as a **pure relay** — it forwards opaque Yjs update bytes between clients in the same per-agenda-item group. No Yjs code runs server-side.
+- **Persistence**: new `CollabDocuments` table (polymorphic on `EntityType`/`EntityId` for future reuse). Stores the Yjs binary snapshot, the denormalized plain text, and the Yjs-clientID → Quartermaster-userID map for authorship resolution. A configurable save interval (default 10 s, option `meetings.collab.save_interval_seconds`) throttles snapshot writes; the server mirrors `PlainText` back to the legacy `AgendaItem.Notes` column so PDF/audit readers keep working unchanged.
+
+**Key behavioral rules:**
+- Edits are only accepted while `Meeting.Status == InProgress`. Transitioning to Completed/Archived freezes the document — `LoadDocument` still returns the state but `canEdit=false`, and `SendUpdate`/`SaveSnapshot` return `forbidden`.
+- The same live meeting hub broadcasts agenda-item change / status change / presence change notifications to keep the non-editor parts of the live page in sync (votes, agenda transitions, etc.).
+- Read-only users (ViewMeetings but not EditMeetings) connect to the hub and see live updates + cursors + per-char colors, but the editor is in `nocursor` mode and the UI shows a "Schreibgeschützt" badge.
+- Save status and hub connection status are surfaced in the UI: "Wird gespeichert…" / "Gespeichert HH:mm:ss" / "Verbindung wird wiederhergestellt…".
+- Colors are assigned from an 8-color Tol Vibrant palette server-side (first unused color wins; reconnects keep the same color; overflow past 8 users falls back to a deterministic hash).
+
+**Why Yjs instead of OT:** per-character authorship is a hard requirement, and with operational transforms it would have doubled the server-side bug surface (maintaining a parallel author array through every transform). With Yjs, authorship is intrinsic — each character carries the clientID of its inserter, mapped to userID via the awareness protocol.
+
+**Why CodeMirror 5 instead of CM6:** CM6's modular architecture duplicates `@codemirror/state` across bundled sub-packages when vendored without a bundler, breaking `instanceof` checks at runtime. CM5 ships as a single pre-built UMD file and drops in cleanly. Trade-off: CM5 is in maintenance mode — fine for our use case (markdown editor with collaborative cursors + `markText` for per-char backgrounds, all stable for years).
+
+**Tests:** 8 hub integration tests in `MeetingHubTests.cs` and `MeetingHubCollabTests.cs` cover the SignalR lifecycle (JoinMeeting, hub-broadcast relay of AgendaItemChanged and MeetingStatusChanged, LoadDocument empty snapshot, SendUpdate relay to OthersInGroup, SaveSnapshot persistence + Notes mirror, LoadDocument round-trip, distinct colors per user, color reuse on reconnect).

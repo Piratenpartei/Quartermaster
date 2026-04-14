@@ -24,18 +24,21 @@ public class AgendaItemCompleteEndpoint : Endpoint<AgendaItemCompleteRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemCompleteEndpoint(
         MeetingRepository meetingRepo,
         AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo,
         UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -70,6 +73,7 @@ public class AgendaItemCompleteEndpoint : Endpoint<AgendaItemCompleteRequest> {
         }
 
         _agendaRepo.MarkCompleted(req.ItemId);
+        await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "completed");
         await SendOkAsync(ct);
     }
 }

@@ -30,6 +30,7 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly MeetingLifecycleService _lifecycle;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemCloseVoteEndpoint(
         MeetingRepository meetingRepo,
@@ -37,13 +38,15 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
         ChapterRepository chapterRepo,
         UserChapterPermissionRepository chapterPermRepo,
         UserGlobalPermissionRepository globalPermRepo,
-        MeetingLifecycleService lifecycle) {
+        MeetingLifecycleService lifecycle,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _chapterPermRepo = chapterPermRepo;
         _globalPermRepo = globalPermRepo;
         _lifecycle = lifecycle;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -82,6 +85,7 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
         }
 
         _lifecycle.CloseVoteForAgendaItem(req.ItemId);
+        await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "vote_closed");
         await SendOkAsync(ct);
     }
 }

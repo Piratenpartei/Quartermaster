@@ -18,18 +18,21 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly MeetingLifecycleService _lifecycle;
+    private readonly IMeetingNotifier _notifier;
 
     public MeetingStatusUpdateEndpoint(
         MeetingRepository meetingRepo,
         ChapterRepository chapterRepo,
         UserGlobalPermissionRepository globalPermRepo,
         UserChapterPermissionRepository chapterPermRepo,
-        MeetingLifecycleService lifecycle) {
+        MeetingLifecycleService lifecycle,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _chapterRepo = chapterRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
         _lifecycle = lifecycle;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -82,6 +85,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
         if (req.Status == MeetingStatus.Archived && meeting.Status == MeetingStatus.Completed)
             _lifecycle.GenerateAndStoreArchivePdf(req.Id);
 
+        await _notifier.NotifyMeetingStatusChangedAsync(req.Id, req.Status);
         await SendOkAsync(ct);
     }
 

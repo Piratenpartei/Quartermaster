@@ -101,6 +101,8 @@ public partial class Program {
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,
             filter: x => x.ValidatorType.BaseType?.GetGenericTypeDefinition() != typeof(Validator<>));
         builder.Services.AddFastEndpoints();
+        builder.Services.AddSignalR();
+        builder.Services.AddScoped<Quartermaster.Server.Meetings.IMeetingNotifier, Quartermaster.Server.Meetings.MeetingNotifier>();
         builder.Services.AddAntiforgery(options => {
             options.HeaderName = "X-CSRF-TOKEN";
             options.Cookie.Name = ".Quartermaster.Antiforgery";
@@ -148,11 +150,12 @@ public partial class Program {
             c.Errors.UseProblemDetails();
         });
 
-        app.UseBlazorFrameworkFiles();
-        app.UseStaticFiles();
-
 #pragma warning disable ASP0014 // MapFallbackToFile does not exist as direct mapping.
-        app.UseEndpoints(ep => ep.MapFallbackToFile("index.html"));
+        app.UseEndpoints(ep => {
+            ep.MapStaticAssets();
+            ep.MapHub<Quartermaster.Server.Meetings.MeetingHub>("/hubs/meeting");
+            ep.MapFallbackToFile("index.html");
+        });
 #pragma warning restore ASP0014
     }
 }

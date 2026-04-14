@@ -7,6 +7,7 @@ using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Email;
 using Quartermaster.Data.Events;
@@ -52,6 +53,7 @@ public class DbContext : DataConnection {
     public ITable<UserRoleAssignment> UserRoleAssignments => this.GetTable<UserRoleAssignment>();
     public ITable<Meetings.Meeting> Meetings => this.GetTable<Meetings.Meeting>();
     public ITable<Meetings.AgendaItem> AgendaItems => this.GetTable<Meetings.AgendaItem>();
+    public ITable<CollabDocument> CollabDocuments => this.GetTable<CollabDocument>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -76,6 +78,7 @@ public class DbContext : DataConnection {
         services.AddScoped<RoleRepository>();
         services.AddScoped<Meetings.MeetingRepository>();
         services.AddScoped<Meetings.AgendaItemRepository>();
+        services.AddScoped<CollabDocumentRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {

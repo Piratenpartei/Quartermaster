@@ -176,13 +176,13 @@
                         }
 
                         <div class="mb-2">
-                            <MarkdownEditorWithPreview Value="@ActiveItemNotes"
-                                                       ValueChanged="OnNotesChanged" Rows="10" />
-                            @if (NotesSaving) {
-                                <small class="text-secondary"><i class="bi bi-cloud-arrow-up"></i> Speichere...</small>
-                            } else if (NotesSavedAt != null) {
-                                <small class="text-secondary"><i class="bi bi-cloud-check"></i> Gespeichert @NotesSavedAt.Value.ToString("HH:mm:ss")</small>
-                            }
+                            <CodeMirrorEditorWithPreview @key="@active.Id"
+                                                         Value="@ActiveItemNotes"
+                                                         ValueChanged="OnNotesChanged"
+                                                         AgendaItemId="@active.Id"
+                                                         HubClient="@HubClient"
+                                                         CurrentUserId="@CurrentUserId"
+                                                         CurrentUserName="@(AuthService.CurrentUser?.DisplayName)" />
                         </div>
                     </div>
                 </div>

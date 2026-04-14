@@ -5,6 +5,7 @@ using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
@@ -570,6 +571,25 @@ public class M001_InitialStructureMigration : MigrationBase {
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MeetingId))
             .ToTable(Meeting.TableName).PrimaryColumn(nameof(Meeting.Id))
             .OnDelete(System.Data.Rule.SetNull);
+
+        Create.Table(CollabDocument.TableName)
+            .WithColumn(nameof(CollabDocument.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(CollabDocument.EntityType)).AsString(64)
+            .WithColumn(nameof(CollabDocument.EntityId)).AsGuid()
+            .WithColumn(nameof(CollabDocument.DocumentState)).AsCustom("LONGTEXT")
+            .WithColumn(nameof(CollabDocument.PlainText)).AsCustom("LONGTEXT")
+            .WithColumn(nameof(CollabDocument.ClientUserMap)).AsCustom("LONGTEXT")
+            .WithColumn(nameof(CollabDocument.LastUpdatedAt)).AsDateTime()
+            .WithColumn(nameof(CollabDocument.LastUpdatedByUserId)).AsGuid().Nullable()
+            .WithColumn(nameof(CollabDocument.CreatedAt)).AsDateTime();
+
+        Create.Index("UX_CollabDocuments_EntityType_EntityId").OnTable(CollabDocument.TableName)
+            .OnColumn(nameof(CollabDocument.EntityType)).Ascending()
+            .OnColumn(nameof(CollabDocument.EntityId)).Ascending()
+            .WithOptions().Unique();
+
+        Create.Index("IX_CollabDocuments_LastUpdatedAt").OnTable(CollabDocument.TableName)
+            .OnColumn(nameof(CollabDocument.LastUpdatedAt)).Ascending();
     }
 
     public override void Down() {
@@ -602,6 +622,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(UserRoleAssignment.TableName);
         DropTableIfExists(RolePermission.TableName);
         DropTableIfExists(Role.TableName);
+        DropTableIfExists(CollabDocument.TableName);
         DropTableIfExists(AgendaItem.TableName);
         DropTableIfExists(Meeting.TableName);
 

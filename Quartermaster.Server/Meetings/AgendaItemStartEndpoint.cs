@@ -24,18 +24,21 @@ public class AgendaItemStartEndpoint : Endpoint<AgendaItemStartRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly IMeetingNotifier _notifier;
 
     public AgendaItemStartEndpoint(
         MeetingRepository meetingRepo,
         AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo,
         UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo,
+        IMeetingNotifier notifier) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _notifier = notifier;
     }
 
     public override void Configure() {
@@ -71,6 +74,7 @@ public class AgendaItemStartEndpoint : Endpoint<AgendaItemStartRequest> {
 
         _agendaRepo.CompleteAllInProgressExcept(req.MeetingId, req.ItemId);
         _agendaRepo.MarkStarted(req.ItemId);
+        await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "started");
         await SendOkAsync(ct);
     }
 }

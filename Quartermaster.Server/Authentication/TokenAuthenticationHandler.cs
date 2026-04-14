@@ -17,11 +17,18 @@ public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticat
         : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() {
+        string tokenContent;
         var authHeader = Request.Headers["Authorization"].ToString();
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ")) {
+            tokenContent = authHeader["Bearer ".Length..].Trim();
+        } else if (Request.Path.StartsWithSegments("/hubs") && Request.Query.TryGetValue("access_token", out var accessToken)) {
+            // SignalR WebSocket transport cannot set custom headers; the client
+            // passes the bearer token via the access_token query string instead.
+            tokenContent = accessToken.ToString();
+        } else {
             return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
-        var tokenContent = authHeader["Bearer ".Length..].Trim();
         if (string.IsNullOrEmpty(tokenContent))
             return Task.FromResult(AuthenticateResult.Fail("Empty token"));
 

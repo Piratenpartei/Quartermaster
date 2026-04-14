@@ -49,16 +49,21 @@ Beyond these four, we also want the live meeting page to auto-refresh when:
 
 ## Architecture
 
-### Editor: CodeMirror 6
+### Editor: CodeMirror 5
 
-Switch the agenda item notes editor from a plain `<textarea>` to **CodeMirror 6** wrapped in a Blazor component via JS interop. CodeMirror 6 gives us:
+Switch the agenda item notes editor from a plain `<textarea>` to **CodeMirror 5** wrapped in a Blazor component via JS interop. CodeMirror 5 gives us:
 
 - **Line numbers for free** (Goal #4)
-- **Markdown syntax highlighting** via `@codemirror/lang-markdown`
-- **Decoration API** for remote cursors and per-character background colors (Goals #2 and #3)
+- **Markdown syntax highlighting** via the `mode/markdown/markdown.js` addon
+- **`TextMarker` API via `doc.markText(from, to, {css, title})`** for per-character background colors with hover tooltips (Goals #2 and #3)
+- **Widget API** for rendering remote cursors as inline DOM
 - **Read-only mode** for viewers without edit permissions
-- Mature, well-maintained, MIT-licensed, ~50KB minified+gzipped
-- Vendored as ESM bundles in `wwwroot/js/codemirror/` (matches existing no-build-step pattern)
+- MIT-licensed, battle-tested, in maintenance mode (no new features, only bug fixes — fine for our use case)
+- **Drop-in vendorable** as single-file UMD bundles (no build step)
+
+**Why CodeMirror 5 instead of CodeMirror 6**: CM6 has a modular architecture (`@codemirror/state`, `@codemirror/view`, `@codemirror/language`, etc.) where each package inlines its own copy of shared dependencies when fetched as individual bundles. Combining them at runtime causes `instanceof` mismatches between duplicated `@codemirror/state` classes, producing the error "Unrecognized extension value in extension set". Solving this requires either a bundler (npm toolchain rejected by user preference) or vendoring ~20 individual files with a fragile import map. CodeMirror 5 predates this architecture and ships as single pre-built UMD files, making vendoring trivial. The trade-off is that CM5 is in maintenance mode with no new features — but our needs (markdown text editing with collaborative cursors and per-character background colors) have been stable in CM5 for years.
+
+Phase 0 prototype validated this end-to-end — see Phase 0 section below.
 
 ### Collaboration: Yjs (CRDT)
 
@@ -75,13 +80,21 @@ The original OT plan was discarded once per-character authorship became a hard r
 - **Built-in awareness API**: ephemeral presence data (cursor positions, user colors) propagated alongside the document
 - **Binary wire format**: compact, suitable for high-frequency small updates
 
-**Client-side stack (all vendored)**:
-- `yjs` — the CRDT library (~100KB minified+gzipped)
-- `y-codemirror.next` — binding to CodeMirror 6 (~10KB)
-- `y-protocols` — sync and awareness message encoding (~5KB)
-- ESM bundles dropped into `Quartermaster.Blazor/wwwroot/js/yjs/`
+**Client-side stack (all vendored)** — 8 files total dropped into `Quartermaster.Blazor/wwwroot/js/collab-editor/`:
 
-Total added JS: ~115KB gzipped on top of CodeMirror's ~50KB = ~165KB for the whole editor feature. Loaded lazily, only on the meeting live page.
+| File | Purpose | Raw | Gzipped |
+|---|---|---|---|
+| `cm5.js` | CodeMirror 5 core (UMD) | 402 KB | ~120 KB |
+| `cm5-markdown.js` | Markdown mode addon | 31 KB | ~8 KB |
+| `cm5.css` | CodeMirror styles | 9 KB | ~3 KB |
+| `cm5-esm.js` | Tiny ESM wrapper exposing `window.CodeMirror` to imports | 0.6 KB | ~0.4 KB |
+| `yjs.js` | Yjs CRDT library (from esm.sh bundled) | 85 KB | ~26 KB |
+| `y-awareness.js` | `y-protocols/awareness` (from esm.sh bundled) | 7 KB | ~3 KB |
+| `y-cm5.js` | `y-codemirror` (CM5 binding, from esm.sh bundled) | 9 KB | ~3 KB |
+| `process.js` | Minimal Node `process.env` polyfill | 0.6 KB | ~0.4 KB |
+| **Total** | | **544 KB** | **~164 KB** |
+
+Loaded lazily, only on the meeting live page. The UMD files (`cm5.js`, `cm5-markdown.js`) are loaded via regular `<script>` tags — they set `window.CodeMirror`. The ESM files (`yjs.js`, `y-awareness.js`, `y-cm5.js`) are loaded via `import()` and reference `codemirror` through an import map entry that redirects to `cm5-esm.js` (which re-exports the global). One `process.js` stub covers Yjs's `process.env.NODE_ENV` check.
 
 ### Server architecture: dumb relay + periodic snapshots
 
@@ -137,13 +150,11 @@ CREATE TABLE CollabDocuments (
 
 ### Per-character authorship rendering
 
-Yjs `Y.Text` tracks the originating clientID of every character intrinsically. But we need to attach our own `author` attribute to survive CRDT merges cleanly, so we use the `Y.Text.format(from, to, {author: userId})` API on every local insertion:
+Yjs `Y.Text` tracks the originating clientID of every character intrinsically. We attach an `author` attribute to each local insertion via Yjs's format API so that authorship survives CRDT merges cleanly and can be read back from `toDelta()`:
 
 ```javascript
-ytext.applyDelta([
-    {retain: cursorPos},
-    {insert: typedText, attributes: {author: myUserId}}
-]);
+// When the local user types, we format the new range with the author attribute
+ytext.format(insertStart, insertLength, { author: myUserId });
 ```
 
 Reading authorship for rendering:
@@ -154,11 +165,28 @@ const delta = ytext.toDelta();
 // Each entry is a run of characters with the same attributes (including author)
 ```
 
-CodeMirror decorations are generated from the delta runs. Each run gets a background-tint decoration keyed by `author`, plus a `title` attribute with the author's display name (from the awareness map) so hover shows the user name.
+CodeMirror 5 `TextMarker`s are generated from the delta runs. Each run (except the current user's own writing) gets a marker with `css` and `title`:
+
+```javascript
+cmDoc.markText(
+    { line: startLine, ch: startCh },
+    { line: endLine, ch: endCh },
+    {
+        css: `background-color: rgba(${r}, ${g}, ${b}, 0.12)`,
+        title: `Geschrieben von ${authorDisplayName}`
+    }
+);
+```
+
+The `css` attribute applies the background tint; the `title` attribute is the native HTML hover tooltip. Phase 0 prototype verified both work together in CM5.
+
+On each Yjs document change, the marker layer is rebuilt: all markers of the current user's marker class are cleared and re-emitted from the updated delta. This is O(n) in the number of author-runs per change but is negligible for meeting-note document sizes.
 
 **Color assignment**: when a user joins a document, the server assigns them the next color from an 8-color palette. The user↔color mapping is part of the awareness state so all clients agree on which color each user has. Palette: 8 colorblind-safe hues from the Tol Vibrant scheme, applied as `rgba(r, g, b, 0.12)` for the subtle tint effect.
 
-**Own writing is not colored**: lines/characters written by the current user themselves get no background tint. Only other users' writing is colored. This keeps the editor visually calm when you're typing in isolation.
+**Everyone sees the same view**: every attributed character is tinted with its author's color, including the local user's own writing. All peers see an identical colored view of the document — no per-user exceptions. This makes it obvious who wrote what regardless of whose screen you're looking over.
+
+**Remote cursors**: CM5's `setBookmark` API (a zero-width marker with a custom DOM widget) lets us render remote cursors as inline elements. Each awareness state update triggers repositioning of the remote cursor bookmarks.
 
 ### SignalR hub shape
 
@@ -212,8 +240,8 @@ Parameters:
 - `ValueChanged` — fired when the document changes locally (for the markdown preview pane)
 
 The component's code-behind uses JS interop to:
-1. Initialize the Yjs doc and CodeMirror editor
-2. Connect them via `y-codemirror.next`
+1. Initialize the Yjs doc and CodeMirror 5 editor
+2. Connect them via `y-codemirror`'s `CodemirrorBinding`
 3. Wire sync and awareness messages to/from the hub
 4. Invoke `LoadDocument` on init, `SaveSnapshot` on the timer and on disposal
 5. Clean up on dispose
@@ -224,39 +252,27 @@ The component's code-behind uses JS interop to:
 
 Each phase is independently shippable and produces visible progress.
 
-### Phase 0: Yjs vendoring prototype
+### Phase 0: Vendoring prototype — ✅ DONE
 
-**Goal**: confirm we can vendor `yjs`, `y-codemirror.next`, and `y-protocols` as pre-built ESM bundles and load them into a Blazor WASM page without npm or a build step. **This is a prerequisite for Phase 3; if it fails, we need to rethink the dependency strategy before committing to the rest of the plan.**
+**Goal**: confirm the editor + Yjs + y-codemirror stack can be vendored and loaded into a Blazor WASM page without npm or a build step.
 
-**Effort estimate**: 1–2 hours
+**Outcome**: successful after pivoting from CodeMirror 6 to CodeMirror 5.
 
-Steps:
-1. Download pre-built ESM bundles from a reputable CDN (candidates: `https://esm.sh/yjs`, `https://cdn.jsdelivr.net/npm/yjs/+esm`, or `https://unpkg.com/yjs`). Pin to a specific version.
-2. Place the bundles in a scratch directory (e.g., `Quartermaster.Blazor/wwwroot/js/yjs-proto/`) with a `VERSIONS.md` noting the source URL and version.
-3. Create a minimal throwaway test page (or use the browser devtools console on the existing dev server) that:
-   - Loads the `yjs` ESM bundle via `<script type="module">` or a dynamic `import()`
-   - Instantiates a `Y.Doc`, creates a `Y.Text`, applies an insertion, reads it back
-   - Loads `y-protocols/awareness` and instantiates an `Awareness` object
-   - Loads `y-codemirror.next` and wires it to a minimal CodeMirror 6 editor (also vendored for this prototype)
-4. If any bundle has unresolved `import` statements at runtime, set up an **import map** in `index.html`:
-   ```html
-   <script type="importmap">
-   { "imports": { "yjs": "/js/yjs-proto/yjs.js", "y-protocols/awareness": "/js/yjs-proto/y-protocols-awareness.js" } }
-   </script>
-   ```
-5. Verify it works in Chrome. Verify the total download size of the bundles matches expectations (~115KB gzipped).
-6. Document the vendoring recipe in `VERSIONS.md` so Phase 3 can follow it directly.
+**Findings**:
+- **Yjs vendoring (85KB)**: worked on the first try. Single file from `esm.sh`, one 20-line `process.js` stub to satisfy its `process.env.NODE_ENV` check.
+- **y-protocols/awareness (7KB)**: worked on the first try. Single file from `esm.sh`.
+- **Per-character authorship via `Y.Text.format()`**: ✅ confirmed. `toDelta()` returns runs grouped by author attribute, exactly as needed for rendering.
+- **CodeMirror 6**: ❌ **rejected**. The modular architecture (`@codemirror/state`, `@codemirror/view`, `@codemirror/language`, etc.) causes duplicate-copy issues when bundles are loaded individually — each bundled file inlines its own `@codemirror/state`, producing the error "Unrecognized extension value in extension set" at runtime. Fixing this requires either a build step or vendoring ~15-20 individual transitive dependency files with a complex import map.
+- **CodeMirror 5**: ✅ worked. Single-file UMD distribution. Loaded via `<script src>` as global `window.CodeMirror`. A tiny 20-line `cm5-esm.js` wrapper re-exports the global as an ESM default export, so `y-codemirror` (the CM5 Yjs binding) can import it via an import map entry.
+- **y-codemirror (CM5 version)**: ✅ worked. Bundled from `esm.sh` with `yjs` and `codemirror` marked as external. The `CodemirrorBinding` class wires a Y.Text to a CM5 editor instance, handling both content and awareness (cursor sync).
+- **`markText` with `css` + `title`**: ✅ confirmed. Setting `background-color` via inline CSS and `title` for hover tooltip on a range of characters works exactly as needed for the per-character authorship rendering.
+- **Markdown syntax highlighting**: ✅ bonus, works via the `mode/markdown/markdown.js` addon.
+- **Total vendored footprint**: 8 files, ~544 KB raw / ~164 KB gzipped. Within budget.
 
-**Exit criteria**:
-- A `Y.Doc` can be instantiated and manipulated from the Blazor wwwroot JS
-- `y-codemirror.next` successfully binds a Yjs doc to a CodeMirror editor in a browser page
-- Total bundle size is within ~150KB gzipped
-- No unresolved imports at runtime
-
-**If this phase fails**: document the failure mode and decide whether to:
-1. Switch to a small esbuild/Vite build step (reopens question #1 from the plan intro)
-2. Fall back to the original OT plan (loses per-character authorship as a hard requirement)
-3. Use a hosted collaboration service (new dependency, likely rejected)
+**Prototype artifacts** (kept for reference until Phase 2 starts):
+- Test page: `Quartermaster.Blazor/wwwroot/yjs-prototype.html`
+- Vendored files: `Quartermaster.Blazor/wwwroot/js/yjs-proto/`
+- Both will be renamed to the permanent location (`wwwroot/js/collab-editor/`) in Phase 2, and the `yjs-prototype.html` scratch page deleted once CM5 is wired into the real editor.
 
 ### Phase 1: SignalR foundation + live page updates
 
@@ -289,20 +305,21 @@ Steps:
 
 ### Phase 2: CodeMirror editor wrapper (no collaboration yet)
 
-**Goal**: replace the notes textarea in `MeetingLive.razor` with a CodeMirror 6 editor. Line numbers visible (Goal #4). Still autosaving via the existing REST endpoint.
+**Goal**: replace the notes textarea in `MeetingLive.razor` with a CodeMirror 5 editor. Line numbers visible (Goal #4). Still autosaving via the existing REST endpoint.
 
 **Effort estimate**: 5–7 hours
 
 Steps:
-1. Download CodeMirror 6 + `@codemirror/lang-markdown` as pre-built ESM bundles. Candidate source: https://codemirror.net/docs/guide/#bundling or use the `@codemirror/basic-setup` bundle from unpkg. Place in `Quartermaster.Blazor/wwwroot/js/codemirror/`.
+1. Move the Phase 0 vendored files from `wwwroot/js/yjs-proto/` to `wwwroot/js/collab-editor/`. The editor-related files we need at this phase: `cm5.js`, `cm5-markdown.js`, `cm5.css`. The Yjs files stay in place until Phase 3 but can be moved at the same time. Write a `VERSIONS.md` in the destination recording source URLs and versions. Delete `wwwroot/yjs-prototype.html`.
 2. Create `Quartermaster.Blazor/wwwroot/js/codemirror-editor.js` — a small JS module exposing:
-   - `createEditor(element, initialText, isReadOnly, dotnetHelper)` → returns editor handle
+   - `createEditor(element, initialText, isReadOnly, dotnetHelper)` → constructs `window.CodeMirror(...)` with `{mode: 'markdown', lineNumbers: true, lineWrapping: true, readOnly: isReadOnly}` and returns a handle
    - `setText(handle, text)` — replace whole document (used for REST-based saves)
-   - `getText(handle)` — read current text
+   - `getText(handle)` — read current text via `cm.getValue()`
    - `dispose(handle)` — destroy the editor instance
-3. Create `Quartermaster.Blazor/Components/Inputs/CodeMirrorEditor.razor` + `.razor.cs`. Implements `IAsyncDisposable`. Parameters: `Value`, `ValueChanged`, `ReadOnly`, `CssClass`.
-4. In `MeetingLive.razor`, replace the existing notes `MarkdownEditorWithPreview`'s textarea with `CodeMirrorEditor`, keeping the preview pane fed by the same `ValueChanged`.
-5. Test: InProgress meeting, type into an agenda item, switch between items, verify text persists, verify line numbers show, verify markdown preview updates.
+3. Load `cm5.js`, `cm5-markdown.js`, and `cm5.css` from `index.html` (or inject lazily before the Meeting Live page). UMD scripts set `window.CodeMirror`.
+4. Create `Quartermaster.Blazor/Components/Inputs/CodeMirrorEditor.razor` + `.razor.cs`. Implements `IAsyncDisposable`. Parameters: `Value`, `ValueChanged`, `ReadOnly`, `CssClass`.
+5. In `MeetingLive.razor`, replace the existing notes `MarkdownEditorWithPreview`'s textarea with `CodeMirrorEditor`, keeping the preview pane fed by the same `ValueChanged`.
+6. Test: InProgress meeting, type into an agenda item, switch between items, verify text persists, verify line numbers show, verify markdown preview updates.
 
 **Verification**: notes editor shows line numbers, has markdown syntax highlighting, autosave still works (via the existing `AgendaItemNotesEndpoint`), preview pane updates correctly.
 
@@ -315,7 +332,7 @@ Steps:
 This is the meatiest phase, but simpler than the original OT plan because Yjs does the hard part.
 
 Steps:
-1. Add vendored JS libs: `yjs`, `y-codemirror.next`, `y-protocols`. Place bundles in `Quartermaster.Blazor/wwwroot/js/yjs/`. Document the vendor source and version in a `VERSIONS.md` in the same directory for future updates.
+1. Ensure the Yjs-related files (`yjs.js`, `y-awareness.js`, `y-cm5.js`, `process.js`, `cm5-esm.js`) are in `wwwroot/js/collab-editor/` (moved in Phase 2 along with the CM5 files). Add these to the page's import map.
 2. Create migration `MXXX_CollabDocumentsTable.cs` that creates the `CollabDocuments` table. Fold into the existing single migration file if we're still in pre-production (per the CLAUDE.md convention about one migration per release).
 3. Create `Quartermaster.Data/Collab/CollabDocument.cs` entity + `CollabDocumentRepository.cs`. Repository methods: `Get(entityType, entityId)`, `Upsert(CollabDocument)`, `Delete(entityType, entityId)`.
 4. Add hub methods:
@@ -325,13 +342,13 @@ Steps:
 5. Server-side save throttling: the hub's `SaveSnapshot` is called by any active client on a timer; we accept the first call within a save interval and ignore subsequent ones for that interval. Use an in-memory `ConcurrentDictionary<Guid, DateTime>` for last-save timestamps. Save interval comes from the options system (`meeting.collab.save_interval_seconds`, default 10).
 6. Extend `MeetingHubClient` with collab methods: `LoadDocumentAsync`, `SendUpdateAsync`, `OnUpdateReceived` event, etc.
 7. Upgrade `CodeMirrorEditor` from Phase 2 to `CollaborativeEditor`:
-   - On init: call `LoadDocument`, construct Yjs doc from the returned bytes, attach `y-codemirror.next` binding, start the snapshot timer
-   - On local edit: Yjs generates update bytes via `Y.encodeStateAsUpdateV2` (or the observer pattern), we send via hub
-   - On `ReceiveUpdate` from hub: apply to local Yjs doc via `Y.applyUpdateV2`
-   - On snapshot timer: extract plain text via `ydoc.getText('content').toString()`, serialize Yjs state via `Y.encodeStateAsUpdateV2`, call `SaveSnapshot`
-   - On dispose: trigger one final snapshot then detach
+   - On init: call `LoadDocument`, construct Yjs doc from the returned bytes, attach the `y-codemirror` `CodemirrorBinding` between the Y.Text and the CM5 editor instance, start the snapshot timer
+   - On local edit: Yjs generates update bytes via `Y.encodeStateAsUpdate` (or the observer pattern), we send via hub
+   - On `ReceiveUpdate` from hub: apply to local Yjs doc via `Y.applyUpdate`
+   - On snapshot timer: extract plain text via `ydoc.getText('content').toString()`, serialize Yjs state via `Y.encodeStateAsUpdate`, call `SaveSnapshot`
+   - On dispose: call `binding.destroy()`, trigger one final snapshot, detach
 8. Add the `meeting.collab.save_interval_seconds` option definition to the options seeder, default 10, visible in the Options admin page
-9. Permission gating: `ReadOnly` mode for users with only `ViewMeetings` (they get the editor but can't type; they still receive updates). `SendUpdate` from a read-only user is rejected at the hub level.
+9. Permission gating: `ReadOnly` mode for users with only `ViewMeetings` (they get the editor in read-only mode but can't type; they still receive updates via the binding). `SendUpdate` from a read-only user is rejected at the hub level.
 10. Tests:
     - Unit tests for `CollabDocumentRepository`
     - Integration test: two `HubConnection` clients construct Yjs docs, apply edits, verify snapshots match
@@ -354,10 +371,12 @@ Steps:
    - `SendAwareness(Guid agendaItemId, byte[] awareness)` — broadcast to group
    - Hub listens for `awareness` broadcasts, forwards to others
 3. Color assignment: the client asks the hub on load for its assigned color. Server maintains a small per-document color map (`Dictionary<Guid, List<UserColorAssignment>>`) — when a user joins, assign the first unused color from the 8-color palette; on leave, free it. When a user reconnects they get their previous color if still available.
-4. CodeMirror decorations: install a small custom extension that reads Yjs awareness state and renders:
-   - A vertical bar in the user's color at the cursor position
+4. Remote cursor rendering via CM5 `setBookmark`: for each remote user in awareness state, place a zero-width bookmark at the user's cursor position with a custom DOM widget:
+   - A vertical bar in the user's color
    - A small label above the bar with the user's first name
    - Labels fade out after 5s of cursor inactivity, bars persist
+   - On each awareness update, remove all existing remote-cursor bookmarks and re-create them from the new state
+   - Note: `y-codemirror`'s `CodemirrorBinding` already wires most of the cursor rendering for us out of the box when we pass the `Awareness` instance; this step verifies it looks right and customizes styling if needed
 5. Above the editor: small "presence pills" UI — avatar circles with user initials in their color, listed horizontally
 
 **Verification**: two users in the same agenda item see each other's cursors. Moving the cursor in one window updates the other within ~100ms. Presence pills update when users join/leave.
@@ -369,13 +388,15 @@ Steps:
 **Effort estimate**: 3–5 hours
 
 Steps:
-1. Update the local edit path to attach the `author` attribute on insertion: `ytext.applyDelta([{retain: pos}, {insert: text, attributes: {author: myUserId}}])`
+1. Update the local edit path to attach the `author` attribute on insertion. The `y-codemirror` binding inserts characters on our behalf, so we intercept via a Y.Text observer: after each local transaction, call `ytext.format(insertStart, insertLength, {author: myUserId})` for the newly-inserted range.
 2. On document load, if the loaded state was seeded from legacy `AgendaItem.Notes`, the seeded text has no author attribute — render it without color (neutral background)
-3. Build a CodeMirror decoration plugin that reads `ytext.toDelta()`, walks the runs, and emits decorations:
-   - Skip runs where `attributes.author === currentUserId` (don't color own writing)
-   - For other authors, emit a mark decoration with inline style `background-color: rgba(r, g, b, 0.12)` and `title="Geschrieben von ${displayName}"`
-4. Update the decoration plugin on every Yjs update event so colors stay current
-5. Test all concurrent-edit scenarios to make sure the decoration survives merges
+3. Build a CM5 marker layer that reads `ytext.toDelta()`, walks the runs, and emits markers:
+   - For every attributed run (including the local user's own) call `cmDoc.markText(from, to, {css: 'background-color: rgba(r, g, b, 0.18)', title: 'Geschrieben von ${displayName}', inclusiveLeft: false, inclusiveRight: true})`
+   - Runs without an author attribute (legacy seed text) stay uncolored
+   - All peers see an identical colored view — no per-user exceptions
+   - Track the emitted markers so they can be cleared on rebuild
+4. On every Yjs document update event, clear all author-markers and rebuild from the updated delta. O(n) in the number of author-runs but negligible for meeting-note sizes.
+5. Test all concurrent-edit scenarios to make sure the markers survive merges
 6. Edge case: when a user is deleted from the system, their color assignment is gone but their historical writing should still be marked. Store a deleted-user display name in `ClientUserMap` as a fallback
 
 **Verification**: two users type in different paragraphs — each user sees the OTHER's characters highlighted in the other's color, their own are plain. Hovering over colored text shows a tooltip with the author's name. Inserting characters in the middle of someone else's text leaves their characters colored and the new characters uncolored (for the current user) or correctly colored (for the other user looking at it).
@@ -412,7 +433,7 @@ Phase 0 is a prerequisite risk-reducer for Phase 3. Phases 1 and 2 (~10h) delive
 
 ## Risks and unknowns
 
-1. **Vendoring Yjs bundles without a build step.** The official `yjs` package is distributed as CommonJS and ESM; we need pre-built ESM bundles we can `<script type="module" src="...">`. Strategy: download pre-built bundles from a CDN (`https://esm.sh/yjs` or similar) and commit them as vendored files. If the bundles have inter-dependencies that don't resolve cleanly, we'd need to add an import map to index.html. **Mitigation**: prototype this in isolation at the start of Phase 3 before sinking time into the rest.
+1. ~~**Vendoring Yjs bundles without a build step.**~~ **Resolved in Phase 0.** Yjs, y-protocols/awareness, y-codemirror, and CodeMirror 5 all vendored successfully. CM6 was rejected due to duplicate-dependency issues; CM5 worked as a single-file UMD drop-in. Total footprint ~544 KB raw / ~164 KB gzipped. See Phase 0 findings.
 
 2. **SignalR + Blazor WASM reconnect behavior with in-flight Yjs updates.** On reconnect Yjs will auto-sync via its update protocol, but if the hub lost messages during the disconnect we need the snapshot-load to be authoritative. **Mitigation**: on reconnect, always call `LoadDocument` again and apply the fetched snapshot before continuing with relay.
 
