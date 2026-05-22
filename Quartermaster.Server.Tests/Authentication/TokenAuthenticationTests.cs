@@ -91,4 +91,34 @@ public class TokenAuthenticationTests : IntegrationTestBase {
         var response = await client.GetAsync("/api/users/session");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
+
+    [Test]
+    public async Task Issued_token_has_expiry_populated_within_configured_lifetime() {
+        var (user, _) = Builder.SeedAuthenticatedUser();
+        var stored = Db.Tokens.Where(t => t.UserId == user.Id && t.Type == TokenType.Login).First();
+
+        await Assert.That(stored.Expires).IsNotNull();
+        await Assert.That(stored.Expires!.Value).IsGreaterThan(DateTime.UtcNow);
+        // SeedAuthenticatedUser → TestDataBuilder.SeedLoginToken uses a 30-day far-future expiry
+        // so test tokens never lapse mid-run. The exact value doesn't matter, only that one was set.
+        await Assert.That(stored.Expires.Value).IsLessThan(DateTime.UtcNow.AddDays(31));
+    }
+
+    [Test]
+    public async Task Successful_validation_slides_expiry_forward() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+        // Pull expiry close to now (but still valid) so the sliding-window extension is observable.
+        var beforeExtension = DateTime.UtcNow.AddMinutes(5);
+        Db.Tokens.Where(t => t.UserId == user.Id).Set(t => t.Expires, beforeExtension).Update();
+
+        using var client = AuthenticatedClient(token);
+        var response = await client.GetAsync("/api/users/session");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var afterExtension = Db.Tokens.Where(t => t.UserId == user.Id).First().Expires;
+        await Assert.That(afterExtension).IsNotNull();
+        // Default lifetime is 7 days; after a successful validate the new expiry should be far past
+        // the original 5-minute mark.
+        await Assert.That(afterExtension!.Value).IsGreaterThan(beforeExtension.AddDays(1));
+    }
 }

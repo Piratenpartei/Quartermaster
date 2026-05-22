@@ -55,11 +55,12 @@ public static class TokenExtensions {
 
     private static string Hash(string str) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
 
-    public static Token LoginUser(this DbContext db, Guid userId, string fingerprint) {
+    public static Token LoginUser(this DbContext db, Guid userId, string fingerprint, DateTime expires) {
         var userContent = GenerateSimpleTokenContent(256);
         var serverContent = GenerateLoginTokenIP(userContent, fingerprint);
         var token = new Token() {
             Content = serverContent,
+            Expires = expires,
             ExtendType = ExtendType.Usage,
             Id = Guid.NewGuid(),
             SecurityScope = TokenSecurityScope.BrowserFingerprint,
@@ -67,10 +68,9 @@ public static class TokenExtensions {
             UserId = userId
         };
 
-        // Store Token with the server content (including IP) in the DB
         db.Insert(token);
 
-        // But send the user only the random string
+        // Return value carries the user-visible random string, not the stored hash.
         token.Content = userContent;
         return token;
     }

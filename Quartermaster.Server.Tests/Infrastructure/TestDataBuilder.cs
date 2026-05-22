@@ -145,7 +145,8 @@ public sealed class TestDataBuilder {
     /// </summary>
     public string SeedLoginToken(Guid userId, string fingerprint = "") {
         // Fingerprint MUST be "" to match TokenRepository.ValidateLoginToken (which uses empty).
-        var token = _db.LoginUser(userId, fingerprint);
+        // Far-future expiry so tokens don't lapse mid-test; production tokens get a configured lifetime.
+        var token = _db.LoginUser(userId, fingerprint, DateTime.UtcNow.AddDays(30));
         // LoginUser returns the Token with Content set to the user-visible random string.
         return token.Content;
     }

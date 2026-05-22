@@ -213,6 +213,11 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "50",
             description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl sofort verfügbarer weiterer Nachrichten mit, und sendet alle über eine einzige Verbindung. Standard: 50.");
 
+        AddDefinitionIfNotExists("auth.token.lifetime_days",
+            "Login-Token: Gültigkeitsdauer (Tage)",
+            OptionDataType.Number, false, "", "7",
+            description: "Lebensdauer eines Login-Tokens in Tagen. Bei jeder erfolgreichen Verwendung wird die Gültigkeit um diesen Zeitraum verlängert (Sliding-Window). Standard: 7.");
+
         AddDefinitionIfNotExists("auth.lockout.max_attempts",
             "Login-Sperre: Max. Fehlversuche",
             OptionDataType.Number, false, "", "5",

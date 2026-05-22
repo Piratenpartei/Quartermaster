@@ -6,12 +6,18 @@
 - Only user-facing display strings (labels, messages, UI text) may be in German
 - The frontend display language is German; refer to `Quartermaster.Documentation/Translations.md` for term mappings
 
+## Braces
+
+- K&R style: opening `{` on the same line as the declaration/statement (types, methods, `if`/`else`/`for`/`foreach`/`while`/`switch`/`try`/`catch`/`finally`/`using`/`lock`, lambdas, initializers). The `.editorconfig` enforces this via `csharp_new_line_before_open_brace = none`.
+- `else`/`catch`/`finally` sit on the line of the preceding `}`: `} else {`, `} catch (Exception ex) {`.
+
 ## If Statements
 
 - Never write code on the same line as an if statement; the body must be on the next line
 - If/for/foreach statements must always have braces `{}`, with one exception:
   - A single simple statement on the following line (no else) may omit braces **only if the if/for/foreach itself fits on one line**
   - If the condition or iterator spans multiple lines, braces are always required even for a single statement
+- If any `else`/`else if` exists, all branches get braces
 
 ```csharp
 // OK: single-line if, single simple statement, no else
@@ -102,6 +108,38 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - If code needs separation into visual groups, it usually needs to be split into separate methods or files instead
 - Regular explanatory comments on specific lines/blocks are fine
 
+## Comments
+
+- Default to no comments. Don't restate what the code already says; don't narrate a fix or rule
+- Prefer XML `///` summaries on public types/members over `//` narration; tighter visibility (`private`/`internal`) beats explaining a member
+- Only add a comment when the *why* is non-obvious — a hidden constraint, a workaround, behavior that would surprise a reader. Include enough context that a future reader can judge whether the reason still applies
+
+## Members and Language Features
+
+- Always write the intended access modifier explicitly (`private`, `internal`, `public`) — never rely on implicit defaults
+- Prefer `var` everywhere
+- Prefer `using` directives over fully-qualified type names — add the `using` rather than writing `Quartermaster.Server.Cli.AdminInitCommand`. If a name genuinely collides, rename or fully-qualify at the single call site
+- **No type/namespace aliases** (`using X = Y;`) and no `global::` — they paper over a naming or namespace problem rather than fixing it
+- Prefer LINQ `Count(predicate)` over `Where(predicate).Count()`
+- Expression-bodied members for trivial properties/indexers/accessors are fine; not for methods/constructors (matches `.editorconfig`)
+- Avoid expression-bodied properties (`=>`) when the value involves allocation or `GetType()`/`typeof().Name` — use an auto-property with initializer (`{ get; } = ...`) so it's computed once
+- **One statement per line** — never combine declarations or statements with `;` on the same line
+- **Method calls:** no space between the method name and `(` — write `Method()`, not `Method ()`
+
+## Switch, Boolean, and Pattern Matching
+
+- Never put curly braces on `case` blocks. If local variable names collide between cases, rename them
+- Use `&&` and `||`, never the `and`/`or` pattern-matching keywords — they're harder to scan. Applies to pattern-matching expressions too: write `x == A || x == B`, not `x is A or B`
+
+## Exceptions
+
+- Never use a bare `catch` or `catch (Exception)` without logging. Always catch `Exception ex` and log the full exception (`{ex}`, never just `{ex.Message}`, which drops the stack and inner exceptions)
+- Reserve exceptions for genuine bugs and adapter-layer translation; don't use them for expected control flow
+
+## Locking
+
+- This project is .NET 10. Use `System.Threading.Lock` instead of `object` as a lock target — `.editorconfig` has `csharp_prefer_system_threading_lock = true`
+
 ## Blazor Components
 
 - Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)
@@ -122,3 +160,12 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 ## Commits
 
 - Never commit changes without explicit user request
+- Never run any git command (commit, init, add, push, status, etc.) without an explicit user request
+
+## Migrations
+
+- One migration per release. While pre-production, fold new schema changes into the existing in-flight migration rather than adding a new one
+
+## Self-Review Before Declaring Done
+
+- After every code change, sweep the diff against the rules in this file (especially using-directives vs. fully-qualified types, brace style, explicit access modifiers, no `@code` in `.razor`) before reporting the task complete

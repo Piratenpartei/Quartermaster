@@ -9,7 +9,6 @@ A membership management and dues payment system for the Pirate Party (Piratenpar
 - **LinqToDB** + **MySQL** — data access / ORM
 - **FluentMigrator** — database schema versioning and migrations
 - **Blazor WebAssembly** — client-side frontend with Bootstrap 5
-- **Riok.Mapperly** — compile-time source-generated object mapping
 - Custom token-based authentication + SAML SSO support
 
 ## Solution Structure
