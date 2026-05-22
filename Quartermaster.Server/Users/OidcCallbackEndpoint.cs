@@ -121,7 +121,12 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
 
         Logger.LogInformation("OIDC login attempt for email: {Email}", email);
 
-        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email, _memberRepo, _userRepo, _tokenRepo, _officerRepo);
+        var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email,
+            issuedIp,
+            string.IsNullOrEmpty(userAgent) ? null : userAgent,
+            _memberRepo, _userRepo, _tokenRepo, _officerRepo);
 
         switch (result) {
             case SsoLoginResult.NoMember:

@@ -143,10 +143,9 @@ public sealed class TestDataBuilder {
     /// Uses the server-side <see cref="TokenExtensions.LoginUser"/> which already hashes the fingerprint.
     /// The fingerprint is fixed ("test") for deterministic tests.
     /// </summary>
-    public string SeedLoginToken(Guid userId, string fingerprint = "") {
-        // Fingerprint MUST be "" to match TokenRepository.ValidateLoginToken (which uses empty).
+    public string SeedLoginToken(Guid userId) {
         // Far-future expiry so tokens don't lapse mid-test; production tokens get a configured lifetime.
-        var token = _db.LoginUser(userId, fingerprint, DateTime.UtcNow.AddDays(30));
+        var token = _db.LoginUser(userId, DateTime.UtcNow.AddDays(30), issuedIp: "127.0.0.1", issuedUserAgent: "test-agent");
         // LoginUser returns the Token with Content set to the user-visible random string.
         return token.Content;
     }

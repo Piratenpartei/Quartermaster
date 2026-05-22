@@ -1,9 +1,13 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
 using Quartermaster.Api.Users;
+using Quartermaster.Data.Tokens;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.Users;
@@ -72,6 +76,28 @@ public class LoginEndpointTests : IntegrationTestBase {
             Password = ValidPassword
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
+    public async Task Successful_login_records_issuer_ip_and_user_agent_on_token() {
+        var user = Builder.SeedUser(username: "dave", password: ValidPassword);
+        using var client = await AnonymousClientWithCsrfAsync();
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("QuartermasterTest/1.0");
+
+        var before = DateTime.UtcNow;
+        var response = await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
+            Username = "dave",
+            Password = ValidPassword
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var stored = Db.Tokens
+            .Where(t => t.UserId == user.Id && t.Type == TokenType.Login)
+            .OrderByDescending(t => t.IssuedAt)
+            .First();
+        await Assert.That(stored.IssuedAt).IsGreaterThanOrEqualTo(before.AddSeconds(-1));
+        await Assert.That(string.IsNullOrEmpty(stored.IssuedIp)).IsFalse();
+        await Assert.That(stored.IssuedUserAgent).IsEqualTo("QuartermasterTest/1.0");
     }
 
     [Test]

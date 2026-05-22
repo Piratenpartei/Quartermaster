@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using LinqToDB;
@@ -19,7 +18,9 @@ public class Token {
     public TokenType Type { get; set; }
     public DateTime? Expires { get; set; }
     public ExtendType ExtendType { get; set; }
-    public TokenSecurityScope SecurityScope { get; set; }
+    public DateTime IssuedAt { get; set; } = DateTime.UtcNow;
+    public string? IssuedIp { get; set; }
+    public string? IssuedUserAgent { get; set; }
 
     [Association(ThisKey = nameof(UserId), OtherKey = nameof(User.Id))]
     public User? User { get; set; }
@@ -39,31 +40,24 @@ public enum ExtendType {
     Password
 }
 
-public enum TokenSecurityScope {
-    None,
-    IP,
-    BrowserFingerprint
-}
-
 public static class TokenExtensions {
     private const string PossibleTokenCharacters
         = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private static string GenerateSimpleTokenContent(int length) => RandomNumberGenerator.GetString(PossibleTokenCharacters, length);
 
-    private static string GenerateLoginTokenIP(string baseContent, string ip) => Hash($"{baseContent};{ip}");
+    internal static string HashTokenContent(string content) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
 
-    private static string Hash(string str) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
-
-    public static Token LoginUser(this DbContext db, Guid userId, string fingerprint, DateTime expires) {
+    public static Token LoginUser(this DbContext db, Guid userId, DateTime expires, string? issuedIp, string? issuedUserAgent) {
         var userContent = GenerateSimpleTokenContent(256);
-        var serverContent = GenerateLoginTokenIP(userContent, fingerprint);
         var token = new Token() {
-            Content = serverContent,
+            Content = HashTokenContent(userContent),
             Expires = expires,
             ExtendType = ExtendType.Usage,
             Id = Guid.NewGuid(),
-            SecurityScope = TokenSecurityScope.BrowserFingerprint,
+            IssuedAt = DateTime.UtcNow,
+            IssuedIp = issuedIp,
+            IssuedUserAgent = issuedUserAgent,
             Type = TokenType.Login,
             UserId = userId
         };
@@ -73,44 +67,5 @@ public static class TokenExtensions {
         // Return value carries the user-visible random string, not the stored hash.
         token.Content = userContent;
         return token;
-    }
-
-    public static bool CheckLoginToken(this ITable<Token> tokenTable, string tokenContent, Guid userId, string? fingerprint) {
-        if (string.IsNullOrEmpty(tokenContent) || userId == Guid.Empty)
-            return false;
-
-        var serverContent = GenerateLoginTokenIP(tokenContent, fingerprint ?? "");
-        var token = tokenTable.Where(t => t.UserId == userId && t.Content == serverContent).FirstOrDefault();
-
-        if (token == null)
-            return false;
-
-        if (token.Expires != null && token.Expires < DateTime.UtcNow)
-            return false;
-
-        UpdateTokenExpiration(tokenTable, token);
-        return true;
-    }
-
-    public static bool CheckSimpleToken(this ITable<Token> tokenTable, string tokenContent, Guid userId) {
-        if (string.IsNullOrEmpty(tokenContent) || userId == Guid.Empty)
-            return false;
-
-        var hash = Hash(tokenContent);
-        var token = tokenTable.Where(t => t.UserId == userId && t.Content == hash).FirstOrDefault();
-        if (token == null || token.Expires < DateTime.UtcNow)
-            return false;
-
-        UpdateTokenExpiration(tokenTable, token);
-        return true;
-    }
-
-    private static void UpdateTokenExpiration(ITable<Token> tokenTable, Token token) {
-        if (token.Expires == null || token.ExtendType != ExtendType.Usage)
-            return;
-
-        // TODO: Move to TokenRepository or auth service — entities shouldn't access Options directly
-        // TODO: Grab expiration extension time from a setting instead of hardcoded one day
-        tokenTable.Where(t => t.Id == token.Id).Set(t => t.Expires, token.Expires.Value.AddDays(1)).Update();
     }
 }

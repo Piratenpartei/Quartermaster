@@ -63,7 +63,8 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
 
         if (PasswordHashser.Verify(req.Password, user?.PasswordHash ?? RndPw) && user != null) {
             _loginAttemptRepository.LogAttempt(ipAddress, identifier, true);
-            var token = _tokenRepository.LoginUser(user.Id);
+            var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
+            var token = _tokenRepository.LoginUser(user.Id, ipAddress, string.IsNullOrEmpty(userAgent) ? null : userAgent);
 
             var globalPermissions = _globalPermissionRepository.GetForUser(user.Id)
                 .Select(p => p.Identifier)

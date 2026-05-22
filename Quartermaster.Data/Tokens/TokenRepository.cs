@@ -3,8 +3,6 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Quartermaster.Data.Tokens;
 
@@ -21,16 +19,10 @@ public class TokenRepository {
         _chapters = chapters;
     }
 
-    public Token LoginUser(Guid userId) {
+    public Token LoginUser(Guid userId, string? issuedIp, string? issuedUserAgent) {
         var expires = DateTime.UtcNow.AddDays(GetTokenLifetimeDays());
-        return _context.LoginUser(userId, "", expires);
+        return _context.LoginUser(userId, expires, issuedIp, issuedUserAgent);
     }
-
-    public bool CheckLoginToken(string tokenContent, Guid userId, string fingerprint)
-        => _context.Tokens.CheckLoginToken(tokenContent, userId, fingerprint);
-
-    public bool CheckToken(string tokenContent, Guid userId)
-        => _context.Tokens.CheckSimpleToken(tokenContent, userId);
 
     public void DeleteAllForUser(Guid userId) {
         _context.Tokens.Where(t => t.UserId == userId).Delete();
@@ -46,8 +38,7 @@ public class TokenRepository {
         if (string.IsNullOrEmpty(tokenContent))
             return null;
 
-        var serverContent = Convert.ToHexString(
-            SHA256.HashData(Encoding.UTF8.GetBytes($"{tokenContent};")));
+        var serverContent = TokenExtensions.HashTokenContent(tokenContent);
 
         var token = _context.Tokens
             .Where(t => t.Content == serverContent && t.Type == TokenType.Login)

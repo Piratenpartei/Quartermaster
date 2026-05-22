@@ -89,7 +89,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Token.Type)).AsInt32()
             .WithColumn(nameof(Token.Expires)).AsDateTime().Nullable()
             .WithColumn(nameof(Token.ExtendType)).AsInt32()
-            .WithColumn(nameof(Token.SecurityScope)).AsInt32();
+            .WithColumn(nameof(Token.IssuedAt)).AsDateTime()
+            .WithColumn(nameof(Token.IssuedIp)).AsString(45).Nullable() // IPv6 max length
+            .WithColumn(nameof(Token.IssuedUserAgent)).AsString(512).Nullable();
 
         Create.ForeignKey("FK_Tokens_UserId_User_Id")
             .FromTable(Token.TableName).ForeignColumn(nameof(Token.UserId))
