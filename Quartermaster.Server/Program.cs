@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading.Channels;
 using FastEndpoints;
 using FluentMigrator.Runner;
@@ -6,8 +7,10 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
 using Quartermaster.Data;
@@ -17,6 +20,7 @@ using Quartermaster.Data.Migrations;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Members;
+using Quartermaster.Server.Security;
 
 namespace Quartermaster.Server;
 
@@ -68,6 +72,7 @@ public partial class Program {
         builder.Services.AddAuthorization();
 
         builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
+        builder.Services.Configure<ForwardedHeadersSettings>(builder.Configuration.GetSection("ForwardedHeaders"));
 #if DEBUG
         builder.Services.Configure<RootAccountSettings>(builder.Configuration.GetSection("RootAccountSettings"));
 #endif
@@ -117,6 +122,8 @@ public partial class Program {
     /// (those are host-specific). Both <see cref="Main"/> and the E2E test factory call this.
     /// </summary>
     public static void ConfigureMiddleware(WebApplication app) {
+        ConfigureForwardedHeaders(app);
+
         app.UseMiddleware<Quartermaster.Server.Security.SecurityHeadersMiddleware>();
 
         app.UseExceptionHandler(appError => {
@@ -157,5 +164,46 @@ public partial class Program {
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014
+    }
+
+    /// <summary>
+    /// Activates X-Forwarded-* processing only for the proxies/networks the deployer
+    /// explicitly trusts. Empty configuration ⇒ headers are ignored entirely, and
+    /// <c>HttpContext.Connection.RemoteIpAddress</c> stays the authoritative client IP.
+    /// </summary>
+    private static void ConfigureForwardedHeaders(WebApplication app) {
+        var settings = app.Services.GetRequiredService<IOptions<ForwardedHeadersSettings>>().Value;
+        if (settings.KnownProxies.Length == 0 && settings.KnownNetworks.Length == 0)
+            return;
+
+        var options = new ForwardedHeadersOptions {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        };
+        // Defaults are loopback-only; clear so the configured set is the entire trust list.
+        options.KnownProxies.Clear();
+        options.KnownNetworks.Clear();
+
+        foreach (var proxy in settings.KnownProxies) {
+            if (IPAddress.TryParse(proxy, out var ip))
+                options.KnownProxies.Add(ip);
+        }
+        foreach (var network in settings.KnownNetworks) {
+            var parsed = ParseNetwork(network);
+            if (parsed != null)
+                options.KnownNetworks.Add(parsed);
+        }
+
+        app.UseForwardedHeaders(options);
+    }
+
+    private static Microsoft.AspNetCore.HttpOverrides.IPNetwork? ParseNetwork(string cidr) {
+        var parts = cidr.Split('/');
+        if (parts.Length != 2)
+            return null;
+        if (!IPAddress.TryParse(parts[0], out var prefix))
+            return null;
+        if (!int.TryParse(parts[1], out var length))
+            return null;
+        return new Microsoft.AspNetCore.HttpOverrides.IPNetwork(prefix, length);
     }
 }

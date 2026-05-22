@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -6,6 +7,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -98,6 +101,60 @@ public class LoginEndpointTests : IntegrationTestBase {
         await Assert.That(stored.IssuedAt).IsGreaterThanOrEqualTo(before.AddSeconds(-1));
         await Assert.That(string.IsNullOrEmpty(stored.IssuedIp)).IsFalse();
         await Assert.That(stored.IssuedUserAgent).IsEqualTo("QuartermasterTest/1.0");
+    }
+
+    [Test]
+    public async Task Rotating_X_Forwarded_For_does_not_bypass_per_IP_lockout() {
+        Builder.SeedUser(username: "erin", password: ValidPassword);
+        using var client = await AnonymousClientWithCsrfAsync();
+
+        // Five failed attempts, each with a different spoofed X-Forwarded-For. Pre-fix,
+        // each spoofed IP would key a separate lockout bucket and never trigger. Post-fix,
+        // the header is untrusted and the connection-level IP is used → all five share a bucket.
+        for (var i = 0; i < 5; i++) {
+            using var req = new HttpRequestMessage(HttpMethod.Post, "/api/users/login") {
+                Content = JsonContent.Create(new LoginRequest { Username = "erin", Password = "WrongPasswordXYZ!!" })
+            };
+            req.Headers.Add("X-Forwarded-For", $"203.0.113.{i + 1}");
+            await client.SendAsync(req);
+        }
+
+        using var attempt = new HttpRequestMessage(HttpMethod.Post, "/api/users/login") {
+            Content = JsonContent.Create(new LoginRequest { Username = "erin", Password = ValidPassword })
+        };
+        attempt.Headers.Add("X-Forwarded-For", "203.0.113.99");
+        var response = await client.SendAsync(attempt);
+        await Assert.That((int)response.StatusCode).IsEqualTo(429);
+    }
+
+    [Test]
+    public async Task Trusted_proxy_honors_X_Forwarded_For_so_distinct_real_ips_get_distinct_lockout_buckets() {
+        Builder.SeedUser(username: "frank", password: ValidPassword);
+
+        // TestServer's loopback IP (127.0.0.1) acts as the "proxy" in this test.
+        using var trusted = Factory.WithWebHostBuilder(b =>
+            b.ConfigureAppConfiguration((_, cfg) => cfg.AddInMemoryCollection(new Dictionary<string, string?> {
+                ["ForwardedHeaders:KnownProxies:0"] = "127.0.0.1"
+            }))
+        );
+        using var client = trusted.CreateClient();
+        await AttachAntiforgeryTokenAsync(client);
+
+        for (var i = 0; i < 5; i++) {
+            using var req = new HttpRequestMessage(HttpMethod.Post, "/api/users/login") {
+                Content = JsonContent.Create(new LoginRequest { Username = "frank", Password = "WrongPasswordXYZ!!" })
+            };
+            req.Headers.Add("X-Forwarded-For", "198.51.100.1");
+            await client.SendAsync(req);
+        }
+
+        // Same user but a different forwarded IP ⇒ different lockout bucket ⇒ correct password lets us through.
+        using var attempt = new HttpRequestMessage(HttpMethod.Post, "/api/users/login") {
+            Content = JsonContent.Create(new LoginRequest { Username = "frank", Password = ValidPassword })
+        };
+        attempt.Headers.Add("X-Forwarded-For", "198.51.100.2");
+        var response = await client.SendAsync(attempt);
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }
 
     [Test]

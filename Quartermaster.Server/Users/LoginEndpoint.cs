@@ -47,7 +47,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
         const string RndPw = "EE83C9600AA859921DC735E46DCAC5F83B7B1A7BDB0256524FEE6CFC9183930656F763FCB7D0AB" +
             "021CCB025F86F04EF0DC29DA022FA923576CE4FE832B78E850;031DAE440EF21E786C7ECF5B064C1B73;500000;SHA512";
 
-        var ipAddress = GetClientIp();
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var identifier = req.Username ?? req.EMail ?? "";
 
         // Lockout check
@@ -94,13 +94,6 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
             _loginAttemptRepository.LogAttempt(ipAddress, identifier, false);
             await SendUnauthorizedAsync(ct);
         }
-    }
-
-    private string GetClientIp() {
-        var forwarded = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(forwarded))
-            return forwarded.Split(',')[0].Trim();
-        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 
     private (int MaxAttempts, int DurationMinutes) GetLockoutConfig() {
