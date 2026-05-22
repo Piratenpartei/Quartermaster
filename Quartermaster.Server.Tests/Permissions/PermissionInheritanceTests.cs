@@ -139,6 +139,33 @@ public class PermissionInheritanceTests {
     }
 
     [Test]
+    public async Task Inheritance_is_decided_by_underscore_view_suffix_not_by_pascalcase_name() {
+        var chain = _builder.SeedChapterHierarchy("Parent", "Child");
+        var (user, _) = _builder.SeedAuthenticatedUser();
+
+        var inheritablePerm = new Permission {
+            Id = System.Guid.NewGuid(),
+            Identifier = "synthetic_view",
+            DisplayName = "Synthetic view-like permission",
+            Global = false
+        };
+        var nonInheritablePerm = new Permission {
+            Id = System.Guid.NewGuid(),
+            Identifier = "synthetic_view_all",
+            DisplayName = "Synthetic view-like permission with non-matching suffix",
+            Global = false
+        };
+        _context.Insert(inheritablePerm);
+        _context.Insert(nonInheritablePerm);
+
+        _builder.GrantChapterPermission(user.Id, chain[0].Id, inheritablePerm.Identifier);
+        _builder.GrantChapterPermission(user.Id, chain[0].Id, nonInheritablePerm.Identifier);
+
+        await Assert.That(_chapterPermRepo.HasPermissionWithInheritance(user.Id, chain[1].Id, inheritablePerm.Identifier, _chapterRepo)).IsTrue();
+        await Assert.That(_chapterPermRepo.HasPermissionWithInheritance(user.Id, chain[1].Id, nonInheritablePerm.Identifier, _chapterRepo)).IsFalse();
+    }
+
+    [Test]
     public async Task Identical_grant_at_multiple_chapters_shows_in_each() {
         var chA = _builder.SeedChapter("A");
         var chB = _builder.SeedChapter("B");

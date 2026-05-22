@@ -142,6 +142,10 @@ public class UserChapterPermissionRepository {
             .Delete();
     }
 
+    /// <summary>
+    /// Inheritability is keyed off the <c>{area}_view</c> suffix convention seeded in
+    /// <see cref="Permissions.PermissionRepository"/>; identifiers like <c>members_view_all</c> do NOT match.
+    /// </summary>
     private static bool IsViewPermission(string identifier) {
         return identifier.EndsWith("_view");
     }
