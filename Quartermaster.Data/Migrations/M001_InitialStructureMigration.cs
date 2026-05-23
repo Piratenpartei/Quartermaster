@@ -188,7 +188,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(OptionDefinition.Description)).AsString(1024).WithDefaultValue("")
             .WithColumn(nameof(OptionDefinition.DataType)).AsInt32()
             .WithColumn(nameof(OptionDefinition.IsOverridable)).AsBoolean()
-            .WithColumn(nameof(OptionDefinition.TemplateModels)).AsString(512);
+            .WithColumn(nameof(OptionDefinition.TemplateModels)).AsString(512)
+            .WithColumn(nameof(OptionDefinition.IsSecret)).AsBoolean().WithDefaultValue(false);
 
         Create.Table(SystemOption.TableName)
             .WithColumn(nameof(SystemOption.Id)).AsGuid().PrimaryKey()

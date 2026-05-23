@@ -12,6 +12,7 @@ public static class PermissionIdentifier {
 
     public static readonly string ViewOptions = "options_view";
     public static readonly string EditOptions = "options_edit";
+    public static readonly string ViewOptionSecrets = "options_view_secrets";
 
     public static readonly string ViewAudit = "audit_view";
     public static readonly string ViewEmailLogs = "emaillogs_view";

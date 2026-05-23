@@ -55,6 +55,8 @@ public class OptionRepository {
         var existing = chapterId.HasValue
             ? GetChapterValue(identifier, chapterId.Value)
             : GetGlobalValue(identifier);
+        var definition = GetDefinition(identifier);
+        var redact = definition?.IsSecret == true;
 
         if (existing != null) {
             var oldValue = existing.Value;
@@ -62,7 +64,9 @@ public class OptionRepository {
                 .Where(o => o.Id == existing.Id)
                 .Set(o => o.Value, value)
                 .Update();
-            _auditLog.LogFieldChange("SystemOption", existing.Id, identifier, oldValue, value);
+            _auditLog.LogFieldChange("SystemOption", existing.Id, identifier,
+                redact ? RedactedAuditValue(oldValue) : oldValue,
+                redact ? RedactedAuditValue(value) : value);
         } else {
             var option = new SystemOption {
                 Identifier = identifier,
@@ -71,9 +75,13 @@ public class OptionRepository {
             };
             _context.Insert(option);
             _auditLog.LogCreated("SystemOption", option.Id);
-            _auditLog.LogFieldChange("SystemOption", option.Id, identifier, null, value);
+            _auditLog.LogFieldChange("SystemOption", option.Id, identifier, null,
+                redact ? RedactedAuditValue(value) : value);
         }
     }
+
+    private const string SecretMask = "••••••";
+    private static string? RedactedAuditValue(string? raw) => string.IsNullOrEmpty(raw) ? raw : SecretMask;
 
     public void SupplementDefaults() {
         AddDefinitionIfNotExists("templates.membershipapplication.approved.email",
@@ -131,7 +139,8 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.certificate",
             "SAML: Zertifikat",
             OptionDataType.String, false, "", "",
-            description: "Base64-kodiertes Signaturzertifikat des Identity Providers (ohne BEGIN/END CERTIFICATE Header). Zu finden unter Realm Settings > Keys > RS256 > Certificate.");
+            description: "Base64-kodiertes Signaturzertifikat des Identity Providers (ohne BEGIN/END CERTIFICATE Header). Zu finden unter Realm Settings > Keys > RS256 > Certificate.",
+            isSecret: true);
 
         AddDefinitionIfNotExists("auth.saml.button_text",
             "SAML: Login-Button Text",
@@ -156,7 +165,8 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.oidc.client_secret",
             "OIDC: Client-Secret",
             OptionDataType.String, false, "", "",
-            description: "Das Client-Secret des OIDC-Clients. Zu finden unter Clients > Credentials im Identity Provider.");
+            description: "Das Client-Secret des OIDC-Clients. Zu finden unter Clients > Credentials im Identity Provider.",
+            isSecret: true);
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
             "OIDC: Login-Button Text",
@@ -191,7 +201,8 @@ public class OptionRepository {
         AddDefinitionIfNotExists("email.smtp.password",
             "SMTP: Passwort",
             OptionDataType.String, false, "", "",
-            description: "Passwort für die SMTP-Authentifizierung.");
+            description: "Passwort für die SMTP-Authentifizierung.",
+            isSecret: true);
 
         AddDefinitionIfNotExists("email.smtp.sender_address",
             "SMTP: Absenderadresse",
@@ -248,15 +259,19 @@ public class OptionRepository {
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,
         OptionDataType dataType, bool isOverridable, string templateModels, string defaultValue,
-        string description = "") {
+        string description = "", bool isSecret = false) {
 
         var existing = GetDefinition(identifier);
         if (existing != null) {
-            if (existing.FriendlyName != friendlyName || (!string.IsNullOrEmpty(description) && existing.Description != description)) {
+            var nameChanged = existing.FriendlyName != friendlyName;
+            var descChanged = !string.IsNullOrEmpty(description) && existing.Description != description;
+            var secretChanged = existing.IsSecret != isSecret;
+            if (nameChanged || descChanged || secretChanged) {
                 _context.OptionDefinitions
                     .Where(d => d.Id == existing.Id)
                     .Set(d => d.FriendlyName, friendlyName)
                     .Set(d => d.Description, description)
+                    .Set(d => d.IsSecret, isSecret)
                     .Update();
             }
             return;
@@ -268,7 +283,8 @@ public class OptionRepository {
             Description = description,
             DataType = dataType,
             IsOverridable = isOverridable,
-            TemplateModels = templateModels
+            TemplateModels = templateModels,
+            IsSecret = isSecret
         });
 
         if (!string.IsNullOrEmpty(defaultValue))

@@ -38,14 +38,17 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
             await SendForbiddenAsync(ct);
             return;
         }
+        var canViewSecrets = EndpointAuthorizationHelper.HasGlobalPermission(
+            userId.Value, PermissionIdentifier.ViewOptionSecrets, _globalPermRepo);
 
         var definitions = _optionRepo.GetAllDefinitions();
         var allValues = _optionRepo.GetAllValues();
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id);
 
         var dtos = definitions.Select(def => {
+            var maskValue = def.IsSecret && !canViewSecrets;
             var values = allValues.Where(v => v.Identifier == def.Identifier).ToList();
-            var globalValue = values.FirstOrDefault(v => v.ChapterId == null)?.Value ?? "";
+            var globalRaw = values.FirstOrDefault(v => v.ChapterId == null)?.Value ?? "";
             var overrides = values
                 .Where(v => v.ChapterId != null && chapters.ContainsKey(v.ChapterId.Value))
                 .Select(v => {
@@ -54,7 +57,7 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
                         ChapterId = ch.Id,
                         ChapterName = ch.Name,
                         ChapterShortCode = ch.ShortCode ?? "",
-                        Value = v.Value
+                        Value = MaskIfNeeded(v.Value, maskValue)
                     };
                 }).ToList();
 
@@ -66,11 +69,16 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
                 DataType = (int)def.DataType,
                 IsOverridable = def.IsOverridable,
                 TemplateModels = def.TemplateModels,
-                GlobalValue = globalValue,
-                Overrides = overrides
+                GlobalValue = MaskIfNeeded(globalRaw, maskValue),
+                Overrides = overrides,
+                IsSecret = def.IsSecret,
+                ValueMasked = maskValue
             };
         }).ToList();
 
         await SendAsync(dtos, cancellation: ct);
     }
+
+    private const string SecretMask = "••••••";
+    private static string MaskIfNeeded(string raw, bool mask) => mask && !string.IsNullOrEmpty(raw) ? SecretMask : raw;
 }

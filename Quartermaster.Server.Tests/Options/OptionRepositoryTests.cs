@@ -137,6 +137,34 @@ public class OptionRepositoryTests : IDisposable {
         await Assert.That(result).IsEqualTo("global-only");
     }
 
+    [Test]
+    public async Task SetValue_SecretOption_RedactsAuditLogEntry() {
+        _context.Insert(new OptionDefinition {
+            Identifier = "test.secret",
+            FriendlyName = "Test Secret",
+            DataType = OptionDataType.String,
+            IsOverridable = false,
+            IsSecret = true
+        });
+
+        _repo.SetValue("test.secret", null, "plaintext-secret-value");
+        var stored = _context.SystemOptions.Where(o => o.Identifier == "test.secret").First();
+        _repo.SetValue("test.secret", null, "second-plaintext-value");
+
+        var entries = _context.AuditLogs
+            .Where(e => e.EntityType == "SystemOption" && e.EntityId == stored.Id)
+            .ToList();
+
+        // Stored value itself must be the real plaintext (the SMTP service still needs it).
+        await Assert.That(_repo.ResolveValue("test.secret", null, _chapterRepo)).IsEqualTo("second-plaintext-value");
+        // But every audit-log entry that touches the secret's value must hold the mask, never the plaintext.
+        await Assert.That(entries.Count > 0).IsTrue();
+        foreach (var entry in entries) {
+            await Assert.That(entry.OldValue?.Contains("plaintext") ?? false).IsFalse();
+            await Assert.That(entry.NewValue?.Contains("plaintext") ?? false).IsFalse();
+        }
+    }
+
     public void Dispose() {
         _context?.Dispose();
     }

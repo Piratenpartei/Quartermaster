@@ -31,6 +31,7 @@ public class PermissionRepository {
 		AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
         AddIfNotExists(PermissionIdentifier.ViewOptions, "Einstellungen anzeigen", true);
         AddIfNotExists(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
+        AddIfNotExists(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ViewAudit, "Audit-Log anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ViewEmailLogs, "E-Mail-Log anzeigen", true);
         AddIfNotExists(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);

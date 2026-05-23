@@ -13,6 +13,12 @@ public class OptionDefinitionDTO {
     public string TemplateModels { get; set; } = "";
     public string GlobalValue { get; set; } = "";
     public List<OptionOverrideDTO> Overrides { get; set; } = [];
+
+    /// <summary>True if the underlying value is credential-like (e.g. SMTP password).</summary>
+    public bool IsSecret { get; set; }
+
+    /// <summary>True if the caller lacks <c>ViewOptionSecrets</c> and the value bytes have been masked server-side.</summary>
+    public bool ValueMasked { get; set; }
 }
 
 public class OptionOverrideDTO {

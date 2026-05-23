@@ -21,7 +21,7 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Secret Exposure
 
-- [ ] **`OptionListEndpoint` returns all secrets in cleartext to any `ViewOptions` holder.** `Quartermaster.Server/Options/OptionListEndpoint.cs:42-72` — `email.smtp.password`, `auth.oidc.client_secret`, `auth.saml.certificate` all in the response body. Add a `Secret` flag on `OptionDefinition` and mask values in list/detail; log audit events on `EditOptions` changes to secret keys.
+- [x] **`OptionListEndpoint` returns all secrets in cleartext to any `ViewOptions` holder.** Added `IsSecret` column on `OptionDefinition` (M001 fold), marked the three known secrets (`email.smtp.password`, `auth.oidc.client_secret`, `auth.saml.certificate`). New global permission `ViewOptionSecrets` ("Einstellungen: Geheimnisse im Klartext anzeigen") — auto-granted to the root admin via the existing `SupplementDefaults` global-perm seeding. `OptionListEndpoint` masks secret values with `••••••` for callers lacking the new perm; DTO carries `IsSecret` + `ValueMasked` so the frontend can render a secret-aware input. `OptionRepository.SetValue` redacts old/new values in the audit log for secret options (the real value is still persisted — SMTP/OIDC/SAML consumers still resolve plaintext via `ResolveValue`). Tests: secret masked without perm, plaintext with perm, non-secret never masked, audit log redaction for secret writes.
 - [ ] **Bearer token stored in localStorage.** `Quartermaster.Blazor/wwwroot/js/auth.js:1-7`. Accessible to any XSS. Existing decision may be intentional given Blazor WASM constraints, but pair with a real XSS audit before going public.
 
 ### SAML / OIDC Hardening

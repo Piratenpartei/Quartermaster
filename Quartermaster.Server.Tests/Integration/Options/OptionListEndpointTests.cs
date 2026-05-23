@@ -52,6 +52,65 @@ public class OptionListEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Secret_option_value_is_masked_without_ViewOptionSecrets_permission() {
+        var editor = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewOptions, PermissionIdentifier.EditOptions });
+        using var writeClient = await AuthenticatedClientWithCsrfAsync(editor.Token);
+        var setResp = await writeClient.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+            Identifier = "email.smtp.password",
+            ChapterId = null,
+            Value = "hunter2-supersecret"
+        });
+        await Assert.That(setResp.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var (_, viewerToken) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewOptions });
+        using var viewClient = AuthenticatedClient(viewerToken);
+        var response = await viewClient.GetAsync("/api/options");
+        var list = await response.Content.ReadFromJsonAsync<List<OptionDefinitionDTO>>();
+        var pw = list!.First(d => d.Identifier == "email.smtp.password");
+        await Assert.That(pw.IsSecret).IsTrue();
+        await Assert.That(pw.ValueMasked).IsTrue();
+        await Assert.That(pw.GlobalValue).IsNotEqualTo("hunter2-supersecret");
+        await Assert.That(pw.GlobalValue.Contains("hunter2")).IsFalse();
+    }
+
+    [Test]
+    public async Task Secret_option_value_is_plaintext_with_ViewOptionSecrets_permission() {
+        var editor = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewOptions, PermissionIdentifier.EditOptions });
+        using var writeClient = await AuthenticatedClientWithCsrfAsync(editor.Token);
+        await writeClient.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+            Identifier = "email.smtp.password",
+            ChapterId = null,
+            Value = "hunter2-supersecret"
+        });
+
+        var (_, adminToken) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewOptions, PermissionIdentifier.ViewOptionSecrets });
+        using var client = AuthenticatedClient(adminToken);
+        var response = await client.GetAsync("/api/options");
+        var list = await response.Content.ReadFromJsonAsync<List<OptionDefinitionDTO>>();
+        var pw = list!.First(d => d.Identifier == "email.smtp.password");
+        await Assert.That(pw.IsSecret).IsTrue();
+        await Assert.That(pw.ValueMasked).IsFalse();
+        await Assert.That(pw.GlobalValue).IsEqualTo("hunter2-supersecret");
+    }
+
+    [Test]
+    public async Task Non_secret_options_are_never_masked() {
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewOptions });
+        using var client = AuthenticatedClient(token);
+        var response = await client.GetAsync("/api/options");
+        var list = await response.Content.ReadFromJsonAsync<List<OptionDefinitionDTO>>();
+        var nonSecret = list!.First(d => d.Identifier == "auth.lockout.max_attempts");
+        await Assert.That(nonSecret.IsSecret).IsFalse();
+        await Assert.That(nonSecret.ValueMasked).IsFalse();
+        await Assert.That(nonSecret.GlobalValue).IsEqualTo("5");
+    }
+
+    [Test]
     public async Task Includes_chapter_override_in_response() {
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.ViewOptions, PermissionIdentifier.EditOptions });

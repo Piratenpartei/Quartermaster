@@ -16,6 +16,9 @@ public class OptionDefinition {
     public OptionDataType DataType { get; set; }
     public bool IsOverridable { get; set; }
     public string TemplateModels { get; set; } = "";
+
+    /// <summary>Credential-like values; masked in the API for callers without <c>ViewOptionSecrets</c> and redacted in the audit log.</summary>
+    public bool IsSecret { get; set; }
 }
 
 public enum OptionDataType {
