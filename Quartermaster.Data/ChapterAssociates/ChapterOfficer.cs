@@ -7,8 +7,11 @@ namespace Quartermaster.Data.ChapterAssociates;
 public class ChapterOfficer {
     public const string TableName = "ChapterAssociates";
 
+    [PrimaryKey(Order = 0)]
     public Guid MemberId { get; set; }
+    [PrimaryKey(Order = 1)]
     public Guid ChapterId { get; set; }
+    [PrimaryKey(Order = 2)]
     public ChapterOfficerType AssociateType { get; set; }
 }
 

@@ -109,6 +109,10 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(UserGlobalPermission.UserId)).AsGuid()
             .WithColumn(nameof(UserGlobalPermission.PermissionId)).AsGuid();
 
+        Create.PrimaryKey("PK_UserGlobalPermissions")
+            .OnTable(UserGlobalPermission.TableName)
+            .Columns(nameof(UserGlobalPermission.UserId), nameof(UserGlobalPermission.PermissionId));
+
         Create.ForeignKey("FK_UserGlobalPermissions_UserId_User_Id")
             .FromTable(UserGlobalPermission.TableName).ForeignColumn(nameof(UserGlobalPermission.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
@@ -121,6 +125,10 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(UserChapterPermission.UserId)).AsGuid()
             .WithColumn(nameof(UserChapterPermission.ChapterId)).AsGuid()
             .WithColumn(nameof(UserChapterPermission.PermissionId)).AsGuid();
+
+        Create.PrimaryKey("PK_UserChapterPermissions")
+            .OnTable(UserChapterPermission.TableName)
+            .Columns(nameof(UserChapterPermission.UserId), nameof(UserChapterPermission.ChapterId), nameof(UserChapterPermission.PermissionId));
 
         Create.ForeignKey("FK_UserChapterPermissions_UserId_User_Id")
             .FromTable(UserChapterPermission.TableName).ForeignColumn(nameof(UserChapterPermission.UserId))
@@ -138,6 +146,10 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(ChapterOfficer.MemberId)).AsGuid()
             .WithColumn(nameof(ChapterOfficer.ChapterId)).AsGuid()
             .WithColumn(nameof(ChapterOfficer.AssociateType)).AsInt32();
+
+        Create.PrimaryKey("PK_ChapterAssociates")
+            .OnTable(ChapterOfficer.TableName)
+            .Columns(nameof(ChapterOfficer.MemberId), nameof(ChapterOfficer.ChapterId), nameof(ChapterOfficer.AssociateType));
 
         // FK_ChapterAssociates_MemberId is created after Members table below
 
@@ -474,8 +486,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(RolePermission.RoleId)).AsGuid()
             .WithColumn(nameof(RolePermission.PermissionIdentifier)).AsString(128);
 
-        Create.Index("IX_RolePermissions_RoleId").OnTable(RolePermission.TableName)
-            .OnColumn(nameof(RolePermission.RoleId)).Ascending();
+        Create.PrimaryKey("PK_RolePermissions")
+            .OnTable(RolePermission.TableName)
+            .Columns(nameof(RolePermission.RoleId), nameof(RolePermission.PermissionIdentifier));
 
         Create.ForeignKey("FK_RolePermissions_RoleId_Roles_Id")
             .FromTable(RolePermission.TableName).ForeignColumn(nameof(RolePermission.RoleId))
