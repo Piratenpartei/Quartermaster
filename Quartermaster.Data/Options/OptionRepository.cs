@@ -249,6 +249,16 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "15",
             description: "Zeitfenster und Sperrdauer in Minuten: Fehlversuche werden in diesem Fenster gezählt, und die Sperre gilt so lange nach dem letzten Fehlversuch. Standard: 15.");
 
+        AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_permits",
+            "Rate-Limit: Anonyme Anfragen pro Fenster",
+            OptionDataType.Number, false, "", "5",
+            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, Beitragseinstufungen) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
+
+        AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_window_minutes",
+            "Rate-Limit: Zeitfenster (Minuten)",
+            OptionDataType.Number, false, "", "10",
+            description: "Länge des Zeitfensters für das Rate-Limit anonymer Anfragen, in Minuten. Standard: 10.");
+
         AddDefinitionIfNotExists("meetings.protocol.archive_dir",
             "Sitzungen: Protokoll-Archivpfad",
             OptionDataType.String, false, "", "",

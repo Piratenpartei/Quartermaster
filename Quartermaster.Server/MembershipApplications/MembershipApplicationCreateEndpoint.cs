@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.DueSelector;
@@ -27,6 +29,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     public override void Configure() {
         Post("/api/membershipapplications");
         AllowAnonymous();
+        Options(b => b.RequireRateLimiting(Program.AnonymousCreateRateLimitPolicy));
     }
 
     public override async Task HandleAsync(MembershipApplicationDTO req, CancellationToken ct) {

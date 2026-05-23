@@ -1,6 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.DueSelector;
 using DataDueSelector = Quartermaster.Data.DueSelector;
 
@@ -16,6 +18,7 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
     public override void Configure() {
         Post("/api/dueselector");
         AllowAnonymous();
+        Options(b => b.RequireRateLimiting(Program.AnonymousCreateRateLimitPolicy));
     }
 
     public override async Task HandleAsync(DueSelectionDTO req, CancellationToken ct) {

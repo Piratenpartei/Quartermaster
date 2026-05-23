@@ -33,7 +33,7 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Anonymous POST Spam / DoS Surface
 
-- [ ] **Rate-limit anonymous create endpoints.** `Quartermaster.Server/Motions/MotionCreateEndpoint.cs:18-21`, `MembershipApplications/MembershipApplicationCreateEndpoint.cs:27-30`, `DueSelector/DueSelectionCreateEndpoint.cs:18`. All `AllowAnonymous` POSTs that write to DB (the last collects IBAN). Add rate limiting / captcha / honeypot.
+- [x] **Rate-limit anonymous create endpoints.** Added ASP.NET Core `AddRateLimiter` with a per-IP fixed-window policy `anonymous-create`, applied to `MotionCreate`, `MembershipApplicationCreate`, `DueSelectionCreate` via `Options(b => b.RequireRateLimiting(...))` — single shared bucket stops cross-endpoint amplification. Middleware ordered after `UseRouting` so endpoint metadata is visible. Two-layer config: runtime DB Options (`auth.ratelimit.anonymous_create_permits` + `auth.ratelimit.anonymous_create_window_minutes`, admin-tunable, takes effect for new IP partitions immediately and active ones after their window resets) wins over appsettings baseline (`RateLimit:AnonymousCreatePermits=5` / `AnonymousCreateWindowMinutes=10`). Test factory bumps appsettings to 10000; three dedicated tests cover the limit-trip, the cross-endpoint shared bucket, and the runtime-Options-overrides-appsettings path.
 
 ### Data Integrity (Pre-Production Migration Window)
 

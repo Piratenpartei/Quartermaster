@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using LinqToDB;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data;
@@ -38,6 +40,15 @@ public abstract class IntegrationTestBase : IDisposable {
         }
         Db = Database.CreateDbContext();
         Builder = new TestDataBuilder(Db);
+
+        // Bump the anonymous-create rate limit on the per-worker shared factory so unrelated
+        // tests can't drain each other's bucket. Direct DB write (not via OptionRepository)
+        // to skip audit-log noise. Dedicated rate-limit tests overwrite this back to a
+        // strict value inside a WithWebHostBuilder factory so they get a fresh limiter.
+        Db.SystemOptions
+            .Where(o => o.Identifier == "auth.ratelimit.anonymous_create_permits" && o.ChapterId == null)
+            .Set(o => o.Value, "10000")
+            .Update();
     }
 
     protected HttpClient CreateClient() {

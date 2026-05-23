@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Motions;
@@ -18,6 +20,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     public override void Configure() {
         Post("/api/motions");
         AllowAnonymous();
+        Options(b => b.RequireRateLimiting(Program.AnonymousCreateRateLimitPolicy));
     }
 
     public override async Task HandleAsync(MotionCreateRequest req, CancellationToken ct) {

@@ -1,6 +1,8 @@
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Channels;
+using System.Threading.RateLimiting;
 using FastEndpoints;
 using FluentMigrator.Runner;
 using FluentValidation;
@@ -8,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -73,6 +76,7 @@ public partial class Program {
 
         builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("DatabaseSettings"));
         builder.Services.Configure<ForwardedHeadersSettings>(builder.Configuration.GetSection("ForwardedHeaders"));
+        ConfigureRateLimiter(builder);
 #if DEBUG
         builder.Services.Configure<RootAccountSettings>(builder.Configuration.GetSection("RootAccountSettings"));
 #endif
@@ -138,6 +142,7 @@ public partial class Program {
         });
 
         app.UseRouting();
+        app.UseRateLimiter();
 
         app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
 
@@ -164,6 +169,55 @@ public partial class Program {
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014
+    }
+
+    public const string AnonymousCreateRateLimitPolicy = "anonymous-create";
+
+    // Safety fallbacks if the Option is missing, unparseable, or non-positive — the
+    // resolver guards against a fat-fingered admin saving "" or "0" and silently
+    // disabling all anonymous signups.
+    private const int FallbackAnonymousCreatePermits = 5;
+    private const int FallbackAnonymousCreateWindowMinutes = 10;
+
+    /// <summary>
+    /// Per-IP fixed-window throttle shared across the anonymous POST endpoints
+    /// (MotionCreate, MembershipApplicationCreate, DueSelectionCreate). Sharing one bucket
+    /// stops an attacker from multiplying their effective rate across endpoints. Values
+    /// resolve from <c>OptionRepository</c> (admin-tunable at runtime — takes effect for
+    /// new IP partitions immediately and for active partitions after their window resets).
+    /// </summary>
+    private static void ConfigureRateLimiter(WebApplicationBuilder builder) {
+        builder.Services.AddRateLimiter(options => {
+            options.RejectionStatusCode = 429;
+            options.AddPolicy(AnonymousCreateRateLimitPolicy, httpContext => {
+                var optionRepo = httpContext.RequestServices.GetRequiredService<Quartermaster.Data.Options.OptionRepository>();
+                var chapterRepo = httpContext.RequestServices.GetRequiredService<Quartermaster.Data.Chapters.ChapterRepository>();
+
+                var permits = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.anonymous_create_permits", FallbackAnonymousCreatePermits);
+                var windowMinutes = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.anonymous_create_window_minutes", FallbackAnonymousCreateWindowMinutes);
+
+                var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions {
+                    PermitLimit = permits,
+                    Window = TimeSpan.FromMinutes(windowMinutes),
+                    QueueLimit = 0,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    AutoReplenishment = true
+                });
+            });
+        });
+    }
+
+    private static int ResolvePositiveInt(
+        Quartermaster.Data.Options.OptionRepository options,
+        Quartermaster.Data.Chapters.ChapterRepository chapters,
+        string identifier, int fallback) {
+        var raw = options.ResolveValue(identifier, null, chapters);
+        if (int.TryParse(raw, out var parsed) && parsed > 0)
+            return parsed;
+        return fallback;
     }
 
     /// <summary>
