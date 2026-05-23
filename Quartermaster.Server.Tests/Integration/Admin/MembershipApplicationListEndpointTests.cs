@@ -68,6 +68,26 @@ public class MembershipApplicationListEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Chapter_viewer_requesting_non_permitted_chapter_gets_empty_not_widened() {
+        // Regression: pre-fix the (allowedChapterIds ∩ user-supplied filter) empty intersection
+        // was passed to the repo as `[]`, which the repo then treated as "no filter" and widened
+        // to ALL applications across ALL chapters.
+        var chapterA = Builder.SeedChapter("A");
+        var chapterB = Builder.SeedChapter("B");
+        Builder.SeedMembershipApplication(chapterA.Id, "Allowed", "A");
+        Builder.SeedMembershipApplication(chapterB.Id, "Forbidden", "B");
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapterA.Id] = new[] { PermissionIdentifier.ViewApplications } });
+        using var client = AuthenticatedClient(token);
+
+        var response = await client.GetAsync($"/api/admin/membershipapplications?ChapterId={chapterB.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<MembershipApplicationListResponse>();
+        await Assert.That(result!.TotalCount).IsEqualTo(0);
+        await Assert.That(result.Items.Count).IsEqualTo(0);
+    }
+
+    [Test]
     public async Task Page_size_over_100_rejected() {
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.ViewApplications });

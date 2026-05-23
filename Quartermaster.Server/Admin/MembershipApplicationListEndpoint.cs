@@ -51,17 +51,19 @@ public class MembershipApplicationListEndpoint
             return;
         }
 
-        var chapterIds = req.ChapterId.HasValue
-            ? _chapterRepo.GetDescendantIds(req.ChapterId.Value)
-            : new List<Guid>();
-
-        // Intersect user-specified chapter filter with auth-permitted chapters
-        if (allowedChapterIds != null) {
+        List<Guid>? chapterIds;
+        if (allowedChapterIds == null) {
+            // Global view: optional user-supplied filter, otherwise no filter.
+            chapterIds = req.ChapterId.HasValue
+                ? _chapterRepo.GetDescendantIds(req.ChapterId.Value)
+                : null;
+        } else {
+            // Chapter-scoped view: filter is always the auth-permitted set, intersected
+            // with the user-supplied filter when one is given. Empty intersection ⇒ zero rows.
             var allowed = new HashSet<Guid>(allowedChapterIds);
-            if (chapterIds.Count > 0)
-                chapterIds = chapterIds.Where(id => allowed.Contains(id)).ToList();
-            else
-                chapterIds = allowedChapterIds;
+            chapterIds = req.ChapterId.HasValue
+                ? _chapterRepo.GetDescendantIds(req.ChapterId.Value).Where(allowed.Contains).ToList()
+                : allowedChapterIds;
         }
 
         ApplicationStatus? status = req.Status.HasValue

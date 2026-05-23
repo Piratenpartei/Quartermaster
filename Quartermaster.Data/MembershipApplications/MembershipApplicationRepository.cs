@@ -28,12 +28,17 @@ public class MembershipApplicationRepository {
         _auditLog.LogCreated("MembershipApplication", application.Id);
     }
 
+    /// <summary>
+    /// Lists applications. <paramref name="chapterIds"/> contract:
+    /// <c>null</c> = no chapter filter (only callers with global view should pass this);
+    /// non-null list = exactly these chapters (an empty list returns zero rows, never widens).
+    /// </summary>
     public (List<MembershipApplication> Items, int TotalCount) List(
-        List<Guid> chapterIds, ApplicationStatus? status, int page, int pageSize) {
+        List<Guid>? chapterIds, ApplicationStatus? status, int page, int pageSize) {
 
         var q = _context.MembershipApplications.Where(a => a.DeletedAt == null).AsQueryable();
 
-        if (chapterIds.Count > 0)
+        if (chapterIds != null)
             q = q.Where(a => a.ChapterId != null && chapterIds.Contains(a.ChapterId.Value));
 
         if (status != null)
