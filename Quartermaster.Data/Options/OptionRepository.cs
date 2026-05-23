@@ -147,6 +147,16 @@ public class OptionRepository {
             OptionDataType.String, false, "", "SSO Login",
             description: "Text, der auf dem SSO-Login-Button auf der Anmeldeseite angezeigt wird.");
 
+        AddDefinitionIfNotExists("auth.saml.expected_audience",
+            "SAML: Erwarteter Audience-Wert",
+            OptionDataType.String, false, "", "",
+            description: "Der SP-Entity-ID-Wert, den die SAML-Assertion im <Audience>-Element tragen muss. Wenn leer, wird die Audience-Prüfung übersprungen (nicht empfohlen für Produktion).");
+
+        AddDefinitionIfNotExists("auth.saml.expected_destination",
+            "SAML: Erwartete Destination-URL",
+            OptionDataType.String, false, "", "",
+            description: "Die URL, an die der IdP die SAML-Antwort senden soll (z.B. https://quartermaster.example.de/api/users/SamlConsume). Muss mit dem <Destination>-Attribut der Antwort übereinstimmen. Wenn leer, wird die Destination-Prüfung übersprungen (nicht empfohlen für Produktion).");
+
         AddDefinitionIfNotExists("auth.sso.support_contact",
             "SSO: Support-Kontakt",
             OptionDataType.String, false, "", "",

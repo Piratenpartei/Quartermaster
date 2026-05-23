@@ -7,29 +7,35 @@ using Microsoft.Extensions.Logging;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
+using Quartermaster.Data.Saml;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.Users;
 
 namespace Quartermaster.Server.Users;
 
 public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse> {
+    private static readonly TimeSpan ClockSkewTolerance = TimeSpan.FromSeconds(60);
+
     private readonly OptionRepository _optionRepo;
     private readonly UserRepository _userRepo;
     private readonly MemberRepository _memberRepo;
     private readonly TokenRepository _tokenRepo;
     private readonly ChapterOfficerRepository _officerRepo;
+    private readonly UsedSamlAssertionRepository _assertionRepo;
 
     public SamlLoginConsumeEndpoint(
         OptionRepository optionRepo,
         UserRepository userRepo,
         MemberRepository memberRepo,
         TokenRepository tokenRepo,
-        ChapterOfficerRepository officerRepo) {
+        ChapterOfficerRepository officerRepo,
+        UsedSamlAssertionRepository assertionRepo) {
         _optionRepo = optionRepo;
         _userRepo = userRepo;
         _memberRepo = memberRepo;
         _tokenRepo = tokenRepo;
         _officerRepo = officerRepo;
+        _assertionRepo = assertionRepo;
     }
 
     public override void Configure() {
@@ -66,6 +72,43 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
 
         if (!samlResponse.IsValid()) {
             await SendRedirectAsync("/Login?error=saml_signature", allowRemoteRedirects: false);
+            return;
+        }
+
+        var metadata = SamlAssertionParser.TryParse(req.SamlData);
+        if (metadata == null) {
+            Logger.LogWarning("SAML login failed: assertion metadata unparseable or missing required fields");
+            await SendRedirectAsync("/Login?error=saml_invalid", allowRemoteRedirects: false);
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        if (metadata.NotBefore - ClockSkewTolerance > now || metadata.NotOnOrAfter + ClockSkewTolerance <= now) {
+            Logger.LogWarning("SAML login failed: assertion outside validity window. NotBefore={NotBefore} NotOnOrAfter={NotOnOrAfter} Now={Now}",
+                metadata.NotBefore, metadata.NotOnOrAfter, now);
+            await SendRedirectAsync("/Login?error=saml_expired", allowRemoteRedirects: false);
+            return;
+        }
+
+        var expectedAudience = _optionRepo.GetGlobalValue("auth.saml.expected_audience")?.Value;
+        if (!string.IsNullOrEmpty(expectedAudience) && metadata.Audience != expectedAudience) {
+            Logger.LogWarning("SAML login failed: audience mismatch. Got={Got} Expected={Expected}",
+                metadata.Audience, expectedAudience);
+            await SendRedirectAsync("/Login?error=saml_audience", allowRemoteRedirects: false);
+            return;
+        }
+
+        var expectedDestination = _optionRepo.GetGlobalValue("auth.saml.expected_destination")?.Value;
+        if (!string.IsNullOrEmpty(expectedDestination) && metadata.Destination != expectedDestination) {
+            Logger.LogWarning("SAML login failed: destination mismatch. Got={Got} Expected={Expected}",
+                metadata.Destination, expectedDestination);
+            await SendRedirectAsync("/Login?error=saml_destination", allowRemoteRedirects: false);
+            return;
+        }
+
+        if (!_assertionRepo.TryMarkUsed(metadata.AssertionId, metadata.NotOnOrAfter)) {
+            Logger.LogWarning("SAML login failed: assertion replay detected. AssertionID={AssertionId}", metadata.AssertionId);
+            await SendRedirectAsync("/Login?error=saml_replay", allowRemoteRedirects: false);
             return;
         }
 

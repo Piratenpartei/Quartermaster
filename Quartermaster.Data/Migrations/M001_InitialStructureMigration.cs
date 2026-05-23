@@ -13,6 +13,7 @@ using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.Saml;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -593,10 +594,21 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.Index("IX_CollabDocuments_LastUpdatedAt").OnTable(CollabDocument.TableName)
             .OnColumn(nameof(CollabDocument.LastUpdatedAt)).Ascending();
+
+        Create.Table(UsedSamlAssertion.TableName)
+            .WithColumn(nameof(UsedSamlAssertion.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(UsedSamlAssertion.AssertionId)).AsString(255).Unique()
+            .WithColumn(nameof(UsedSamlAssertion.ExpiresAt)).AsDateTime()
+            .WithColumn(nameof(UsedSamlAssertion.UsedAt)).AsDateTime();
+
+        Create.Index("IX_UsedSamlAssertions_ExpiresAt").OnTable(UsedSamlAssertion.TableName)
+            .OnColumn(nameof(UsedSamlAssertion.ExpiresAt)).Ascending();
     }
 
     public override void Down() {
         DisableForeignKeyChecks();
+
+        DropTableIfExists(UsedSamlAssertion.TableName);
 
         DropTableIfExists(EventChecklistItem.TableName);
         DropTableIfExists(Event.TableName);

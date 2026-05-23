@@ -17,6 +17,7 @@ using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.Saml;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -54,6 +55,7 @@ public class DbContext : DataConnection {
     public ITable<Meetings.Meeting> Meetings => this.GetTable<Meetings.Meeting>();
     public ITable<Meetings.AgendaItem> AgendaItems => this.GetTable<Meetings.AgendaItem>();
     public ITable<CollabDocument> CollabDocuments => this.GetTable<CollabDocument>();
+    public ITable<UsedSamlAssertion> UsedSamlAssertions => this.GetTable<UsedSamlAssertion>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -79,6 +81,7 @@ public class DbContext : DataConnection {
         services.AddScoped<Meetings.MeetingRepository>();
         services.AddScoped<Meetings.AgendaItemRepository>();
         services.AddScoped<CollabDocumentRepository>();
+        services.AddScoped<UsedSamlAssertionRepository>();
     }
 
     public static void SupplementDefaults(IServiceProvider services) {
