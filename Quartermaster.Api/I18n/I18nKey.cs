@@ -48,6 +48,8 @@ public static class I18nKey {
                 public const string MemberRequired = "error.chapter.officer.member_required";
                 public const string ChapterRequired = "error.chapter.officer.chapter_required";
                 public const string InvalidOfficerType = "error.chapter.officer.invalid_officer_type";
+                public const string MemberNotFound = "error.chapter.officer.member_not_found";
+                public const string MemberChapterMismatch = "error.chapter.officer.member_chapter_mismatch";
             }
         }
 

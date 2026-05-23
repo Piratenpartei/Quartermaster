@@ -19,6 +19,8 @@
   "error.chapter.officer.member_required": "Mitglied muss ausgewählt werden.",
   "error.chapter.officer.chapter_required": "Gliederung muss ausgewählt werden.",
   "error.chapter.officer.invalid_officer_type": "Ungültiger Vorstandstyp.",
+  "error.chapter.officer.member_not_found": "Das angegebene Mitglied existiert nicht.",
+  "error.chapter.officer.member_chapter_mismatch": "Das Mitglied gehört nicht zur angegebenen Gliederung.",
 
   "error.motion.chapter_required": "Gliederung muss ausgewählt werden.",
   "error.motion.submitter_name_required": "Name des Antragstellers darf nicht leer sein.",

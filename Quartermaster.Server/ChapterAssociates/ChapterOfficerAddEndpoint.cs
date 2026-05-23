@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
@@ -44,14 +45,28 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
             return;
         }
 
+        var member = _memberRepo.Get(req.MemberId);
+        if (member == null) {
+            AddError(r => r.MemberId, I18nKey.Error.Chapter.Officer.MemberNotFound);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        // Cross-chapter IDOR guard: a caller with EditOfficers on chapter X must not be able
+        // to promote a member belonging to chapter Y — doing so would also grant that member's
+        // user account the officer role for chapter X via GrantDefaultPermissions below.
+        if (member.ChapterId != req.ChapterId) {
+            AddError(r => r.MemberId, I18nKey.Error.Chapter.Officer.MemberChapterMismatch);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         _officerRepo.Create(new ChapterOfficer {
             MemberId = req.MemberId,
             ChapterId = req.ChapterId,
             AssociateType = (ChapterOfficerType)req.AssociateType
         });
 
-        var member = _memberRepo.Get(req.MemberId);
-        if (member?.UserId.HasValue == true)
+        if (member.UserId.HasValue)
             _officerRepo.GrantDefaultPermissions(member.UserId.Value, req.ChapterId);
 
         await SendOkAsync(ct);
