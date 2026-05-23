@@ -58,6 +58,7 @@ public class OptionRepository {
         var definition = GetDefinition(identifier);
         var redact = definition?.IsSecret == true;
 
+        using var tx = _context.BeginTransaction();
         if (existing != null) {
             var oldValue = existing.Value;
             _context.SystemOptions
@@ -78,6 +79,7 @@ public class OptionRepository {
             _auditLog.LogFieldChange("SystemOption", option.Id, identifier, null,
                 redact ? RedactedAuditValue(value) : value);
         }
+        tx.Commit();
     }
 
     private const string SecretMask = "••••••";

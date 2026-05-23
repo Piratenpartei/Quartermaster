@@ -139,6 +139,8 @@ public class MotionRepository {
         if (newStatus == null)
             return false;
 
+        using var tx = _context.BeginTransaction();
+
         _context.Motions
             .Where(m => m.Id == motionId)
             .Set(m => m.ApprovalStatus, newStatus.Value)
@@ -169,6 +171,7 @@ public class MotionRepository {
                 .Update();
         }
 
+        tx.Commit();
         return true;
     }
 

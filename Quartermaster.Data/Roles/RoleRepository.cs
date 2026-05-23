@@ -83,12 +83,15 @@ public class RoleRepository {
     }
 
     public void Delete(Guid roleId) {
+        using var tx = _context.BeginTransaction();
         _context.RolePermissions.Where(rp => rp.RoleId == roleId).Delete();
         _context.UserRoleAssignments.Where(a => a.RoleId == roleId).Delete();
         _context.Roles.Where(r => r.Id == roleId).Delete();
+        tx.Commit();
     }
 
     public void SetPermissions(Guid roleId, List<string> permissionIdentifiers) {
+        using var tx = _context.BeginTransaction();
         _context.RolePermissions.Where(rp => rp.RoleId == roleId).Delete();
         foreach (var permId in permissionIdentifiers.Distinct()) {
             _context.Insert(new RolePermission {
@@ -96,6 +99,7 @@ public class RoleRepository {
                 PermissionIdentifier = permId
             });
         }
+        tx.Commit();
     }
 
     public List<UserRoleAssignment> GetAssignmentsForUser(Guid userId)
