@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -130,7 +131,7 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
             return;
         }
 
-        Logger.LogInformation("SAML login attempt for email: {Email}", email);
+        Logger.LogInformation("SAML login attempt from domain: {Domain}", email.Split('@').LastOrDefault() ?? "(unknown)");
 
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();

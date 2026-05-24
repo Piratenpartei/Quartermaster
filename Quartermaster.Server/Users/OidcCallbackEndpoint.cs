@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -119,7 +120,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             return;
         }
 
-        Logger.LogInformation("OIDC login attempt for email: {Email}", email);
+        Logger.LogInformation("OIDC login attempt from domain: {Domain}", email.Split('@').LastOrDefault() ?? "(unknown)");
 
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
