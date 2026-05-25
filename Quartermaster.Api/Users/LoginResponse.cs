@@ -4,8 +4,6 @@ using System.Collections.Generic;
 namespace Quartermaster.Api.Users;
 
 public class LoginResponse {
-    public string Token { get; set; } = "";
-    public DateTime? Expires { get; set; }
     public LoginUserInfo User { get; set; } = new();
     public LoginPermissions Permissions { get; set; } = new();
 }

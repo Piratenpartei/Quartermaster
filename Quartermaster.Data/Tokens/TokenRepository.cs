@@ -28,6 +28,10 @@ public class TokenRepository {
         _context.Tokens.Where(t => t.UserId == userId).Delete();
     }
 
+    public void DeleteToken(Guid tokenId) {
+        _context.Tokens.Where(t => t.Id == tokenId).Delete();
+    }
+
     /// <summary>
     /// Looks up a login token by its raw content (Bearer token value).
     /// Returns the Token if valid, or null if not found or expired.

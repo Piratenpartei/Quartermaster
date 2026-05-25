@@ -14,7 +14,7 @@ public enum SsoLoginResult {
 }
 
 public static class SsoLoginHelper {
-    public static (SsoLoginResult Result, string? TokenContent) ProcessSsoLogin(
+    public static (SsoLoginResult Result, Quartermaster.Data.Tokens.Token? Token) ProcessSsoLogin(
         string email,
         string? issuedIp,
         string? issuedUserAgent,
@@ -58,6 +58,6 @@ public static class SsoLoginHelper {
             officerRepo.GrantDefaultPermissionsForAllChapters(member.Id, user.Id);
 
         var token = tokenRepo.LoginUser(user.Id, issuedIp, issuedUserAgent);
-        return (SsoLoginResult.Success, token.Content);
+        return (SsoLoginResult.Success, token);
     }
 }

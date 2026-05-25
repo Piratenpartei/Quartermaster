@@ -7,6 +7,7 @@ using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
+using Quartermaster.Server.Authentication;
 using System;
 using System.Linq;
 using System.Threading;
@@ -72,9 +73,9 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
 
             var chapterPermissions = _chapterPermissionRepository.GetAllForUser(user.Id);
 
+            AuthCookie.Set(HttpContext, token.Content, token.Expires);
+
             var response = new LoginResponse {
-                Token = token.Content,
-                Expires = token.Expires,
                 User = new LoginUserInfo {
                     Id = user.Id,
                     Username = user.Username ?? "",

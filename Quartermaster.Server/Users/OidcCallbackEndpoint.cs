@@ -13,6 +13,7 @@ using FastEndpoints;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Quartermaster.Server.Authentication;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
@@ -143,7 +144,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
 
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email,
+        var (result, token) = SsoLoginHelper.ProcessSsoLogin(email,
             issuedIp,
             string.IsNullOrEmpty(userAgent) ? null : userAgent,
             _memberRepo, _userRepo, _tokenRepo, _officerRepo);
@@ -158,7 +159,8 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
                 return;
         }
 
-        await SendRedirectAsync($"/Login/SamlCallback#{tokenContent}", allowRemoteRedirects: false);
+        AuthCookie.Set(HttpContext, token!.Content, token.Expires);
+        await SendRedirectAsync("/", allowRemoteRedirects: false);
     }
 
     private void ClearOidcCookies() {

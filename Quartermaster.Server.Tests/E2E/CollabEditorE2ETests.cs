@@ -418,7 +418,6 @@ public class CollabEditorE2ETests : E2ETestBase {
                     method: 'PUT',
                     headers: {{
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('auth_token'),
                         'X-CSRF-TOKEN': af.token
                     }},
                     body: JSON.stringify({{ Id: '{meetingId}', Status: 3 }})

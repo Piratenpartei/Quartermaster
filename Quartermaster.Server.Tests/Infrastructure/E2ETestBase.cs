@@ -26,12 +26,8 @@ public abstract class E2ETestBase : IDisposable {
     protected string BaseUrl => Factory.BaseUrl;
 
     /// <summary>
-    /// Creates an additional browser context + page with the given auth token
-    /// injected into localStorage before navigation. Useful for tests that need
-    /// multiple authenticated users (e.g., collaborative editing) because
-    /// localStorage is per-origin-per-context — the default <see cref="Page"/>
-    /// alone can only hold one user's token at a time. All extra contexts are
-    /// cleaned up automatically in teardown.
+    /// Creates an additional authenticated browser context + page. The auth cookie is set
+    /// before navigation; the page hits the app already-logged-in. Cleaned up in teardown.
     /// </summary>
     protected async Task<IPage> NewAuthenticatedPageAsync(string authToken) {
         var context = await _browser.NewContextAsync(new BrowserNewContextOptions {
@@ -39,16 +35,11 @@ public abstract class E2ETestBase : IDisposable {
             BaseURL = BaseUrl
         });
         _extraContexts.Add(context);
-        await context.AddInitScriptAsync(
-            $"window.localStorage.setItem('auth_token', '{authToken}');");
+        await SetAuthCookieAsync(context, authToken);
         return await context.NewPageAsync();
     }
 
-    /// <summary>
-    /// Creates an additional browser context + page with no auth token at all —
-    /// used to simulate an anonymous visitor. Blazor's AuthService treats
-    /// missing localStorage entries as "not logged in" rather than rejecting.
-    /// </summary>
+    /// <summary>Creates an additional browser context + page with no auth cookie.</summary>
     protected async Task<IPage> NewAnonymousPageAsync() {
         var context = await _browser.NewContextAsync(new BrowserNewContextOptions {
             IgnoreHTTPSErrors = true,
@@ -58,14 +49,24 @@ public abstract class E2ETestBase : IDisposable {
         return await context.NewPageAsync();
     }
 
-    /// <summary>
-    /// Injects the given auth token into the default <see cref="Page"/>'s
-    /// localStorage. Must be called before the first navigation in the test
-    /// because Blazor reads the token exactly once at boot.
-    /// </summary>
+    /// <summary>Sets the auth cookie on the default <see cref="Page"/>'s context. Call before the first navigation.</summary>
     protected async Task InjectAuthTokenAsync(string authToken) {
-        await Page.AddInitScriptAsync(
-            $"window.localStorage.setItem('auth_token', '{authToken}');");
+        await SetAuthCookieAsync(Page.Context, authToken);
+    }
+
+    private async Task SetAuthCookieAsync(IBrowserContext context, string authToken) {
+        var uri = new Uri(BaseUrl);
+        await context.AddCookiesAsync(new[] {
+            new Cookie {
+                Name = ".Quartermaster.Auth",
+                Value = authToken,
+                Domain = uri.Host,
+                Path = "/",
+                HttpOnly = true,
+                Secure = uri.Scheme == "https",
+                SameSite = SameSiteAttribute.Strict
+            }
+        });
     }
 
     [Before(Test)]

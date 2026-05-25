@@ -25,7 +25,7 @@ public class LoginEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Happy_path_returns_token_and_user_info() {
+    public async Task Happy_path_returns_user_info_and_sets_auth_cookie() {
         var user = Builder.SeedUser(username: "alice", password: ValidPassword);
         using var client = await AnonymousClientWithCsrfAsync();
         var response = await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
@@ -35,8 +35,47 @@ public class LoginEndpointTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var dto = await response.Content.ReadFromJsonAsync<LoginResponse>();
         await Assert.That(dto).IsNotNull();
-        await Assert.That(string.IsNullOrEmpty(dto!.Token)).IsFalse();
-        await Assert.That(dto.User.Id).IsEqualTo(user.Id);
+        await Assert.That(dto!.User.Id).IsEqualTo(user.Id);
+        var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(c => c.Contains(".Quartermaster.Auth"));
+        await Assert.That(setCookie).IsNotNull();
+        var lower = setCookie!.ToLowerInvariant();
+        await Assert.That(lower).Contains("httponly");
+        await Assert.That(lower).Contains("samesite=strict");
+    }
+
+    [Test]
+    public async Task Cookie_from_login_authenticates_subsequent_request() {
+        Builder.SeedUser(username: "claire", password: ValidPassword);
+        using var client = await AnonymousClientWithCsrfAsync();
+        var loginResp = await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
+            Username = "claire",
+            Password = ValidPassword
+        });
+        await Assert.That(loginResp.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        // HttpClient automatically stores the Set-Cookie and resends it.
+        var sessionResp = await client.GetAsync("/api/users/session");
+        await Assert.That(sessionResp.StatusCode).IsEqualTo(HttpStatusCode.OK);
+    }
+
+    [Test]
+    public async Task Logout_clears_cookie_and_revokes_token() {
+        var user = Builder.SeedUser(username: "denise", password: ValidPassword);
+        using var client = await AnonymousClientWithCsrfAsync();
+        await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
+            Username = "denise",
+            Password = ValidPassword
+        });
+
+        // Antiforgery binds tokens to user identity — refresh after login so the logout call
+        // validates under the now-authenticated context.
+        await AttachAntiforgeryTokenAsync(client);
+        var logoutResp = await client.PostAsync("/api/users/logout", null);
+        await Assert.That(logoutResp.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        // Subsequent session request should fail since cookie was cleared and the token row was deleted.
+        var sessionResp = await client.GetAsync("/api/users/session");
+        await Assert.That(sessionResp.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
+        // Token row should be gone.
+        await Assert.That(Db.Tokens.Any(t => t.UserId == user.Id)).IsFalse();
     }
 
     [Test]

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Server.Authentication;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
@@ -135,7 +136,7 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
 
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email,
+        var (result, token) = SsoLoginHelper.ProcessSsoLogin(email,
             issuedIp,
             string.IsNullOrEmpty(userAgent) ? null : userAgent,
             _memberRepo, _userRepo, _tokenRepo, _officerRepo);
@@ -150,7 +151,8 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
                 return;
         }
 
-        await SendRedirectAsync($"/Login/SamlCallback#{tokenContent}", allowRemoteRedirects: false);
+        AuthCookie.Set(HttpContext, token!.Content, token.Expires);
+        await SendRedirectAsync("/", allowRemoteRedirects: false);
     }
 }
 

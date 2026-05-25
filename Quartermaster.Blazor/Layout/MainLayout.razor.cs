@@ -33,7 +33,7 @@ public partial class MainLayout {
     }
 
     protected override async Task OnInitializedAsync() {
-        await AuthService.GetTokenAsync();
+        await AuthService.InitializeAsync();
         await ConfigService.LoadAsync();
         await SetTheme();
 

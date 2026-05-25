@@ -1,17 +1,7 @@
+// Auth tokens themselves live in an HttpOnly cookie set server-side. This file only
+// persists the "return to this page after login" URL — non-sensitive UX state.
 window.authStorage = {
-    getToken: function() { return localStorage.getItem('auth_token'); },
-    setToken: function(token) { localStorage.setItem('auth_token', token); },
-    removeToken: function() { localStorage.removeItem('auth_token'); },
     getReturnUrl: function() { return localStorage.getItem('return_url'); },
     setReturnUrl: function(url) { localStorage.setItem('return_url', url); },
     removeReturnUrl: function() { localStorage.removeItem('return_url'); }
-};
-
-window.samlCallback = {
-    getToken: function() {
-        var hash = window.location.hash;
-        if (hash && hash.length > 1)
-            return hash.substring(1);
-        return null;
-    }
 };

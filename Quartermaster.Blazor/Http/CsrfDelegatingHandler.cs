@@ -1,5 +1,4 @@
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,10 +15,7 @@ public class CsrfDelegatingHandler : DelegatingHandler {
         // Wait for auth initialization before sending requests (prevents race condition on page reload)
         if (!AuthService.Initialized)
             await AuthService.WaitForInitialization;
-
-        var authToken = AuthService.StaticToken;
-        if (!string.IsNullOrEmpty(authToken))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
+        var wasAuthenticated = AuthService.HasActiveSession;
 
         if (request.Method != HttpMethod.Get &&
             request.Method != HttpMethod.Head &&
@@ -36,15 +32,10 @@ public class CsrfDelegatingHandler : DelegatingHandler {
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // If we get a 401 AND we had sent a bearer token with this request,
-        // the token expired or is invalid — clear auth state and kick the
-        // user to /Login. But if we had no token in the first place (e.g.
-        // an anonymous visitor hitting a page that calls a protected endpoint),
-        // the 401 is expected — don't drag them to a login screen.
-        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized
-            && !string.IsNullOrEmpty(authToken)) {
+        // 401 only matters when we expected to be authenticated — anonymous visitors
+        // hitting a protected page see 401 by design and shouldn't be redirected.
+        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && wasAuthenticated)
             AuthService.NotifyTokenExpired();
-        }
 
         // If we get a 403, CSRF token may have expired — refetch and retry once
         if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&

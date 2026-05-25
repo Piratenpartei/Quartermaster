@@ -150,8 +150,6 @@ public partial class Program {
         app.UseRouting();
         app.UseRateLimiter();
 
-        app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
-
         app.UseAuthentication();
         app.Use(async (context, next) => {
             if (context.User.Identity?.IsAuthenticated == true) {
@@ -163,6 +161,10 @@ public partial class Program {
             }
             await next();
         });
+
+        // Antiforgery validation must run after authentication so identity-bound CSRF tokens
+        // match the user the cookie identifies (anonymous-context validation false-rejects).
+        app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
         app.UseAuthorization();
         app.UseFastEndpoints(c => {
             c.Errors.UseProblemDetails();

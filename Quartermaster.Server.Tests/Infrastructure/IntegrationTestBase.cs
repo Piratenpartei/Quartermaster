@@ -75,8 +75,11 @@ public abstract class IntegrationTestBase : IDisposable {
 
     protected async Task<HttpClient> AuthenticatedClientWithCsrfAsync(string token) {
         var client = CreateClient();
-        await AttachAntiforgeryTokenAsync(client);
+        // Attach auth first so the antiforgery token request runs in the authenticated
+        // context — identity-bound CSRF tokens must be issued and validated under the
+        // same user identity.
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await AttachAntiforgeryTokenAsync(client);
         return client;
     }
 

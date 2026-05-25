@@ -13,7 +13,6 @@ namespace Quartermaster.Blazor.Services;
 /// </summary>
 public class MeetingHubClient : IAsyncDisposable {
     private readonly NavigationManager _navigation;
-    private readonly AuthService _authService;
     private HubConnection? _connection;
     private readonly SemaphoreSlim _connectLock = new(1, 1);
 
@@ -30,9 +29,8 @@ public class MeetingHubClient : IAsyncDisposable {
     /// <summary>Fires whenever the hub connection state changes. Argument: true when fully connected, false during reconnect/closed states.</summary>
     public event Action<bool>? ConnectionStateChanged;
 
-    public MeetingHubClient(NavigationManager navigation, AuthService authService) {
+    public MeetingHubClient(NavigationManager navigation) {
         _navigation = navigation;
-        _authService = authService;
     }
 
     public bool IsConnected => _connection?.State == HubConnectionState.Connected;
@@ -48,10 +46,10 @@ public class MeetingHubClient : IAsyncDisposable {
 
             if (_connection == null) {
                 var hubUrl = _navigation.ToAbsoluteUri("/hubs/meeting");
+                // Auth rides along on the HttpOnly cookie that the browser sends with the WS upgrade —
+                // no AccessTokenProvider needed for browser clients.
                 _connection = new HubConnectionBuilder()
-                    .WithUrl(hubUrl, options => {
-                        options.AccessTokenProvider = () => Task.FromResult<string?>(_authService.Token);
-                    })
+                    .WithUrl(hubUrl)
                     .WithAutomaticReconnect()
                     .Build();
 
