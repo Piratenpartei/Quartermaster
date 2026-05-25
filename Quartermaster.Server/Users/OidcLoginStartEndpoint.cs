@@ -30,16 +30,21 @@ public class OidcLoginStartEndpoint : Endpoint<EmptyRequest> {
             return;
         }
 
-        var codeVerifier = GenerateCodeVerifier();
+        var codeVerifier = GenerateRandomToken();
         var codeChallenge = ComputeCodeChallenge(codeVerifier);
+        var state = GenerateRandomToken();
+        var nonce = GenerateRandomToken();
 
-        HttpContext.Response.Cookies.Append("oidc_cv", codeVerifier, new CookieOptions {
+        var cookieOpts = new CookieOptions {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
             MaxAge = TimeSpan.FromMinutes(10),
             Path = "/api/users/OidcCallback"
-        });
+        };
+        HttpContext.Response.Cookies.Append("oidc_cv", codeVerifier, cookieOpts);
+        HttpContext.Response.Cookies.Append("oidc_state", state, cookieOpts);
+        HttpContext.Response.Cookies.Append("oidc_nonce", nonce, cookieOpts);
 
         var redirectUri = $"{BaseURL}api/users/OidcCallback";
         var authorizeUrl = $"{authority.TrimEnd('/')}/protocol/openid-connect/auth"
@@ -48,12 +53,14 @@ public class OidcLoginStartEndpoint : Endpoint<EmptyRequest> {
             + $"&scope=openid%20email"
             + $"&redirect_uri={Uri.EscapeDataString(redirectUri)}"
             + $"&code_challenge={codeChallenge}"
-            + $"&code_challenge_method=S256";
+            + $"&code_challenge_method=S256"
+            + $"&state={Uri.EscapeDataString(state)}"
+            + $"&nonce={Uri.EscapeDataString(nonce)}";
 
         await SendRedirectAsync(authorizeUrl, allowRemoteRedirects: true);
     }
 
-    private static string GenerateCodeVerifier() {
+    private static string GenerateRandomToken() {
         var bytes = RandomNumberGenerator.GetBytes(32);
         return Convert.ToBase64String(bytes)
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');

@@ -107,6 +107,9 @@ public partial class Program {
         builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
         builder.Services.AddScoped<Quartermaster.Server.Meetings.MeetingLifecycleService>();
 
+        builder.Services.AddHttpClient();
+        builder.Services.AddMemoryCache();
+
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,
             filter: x => x.ValidatorType.BaseType?.GetGenericTypeDefinition() != typeof(Validator<>));
         builder.Services.AddFastEndpoints();
