@@ -48,7 +48,11 @@ public class RoleDeleteEndpoint : Endpoint<RoleDeleteRequest> {
             return;
         }
 
-        _roleRepo.Delete(req.Id);
+        var result = _roleRepo.Delete(req.Id);
+        if (result == RoleRepository.RoleDeleteResult.HasAssignments) {
+            ThrowError(I18nKey.Error.User.Role.HasActiveAssignments);
+            return;
+        }
         await SendOkAsync(ct);
     }
 }

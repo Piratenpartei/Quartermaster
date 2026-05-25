@@ -14,13 +14,13 @@ public class RoleRepository {
     }
 
     public List<Role> GetAll()
-        => _context.Roles.OrderBy(r => r.Name).ToList();
+        => _context.Roles.Where(r => r.DeletedAt == null).OrderBy(r => r.Name).ToList();
 
     public Role? Get(Guid id)
-        => _context.Roles.Where(r => r.Id == id).FirstOrDefault();
+        => _context.Roles.Where(r => r.Id == id && r.DeletedAt == null).FirstOrDefault();
 
     public Role? GetByIdentifier(string identifier)
-        => _context.Roles.Where(r => r.Identifier == identifier).FirstOrDefault();
+        => _context.Roles.Where(r => r.Identifier == identifier && r.DeletedAt == null).FirstOrDefault();
 
     public List<string> GetPermissions(Guid roleId)
         => _context.RolePermissions
@@ -82,12 +82,22 @@ public class RoleRepository {
             .Update();
     }
 
-    public void Delete(Guid roleId) {
+    public enum RoleDeleteResult {
+        Success,
+        HasAssignments
+    }
+
+    /// <summary>Refuses while UserRoleAssignments exist; otherwise hard-drops RolePermissions and soft-deletes the role.</summary>
+    public RoleDeleteResult Delete(Guid roleId) {
+        if (_context.UserRoleAssignments.Any(a => a.RoleId == roleId))
+            return RoleDeleteResult.HasAssignments;
+
         using var tx = _context.BeginTransaction();
         _context.RolePermissions.Where(rp => rp.RoleId == roleId).Delete();
-        _context.UserRoleAssignments.Where(a => a.RoleId == roleId).Delete();
-        _context.Roles.Where(r => r.Id == roleId).Delete();
+        _context.Roles.Where(r => r.Id == roleId)
+            .Set(r => r.DeletedAt, (DateTime?)DateTime.UtcNow).Update();
         tx.Commit();
+        return RoleDeleteResult.Success;
     }
 
     public void SetPermissions(Guid roleId, List<string> permissionIdentifiers) {

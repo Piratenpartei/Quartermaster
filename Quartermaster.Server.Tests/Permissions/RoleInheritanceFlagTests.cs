@@ -28,7 +28,7 @@ public class RoleInheritanceFlagTests {
         _db.CleanAllTables();
         _context = _db.CreateDbContext();
         _builder = new TestDataBuilder(_context);
-        _chapterRepo = new ChapterRepository(_context);
+        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
         var permRepo = new PermissionRepository(_context);
         permRepo.SupplementDefaults();
         _roleRepo = new RoleRepository(_context);

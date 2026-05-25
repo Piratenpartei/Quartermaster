@@ -158,23 +158,38 @@ public class RoleRepositoryTests : IDisposable {
     }
 
     [Test]
-    public async Task Delete_RemovesRoleAndAssignments() {
+    public async Task Delete_BlockedWhenAssignmentsExist() {
         var roleId = Guid.NewGuid();
         _roleRepo.Create(new Role {
-            Id = roleId,
-            Identifier = "to_delete",
-            Name = "ToDelete",
-            Description = "",
-            Scope = RoleScope.ChapterScoped,
-            IsSystem = false
+            Id = roleId, Identifier = "to_delete_with_assigns", Name = "Assigned",
+            Description = "", Scope = RoleScope.ChapterScoped, IsSystem = false
         });
         _roleRepo.SetPermissions(roleId, new List<string> { PermissionIdentifier.ViewMembers });
         _roleRepo.Assign(_userId, roleId, _chapterId);
 
-        _roleRepo.Delete(roleId);
+        var result = _roleRepo.Delete(roleId);
+        await Assert.That(result).IsEqualTo(RoleRepository.RoleDeleteResult.HasAssignments);
+        await Assert.That(_roleRepo.Get(roleId)).IsNotNull();
+        await Assert.That(_roleRepo.GetAssignmentsForUser(_userId).Count).IsEqualTo(1);
+    }
 
+    [Test]
+    public async Task Delete_SoftDeletesWhenNoAssignments() {
+        var roleId = Guid.NewGuid();
+        _roleRepo.Create(new Role {
+            Id = roleId, Identifier = "to_delete_clean", Name = "Clean",
+            Description = "", Scope = RoleScope.ChapterScoped, IsSystem = false
+        });
+        _roleRepo.SetPermissions(roleId, new List<string> { PermissionIdentifier.ViewMembers });
+
+        var result = _roleRepo.Delete(roleId);
+        await Assert.That(result).IsEqualTo(RoleRepository.RoleDeleteResult.Success);
+        // Hidden from default queries
         await Assert.That(_roleRepo.Get(roleId)).IsNull();
-        await Assert.That(_roleRepo.GetAssignmentsForUser(_userId).Count).IsEqualTo(0);
+        // Row remains, DeletedAt set; RolePermissions hard-deleted
+        var raw = _context.Roles.Where(r => r.Id == roleId).First();
+        await Assert.That(raw.DeletedAt).IsNotNull();
+        await Assert.That(_context.RolePermissions.Any(rp => rp.RoleId == roleId)).IsFalse();
     }
 
     [Test]

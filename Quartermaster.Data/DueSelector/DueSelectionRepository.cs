@@ -69,4 +69,31 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
         _context.DueSelections.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
         _auditLog.LogSoftDeleted("DueSelection", id);
     }
+
+    /// <summary>Self-clock only (ProcessedAt + 11y); unprocessed are skipped. Hybrid rule lives in <c>RetentionAnonymizationService</c>.</summary>
+    public List<DueSelection> GetEligibleForAnonymization(DateTime now) {
+        var thresholdYear = now.Year - 11;
+        return _context.DueSelections
+            .Where(d => d.AnonymizedAt == null
+                && d.ProcessedAt != null
+                && d.ProcessedAt.Value.Year <= thresholdYear)
+            .ToList();
+    }
+
+    /// <summary>Nulls PII + income-disclosure fields; keeps name + status + structural IDs.</summary>
+    public void Anonymize(Guid id) {
+        var now = DateTime.UtcNow;
+        _context.DueSelections.Where(d => d.Id == id)
+            .Set(d => d.EMail, (string?)null)
+            .Set(d => d.MemberNumber, (int?)null)
+            .Set(d => d.AccountHolder, "")
+            .Set(d => d.IBAN, "")
+            .Set(d => d.ReducedJustification, "")
+            .Set(d => d.YearlyIncome, 0m)
+            .Set(d => d.MonthlyIncomeGroup, 0m)
+            .Set(d => d.ReducedAmount, 0m)
+            .Set(d => d.AnonymizedAt, (DateTime?)now)
+            .Update();
+        _auditLog.Log("DueSelection", id, "Anonymized");
+    }
 }

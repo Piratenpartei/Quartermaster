@@ -30,7 +30,7 @@ public class EmailServiceTests : IDisposable {
         var emailLogRepo = new EmailLogRepository(_context);
         _optionRepo = new OptionRepository(_context, auditLog);
         var memberRepo = new MemberRepository(_context, auditLog);
-        _chapterRepo = new ChapterRepository(_context);
+        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
         var adminDivRepo = new AdministrativeDivisionRepository(_context);
         _channel = Channel.CreateUnbounded<EmailMessage>();
 

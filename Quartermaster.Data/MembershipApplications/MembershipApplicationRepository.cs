@@ -69,4 +69,33 @@ public class MembershipApplicationRepository {
         _context.MembershipApplications.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
         _auditLog.LogSoftDeleted("MembershipApplication", id);
     }
+
+    /// <summary>Self-clock only (ProcessedAt or SubmittedAt + 11y). The linked-Member hybrid rule lives in <c>RetentionAnonymizationService</c>.</summary>
+    public List<MembershipApplication> GetEligibleForAnonymization(DateTime now) {
+        var thresholdYear = now.Year - 11;
+        return _context.MembershipApplications
+            .Where(a => a.AnonymizedAt == null
+                && (a.ProcessedAt != null
+                    ? a.ProcessedAt.Value.Year <= thresholdYear
+                    : a.SubmittedAt.Year <= thresholdYear))
+            .ToList();
+    }
+
+    /// <summary>Nulls PII fields; keeps name + DOB + structural/processing fields.</summary>
+    public void Anonymize(Guid id) {
+        var now = DateTime.UtcNow;
+        _context.MembershipApplications.Where(a => a.Id == id)
+            .Set(a => a.EMail, "")
+            .Set(a => a.PhoneNumber, "")
+            .Set(a => a.AddressStreet, "")
+            .Set(a => a.AddressHouseNbr, "")
+            .Set(a => a.AddressPostCode, "")
+            .Set(a => a.AddressCity, "")
+            .Set(a => a.AddressAdministrativeDivisionId, (Guid?)null)
+            .Set(a => a.Citizenship, "")
+            .Set(a => a.ApplicationText, "")
+            .Set(a => a.AnonymizedAt, (DateTime?)now)
+            .Update();
+        _auditLog.Log("MembershipApplication", id, "Anonymized");
+    }
 }

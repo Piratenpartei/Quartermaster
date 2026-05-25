@@ -23,7 +23,7 @@ public class OptionRepositoryTests : IDisposable {
         _context = TestDatabaseFixture.CreateDbContext();
         var auditLog = new AuditLogRepository(_context);
         _repo = new OptionRepository(_context, auditLog);
-        _chapterRepo = new ChapterRepository(_context);
+        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
 
         _bundId = Guid.NewGuid();
         _lvId = Guid.NewGuid();

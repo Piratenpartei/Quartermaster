@@ -1,6 +1,14 @@
 using LinqToDB;
 using Quartermaster.Data;
+using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Events;
+using Quartermaster.Data.Members;
+using Quartermaster.Data.Meetings;
+using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
+using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Chapters;
@@ -19,7 +27,7 @@ public class ChapterRepositoryTests : IDisposable {
     public void Setup() {
         TestDatabaseFixture.CleanAllTables();
         _context = TestDatabaseFixture.CreateDbContext();
-        _repo = new ChapterRepository(_context);
+        _repo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
 
         _bundId = Guid.NewGuid();
         _lvId = Guid.NewGuid();
@@ -170,6 +178,93 @@ public class ChapterRepositoryTests : IDisposable {
         var result = _repo.FindByExternalCodeAndParent("NI", null);
 
         await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_RootChapter_Blocked() {
+        var result = _repo.SoftDeleteWithCascade(_bundId);
+        await Assert.That(result).IsEqualTo(ChapterRepository.ChapterDeleteResult.IsRoot);
+        await Assert.That(_repo.Get(_bundId)).IsNotNull();
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_NonExistent_NotFound() {
+        var result = _repo.SoftDeleteWithCascade(Guid.NewGuid());
+        await Assert.That(result).IsEqualTo(ChapterRepository.ChapterDeleteResult.NotFound);
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_NonRoot_HidesChapterFromQueries() {
+        var result = _repo.SoftDeleteWithCascade(_lvId);
+        await Assert.That(result).IsEqualTo(ChapterRepository.ChapterDeleteResult.Success);
+
+        await Assert.That(_repo.Get(_lvId)).IsNull();
+        await Assert.That(_repo.GetAll().Any(c => c.Id == _lvId)).IsFalse();
+        // Row still in DB with DeletedAt set.
+        var raw = _context.Chapters.Where(c => c.Id == _lvId).First();
+        await Assert.That(raw.DeletedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_ReassignsMembersToParent() {
+        var memberInLv = new Member {
+            Id = Guid.NewGuid(),
+            MemberNumber = 999001,
+            FirstName = "Maja",
+            LastName = "Müller",
+            ChapterId = _lvId,
+            LastImportedAt = DateTime.UtcNow
+        };
+        _context.Insert(memberInLv);
+
+        _repo.SoftDeleteWithCascade(_lvId);
+
+        var reassigned = _context.Members.Where(m => m.Id == memberInLv.Id).First();
+        await Assert.That(reassigned.ChapterId).IsEqualTo(_bundId);
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_CascadesEventsMeetingsMotionsApplications() {
+        var eventId = Guid.NewGuid();
+        _context.Insert(new Event {
+            Id = eventId, ChapterId = _lvId, InternalName = "Stammtisch", PublicName = "Stammtisch", CreatedAt = DateTime.UtcNow
+        });
+        var meetingId = Guid.NewGuid();
+        _context.Insert(new Meeting {
+            Id = meetingId, ChapterId = _lvId, Title = "Vorstand Mai", CreatedAt = DateTime.UtcNow
+        });
+        var motionId = Guid.NewGuid();
+        _context.Insert(new Motion {
+            Id = motionId, ChapterId = _lvId, AuthorName = "Anon", AuthorEMail = "a@x", Title = "Test", Text = "", IsPublic = true, CreatedAt = DateTime.UtcNow
+        });
+        var appId = Guid.NewGuid();
+        _context.Insert(new MembershipApplication {
+            Id = appId, ChapterId = _lvId, FirstName = "Pa", LastName = "Sa", DateOfBirth = new DateTime(1990, 1, 1),
+            Citizenship = "DE", EMail = "p@x", PhoneNumber = "", AddressStreet = "", AddressHouseNbr = "", AddressPostCode = "", AddressCity = "",
+            EntryDate = DateTime.UtcNow, SubmittedAt = DateTime.UtcNow
+        });
+
+        _repo.SoftDeleteWithCascade(_lvId);
+
+        await Assert.That(_context.Events.Where(e => e.Id == eventId).First().DeletedAt).IsNotNull();
+        await Assert.That(_context.Meetings.Where(m => m.Id == meetingId).First().DeletedAt).IsNotNull();
+        await Assert.That(_context.Motions.Where(m => m.Id == motionId).First().DeletedAt).IsNotNull();
+        await Assert.That(_context.MembershipApplications.Where(a => a.Id == appId).First().DeletedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task SoftDeleteWithCascade_HardDeletesJunctions() {
+        var memberId = Guid.NewGuid();
+        _context.Insert(new Member {
+            Id = memberId, MemberNumber = 999002, FirstName = "M", LastName = "M", ChapterId = _lvId, LastImportedAt = DateTime.UtcNow
+        });
+        _context.Insert(new ChapterOfficer {
+            MemberId = memberId, ChapterId = _lvId, AssociateType = ChapterOfficerType.Captain
+        });
+
+        _repo.SoftDeleteWithCascade(_lvId);
+
+        await Assert.That(_context.ChapterOfficers.Any(o => o.ChapterId == _lvId)).IsFalse();
     }
 
     public void Dispose() {

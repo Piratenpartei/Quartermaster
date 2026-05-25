@@ -23,6 +23,8 @@ public class Role {
     /// used for delegate-style roles where access shouldn't cascade into child chapters.
     /// </summary>
     public bool InheritsToChildren { get; set; } = true;
+
+    public DateTime? DeletedAt { get; set; }
 }
 
 public enum RoleScope {

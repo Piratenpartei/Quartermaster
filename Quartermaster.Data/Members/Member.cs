@@ -41,4 +41,5 @@ public class Member {
     public Guid? ResidenceAdministrativeDivisionId { get; set; }
     public Guid? UserId { get; set; }
     public DateTime LastImportedAt { get; set; }
+    public DateTime? AnonymizedAt { get; set; }
 }

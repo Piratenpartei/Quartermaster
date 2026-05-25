@@ -28,7 +28,7 @@ public class UserRepositoryTests : IDisposable {
         var roleRepo = new RoleRepository(_context);
         _userGlobalPermissionRepo = new UserGlobalPermissionRepository(_context, roleRepo);
         _userRepo = new UserRepository(_context, _userGlobalPermissionRepo, _permissionRepo);
-        _chapterRepo = new ChapterRepository(_context);
+        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
         _chapterPermRepo = new UserChapterPermissionRepository(_context, roleRepo);
 
         // Seed an AdministrativeDivision with Guid.Empty for User FK defaults

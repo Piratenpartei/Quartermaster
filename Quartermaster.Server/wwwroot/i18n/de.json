@@ -10,6 +10,7 @@
   "error.user.role.system_not_deletable": "Systemrollen können nicht gelöscht werden.",
   "error.user.role.name_required": "Name ist erforderlich.",
   "error.user.role.scope_invalid": "Scope muss Global (0) oder ChapterScoped (1) sein.",
+  "error.user.role.has_active_assignments": "Die Rolle kann nicht gelöscht werden, solange sie noch Benutzern zugewiesen ist. Bitte zuerst alle Zuweisungen entfernen.",
   "error.user.role_assignment.role_not_found": "Rolle nicht gefunden.",
   "error.user.role_assignment.user_not_found": "Benutzer nicht gefunden.",
   "error.user.role_assignment.chapter_required": "Chapter-scoped Rollen benötigen eine Gliederung.",

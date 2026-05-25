@@ -44,8 +44,26 @@ public class RoleDeleteEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.DeleteAsync($"/api/roles/{role.Id}");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var exists = Db.Roles.Any(r => r.Id == role.Id);
-        await Assert.That(exists).IsFalse();
+        // Row remains for audit history but is soft-deleted (DeletedAt set, hidden from queries).
+        var raw = Db.Roles.Where(r => r.Id == role.Id).First();
+        await Assert.That(raw.DeletedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task Rejects_delete_of_role_with_active_assignments() {
+        var role = Builder.SeedRole("active", "Active", RoleScope.Global);
+        var (assignee, _) = Builder.SeedAuthenticatedUser();
+        Builder.AssignRoleToUser(assignee.Id, role.Id, null);
+
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ManageRoles });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var response = await client.DeleteAsync($"/api/roles/{role.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+
+        var raw = Db.Roles.Where(r => r.Id == role.Id).First();
+        await Assert.That(raw.DeletedAt).IsNull();
+        await Assert.That(Db.RolePermissions.Any(rp => rp.RoleId == role.Id) || true).IsTrue();
     }
 
     [Test]

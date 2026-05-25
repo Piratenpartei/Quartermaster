@@ -101,6 +101,9 @@ public partial class Program {
         builder.Services.AddSingleton<MemberImportService>();
         builder.Services.AddHostedService<MemberImportHostedService>();
 
+        builder.Services.AddScoped<RetentionAnonymizationService>();
+        builder.Services.AddHostedService<RetentionAnonymizationHostedService>();
+
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();

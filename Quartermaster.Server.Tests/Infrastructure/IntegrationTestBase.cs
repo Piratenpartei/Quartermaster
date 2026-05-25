@@ -41,10 +41,8 @@ public abstract class IntegrationTestBase : IDisposable {
         Db = Database.CreateDbContext();
         Builder = new TestDataBuilder(Db);
 
-        // Bump the anonymous-create rate limit on the per-worker shared factory so unrelated
-        // tests can't drain each other's bucket. Direct DB write (not via OptionRepository)
-        // to skip audit-log noise. Dedicated rate-limit tests overwrite this back to a
-        // strict value inside a WithWebHostBuilder factory so they get a fresh limiter.
+        // Bump per-worker rate-limit bucket so unrelated tests don't drain each other.
+        // Direct write to skip audit-log noise. Rate-limit tests override via WithWebHostBuilder.
         Db.SystemOptions
             .Where(o => o.Identifier == "auth.ratelimit.anonymous_create_permits" && o.ChapterId == null)
             .Set(o => o.Value, "10000")

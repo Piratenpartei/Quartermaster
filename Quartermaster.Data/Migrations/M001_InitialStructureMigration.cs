@@ -69,7 +69,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Chapter.AdministrativeDivisionId)).AsGuid().Nullable()
             .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable()
             .WithColumn(nameof(Chapter.ShortCode)).AsString(32).Nullable()
-            .WithColumn(nameof(Chapter.ExternalCode)).AsString(128).Nullable();
+            .WithColumn(nameof(Chapter.ExternalCode)).AsString(128).Nullable()
+            .WithColumn(nameof(Chapter.DeletedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_Users_ChapterId_Chapters_Id")
             .FromTable(User.TableName).ForeignColumn(nameof(User.ChapterId))
@@ -236,7 +237,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(DueSelection.Status)).AsInt32()
             .WithColumn(nameof(DueSelection.ProcessedByUserId)).AsGuid().Nullable()
             .WithColumn(nameof(DueSelection.ProcessedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(DueSelection.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(DueSelection.DeletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(DueSelection.AnonymizedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_DueSelections_UserId_User_Id")
             .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.UserId))
@@ -270,7 +272,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MembershipApplication.Status)).AsInt32()
             .WithColumn(nameof(MembershipApplication.ProcessedByUserId)).AsGuid().Nullable()
             .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(MembershipApplication.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(MembershipApplication.DeletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(MembershipApplication.AnonymizedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))
@@ -321,7 +324,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Member.ChapterId)).AsGuid().Nullable()
             .WithColumn(nameof(Member.ResidenceAdministrativeDivisionId)).AsGuid().Nullable()
             .WithColumn(nameof(Member.UserId)).AsGuid().Nullable()
-            .WithColumn(nameof(Member.LastImportedAt)).AsDateTime();
+            .WithColumn(nameof(Member.LastImportedAt)).AsDateTime()
+            .WithColumn(nameof(Member.AnonymizedAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_Members_ChapterId_Chapters_Id")
             .FromTable(Member.TableName).ForeignColumn(nameof(Member.ChapterId))
@@ -480,7 +484,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Role.Description)).AsString(1024)
             .WithColumn(nameof(Role.Scope)).AsInt32()
             .WithColumn(nameof(Role.IsSystem)).AsBoolean()
-            .WithColumn(nameof(Role.InheritsToChildren)).AsBoolean().WithDefaultValue(true);
+            .WithColumn(nameof(Role.InheritsToChildren)).AsBoolean().WithDefaultValue(true)
+            .WithColumn(nameof(Role.DeletedAt)).AsDateTime().Nullable();
 
         Create.Table(RolePermission.TableName)
             .WithColumn(nameof(RolePermission.RoleId)).AsGuid()

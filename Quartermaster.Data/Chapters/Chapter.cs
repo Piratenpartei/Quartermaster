@@ -13,4 +13,5 @@ public class Chapter {
     public Guid? ParentChapterId { get; set; }
     public string? ShortCode { get; set; }
     public string? ExternalCode { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,25 +8,27 @@ namespace Quartermaster.Data.Chapters;
 
 public class ChapterRepository {
     private readonly DbContext _context;
+    private readonly AuditLogRepository _auditLog;
 
-    public ChapterRepository(DbContext context) {
+    public ChapterRepository(DbContext context, AuditLogRepository auditLog) {
         _context = context;
+        _auditLog = auditLog;
     }
 
     public Chapter? Get(Guid id)
-        => _context.Chapters.Where(c => c.Id == id).FirstOrDefault();
+        => _context.Chapters.Where(c => c.Id == id && c.DeletedAt == null).FirstOrDefault();
 
     public List<Chapter> GetAll()
-        => _context.Chapters.OrderBy(c => c.Name).ToList();
+        => _context.Chapters.Where(c => c.DeletedAt == null).OrderBy(c => c.Name).ToList();
 
     public void Create(Chapter chapter) => _context.Insert(chapter);
 
     public List<Chapter> GetByExternalCode(string externalCode)
-        => _context.Chapters.Where(c => c.ExternalCode == externalCode).ToList();
+        => _context.Chapters.Where(c => c.ExternalCode == externalCode && c.DeletedAt == null).ToList();
 
     public Chapter? FindByExternalCodeAndParent(string externalCode, Guid? parentChapterId)
         => _context.Chapters
-            .Where(c => c.ExternalCode == externalCode && c.ParentChapterId == parentChapterId)
+            .Where(c => c.ExternalCode == externalCode && c.ParentChapterId == parentChapterId && c.DeletedAt == null)
             .FirstOrDefault();
 
     public Chapter? FindForDivision(Guid divisionId, AdministrativeDivisions.AdministrativeDivisionRepository adminDivRepo) {
@@ -34,7 +37,9 @@ public class ChapterRepository {
             return null;
 
         var chapters = _context.Chapters
-            .Where(c => c.AdministrativeDivisionId != null && ancestorIds.Contains(c.AdministrativeDivisionId.Value))
+            .Where(c => c.AdministrativeDivisionId != null
+                && ancestorIds.Contains(c.AdministrativeDivisionId.Value)
+                && c.DeletedAt == null)
             .ToList();
 
         if (chapters.Count == 0)
@@ -58,7 +63,7 @@ public class ChapterRepository {
         while (queue.Count > 0) {
             var parentId = queue.Dequeue();
             var children = _context.Chapters
-                .Where(c => c.ParentChapterId == parentId && c.Id != parentId)
+                .Where(c => c.ParentChapterId == parentId && c.Id != parentId && c.DeletedAt == null)
                 .Select(c => c.Id)
                 .ToList();
 
@@ -73,7 +78,7 @@ public class ChapterRepository {
 
 
     public (List<Chapter> Items, int TotalCount) Search(string? query, int page, int pageSize) {
-        var q = _context.Chapters.AsQueryable();
+        var q = _context.Chapters.Where(c => c.DeletedAt == null).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query)) {
             q = q.Where(c => c.Name.Contains(query)
@@ -91,10 +96,12 @@ public class ChapterRepository {
     }
 
     public List<Chapter> GetRoots()
-        => _context.Chapters.Where(c => c.ParentChapterId == null).OrderBy(c => c.Name).ToList();
+        => _context.Chapters.Where(c => c.ParentChapterId == null && c.DeletedAt == null).OrderBy(c => c.Name).ToList();
 
     public List<Chapter> GetChildren(Guid parentId)
-        => _context.Chapters.Where(c => c.ParentChapterId == parentId && c.Id != parentId).OrderBy(c => c.Name).ToList();
+        => _context.Chapters
+            .Where(c => c.ParentChapterId == parentId && c.Id != parentId && c.DeletedAt == null)
+            .OrderBy(c => c.Name).ToList();
 
     public List<Chapter> GetAncestorChain(Guid chapterId) {
         var chain = new List<Chapter>();
@@ -108,4 +115,54 @@ public class ChapterRepository {
         return chain;
     }
 
+    public enum ChapterDeleteResult {
+        Success,
+        NotFound,
+        IsRoot
+    }
+
+    /// <summary>Root chapters are refused. Members reassign to parent; per-chapter junctions hard-delete; everything else soft-deletes.</summary>
+    public ChapterDeleteResult SoftDeleteWithCascade(Guid chapterId) {
+        var chapter = Get(chapterId);
+        if (chapter == null)
+            return ChapterDeleteResult.NotFound;
+        if (chapter.ParentChapterId == null)
+            return ChapterDeleteResult.IsRoot;
+        var parentId = chapter.ParentChapterId.Value;
+        var now = DateTime.UtcNow;
+
+        using var tx = _context.BeginTransaction();
+
+        _context.Events.Where(e => e.ChapterId == chapterId && e.DeletedAt == null)
+            .Set(e => e.DeletedAt, (DateTime?)now).Update();
+        _context.Meetings.Where(m => m.ChapterId == chapterId && m.DeletedAt == null)
+            .Set(m => m.DeletedAt, (DateTime?)now).Update();
+        _context.Motions.Where(m => m.ChapterId == chapterId && m.DeletedAt == null)
+            .Set(m => m.DeletedAt, (DateTime?)now).Update();
+
+        var dueSelectionIds = _context.MembershipApplications
+            .Where(a => a.ChapterId == chapterId && a.DueSelectionId != null)
+            .Select(a => a.DueSelectionId!.Value)
+            .ToList();
+        if (dueSelectionIds.Count > 0) {
+            _context.DueSelections.Where(d => dueSelectionIds.Contains(d.Id) && d.DeletedAt == null)
+                .Set(d => d.DeletedAt, (DateTime?)now).Update();
+        }
+        _context.MembershipApplications.Where(a => a.ChapterId == chapterId && a.DeletedAt == null)
+            .Set(a => a.DeletedAt, (DateTime?)now).Update();
+
+        _context.Members.Where(m => m.ChapterId == chapterId)
+            .Set(m => m.ChapterId, (Guid?)parentId).Update();
+
+        _context.ChapterOfficers.Where(o => o.ChapterId == chapterId).Delete();
+        _context.UserChapterPermissions.Where(p => p.ChapterId == chapterId).Delete();
+        _context.UserRoleAssignments.Where(a => a.ChapterId == chapterId).Delete();
+
+        _context.Chapters.Where(c => c.Id == chapterId)
+            .Set(c => c.DeletedAt, (DateTime?)now).Update();
+        _auditLog.LogSoftDeleted("Chapter", chapterId);
+
+        tx.Commit();
+        return ChapterDeleteResult.Success;
+    }
 }

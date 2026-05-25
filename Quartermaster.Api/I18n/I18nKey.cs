@@ -32,6 +32,7 @@ public static class I18nKey {
                 public const string SystemNotDeletable = "error.user.role.system_not_deletable";
                 public const string NameRequired = "error.user.role.name_required";
                 public const string ScopeInvalid = "error.user.role.scope_invalid";
+                public const string HasActiveAssignments = "error.user.role.has_active_assignments";
             }
 
             public static class RoleAssignment {

@@ -183,4 +183,40 @@ public class MemberRepository {
             .ToList();
         return (items, totalCount);
     }
+
+    /// <summary>Members past their 10-full-year post-exit retention window (year of exit + 11), not yet anonymized.</summary>
+    public List<Member> GetEligibleForAnonymization(DateTime now) {
+        var thresholdYear = now.Year - 11;
+        return _context.Members
+            .Where(m => m.AnonymizedAt == null
+                && m.ExitDate != null
+                && m.ExitDate.Value.Year <= thresholdYear)
+            .ToList();
+    }
+
+    /// <summary>Nulls PII/financial fields; keeps name + DOB + MemberNumber + ChapterId + entry/exit dates for re-join detection.</summary>
+    public void Anonymize(Guid memberId) {
+        var now = DateTime.UtcNow;
+        _context.Members.Where(m => m.Id == memberId)
+            .Set(m => m.AdmissionReference, (string?)null)
+            .Set(m => m.Street, (string?)null)
+            .Set(m => m.Country, (string?)null)
+            .Set(m => m.PostCode, (string?)null)
+            .Set(m => m.City, (string?)null)
+            .Set(m => m.Phone, (string?)null)
+            .Set(m => m.EMail, (string?)null)
+            .Set(m => m.Citizenship, (string?)null)
+            .Set(m => m.FederalState, (string?)null)
+            .Set(m => m.County, (string?)null)
+            .Set(m => m.Municipality, (string?)null)
+            .Set(m => m.ResidenceAdministrativeDivisionId, (Guid?)null)
+            .Set(m => m.MembershipFee, 0m)
+            .Set(m => m.ReducedFee, 0m)
+            .Set(m => m.FirstFee, (decimal?)null)
+            .Set(m => m.OpenFeeTotal, (decimal?)null)
+            .Set(m => m.ReducedFeeEnd, (DateTime?)null)
+            .Set(m => m.AnonymizedAt, (DateTime?)now)
+            .Update();
+        _auditLog.Log("Member", memberId, "Anonymized");
+    }
 }

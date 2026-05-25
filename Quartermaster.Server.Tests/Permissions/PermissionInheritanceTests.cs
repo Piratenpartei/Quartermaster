@@ -27,7 +27,7 @@ public class PermissionInheritanceTests {
         _db.CleanAllTables();
         _context = _db.CreateDbContext();
         _builder = new TestDataBuilder(_context);
-        _chapterRepo = new ChapterRepository(_context);
+        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
         _permRepo = new PermissionRepository(_context);
         var roleRepo = new RoleRepository(_context);
         _chapterPermRepo = new UserChapterPermissionRepository(_context, roleRepo);
