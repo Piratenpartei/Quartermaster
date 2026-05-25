@@ -409,7 +409,9 @@ public partial class EventDetail {
             var config = JsonSerializer.Deserialize<JsonElement>(configuration);
             if (config.TryGetProperty("useDescription", out var val))
                 return val.GetBoolean();
-        } catch { }
+        } catch (JsonException ex) {
+            Console.Error.WriteLine($"EventDetail.IsUseDescription: malformed config JSON. {ex}");
+        }
         return false;
     }
 
@@ -420,7 +422,9 @@ public partial class EventDetail {
             var config = JsonSerializer.Deserialize<JsonElement>(configuration);
             if (config.TryGetProperty(property, out var val))
                 return val.ToString();
-        } catch { }
+        } catch (JsonException ex) {
+            Console.Error.WriteLine($"EventDetail.GetConfigProperty({property}): malformed config JSON. {ex}");
+        }
         return null;
     }
 

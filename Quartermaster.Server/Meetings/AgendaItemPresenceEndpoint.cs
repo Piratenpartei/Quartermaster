@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.Extensions.Logging;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
@@ -88,8 +89,8 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
                 var parsed = JsonSerializer.Deserialize<List<string>>(item.Resolution);
                 if (parsed != null)
                     presentIds = new HashSet<string>(parsed);
-            } catch {
-                // Corrupted — reset
+            } catch (JsonException ex) {
+                Logger.LogWarning(ex, "Corrupted presence Resolution on agenda item {Id}; resetting to empty", item.Id);
             }
         }
 

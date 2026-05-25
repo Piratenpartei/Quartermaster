@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using LinqToDB;
+using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
@@ -131,7 +132,9 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                             var parsed = System.Text.Json.JsonSerializer.Deserialize<List<string>>(a.Resolution);
                             if (parsed != null)
                                 presentIds = new HashSet<string>(parsed);
-                        } catch { }
+                        } catch (System.Text.Json.JsonException ex) {
+                            Logger.LogWarning(ex, "Corrupted presence Resolution on agenda item {Id}; treating as empty", a.Id);
+                        }
                     }
                     officerVotes = officers.Select(o => {
                         var member = officerMembers.FirstOrDefault(m => m.Id == o.MemberId);

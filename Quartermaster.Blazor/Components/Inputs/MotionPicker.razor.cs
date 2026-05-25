@@ -64,7 +64,8 @@ public partial class MotionPicker {
             var resp = await Http.GetFromJsonAsync<MotionListResponse>(url);
             Motions = resp?.Items ?? new();
             _loadedForChapterId = ChapterId;
-        } catch {
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"MotionPicker.Load: motions fetch failed, showing empty list. {ex}");
             Motions = new();
         }
         Loading = false;

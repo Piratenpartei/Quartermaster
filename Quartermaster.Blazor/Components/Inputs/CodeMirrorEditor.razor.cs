@@ -216,9 +216,9 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
 
         try {
             await HubClient.SendUpdateAsync(AgendaItemId.Value, updateBase64);
-        } catch {
-            // Hub temporarily disconnected — update will be re-sent when
-            // reconnection is re-established via full snapshot load.
+        } catch (Exception ex) {
+            // Hub disconnected — reconnection will re-send via full snapshot load.
+            Console.Error.WriteLine($"CodeMirrorEditor.OnJsCollabUpdate: hub send failed. {ex}");
         }
         // Also feed the preview pane with the latest plain text.
         if (_handle != null && ValueChanged.HasDelegate) {
@@ -237,8 +237,9 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
             return;
         try {
             await HubClient.SendAwarenessAsync(AgendaItemId.Value, awarenessBase64);
-        } catch {
-            // Ignore — awareness is ephemeral.
+        } catch (Exception ex) {
+            // Awareness is ephemeral — log but don't surface.
+            Console.Error.WriteLine($"CodeMirrorEditor.OnJsAwarenessUpdate: hub send failed. {ex}");
         }
     }
 
@@ -277,7 +278,8 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
             });
             LastSavedAt = DateTime.Now;
             SetSaveState(SaveState.Saved);
-        } catch {
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"CodeMirrorEditor.TriggerSnapshotAsync: snapshot save failed. {ex}");
             SetSaveState(SaveState.Failed);
         }
     }
@@ -299,13 +301,16 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
             // Flush one final snapshot on teardown.
             try {
                 await TriggerSnapshotAsync();
-            } catch { }
+            } catch (Exception ex) {
+                Console.Error.WriteLine($"CodeMirrorEditor.DisposeAsync: final snapshot failed (best-effort). {ex}");
+            }
         }
         try {
             if (_handle != null)
                 await JS.InvokeVoidAsync("cmEditor.dispose", _handle);
-        } catch {
-            // JS runtime may already be torn down.
+        } catch (Exception ex) {
+            // Usually JS runtime already torn down — best-effort.
+            Console.Error.WriteLine($"CodeMirrorEditor.DisposeAsync: JS dispose failed (best-effort). {ex}");
         }
         _selfRef?.Dispose();
     }

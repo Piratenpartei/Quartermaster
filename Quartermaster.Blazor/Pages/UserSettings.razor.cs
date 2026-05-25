@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -28,7 +29,8 @@ public partial class UserSettings {
     protected override async Task OnInitializedAsync() {
         try {
             Settings = await Http.GetFromJsonAsync<UserSettingsDTO>("/api/users/settings");
-        } catch {
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"UserSettings.OnInitializedAsync: settings fetch failed. {ex}");
             Settings = null;
         }
 

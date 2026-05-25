@@ -65,17 +65,9 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Bare Catches / Swallowed Exceptions
 
-- [ ] **5 bare-catch sites in Server** (CLAUDE.md hard rule): `Email/EmailSendingBackgroundService.cs:141`, `Events/EventTemplateListEndpoint.cs:63,72`, `Meetings/AgendaItemPresenceEndpoint.cs:91`, `Meetings/MeetingHub.cs:348`, `Meetings/MeetingDetailEndpoint.cs:134`. Catch `Exception ex` and log `{ex}`.
-- [ ] **17 bare-catch / swallow sites in Blazor.** Notable: `Services/AuthService.cs:60` (invalid stored token leaves user unauth'd but doesn't clear localStorage → reload loop), `LoginSamlCallback.razor.cs`, `MeetingLive.razor.cs:62` (live updates silently disabled). Full list:
-  - `Program.cs:31`, `Services/AuthService.cs:60`, `Services/ClientConfigService.cs:31`
-  - `Components/Inputs/CodeMirrorEditor.razor.cs:219,240,280,302,307`
-  - `Components/Inputs/MotionPicker.razor.cs:67`
-  - `Pages/LoginManual.razor.cs:40`, `Pages/UserSettings.razor.cs:31`
-  - `Pages/Administration/EventDetail.razor.cs:412,423`
-  - `Pages/Administration/ImportStatus.razor.cs:54`
-  - `Pages/Administration/MeetingLive.razor.cs:62,100,131`
-  - `Pages/Administration/MemberImportHistory.razor.cs:139`
-- [ ] **`ex.Message` instead of `{ex}` (drops stack + inner exceptions):** `AdministrativeDivisions/AdminDivisionImportService.cs:71`, `Email/EmailSendingBackgroundService.cs:128,136`.
+- [x] **5 bare-catch sites in Server.** SMTP-disconnect catch now logs `_logger.LogWarning(ex, ...)`. The 4 JSON-parse fallbacks (`EventTemplateListEndpoint` ×2, `AgendaItemPresenceEndpoint`, `MeetingDetailEndpoint`, `MeetingHub.ParseKnownAuthors`) catch `JsonException` specifically + `Logger.LogWarning(ex, …, entityId)`. `MeetingHub.ParseKnownAuthors` is static-context with silent-recovery contract; catch tightened to `JsonException` but no log (called per-save, no per-instance Logger).
+- [x] **17 bare-catch / swallow sites in Blazor.** All fixed. Pattern: catch `Exception ex` (or `JsonException` for parsers), `Console.Error.WriteLine($"{ComponentName}.{Method}: {context}. {ex}")`. Sites: `Program.cs` (i18n boot fetch), `AuthService` (session init + logout), `ClientConfigService` (config fetch), `CodeMirrorEditor` (hub send / awareness / snapshot / dispose × 2), `MotionPicker` (motions fetch), `LoginManual` (login error), `UserSettings` (settings fetch), `EventDetail` (2 JSON config parsers), `ImportStatus` + `MemberImportHistory` (legacy-string-vs-JSON parsers — tightened to `JsonException`, contract is silent-recovery so no log), `MeetingLive` (hub join / leave / template fetch).
+- [x] **`ex.Message` instead of `{ex}`.** `AdminDivisionImportService` log entry now stores `$"{ex}"` (column is 8192 chars, fits stack). `EmailSendingBackgroundService` both per-message and per-batch `HandleFailure` calls now pass `$"{ex}"`.
 
 ### Blazor Hard Violations & Quality
 

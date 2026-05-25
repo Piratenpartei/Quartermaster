@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Quartermaster.Api.I18n;
@@ -28,8 +29,8 @@ public static class Program {
             var json = "";
             try {
                 json = await bootHttp.GetStringAsync("i18n/de.json");
-            } catch {
-                // Translations unavailable — fall back to raw keys.
+            } catch (Exception ex) {
+                Console.Error.WriteLine($"Boot: i18n/de.json unavailable, falling back to raw keys. {ex}");
             }
             builder.Services.AddSingleton(new I18nService(json));
         }

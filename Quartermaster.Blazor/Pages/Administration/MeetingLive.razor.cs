@@ -59,8 +59,9 @@ public partial class MeetingLive : IAsyncDisposable {
         HubClient.PresenceChanged += OnHubPresenceChanged;
         try {
             await HubClient.JoinMeetingAsync(Id);
-        } catch (Exception) {
+        } catch (Exception ex) {
             // Non-fatal — live updates disabled, REST still works.
+            Console.Error.WriteLine($"MeetingLive.ConnectHub: hub join failed; live updates off. {ex}");
         }
     }
 
@@ -97,8 +98,8 @@ public partial class MeetingLive : IAsyncDisposable {
         HubClient.PresenceChanged -= OnHubPresenceChanged;
         try {
             await HubClient.LeaveMeetingAsync(Id);
-        } catch {
-            // Ignore on teardown.
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"MeetingLive.DisposeAsync: hub leave failed (best-effort). {ex}");
         }
     }
 
@@ -128,8 +129,9 @@ public partial class MeetingLive : IAsyncDisposable {
             var templateOption = options?.FirstOrDefault(o => o.Identifier == "meetings.motion_notes_template");
             if (templateOption != null)
                 _motionNotesTemplate = templateOption.GlobalValue;
-        } catch {
-            // Non-critical
+        } catch (Exception ex) {
+            // Non-critical — motion-notes template feature degrades silently.
+            Console.Error.WriteLine($"MeetingLive.LoadMotionNotesTemplate: option fetch failed. {ex}");
         }
     }
 

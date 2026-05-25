@@ -51,8 +51,8 @@ public class AuthService {
             var response = await _http.GetAsync("/api/users/session");
             if (response.IsSuccessStatusCode)
                 UpdateSession(await response.Content.ReadFromJsonAsync<LoginResponse>());
-        } catch (Exception) {
-            // Session unavailable — treat as anonymous.
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"AuthService.InitializeAsync: session fetch failed, treating as anonymous. {ex}");
         }
     }
 
@@ -74,8 +74,8 @@ public class AuthService {
     public async Task LogoutAsync() {
         try {
             await _http.PostAsync("/api/users/logout", null);
-        } catch (Exception) {
-            // Server unreachable — clear local state anyway.
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"AuthService.LogoutAsync: server unreachable, clearing local state anyway. {ex}");
         }
         // Don't reset Initialized/_initTcs — the app's already past first-load and
         // anyone awaiting WaitForInitialization would hang if we re-armed the TCS.

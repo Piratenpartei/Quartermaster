@@ -345,7 +345,8 @@ public class MeetingHub : Hub {
             return new();
         try {
             return JsonSerializer.Deserialize<Dictionary<string, CollabAuthorInfo>>(json) ?? new();
-        } catch {
+        } catch (JsonException) {
+            // Corrupted ClientUserMap on a CollabDocument — start fresh; the next save rewrites it.
             return new();
         }
     }

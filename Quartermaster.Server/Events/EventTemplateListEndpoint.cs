@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.Extensions.Logging;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
@@ -59,18 +60,16 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
                 var variables = JsonSerializer.Deserialize<JsonElement>(t.Variables);
                 if (variables.ValueKind == JsonValueKind.Array)
                     variableCount = variables.GetArrayLength();
-            }
-            catch {
-                // ignore malformed JSON
+            } catch (JsonException ex) {
+                Logger.LogWarning(ex, "Malformed Variables JSON on EventTemplate {Id}; counting as 0", t.Id);
             }
 
             try {
                 var items = JsonSerializer.Deserialize<JsonElement>(t.ChecklistItemTemplates);
                 if (items.ValueKind == JsonValueKind.Array)
                     checklistItemCount = items.GetArrayLength();
-            }
-            catch {
-                // ignore malformed JSON
+            } catch (JsonException ex) {
+                Logger.LogWarning(ex, "Malformed ChecklistItemTemplates JSON on EventTemplate {Id}; counting as 0", t.Id);
             }
 
             return new EventTemplateDTO {

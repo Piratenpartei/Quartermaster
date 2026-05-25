@@ -125,7 +125,7 @@ public class EmailSendingBackgroundService : BackgroundService {
                     return;
                 } catch (Exception ex) {
                     _logger.LogError(ex, "Failed to send email to {Recipient}", msg.To);
-                    await HandleFailure(msg, ex.Message, ct);
+                    await HandleFailure(msg, $"{ex}", ct);
                 }
             }
         } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
@@ -133,13 +133,13 @@ public class EmailSendingBackgroundService : BackgroundService {
         } catch (Exception ex) {
             _logger.LogError(ex, "SMTP connection error, re-queueing {Count} messages", batch.Count);
             foreach (var msg in batch)
-                await HandleFailure(msg, ex.Message, ct);
+                await HandleFailure(msg, $"{ex}", ct);
         } finally {
             if (connected) {
                 try {
                     await client.DisconnectAsync(true, ct);
-                } catch {
-                    // best-effort disconnect
+                } catch (Exception ex) {
+                    _logger.LogWarning(ex, "SMTP disconnect failed (best-effort)");
                 }
             }
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -28,7 +29,8 @@ public class ClientConfigService {
 
         try {
             _config = await _http.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
-        } catch {
+        } catch (Exception ex) {
+            System.Console.Error.WriteLine($"ClientConfigService.LoadAsync: config fetch failed, using defaults. {ex}");
             _config ??= new ClientConfigDTO();
         }
     }

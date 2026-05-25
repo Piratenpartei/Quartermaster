@@ -136,7 +136,8 @@ public partial class MemberImportHistory {
     private static List<string> ParseErrors(string errorsJson) {
         try {
             return JsonSerializer.Deserialize<List<string>>(errorsJson) ?? new();
-        } catch {
+        } catch (JsonException) {
+            // Legacy logs stored a plain string instead of a JSON array; surface as-is.
             return new List<string> { errorsJson };
         }
     }

@@ -68,7 +68,7 @@ public class AdminDivisionImportService {
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
             HasCompletedInitialLoad = true;
-            return CreateLog(fileHash, 0, new ChangeResult(), 1, ex.Message, sw.ElapsedMilliseconds);
+            return CreateLog(fileHash, 0, new ChangeResult(), 1, $"{ex}", sw.ElapsedMilliseconds);
         }
 
         var existingCount = context.AdministrativeDivisions.Count();

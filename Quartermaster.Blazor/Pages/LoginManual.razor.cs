@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
@@ -37,7 +38,8 @@ public partial class LoginManual {
             } else {
                 ToastService.Toast("Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.", "danger");
             }
-        } catch {
+        } catch (Exception ex) {
+            Console.Error.WriteLine($"LoginManual.HandleLogin: unexpected error. {ex}");
             ToastService.Toast("Fehler bei der Anmeldung.", "danger");
         }
 

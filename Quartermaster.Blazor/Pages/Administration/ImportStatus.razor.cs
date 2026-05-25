@@ -51,7 +51,8 @@ public partial class ImportStatus {
     private static List<string> ParseErrors(string errorsJson) {
         try {
             return JsonSerializer.Deserialize<List<string>>(errorsJson) ?? new();
-        } catch {
+        } catch (JsonException) {
+            // Older import logs stored a plain string instead of a JSON array; surface it as-is.
             return new List<string> { errorsJson };
         }
     }
