@@ -59,7 +59,7 @@ public class EmailServiceTests : IDisposable {
 
     [Test]
     public async Task SendEmail_TemplateOverrideUsed() {
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "ManualAddresses", Guid.Empty, "test.template",
             "Override content here", "recipient@example.com");
 
@@ -76,7 +76,7 @@ public class EmailServiceTests : IDisposable {
 
     [Test]
     public async Task SendEmail_NoTemplateContent_ReturnsError() {
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "ManualAddresses", Guid.Empty, "nonexistent.template",
             null, "recipient@example.com");
 
@@ -86,7 +86,7 @@ public class EmailServiceTests : IDisposable {
 
     [Test]
     public async Task SendEmail_ManualAddresses_SplitValidatedDeduplicated() {
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "ManualAddresses", Guid.Empty, "",
             "Test content", "a@test.com, b@test.com, a@test.com");
 
@@ -96,7 +96,7 @@ public class EmailServiceTests : IDisposable {
 
     [Test]
     public async Task SendEmail_ManualAddresses_InvalidEmailsSkipped() {
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "ManualAddresses", Guid.Empty, "",
             "Test content", "valid@test.com, not-an-email, also-invalid");
 
@@ -126,7 +126,7 @@ public class EmailServiceTests : IDisposable {
 
         _optionRepo.SetValue("test.template", null, "Hello **{{ member.FirstName }}**");
 
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "Chapter", _chapterId, "test.template",
             null, null);
 
@@ -162,7 +162,7 @@ public class EmailServiceTests : IDisposable {
 
         _optionRepo.SetValue("test.template", null, "Content");
 
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "Chapter", _chapterId, "test.template",
             null, null);
 
@@ -198,7 +198,7 @@ public class EmailServiceTests : IDisposable {
 
         _optionRepo.SetValue("test.template", null, "Content");
 
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "Chapter", _chapterId, "test.template",
             null, null);
 
@@ -246,7 +246,7 @@ public class EmailServiceTests : IDisposable {
         _optionRepo.SetValue("test.template", null, "Hello");
 
         // Targeting the state should reach all 3 (state + descendants)
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "AdministrativeDivision", stateId, "test.template",
             null, null);
 
@@ -283,7 +283,7 @@ public class EmailServiceTests : IDisposable {
         _optionRepo.SetValue("test.template", null, "Hello");
 
         // Targeting the city should only reach the city resident (no ancestors)
-        var (count, error) = _service.SendEmail(
+        var (count, error) = await _service.SendEmailAsync(
             "AdministrativeDivision", cityId, "test.template",
             null, null);
 

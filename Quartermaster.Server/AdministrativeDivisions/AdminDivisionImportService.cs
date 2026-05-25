@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,13 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 public class AdminDivisionImportService {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AdminDivisionImportService> _logger;
+    private readonly TaskCompletionSource _initialLoadTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private string? _lastFileHash;
 
-    public bool HasCompletedInitialLoad { get; private set; }
+    public bool HasCompletedInitialLoad => _initialLoadTcs.Task.IsCompletedSuccessfully;
+
+    /// <summary>Completes when the first <see cref="Import"/> call returns (success or failure).</summary>
+    public Task InitialLoadCompleted => _initialLoadTcs.Task;
 
     public AdminDivisionImportService(IServiceScopeFactory scopeFactory, ILogger<AdminDivisionImportService> logger) {
         _scopeFactory = scopeFactory;
@@ -51,14 +56,14 @@ public class AdminDivisionImportService {
 
         if (!File.Exists(baseFile) || !File.Exists(postcodeFile)) {
             _logger.LogWarning("Admin division files not found: {Base}, {PostCodes}", baseFile, postcodeFile);
-            HasCompletedInitialLoad = true;
+            _initialLoadTcs.TrySetResult();
             return CreateLog("", 0, new ChangeResult(), 1, "Admin division files not found", 0);
         }
 
         var fileHash = ComputeFileHash(baseFile, postcodeFile);
         if (_lastFileHash == fileHash) {
             _logger.LogDebug("Admin division files unchanged, skipping import");
-            HasCompletedInitialLoad = true;
+            _initialLoadTcs.TrySetResult();
             return CreateLog(fileHash, 0, new ChangeResult(), 0, null, 0);
         }
 
@@ -67,7 +72,7 @@ public class AdminDivisionImportService {
             parsed = AdministrativeDivisionLoader.Parse(baseFile, postcodeFile);
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
-            HasCompletedInitialLoad = true;
+            _initialLoadTcs.TrySetResult();
             return CreateLog(fileHash, 0, new ChangeResult(), 1, $"{ex}", sw.ElapsedMilliseconds);
         }
 
@@ -85,7 +90,7 @@ public class AdminDivisionImportService {
 
         sw.Stop();
         _lastFileHash = fileHash;
-        HasCompletedInitialLoad = true;
+        _initialLoadTcs.TrySetResult();
 
         var log = CreateLog(fileHash, parsed.Count, changes,
             errors.Count, errors.Count > 0 ? string.Join("\n", errors) : null, sw.ElapsedMilliseconds);

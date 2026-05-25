@@ -66,7 +66,7 @@ public class ChecklistItemCheckEndpoint : Endpoint<ChecklistItemCheckRequest> {
 
         if (req.ExecuteAction && item.ItemType != ChecklistItemType.Text) {
             var parentEvent = _eventRepo.Get(item.EventId);
-            var (execResultId, error) = _executor.Execute(item, parentEvent);
+            var (execResultId, error) = await _executor.ExecuteAsync(item, parentEvent);
             if (error != null) {
                 ThrowError(error);
                 return;

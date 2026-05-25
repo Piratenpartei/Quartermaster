@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Rendering;
@@ -18,11 +19,11 @@ public class ChecklistItemExecutor {
         _emailService = emailService;
     }
 
-    public (Guid? ResultId, string? Error) Execute(EventChecklistItem item, Event? parentEvent = null) {
+    public Task<(Guid? ResultId, string? Error)> ExecuteAsync(EventChecklistItem item, Event? parentEvent = null) {
         return item.ItemType switch {
-            ChecklistItemType.CreateMotion => ExecuteCreateMotion(item),
-            ChecklistItemType.SendEmail => ExecuteSendEmail(item, parentEvent),
-            _ => (null, null)
+            ChecklistItemType.CreateMotion => Task.FromResult(ExecuteCreateMotion(item)),
+            ChecklistItemType.SendEmail => ExecuteSendEmailAsync(item, parentEvent),
+            _ => Task.FromResult<(Guid?, string?)>((null, null))
         };
     }
 
@@ -49,7 +50,7 @@ public class ChecklistItemExecutor {
         return (motion.Id, null);
     }
 
-    private (Guid? ResultId, string? Error) ExecuteSendEmail(EventChecklistItem item, Event? parentEvent) {
+    private async Task<(Guid? ResultId, string? Error)> ExecuteSendEmailAsync(EventChecklistItem item, Event? parentEvent) {
         if (string.IsNullOrEmpty(item.Configuration))
             return (null, "No configuration for email sending");
 
@@ -57,7 +58,6 @@ public class ChecklistItemExecutor {
         if (config == null)
             return (null, "Invalid email configuration");
 
-        // If useDescription is set, use the event description as template content
         string? descriptionOverride = null;
         if (config.UseDescription && parentEvent != null) {
             var desc = parentEvent.Description ?? "";
@@ -66,7 +66,7 @@ public class ChecklistItemExecutor {
             descriptionOverride = desc;
         }
 
-        var (count, error) = _emailService.SendEmail(
+        var (_, error) = await _emailService.SendEmailAsync(
             config.TargetType, config.TargetId, config.TemplateIdentifier,
             descriptionOverride, config.ManualAddresses,
             "EventChecklistItem", item.Id);

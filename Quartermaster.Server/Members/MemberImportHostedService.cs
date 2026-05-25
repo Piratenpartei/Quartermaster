@@ -32,9 +32,7 @@ public class MemberImportHostedService : BackgroundService {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         _logger.LogInformation("Member import hosted service started");
 
-        // Wait for admin division import to complete first
-        while (!_adminDivImportService.HasCompletedInitialLoad && !stoppingToken.IsCancellationRequested)
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+        await _adminDivImportService.InitialLoadCompleted.WaitAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested) {
             try {

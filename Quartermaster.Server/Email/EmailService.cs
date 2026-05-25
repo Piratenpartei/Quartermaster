@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.AdministrativeDivisions;
@@ -38,21 +39,18 @@ public class EmailService {
         _logger = logger;
     }
 
-    public (int Count, string? Error) SendEmail(
+    public async Task<(int Count, string? Error)> SendEmailAsync(
         string targetType, Guid targetId, string templateIdentifier,
         string? descriptionOverride, string? manualAddresses,
         string? sourceEntityType = null, Guid? sourceEntityId = null) {
 
-        // Resolve template content
         string? templateContent = descriptionOverride;
-        if (string.IsNullOrEmpty(templateContent) && !string.IsNullOrEmpty(templateIdentifier)) {
+        if (string.IsNullOrEmpty(templateContent) && !string.IsNullOrEmpty(templateIdentifier))
             templateContent = _optionRepo.ResolveValue(templateIdentifier, null, _chapterRepo);
-        }
 
         if (string.IsNullOrEmpty(templateContent))
             return (0, "Kein Template-Inhalt verfügbar.");
 
-        // Resolve subject from template identifier or default
         var subject = !string.IsNullOrEmpty(templateIdentifier)
             ? _optionRepo.GetDefinition(templateIdentifier)?.FriendlyName ?? "Nachricht"
             : "Nachricht";
@@ -67,7 +65,7 @@ public class EmailService {
                 .ToList();
 
             foreach (var addr in addresses) {
-                EnqueueEmail(addr, subject, templateContent, templateIdentifier,
+                await EnqueueEmailAsync(addr, subject, templateContent, templateIdentifier,
                     null, sourceEntityType, sourceEntityId);
                 count++;
             }
@@ -76,7 +74,7 @@ public class EmailService {
             foreach (var member in members) {
                 if (string.IsNullOrEmpty(member.EMail))
                     continue;
-                EnqueueEmail(member.EMail, subject, templateContent, templateIdentifier,
+                await EnqueueEmailAsync(member.EMail, subject, templateContent, templateIdentifier,
                     member, sourceEntityType, sourceEntityId);
                 count++;
             }
@@ -87,11 +85,10 @@ public class EmailService {
         return (count, null);
     }
 
-    private void EnqueueEmail(string recipient, string subject, string templateContent,
+    private async Task EnqueueEmailAsync(string recipient, string subject, string templateContent,
         string? templateIdentifier, Member? member,
         string? sourceEntityType, Guid? sourceEntityId) {
 
-        // Render personalized template
         var model = new Dictionary<string, object>();
         if (member != null) {
             model["member"] = new {
@@ -104,9 +101,7 @@ public class EmailService {
             };
         }
 
-        var renderTask = TemplateRenderer.RenderAsync(templateContent, model);
-        renderTask.Wait();
-        var (html, error) = renderTask.Result;
+        var (html, error) = await TemplateRenderer.RenderAsync(templateContent, model);
         if (error != null)
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;

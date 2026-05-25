@@ -176,7 +176,7 @@ public class EmailSendingBackgroundService : BackgroundService {
         );
     }
 
-    private async Task HandleFailure(EmailMessage message, string error, CancellationToken ct) {
+    private Task HandleFailure(EmailMessage message, string error, CancellationToken ct) {
         using var scope = _services.CreateScope();
         var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
 
@@ -185,11 +185,31 @@ public class EmailSendingBackgroundService : BackgroundService {
         if (log != null && log.AttemptCount < MaxRetries) {
             _logger.LogWarning("Retry {Attempt}/{Max} for email to {Recipient}",
                 log.AttemptCount, MaxRetries, message.To);
-            await Task.Delay(TimeSpan.FromSeconds(10 * log.AttemptCount), ct);
-            _channel.Writer.TryWrite(message);
+            ScheduleRetry(message, TimeSpan.FromSeconds(10 * log.AttemptCount), ct);
         } else {
             emailLogRepo.UpdateStatus(message.EmailLogId, "Failed", error, null);
         }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Fire-and-forget delayed re-enqueue. Off the consumer loop so the next batch can
+    /// start sending immediately. On shutdown the delay observes <paramref name="ct"/>
+    /// and the message stays Pending in the DB — <see cref="RequeuePendingLogs"/> picks
+    /// it up on next start.
+    /// </summary>
+    private void ScheduleRetry(EmailMessage message, TimeSpan delay, CancellationToken ct) {
+        _ = Task.Run(async () => {
+            try {
+                await Task.Delay(delay, ct);
+                _channel.Writer.TryWrite(message);
+            } catch (OperationCanceledException) {
+                // Shutdown — log row stays Pending and gets re-enqueued on next start.
+            } catch (Exception ex) {
+                _logger.LogWarning(ex, "Scheduled retry for {Recipient} failed to re-enqueue", message.To);
+            }
+        }, CancellationToken.None);
     }
 
     private record SmtpConfig(
