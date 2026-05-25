@@ -103,7 +103,7 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.Table(Permission.TableName)
             .WithColumn(nameof(Permission.Id)).AsGuid().PrimaryKey().Indexed()
-            .WithColumn(nameof(Permission.Identifier)).AsString(256)
+            .WithColumn(nameof(Permission.Identifier)).AsString(256).Unique()
             .WithColumn(nameof(Permission.DisplayName)).AsString(256)
             .WithColumn(nameof(Permission.Global)).AsBoolean();
 

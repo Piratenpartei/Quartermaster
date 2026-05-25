@@ -54,6 +54,7 @@ public class DueSelectionRepository {
     }
 
     public void UpdateStatus(Guid id, DueSelectionStatus status, Guid? processedByUserId) {
+        using var tx = _context.BeginTransaction();
         var existing = Get(id);
         _context.DueSelections
             .Where(d => d.Id == id)
@@ -63,6 +64,7 @@ public class DueSelectionRepository {
             .Update();
         if (existing != null)
             _auditLog.LogFieldChange("DueSelection", id, "Status", existing.Status.ToString(), status.ToString());
+        tx.Commit();
     }
 
     public void SoftDelete(Guid id) {

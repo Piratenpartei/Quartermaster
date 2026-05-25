@@ -180,7 +180,7 @@ public class EmailSendingBackgroundService : BackgroundService {
         using var scope = _services.CreateScope();
         var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
 
-        var log = emailLogRepo.GetById(message.EmailLogId);
+        var log = emailLogRepo.Get(message.EmailLogId);
 
         if (log != null && log.AttemptCount < MaxRetries) {
             _logger.LogWarning("Retry {Attempt}/{Max} for email to {Recipient}",

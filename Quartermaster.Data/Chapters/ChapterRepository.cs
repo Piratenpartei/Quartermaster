@@ -26,7 +26,7 @@ public class ChapterRepository {
     public List<Chapter> GetByExternalCode(string externalCode)
         => _context.Chapters.Where(c => c.ExternalCode == externalCode && c.DeletedAt == null).ToList();
 
-    public Chapter? FindByExternalCodeAndParent(string externalCode, Guid? parentChapterId)
+    public Chapter? GetByExternalCodeAndParent(string externalCode, Guid? parentChapterId)
         => _context.Chapters
             .Where(c => c.ExternalCode == externalCode && c.ParentChapterId == parentChapterId && c.DeletedAt == null)
             .FirstOrDefault();

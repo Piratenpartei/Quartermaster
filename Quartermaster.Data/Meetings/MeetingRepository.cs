@@ -69,10 +69,10 @@ public class MeetingRepository {
             .Set(m => m.Visibility, updated.Visibility)
             .Update();
 
-        LogIfChanged("Title", existing.Title, updated.Title, updated.Id);
-        LogIfChanged("MeetingDate", existing.MeetingDate?.ToString("o"), updated.MeetingDate?.ToString("o"), updated.Id);
-        LogIfChanged("Location", existing.Location, updated.Location, updated.Id);
-        LogIfChanged("Visibility", existing.Visibility.ToString(), updated.Visibility.ToString(), updated.Id);
+        _auditLog.LogFieldChange("Meeting", updated.Id, "Title", existing.Title, updated.Title);
+        _auditLog.LogFieldChange("Meeting", updated.Id, "MeetingDate", existing.MeetingDate?.ToString("o"), updated.MeetingDate?.ToString("o"));
+        _auditLog.LogFieldChange("Meeting", updated.Id, "Location", existing.Location, updated.Location);
+        _auditLog.LogFieldChange("Meeting", updated.Id, "Visibility", existing.Visibility.ToString(), updated.Visibility.ToString());
     }
 
     public void UpdateStatus(Guid meetingId, MeetingStatus newStatus) {
@@ -103,8 +103,4 @@ public class MeetingRepository {
         _auditLog.LogSoftDeleted("Meeting", meetingId);
     }
 
-    private void LogIfChanged(string field, string? oldValue, string? newValue, Guid id) {
-        if (oldValue != newValue)
-            _auditLog.LogFieldChange("Meeting", id, field, oldValue, newValue);
-    }
 }

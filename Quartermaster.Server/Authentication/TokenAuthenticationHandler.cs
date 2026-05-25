@@ -41,7 +41,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticat
             return Task.FromResult(AuthenticateResult.Fail("Invalid or expired token"));
 
         var userRepository = Context.RequestServices.GetRequiredService<UserRepository>();
-        var user = userRepository.GetById(token.UserId.Value);
+        var user = userRepository.Get(token.UserId.Value);
         if (user == null)
             return Task.FromResult(AuthenticateResult.Fail("User not found"));
 

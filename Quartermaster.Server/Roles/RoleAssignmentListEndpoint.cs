@@ -48,7 +48,7 @@ public class RoleAssignmentListEndpoint : EndpointWithoutRequest<List<UserRoleAs
         var assignments = _roleRepo.GetAllAssignments();
         var roles = _roleRepo.GetAll().ToDictionary(r => r.Id);
         var userIds = assignments.Select(a => a.UserId).Distinct().ToList();
-        var users = userIds.ToDictionary(uid => uid, uid => _userRepo.GetById(uid));
+        var users = userIds.ToDictionary(uid => uid, uid => _userRepo.Get(uid));
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id, c => c.Name);
 
         var dtos = assignments.Select(a => {

@@ -156,6 +156,9 @@ public sealed class TestDataBuilder {
     }
 
     public Permission SeedPermission(string identifier, string displayName, bool global) {
+        var existing = _db.Permissions.FirstOrDefault(p => p.Identifier == identifier);
+        if (existing != null)
+            return existing;
         var perm = new Permission {
             Id = Guid.NewGuid(),
             Identifier = identifier,

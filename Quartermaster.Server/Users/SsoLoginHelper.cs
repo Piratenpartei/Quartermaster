@@ -30,7 +30,7 @@ public static class SsoLoginHelper {
         if (member.ExitDate.HasValue)
             return (SsoLoginResult.MemberExited, null);
 
-        var user = member.UserId.HasValue ? userRepo.GetById(member.UserId.Value) : null;
+        var user = member.UserId.HasValue ? userRepo.Get(member.UserId.Value) : null;
         var isNewLink = false;
 
         if (user == null) {

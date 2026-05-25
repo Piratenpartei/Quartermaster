@@ -23,7 +23,7 @@ public class UserRepository {
 
     public void Create(User user) => _context.Insert(user);
 
-    public User? GetById(Guid id)
+    public User? Get(Guid id)
         => _context.Users.Where(u => u.Id == id && u.DeletedAt == null).FirstOrDefault();
 
     public User? GetByUsername(string username)
@@ -57,7 +57,23 @@ public class UserRepository {
         }
     }
 
+    /// <summary>
+    /// Creates the dev/root admin user, leaving most NOT NULL profile fields at default.
+    /// Two FK columns (<c>CitizenshipAdministrativeDivisionId</c>, <c>AddressAdministrativeDivisionId</c>)
+    /// default to <see cref="Guid.Empty"/> and require the "Null Island" <c>AdministrativeDivision</c>
+    /// row seeded by <see cref="AdministrativeDivisionRepository.SupplementDefaults"/>. Throws if it's
+    /// missing rather than letting the insert fail with an opaque FK violation later.
+    /// </summary>
     private User AddRootAccount(RootAccountSettings accountSettings) {
+        var nullIsland = _context.AdministrativeDivisions
+            .Where(d => d.Id == Guid.Empty)
+            .FirstOrDefault();
+        if (nullIsland == null) {
+            throw new InvalidOperationException(
+                "Cannot create root account: Null Island AdministrativeDivision (Id=Guid.Empty) is not seeded. " +
+                "Ensure AdministrativeDivisionRepository.SupplementDefaults runs before UserRepository.SupplementDefaults.");
+        }
+
         var rootUser = new User() {
             Username = accountSettings.Username!,
             PasswordHash = PasswordHasher.Hash(accountSettings.Password!)

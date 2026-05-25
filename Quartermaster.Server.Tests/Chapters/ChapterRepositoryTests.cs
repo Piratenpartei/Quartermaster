@@ -135,46 +135,46 @@ public class ChapterRepositoryTests : IDisposable {
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_ExactMatch_ReturnsChapter() {
-        var result = _repo.FindByExternalCodeAndParent("NI", _bundId);
+    public async Task GetByExternalCodeAndParent_ExactMatch_ReturnsChapter() {
+        var result = _repo.GetByExternalCodeAndParent("NI", _bundId);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Id).IsEqualTo(_lvId);
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_CodeMatchWrongParent_ReturnsNull() {
-        var result = _repo.FindByExternalCodeAndParent("NI", _lvId);
+    public async Task GetByExternalCodeAndParent_CodeMatchWrongParent_ReturnsNull() {
+        var result = _repo.GetByExternalCodeAndParent("NI", _lvId);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_WrongCode_ReturnsNull() {
-        var result = _repo.FindByExternalCodeAndParent("XX", _bundId);
+    public async Task GetByExternalCodeAndParent_WrongCode_ReturnsNull() {
+        var result = _repo.GetByExternalCodeAndParent("XX", _bundId);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_NullParentForRoot_ReturnsRoot() {
-        var result = _repo.FindByExternalCodeAndParent("BV", null);
+    public async Task GetByExternalCodeAndParent_NullParentForRoot_ReturnsRoot() {
+        var result = _repo.GetByExternalCodeAndParent("BV", null);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Id).IsEqualTo(_bundId);
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_NonExistentCode_ReturnsNull() {
-        var result = _repo.FindByExternalCodeAndParent("NONEXISTENT", null);
+    public async Task GetByExternalCodeAndParent_NonExistentCode_ReturnsNull() {
+        var result = _repo.GetByExternalCodeAndParent("NONEXISTENT", null);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task FindByExternalCodeAndParent_NullParentButNotRoot_ReturnsNull() {
+    public async Task GetByExternalCodeAndParent_NullParentButNotRoot_ReturnsNull() {
         // "NI" exists but its parent is _bundId, not null
-        var result = _repo.FindByExternalCodeAndParent("NI", null);
+        var result = _repo.GetByExternalCodeAndParent("NI", null);
 
         await Assert.That(result).IsNull();
     }

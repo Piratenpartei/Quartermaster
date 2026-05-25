@@ -35,7 +35,7 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
             return;
         }
 
-        var user = _userRepo.GetById(userId.Value);
+        var user = _userRepo.Get(userId.Value);
         if (user == null) {
             await SendUnauthorizedAsync(ct);
             return;

@@ -55,6 +55,7 @@ public class MembershipApplicationRepository {
     }
 
     public void UpdateStatus(Guid id, ApplicationStatus status, Guid? processedByUserId) {
+        using var tx = _context.BeginTransaction();
         var existing = Get(id);
         _context.MembershipApplications
             .Where(a => a.Id == id)
@@ -64,6 +65,7 @@ public class MembershipApplicationRepository {
             .Update();
         if (existing != null)
             _auditLog.LogFieldChange("MembershipApplication", id, "Status", existing.Status.ToString(), status.ToString());
+        tx.Commit();
     }
 
     public void SoftDelete(Guid id) {

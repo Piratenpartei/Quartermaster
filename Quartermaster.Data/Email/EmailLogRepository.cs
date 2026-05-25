@@ -51,6 +51,6 @@ public class EmailLogRepository {
             .ToList();
     }
 
-    public EmailLog? GetById(Guid id)
+    public EmailLog? Get(Guid id)
         => _context.EmailLogs.Where(l => l.Id == id).FirstOrDefault();
 }

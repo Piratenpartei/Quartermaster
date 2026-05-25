@@ -51,7 +51,7 @@ public class UserDeleteEndpoint : Endpoint<UserDeleteRequest> {
             return;
         }
 
-        var user = _userRepo.GetById(req.Id);
+        var user = _userRepo.Get(req.Id);
         if (user == null) {
             await SendNotFoundAsync(ct);
             return;

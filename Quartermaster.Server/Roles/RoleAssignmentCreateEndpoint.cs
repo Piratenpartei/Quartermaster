@@ -49,7 +49,7 @@ public class RoleAssignmentCreateEndpoint : Endpoint<RoleAssignmentCreateRequest
             ThrowError(I18nKey.Error.User.RoleAssignment.RoleNotFound);
             return;
         }
-        var targetUser = _userRepo.GetById(req.UserId);
+        var targetUser = _userRepo.Get(req.UserId);
         if (targetUser == null) {
             ThrowError(I18nKey.Error.User.RoleAssignment.UserNotFound);
             return;
