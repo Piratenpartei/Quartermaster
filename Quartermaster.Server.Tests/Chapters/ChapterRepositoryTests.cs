@@ -127,13 +127,11 @@ public class ChapterRepositoryTests : IDisposable {
     }
 
     [Test]
-    public async Task GetDescendantIds_NonExistentId_ReturnsSingleId() {
+    public async Task GetDescendantIds_NonExistentId_ReturnsEmpty() {
         var nonExistent = Guid.NewGuid();
         var ids = _repo.GetDescendantIds(nonExistent);
 
-        // GetDescendantIds always starts with the given ID in its result
-        await Assert.That(ids.Count).IsEqualTo(1);
-        await Assert.That(ids).Contains(nonExistent);
+        await Assert.That(ids).IsEmpty();
     }
 
     [Test]

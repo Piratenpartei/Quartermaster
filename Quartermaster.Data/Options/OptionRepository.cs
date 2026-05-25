@@ -40,11 +40,17 @@ public class OptionRepository {
 
     public string? ResolveValue(string identifier, Guid? chapterId, ChapterRepository chapterRepo) {
         if (chapterId.HasValue) {
-            var chain = chapterRepo.GetAncestorChain(chapterId.Value);
-            foreach (var chapter in chain) {
-                var chapterValue = GetChapterValue(identifier, chapter.Id);
-                if (chapterValue != null)
-                    return chapterValue.Value;
+            var chain = chapterRepo.GetAncestorChainIds(chapterId.Value);
+            if (chain.Count > 0) {
+                var valuesByChapter = _context.SystemOptions
+                    .Where(o => o.Identifier == identifier
+                        && o.ChapterId != null
+                        && chain.Contains(o.ChapterId.Value))
+                    .ToDictionary(o => o.ChapterId!.Value, o => o.Value);
+                foreach (var id in chain) {
+                    if (valuesByChapter.TryGetValue(id, out var value))
+                        return value;
+                }
             }
         }
 

@@ -158,13 +158,13 @@ public class RoleRepository {
     /// permission checks — the role's InheritsToChildren flag is ignored here.
     /// </summary>
     public HashSet<string> GetChapterPermissionsViaRoles(Guid userId, Guid chapterId) {
-        var result = (
-            from a in _context.UserRoleAssignments
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where a.UserId == userId
-                && (a.ChapterId == chapterId || a.ChapterId == null)
-            select rp.PermissionIdentifier
-        ).Distinct().ToList();
+        var result = _context.UserRoleAssignments
+            .Join(_context.RolePermissions, a => a.RoleId, rp => rp.RoleId, (a, rp) => new { a, rp })
+            .Where(x => x.a.UserId == userId
+                && (x.a.ChapterId == chapterId || x.a.ChapterId == null))
+            .Select(x => x.rp.PermissionIdentifier)
+            .Distinct()
+            .ToList();
 
         return new HashSet<string>(result);
     }
@@ -177,15 +177,15 @@ public class RoleRepository {
     /// descendant chapters.
     /// </summary>
     public HashSet<string> GetInheritableChapterPermissionsViaRoles(Guid userId, Guid chapterId) {
-        var result = (
-            from a in _context.UserRoleAssignments
-            join r in _context.Roles on a.RoleId equals r.Id
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where a.UserId == userId
-                && (a.ChapterId == chapterId || a.ChapterId == null)
-                && r.InheritsToChildren
-            select rp.PermissionIdentifier
-        ).Distinct().ToList();
+        var result = _context.UserRoleAssignments
+            .Join(_context.Roles, a => a.RoleId, r => r.Id, (a, r) => new { a, r })
+            .Join(_context.RolePermissions, x => x.a.RoleId, rp => rp.RoleId, (x, rp) => new { x.a, x.r, rp })
+            .Where(x => x.a.UserId == userId
+                && (x.a.ChapterId == chapterId || x.a.ChapterId == null)
+                && x.r.InheritsToChildren)
+            .Select(x => x.rp.PermissionIdentifier)
+            .Distinct()
+            .ToList();
 
         return new HashSet<string>(result);
     }
@@ -199,14 +199,11 @@ public class RoleRepository {
         if (roleIdentifiers.Length == 0)
             return false;
         var idList = roleIdentifiers.ToList(); // LinqToDB needs List<T> for .Contains translation
-        return (
-            from a in _context.UserRoleAssignments
-            join r in _context.Roles on a.RoleId equals r.Id
-            where a.UserId == userId
-                && a.ChapterId == chapterId
-                && idList.Contains(r.Identifier)
-            select a.Id
-        ).Any();
+        return _context.UserRoleAssignments
+            .Join(_context.Roles, a => a.RoleId, r => r.Id, (a, r) => new { a, r })
+            .Any(x => x.a.UserId == userId
+                && x.a.ChapterId == chapterId
+                && idList.Contains(x.r.Identifier));
     }
 
     /// <summary>
@@ -214,12 +211,12 @@ public class RoleRepository {
     /// (Global-scoped roles only, i.e. ChapterId == null).
     /// </summary>
     public HashSet<string> GetGlobalPermissionsViaRoles(Guid userId) {
-        var result = (
-            from a in _context.UserRoleAssignments
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where a.UserId == userId && a.ChapterId == null
-            select rp.PermissionIdentifier
-        ).Distinct().ToList();
+        var result = _context.UserRoleAssignments
+            .Join(_context.RolePermissions, a => a.RoleId, rp => rp.RoleId, (a, rp) => new { a, rp })
+            .Where(x => x.a.UserId == userId && x.a.ChapterId == null)
+            .Select(x => x.rp.PermissionIdentifier)
+            .Distinct()
+            .ToList();
 
         return new HashSet<string>(result);
     }
@@ -229,39 +226,38 @@ public class RoleRepository {
     /// Global assignments return ChapterId=null (meaning "all chapters").
     /// </summary>
     public List<(Guid UserId, Guid? ChapterId)> GetAssignmentsGranting(string permissionIdentifier) {
-        return (
-            from a in _context.UserRoleAssignments
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where rp.PermissionIdentifier == permissionIdentifier
-            select new { a.UserId, a.ChapterId }
-        ).Distinct().ToList().Select(x => (x.UserId, x.ChapterId)).ToList();
+        return _context.UserRoleAssignments
+            .Join(_context.RolePermissions, a => a.RoleId, rp => rp.RoleId, (a, rp) => new { a, rp })
+            .Where(x => x.rp.PermissionIdentifier == permissionIdentifier)
+            .Select(x => new { x.a.UserId, x.a.ChapterId })
+            .Distinct()
+            .ToList()
+            .Select(x => (x.UserId, x.ChapterId))
+            .ToList();
     }
 
     /// <summary>
     /// Returns chapter IDs where the user has the given permission via a chapter-scoped role assignment.
     /// </summary>
     public List<Guid> GetChapterIdsGrantingPermission(Guid userId, string permissionIdentifier) {
-        return (
-            from a in _context.UserRoleAssignments
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where a.UserId == userId
-                && rp.PermissionIdentifier == permissionIdentifier
-                && a.ChapterId != null
-            select a.ChapterId!.Value
-        ).Distinct().ToList();
+        return _context.UserRoleAssignments
+            .Join(_context.RolePermissions, a => a.RoleId, rp => rp.RoleId, (a, rp) => new { a, rp })
+            .Where(x => x.a.UserId == userId
+                && x.rp.PermissionIdentifier == permissionIdentifier
+                && x.a.ChapterId != null)
+            .Select(x => x.a.ChapterId!.Value)
+            .Distinct()
+            .ToList();
     }
 
     /// <summary>
     /// Returns true if the user has any Global-scoped role assignment containing the given permission.
     /// </summary>
     public bool HasGlobalPermissionViaRole(Guid userId, string permissionIdentifier) {
-        return (
-            from a in _context.UserRoleAssignments
-            join rp in _context.RolePermissions on a.RoleId equals rp.RoleId
-            where a.UserId == userId
-                && rp.PermissionIdentifier == permissionIdentifier
-                && a.ChapterId == null
-            select a.Id
-        ).Any();
+        return _context.UserRoleAssignments
+            .Join(_context.RolePermissions, a => a.RoleId, rp => rp.RoleId, (a, rp) => new { a, rp })
+            .Any(x => x.a.UserId == userId
+                && x.rp.PermissionIdentifier == permissionIdentifier
+                && x.a.ChapterId == null);
     }
 }

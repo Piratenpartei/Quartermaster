@@ -63,37 +63,33 @@ public class AdministrativeDivisionRepository {
         return (items, totalCount);
     }
 
+    private class DivisionTreeRow {
+        public Guid Id { get; set; }
+        public Guid? ParentId { get; set; }
+        public int Depth { get; set; }
+    }
+
     public List<Guid> GetDescendantIds(Guid divisionId) {
-        var result = new List<Guid> { divisionId };
-        var queue = new Queue<Guid>();
-        queue.Enqueue(divisionId);
+        var cte = _context.GetCte<DivisionTreeRow>(self =>
+            _context.AdministrativeDivisions
+                .Where(d => d.Id == divisionId)
+                .Select(d => new DivisionTreeRow { Id = d.Id, ParentId = d.ParentId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.AdministrativeDivisions
+                    .InnerJoin(d => d.ParentId == prev.Id && d.Id != prev.Id)
+                    .Select(d => new DivisionTreeRow { Id = d.Id, ParentId = d.ParentId, Depth = prev.Depth + 1 }))));
 
-        while (queue.Count > 0) {
-            var parentId = queue.Dequeue();
-            var children = _context.AdministrativeDivisions
-                .Where(d => d.ParentId == parentId && d.Id != parentId)
-                .Select(d => d.Id)
-                .ToList();
-
-            foreach (var childId in children) {
-                result.Add(childId);
-                queue.Enqueue(childId);
-            }
-        }
-
-        return result;
+        return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
     }
 
     public List<Guid> GetAncestorIds(Guid divisionId) {
-        var ids = new List<Guid>();
-        var current = Get(divisionId);
-        while (current != null) {
-            ids.Add(current.Id);
-            if (current.ParentId == null || current.ParentId == current.Id)
-                break;
-            current = Get(current.ParentId.Value);
-        }
-        return ids;
-    }
+        var cte = _context.GetCte<DivisionTreeRow>(self =>
+            _context.AdministrativeDivisions
+                .Where(d => d.Id == divisionId)
+                .Select(d => new DivisionTreeRow { Id = d.Id, ParentId = d.ParentId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.AdministrativeDivisions
+                    .InnerJoin(d => d.Id == prev.ParentId && d.Id != prev.Id)
+                    .Select(d => new DivisionTreeRow { Id = d.Id, ParentId = d.ParentId, Depth = prev.Depth + 1 }))));
 
+        return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
+    }
 }

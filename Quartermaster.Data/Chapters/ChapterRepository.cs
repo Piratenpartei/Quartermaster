@@ -55,25 +55,22 @@ public class ChapterRepository {
         return chapters[0];
     }
 
+    private class ChapterTreeRow {
+        public Guid Id { get; set; }
+        public Guid? ParentChapterId { get; set; }
+        public int Depth { get; set; }
+    }
+
     public List<Guid> GetDescendantIds(Guid chapterId) {
-        var result = new List<Guid> { chapterId };
-        var queue = new Queue<Guid>();
-        queue.Enqueue(chapterId);
+        var cte = _context.GetCte<ChapterTreeRow>(self =>
+            _context.Chapters
+                .Where(c => c.Id == chapterId && c.DeletedAt == null)
+                .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.Chapters
+                    .InnerJoin(c => c.ParentChapterId == prev.Id && c.Id != prev.Id && c.DeletedAt == null)
+                    .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = prev.Depth + 1 }))));
 
-        while (queue.Count > 0) {
-            var parentId = queue.Dequeue();
-            var children = _context.Chapters
-                .Where(c => c.ParentChapterId == parentId && c.Id != parentId && c.DeletedAt == null)
-                .Select(c => c.Id)
-                .ToList();
-
-            foreach (var childId in children) {
-                result.Add(childId);
-                queue.Enqueue(childId);
-            }
-        }
-
-        return result;
+        return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
     }
 
 
@@ -103,16 +100,26 @@ public class ChapterRepository {
             .Where(c => c.ParentChapterId == parentId && c.Id != parentId && c.DeletedAt == null)
             .OrderBy(c => c.Name).ToList();
 
+    public List<Guid> GetAncestorChainIds(Guid chapterId) {
+        var cte = _context.GetCte<ChapterTreeRow>(self =>
+            _context.Chapters
+                .Where(c => c.Id == chapterId && c.DeletedAt == null)
+                .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.Chapters
+                    .InnerJoin(c => c.Id == prev.ParentChapterId && c.Id != prev.Id && c.DeletedAt == null)
+                    .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = prev.Depth + 1 }))));
+
+        return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
+    }
+
     public List<Chapter> GetAncestorChain(Guid chapterId) {
-        var chain = new List<Chapter>();
-        var current = Get(chapterId);
-        while (current != null) {
-            chain.Add(current);
-            if (current.ParentChapterId == null || current.ParentChapterId == current.Id)
-                break;
-            current = Get(current.ParentChapterId.Value);
-        }
-        return chain;
+        var orderedIds = GetAncestorChainIds(chapterId);
+        if (orderedIds.Count == 0)
+            return [];
+
+        var chapters = _context.Chapters.Where(c => orderedIds.Contains(c.Id)).ToList()
+            .ToDictionary(c => c.Id);
+        return orderedIds.Where(chapters.ContainsKey).Select(id => chapters[id]).ToList();
     }
 
     public enum ChapterDeleteResult {

@@ -57,11 +57,12 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### N+1 Query Patterns
 
-- [ ] **`UserChapterPermissionRepository.HasPermissionWithInheritance:47-52`** — calls `GetAncestorChain` (N queries) then `HasInheritablePermissionForChapter` (2 more queries each) per ancestor. O(chain_length × 4) round-trips on the permission hot path. Rewrite as one recursive CTE.
-- [ ] **`ChapterRepository.GetAncestorChain:99-109`** — one SELECT per ancestor.
-- [ ] **`AdministrativeDivisionRepository.GetAncestorIds` (:89-99) and `GetDescendantIds` (:68-87)** — same N+1.
-- [ ] **`AgendaItemRepository.GetDepth` and `WouldCreateCycle` (:38-67)** — one SELECT per level.
-- [ ] **`OptionRepository.ResolveValue:41-48`** — one SELECT per ancestor chapter.
+- [x] **`UserChapterPermissionRepository.HasPermissionWithInheritance`** — ancestor walk replaced with one recursive-CTE call into `ChapterRepository.GetAncestorChainIds`, followed by one set-based `HasInheritablePermissionForAnyChapter` that batches the direct-grant and inheriting-role-grant lookups across all ancestor IDs (was O(chain × 4) queries → now 3 queries total: ancestor CTE + 1 direct lookup + 1 role-derived lookup; early-exit on direct hit).
+- [x] **`ChapterRepository.GetAncestorChain` + `GetDescendantIds`** — both rewritten as LinqToDB recursive CTEs (`GetCte<ChapterTreeRow>`) ordered by depth. `GetAncestorChain` extracted into `GetAncestorChainIds` (single CTE) + a follow-up batch `Where(IN)` for callers wanting full Chapter rows.
+- [x] **`AdministrativeDivisionRepository.GetAncestorIds` + `GetDescendantIds`** — recursive CTE.
+- [x] **`AgendaItemRepository.GetDepth` + `WouldCreateCycle`** — recursive CTE; `GetDepth` returns `MAX(Depth)` over the ancestor chain, `WouldCreateCycle` is a single `.Any(r => r.Id == itemId)` over the candidate-parent's ancestor chain.
+- [x] **`OptionRepository.ResolveValue`** — single `Where(IN chain).ToDictionary` over `SystemOptions`, then walks the (pre-fetched, ordered) chain in memory for closest-ancestor match. Global fallback unchanged.
+- Test contract update: `GetDescendantIds_NonExistentId` now returns empty instead of `[selfId]` (the old defensive shape was an implementation accident — consumers filter `IN ids` which yields no rows either way).
 
 ### Bare Catches / Swallowed Exceptions
 

@@ -120,6 +120,7 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - Prefer `var` everywhere
 - Prefer `using` directives over fully-qualified type names — add the `using` rather than writing `Quartermaster.Server.Cli.AdminInitCommand`. If a name genuinely collides, rename or fully-qualify at the single call site
 - **No type/namespace aliases** (`using X = Y;`) and no `global::` — they paper over a naming or namespace problem rather than fixing it
+- Use fluent/method-chain LINQ (`.Where().Select()`); never query-comprehension syntax (`from x in y select`). Applies to LinqToDB recursive CTEs too — express the recursive part as `self.SelectMany(prev => table.InnerJoin(...).Select(...))`
 - Prefer LINQ `Count(predicate)` over `Where(predicate).Count()`
 - Expression-bodied members for trivial properties/indexers/accessors are fine; not for methods/constructors (matches `.editorconfig`)
 - Avoid expression-bodied properties (`=>`) when the value involves allocation or `GetType()`/`typeof().Name` — use an auto-property with initializer (`{ get; } = ...`) so it's computed once

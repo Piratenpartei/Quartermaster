@@ -32,19 +32,24 @@ public class AgendaItemRepository {
         => _context.AgendaItems.Where(a => a.MeetingId == meetingId && a.ParentId == parentId)
             .OrderBy(a => a.SortOrder).ToList();
 
-    /// <summary>
-    /// Returns the depth (1-based) of an item. Root items are depth 1.
-    /// </summary>
+    private class AgendaTreeRow {
+        public Guid Id { get; set; }
+        public Guid? ParentId { get; set; }
+        public int Depth { get; set; }
+    }
+
+    /// <summary>Returns the depth (1-based) of an item. Root items are depth 1.</summary>
     public int GetDepth(Guid itemId) {
-        var depth = 0;
-        var current = Get(itemId);
-        while (current != null) {
-            depth++;
-            if (current.ParentId == null || depth > MaxDepth + 10)
-                break;
-            current = Get(current.ParentId.Value);
-        }
-        return depth;
+        var cte = _context.GetCte<AgendaTreeRow>(self =>
+            _context.AgendaItems
+                .Where(a => a.Id == itemId)
+                .Select(a => new AgendaTreeRow { Id = a.Id, ParentId = a.ParentId, Depth = 1 })
+                .Concat(self.SelectMany(prev => _context.AgendaItems
+                    .InnerJoin(a => a.Id == prev.ParentId && a.Id != prev.Id)
+                    .Select(a => new AgendaTreeRow { Id = a.Id, ParentId = a.ParentId, Depth = prev.Depth + 1 }))));
+
+        var maxDepth = cte.Select(r => (int?)r.Depth).Max();
+        return maxDepth ?? 0;
     }
 
     /// <summary>
@@ -54,16 +59,14 @@ public class AgendaItemRepository {
     public bool WouldCreateCycle(Guid itemId, Guid candidateParentId) {
         if (itemId == candidateParentId)
             return true;
-        var current = Get(candidateParentId);
-        var guard = 0;
-        while (current != null && guard++ < 100) {
-            if (current.Id == itemId)
-                return true;
-            if (current.ParentId == null)
-                return false;
-            current = Get(current.ParentId.Value);
-        }
-        return false;
+        var cte = _context.GetCte<AgendaTreeRow>(self =>
+            _context.AgendaItems
+                .Where(a => a.Id == candidateParentId)
+                .Select(a => new AgendaTreeRow { Id = a.Id, ParentId = a.ParentId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.AgendaItems
+                    .InnerJoin(a => a.Id == prev.ParentId && a.Id != prev.Id)
+                    .Select(a => new AgendaTreeRow { Id = a.Id, ParentId = a.ParentId, Depth = prev.Depth + 1 }))));
+        return cte.Any(r => r.Id == itemId);
     }
 
     public AgendaItem Create(AgendaItem item) {
