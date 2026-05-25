@@ -1,7 +1,5 @@
-﻿using InterpolatedSql.Dapper;
-using LinqToDB;
+﻿using LinqToDB;
 using Quartermaster.Api;
-using Quartermaster.Data.Abstract;
 using System;
 using System.Collections.Generic;
 using System.Linq;

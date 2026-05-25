@@ -77,9 +77,10 @@ public class AuthService {
         } catch (Exception) {
             // Server unreachable — clear local state anyway.
         }
+        // Don't reset Initialized/_initTcs — the app's already past first-load and
+        // anyone awaiting WaitForInitialization would hang if we re-armed the TCS.
+        // Session state is tracked via HasActiveSession; that's what changes here.
         UpdateSession(null);
-        Initialized = false;
-        _initTcs = new TaskCompletionSource();
     }
 
     public Task HandleTokenExpiredAsync() {

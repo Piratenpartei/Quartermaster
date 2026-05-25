@@ -1,5 +1,4 @@
-﻿using InterpolatedSql.Dapper;
-using LinqToDB;
+﻿using LinqToDB;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Roles;
 using System;

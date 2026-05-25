@@ -1,14 +1,12 @@
-﻿using InterpolatedSql.Dapper;
-using LinqToDB;
+﻿using LinqToDB;
 using LinqToDB.Data;
-using Quartermaster.Data.Abstract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
-public class AdministrativeDivisionRepository : RepositoryBase<AdministrativeDivision> {
+public class AdministrativeDivisionRepository {
     private readonly DbContext _context;
 
     public AdministrativeDivisionRepository(DbContext context) {

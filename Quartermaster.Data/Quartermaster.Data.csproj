@@ -6,13 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.13.1" />
-    <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="FluentMigrator" Version="6.2.0" />
     <PackageReference Include="FluentMigrator.Runner" Version="6.2.0" />
-    <PackageReference Include="InterpolatedSql.Dapper" Version="2.3.0" />
     <PackageReference Include="linq2db" Version="5.4.1" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.2" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
   </ItemGroup>
 

@@ -62,7 +62,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
 
         var user = _userRepository.GetByUsername(req.Username!);
 
-        if (PasswordHashser.Verify(req.Password, user?.PasswordHash ?? RndPw) && user != null) {
+        if (PasswordHasher.Verify(req.Password, user?.PasswordHash ?? RndPw) && user != null) {
             _loginAttemptRepository.LogAttempt(ipAddress, identifier, true);
             var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
             var token = _tokenRepository.LoginUser(user.Id, ipAddress, string.IsNullOrEmpty(userAgent) ? null : userAgent);

@@ -34,31 +34,3 @@
     }
 </div>
 
-@code {
-    [Parameter]
-    public required ChapterTreeNodeModel Node { get; set; }
-
-    [Parameter]
-    public required HttpClient Http { get; set; }
-
-    private async Task Toggle() {
-        if (Node.Loading)
-            return;
-
-        if (!Node.Expanded && Node.Children == null) {
-            Node.Loading = true;
-            StateHasChanged();
-
-            var children = await Http.GetFromJsonAsync<List<ChapterDTO>>(
-                $"/api/chapters/{Node.Chapter.Id}/children");
-
-            Node.Children = children?.Select(c => new ChapterTreeNodeModel(c)).ToList() ?? [];
-            Node.Loading = false;
-            Node.IsLeaf = Node.Children.Count == 0;
-        }
-
-        if (!Node.IsLeaf)
-            Node.Expanded = !Node.Expanded;
-        StateHasChanged();
-    }
-}

@@ -122,7 +122,7 @@ public sealed class TestDataBuilder {
             Id = Guid.NewGuid(),
             EMail = email ?? $"user_{Guid.NewGuid():N}@test.local",
             Username = username,
-            PasswordHash = password != null ? PasswordHashser.Hash(password) : null,
+            PasswordHash = password != null ? PasswordHasher.Hash(password) : null,
             FirstName = firstName,
             LastName = lastName,
             DateOfBirth = new DateTime(1990, 1, 1),

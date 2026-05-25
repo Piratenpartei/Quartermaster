@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 namespace Quartermaster.Data;
 
 //https://stackoverflow.com/questions/4181198/how-to-hash-a-password/73125177#73125177
-public static class PasswordHashser {
+public static class PasswordHasher {
     private const int SaltSize = 16;
     private const int KeySize = 64;
     private const int Iterations = 500_000;

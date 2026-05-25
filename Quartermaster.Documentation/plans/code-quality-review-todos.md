@@ -50,7 +50,7 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 ### Public Wire Contract Bugs
 
 - [ ] **Typo on a public enum: `PaymentScedule`** (missing `h`). `Quartermaster.Api/DueSelector/DueSelectionDTO.cs:22,38`, propagated through Blazor. Meanwhile `DueSelectionDetailDTO.cs:27` uses the correct `PaymentSchedule`. Fix the typo and the asymmetry — coordinate with any external clients.
-- [ ] **Typo on production class: `PasswordHashser`.** `Quartermaster.Data/PasswordHasher.cs:7`, referenced from `UserRepository.cs:69`, `Server/Users/LoginEndpoint.cs:64`, `Tests/Infrastructure/TestDataBuilder.cs:125`. Rename.
+- [x] **Typo on production class: `PasswordHashser`.** Renamed to `PasswordHasher` across the class + 3 caller sites.
 - [ ] **`Status` / `Type` / `Vote` typed as `int` on 15+ DTOs** despite proper enums existing in the same project. Examples: `MembershipApplicationAdminDTO.Status`, `MotionDTO.ApprovalStatus`, `MotionVoteRequest.Vote`, `AgendaItemDTO.MotionApprovalStatus`, `ChapterOfficerDTO.AssociateType`, `EventChecklistItemDTO.ItemType`, `RoleDTO.Scope`, `UserRoleAssignmentDTO.RoleScope`. Switch to enums. Also see `feedback_enum_persistence_order.md` — reordering enums corrupts persisted records.
 - [ ] **Inconsistent pagination response shape.** Some include `Page`/`PageSize` echo (`MeetingListResponse`, `MotionListResponse`, `DueSelectionListResponse`, `MembershipApplicationListResponse`, `AdministrativeDivisionSearchResponse`), others omit (`EventSearchResponse`, `MemberSearchResponse`, `ChapterOfficerSearchResponse`, `ChapterSearchResponse`, `MemberImportLogListResponse`, `AdminDivisionImportLogListResponse`, `DashboardSection<T>`). Introduce `IPaginatedResponse<T>` matching `IPaginatedRequest`.
 - [ ] **Raw JSON strings leak persistence into wire contracts.** `Quartermaster.Api/Events/EventTemplateDetailDTO.cs:10-11` (`Variables`, `ChecklistItemTemplates`) and `EventChecklistItemDTO.cs:13` (`Configuration`) — model the nested structure on the wire instead.
@@ -79,9 +79,9 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Blazor Hard Violations & Quality
 
-- [ ] **Convert remaining `@code` blocks** (CLAUDE.md hard rule, only 2 of 97 components): `Blazor/Pages/Administration/ChapterTreeNode.razor:37` and `Blazor/Pages/Administration/TreeNode.razor:38` — extract to `.razor.cs`.
-- [ ] **`MainLayout` may leak handlers.** `Blazor/Layout/MainLayout.razor.cs:57` has `Dispose()` but verify the `.razor` declares `IDisposable`. Static event `AuthService.OnTokenExpired` accumulates handlers if not unhooked.
-- [ ] **`AuthService._initTcs` re-assigned on logout.** `Quartermaster.Blazor/Services/AuthService.cs:102` — anyone awaiting the previous TCS hangs forever. Use a single long-lived TCS or replace with a `SemaphoreSlim`.
+- [x] **Convert remaining `@code` blocks** Both `ChapterTreeNode` and `TreeNode` extracted to `.razor.cs` code-behind files. No `@code` blocks remain in the project.
+- [x] **`MainLayout` may leak handlers.** Verified: `MainLayout.razor` line 3 has `@implements IDisposable`. The `Dispose()` in the code-behind unhooks `AuthService.OnTokenExpired` correctly. No leak.
+- [x] **`AuthService._initTcs` re-assigned on logout.** `LogoutAsync` no longer resets `Initialized` / re-arms the TCS; that was the actual hang risk. Session state already lives on `HasActiveSession` so the boot-time `WaitForInitialization` stays satisfied for the app's lifetime.
 - [ ] **Anonymous-typed request bodies bypass typed `Quartermaster.Api` contracts.** `Pages/Administration/EventDetail.razor.cs:327`, `MeetingLive.razor.cs:248`, `UserDetail.razor.cs`. Use the typed Request DTOs.
 - [ ] **Hardcoded German UI strings in `.razor.cs`** in 25+ sites (`MeetingLive.razor.cs:193,201,207,238`, `Components/PageBackLink.razor.cs:16`, `Services/ToastService.cs:34,42,52`, …). `I18nService` exists — route these through it.
 
@@ -94,10 +94,10 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Data Layer Quality
 
-- [ ] **`SupplementDefaultPermission` is dead code.** `Quartermaster.Data/Users/UserRepository.cs:62-64`.
-- [ ] **`SqlContext.cs` is fully commented-out dead code.** Delete `Quartermaster.Data/SqlContext.cs`. Drop unused `Microsoft.Data.Sqlite` + `InterpolatedSql.Dapper` package refs in `Quartermaster.Data.csproj`.
+- [x] **`SupplementDefaultPermission` is dead code.** Deleted.
+- [x] **`SqlContext.cs` is fully commented-out dead code.** Deleted along with `Microsoft.Data.Sqlite`, `InterpolatedSql.Dapper`, `Dapper`, and `Azure.Identity` package refs (last three were also unused). The 4 stale `using InterpolatedSql.Dapper;` directives across `Permissions/`, `UserChapterPermissions/`, `Users/`, `AdministrativeDivisions/` repos removed too.
 - [ ] **`AddRootAccount` creates a `User` with most NOT NULL fields defaulting.** `Quartermaster.Data/Users/UserRepository.cs:67-70` — relies on `Guid.Empty` linking to a seeded "Null Island" admin division. Either fail-fast or document the seed dependency.
-- [ ] **`EnsureSetGuid` / `ThrowOnEmptyGuid` unused.** `Quartermaster.Data/Abstract/RepositoryBase.cs:8-23`.
+- [x] **`EnsureSetGuid` / `ThrowOnEmptyGuid` unused.** Whole `RepositoryBase<T>` class deleted (both methods unused, no subclass overrode anything); `Abstract/` directory removed. The two subclasses (`DueSelectionRepository`, `AdministrativeDivisionRepository`) no longer inherit from it.
 - [ ] **`AuditLog.AuditLog` namespace=type collision** forces fully-qualified references at `Quartermaster.Data/DbContext.cs:49` and 14 sites in `M001_InitialStructureMigration.cs`. Rename the entity to `AuditEntry` per CLAUDE.md rule.
 - [ ] **Audit-log mapping inconsistency.** `Members/MemberRepository.cs:142-173` (`LogMemberFieldChanges`, 30+ lines) vs. `EventRepository.Update:77-83` vs. `MeetingRepository.Update:66-76` — pick one shape. A generic reflection-driven diff (kept inline per the no-mapper rule) would eliminate the silent-drift risk when new fields are added.
 - [ ] **Pre-fetch `oldValue` is outside the update transaction.** `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs:51-60`, `DueSelectionRepository.cs:56-65`. Under concurrent updates the audit log records stale `oldValue`. Pull into the same transaction as the wrapping fix above.

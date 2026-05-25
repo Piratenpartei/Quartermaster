@@ -1,7 +1,5 @@
-﻿using InterpolatedSql.Dapper;
-using LinqToDB;
+﻿using LinqToDB;
 using Quartermaster.Api;
-using Quartermaster.Data.Abstract;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.UserChapterPermissions;
@@ -59,14 +57,10 @@ public class UserRepository {
         }
     }
 
-    private void SupplementDefaultPermission(Guid userId, string identifier) {
-        _userGlobalPermissionRepository.AddForUser(userId, _permissionRepository.GetByIdentifier(identifier)!);
-    }
-
     private User AddRootAccount(RootAccountSettings accountSettings) {
         var rootUser = new User() {
             Username = accountSettings.Username!,
-            PasswordHash = PasswordHashser.Hash(accountSettings.Password!)
+            PasswordHash = PasswordHasher.Hash(accountSettings.Password!)
         };
 
         Create(rootUser);

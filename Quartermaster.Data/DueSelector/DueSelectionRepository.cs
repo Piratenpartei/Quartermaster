@@ -1,5 +1,4 @@
 using LinqToDB;
-using Quartermaster.Data.Abstract;
 using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 
 namespace Quartermaster.Data.DueSelector;
 
-public class DueSelectionRepository : RepositoryBase<DueSelection> {
+public class DueSelectionRepository {
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
 
