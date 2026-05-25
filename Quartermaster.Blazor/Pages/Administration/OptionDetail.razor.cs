@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
@@ -146,7 +147,7 @@ public partial class OptionDetail {
                 Value = Option.GlobalValue
             });
             _globalForm.Reset();
-            ToastService.Toast("Gespeichert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -162,7 +163,7 @@ public partial class OptionDetail {
                 ChapterId = chapterId,
                 Value = value
             });
-            ToastService.Toast("Gespeichert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

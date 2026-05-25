@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Options;
@@ -193,7 +194,7 @@ public partial class MeetingLive : IAsyncDisposable {
             await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/reopen", new { });
             await LoadMeeting();
             LoadActiveItemFields();
-            ToastService.Toast("TOP neu geöffnet.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.TopReopened);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -201,13 +202,13 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task FinishMeeting() {
         var confirmed = await ConfirmDialog.ShowAsync(
-            "Möchten Sie die Sitzung abschließen? Offene Anträge werden automatisch aufgelöst.");
+            ToastService.Translate(I18nKey.Ui.Confirm.MeetingFinish));
         if (!confirmed)
             return;
         try {
             await Http.PutAsJsonAsync($"/api/meetings/{Id}/status",
                 new MeetingStatusUpdateRequest { Id = Id, Status = MeetingStatus.Completed });
-            ToastService.Toast("Sitzung beendet.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.MeetingEnded);
             Navigation.NavigateTo($"/Administration/Meetings/{Id}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -238,7 +239,7 @@ public partial class MeetingLive : IAsyncDisposable {
     private async Task CloseVote(Guid agendaItemId) {
         try {
             await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/close-vote", new { });
-            ToastService.Toast("Abstimmung beendet.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.VoteEnded);
             await LoadMeeting();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

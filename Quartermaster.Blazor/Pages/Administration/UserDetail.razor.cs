@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Permissions;
 using Quartermaster.Api.Users;
@@ -156,7 +157,7 @@ public partial class UserDetail {
         try {
             var response = await Http.DeleteAsync($"/api/users/{Id}");
             response.EnsureSuccessStatusCode();
-            ToastService.Toast("Benutzer gelöscht.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.UserDeleted);
             Navigation.NavigateTo("/Administration/Users");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

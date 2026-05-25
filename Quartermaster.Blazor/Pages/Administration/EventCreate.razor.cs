@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Events;
 using Quartermaster.Blazor.Services;
 
@@ -40,7 +41,7 @@ public partial class EventCreate {
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
                 if (result != null) {
-                    ToastService.Toast("Event erstellt.", "success");
+                    ToastService.ToastKey(I18nKey.Ui.Toast.EventCreated);
                     Navigation.NavigateTo($"/Administration/Events/{result.Id}");
                 }
             } else {

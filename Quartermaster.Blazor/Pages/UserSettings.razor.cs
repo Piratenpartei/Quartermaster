@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
 using Quartermaster.Blazor.Services;
 
@@ -44,7 +45,7 @@ public partial class UserSettings {
             var resp = await Http.PostAsync("/api/testdata/seed", null);
             if (resp.IsSuccessStatusCode) {
                 var result = await resp.Content.ReadAsStringAsync();
-                ToastService.Toast("Testdaten erstellt.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.TestdataCreated);
             } else {
                 await ToastService.ErrorAsync(resp);
             }

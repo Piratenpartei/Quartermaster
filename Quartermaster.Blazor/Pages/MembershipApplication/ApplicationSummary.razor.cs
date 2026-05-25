@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Blazor.Pages.DueSelector;
 using Quartermaster.Blazor.Services;
@@ -59,7 +60,7 @@ public partial class ApplicationSummary {
                 AppState.ResetEntryState<MembershipApplicationEntryState>();
                 AppState.ResetEntryState<DueSelectorEntryState>();
                 NavigationManager.NavigateTo("/");
-                ToastService.Toast("Dein Mitgliedsantrag wurde erfolgreich eingereicht!", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.MembershipApplicationSubmitted);
             } else {
                 await ToastService.ErrorAsync(result);
             }

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Permissions;
 using Quartermaster.Api.Roles;
 using Quartermaster.Blazor.Services;
@@ -70,7 +71,7 @@ public partial class RoleList {
 
     private async Task CreateRole() {
         if (string.IsNullOrWhiteSpace(NewName)) {
-            ToastService.Error("Name ist erforderlich.");
+            ToastService.ErrorKey(I18nKey.Ui.Error.NameRequired);
             return;
         }
 
@@ -84,7 +85,7 @@ public partial class RoleList {
                 Permissions = NewPermissions.ToList()
             });
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Rolle erstellt.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.RoleCreated);
                 ShowingCreateForm = false;
                 await Load();
             } else {
@@ -101,7 +102,7 @@ public partial class RoleList {
         try {
             var response = await Http.DeleteAsync($"/api/roles/{role.Id}");
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Rolle gelöscht.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.RoleDeleted);
                 await Load();
             } else {
                 await ToastService.ErrorAsync(response);

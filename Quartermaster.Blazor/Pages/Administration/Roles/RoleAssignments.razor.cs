@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Roles;
 using Quartermaster.Api.Users;
 using Quartermaster.Blazor.Services;
@@ -61,18 +62,18 @@ public partial class RoleAssignments {
 
     private async Task CreateAssignment() {
         if (!Guid.TryParse(NewUserId, out var userId)) {
-            ToastService.Error("Bitte Benutzer auswählen.");
+            ToastService.ErrorKey(I18nKey.Ui.Error.UserRequired);
             return;
         }
         if (!Guid.TryParse(NewRoleId, out var roleId)) {
-            ToastService.Error("Bitte Rolle auswählen.");
+            ToastService.ErrorKey(I18nKey.Ui.Error.RoleRequired);
             return;
         }
 
         Guid? chapterId = null;
         if (SelectedRoleScope == RoleScope.ChapterScoped) {
             if (!Guid.TryParse(NewChapterIdString, out var parsedChapter)) {
-                ToastService.Error("Bitte Gliederung auswählen.");
+                ToastService.ErrorKey(I18nKey.Ui.Error.ChapterRequired);
                 return;
             }
             chapterId = parsedChapter;
@@ -87,7 +88,7 @@ public partial class RoleAssignments {
                 ChapterId = chapterId
             });
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Zuweisung erstellt.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.AssignmentCreated);
                 NewUserId = "";
                 NewRoleId = "";
                 NewChapterIdString = "";
@@ -108,7 +109,7 @@ public partial class RoleAssignments {
         try {
             var response = await Http.DeleteAsync($"/api/roleassignments/{assignment.Id}");
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Zuweisung entfernt.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.AssignmentRemoved);
                 await Load();
             } else {
                 await ToastService.ErrorAsync(response);

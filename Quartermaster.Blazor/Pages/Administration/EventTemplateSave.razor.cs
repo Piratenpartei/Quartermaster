@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Events;
 using Quartermaster.Blazor.Services;
 
@@ -94,7 +95,7 @@ public partial class EventTemplateSave {
                 Variables = variablesJson
             });
 
-            ToastService.Toast("Vorlage gespeichert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.TemplateSaved);
             Navigation.NavigateTo($"/Administration/Events/{EventId}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

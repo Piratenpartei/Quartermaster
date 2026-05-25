@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Pages.MembershipApplication;
 using Quartermaster.Blazor.Services;
 
@@ -42,7 +43,7 @@ public partial class Summary {
             if (result.IsSuccessStatusCode) {
                 AppState.ResetEntryState<DueSelectorEntryState>();
                 NavigationManager.NavigateTo("/");
-                ToastService.Toast("Danke für deine Einstufung!", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.DueSelectionThanks);
             } else {
                 await ToastService.ErrorAsync(result);
             }

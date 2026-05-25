@@ -215,4 +215,76 @@ public static class I18nKey {
             }
         }
     }
+
+    /// <summary>
+    /// Display-language strings used by the Blazor UI: toast messages, confirm dialog
+    /// prompts, default labels. Server-side i18n stays under <see cref="Error"/>.
+    /// </summary>
+    public static class Ui {
+        public static class Toast {
+            public const string Saved = "ui.toast.saved";
+            public const string EventCreated = "ui.toast.event.created";
+            public const string EventStatusChanged = "ui.toast.event.status_changed";
+            public const string ChecklistItemAdded = "ui.toast.event.checklist_item_added";
+            public const string ChecklistItemDeleted = "ui.toast.event.checklist_item_deleted";
+            public const string MeetingCreated = "ui.toast.meeting.created";
+            public const string MeetingDeleted = "ui.toast.meeting.deleted";
+            public const string MeetingEnded = "ui.toast.meeting.ended";
+            public const string MotionsImported = "ui.toast.meeting.motions_imported";
+            public const string TopReopened = "ui.toast.meeting.top_reopened";
+            public const string VoteEnded = "ui.toast.meeting.vote_ended";
+            public const string TemplateSaved = "ui.toast.template.saved";
+            public const string TemplateDeleted = "ui.toast.template.deleted";
+            public const string MemberImportCompleted = "ui.toast.member_import.completed";
+            public const string AdminDivisionAssigned = "ui.toast.member.admin_division_assigned";
+            public const string OfficerAdded = "ui.toast.officer.added";
+            public const string LockoutReleased = "ui.toast.lockout.released";
+            public const string UserDeleted = "ui.toast.user.deleted";
+            public const string RoleCreated = "ui.toast.role.created";
+            public const string RoleDeleted = "ui.toast.role.deleted";
+            public const string AssignmentCreated = "ui.toast.assignment.created";
+            public const string AssignmentRemoved = "ui.toast.assignment.removed";
+            public const string MotionCreated = "ui.toast.motion.created";
+            public const string MotionStatusUpdated = "ui.toast.motion.status_updated";
+            public const string MotionMarkedRealized = "ui.toast.motion.marked_realized";
+            public const string TestdataCreated = "ui.toast.testdata.created";
+            public const string DueSelectionThanks = "ui.toast.due_selection.thanks";
+            public const string MembershipApplicationSubmitted = "ui.toast.membership_application.submitted";
+            public const string PublicMotionSubmitted = "ui.toast.motion.public_submitted";
+            public const string LoginFailedCredentials = "ui.toast.login.failed_credentials";
+            public const string LoginFailedGeneric = "ui.toast.login.failed_generic";
+        }
+
+        public static class Error {
+            public const string Generic = "ui.error.generic";
+            public const string UserRequired = "ui.error.user_required";
+            public const string RoleRequired = "ui.error.role_required";
+            public const string ChapterRequired = "ui.error.chapter_required";
+            public const string CsvOnly = "ui.error.csv_only";
+            public const string ChapterAndTitleRequired = "ui.error.chapter_and_title_required";
+            public const string NameRequired = "ui.error.name_required";
+        }
+
+        public static class Confirm {
+            public const string DefaultTitle = "ui.confirm.default_title";
+            public const string DefaultMessage = "ui.confirm.default_message";
+            public const string DefaultButton = "ui.confirm.default_button";
+            public const string DefaultCancel = "ui.confirm.default_cancel";
+            public const string ChecklistItemDelete = "ui.confirm.checklist_item_delete";
+            public const string AgendaItemDelete = "ui.confirm.agenda_item_delete";
+            public const string MeetingDelete = "ui.confirm.meeting_delete";
+            public const string TemplateDelete = "ui.confirm.template_delete";
+            public const string EventArchive = "ui.confirm.event.archive";
+            public const string EventBackToDraft = "ui.confirm.event.back_to_draft";
+            public const string MeetingFinish = "ui.confirm.meeting_finish";
+        }
+
+        public static class Label {
+            public const string BackToOverview = "ui.label.back_to_overview";
+            public const string EventStatusDraft = "ui.label.event_status.draft";
+            public const string EventStatusActive = "ui.label.event_status.active";
+            public const string EventStatusCompleted = "ui.label.event_status.completed";
+            public const string EventStatusArchived = "ui.label.event_status.archived";
+        }
+    }
 }

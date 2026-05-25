@@ -31,25 +31,36 @@ public class ToastService {
         Toaster?.UpdateToasts();
     }
 
-    public void Error(string message = "Es ist ein Fehler aufgetreten.", string? details = null) {
+    /// <summary>Translates <paramref name="key"/> via <see cref="I18nService"/> and shows the result as a toast.</summary>
+    public void ToastKey(string key, string type = "success") {
+        Toast(_i18n.Translate(key), type);
+    }
+
+    /// <summary>Translates <paramref name="key"/> via <see cref="I18nService"/> and shows the result as an error toast.</summary>
+    public void ErrorKey(string key) {
+        Error(_i18n.Translate(key));
+    }
+
+    public void Error(string? message = null, string? details = null) {
+        var resolved = message ?? _i18n.Translate(I18nKey.Ui.Error.Generic);
         var contact = _configService.ErrorContact;
-        var content = string.IsNullOrEmpty(contact) ? message : $"{message} {contact}";
+        var content = string.IsNullOrEmpty(contact) ? resolved : $"{resolved} {contact}";
         var detailText = _configService.ShowDetailedErrors ? details : null;
         Toasts.Add(new Toast { Content = content, Type = "danger", Details = detailText, DurationMs = null });
         Toaster?.UpdateToasts();
     }
 
-    public void Error(Exception ex, string message = "Es ist ein Fehler aufgetreten.") {
+    public void Error(Exception ex, string? message = null) {
         Error(message, ex.ToString());
     }
 
     /// <summary>
     /// Reads an HTTP error response, parses its <c>errors</c> array, translates
-    /// each error code to German via <see cref="I18nService"/>, and shows the
-    /// combined message as a persistent error toast. Falls back to the generic
-    /// error message if the response has no parseable errors.
+    /// each error code via <see cref="I18nService"/>, and shows the combined
+    /// message as a persistent error toast. Falls back to the generic UI error
+    /// when the response has no parseable error payload.
     /// </summary>
-    public async Task ErrorAsync(HttpResponseMessage response, string fallbackMessage = "Es ist ein Fehler aufgetreten.") {
+    public async Task ErrorAsync(HttpResponseMessage response, string? fallbackMessage = null) {
         var combined = await ApiErrorHelper.GetCombinedErrorMessageAsync(response, _i18n);
         if (combined != null) {
             Error(combined);

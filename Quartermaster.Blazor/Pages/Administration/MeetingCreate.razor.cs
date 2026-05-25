@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Blazor.Services;
 
@@ -29,7 +30,7 @@ public partial class MeetingCreate {
     private async Task Submit() {
         if (!Guid.TryParse(ChapterId, out var chapterId) ||
             string.IsNullOrWhiteSpace(Title)) {
-            ToastService.Error("Gliederung und Titel sind erforderlich.");
+            ToastService.ErrorKey(I18nKey.Ui.Error.ChapterAndTitleRequired);
             return;
         }
 
@@ -49,7 +50,7 @@ public partial class MeetingCreate {
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<MeetingDTO>();
                 if (result != null) {
-                    ToastService.Toast("Sitzung erstellt.", "success");
+                    ToastService.ToastKey(I18nKey.Ui.Toast.MeetingCreated);
                     Navigation.NavigateTo($"/Administration/Meetings/{result.Id}");
                 }
             } else {

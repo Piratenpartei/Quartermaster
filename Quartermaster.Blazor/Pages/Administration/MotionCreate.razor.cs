@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
 
@@ -46,7 +47,7 @@ public partial class MotionCreate {
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<MotionDTO>();
                 if (result != null) {
-                    ToastService.Toast("Antrag erstellt.", "success");
+                    ToastService.ToastKey(I18nKey.Ui.Toast.MotionCreated);
                     Navigation.NavigateTo($"/Administration/Motions/{result.Id}");
                 }
             } else {

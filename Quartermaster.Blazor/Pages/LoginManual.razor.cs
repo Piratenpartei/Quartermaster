@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages;
@@ -36,11 +37,11 @@ public partial class LoginManual {
                 await AuthService.ClearReturnUrlAsync();
                 Navigation.NavigateTo(returnUrl ?? "/", forceLoad: false);
             } else {
-                ToastService.Toast("Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.", "danger");
+                ToastService.ToastKey(I18nKey.Ui.Toast.LoginFailedCredentials, "danger");
             }
         } catch (Exception ex) {
             Console.Error.WriteLine($"LoginManual.HandleLogin: unexpected error. {ex}");
-            ToastService.Toast("Fehler bei der Anmeldung.", "danger");
+            ToastService.ToastKey(I18nKey.Ui.Toast.LoginFailedGeneric, "danger");
         }
 
         Submitting = false;

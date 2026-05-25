@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
@@ -52,7 +53,7 @@ public partial class MemberDetail {
                 new { ResidenceAdministrativeDivisionId = divId });
 
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Verwaltungsbezirk zugewiesen.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.AdminDivisionAssigned);
                 Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
                 NewAdminDivId = "";
             } else {

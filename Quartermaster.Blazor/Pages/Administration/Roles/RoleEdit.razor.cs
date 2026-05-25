@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Permissions;
 using Quartermaster.Api.Roles;
 using Quartermaster.Blazor.Services;
@@ -63,7 +64,7 @@ public partial class RoleEdit {
                 Permissions = Role.Permissions
             });
             if (response.IsSuccessStatusCode) {
-                ToastService.Toast("Gespeichert.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
             } else {
                 await ToastService.ErrorAsync(response);
             }

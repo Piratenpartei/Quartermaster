@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Rendering;
@@ -115,7 +116,7 @@ public partial class EventDetail {
                 EventDate = Event.EventDate,
                 Visibility = Event.Visibility
             });
-            ToastService.Toast("Gespeichert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -197,7 +198,7 @@ public partial class EventDetail {
             });
 
             NewItemLabel = "";
-            ToastService.Toast("Eintrag hinzugefügt.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.ChecklistItemAdded);
             await SaveIfDirty();
             await LoadEvent();
         } catch (HttpRequestException ex) {
@@ -293,7 +294,7 @@ public partial class EventDetail {
     }
 
     private async Task DeleteChecklistItem(Guid itemId) {
-        if (!await ConfirmDialog.ShowAsync("Diesen Checklisteneintrag wirklich löschen?"))
+        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.ChecklistItemDelete)))
             return;
 
         try {
@@ -301,7 +302,7 @@ public partial class EventDetail {
             PreviewCache.Remove(itemId);
             if (ExpandedPreviewItemId == itemId)
                 ExpandedPreviewItemId = null;
-            ToastService.Toast("Eintrag gelöscht.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.ChecklistItemDeleted);
             await SaveIfDirty();
             await LoadEvent();
         } catch (HttpRequestException ex) {
@@ -313,13 +314,13 @@ public partial class EventDetail {
         if (Event == null)
             return;
 
-        var confirmMessage = target switch {
-            EventStatus.Archived => "Dieses Event wirklich archivieren?",
-            EventStatus.Draft => "Dieses Event wirklich zurück in den Entwurfsstatus setzen?",
+        var confirmKey = target switch {
+            EventStatus.Archived => I18nKey.Ui.Confirm.EventArchive,
+            EventStatus.Draft => I18nKey.Ui.Confirm.EventBackToDraft,
             _ => null
         };
 
-        if (confirmMessage != null && !await ConfirmDialog.ShowAsync(confirmMessage))
+        if (confirmKey != null && !await ConfirmDialog.ShowAsync(ToastService.Translate(confirmKey)))
             return;
 
         try {
@@ -327,14 +328,17 @@ public partial class EventDetail {
             var response = await Http.PutAsJsonAsync($"/api/events/{Id}/status",
                 new EventStatusUpdateRequest { Id = Id, Status = target });
             if (response.IsSuccessStatusCode) {
-                var targetLabel = target switch {
-                    EventStatus.Draft => "Entwurf",
-                    EventStatus.Active => "Aktiv",
-                    EventStatus.Completed => "Abgeschlossen",
-                    EventStatus.Archived => "Archiviert",
-                    _ => target.ToString()
+                var labelKey = target switch {
+                    EventStatus.Draft => I18nKey.Ui.Label.EventStatusDraft,
+                    EventStatus.Active => I18nKey.Ui.Label.EventStatusActive,
+                    EventStatus.Completed => I18nKey.Ui.Label.EventStatusCompleted,
+                    EventStatus.Archived => I18nKey.Ui.Label.EventStatusArchived,
+                    _ => null
                 };
-                ToastService.Toast($"Status geändert: {targetLabel}.", "success");
+                var statusLabel = labelKey != null ? ToastService.Translate(labelKey) : target.ToString();
+                ToastService.Toast(
+                    ToastService.Translate(I18nParams.With(I18nKey.Ui.Toast.EventStatusChanged, ("status", statusLabel))),
+                    "success");
                 await LoadEvent();
             } else {
                 await ToastService.ErrorAsync(response);

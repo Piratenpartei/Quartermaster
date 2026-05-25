@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Events;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
@@ -40,7 +41,7 @@ public partial class EventTemplateList {
     }
 
     private async Task Delete(Guid templateId) {
-        if (!await ConfirmDialog.ShowAsync("Diese Vorlage wirklich löschen?"))
+        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.TemplateDelete)))
             return;
 
         Deleting = true;
@@ -48,7 +49,7 @@ public partial class EventTemplateList {
 
         try {
             await Http.DeleteAsync($"/api/eventtemplates/{templateId}");
-            ToastService.Toast("Vorlage gelöscht.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.TemplateDeleted);
             await LoadTemplates();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

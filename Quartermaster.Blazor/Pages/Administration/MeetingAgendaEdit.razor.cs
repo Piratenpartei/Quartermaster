@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
@@ -81,7 +82,7 @@ public partial class MeetingAgendaEdit {
     }
 
     private async Task DeleteAgendaItem(Guid itemId) {
-        if (!await ConfirmDialog.ShowAsync("Diesen Tagesordnungspunkt wirklich löschen?"))
+        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.AgendaItemDelete)))
             return;
         try {
             await Http.DeleteAsync($"/api/meetings/{Id}/agenda/{itemId}");
@@ -185,7 +186,7 @@ public partial class MeetingAgendaEdit {
             var resp = await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/import-motions",
                 new { MeetingId = Id, ParentId = parentId });
             if (resp.IsSuccessStatusCode) {
-                ToastService.Toast("Offene Anträge importiert.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.MotionsImported);
                 await LoadMeeting();
             } else {
                 await ToastService.ErrorAsync(resp);

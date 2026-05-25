@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
@@ -87,7 +88,7 @@ public partial class ChapterOfficerAdd {
                 AssociateType = SelectedRole
             });
 
-            ToastService.Toast("Vorstandsmitglied hinzugefügt.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.OfficerAdded);
             Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

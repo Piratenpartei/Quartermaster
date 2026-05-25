@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Blazor.Components;
@@ -135,7 +136,7 @@ public partial class MeetingDetail {
                 Location = Meeting.Location,
                 Description = Meeting.Description
             });
-            ToastService.Toast("Gespeichert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -184,7 +185,7 @@ public partial class MeetingDetail {
     }
 
     private async Task DeleteAgendaItem(Guid itemId) {
-        if (!await ConfirmDialog.ShowAsync("Diesen Tagesordnungspunkt wirklich löschen?"))
+        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.AgendaItemDelete)))
             return;
         try {
             await Http.DeleteAsync($"/api/meetings/{Id}/agenda/{itemId}");
@@ -286,7 +287,7 @@ public partial class MeetingDetail {
             var resp = await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/import-motions",
                 new { MeetingId = Id, ParentId = parentId });
             if (resp.IsSuccessStatusCode) {
-                ToastService.Toast("Offene Anträge importiert.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.MotionsImported);
                 await LoadMeeting();
             } else {
                 await ToastService.ErrorAsync(resp);
@@ -340,11 +341,11 @@ public partial class MeetingDetail {
     }
 
     private async Task DeleteMeeting() {
-        if (!await ConfirmDialog.ShowAsync("Diese Sitzung wirklich löschen?"))
+        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.MeetingDelete)))
             return;
         try {
             await Http.DeleteAsync($"/api/meetings/{Id}");
-            ToastService.Toast("Sitzung gelöscht.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.MeetingDeleted);
             Navigation.NavigateTo("/Administration/Meetings");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

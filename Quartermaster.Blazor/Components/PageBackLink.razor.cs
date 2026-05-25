@@ -1,17 +1,18 @@
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Blazor.Components;
 
 public partial class PageBackLink {
-    /// <summary>
-    /// Target URL for the back link.
-    /// </summary>
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter, EditorRequired]
     public string Href { get; set; } = "";
 
-    /// <summary>
-    /// Link text. Defaults to "Zurück zur Übersicht".
-    /// </summary>
+    /// <summary>Overrides the default <c>ui.label.back_to_overview</c> translation.</summary>
     [Parameter]
-    public string Text { get; set; } = "Zurück zur Übersicht";
+    public string? Text { get; set; }
+
+    private string ResolvedText => Text ?? I18n.Translate(I18nKey.Ui.Label.BackToOverview);
 }

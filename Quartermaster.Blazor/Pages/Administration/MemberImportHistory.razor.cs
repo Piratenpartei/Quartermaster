@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
 
@@ -60,7 +61,7 @@ public partial class MemberImportHistory {
         var file = e.File;
 
         if (!file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)) {
-            ToastService.Error("Nur CSV-Dateien sind erlaubt.");
+            ToastService.ErrorKey(I18nKey.Ui.Error.CsvOnly);
             SelectedFile = null;
             return;
         }
@@ -91,7 +92,7 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import/upload", content);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
-                ToastService.Toast("Import abgeschlossen.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportCompleted);
                 SelectedFile = null;
                 CurrentPage = 1;
                 await LoadHistory();
@@ -114,7 +115,7 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import", null);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
-                ToastService.Toast("Import abgeschlossen.", "success");
+                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportCompleted);
                 CurrentPage = 1;
                 await LoadHistory();
             } else {

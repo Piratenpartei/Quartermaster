@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
 
@@ -50,7 +51,7 @@ public partial class MotionCreate {
 
         if (result.IsSuccessStatusCode) {
             NavigationManager.NavigateTo("/");
-            ToastService.Toast("Dein Antrag wurde eingereicht!", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.PublicMotionSubmitted);
         } else {
             await ToastService.ErrorAsync(result);
         }

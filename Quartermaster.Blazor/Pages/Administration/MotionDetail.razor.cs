@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
 
@@ -60,7 +61,7 @@ public partial class MotionDetail {
                 ApprovalStatus = status
             });
 
-            ToastService.Toast("Status aktualisiert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.MotionStatusUpdated);
             await LoadMotion();
             StateHasChanged();
         } catch (HttpRequestException ex) {
@@ -75,7 +76,7 @@ public partial class MotionDetail {
                 IsRealized = true
             });
 
-            ToastService.Toast("Als umgesetzt markiert.", "success");
+            ToastService.ToastKey(I18nKey.Ui.Toast.MotionMarkedRealized);
             await LoadMotion();
             StateHasChanged();
         } catch (HttpRequestException ex) {

@@ -1,16 +1,18 @@
+@using Quartermaster.Api.I18n
+
 @if (IsVisible) {
     <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@Title</h5>
+                    <h5 class="modal-title">@ResolvedTitle</h5>
                 </div>
                 <div class="modal-body">
-                    <p>@Message</p>
+                    <p>@ResolvedMessage</p>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="Cancel">Abbrechen</button>
-                    <button class="btn btn-danger" @onclick="Confirm">@ConfirmText</button>
+                    <button class="btn btn-secondary" @onclick="Cancel">@I18n.Translate(I18nKey.Ui.Confirm.DefaultCancel)</button>
+                    <button class="btn btn-danger" @onclick="Confirm">@ResolvedConfirmText</button>
                 </div>
             </div>
         </div>
