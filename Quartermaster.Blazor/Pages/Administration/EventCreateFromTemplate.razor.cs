@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
@@ -56,11 +55,10 @@ public partial class EventCreateFromTemplate {
         }
 
         if (Template != null) {
-            var parsed = JsonSerializer.Deserialize<List<JsonElement>>(Template.Variables) ?? new();
-            Variables = parsed.Select(v => new TemplateVariable {
-                Name = v.GetProperty("name").GetString() ?? "",
-                Label = v.GetProperty("label").GetString() ?? "",
-                Type = v.GetProperty("type").GetString() ?? "Text",
+            Variables = Template.Variables.Select(v => new TemplateVariable {
+                Name = v.Name,
+                Label = v.Label,
+                Type = v.Type,
                 Value = ""
             }).ToList();
         }

@@ -135,7 +135,8 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
                      .Select(a => a.MotionId!.Value)
                      .Distinct()) {
             var m = _motionRepo.Get(mid);
-            if (m != null) motionsById[mid] = m;
+            if (m != null)
+                motionsById[mid] = m;
             var votes = _motionRepo.GetVotes(mid);
             voteTallies[mid] = (
                 votes.Count(v => v.Vote == VoteType.Approve),

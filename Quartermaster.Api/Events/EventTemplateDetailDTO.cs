@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Quartermaster.Api.Events;
 
@@ -7,8 +8,8 @@ public class EventTemplateDetailDTO {
     public string Name { get; set; } = "";
     public string PublicNameTemplate { get; set; } = "";
     public string? DescriptionTemplate { get; set; }
-    public string Variables { get; set; } = "[]";
-    public string ChecklistItemTemplates { get; set; } = "[]";
+    public List<EventTemplateVariableDTO> Variables { get; set; } = [];
+    public List<EventChecklistItemTemplateDTO> ChecklistItemTemplates { get; set; } = [];
     public Guid? ChapterId { get; set; }
     public DateTime CreatedAt { get; set; }
 }

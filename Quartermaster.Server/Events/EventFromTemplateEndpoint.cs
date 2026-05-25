@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -45,8 +43,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
         }
 
         var template = _eventRepo.GetTemplate(req.TemplateId);
-        if (template == null)
-        {
+        if (template == null) {
             await SendNotFoundAsync(ct);
             return;
         }
@@ -74,22 +71,18 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
         _eventRepo.Create(ev);
 
         var checklistItemDtos = new List<EventChecklistItemDTO>();
-
-        var itemTemplates = JsonSerializer.Deserialize<List<ChecklistItemTemplate>>(
-            template.ChecklistItemTemplates) ?? new List<ChecklistItemTemplate>();
+        var itemTemplates = EventConfigSerializer.ParseTemplates(template.ChecklistItemTemplates);
 
         foreach (var itemTemplate in itemTemplates) {
             var label = ReplaceVariables(itemTemplate.Label, req.VariableValues);
-            var configuration = itemTemplate.Configuration != null
-                ? ReplaceVariables(itemTemplate.Configuration, req.VariableValues)
-                : null;
+            var configuration = EventConfigSerializer.ApplyVariables(itemTemplate.Configuration, req.VariableValues);
 
             var checklistItem = new EventChecklistItem {
                 EventId = ev.Id,
                 SortOrder = itemTemplate.SortOrder,
                 ItemType = itemTemplate.ItemType,
                 Label = label,
-                Configuration = configuration
+                Configuration = configuration != null ? EventConfigSerializer.Serialize(configuration) : null
             };
 
             _eventRepo.CreateChecklistItem(checklistItem);
@@ -100,7 +93,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
                 ItemType = checklistItem.ItemType,
                 Label = checklistItem.Label,
                 IsCompleted = false,
-                Configuration = checklistItem.Configuration
+                Configuration = configuration
             });
         }
 
@@ -125,18 +118,6 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
     private static string ReplaceVariables(string text, Dictionary<string, string> values) {
         foreach (var (name, value) in values)
             text = text.Replace($"{{{{{name}}}}}", value);
-
         return text;
-    }
-
-    private class ChecklistItemTemplate {
-        [System.Text.Json.Serialization.JsonPropertyName("sortOrder")]
-        public int SortOrder { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("itemType")]
-        public ChecklistItemType ItemType { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("label")]
-        public string Label { get; set; } = "";
-        [System.Text.Json.Serialization.JsonPropertyName("configuration")]
-        public string? Configuration { get; set; }
     }
 }

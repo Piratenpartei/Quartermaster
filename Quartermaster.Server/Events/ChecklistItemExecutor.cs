@@ -1,5 +1,4 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.Motions;
@@ -28,18 +27,15 @@ public class ChecklistItemExecutor {
     }
 
     private (Guid? ResultId, string? Error) ExecuteCreateMotion(EventChecklistItem item) {
-        if (string.IsNullOrEmpty(item.Configuration))
-            return (null, "No configuration for motion creation");
-
-        var config = JsonSerializer.Deserialize<MotionConfig>(item.Configuration);
-        if (config == null)
+        var config = EventConfigSerializer.ParseConfig(item.Configuration);
+        if (config == null || config.ChapterId == null || string.IsNullOrEmpty(config.MotionText))
             return (null, "Invalid motion configuration");
 
         var motion = new Motion {
-            ChapterId = config.ChapterId,
+            ChapterId = config.ChapterId.Value,
             AuthorName = "System (Event)",
             AuthorEMail = "",
-            Title = config.MotionTitle,
+            Title = config.MotionTitle ?? "",
             Text = MarkdownService.ToHtml(config.MotionText, SanitizationProfile.Strict),
             IsPublic = false,
             ApprovalStatus = MotionApprovalStatus.Pending,
@@ -51,11 +47,8 @@ public class ChecklistItemExecutor {
     }
 
     private async Task<(Guid? ResultId, string? Error)> ExecuteSendEmailAsync(EventChecklistItem item, Event? parentEvent) {
-        if (string.IsNullOrEmpty(item.Configuration))
-            return (null, "No configuration for email sending");
-
-        var config = JsonSerializer.Deserialize<EmailConfig>(item.Configuration);
-        if (config == null)
+        var config = EventConfigSerializer.ParseConfig(item.Configuration);
+        if (config == null || string.IsNullOrEmpty(config.TargetType))
             return (null, "Invalid email configuration");
 
         string? descriptionOverride = null;
@@ -67,26 +60,12 @@ public class ChecklistItemExecutor {
         }
 
         var (_, error) = await _emailService.SendEmailAsync(
-            config.TargetType, config.TargetId, config.TemplateIdentifier,
+            config.TargetType, config.TargetId ?? Guid.Empty, config.TemplateIdentifier ?? "",
             descriptionOverride, config.ManualAddresses,
             "EventChecklistItem", item.Id);
         if (error != null)
             return (null, error);
 
         return (null, null);
-    }
-
-    private class MotionConfig {
-        public Guid ChapterId { get; set; }
-        public string MotionTitle { get; set; } = "";
-        public string MotionText { get; set; } = "";
-    }
-
-    private class EmailConfig {
-        public string TargetType { get; set; } = "";
-        public Guid TargetId { get; set; }
-        public string TemplateIdentifier { get; set; } = "";
-        public bool UseDescription { get; set; }
-        public string? ManualAddresses { get; set; }
     }
 }

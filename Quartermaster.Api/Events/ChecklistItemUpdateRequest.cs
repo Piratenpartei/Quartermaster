@@ -8,5 +8,5 @@ public class ChecklistItemUpdateRequest {
     public int SortOrder { get; set; }
     public ChecklistItemType ItemType { get; set; }
     public string Label { get; set; } = "";
-    public string? Configuration { get; set; }
+    public EventChecklistItemConfigDTO? Configuration { get; set; }
 }

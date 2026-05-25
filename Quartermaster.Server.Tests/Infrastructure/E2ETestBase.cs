@@ -94,8 +94,10 @@ public abstract class E2ETestBase : IDisposable {
             try { await ctx.CloseAsync(); } catch { }
         }
         _extraContexts.Clear();
-        if (_context != null) await _context.CloseAsync();
-        if (_browser != null) await _browser.CloseAsync();
+        if (_context != null)
+            await _context.CloseAsync();
+        if (_browser != null)
+            await _browser.CloseAsync();
         _playwright?.Dispose();
     }
 

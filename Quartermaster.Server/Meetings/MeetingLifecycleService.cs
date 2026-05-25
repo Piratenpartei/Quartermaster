@@ -156,7 +156,8 @@ public class MeetingLifecycleService {
         var voteTallies = new Dictionary<Guid, (int Approve, int Deny, int Abstain)>();
         foreach (var mid in motionIds) {
             var m = _motionRepo.Get(mid);
-            if (m != null) motionsById[mid] = m;
+            if (m != null)
+                motionsById[mid] = m;
             var votes = _motionRepo.GetVotes(mid);
             voteTallies[mid] = (
                 votes.Count(v => v.Vote == VoteType.Approve),

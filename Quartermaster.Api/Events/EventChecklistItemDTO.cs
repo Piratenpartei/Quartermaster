@@ -9,6 +9,6 @@ public class EventChecklistItemDTO {
     public string Label { get; set; } = "";
     public bool IsCompleted { get; set; }
     public DateTime? CompletedAt { get; set; }
-    public string? Configuration { get; set; }
+    public EventChecklistItemConfigDTO? Configuration { get; set; }
     public Guid? ResultId { get; set; }
 }

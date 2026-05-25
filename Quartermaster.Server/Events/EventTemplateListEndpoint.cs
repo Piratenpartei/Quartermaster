@@ -57,17 +57,13 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
             var checklistItemCount = 0;
 
             try {
-                var variables = JsonSerializer.Deserialize<JsonElement>(t.Variables);
-                if (variables.ValueKind == JsonValueKind.Array)
-                    variableCount = variables.GetArrayLength();
+                variableCount = EventConfigSerializer.ParseVariables(t.Variables).Count;
             } catch (JsonException ex) {
                 Logger.LogWarning(ex, "Malformed Variables JSON on EventTemplate {Id}; counting as 0", t.Id);
             }
 
             try {
-                var items = JsonSerializer.Deserialize<JsonElement>(t.ChecklistItemTemplates);
-                if (items.ValueKind == JsonValueKind.Array)
-                    checklistItemCount = items.GetArrayLength();
+                checklistItemCount = EventConfigSerializer.ParseTemplates(t.ChecklistItemTemplates).Count;
             } catch (JsonException ex) {
                 Logger.LogWarning(ex, "Malformed ChecklistItemTemplates JSON on EventTemplate {Id}; counting as 0", t.Id);
             }

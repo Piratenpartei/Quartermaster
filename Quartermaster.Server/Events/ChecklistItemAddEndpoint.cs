@@ -51,9 +51,9 @@ public class ChecklistItemAddEndpoint : Endpoint<ChecklistItemCreateRequest, Eve
         var item = new EventChecklistItem {
             EventId = req.EventId,
             SortOrder = req.SortOrder,
-            ItemType = (ChecklistItemType)req.ItemType,
+            ItemType = req.ItemType,
             Label = req.Label,
-            Configuration = req.Configuration
+            Configuration = req.Configuration != null ? EventConfigSerializer.Serialize(req.Configuration) : null
         };
 
         _eventRepo.CreateChecklistItem(item);
@@ -65,7 +65,7 @@ public class ChecklistItemAddEndpoint : Endpoint<ChecklistItemCreateRequest, Eve
             Label = item.Label,
             IsCompleted = false,
             CompletedAt = null,
-            Configuration = item.Configuration,
+            Configuration = req.Configuration,
             ResultId = null
         }, cancellation: ct);
     }

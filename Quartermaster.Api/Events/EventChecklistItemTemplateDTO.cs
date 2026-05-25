@@ -1,9 +1,6 @@
-using System;
-
 namespace Quartermaster.Api.Events;
 
-public class ChecklistItemCreateRequest {
-    public Guid EventId { get; set; }
+public class EventChecklistItemTemplateDTO {
     public int SortOrder { get; set; }
     public ChecklistItemType ItemType { get; set; }
     public string Label { get; set; } = "";

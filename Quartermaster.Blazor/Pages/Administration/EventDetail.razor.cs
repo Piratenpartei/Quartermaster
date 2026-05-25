@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Markdig;
 using Microsoft.AspNetCore.Components;
@@ -215,14 +214,15 @@ public partial class EventDetail {
     private void StartEditing(EventChecklistItemDTO item) {
         EditingItemId = item.Id;
         EditingItemLabel = item.Label;
-        EditingUseDescription = IsUseDescription(item.Configuration);
-        EditingTemplateIdentifier = GetConfigProperty(item.Configuration, "templateIdentifier") ?? "";
-        EditingEmailTargetType = GetConfigProperty(item.Configuration, "targetType") ?? "Chapter";
-        EditingEmailTargetId = GetConfigProperty(item.Configuration, "targetId") ?? "";
-        EditingManualAddresses = GetConfigProperty(item.Configuration, "manualAddresses") ?? "";
-        EditingMotionChapterId = GetConfigProperty(item.Configuration, "chapterId") ?? "";
-        EditingMotionTitle = GetConfigProperty(item.Configuration, "motionTitle") ?? "";
-        EditingMotionText = GetConfigProperty(item.Configuration, "motionText") ?? "";
+        var cfg = item.Configuration;
+        EditingUseDescription = cfg?.UseDescription ?? false;
+        EditingTemplateIdentifier = cfg?.TemplateIdentifier ?? "";
+        EditingEmailTargetType = cfg?.TargetType ?? "Chapter";
+        EditingEmailTargetId = cfg?.TargetId?.ToString() ?? "";
+        EditingManualAddresses = cfg?.ManualAddresses ?? "";
+        EditingMotionChapterId = cfg?.ChapterId?.ToString() ?? "";
+        EditingMotionTitle = cfg?.MotionTitle ?? "";
+        EditingMotionText = cfg?.MotionText ?? "";
     }
 
     private void CancelEditing() {
@@ -237,29 +237,25 @@ public partial class EventDetail {
         if (item == null)
             return;
 
-        string? config = item.Configuration;
+        EventChecklistItemConfigDTO? config = item.Configuration;
         if (item.ItemType == ChecklistItemType.SendEmail) {
-            var dict = new Dictionary<string, object> {
-                ["useDescription"] = EditingUseDescription,
-                ["targetType"] = EditingEmailTargetType
+            config = new EventChecklistItemConfigDTO {
+                UseDescription = EditingUseDescription,
+                TargetType = EditingEmailTargetType,
+                TemplateIdentifier = !EditingUseDescription && !string.IsNullOrWhiteSpace(EditingTemplateIdentifier)
+                    ? EditingTemplateIdentifier
+                    : null,
+                ManualAddresses = EditingEmailTargetType == "ManualAddresses" ? EditingManualAddresses : null,
+                TargetId = EditingEmailTargetType != "ManualAddresses" && Guid.TryParse(EditingEmailTargetId, out var tid)
+                    ? tid
+                    : null
             };
-            if (!EditingUseDescription && !string.IsNullOrWhiteSpace(EditingTemplateIdentifier)) {
-                dict["templateIdentifier"] = EditingTemplateIdentifier;
-            }
-            if (EditingEmailTargetType == "ManualAddresses") {
-                dict["manualAddresses"] = EditingManualAddresses;
-            } else if (Guid.TryParse(EditingEmailTargetId, out var tid)) {
-                dict["targetId"] = tid;
-            }
-            config = JsonSerializer.Serialize(dict);
         } else if (item.ItemType == ChecklistItemType.CreateMotion) {
-            var dict = new Dictionary<string, object>();
-            if (Guid.TryParse(EditingMotionChapterId, out var chId))
-                dict["chapterId"] = chId;
-            if (!string.IsNullOrWhiteSpace(EditingMotionTitle))
-                dict["motionTitle"] = EditingMotionTitle;
-            dict["motionText"] = EditingMotionText;
-            config = JsonSerializer.Serialize(dict);
+            config = new EventChecklistItemConfigDTO {
+                ChapterId = Guid.TryParse(EditingMotionChapterId, out var chId) ? chId : null,
+                MotionTitle = !string.IsNullOrWhiteSpace(EditingMotionTitle) ? EditingMotionTitle : null,
+                MotionText = EditingMotionText
+            };
         }
 
         try {
@@ -362,7 +358,7 @@ public partial class EventDetail {
         _ => []
     };
 
-    private async Task ToggleEmailPreview(Guid itemId, string? configuration) {
+    private async Task ToggleEmailPreview(Guid itemId, EventChecklistItemConfigDTO? configuration) {
         if (ExpandedPreviewItemId == itemId) {
             ExpandedPreviewItemId = null;
             StateHasChanged();
@@ -374,19 +370,15 @@ public partial class EventDetail {
         if (!PreviewCache.ContainsKey(itemId)) {
             try {
                 string templateContent;
-                if (IsUseDescription(configuration)) {
+                if (configuration?.UseDescription == true) {
                     templateContent = Event?.Description ?? "(Keine Beschreibung)";
                     templateContent = ReplaceEventDateVariables(templateContent);
+                } else if (!string.IsNullOrEmpty(configuration?.TemplateIdentifier)) {
+                    templateContent = $"*Vorlage:* `{configuration.TemplateIdentifier}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n(Vorschau mit Beispieldaten)";
                 } else {
-                    var templateId = GetConfigProperty(configuration, "templateIdentifier");
-                    if (!string.IsNullOrEmpty(templateId)) {
-                        templateContent = $"*Vorlage:* `{templateId}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n(Vorschau mit Beispieldaten)";
-                    } else {
-                        // No template configured yet — show hint
-                        PreviewCache[itemId] = "<p class=\"text-secondary\">Kein Template konfiguriert. Bearbeiten Sie den Eintrag, um ein Template oder die Beschreibung als Inhalt auszuwählen.</p>";
-                        StateHasChanged();
-                        return;
-                    }
+                    PreviewCache[itemId] = "<p class=\"text-secondary\">Kein Template konfiguriert. Bearbeiten Sie den Eintrag, um ein Template oder die Beschreibung als Inhalt auszuwählen.</p>";
+                    StateHasChanged();
+                    return;
                 }
 
                 var mockData = TemplateMockDataProvider.GetMockData("MemberDetailDTO");
@@ -405,32 +397,6 @@ public partial class EventDetail {
         text = text.Replace("{{date}}", dateStr);
         text = text.Replace("{{datum}}", dateStr);
         return text;
-    }
-
-    private static bool IsUseDescription(string? configuration) {
-        if (string.IsNullOrEmpty(configuration))
-            return false;
-        try {
-            var config = JsonSerializer.Deserialize<JsonElement>(configuration);
-            if (config.TryGetProperty("useDescription", out var val))
-                return val.GetBoolean();
-        } catch (JsonException ex) {
-            Console.Error.WriteLine($"EventDetail.IsUseDescription: malformed config JSON. {ex}");
-        }
-        return false;
-    }
-
-    private static string? GetConfigProperty(string? configuration, string property) {
-        if (string.IsNullOrEmpty(configuration))
-            return null;
-        try {
-            var config = JsonSerializer.Deserialize<JsonElement>(configuration);
-            if (config.TryGetProperty(property, out var val))
-                return val.ToString();
-        } catch (JsonException ex) {
-            Console.Error.WriteLine($"EventDetail.GetConfigProperty({property}): malformed config JSON. {ex}");
-        }
-        return null;
     }
 
     private static string RenderMarkdown(string markdown)

@@ -65,8 +65,8 @@ public class EventTemplateDetailEndpoint : Endpoint<EventTemplateDetailRequest, 
             Name = template.Name,
             PublicNameTemplate = template.PublicNameTemplate,
             DescriptionTemplate = template.DescriptionTemplate,
-            Variables = template.Variables,
-            ChecklistItemTemplates = template.ChecklistItemTemplates,
+            Variables = EventConfigSerializer.ParseVariables(template.Variables),
+            ChecklistItemTemplates = EventConfigSerializer.ParseTemplates(template.ChecklistItemTemplates),
             ChapterId = template.ChapterId,
             CreatedAt = template.CreatedAt
         }, cancellation: ct);

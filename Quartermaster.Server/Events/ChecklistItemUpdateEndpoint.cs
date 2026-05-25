@@ -51,9 +51,9 @@ public class ChecklistItemUpdateEndpoint : Endpoint<ChecklistItemUpdateRequest> 
             Id = req.ItemId,
             EventId = req.EventId,
             SortOrder = req.SortOrder,
-            ItemType = (ChecklistItemType)req.ItemType,
+            ItemType = req.ItemType,
             Label = req.Label,
-            Configuration = req.Configuration
+            Configuration = req.Configuration != null ? EventConfigSerializer.Serialize(req.Configuration) : null
         };
 
         _eventRepo.UpdateChecklistItem(item);

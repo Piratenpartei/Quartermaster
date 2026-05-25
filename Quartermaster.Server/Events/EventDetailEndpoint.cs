@@ -73,7 +73,7 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
             Label = i.Label,
             IsCompleted = i.IsCompleted,
             CompletedAt = i.CompletedAt,
-            Configuration = i.Configuration,
+            Configuration = EventConfigSerializer.ParseConfig(i.Configuration),
             ResultId = i.ResultId
         }).ToList();
 

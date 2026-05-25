@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -60,22 +59,20 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
 
         var checklistTemplates = checklistItems
             .OrderBy(i => i.SortOrder)
-            .Select(i => new {
-                sortOrder = i.SortOrder,
-                itemType = (int)i.ItemType,
-                label = i.Label,
-                configuration = i.Configuration
+            .Select(i => new EventChecklistItemTemplateDTO {
+                SortOrder = i.SortOrder,
+                ItemType = i.ItemType,
+                Label = i.Label,
+                Configuration = EventConfigSerializer.ParseConfig(i.Configuration)
             })
             .ToList();
-
-        var checklistJson = JsonSerializer.Serialize(checklistTemplates);
 
         var template = new EventTemplate {
             Name = req.Name,
             PublicNameTemplate = ev.PublicName,
             DescriptionTemplate = ev.Description,
-            Variables = req.Variables,
-            ChecklistItemTemplates = checklistJson,
+            Variables = EventConfigSerializer.Serialize(req.Variables),
+            ChecklistItemTemplates = EventConfigSerializer.Serialize(checklistTemplates),
             ChapterId = ev.ChapterId,
             CreatedAt = DateTime.UtcNow
         };
@@ -87,8 +84,8 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
             Name = template.Name,
             PublicNameTemplate = template.PublicNameTemplate,
             DescriptionTemplate = template.DescriptionTemplate,
-            Variables = template.Variables,
-            ChecklistItemTemplates = template.ChecklistItemTemplates,
+            Variables = req.Variables,
+            ChecklistItemTemplates = checklistTemplates,
             ChapterId = template.ChapterId,
             CreatedAt = template.CreatedAt
         }, cancellation: ct);

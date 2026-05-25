@@ -188,7 +188,7 @@
                                 <span class="badge border border-primary text-primary-emphasis ms-1">Antrag</span>
                             } else if (item.ItemType == ChecklistItemType.SendEmail) {
                                 <span class="badge border border-warning text-warning-emphasis ms-1">E-Mail</span>
-                                @if (IsUseDescription(item.Configuration)) {
+                                @if (item.Configuration?.UseDescription == true) {
                                     <span class="badge border border-info text-info-emphasis ms-1">Beschreibung</span>
                                 }
                             }

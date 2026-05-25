@@ -60,7 +60,8 @@ public static class ProtocolPdfRenderer {
                         t.Span(meeting.StartedAt.Value.ToString("HH:mm"));
                     }
                     if (meeting.CompletedAt.HasValue) {
-                        if (meeting.StartedAt.HasValue) t.Span("  •  ");
+                        if (meeting.StartedAt.HasValue)
+                            t.Span("  •  ");
                         t.Span("Ende: ").SemiBold();
                         t.Span(meeting.CompletedAt.Value.ToString("HH:mm"));
                     }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
@@ -51,8 +50,16 @@ public partial class EventTemplateSave {
         var allText = new List<string> { Event!.PublicName, Event.Description ?? "" };
         foreach (var item in Event.ChecklistItems) {
             allText.Add(item.Label);
-            if (item.Configuration != null)
-                allText.Add(item.Configuration);
+            if (item.Configuration != null) {
+                if (item.Configuration.TemplateIdentifier != null)
+                    allText.Add(item.Configuration.TemplateIdentifier);
+                if (item.Configuration.ManualAddresses != null)
+                    allText.Add(item.Configuration.ManualAddresses);
+                if (item.Configuration.MotionTitle != null)
+                    allText.Add(item.Configuration.MotionTitle);
+                if (item.Configuration.MotionText != null)
+                    allText.Add(item.Configuration.MotionText);
+            }
         }
 
         // Built-in variables that map to event model fields — exclude from custom variables
@@ -83,16 +90,14 @@ public partial class EventTemplateSave {
         StateHasChanged();
 
         try {
-            var variablesJson = JsonSerializer.Serialize(Variables.Select(v => new {
-                name = v.Name,
-                label = v.Label,
-                type = v.Type
-            }));
-
             await Http.PostAsJsonAsync("/api/eventtemplates", new EventTemplateCreateRequest {
                 EventId = EventId,
                 Name = TemplateName,
-                Variables = variablesJson
+                Variables = Variables.Select(v => new EventTemplateVariableDTO {
+                    Name = v.Name,
+                    Label = v.Label,
+                    Type = v.Type
+                }).ToList()
             });
 
             ToastService.ToastKey(I18nKey.Ui.Toast.TemplateSaved);
