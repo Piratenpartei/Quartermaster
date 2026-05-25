@@ -3,18 +3,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Users;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
-
-public class GrantChapterPermissionRequest {
-    public Guid UserId { get; set; }
-    public Guid ChapterId { get; set; }
-    public string PermissionIdentifier { get; set; } = "";
-}
 
 public class GrantChapterPermissionEndpoint : Endpoint<GrantChapterPermissionRequest> {
     private readonly UserGlobalPermissionRepository _globalPermRepo;

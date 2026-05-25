@@ -324,7 +324,8 @@ public partial class EventDetail {
 
         try {
             await SaveIfDirty();
-            var response = await Http.PutAsJsonAsync($"/api/events/{Id}/status", new { Id, Status = target });
+            var response = await Http.PutAsJsonAsync($"/api/events/{Id}/status",
+                new EventStatusUpdateRequest { Id = Id, Status = target });
             if (response.IsSuccessStatusCode) {
                 var targetLabel = target switch {
                     EventStatus.Draft => "Entwurf",

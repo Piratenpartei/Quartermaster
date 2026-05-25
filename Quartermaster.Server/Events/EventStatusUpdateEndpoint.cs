@@ -13,11 +13,6 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
-public class EventStatusUpdateRequest {
-    public Guid Id { get; set; }
-    public EventStatus Status { get; set; }
-}
-
 public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
     private readonly EventRepository _eventRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;

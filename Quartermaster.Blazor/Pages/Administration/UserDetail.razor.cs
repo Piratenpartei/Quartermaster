@@ -71,13 +71,16 @@ public partial class UserDetail {
             if (grant) {
                 var response = await Http.PostAsJsonAsync(
                     $"/api/users/{Id}/permissions/global",
-                    new { permissionIdentifier = identifier });
+                    new GrantGlobalPermissionRequest { UserId = Id, PermissionIdentifier = identifier });
                 response.EnsureSuccessStatusCode();
                 if (UserPermissions != null && !UserPermissions.GlobalPermissions.Contains(identifier))
                     UserPermissions.GlobalPermissions.Add(identifier);
             } else {
                 var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{Id}/permissions/global") {
-                    Content = JsonContent.Create(new { permissionIdentifier = identifier })
+                    Content = JsonContent.Create(new RevokeGlobalPermissionRequest {
+                        UserId = Id,
+                        PermissionIdentifier = identifier
+                    })
                 };
                 var response = await Http.SendAsync(request);
                 response.EnsureSuccessStatusCode();
@@ -94,10 +97,17 @@ public partial class UserDetail {
         if (string.IsNullOrEmpty(NewChapterId) || string.IsNullOrEmpty(NewPermissionIdentifier))
             return;
 
+        if (!Guid.TryParse(NewChapterId, out var newChapterIdGuid))
+            return;
+
         try {
             var response = await Http.PostAsJsonAsync(
                 $"/api/users/{Id}/permissions/chapter",
-                new { chapterId = NewChapterId, permissionIdentifier = NewPermissionIdentifier });
+                new GrantChapterPermissionRequest {
+                    UserId = Id,
+                    ChapterId = newChapterIdGuid,
+                    PermissionIdentifier = NewPermissionIdentifier
+                });
             response.EnsureSuccessStatusCode();
 
             // Reload permissions
@@ -109,9 +119,16 @@ public partial class UserDetail {
     }
 
     private async Task RevokeChapterPermission(string chapterId, string permissionIdentifier) {
+        if (!Guid.TryParse(chapterId, out var chapterIdGuid))
+            return;
+
         try {
             var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{Id}/permissions/chapter") {
-                Content = JsonContent.Create(new { chapterId, permissionIdentifier })
+                Content = JsonContent.Create(new RevokeChapterPermissionRequest {
+                    UserId = Id,
+                    ChapterId = chapterIdGuid,
+                    PermissionIdentifier = permissionIdentifier
+                })
             };
             var response = await Http.SendAsync(request);
             response.EnsureSuccessStatusCode();

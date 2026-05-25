@@ -3,16 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Users;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
-
-public class RevokeGlobalPermissionRequest {
-    public Guid UserId { get; set; }
-    public string PermissionIdentifier { get; set; } = "";
-}
 
 public class RevokeGlobalPermissionEndpoint : Endpoint<RevokeGlobalPermissionRequest> {
     private readonly UserGlobalPermissionRepository _globalPermRepo;

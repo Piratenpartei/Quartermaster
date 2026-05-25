@@ -17,13 +17,6 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
 
-public class AgendaItemPresenceRequest {
-    public Guid MeetingId { get; set; }
-    public Guid ItemId { get; set; }
-    public Guid UserId { get; set; }
-    public bool Present { get; set; }
-}
-
 /// <summary>
 /// Toggles an officer's presence on a Presence-type agenda item.
 /// Stores the set of present user IDs as JSON in the agenda item's Resolution field.

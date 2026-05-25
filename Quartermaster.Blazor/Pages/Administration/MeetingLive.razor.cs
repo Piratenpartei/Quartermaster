@@ -248,7 +248,12 @@ public partial class MeetingLive : IAsyncDisposable {
     private async Task TogglePresence(Guid agendaItemId, Guid userId, bool present) {
         try {
             await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/presence",
-                new { MeetingId = Id, ItemId = agendaItemId, UserId = userId, Present = present });
+                new AgendaItemPresenceRequest {
+                    MeetingId = Id,
+                    ItemId = agendaItemId,
+                    UserId = userId,
+                    Present = present
+                });
             await LoadMeeting();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
