@@ -14,7 +14,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             SortOrder = 1,
-            ItemType = 0,
+            ItemType = ChecklistItemType.Text,
             Label = "Test Label"
         };
 
@@ -28,7 +28,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.Empty,
             Label = "Test",
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -42,7 +42,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             Label = "",
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -56,7 +56,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             Label = new string('A', 1025),
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -70,7 +70,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             Label = new string('A', 1024),
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -79,10 +79,10 @@ public class ChecklistItemCreateRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(0)]
-    [Arguments(1)]
-    [Arguments(2)]
-    public void ValidItemType_ShouldHaveNoError(int itemType) {
+    [Arguments(ChecklistItemType.Text)]
+    [Arguments(ChecklistItemType.CreateMotion)]
+    [Arguments(ChecklistItemType.SendEmail)]
+    public void ValidItemType_ShouldHaveNoError(ChecklistItemType itemType) {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             Label = "Test",
@@ -102,7 +102,7 @@ public class ChecklistItemCreateRequestValidatorTests {
         var request = new ChecklistItemCreateRequest {
             EventId = Guid.NewGuid(),
             Label = "Test",
-            ItemType = itemType
+            ItemType = (ChecklistItemType)itemType
         };
 
         var result = _validator.TestValidate(request);
@@ -121,7 +121,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
             SortOrder = 1,
-            ItemType = 0,
+            ItemType = ChecklistItemType.Text,
             Label = "Test Label"
         };
 
@@ -136,7 +136,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.Empty,
             ItemId = Guid.NewGuid(),
             Label = "Test",
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -151,7 +151,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.Empty,
             Label = "Test",
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -166,7 +166,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
             Label = "",
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -181,7 +181,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
             Label = new string('A', 1025),
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -196,7 +196,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
             Label = new string('A', 1024),
-            ItemType = 0
+            ItemType = ChecklistItemType.Text
         };
 
         var result = _validator.TestValidate(request);
@@ -205,10 +205,10 @@ public class ChecklistItemUpdateRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(0)]
-    [Arguments(1)]
-    [Arguments(2)]
-    public void ValidItemType_ShouldHaveNoError(int itemType) {
+    [Arguments(ChecklistItemType.Text)]
+    [Arguments(ChecklistItemType.CreateMotion)]
+    [Arguments(ChecklistItemType.SendEmail)]
+    public void ValidItemType_ShouldHaveNoError(ChecklistItemType itemType) {
         var request = new ChecklistItemUpdateRequest {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
@@ -230,7 +230,7 @@ public class ChecklistItemUpdateRequestValidatorTests {
             EventId = Guid.NewGuid(),
             ItemId = Guid.NewGuid(),
             Label = "Test",
-            ItemType = itemType
+            ItemType = (ChecklistItemType)itemType
         };
 
         var result = _validator.TestValidate(request);

@@ -27,7 +27,7 @@ public partial class RoleAssignments {
     private string NewUserId = "";
     private string NewRoleId = "";
     private string NewChapterIdString = "";
-    private int SelectedRoleScope = -1;
+    private RoleScope? SelectedRoleScope;
 
     protected override async Task OnInitializedAsync() {
         await Load();
@@ -50,12 +50,12 @@ public partial class RoleAssignments {
     private void OnRoleChanged() {
         if (Guid.TryParse(NewRoleId, out var roleId) && Roles != null) {
             var role = Roles.FirstOrDefault(r => r.Id == roleId);
-            SelectedRoleScope = role?.Scope ?? -1;
-            if (SelectedRoleScope == 0) {
+            SelectedRoleScope = role?.Scope;
+            if (SelectedRoleScope == RoleScope.Global) {
                 NewChapterIdString = "";
             }
         } else {
-            SelectedRoleScope = -1;
+            SelectedRoleScope = null;
         }
     }
 
@@ -70,7 +70,7 @@ public partial class RoleAssignments {
         }
 
         Guid? chapterId = null;
-        if (SelectedRoleScope == 1) {
+        if (SelectedRoleScope == RoleScope.ChapterScoped) {
             if (!Guid.TryParse(NewChapterIdString, out var parsedChapter)) {
                 ToastService.Error("Bitte Gliederung auswählen.");
                 return;
@@ -91,7 +91,7 @@ public partial class RoleAssignments {
                 NewUserId = "";
                 NewRoleId = "";
                 NewChapterIdString = "";
-                SelectedRoleScope = -1;
+                SelectedRoleScope = null;
                 ShowingCreateForm = false;
                 await Load();
             } else {

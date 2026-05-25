@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Quartermaster.Api.Roles;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 

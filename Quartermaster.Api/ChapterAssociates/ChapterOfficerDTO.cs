@@ -9,5 +9,5 @@ public class ChapterOfficerDTO {
     public string MemberLastName { get; set; } = "";
     public Guid ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
-    public int AssociateType { get; set; }
+    public ChapterOfficerType AssociateType { get; set; }
 }

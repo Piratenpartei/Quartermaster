@@ -44,12 +44,12 @@ public class RoleCreateEndpoint : Endpoint<RoleCreateRequest, RoleDTO> {
             return;
         }
 
-        if (req.Scope != 0 && req.Scope != 1) {
+        if (!Enum.IsDefined(req.Scope)) {
             ThrowError(I18nKey.Error.User.Role.ScopeInvalid);
             return;
         }
 
-        var scopeError = RolePermissionScopeValidator.Validate(req.Permissions, (RoleScope)req.Scope, _permissionRepo);
+        var scopeError = RolePermissionScopeValidator.Validate(req.Permissions, req.Scope, _permissionRepo);
         if (scopeError != null) {
             ThrowError(scopeError);
             return;
@@ -60,7 +60,7 @@ public class RoleCreateEndpoint : Endpoint<RoleCreateRequest, RoleDTO> {
             Identifier = $"custom_{Guid.NewGuid():N}",
             Name = req.Name.Trim(),
             Description = req.Description ?? "",
-            Scope = (RoleScope)req.Scope,
+            Scope = req.Scope,
             IsSystem = false
         };
         _roleRepo.Create(role);

@@ -4,14 +4,14 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.DueSelector;
-using DataDueSelector = Quartermaster.Data.DueSelector;
+using Quartermaster.Data.DueSelector;
 
 namespace Quartermaster.Server.DueSelector;
 
 public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
-    private readonly DataDueSelector.DueSelectionRepository _dueSelectionRepository;
+    private readonly DueSelectionRepository _dueSelectionRepository;
 
-    public DueSelectionCreateEndpoint(DataDueSelector.DueSelectionRepository dueSelectionRepository) {
+    public DueSelectionCreateEndpoint(DueSelectionRepository dueSelectionRepository) {
         _dueSelectionRepository = dueSelectionRepository;
     }
 
@@ -22,22 +22,22 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
     }
 
     public override async Task HandleAsync(DueSelectionDTO req, CancellationToken ct) {
-        var dueSelection = new DataDueSelector.DueSelection {
+        var dueSelection = new DueSelection {
             FirstName = req.FirstName,
             LastName = req.LastName,
             EMail = req.EMail,
             MemberNumber = req.MemberNumber,
-            SelectedValuation = (DataDueSelector.SelectedValuation)(int)req.SelectedValuation,
+            SelectedValuation = req.SelectedValuation,
             YearlyIncome = req.YearlyIncome,
             MonthlyIncomeGroup = req.MonthlyIncomeGroup,
             ReducedAmount = req.ReducedAmount,
             SelectedDue = req.SelectedDue,
             ReducedJustification = req.ReducedJustification,
-            ReducedTimeSpan = (DataDueSelector.ReducedTimeSpan)(int)req.ReducedTimeSpan,
+            ReducedTimeSpan = req.ReducedTimeSpan,
             IsDirectDeposit = req.IsDirectDeposit,
             AccountHolder = req.AccountHolder,
             IBAN = req.IBAN,
-            PaymentSchedule = (DataDueSelector.PaymentScedule)(int)req.PaymentScedule
+            PaymentSchedule = req.PaymentSchedule
         };
         _dueSelectionRepository.Create(dueSelection);
         await SendOkAsync(ct);

@@ -12,7 +12,7 @@
     <h3 class="mb-3">@Option.FriendlyName</h3>
 
     <div class="row">
-        <div class="@(Option.DataType == 2 && Schemas != null && Schemas.Count > 0 ? "col-lg-8" : "col-12")">
+        <div class="@(Option.DataType == OptionDataType.Template && Schemas != null && Schemas.Count > 0 ? "col-lg-8" : "col-12")">
             <DirtyForm @ref="_globalForm">
                 <div class="card mb-3">
                     <div class="card-body">
@@ -26,7 +26,7 @@
                         @if (!string.IsNullOrEmpty(Option.Description)) {
                             <p class="text-secondary small mb-3">@Option.Description</p>
                         }
-                        @if (Option.DataType == 2) {
+                        @if (Option.DataType == OptionDataType.Template) {
                             <FormTextarea Value="@Option.GlobalValue" ValueChanged="OnTemplateValueChanged" Rows="10" CssClass="font-monospace mb-2" />
                             <div class="d-flex gap-2 mb-2">
                                 <FormSaveButton OnClick="SaveGlobal" ButtonClass="btn-sm btn-primary" />
@@ -43,7 +43,7 @@
                             }
                         } else {
                             <div class="input-group mb-2">
-                                <FormInput @bind-Value="Option.GlobalValue" Type="@(Option.DataType == 1 ? "number" : "text")" />
+                                <FormInput @bind-Value="Option.GlobalValue" Type="@(Option.DataType == OptionDataType.Number ? "number" : "text")" />
                                 <FormSaveButton OnClick="SaveGlobal" />
                             </div>
                         }
@@ -72,13 +72,13 @@
                                             <td><span class="badge bg-secondary">@ov.ChapterShortCode</span></td>
                                             <td>@ov.ChapterName</td>
                                             <td>
-                                                @if (Option.DataType == 2) {
+                                                @if (Option.DataType == OptionDataType.Template) {
                                                     <button class="btn btn-sm btn-outline-secondary" @onclick="() => LoadOverrideForEditing(ov)">
                                                         <i class="bi bi-pencil"></i> Bearbeiten
                                                     </button>
                                                 } else {
                                                     <div class="input-group input-group-sm" style="max-width: 300px;">
-                                                        <input type="@(Option.DataType == 1 ? "number" : "text")"
+                                                        <input type="@(Option.DataType == OptionDataType.Number ? "number" : "text")"
                                                                class="form-control" value="@ov.Value"
                                                                @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
                                                         <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
@@ -138,7 +138,7 @@
             }
         </div>
 
-        @if (Option.DataType == 2 && Schemas != null && Schemas.Count > 0) {
+        @if (Option.DataType == OptionDataType.Template && Schemas != null && Schemas.Count > 0) {
             <div class="col-lg-4">
                 <div class="card position-sticky" style="top: 1rem;">
                     <div class="card-body">

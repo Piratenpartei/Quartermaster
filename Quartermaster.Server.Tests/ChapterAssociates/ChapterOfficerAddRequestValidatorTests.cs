@@ -14,7 +14,7 @@ public class ChapterOfficerAddRequestValidatorTests {
         var request = new ChapterOfficerAddRequest {
             MemberId = Guid.NewGuid(),
             ChapterId = Guid.NewGuid(),
-            AssociateType = 3
+            AssociateType = ChapterOfficerType.Treasurer
         };
 
         var result = _validator.TestValidate(request);
@@ -27,7 +27,7 @@ public class ChapterOfficerAddRequestValidatorTests {
         var request = new ChapterOfficerAddRequest {
             MemberId = Guid.Empty,
             ChapterId = Guid.NewGuid(),
-            AssociateType = 0
+            AssociateType = ChapterOfficerType.Captain
         };
 
         var result = _validator.TestValidate(request);
@@ -41,7 +41,7 @@ public class ChapterOfficerAddRequestValidatorTests {
         var request = new ChapterOfficerAddRequest {
             MemberId = Guid.NewGuid(),
             ChapterId = Guid.Empty,
-            AssociateType = 0
+            AssociateType = ChapterOfficerType.Captain
         };
 
         var result = _validator.TestValidate(request);
@@ -51,10 +51,10 @@ public class ChapterOfficerAddRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(0)]
-    [Arguments(3)]
-    [Arguments(6)]
-    public void AssociateTypeInRange_ShouldHaveNoError(int associateType) {
+    [Arguments(ChapterOfficerType.Captain)]
+    [Arguments(ChapterOfficerType.Treasurer)]
+    [Arguments(ChapterOfficerType.Member)]
+    public void AssociateTypeInRange_ShouldHaveNoError(ChapterOfficerType associateType) {
         var request = new ChapterOfficerAddRequest {
             MemberId = Guid.NewGuid(),
             ChapterId = Guid.NewGuid(),
@@ -67,10 +67,10 @@ public class ChapterOfficerAddRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(-1)]
-    [Arguments(7)]
-    [Arguments(100)]
-    public void AssociateTypeOutOfRange_ShouldHaveError(int associateType) {
+    [Arguments((ChapterOfficerType)(-1))]
+    [Arguments((ChapterOfficerType)7)]
+    [Arguments((ChapterOfficerType)100)]
+    public void AssociateTypeOutOfRange_ShouldHaveError(ChapterOfficerType associateType) {
         var request = new ChapterOfficerAddRequest {
             MemberId = Guid.NewGuid(),
             ChapterId = Guid.NewGuid(),

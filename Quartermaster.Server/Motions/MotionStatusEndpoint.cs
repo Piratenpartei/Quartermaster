@@ -47,11 +47,9 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
             return;
         }
 
-        if (req.ApprovalStatus.HasValue)
-        {
-            var status = (MotionApprovalStatus)req.ApprovalStatus.Value;
-            if (status != MotionApprovalStatus.FormallyRejected && status != MotionApprovalStatus.ClosedWithoutAction)
-            {
+        if (req.ApprovalStatus.HasValue) {
+            var status = req.ApprovalStatus.Value;
+            if (status != MotionApprovalStatus.FormallyRejected && status != MotionApprovalStatus.ClosedWithoutAction) {
                 await SendErrorsAsync(400, ct);
                 return;
             }

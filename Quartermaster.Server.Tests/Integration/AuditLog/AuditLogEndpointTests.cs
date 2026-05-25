@@ -12,7 +12,7 @@ namespace Quartermaster.Server.Tests.Integration.AuditLog;
 
 public class AuditLogEndpointTests : IntegrationTestBase {
     private void SeedAudit(string entityType, Guid entityId, string action = "Created") {
-        Db.Insert(new Quartermaster.Data.AuditLog.AuditLog {
+        Db.Insert(new Quartermaster.Data.AuditLog.AuditEntry {
             Id = Guid.NewGuid(),
             EntityType = entityType,
             EntityId = entityId,

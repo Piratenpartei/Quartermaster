@@ -43,14 +43,14 @@ public partial class ChapterDetail {
         Loading = false;
     }
 
-    private static string RoleLabel(int role) => role switch {
-        0 => "Vorsitzender",
-        1 => "Stellv. Vorsitzender",
-        2 => "Quartiermeister",
-        3 => "Schatzmeister",
-        4 => "Stellv. Schatzmeister",
-        5 => "Pol. Geschäftsführer",
-        6 => "Beisitzer",
+    private static string RoleLabel(ChapterOfficerType role) => role switch {
+        ChapterOfficerType.Captain => "Vorsitzender",
+        ChapterOfficerType.FirstOfficer => "Stellv. Vorsitzender",
+        ChapterOfficerType.Quartermaster => "Quartiermeister",
+        ChapterOfficerType.Treasurer => "Schatzmeister",
+        ChapterOfficerType.ViceTreasurer => "Stellv. Schatzmeister",
+        ChapterOfficerType.PoliticalDirector => "Pol. Geschäftsführer",
+        ChapterOfficerType.Member => "Beisitzer",
         _ => "Unbekannt"
     };
 }

@@ -65,13 +65,13 @@
                 <div class="col-md-6">
                     <label for="selectedRole" class="form-label">Rolle</label>
                     <select id="selectedRole" class="form-select" @bind="SelectedRole">
-                        <option value="0">Vorsitzender</option>
-                        <option value="1">Stellv. Vorsitzender</option>
-                        <option value="2">Quartiermeister</option>
-                        <option value="3">Schatzmeister</option>
-                        <option value="4">Stellv. Schatzmeister</option>
-                        <option value="5">Pol. Geschäftsführer</option>
-                        <option value="6">Beisitzer</option>
+                        <option value="@ChapterOfficerType.Captain">Vorsitzender</option>
+                        <option value="@ChapterOfficerType.FirstOfficer">Stellv. Vorsitzender</option>
+                        <option value="@ChapterOfficerType.Quartermaster">Quartiermeister</option>
+                        <option value="@ChapterOfficerType.Treasurer">Schatzmeister</option>
+                        <option value="@ChapterOfficerType.ViceTreasurer">Stellv. Schatzmeister</option>
+                        <option value="@ChapterOfficerType.PoliticalDirector">Pol. Geschäftsführer</option>
+                        <option value="@ChapterOfficerType.Member">Beisitzer</option>
                     </select>
                 </div>
                 <div class="col-md-6">

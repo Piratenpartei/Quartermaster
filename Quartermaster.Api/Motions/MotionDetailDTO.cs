@@ -14,7 +14,7 @@ public class MotionDetailDTO {
     public bool IsPublic { get; set; }
     public Guid? LinkedMembershipApplicationId { get; set; }
     public Guid? LinkedDueSelectionId { get; set; }
-    public int ApprovalStatus { get; set; }
+    public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }

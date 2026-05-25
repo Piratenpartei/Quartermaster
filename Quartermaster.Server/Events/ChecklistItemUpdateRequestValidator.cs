@@ -22,7 +22,7 @@ public class ChecklistItemUpdateRequestValidator : Validator<ChecklistItemUpdate
             .WithMessage(I18nKey.Error.Event.Checklist.LabelMaxLength);
 
         RuleFor(x => x.ItemType)
-            .InclusiveBetween(0, 2)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Event.Checklist.TypeInvalid);
     }
 }

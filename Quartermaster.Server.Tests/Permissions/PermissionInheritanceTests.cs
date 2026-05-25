@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.Roles;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Permissions;

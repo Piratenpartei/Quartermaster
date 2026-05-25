@@ -28,7 +28,7 @@ public static class TemplateMockDataProvider {
                         AddressPostCode = "10115",
                         AddressCity = "Berlin",
                         ChapterName = "Piratenpartei Berlin",
-                        Status = 1,
+                        Status = ApplicationStatus.Approved,
                         SubmittedAt = DateTime.UtcNow.AddDays(-3),
                         EntryDate = DateTime.UtcNow
                     };
@@ -40,11 +40,11 @@ public static class TemplateMockDataProvider {
                         FirstName = "Max",
                         LastName = "Mustermann",
                         EMail = "max.mustermann@example.com",
-                        SelectedValuation = 4,
+                        SelectedValuation = SelectedValuation.Reduced,
                         SelectedDue = 24,
                         ReducedAmount = 24,
                         ReducedJustification = "Student ohne Einkommen",
-                        Status = 1
+                        Status = DueSelectionStatus.Approved
                     };
                     break;
 

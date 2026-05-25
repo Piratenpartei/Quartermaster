@@ -62,7 +62,9 @@ public class AdminDivisionImportHistoryEndpoint
 
         await SendAsync(new AdminDivisionImportLogListResponse {
             Items = dtos,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 }

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Bogus;
 using LinqToDB;
+using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -91,7 +95,7 @@ public class TestDataSeeder {
                 IsDirectDeposit = faker.Random.Bool(0.6f),
                 AccountHolder = $"{firstName} {lastName}",
                 IBAN = $"DE{faker.Random.Long(10000000000000000, 99999999999999999)}",
-                PaymentSchedule = faker.PickRandom(PaymentScedule.Annual, PaymentScedule.Quarterly),
+                PaymentSchedule = faker.PickRandom(PaymentSchedule.Annual, PaymentSchedule.Quarterly),
                 Status = isReduced
                     ? DueSelectionStatus.Pending
                     : DueSelectionStatus.AutoApproved
@@ -194,7 +198,7 @@ public class TestDataSeeder {
                 IsDirectDeposit = faker.Random.Bool(0.5f),
                 AccountHolder = $"{firstName} {lastName}",
                 IBAN = $"DE{faker.Random.Long(10000000000000000, 99999999999999999)}",
-                PaymentSchedule = faker.PickRandom(PaymentScedule.Annual, PaymentScedule.Quarterly),
+                PaymentSchedule = faker.PickRandom(PaymentSchedule.Annual, PaymentSchedule.Quarterly),
                 Status = isReduced
                     ? DueSelectionStatus.Pending
                     : DueSelectionStatus.AutoApproved

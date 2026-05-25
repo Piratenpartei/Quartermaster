@@ -47,7 +47,7 @@ public class DbContext : DataConnection {
     public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
     public ITable<EmailLog> EmailLogs => this.GetTable<EmailLog>();
-    public ITable<AuditLog.AuditLog> AuditLogs => this.GetTable<AuditLog.AuditLog>();
+    public ITable<AuditEntry> AuditLogs => this.GetTable<AuditEntry>();
     public ITable<LoginAttempt> LoginAttempts => this.GetTable<LoginAttempt>();
     public ITable<Role> Roles => this.GetTable<Role>();
     public ITable<RolePermission> RolePermissions => this.GetTable<RolePermission>();

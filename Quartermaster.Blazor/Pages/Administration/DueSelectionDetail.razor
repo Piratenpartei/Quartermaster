@@ -11,11 +11,11 @@
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>Beitragseinstufung — @Selection.FirstName @Selection.LastName</h3>
-        @if (Selection.Status == 0) {
+        @if (Selection.Status == DueSelectionStatus.Pending) {
             <span class="badge border border-warning text-warning-emphasis fs-6">Ausstehend</span>
-        } else if (Selection.Status == 1) {
+        } else if (Selection.Status == DueSelectionStatus.Approved) {
             <span class="badge border border-success text-success-emphasis fs-6">Genehmigt</span>
-        } else if (Selection.Status == 2) {
+        } else if (Selection.Status == DueSelectionStatus.Rejected) {
             <span class="badge border border-danger text-danger-emphasis fs-6">Abgelehnt</span>
         } else {
             <span class="badge border border-info text-info-emphasis fs-6">Automatisch genehmigt</span>
@@ -55,19 +55,19 @@
                         <th>Jahresbeitrag</th>
                         <td><strong>@Selection.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></td>
                     </tr>
-                    @if (Selection.SelectedValuation == 2) {
+                    @if (Selection.SelectedValuation == SelectedValuation.OnePercentYearlyPay) {
                         <tr>
                             <th>Jahreseinkommen</th>
                             <td>@Selection.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                     }
-                    @if (Selection.SelectedValuation == 1) {
+                    @if (Selection.SelectedValuation == SelectedValuation.MonthlyPayGroup) {
                         <tr>
                             <th>Monatseinkommen</th>
                             <td>@Selection.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                     }
-                    @if (Selection.SelectedValuation == 4) {
+                    @if (Selection.SelectedValuation == SelectedValuation.Reduced) {
                         <tr>
                             <th>Geminderter Betrag</th>
                             <td>@Selection.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
@@ -78,7 +78,7 @@
                         </tr>
                         <tr>
                             <th>Minderungszeitraum</th>
-                            <td>@(Selection.ReducedTimeSpan == 0 ? "Ein Jahr" : "Dauerhaft")</td>
+                            <td>@(Selection.ReducedTimeSpan == ReducedTimeSpan.OneYear ? "Ein Jahr" : "Dauerhaft")</td>
                         </tr>
                     }
                 </tbody>

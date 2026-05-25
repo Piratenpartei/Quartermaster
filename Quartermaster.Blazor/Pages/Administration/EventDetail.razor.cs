@@ -40,7 +40,7 @@ public partial class EventDetail {
 
     // Add item
     private string NewItemLabel { get; set; } = "";
-    private int NewItemType { get; set; } = 0;
+    private ChecklistItemType NewItemType { get; set; } = ChecklistItemType.Text;
 
     // Inline edit
     private Guid? EditingItemId;
@@ -182,7 +182,7 @@ public partial class EventDetail {
     }
 
     // Add item
-    private async Task AddItem(int itemType) {
+    private async Task AddItem(ChecklistItemType itemType) {
         if (string.IsNullOrWhiteSpace(NewItemLabel))
             return;
 
@@ -237,7 +237,7 @@ public partial class EventDetail {
             return;
 
         string? config = item.Configuration;
-        if (item.ItemType == 2) {
+        if (item.ItemType == ChecklistItemType.SendEmail) {
             var dict = new Dictionary<string, object> {
                 ["useDescription"] = EditingUseDescription,
                 ["targetType"] = EditingEmailTargetType
@@ -251,7 +251,7 @@ public partial class EventDetail {
                 dict["targetId"] = tid;
             }
             config = JsonSerializer.Serialize(dict);
-        } else if (item.ItemType == 1) {
+        } else if (item.ItemType == ChecklistItemType.CreateMotion) {
             var dict = new Dictionary<string, object>();
             if (Guid.TryParse(EditingMotionChapterId, out var chId))
                 dict["chapterId"] = chId;

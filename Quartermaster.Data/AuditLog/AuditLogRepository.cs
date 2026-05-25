@@ -20,7 +20,7 @@ public class AuditLogRepository {
     }
 
     public void Log(string entityType, Guid entityId, string action, string? fieldName = null, string? oldValue = null, string? newValue = null) {
-        _context.Insert(new AuditLog {
+        _context.Insert(new AuditEntry {
             EntityType = entityType,
             EntityId = entityId,
             Action = action,
@@ -51,7 +51,7 @@ public class AuditLogRepository {
         Log(entityType, entityId, "SoftDeleted");
     }
 
-    public List<AuditLog> GetForEntity(string entityType, Guid entityId) {
+    public List<AuditEntry> GetForEntity(string entityType, Guid entityId) {
         return _context.AuditLogs
             .Where(a => a.EntityType == entityType && a.EntityId == entityId)
             .OrderByDescending(a => a.Timestamp)

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.UserChapterPermissions;
@@ -13,7 +14,7 @@ namespace Quartermaster.Server.Admin;
 
 public class MembershipApplicationProcessRequest {
     public Guid Id { get; set; }
-    public int Status { get; set; }
+    public ApplicationStatus Status { get; set; }
 }
 
 public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicationProcessRequest> {
@@ -60,13 +61,12 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             }
         }
 
-        var status = (ApplicationStatus)req.Status;
-        if (status != ApplicationStatus.Approved && status != ApplicationStatus.Rejected) {
+        if (req.Status != ApplicationStatus.Approved && req.Status != ApplicationStatus.Rejected) {
             await SendErrorsAsync(400, ct);
             return;
         }
 
-        _applicationRepo.UpdateStatus(req.Id, status, null);
+        _applicationRepo.UpdateStatus(req.Id, req.Status, null);
         await SendOkAsync(ct);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Api.Meetings;
 
@@ -10,7 +11,7 @@ public class AgendaItemDTO {
     public AgendaItemType ItemType { get; set; }
     public Guid? MotionId { get; set; }
     public string? MotionTitle { get; set; }
-    public int? MotionApprovalStatus { get; set; }
+    public MotionApprovalStatus? MotionApprovalStatus { get; set; }
     public int MotionVoteApproveCount { get; set; }
     public int MotionVoteDenyCount { get; set; }
     public int MotionVoteAbstainCount { get; set; }
@@ -31,7 +32,7 @@ public class AgendaItemOfficerVoteDTO {
     public Guid UserId { get; set; }
     public string UserName { get; set; } = "";
     public string OfficerRole { get; set; } = "";
-    public int? Vote { get; set; } // null = not voted; 0=Approve, 1=Deny, 2=Abstain
+    public VoteType? Vote { get; set; }
     public bool IsPresent { get; set; } // used for Presence items
 }
 

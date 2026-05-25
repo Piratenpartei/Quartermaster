@@ -1,5 +1,7 @@
 using System;
 using System.Text.Json;
+using Quartermaster.Api.Events;
+using Quartermaster.Api.Motions;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Motions;

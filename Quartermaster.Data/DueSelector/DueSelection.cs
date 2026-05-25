@@ -1,5 +1,6 @@
 ﻿using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Data.DueSelector;
 
@@ -29,7 +30,7 @@ public class DueSelection {
     public bool IsDirectDeposit { get; set; }
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
-    public PaymentScedule PaymentSchedule { get; set; }
+    public PaymentSchedule PaymentSchedule { get; set; }
 
     // Processing
     public DueSelectionStatus Status { get; set; }
@@ -39,29 +40,3 @@ public class DueSelection {
     public DateTime? AnonymizedAt { get; set; }
 }
 
-public enum DueSelectionStatus {
-    Pending,
-    Approved,
-    Rejected,
-    AutoApproved
-}
-
-public enum SelectedValuation {
-    None,
-    MonthlyPayGroup,
-    OnePercentYearlyPay,
-    Underage,
-    Reduced
-}
-
-public enum ReducedTimeSpan {
-    OneYear,
-    Permanent
-}
-
-public enum PaymentScedule {
-    None,
-    Annual,
-    Quarterly,
-    Monthly
-}

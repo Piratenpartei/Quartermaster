@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Api.Motions;
 using Quartermaster.Api.Options;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
@@ -219,7 +220,7 @@ public partial class MeetingLive : IAsyncDisposable {
             SelectedActiveItemId = FlatItems[idx + 1].Item.Id;
     }
 
-    private async Task CastVoteFor(Guid agendaItemId, Guid targetUserId, int vote) {
+    private async Task CastVoteFor(Guid agendaItemId, Guid targetUserId, VoteType vote) {
         try {
             await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/vote",
                 new AgendaItemVoteRequest {

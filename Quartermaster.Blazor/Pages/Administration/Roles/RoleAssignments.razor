@@ -42,7 +42,7 @@
                         }
                     </select>
                 </div>
-                @if (SelectedRoleScope == 1) {
+                @if (SelectedRoleScope == RoleScope.ChapterScoped) {
                     <div class="col-md-4">
                         <label class="form-label">Gliederung</label>
                         <ChapterPicker @bind-Value="NewChapterIdString" AllowEmpty="true" />
@@ -83,7 +83,7 @@
                         <td>@a.UserDisplayName</td>
                         <td>
                             @a.RoleName
-                            @if (a.RoleScope == 0) {
+                            @if (a.RoleScope == RoleScope.Global) {
                                 <span class="badge border border-info text-info-emphasis ms-2">Global</span>
                             }
                         </td>

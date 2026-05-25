@@ -19,7 +19,7 @@ public class DueSelectionDTO {
     public bool IsDirectDeposit { get; set; }
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
-    public PaymentScedule PaymentScedule { get; set; } = PaymentScedule.Annual;
+    public PaymentSchedule PaymentSchedule { get; set; } = PaymentSchedule.Annual;
 }
 
 public enum SelectedValuation {
@@ -35,7 +35,7 @@ public enum ReducedTimeSpan {
     Permanent
 }
 
-public enum PaymentScedule {
+public enum PaymentSchedule {
     None,
     Annual,
     Quarterly,

@@ -7,6 +7,7 @@ using FastEndpoints;
 using LinqToDB;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -121,7 +122,7 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                             UserId = member?.UserId ?? Guid.Empty,
                             UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
                             OfficerRole = o.AssociateType.ToString(),
-                            Vote = vote != null ? (int?)vote.Vote : null
+                            Vote = vote?.Vote
                         };
                     }).ToList();
                 } else if (a.ItemType == Api.Meetings.AgendaItemType.Presence) {

@@ -87,7 +87,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             var checklistItem = new EventChecklistItem {
                 EventId = ev.Id,
                 SortOrder = itemTemplate.SortOrder,
-                ItemType = (ChecklistItemType)itemTemplate.ItemType,
+                ItemType = itemTemplate.ItemType,
                 Label = label,
                 Configuration = configuration
             };
@@ -97,7 +97,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             checklistItemDtos.Add(new EventChecklistItemDTO {
                 Id = checklistItem.Id,
                 SortOrder = checklistItem.SortOrder,
-                ItemType = (int)checklistItem.ItemType,
+                ItemType = checklistItem.ItemType,
                 Label = checklistItem.Label,
                 IsCompleted = false,
                 Configuration = checklistItem.Configuration
@@ -133,7 +133,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
         [System.Text.Json.Serialization.JsonPropertyName("sortOrder")]
         public int SortOrder { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("itemType")]
-        public int ItemType { get; set; }
+        public ChecklistItemType ItemType { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("label")]
         public string Label { get; set; } = "";
         [System.Text.Json.Serialization.JsonPropertyName("configuration")]

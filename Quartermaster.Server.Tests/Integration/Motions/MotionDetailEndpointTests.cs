@@ -39,7 +39,7 @@ public class MotionDetailEndpointTests : IntegrationTestBase {
         var response = await client.GetAsync($"/api/motions/{motion.Id}");
         var dto = await response.Content.ReadFromJsonAsync<MotionDetailDTO>();
         await Assert.That(dto!.Votes.Count).IsEqualTo(1);
-        await Assert.That(dto.Votes[0].Vote).IsEqualTo((int)VoteType.Approve);
+        await Assert.That(dto.Votes[0].Vote).IsEqualTo(VoteType.Approve);
     }
 
     [Test]

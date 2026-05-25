@@ -24,7 +24,7 @@ public class DueSelectionDTOValidatorTests {
         IsDirectDeposit = false,
         AccountHolder = "Max Mustermann",
         IBAN = "DE89370400440532013000",
-        PaymentScedule = PaymentScedule.Annual
+        PaymentSchedule = PaymentSchedule.Annual
     };
 
     [Test]

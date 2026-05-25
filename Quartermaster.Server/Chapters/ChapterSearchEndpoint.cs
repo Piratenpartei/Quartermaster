@@ -31,7 +31,9 @@ public class ChapterSearchEndpoint : Endpoint<ChapterSearchRequest, ChapterSearc
                 ExternalCode = c.ExternalCode,
                 ParentChapterId = c.ParentChapterId
             }).ToList(),
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 }

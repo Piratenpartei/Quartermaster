@@ -1,5 +1,6 @@
 ﻿using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.ChapterAssociates;
 
 namespace Quartermaster.Data.ChapterAssociates;
 
@@ -13,17 +14,4 @@ public class ChapterOfficer {
     public Guid ChapterId { get; set; }
     [PrimaryKey(Order = 2)]
     public ChapterOfficerType AssociateType { get; set; }
-}
-
-public enum ChapterOfficerType {
-    /// <summary>Chair</summary>
-    Captain,
-    /// <summary>Vice-Chair</summary>
-    FirstOfficer,
-    Quartermaster,
-    Treasurer,
-    ViceTreasurer,
-    PoliticalDirector,
-    /// <summary>Officer without further specification</summary>
-    Member
 }

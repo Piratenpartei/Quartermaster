@@ -18,7 +18,7 @@ public class ChecklistItemCreateRequestValidator : Validator<ChecklistItemCreate
             .WithMessage(I18nKey.Error.Event.Checklist.LabelMaxLength);
 
         RuleFor(x => x.ItemType)
-            .InclusiveBetween(0, 2)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Event.Checklist.TypeInvalid);
     }
 }

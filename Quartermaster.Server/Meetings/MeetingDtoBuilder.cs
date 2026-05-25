@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Api.Motions;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 
@@ -65,14 +66,14 @@ public static class MeetingDtoBuilder {
         List<AgendaItemOfficerVoteDTO>? officerVotes = null) {
 
         string? motionTitle = null;
-        int? motionApprovalStatus = null;
+        MotionApprovalStatus? motionApprovalStatus = null;
         int approveCount = 0;
         int denyCount = 0;
         int abstainCount = 0;
 
         if (item.MotionId.HasValue && motionsById.TryGetValue(item.MotionId.Value, out var motion)) {
             motionTitle = motion.Title;
-            motionApprovalStatus = (int)motion.ApprovalStatus;
+            motionApprovalStatus = motion.ApprovalStatus;
             if (voteTalliesByMotionId.TryGetValue(item.MotionId.Value, out var tally)) {
                 approveCount = tally.Approve;
                 denyCount = tally.Deny;

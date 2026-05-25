@@ -68,7 +68,9 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
 
         await SendAsync(new MemberSearchResponse {
             Items = dtos,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 }

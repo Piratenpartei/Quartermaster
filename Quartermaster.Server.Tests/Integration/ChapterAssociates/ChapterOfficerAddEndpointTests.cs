@@ -20,7 +20,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
@@ -34,7 +34,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -49,7 +49,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = 99
+            AssociateType = (ChapterOfficerType)99
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -62,7 +62,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = Guid.Empty,
             ChapterId = Guid.Empty,
-            AssociateType = 0
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -77,7 +77,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Treasurer
+            AssociateType = ChapterOfficerType.Treasurer
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var officer = Db.ChapterOfficers.FirstOrDefault(o => o.MemberId == member.Id && o.ChapterId == chapter.Id);
@@ -96,7 +96,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         // System role "chapter_officer" should have been assigned to the linked user
@@ -116,7 +116,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = memberInB.Id,
             ChapterId = chapterA.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         var officer = Db.ChapterOfficers.FirstOrDefault(o => o.MemberId == memberInB.Id);
@@ -133,7 +133,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = Guid.NewGuid(),
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -148,7 +148,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
             MemberId = member.Id,
             ChapterId = chapter.Id,
-            AssociateType = (int)ChapterOfficerType.Captain
+            AssociateType = ChapterOfficerType.Captain
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }

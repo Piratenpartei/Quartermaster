@@ -16,7 +16,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "R",
-            Scope = 0,
+            Scope = RoleScope.Global,
             Permissions = new List<string>()
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
@@ -28,7 +28,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "R",
-            Scope = 0,
+            Scope = RoleScope.Global,
             Permissions = new List<string>()
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
@@ -42,13 +42,13 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "Global Editors",
             Description = "Test",
-            Scope = 0,
+            Scope = RoleScope.Global,
             Permissions = new List<string> { PermissionIdentifier.ViewUsers }
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var dto = await response.Content.ReadFromJsonAsync<RoleDTO>();
         await Assert.That(dto!.Name).IsEqualTo("Global Editors");
-        await Assert.That(dto.Scope).IsEqualTo(0);
+        await Assert.That(dto.Scope).IsEqualTo(RoleScope.Global);
         await Assert.That(dto.IsSystem).IsFalse();
         var persisted = Db.Roles.Any(r => r.Id == dto.Id);
         await Assert.That(persisted).IsTrue();
@@ -61,7 +61,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "",
-            Scope = 0,
+            Scope = RoleScope.Global,
             Permissions = new List<string>()
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
@@ -74,7 +74,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "Bad",
-            Scope = 0, // Global
+            Scope = RoleScope.Global, // Global
             Permissions = new List<string> { PermissionIdentifier.ViewApplications } // chapter-scoped
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
@@ -87,7 +87,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "Bad2",
-            Scope = 1, // ChapterScoped
+            Scope = RoleScope.ChapterScoped,
             Permissions = new List<string> { PermissionIdentifier.ViewUsers } // global
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
@@ -100,7 +100,7 @@ public class RoleCreateEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/roles", new RoleCreateRequest {
             Name = "X",
-            Scope = 99,
+            Scope = (RoleScope)99,
             Permissions = new List<string>()
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);

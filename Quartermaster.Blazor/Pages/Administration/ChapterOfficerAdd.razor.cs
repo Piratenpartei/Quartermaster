@@ -28,7 +28,7 @@ public partial class ChapterOfficerAdd {
     private MemberSearchResponse? SearchResults;
     private MemberDTO? SelectedMember;
     private Guid? SelectedMemberId;
-    private int SelectedRole { get; set; } = 6;
+    private ChapterOfficerType SelectedRole { get; set; } = ChapterOfficerType.Member;
     private bool Submitting;
     private CancellationTokenSource? _debounceTokenSource;
 

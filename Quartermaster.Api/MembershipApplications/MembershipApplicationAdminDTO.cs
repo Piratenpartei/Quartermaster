@@ -10,7 +10,7 @@ public class MembershipApplicationAdminDTO {
     public string AddressCity { get; set; } = "";
     public Guid? ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
-    public int Status { get; set; }
+    public ApplicationStatus Status { get; set; }
     public DateTime SubmittedAt { get; set; }
     public DateTime? ProcessedAt { get; set; }
 }

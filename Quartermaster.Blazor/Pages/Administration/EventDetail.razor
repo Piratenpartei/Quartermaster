@@ -115,7 +115,7 @@
                             <div class="input-group input-group-sm">
                                 <input type="text" class="form-control"
                                        @bind="EditingItemLabel" @bind:event="oninput" />
-                                @if (item.ItemType == 2) {
+                                @if (item.ItemType == ChecklistItemType.SendEmail) {
                                     <TemplatePicker @bind-Value="EditingTemplateIdentifier" SizeClass="form-control-sm"
                                                     Disabled="EditingUseDescription" />
                                     <span class="input-group-text">
@@ -124,7 +124,7 @@
                                         <small>Beschreibung ist E-Mail Inhalt</small>
                                     </span>
                                 }
-                                @if (item.ItemType == 1) {
+                                @if (item.ItemType == ChecklistItemType.CreateMotion) {
                                     <ChapterPicker @bind-Value="EditingMotionChapterId" Inline="true" SizeClass="form-control-sm" />
                                     <input type="text" class="form-control" placeholder="Antragstitel"
                                            @bind="EditingMotionTitle" @bind:event="oninput" />
@@ -136,7 +136,7 @@
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
-                            @if (item.ItemType == 2) {
+                            @if (item.ItemType == ChecklistItemType.SendEmail) {
                                 <div class="input-group input-group-sm mt-1">
                                     <span class="input-group-text">Empfänger</span>
                                     <select class="form-select" style="max-width: 200px;" @bind="EditingEmailTargetType">
@@ -154,7 +154,7 @@
                                     }
                                 </div>
                             }
-                            @if (item.ItemType == 1) {
+                            @if (item.ItemType == ChecklistItemType.CreateMotion) {
                                 <div class="mt-2">
                                     <label class="form-label small text-secondary mb-0">Antragstext (Markdown)</label>
                                     <MarkdownEditor @bind-Value="EditingMotionText" Rows="4" Profile="SanitizationProfile.Strict" />
@@ -167,7 +167,7 @@
                     } else {
                         @* Big checkbox on the left *@
                         <div class="me-3" style="min-width: 28px;">
-                            @if (item.ItemType == 0) {
+                            @if (item.ItemType == ChecklistItemType.Text) {
                                 <input type="checkbox" class="form-check-input" style="width: 1.5em; height: 1.5em;"
                                        checked="@item.IsCompleted"
                                        @onchange="() => { if (item.IsCompleted) { UncheckItem(item.Id); } else { CheckTextItem(item.Id); } }" />
@@ -184,9 +184,9 @@
                             <span class="@(item.IsCompleted ? "text-decoration-line-through text-secondary" : "")">
                                 @item.Label
                             </span>
-                            @if (item.ItemType == 1) {
+                            @if (item.ItemType == ChecklistItemType.CreateMotion) {
                                 <span class="badge border border-primary text-primary-emphasis ms-1">Antrag</span>
-                            } else if (item.ItemType == 2) {
+                            } else if (item.ItemType == ChecklistItemType.SendEmail) {
                                 <span class="badge border border-warning text-warning-emphasis ms-1">E-Mail</span>
                                 @if (IsUseDescription(item.Configuration)) {
                                     <span class="badge border border-info text-info-emphasis ms-1">Beschreibung</span>
@@ -199,20 +199,20 @@
 
                         @* Action buttons — right aligned, input-group for action pairs *@
                         <div class="input-group input-group-sm ms-2" style="width: auto;">
-                            @if (item.ItemType == 1 && !item.IsCompleted) {
+                            @if (item.ItemType == ChecklistItemType.CreateMotion && !item.IsCompleted) {
                                 <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
                                     Erstellen & abhaken
                                 </button>
                                 <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
                                     Bereits erledigt
                                 </button>
-                            } else if (item.ItemType == 1 && item.IsCompleted && item.ResultId != null) {
+                            } else if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
                                 <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-primary">
                                     <i class="bi bi-box-arrow-up-right"></i> Zum Antrag
                                 </a>
                             }
 
-                            @if (item.ItemType == 2 && !item.IsCompleted) {
+                            @if (item.ItemType == ChecklistItemType.SendEmail && !item.IsCompleted) {
                                 <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
                                     Senden & abhaken
                                 </button>
@@ -260,9 +260,9 @@
                        @bind="NewItemLabel" @bind:event="oninput"
                        @onkeydown="OnNewItemKeyDown" />
                 <select class="form-select" style="max-width: 200px;" @bind="NewItemType">
-                    <option value="0">Text</option>
-                    <option value="1">Antrag erstellen</option>
-                    <option value="2">E-Mail senden</option>
+                    <option value="@ChecklistItemType.Text">Text</option>
+                    <option value="@ChecklistItemType.CreateMotion">Antrag erstellen</option>
+                    <option value="@ChecklistItemType.SendEmail">E-Mail senden</option>
                 </select>
                 <button class="btn btn-outline-secondary" aria-label="Eintrag hinzufügen" @onclick="() => AddItem(NewItemType)"
                         disabled="@string.IsNullOrWhiteSpace(NewItemLabel)">

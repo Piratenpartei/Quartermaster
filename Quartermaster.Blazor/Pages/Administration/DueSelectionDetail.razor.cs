@@ -31,18 +31,18 @@ public partial class DueSelectionDetail {
         Loading = false;
     }
 
-    private static string ValuationLabel(int valuation) => valuation switch {
-        1 => "Monatseinkommen",
-        2 => "1% Jahreseinkommen",
-        3 => "Minderjährig (12€)",
-        4 => "Geminderter Beitrag",
+    private static string ValuationLabel(SelectedValuation valuation) => valuation switch {
+        SelectedValuation.MonthlyPayGroup => "Monatseinkommen",
+        SelectedValuation.OnePercentYearlyPay => "1% Jahreseinkommen",
+        SelectedValuation.Underage => "Minderjährig (12€)",
+        SelectedValuation.Reduced => "Geminderter Beitrag",
         _ => "Unbekannt"
     };
 
-    private static string PaymentLabel(int schedule) => schedule switch {
-        1 => "Jährlich",
-        2 => "Quartalsweise",
-        3 => "Monatlich",
+    private static string PaymentLabel(PaymentSchedule schedule) => schedule switch {
+        PaymentSchedule.Annual => "Jährlich",
+        PaymentSchedule.Quarterly => "Quartalsweise",
+        PaymentSchedule.Monthly => "Monatlich",
         _ => "—"
     };
 }

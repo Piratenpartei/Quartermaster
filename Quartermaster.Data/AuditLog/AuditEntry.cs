@@ -4,7 +4,7 @@ using LinqToDB.Mapping;
 namespace Quartermaster.Data.AuditLog;
 
 [Table(TableName)]
-public class AuditLog {
+public class AuditEntry {
     public const string TableName = "AuditLogs";
 
     [Column, PrimaryKey]

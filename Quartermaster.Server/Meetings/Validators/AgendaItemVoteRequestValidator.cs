@@ -10,7 +10,7 @@ public class AgendaItemVoteRequestValidator : Validator<AgendaItemVoteRequest> {
         RuleFor(x => x.MeetingId).NotEqual(System.Guid.Empty);
         RuleFor(x => x.ItemId).NotEqual(System.Guid.Empty);
         RuleFor(x => x.UserId).NotEqual(System.Guid.Empty);
-        RuleFor(x => x.Vote).InclusiveBetween(0, 2)
+        RuleFor(x => x.Vote).IsInEnum()
             .WithMessage(I18nKey.Error.Meeting.Agenda.VoteValueInvalid);
     }
 }

@@ -69,7 +69,7 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
         var itemDtos = checklistItems.Select(i => new EventChecklistItemDTO {
             Id = i.Id,
             SortOrder = i.SortOrder,
-            ItemType = (int)i.ItemType,
+            ItemType = i.ItemType,
             Label = i.Label,
             IsCompleted = i.IsCompleted,
             CompletedAt = i.CompletedAt,

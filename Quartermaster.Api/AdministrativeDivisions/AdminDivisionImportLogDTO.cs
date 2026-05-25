@@ -18,7 +18,9 @@ public class AdminDivisionImportLogDTO {
     public long DurationMs { get; set; }
 }
 
-public class AdminDivisionImportLogListResponse {
+public class AdminDivisionImportLogListResponse : IPaginatedResponse<AdminDivisionImportLogDTO> {
     public List<AdminDivisionImportLogDTO> Items { get; set; } = new();
     public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
 }

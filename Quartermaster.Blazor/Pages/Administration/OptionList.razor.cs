@@ -26,17 +26,17 @@ public partial class OptionList {
         Loading = false;
     }
 
-    private static string DataTypeLabel(int dt) => dt switch {
-        0 => "Text",
-        1 => "Zahl",
-        2 => "Template",
+    private static string DataTypeLabel(OptionDataType dt) => dt switch {
+        OptionDataType.String => "Text",
+        OptionDataType.Number => "Zahl",
+        OptionDataType.Template => "Template",
         _ => "?"
     };
 
-    private static string DataTypeBadge(int dt) => dt switch {
-        0 => "border-info text-info-emphasis",
-        1 => "border-primary text-primary-emphasis",
-        2 => "border-warning text-warning-emphasis",
+    private static string DataTypeBadge(OptionDataType dt) => dt switch {
+        OptionDataType.String => "border-info text-info-emphasis",
+        OptionDataType.Number => "border-primary text-primary-emphasis",
+        OptionDataType.Template => "border-warning text-warning-emphasis",
         _ => "border-secondary text-secondary-emphasis"
     };
 }

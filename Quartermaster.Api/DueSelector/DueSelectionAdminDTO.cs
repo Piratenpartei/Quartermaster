@@ -10,7 +10,7 @@ public class DueSelectionAdminDTO {
     public decimal SelectedDue { get; set; }
     public decimal ReducedAmount { get; set; }
     public string ReducedJustification { get; set; } = "";
-    public int SelectedValuation { get; set; }
-    public int Status { get; set; }
+    public SelectedValuation SelectedValuation { get; set; }
+    public DueSelectionStatus Status { get; set; }
     public DateTime? ProcessedAt { get; set; }
 }

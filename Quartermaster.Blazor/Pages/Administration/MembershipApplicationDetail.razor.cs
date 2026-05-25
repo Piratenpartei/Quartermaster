@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Blazor.Services;
 
@@ -31,19 +32,19 @@ public partial class MembershipApplicationDetail {
         Loading = false;
     }
 
-    private static string ValuationLabel(int valuation) => valuation switch {
-        1 => "Monatseinkommen",
-        2 => "1% Jahreseinkommen",
-        3 => "Minderjährig (12€)",
-        4 => "Geminderter Beitrag",
+    private static string ValuationLabel(SelectedValuation valuation) => valuation switch {
+        SelectedValuation.MonthlyPayGroup => "Monatseinkommen",
+        SelectedValuation.OnePercentYearlyPay => "1% Jahreseinkommen",
+        SelectedValuation.Underage => "Minderjährig (12€)",
+        SelectedValuation.Reduced => "Geminderter Beitrag",
         _ => "Unbekannt"
     };
 
-    private static string DueStatusLabel(int status) => status switch {
-        0 => "Ausstehend",
-        1 => "Genehmigt",
-        2 => "Abgelehnt",
-        3 => "Automatisch genehmigt",
+    private static string DueStatusLabel(DueSelectionStatus status) => status switch {
+        DueSelectionStatus.Pending => "Ausstehend",
+        DueSelectionStatus.Approved => "Genehmigt",
+        DueSelectionStatus.Rejected => "Abgelehnt",
+        DueSelectionStatus.AutoApproved => "Automatisch genehmigt",
         _ => "Unbekannt"
     };
 }

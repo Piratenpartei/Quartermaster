@@ -92,8 +92,8 @@ public class MembershipApplicationDetailEndpoint
                     SelectedDue = ds.SelectedDue,
                     ReducedAmount = ds.ReducedAmount,
                     ReducedJustification = ds.ReducedJustification,
-                    SelectedValuation = (int)ds.SelectedValuation,
-                    Status = (int)ds.Status,
+                    SelectedValuation = ds.SelectedValuation,
+                    Status = ds.Status,
                     ProcessedAt = ds.ProcessedAt
                 };
             }
@@ -120,7 +120,7 @@ public class MembershipApplicationDetailEndpoint
             ApplicationText = app.ApplicationText,
             EntryDate = app.EntryDate,
             SubmittedAt = app.SubmittedAt,
-            Status = (int)app.Status,
+            Status = app.Status,
             ProcessedAt = app.ProcessedAt,
             LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id
         }, cancellation: ct);

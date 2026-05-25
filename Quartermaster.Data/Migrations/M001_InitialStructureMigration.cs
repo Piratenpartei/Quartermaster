@@ -1,5 +1,6 @@
 using FluentMigrator;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
@@ -435,7 +436,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(EmailLog.SentAt)).AsDateTime().Nullable()
             .WithColumn(nameof(EmailLog.HtmlBody)).AsCustom("TEXT").Nullable();
 
-        Create.Table(AuditLog.AuditLog.TableName)
+        Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
             .WithColumn("EntityType").AsString(64)
             .WithColumn("EntityId").AsGuid()
@@ -462,7 +463,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .OnColumn(nameof(EmailLog.SourceEntityType)).Ascending().OnColumn(nameof(EmailLog.SourceEntityId)).Ascending();
         Create.Index("IX_EmailLogs_Status").OnTable(EmailLog.TableName)
             .OnColumn(nameof(EmailLog.Status)).Ascending();
-        Create.Index("IX_AuditLogs_EntityType_EntityId").OnTable(AuditLog.AuditLog.TableName)
+        Create.Index("IX_AuditLogs_EntityType_EntityId").OnTable(AuditEntry.TableName)
             .OnColumn("EntityType").Ascending().OnColumn("EntityId").Ascending();
 
         Create.Table(LoginAttempt.TableName)
@@ -650,7 +651,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(Permission.TableName);
 
         DropTableIfExists(EmailLog.TableName);
-        DropTableIfExists(AuditLog.AuditLog.TableName);
+        DropTableIfExists(AuditEntry.TableName);
         DropTableIfExists(LoginAttempt.TableName);
         DropTableIfExists(UserRoleAssignment.TableName);
         DropTableIfExists(RolePermission.TableName);

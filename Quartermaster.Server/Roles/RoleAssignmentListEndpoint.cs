@@ -60,7 +60,7 @@ public class RoleAssignmentListEndpoint : EndpointWithoutRequest<List<UserRoleAs
                 UserDisplayName = BuildUserDisplayName(user),
                 RoleId = a.RoleId,
                 RoleName = role?.Name ?? "",
-                RoleScope = role != null ? (int)role.Scope : 0,
+                RoleScope = role?.Scope ?? RoleScope.Global,
                 ChapterId = a.ChapterId,
                 ChapterName = a.ChapterId.HasValue && chapters.TryGetValue(a.ChapterId.Value, out var cn) ? cn : null
             };

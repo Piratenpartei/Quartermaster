@@ -8,7 +8,7 @@ public class RoleDTO {
     public string Identifier { get; set; } = "";
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
-    public int Scope { get; set; }
+    public RoleScope Scope { get; set; }
     public bool IsSystem { get; set; }
     public List<string> Permissions { get; set; } = new();
 }
@@ -16,7 +16,7 @@ public class RoleDTO {
 public class RoleCreateRequest {
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
-    public int Scope { get; set; }
+    public RoleScope Scope { get; set; }
     public List<string> Permissions { get; set; } = new();
 }
 
@@ -33,7 +33,7 @@ public class UserRoleAssignmentDTO {
     public string UserDisplayName { get; set; } = "";
     public Guid RoleId { get; set; }
     public string RoleName { get; set; } = "";
-    public int RoleScope { get; set; }
+    public RoleScope RoleScope { get; set; }
     public Guid? ChapterId { get; set; }
     public string? ChapterName { get; set; }
 }

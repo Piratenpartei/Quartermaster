@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Quartermaster.Api;
+using Quartermaster.Api.Roles;
 using Quartermaster.Data.Roles;
 using Quartermaster.Server.Tests.Infrastructure;
 

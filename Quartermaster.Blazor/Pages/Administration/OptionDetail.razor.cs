@@ -51,7 +51,7 @@ public partial class OptionDetail {
             var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
             Option = options?.FirstOrDefault(o => o.Id == Id);
 
-            if (Option?.DataType == 2 && !string.IsNullOrEmpty(Option.TemplateModels))
+            if (Option?.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels))
                 Schemas = BuildSchemas(Option.TemplateModels);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -257,17 +257,17 @@ public partial class OptionDetail {
         }
     }
 
-    private static string DataTypeLabel(int dt) => dt switch {
-        0 => "Text",
-        1 => "Zahl",
-        2 => "Template",
+    private static string DataTypeLabel(OptionDataType dt) => dt switch {
+        OptionDataType.String => "Text",
+        OptionDataType.Number => "Zahl",
+        OptionDataType.Template => "Template",
         _ => "?"
     };
 
-    private static string DataTypeBadge(int dt) => dt switch {
-        0 => "border-info text-info-emphasis",
-        1 => "border-primary text-primary-emphasis",
-        2 => "border-warning text-warning-emphasis",
+    private static string DataTypeBadge(OptionDataType dt) => dt switch {
+        OptionDataType.String => "border-info text-info-emphasis",
+        OptionDataType.Number => "border-primary text-primary-emphasis",
+        OptionDataType.Template => "border-warning text-warning-emphasis",
         _ => "border-secondary text-secondary-emphasis"
     };
 }

@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Data.Motions;
 
@@ -28,12 +29,4 @@ public class Motion {
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
-}
-
-public enum MotionApprovalStatus {
-    Pending,
-    Approved,
-    Rejected,
-    FormallyRejected,
-    ClosedWithoutAction
 }

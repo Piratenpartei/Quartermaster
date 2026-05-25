@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.Roles;
 
 namespace Quartermaster.Data.Roles;
 

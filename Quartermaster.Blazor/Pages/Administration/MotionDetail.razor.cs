@@ -38,7 +38,7 @@ public partial class MotionDetail {
         Loading = false;
     }
 
-    private async Task CastVote(Guid userId, int vote) {
+    private async Task CastVote(Guid userId, VoteType vote) {
         try {
             await Http.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
                 MotionId = Id,
@@ -53,7 +53,7 @@ public partial class MotionDetail {
         }
     }
 
-    private async Task SetStatus(int status) {
+    private async Task SetStatus(MotionApprovalStatus status) {
         try {
             await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
                 MotionId = Id,

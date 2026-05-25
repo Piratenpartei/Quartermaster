@@ -11,7 +11,7 @@ public class DueSelectionProcessRequestValidator : Validator<DueSelectionProcess
             .WithMessage(I18nKey.Error.Admin.DueSelection.IdRequired);
 
         RuleFor(x => x.Status)
-            .InclusiveBetween(1, 2)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Admin.DueSelection.StatusInvalid);
     }
 }

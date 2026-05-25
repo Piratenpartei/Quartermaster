@@ -252,7 +252,7 @@ public class MotionStatusRequestValidatorTests {
     public void ValidRequest_ShouldHaveNoErrors() {
         var request = new MotionStatusRequest {
             MotionId = Guid.NewGuid(),
-            ApprovalStatus = 1,
+            ApprovalStatus = MotionApprovalStatus.Approved,
             IsRealized = true
         };
 
@@ -278,7 +278,7 @@ public class MotionStatusRequestValidatorTests {
     public void EmptyMotionId_ShouldHaveError() {
         var request = new MotionStatusRequest {
             MotionId = Guid.Empty,
-            ApprovalStatus = 1
+            ApprovalStatus = MotionApprovalStatus.Approved
         };
 
         var result = _validator.TestValidate(request);
@@ -296,7 +296,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Vote = 0
+            Vote = VoteType.Approve
         };
 
         var result = _validator.TestValidate(request);
@@ -309,7 +309,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Vote = 1
+            Vote = VoteType.Deny
         };
 
         var result = _validator.TestValidate(request);
@@ -322,7 +322,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Vote = 2
+            Vote = VoteType.Abstain
         };
 
         var result = _validator.TestValidate(request);
@@ -335,7 +335,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.Empty,
             UserId = Guid.NewGuid(),
-            Vote = 0
+            Vote = VoteType.Approve
         };
 
         var result = _validator.TestValidate(request);
@@ -349,7 +349,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.Empty,
-            Vote = 0
+            Vote = VoteType.Approve
         };
 
         var result = _validator.TestValidate(request);
@@ -363,7 +363,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Vote = -1
+            Vote = (VoteType)(-1)
         };
 
         var result = _validator.TestValidate(request);
@@ -377,7 +377,7 @@ public class MotionVoteRequestValidatorTests {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = Guid.NewGuid(),
-            Vote = 3
+            Vote = (VoteType)3
         };
 
         var result = _validator.TestValidate(request);

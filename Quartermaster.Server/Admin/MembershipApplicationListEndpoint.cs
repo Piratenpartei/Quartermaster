@@ -83,7 +83,7 @@ public class MembershipApplicationListEndpoint
             ChapterId = a.ChapterId,
             ChapterName = a.ChapterId.HasValue && chapters.ContainsKey(a.ChapterId.Value)
                 ? chapters[a.ChapterId.Value] : "",
-            Status = (int)a.Status,
+            Status = a.Status,
             SubmittedAt = a.SubmittedAt,
             ProcessedAt = a.ProcessedAt
         }).ToList();

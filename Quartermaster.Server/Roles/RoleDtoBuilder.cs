@@ -10,7 +10,7 @@ public static class RoleDtoBuilder {
         Identifier = r.Identifier,
         Name = r.Name,
         Description = r.Description,
-        Scope = (int)r.Scope,
+        Scope = r.Scope,
         IsSystem = r.IsSystem,
         Permissions = permissions
     };

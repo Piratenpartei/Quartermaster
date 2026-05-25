@@ -63,7 +63,9 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
 
         await SendAsync(new EventSearchResponse {
             Items = dtos,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 

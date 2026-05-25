@@ -1,6 +1,8 @@
 using System;
 using FluentValidation.TestHelper;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.I18n;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Server.Admin;
 
 namespace Quartermaster.Server.Tests.Admin;
@@ -12,7 +14,7 @@ public class DueSelectionProcessRequestValidatorTests {
     public void ValidRequest_ShouldHaveNoErrors() {
         var request = new DueSelectionProcessRequest {
             Id = Guid.NewGuid(),
-            Status = 1
+            Status = DueSelectionStatus.Approved
         };
 
         var result = _validator.TestValidate(request);
@@ -24,7 +26,7 @@ public class DueSelectionProcessRequestValidatorTests {
     public void EmptyId_ShouldHaveError() {
         var request = new DueSelectionProcessRequest {
             Id = Guid.Empty,
-            Status = 1
+            Status = DueSelectionStatus.Approved
         };
 
         var result = _validator.TestValidate(request);
@@ -34,9 +36,11 @@ public class DueSelectionProcessRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(1)]
-    [Arguments(2)]
-    public void StatusInRange_ShouldHaveNoError(int status) {
+    [Arguments(DueSelectionStatus.Pending)]
+    [Arguments(DueSelectionStatus.Approved)]
+    [Arguments(DueSelectionStatus.Rejected)]
+    [Arguments(DueSelectionStatus.AutoApproved)]
+    public void StatusInRange_ShouldHaveNoError(DueSelectionStatus status) {
         var request = new DueSelectionProcessRequest {
             Id = Guid.NewGuid(),
             Status = status
@@ -48,13 +52,12 @@ public class DueSelectionProcessRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(0)]
-    [Arguments(3)]
     [Arguments(-1)]
+    [Arguments(99)]
     public void StatusOutOfRange_ShouldHaveError(int status) {
         var request = new DueSelectionProcessRequest {
             Id = Guid.NewGuid(),
-            Status = status
+            Status = (DueSelectionStatus)status
         };
 
         var result = _validator.TestValidate(request);
@@ -71,7 +74,7 @@ public class MembershipApplicationProcessRequestValidatorTests {
     public void ValidRequest_ShouldHaveNoErrors() {
         var request = new MembershipApplicationProcessRequest {
             Id = Guid.NewGuid(),
-            Status = 1
+            Status = ApplicationStatus.Approved
         };
 
         var result = _validator.TestValidate(request);
@@ -83,7 +86,7 @@ public class MembershipApplicationProcessRequestValidatorTests {
     public void EmptyId_ShouldHaveError() {
         var request = new MembershipApplicationProcessRequest {
             Id = Guid.Empty,
-            Status = 1
+            Status = ApplicationStatus.Approved
         };
 
         var result = _validator.TestValidate(request);
@@ -93,9 +96,10 @@ public class MembershipApplicationProcessRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(1)]
-    [Arguments(2)]
-    public void StatusInRange_ShouldHaveNoError(int status) {
+    [Arguments(ApplicationStatus.Pending)]
+    [Arguments(ApplicationStatus.Approved)]
+    [Arguments(ApplicationStatus.Rejected)]
+    public void StatusInRange_ShouldHaveNoError(ApplicationStatus status) {
         var request = new MembershipApplicationProcessRequest {
             Id = Guid.NewGuid(),
             Status = status
@@ -107,13 +111,12 @@ public class MembershipApplicationProcessRequestValidatorTests {
     }
 
     [Test]
-    [Arguments(0)]
-    [Arguments(3)]
     [Arguments(-1)]
+    [Arguments(99)]
     public void StatusOutOfRange_ShouldHaveError(int status) {
         var request = new MembershipApplicationProcessRequest {
             Id = Guid.NewGuid(),
-            Status = status
+            Status = (ApplicationStatus)status
         };
 
         var result = _validator.TestValidate(request);

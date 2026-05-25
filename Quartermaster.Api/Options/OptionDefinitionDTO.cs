@@ -8,7 +8,7 @@ public class OptionDefinitionDTO {
     public string Identifier { get; set; } = "";
     public string FriendlyName { get; set; } = "";
     public string Description { get; set; } = "";
-    public int DataType { get; set; }
+    public OptionDataType DataType { get; set; }
     public bool IsOverridable { get; set; }
     public string TemplateModels { get; set; } = "";
     public string GlobalValue { get; set; } = "";

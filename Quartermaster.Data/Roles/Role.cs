@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Roles;
 
 namespace Quartermaster.Data.Roles;
 
@@ -25,9 +26,4 @@ public class Role {
     public bool InheritsToChildren { get; set; } = true;
 
     public DateTime? DeletedAt { get; set; }
-}
-
-public enum RoleScope {
-    Global = 0,
-    ChapterScoped = 1
 }

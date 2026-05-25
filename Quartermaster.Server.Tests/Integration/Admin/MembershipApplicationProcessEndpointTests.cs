@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -18,7 +19,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = app.Id,
-            Status = (int)ApplicationStatus.Approved
+            Status = ApplicationStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
@@ -30,7 +31,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = Guid.NewGuid(),
-            Status = (int)ApplicationStatus.Approved
+            Status = ApplicationStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
@@ -44,7 +45,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = app.Id,
-            Status = (int)ApplicationStatus.Approved
+            Status = ApplicationStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -58,7 +59,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = app.Id,
-            Status = (int)ApplicationStatus.Approved
+            Status = ApplicationStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var updated = Db.MembershipApplications.First(a => a.Id == app.Id);
@@ -75,7 +76,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = app.Id,
-            Status = (int)ApplicationStatus.Pending
+            Status = ApplicationStatus.Pending
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -89,7 +90,7 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new {
             Id = app.Id,
-            Status = (int)ApplicationStatus.Rejected
+            Status = ApplicationStatus.Rejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }

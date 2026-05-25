@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
@@ -14,7 +15,7 @@ namespace Quartermaster.Server.Admin;
 
 public class DueSelectionProcessRequest {
     public Guid Id { get; set; }
-    public int Status { get; set; }
+    public DueSelectionStatus Status { get; set; }
 }
 
 public class DueSelectionProcessEndpoint : Endpoint<DueSelectionProcessRequest> {
@@ -64,13 +65,12 @@ public class DueSelectionProcessEndpoint : Endpoint<DueSelectionProcessRequest> 
             }
         }
 
-        var status = (DueSelectionStatus)req.Status;
-        if (status != DueSelectionStatus.Approved && status != DueSelectionStatus.Rejected) {
+        if (req.Status != DueSelectionStatus.Approved && req.Status != DueSelectionStatus.Rejected) {
             await SendErrorsAsync(400, ct);
             return;
         }
 
-        _dueSelectionRepo.UpdateStatus(req.Id, status, null);
+        _dueSelectionRepo.UpdateStatus(req.Id, req.Status, null);
         await SendOkAsync(ct);
     }
 }

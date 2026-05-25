@@ -11,7 +11,7 @@ public class MembershipApplicationProcessRequestValidator : Validator<Membership
             .WithMessage(I18nKey.Error.Admin.Application.IdRequired);
 
         RuleFor(x => x.Status)
-            .InclusiveBetween(1, 2)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Admin.Application.StatusInvalid);
     }
 }

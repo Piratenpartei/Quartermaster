@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Events;
 
 namespace Quartermaster.Data.Events;
 
@@ -17,10 +18,4 @@ public class EventChecklistItem {
     public DateTime? CompletedAt { get; set; }
     public string? Configuration { get; set; }
     public Guid? ResultId { get; set; }
-}
-
-public enum ChecklistItemType {
-    Text = 0,
-    CreateMotion = 1,
-    SendEmail = 2
 }

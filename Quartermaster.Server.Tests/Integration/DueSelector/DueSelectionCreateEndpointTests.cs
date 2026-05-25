@@ -24,7 +24,7 @@ public class DueSelectionCreateEndpointTests : IntegrationTestBase {
             IsDirectDeposit = false,
             AccountHolder = "Alice Anderson",
             IBAN = "DE89370400440532013000",
-            PaymentScedule = PaymentScedule.Annual
+            PaymentSchedule = PaymentSchedule.Annual
         };
     }
 

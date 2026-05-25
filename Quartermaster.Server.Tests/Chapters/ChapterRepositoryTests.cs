@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;

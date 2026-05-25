@@ -63,8 +63,8 @@ public class DueSelectionListEndpoint
             SelectedDue = d.SelectedDue,
             ReducedAmount = d.ReducedAmount,
             ReducedJustification = d.ReducedJustification,
-            SelectedValuation = (int)d.SelectedValuation,
-            Status = (int)d.Status,
+            SelectedValuation = d.SelectedValuation,
+            Status = d.Status,
             ProcessedAt = d.ProcessedAt
         }).ToList();
 

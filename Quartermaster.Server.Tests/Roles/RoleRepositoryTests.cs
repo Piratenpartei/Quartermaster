@@ -1,5 +1,6 @@
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.Roles;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;

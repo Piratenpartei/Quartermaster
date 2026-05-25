@@ -24,12 +24,12 @@ public partial class PaymentOptionSelection {
         EntryState.AccountHolder = EntryState.FirstName + " " + EntryState.LastName;
     }
 
-    private bool DisabledPaymentSchedule(PaymentScedule paymentScedule) {
+    private bool DisabledPaymentSchedule(PaymentSchedule paymentScedule) {
         if (EntryState == null)
             return false;
 
         // All enabled except for Monthly in some cases
-        if (paymentScedule != PaymentScedule.Monthly)
+        if (paymentScedule != PaymentSchedule.Monthly)
             return false;
 
         // Always 12€ => Cannot pay monthly
@@ -41,16 +41,16 @@ public partial class PaymentOptionSelection {
         return false;
     }
 
-    private static string TextForPaymentSchedule(PaymentScedule paymentScedule) {
+    private static string TextForPaymentSchedule(PaymentSchedule paymentScedule) {
         return paymentScedule switch {
-            PaymentScedule.None => "",
-            PaymentScedule.Annual => "Jährlich (fällig zum 01.01 eines Jahres)",
-            PaymentScedule.Quarterly => "Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)",
-            PaymentScedule.Monthly => "Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)",
+            PaymentSchedule.None => "",
+            PaymentSchedule.Annual => "Jährlich (fällig zum 01.01 eines Jahres)",
+            PaymentSchedule.Quarterly => "Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)",
+            PaymentSchedule.Monthly => "Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)",
             _ => throw new UnreachableException()
         };
     }
 
-    private static bool ExcludedPaymentSchedule(PaymentScedule paymentScedule)
-        => paymentScedule == PaymentScedule.None;
+    private static bool ExcludedPaymentSchedule(PaymentSchedule paymentScedule)
+        => paymentScedule == PaymentSchedule.None;
 }

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -17,7 +18,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = due.Id,
-            Status = (int)DueSelectionStatus.Approved
+            Status = DueSelectionStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
@@ -29,7 +30,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = Guid.NewGuid(),
-            Status = (int)DueSelectionStatus.Approved
+            Status = DueSelectionStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
@@ -42,7 +43,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = due.Id,
-            Status = (int)DueSelectionStatus.Approved
+            Status = DueSelectionStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -55,7 +56,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = due.Id,
-            Status = (int)DueSelectionStatus.Approved
+            Status = DueSelectionStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var updated = Db.DueSelections.First(d => d.Id == due.Id);
@@ -71,7 +72,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = due.Id,
-            Status = (int)DueSelectionStatus.Pending
+            Status = DueSelectionStatus.Pending
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -84,7 +85,7 @@ public class DueSelectionProcessEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/admin/dueselections/process", new {
             Id = due.Id,
-            Status = (int)DueSelectionStatus.Rejected
+            Status = DueSelectionStatus.Rejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var updated = Db.DueSelections.First(d => d.Id == due.Id);

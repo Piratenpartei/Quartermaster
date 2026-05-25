@@ -16,7 +16,7 @@ public class ChapterOfficerAddRequestValidator : Validator<ChapterOfficerAddRequ
             .WithMessage(I18nKey.Error.Chapter.Officer.ChapterRequired);
 
         RuleFor(x => x.AssociateType)
-            .InclusiveBetween(0, 6)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Chapter.Officer.InvalidOfficerType);
     }
 }

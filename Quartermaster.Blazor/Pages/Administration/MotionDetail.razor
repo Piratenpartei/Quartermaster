@@ -83,9 +83,9 @@
                             <td>@OfficerRoleLabel(officer.OfficerRole)</td>
                             <td>
                                 @if (existingVote != null) {
-                                    @if (existingVote.Vote == 0) {
+                                    @if (existingVote.Vote == VoteType.Approve) {
                                         <span class="text-success"><i class="bi bi-hand-thumbs-up-fill"></i> Dafür</span>
-                                    } else if (existingVote.Vote == 1) {
+                                    } else if (existingVote.Vote == VoteType.Deny) {
                                         <span class="text-danger"><i class="bi bi-hand-thumbs-down-fill"></i> Dagegen</span>
                                     } else {
                                         <span class="text-secondary"><i class="bi bi-dash-circle"></i> Enthaltung</span>
@@ -97,16 +97,16 @@
                             <td>@(existingVote?.VotedAt.ToString("dd.MM.yyyy HH:mm") ?? "")</td>
                             <td>
                                 <div class="d-flex gap-1">
-                                    <button class="btn btn-success btn-sm @(existingVote?.Vote == 0 ? "active" : "")"
-                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.UserId, 0)">
+                                    <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
+                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.UserId, VoteType.Approve)">
                                         <i class="bi bi-hand-thumbs-up-fill"></i>
                                     </button>
-                                    <button class="btn btn-danger btn-sm @(existingVote?.Vote == 1 ? "active" : "")"
-                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.UserId, 1)">
+                                    <button class="btn btn-danger btn-sm @(existingVote?.Vote == VoteType.Deny ? "active" : "")"
+                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.UserId, VoteType.Deny)">
                                         <i class="bi bi-hand-thumbs-down-fill"></i>
                                     </button>
-                                    <button class="btn btn-secondary btn-sm @(existingVote?.Vote == 2 ? "active" : "")"
-                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.UserId, 2)">
+                                    <button class="btn btn-secondary btn-sm @(existingVote?.Vote == VoteType.Abstain ? "active" : "")"
+                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.UserId, VoteType.Abstain)">
                                         <i class="bi bi-dash-circle"></i>
                                     </button>
                                 </div>
@@ -119,15 +119,15 @@
         </div>
     </div>
 
-    @if (Motion.ApprovalStatus == 0) {
+    @if (Motion.ApprovalStatus == MotionApprovalStatus.Pending) {
         <div class="card mb-3">
             <div class="card-body">
                 <h5>Verwaltung</h5>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-warning btn-sm" @onclick="() => SetStatus(3)">
+                    <button class="btn btn-outline-warning btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.FormallyRejected)">
                         <span>Formal ablehnen</span>
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetStatus(4)">
+                    <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.ClosedWithoutAction)">
                         <span>Ohne Beschluss schließen</span>
                     </button>
                 </div>
@@ -135,7 +135,7 @@
         </div>
     }
 
-    @if (Motion.ApprovalStatus == 1 && !Motion.IsRealized) {
+    @if (Motion.ApprovalStatus == MotionApprovalStatus.Approved && !Motion.IsRealized) {
         <div class="d-flex">
             <button class="btn btn-success" @onclick="MarkRealized">
                 <i class="bi bi-check-circle"></i> Als umgesetzt markieren

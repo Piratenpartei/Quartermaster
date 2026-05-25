@@ -78,7 +78,7 @@ public class ChecklistItemAddEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync($"/api/events/{ev.Id}/checklist", new ChecklistItemCreateRequest {
             EventId = ev.Id,
             Label = "X",
-            ItemType = 99
+            ItemType = (ChecklistItemType)99
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }

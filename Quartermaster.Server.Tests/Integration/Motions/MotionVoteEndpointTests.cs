@@ -20,7 +20,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = Guid.NewGuid(),
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
@@ -34,7 +34,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = user.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -46,7 +46,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
             UserId = user.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
@@ -60,7 +60,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = user.Id,
-            Vote = 99
+            Vote = (VoteType)99
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -75,7 +75,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = user.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.UserId == user.Id);
@@ -94,7 +94,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = target.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -114,7 +114,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = target.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -136,7 +136,7 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
             UserId = target.Id,
-            Vote = (int)VoteType.Approve
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.UserId == target.Id);

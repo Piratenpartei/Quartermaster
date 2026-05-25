@@ -36,7 +36,7 @@
                         }
                     </td>
                     <td>
-                        @if (r.Scope == 0) {
+                        @if (r.Scope == RoleScope.Global) {
                             <span class="badge border border-info text-info-emphasis">Global</span>
                         } else {
                             <span class="badge border border-primary text-primary-emphasis">Chapter</span>
@@ -75,8 +75,8 @@
             <div class="mb-3">
                 <label for="newScope" class="form-label">Scope</label>
                 <select class="form-select" id="newScope" @bind="NewScope" @bind:after="OnScopeChanged">
-                    <option value="0">Global</option>
-                    <option value="1">Chapter-scoped</option>
+                    <option value="@RoleScope.Global">Global</option>
+                    <option value="@RoleScope.ChapterScoped">Chapter-scoped</option>
                 </select>
             </div>
             <div class="mb-3">

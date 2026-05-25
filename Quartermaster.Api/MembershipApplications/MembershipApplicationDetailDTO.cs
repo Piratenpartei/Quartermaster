@@ -38,7 +38,7 @@ public class MembershipApplicationDetailDTO {
     public DateTime SubmittedAt { get; set; }
 
     // Processing
-    public int Status { get; set; }
+    public ApplicationStatus Status { get; set; }
     public DateTime? ProcessedAt { get; set; }
 
     // Linked motion

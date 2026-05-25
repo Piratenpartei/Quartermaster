@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
 using Quartermaster.Api.Rendering;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
@@ -41,17 +43,17 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
                 LastName = req.DueSelection.LastName,
                 EMail = req.DueSelection.EMail,
                 MemberNumber = req.DueSelection.MemberNumber,
-                SelectedValuation = (SelectedValuation)(int)req.DueSelection.SelectedValuation,
+                SelectedValuation = req.DueSelection.SelectedValuation,
                 YearlyIncome = req.DueSelection.YearlyIncome,
                 MonthlyIncomeGroup = req.DueSelection.MonthlyIncomeGroup,
                 ReducedAmount = req.DueSelection.ReducedAmount,
                 SelectedDue = req.DueSelection.SelectedDue,
                 ReducedJustification = req.DueSelection.ReducedJustification,
-                ReducedTimeSpan = (ReducedTimeSpan)(int)req.DueSelection.ReducedTimeSpan,
+                ReducedTimeSpan = req.DueSelection.ReducedTimeSpan,
                 IsDirectDeposit = req.DueSelection.IsDirectDeposit,
                 AccountHolder = req.DueSelection.AccountHolder,
                 IBAN = req.DueSelection.IBAN,
-                PaymentSchedule = (PaymentScedule)(int)req.DueSelection.PaymentScedule
+                PaymentSchedule = req.DueSelection.PaymentSchedule
             };
             isReduced = dueSelection.SelectedValuation == SelectedValuation.Reduced;
             dueSelection.Status = isReduced

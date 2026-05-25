@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Options;
 
 namespace Quartermaster.Data.Options;
 
@@ -19,10 +20,4 @@ public class OptionDefinition {
 
     /// <summary>Credential-like values; masked in the API for callers without <c>ViewOptionSecrets</c> and redacted in the audit log.</summary>
     public bool IsSecret { get; set; }
-}
-
-public enum OptionDataType {
-    String,
-    Number,
-    Template
 }

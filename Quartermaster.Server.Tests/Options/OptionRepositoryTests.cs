@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.Options;
 using Quartermaster.Data;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;

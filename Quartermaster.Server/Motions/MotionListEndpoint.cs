@@ -67,7 +67,7 @@ public class MotionListEndpoint : Endpoint<MotionListRequest, MotionListResponse
             AuthorName = m.AuthorName,
             Title = m.Title,
             IsPublic = m.IsPublic,
-            ApprovalStatus = (int)m.ApprovalStatus,
+            ApprovalStatus = m.ApprovalStatus,
             IsRealized = m.IsRealized,
             CreatedAt = m.CreatedAt,
             ResolvedAt = m.ResolvedAt

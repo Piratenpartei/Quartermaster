@@ -93,13 +93,13 @@
 <div class="card mb-3">
     <div class="card-body">
         <h5>Zahlungsplan</h5>
-        @if (EntryState.PaymentScedule == PaymentScedule.Annual)
+        @if (EntryState.PaymentSchedule == PaymentSchedule.Annual)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.
             </p>
         }
-        else if (EntryState.PaymentScedule == PaymentScedule.Quarterly)
+        else if (EntryState.PaymentSchedule == PaymentSchedule.Quarterly)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag quartalsweise.
@@ -111,7 +111,7 @@
                 fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.
             </p>
         }
-        else if (EntryState.PaymentScedule == PaymentScedule.Monthly)
+        else if (EntryState.PaymentSchedule == PaymentSchedule.Monthly)
         {
             <p class="card-text">
                 Du zahlst deinen Beitrag monatlich.

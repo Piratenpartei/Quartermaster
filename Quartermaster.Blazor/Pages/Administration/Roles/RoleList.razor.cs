@@ -24,11 +24,11 @@ public partial class RoleList {
 
     private string NewName = "";
     private string NewDescription = "";
-    private int NewScope;
+    private RoleScope NewScope;
     private HashSet<string> NewPermissions = new();
 
     private IEnumerable<PermissionDTO> FilteredPermissions =>
-        AvailablePermissions?.Where(p => p.Global == (NewScope == 0)) ?? [];
+        AvailablePermissions?.Where(p => p.Global == (NewScope == RoleScope.Global)) ?? [];
 
     protected override async Task OnInitializedAsync() {
         await Load();
@@ -50,7 +50,7 @@ public partial class RoleList {
     private void ShowCreateForm() {
         NewName = "";
         NewDescription = "";
-        NewScope = 0;
+        NewScope = RoleScope.Global;
         NewPermissions.Clear();
         ShowingCreateForm = true;
     }

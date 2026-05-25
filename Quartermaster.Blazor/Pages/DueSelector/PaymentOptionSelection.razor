@@ -38,14 +38,14 @@
 
 <div class="mb-3">
     <h2>Zahlungsweise</h2>
-    <RadioGroup E="PaymentScedule" @bind-Value=EntryState.PaymentScedule ToStringFunc="TextForPaymentSchedule"
+    <RadioGroup E="PaymentSchedule" @bind-Value=EntryState.PaymentSchedule ToStringFunc="TextForPaymentSchedule"
                 DisabledValueFunc="DisabledPaymentSchedule" ExcludeValueFunc="ExcludedPaymentSchedule" />
 
-    @* <select class="form-select" @bind=EntryState.PaymentScedule>
-        <option value="@PaymentScedule.None">Bitte wähle deine Zahlungsweise aus</option>
-        <option value="@PaymentScedule.Annual">Jährlich (fällig zum 01.01 eines Jahres)</option>
-        <option value="@PaymentScedule.Quarterly">Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)</option>
-        <option value="@PaymentScedule.Monthly">Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)</option>
+    @* <select class="form-select" @bind=EntryState.PaymentSchedule>
+        <option value="@PaymentSchedule.None">Bitte wähle deine Zahlungsweise aus</option>
+        <option value="@PaymentSchedule.Annual">Jährlich (fällig zum 01.01 eines Jahres)</option>
+        <option value="@PaymentSchedule.Quarterly">Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)</option>
+        <option value="@PaymentSchedule.Monthly">Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)</option>
     </select> *@
 </div>
 

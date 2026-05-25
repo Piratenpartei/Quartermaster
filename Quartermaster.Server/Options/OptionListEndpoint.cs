@@ -66,7 +66,7 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
                 Identifier = def.Identifier,
                 FriendlyName = def.FriendlyName,
                 Description = def.Description,
-                DataType = (int)def.DataType,
+                DataType = def.DataType,
                 IsOverridable = def.IsOverridable,
                 TemplateModels = def.TemplateModels,
                 GlobalValue = MaskIfNeeded(globalRaw, maskValue),

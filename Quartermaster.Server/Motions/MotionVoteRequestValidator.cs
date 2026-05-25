@@ -16,7 +16,7 @@ public class MotionVoteRequestValidator : Validator<MotionVoteRequest> {
             .WithMessage(I18nKey.Error.Motion.Vote.UserIdRequired);
 
         RuleFor(x => x.Vote)
-            .InclusiveBetween(0, 2)
+            .IsInEnum()
             .WithMessage(I18nKey.Error.Motion.Vote.InvalidVote);
     }
 }

@@ -67,7 +67,7 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
                 MemberLastName = member?.LastName ?? "",
                 ChapterId = o.ChapterId,
                 ChapterName = chapter.Name,
-                AssociateType = (int)o.AssociateType
+                AssociateType = o.AssociateType
             };
         }).ToList();
 

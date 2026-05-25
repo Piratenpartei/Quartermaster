@@ -23,7 +23,7 @@ public class DueSelectorEntryState : EntryStateBase {
     public bool IsDirectDeposit { get; set; }
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
-    public PaymentScedule PaymentScedule { get; set; } = PaymentScedule.Annual;
+    public PaymentSchedule PaymentSchedule { get; set; } = PaymentSchedule.Annual;
 
     public ApiDueSelector.DueSelectionDTO ToDTO() => new ApiDueSelector.DueSelectionDTO {
         FirstName = FirstName,
@@ -40,7 +40,7 @@ public class DueSelectorEntryState : EntryStateBase {
         IsDirectDeposit = IsDirectDeposit,
         AccountHolder = AccountHolder,
         IBAN = IBAN,
-        PaymentScedule = (ApiDueSelector.PaymentScedule)(int)PaymentScedule
+        PaymentSchedule = (ApiDueSelector.PaymentSchedule)(int)PaymentSchedule
     };
 }
 
@@ -57,7 +57,7 @@ public enum ReducedTimeSpan {
     Permanent
 }
 
-public enum PaymentScedule {
+public enum PaymentSchedule {
     None,
     Annual,
     Quarterly,

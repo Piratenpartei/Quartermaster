@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;

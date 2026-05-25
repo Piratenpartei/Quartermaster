@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Data.Motions;
 
@@ -19,10 +20,4 @@ public class MotionVote {
     /// Null for async votes outside a meeting context.
     /// </summary>
     public Guid? MeetingId { get; set; }
-}
-
-public enum VoteType {
-    Approve,
-    Deny,
-    Abstain
 }

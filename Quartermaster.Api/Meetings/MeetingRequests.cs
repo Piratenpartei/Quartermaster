@@ -1,4 +1,5 @@
 using System;
+using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Api.Meetings;
 
@@ -35,7 +36,7 @@ public class MeetingListRequest : IPaginatedRequest {
     public DateTime? DateTo { get; set; }
 }
 
-public class MeetingListResponse {
+public class MeetingListResponse : IPaginatedResponse<MeetingDTO> {
     public System.Collections.Generic.List<MeetingDTO> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int Page { get; set; }
@@ -82,5 +83,5 @@ public class AgendaItemVoteRequest {
     public Guid MeetingId { get; set; }
     public Guid ItemId { get; set; }
     public Guid UserId { get; set; }
-    public int Vote { get; set; } // VoteType enum value
+    public VoteType Vote { get; set; }
 }

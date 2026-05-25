@@ -49,9 +49,9 @@
                     <td>@app.AddressCity</td>
                     <td>@app.ChapterName</td>
                     <td>
-                        @if (app.Status == 0) {
+                        @if (app.Status == ApplicationStatus.Pending) {
                             <span class="badge border border-warning text-warning-emphasis">Ausstehend</span>
-                        } else if (app.Status == 1) {
+                        } else if (app.Status == ApplicationStatus.Approved) {
                             <span class="badge border border-success text-success-emphasis">Genehmigt</span>
                         } else {
                             <span class="badge border border-danger text-danger-emphasis">Abgelehnt</span>

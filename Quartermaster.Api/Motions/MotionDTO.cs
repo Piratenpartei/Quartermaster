@@ -9,7 +9,7 @@ public class MotionDTO {
     public string AuthorName { get; set; } = "";
     public string Title { get; set; } = "";
     public bool IsPublic { get; set; }
-    public int ApprovalStatus { get; set; }
+    public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }

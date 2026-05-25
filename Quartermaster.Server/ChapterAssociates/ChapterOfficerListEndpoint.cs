@@ -29,9 +29,11 @@ public class ChapterOfficerListEndpoint : Endpoint<ChapterOfficerSearchRequest, 
                 MemberLastName = x.Member.LastName,
                 ChapterId = x.Officer.ChapterId,
                 ChapterName = x.Chapter.Name,
-                AssociateType = (int)x.Officer.AssociateType
+                AssociateType = x.Officer.AssociateType
             }).ToList(),
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 }

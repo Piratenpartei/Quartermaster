@@ -59,7 +59,9 @@ public class MemberImportHistoryEndpoint
 
         await SendAsync(new MemberImportLogListResponse {
             Items = dtos,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
         }, cancellation: ct);
     }
 }

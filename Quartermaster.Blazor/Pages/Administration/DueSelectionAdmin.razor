@@ -43,7 +43,7 @@
                     <td>@ds.EMail</td>
                     <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                     <td>
-                        @if (ds.SelectedValuation == 4) {
+                        @if (ds.SelectedValuation == SelectedValuation.Reduced) {
                             @ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))
                         } else {
                             <span class="text-secondary">—</span>
@@ -53,11 +53,11 @@
                         @(string.IsNullOrEmpty(ds.ReducedJustification) ? "—" : ds.ReducedJustification)
                     </td>
                     <td>
-                        @if (ds.Status == 0) {
+                        @if (ds.Status == DueSelectionStatus.Pending) {
                             <span class="badge border border-warning text-warning-emphasis">Ausstehend</span>
-                        } else if (ds.Status == 1) {
+                        } else if (ds.Status == DueSelectionStatus.Approved) {
                             <span class="badge border border-success text-success-emphasis">Genehmigt</span>
-                        } else if (ds.Status == 2) {
+                        } else if (ds.Status == DueSelectionStatus.Rejected) {
                             <span class="badge border border-danger text-danger-emphasis">Abgelehnt</span>
                         } else {
                             <span class="badge border border-info text-info-emphasis">Auto</span>

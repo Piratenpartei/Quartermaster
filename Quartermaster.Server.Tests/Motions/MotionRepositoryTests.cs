@@ -1,4 +1,8 @@
 using LinqToDB;
+using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;

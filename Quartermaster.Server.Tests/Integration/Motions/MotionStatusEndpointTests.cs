@@ -19,7 +19,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = motion.Id,
-            ApprovalStatus = (int)MotionApprovalStatus.FormallyRejected
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
@@ -32,7 +32,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = motion.Id,
-            ApprovalStatus = (int)MotionApprovalStatus.FormallyRejected
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
@@ -43,7 +43,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = Guid.NewGuid(),
-            ApprovalStatus = (int)MotionApprovalStatus.FormallyRejected
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
@@ -54,7 +54,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = Guid.Empty,
-            ApprovalStatus = (int)MotionApprovalStatus.FormallyRejected
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -68,7 +68,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = motion.Id,
-            ApprovalStatus = (int)MotionApprovalStatus.FormallyRejected
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var persisted = Db.Motions.First(m => m.Id == motion.Id);
@@ -84,7 +84,7 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
             MotionId = motion.Id,
-            ApprovalStatus = (int)MotionApprovalStatus.Approved
+            ApprovalStatus = MotionApprovalStatus.Approved
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }

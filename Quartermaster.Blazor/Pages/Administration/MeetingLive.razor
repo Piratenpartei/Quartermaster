@@ -1,6 +1,7 @@
 @page "/Administration/Meetings/{Id:guid}/Live"
 @using System.Linq
 @using Quartermaster.Api.Meetings
+@using Quartermaster.Api.Motions
 
 <div class="mb-3 d-flex gap-2">
     <a href="/Administration/Meetings/@Id" class="btn btn-sm btn-outline-secondary">
@@ -120,12 +121,12 @@
                                                     <td>@officer.OfficerRole</td>
                                                     <td>
                                                         <div class="d-flex gap-1">
-                                                            <button class="btn btn-sm @(officer.Vote == 0 ? "btn-success" : "btn-outline-success")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 0)">Ja</button>
-                                                            <button class="btn btn-sm @(officer.Vote == 1 ? "btn-danger" : "btn-outline-danger")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 1)">Nein</button>
-                                                            <button class="btn btn-sm @(officer.Vote == 2 ? "btn-secondary" : "btn-outline-secondary")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, 2)">Enthaltung</button>
+                                                            <button class="btn btn-sm @(officer.Vote == VoteType.Approve ? "btn-success" : "btn-outline-success")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Approve)">Ja</button>
+                                                            <button class="btn btn-sm @(officer.Vote == VoteType.Deny ? "btn-danger" : "btn-outline-danger")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Deny)">Nein</button>
+                                                            <button class="btn btn-sm @(officer.Vote == VoteType.Abstain ? "btn-secondary" : "btn-outline-secondary")"
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Abstain)">Enthaltung</button>
                                                         </div>
                                                     </td>
                                                 </tr>
