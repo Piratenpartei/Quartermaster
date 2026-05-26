@@ -5,7 +5,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Roles;
@@ -16,11 +15,11 @@ public class RoleDeleteRequest {
 
 public class RoleDeleteEndpoint : Endpoint<RoleDeleteRequest> {
     private readonly RoleRepository _roleRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public RoleDeleteEndpoint(RoleRepository roleRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public RoleDeleteEndpoint(RoleRepository roleRepo, PermissionContext perms) {
         _roleRepo = roleRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -28,12 +27,11 @@ public class RoleDeleteEndpoint : Endpoint<RoleDeleteRequest> {
     }
 
     public override async Task HandleAsync(RoleDeleteRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ManageRoles, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ManageRoles)) {
             await SendForbiddenAsync(ct);
             return;
         }

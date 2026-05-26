@@ -7,8 +7,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
@@ -20,15 +18,12 @@ public class EventDetailRequest {
 public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -43,25 +38,21 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-
-        // Visibility gate: Public events are always visible, MembersOnly needs auth, Private needs ViewEvents
         if (ev.Visibility == EventVisibility.Private) {
-            if (userId == null) {
+            if (_perms.UserId == null) {
                 await SendUnauthorizedAsync(ct);
                 return;
             }
-            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, PermissionIdentifier.ViewEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            if (!_perms.Has(ev.ChapterId, PermissionIdentifier.ViewEvents)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
         } else if (ev.Visibility == EventVisibility.MembersOnly) {
-            if (userId == null) {
+            if (_perms.UserId == null) {
                 await SendUnauthorizedAsync(ct);
                 return;
             }
         }
-        // Public: no check
 
         var chapter = _chapterRepo.Get(ev.ChapterId);
         var checklistItems = _eventRepo.GetChecklistItems(ev.Id);

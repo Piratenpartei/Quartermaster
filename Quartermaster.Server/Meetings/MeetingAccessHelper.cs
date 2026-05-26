@@ -1,11 +1,8 @@
 using System;
 using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -19,10 +16,7 @@ namespace Quartermaster.Server.Meetings;
 /// </summary>
 public static class MeetingAccessHelper {
     public static bool CanUserViewMeeting(
-        Guid? userId, Meeting meeting, RoleRepository roleRepo,
-        UserGlobalPermissionRepository? globalPermRepo = null,
-        UserChapterPermissionRepository? chapterPermRepo = null,
-        ChapterRepository? chapterRepo = null) {
+        Guid? userId, Meeting meeting, RoleRepository roleRepo, PermissionContext? perms = null) {
 
         // Draft meetings are never publicly visible.
         if (meeting.Status == MeetingStatus.Draft) {
@@ -31,11 +25,11 @@ public static class MeetingAccessHelper {
             if (IsDirectOfficerOrDelegate(userId, meeting.ChapterId, roleRepo))
                 return true;
             // Users with any meeting permission on the chapter can also see drafts
-            // (they need to view what they create/edit).
-            if (globalPermRepo != null && chapterPermRepo != null && chapterRepo != null) {
-                if (HasAnyMeetingPermission(userId.Value, meeting.ChapterId, globalPermRepo, chapterPermRepo, chapterRepo))
-                    return true;
-            }
+            // (they need to view what they create/edit). Skip when perms is null —
+            // callers without DI access (notably the role-only unit tests) only
+            // exercise the direct-officer branch.
+            if (perms != null && HasAnyMeetingPermission(meeting.ChapterId, perms))
+                return true;
             return false;
         }
 
@@ -56,15 +50,9 @@ public static class MeetingAccessHelper {
             PermissionIdentifier.SystemRole.GeneralChapterDelegate);
     }
 
-    private static bool HasAnyMeetingPermission(
-        Guid userId, Guid chapterId,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        ChapterRepository chapterRepo) {
+    private static bool HasAnyMeetingPermission(Guid chapterId, PermissionContext perms) {
         foreach (var perm in new[] { PermissionIdentifier.ViewMeetings, PermissionIdentifier.CreateMeetings, PermissionIdentifier.EditMeetings }) {
-            if (EndpointAuthorizationHelper.HasGlobalPermission(userId, perm, globalPermRepo))
-                return true;
-            if (chapterPermRepo.HasPermissionWithInheritance(userId, chapterId, perm, chapterRepo))
+            if (perms.Has(chapterId, perm))
                 return true;
         }
         return false;

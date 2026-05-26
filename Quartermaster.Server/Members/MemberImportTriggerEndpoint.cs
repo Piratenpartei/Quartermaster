@@ -6,7 +6,6 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
@@ -15,17 +14,17 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
     private readonly MemberImportService _importService;
     private readonly OptionRepository _optionRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public MemberImportTriggerEndpoint(
         MemberImportService importService,
         OptionRepository optionRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _importService = importService;
         _optionRepo = optionRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -33,12 +32,11 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.TriggerMemberImport, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.TriggerMemberImport)) {
             await SendForbiddenAsync(ct);
             return;
         }

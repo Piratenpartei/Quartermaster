@@ -8,8 +8,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
@@ -19,18 +17,15 @@ public class MembershipApplicationListEndpoint
 
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public MembershipApplicationListEndpoint(
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -38,14 +33,12 @@ public class MembershipApplicationListEndpoint
     }
 
     public override async Task HandleAsync(MembershipApplicationListRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        var allowedChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+        var allowedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

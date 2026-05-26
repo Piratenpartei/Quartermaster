@@ -5,7 +5,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
@@ -19,12 +18,11 @@ public class MemberImportHistoryEndpoint
     : Endpoint<MemberImportHistoryRequest, MemberImportLogListResponse> {
 
     private readonly MemberRepository _memberRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public MemberImportHistoryEndpoint(MemberRepository memberRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+    public MemberImportHistoryEndpoint(MemberRepository memberRepo, PermissionContext perms) {
         _memberRepo = memberRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -32,12 +30,11 @@ public class MemberImportHistoryEndpoint
     }
 
     public override async Task HandleAsync(MemberImportHistoryRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewAllMembers)) {
             await SendForbiddenAsync(ct);
             return;
         }

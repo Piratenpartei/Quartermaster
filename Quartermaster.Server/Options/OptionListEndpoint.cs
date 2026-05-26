@@ -7,7 +7,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Options;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Options;
@@ -15,13 +14,13 @@ namespace Quartermaster.Server.Options;
 public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDTO>> {
     private readonly OptionRepository _optionRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public OptionListEndpoint(OptionRepository optionRepo, ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _optionRepo = optionRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -29,17 +28,15 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewOptions, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewOptions)) {
             await SendForbiddenAsync(ct);
             return;
         }
-        var canViewSecrets = EndpointAuthorizationHelper.HasGlobalPermission(
-            userId.Value, PermissionIdentifier.ViewOptionSecrets, _globalPermRepo);
+        var canViewSecrets = _perms.HasGlobal(PermissionIdentifier.ViewOptionSecrets);
 
         var definitions = _optionRepo.GetAllDefinitions();
         var allValues = _optionRepo.GetAllValues();

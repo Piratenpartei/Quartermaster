@@ -7,7 +7,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Email;
 using Quartermaster.Data.Email;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Email;
@@ -21,11 +20,11 @@ public class EmailLogRequest {
 
 public class EmailLogEndpoint : Endpoint<EmailLogRequest, List<EmailLogDTO>> {
     private readonly EmailLogRepository _emailLogRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public EmailLogEndpoint(EmailLogRepository emailLogRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public EmailLogEndpoint(EmailLogRepository emailLogRepo, PermissionContext perms) {
         _emailLogRepo = emailLogRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -33,12 +32,11 @@ public class EmailLogEndpoint : Endpoint<EmailLogRequest, List<EmailLogDTO>> {
     }
 
     public override async Task HandleAsync(EmailLogRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewEmailLogs, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewEmailLogs)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -5,7 +5,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.AdministrativeDivisions;
 using Quartermaster.Data.AdministrativeDivisions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.AdministrativeDivisions;
@@ -19,13 +18,13 @@ public class AdminDivisionImportHistoryEndpoint
     : Endpoint<AdminDivisionImportHistoryRequest, AdminDivisionImportLogListResponse> {
 
     private readonly AdministrativeDivisionRepository _adminDivRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public AdminDivisionImportHistoryEndpoint(
         AdministrativeDivisionRepository adminDivRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _adminDivRepo = adminDivRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -33,12 +32,11 @@ public class AdminDivisionImportHistoryEndpoint
     }
 
     public override async Task HandleAsync(AdminDivisionImportHistoryRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAllMembers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewAllMembers)) {
             await SendForbiddenAsync(ct);
             return;
         }

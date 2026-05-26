@@ -4,35 +4,26 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
 
 public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> {
     private readonly MeetingRepository _meetingRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly MeetingLifecycleService _lifecycle;
     private readonly IMeetingNotifier _notifier;
+    private readonly PermissionContext _perms;
 
     public MeetingStatusUpdateEndpoint(
         MeetingRepository meetingRepo,
-        ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo,
         MeetingLifecycleService lifecycle,
-        IMeetingNotifier notifier) {
+        IMeetingNotifier notifier,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
-        _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
         _lifecycle = lifecycle;
         _notifier = notifier;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -46,8 +37,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
@@ -58,7 +48,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
             ? PermissionIdentifier.DeleteMeetings
             : PermissionIdentifier.EditMeetings;
 
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, requiredPerm, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(meeting.ChapterId, requiredPerm)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -5,10 +5,7 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -26,27 +23,21 @@ public class AgendaItemCloseVoteRequest {
 public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> {
     private readonly MeetingRepository _meetingRepo;
     private readonly AgendaItemRepository _agendaRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly MeetingLifecycleService _lifecycle;
     private readonly IMeetingNotifier _notifier;
+    private readonly PermissionContext _perms;
 
     public AgendaItemCloseVoteEndpoint(
         MeetingRepository meetingRepo,
         AgendaItemRepository agendaRepo,
-        ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo,
         MeetingLifecycleService lifecycle,
-        IMeetingNotifier notifier) {
+        IMeetingNotifier notifier,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
-        _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
         _lifecycle = lifecycle;
         _notifier = notifier;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -74,12 +65,11 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, PermissionIdentifier.EditMeetings, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings)) {
             await SendForbiddenAsync(ct);
             return;
         }

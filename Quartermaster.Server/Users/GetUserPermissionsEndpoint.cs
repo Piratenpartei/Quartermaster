@@ -18,11 +18,13 @@ public class GetUserPermissionsRequest {
 public class GetUserPermissionsEndpoint : Endpoint<GetUserPermissionsRequest, UserPermissionsDTO> {
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public GetUserPermissionsEndpoint(UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo, PermissionContext perms) {
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -30,12 +32,11 @@ public class GetUserPermissionsEndpoint : Endpoint<GetUserPermissionsRequest, Us
     }
 
     public override async Task HandleAsync(GetUserPermissionsRequest req, CancellationToken ct) {
-        var callerId = EndpointAuthorizationHelper.GetUserId(User);
-        if (callerId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(callerId.Value, PermissionIdentifier.ViewUsers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewUsers)) {
             await SendForbiddenAsync(ct);
             return;
         }

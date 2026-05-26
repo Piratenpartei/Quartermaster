@@ -14,8 +14,6 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -29,25 +27,22 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
     private readonly AgendaItemRepository _agendaRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly RoleRepository _roleRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly DbContext _db;
+    private readonly PermissionContext _perms;
 
     public MeetingDetailEndpoint(
         MeetingRepository meetingRepo,
         AgendaItemRepository agendaRepo,
         ChapterRepository chapterRepo,
         RoleRepository roleRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        DbContext db) {
+        DbContext db,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _chapterRepo = chapterRepo;
         _roleRepo = roleRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
         _db = db;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -62,8 +57,7 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (!MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!MeetingAccessHelper.CanUserViewMeeting(_perms.UserId, meeting, _roleRepo, _perms)) {
             // Don't leak existence of private meetings
             await SendNotFoundAsync(ct);
             return;

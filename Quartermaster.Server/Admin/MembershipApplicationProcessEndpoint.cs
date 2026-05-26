@@ -4,10 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.MembershipApplications;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
@@ -19,17 +16,12 @@ public class MembershipApplicationProcessRequest {
 
 public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicationProcessRequest> {
     private readonly MembershipApplicationRepository _applicationRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly ChapterRepository _chapterRepo;
+    private readonly PermissionContext _perms;
 
     public MembershipApplicationProcessEndpoint(MembershipApplicationRepository applicationRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo) {
+        PermissionContext perms) {
         _applicationRepo = applicationRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterRepo = chapterRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -43,19 +35,18 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
         if (application.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, application.ChapterId.Value, PermissionIdentifier.ProcessApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            if (!_perms.Has(application.ChapterId.Value, PermissionIdentifier.ProcessApplications)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
         } else {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ProcessApplications, _globalPermRepo)) {
+            if (!_perms.HasGlobal(PermissionIdentifier.ProcessApplications)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

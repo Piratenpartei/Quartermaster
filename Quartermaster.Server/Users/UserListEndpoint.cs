@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -7,18 +6,17 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Users;
 using Quartermaster.Data;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
 
 public class UserListEndpoint : EndpointWithoutRequest<List<UserListItem>> {
     private readonly DbContext _context;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public UserListEndpoint(DbContext context, UserGlobalPermissionRepository globalPermRepo) {
+    public UserListEndpoint(DbContext context, PermissionContext perms) {
         _context = context;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -26,12 +24,11 @@ public class UserListEndpoint : EndpointWithoutRequest<List<UserListItem>> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewUsers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewUsers)) {
             await SendForbiddenAsync(ct);
             return;
         }

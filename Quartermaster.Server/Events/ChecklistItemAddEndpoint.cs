@@ -4,27 +4,18 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
 public class ChecklistItemAddEndpoint : Endpoint<ChecklistItemCreateRequest, EventChecklistItemDTO> {
     private readonly EventRepository _eventRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly ChapterRepository _chapterRepo;
+    private readonly PermissionContext _perms;
 
-    public ChecklistItemAddEndpoint(EventRepository eventRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo) {
+    public ChecklistItemAddEndpoint(EventRepository eventRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterRepo = chapterRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -38,12 +29,11 @@ public class ChecklistItemAddEndpoint : Endpoint<ChecklistItemCreateRequest, Eve
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, PermissionIdentifier.EditEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

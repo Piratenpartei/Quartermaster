@@ -14,14 +14,17 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
     private readonly UserRepository _userRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public SessionEndpoint(
         UserRepository userRepo,
         UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo,
+        PermissionContext perms) {
         _userRepo = userRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -29,7 +32,7 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        var userId = _perms.UserId;
         if (userId == null) {
             await SendUnauthorizedAsync(ct);
             return;

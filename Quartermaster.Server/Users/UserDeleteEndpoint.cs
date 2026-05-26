@@ -5,7 +5,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.Tokens;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
 
@@ -18,15 +17,15 @@ public class UserDeleteRequest {
 public class UserDeleteEndpoint : Endpoint<UserDeleteRequest> {
     private readonly UserRepository _userRepo;
     private readonly TokenRepository _tokenRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public UserDeleteEndpoint(
         UserRepository userRepo,
         TokenRepository tokenRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _userRepo = userRepo;
         _tokenRepo = tokenRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -34,12 +33,12 @@ public class UserDeleteEndpoint : Endpoint<UserDeleteRequest> {
     }
 
     public override async Task HandleAsync(UserDeleteRequest req, CancellationToken ct) {
-        var callerId = EndpointAuthorizationHelper.GetUserId(User);
+        var callerId = _perms.UserId;
         if (callerId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(callerId.Value, PermissionIdentifier.DeleteUsers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.DeleteUsers)) {
             await SendForbiddenAsync(ct);
             return;
         }

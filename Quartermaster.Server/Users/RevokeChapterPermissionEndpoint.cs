@@ -6,21 +6,20 @@ using Quartermaster.Api;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
 
 public class RevokeChapterPermissionEndpoint : Endpoint<RevokeChapterPermissionRequest> {
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly PermissionRepository _permissionRepo;
+    private readonly PermissionContext _perms;
 
-    public RevokeChapterPermissionEndpoint(UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo, PermissionRepository permissionRepo) {
-        _globalPermRepo = globalPermRepo;
+    public RevokeChapterPermissionEndpoint(UserChapterPermissionRepository chapterPermRepo,
+        PermissionRepository permissionRepo, PermissionContext perms) {
         _chapterPermRepo = chapterPermRepo;
         _permissionRepo = permissionRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -28,12 +27,11 @@ public class RevokeChapterPermissionEndpoint : Endpoint<RevokeChapterPermissionR
     }
 
     public override async Task HandleAsync(RevokeChapterPermissionRequest req, CancellationToken ct) {
-        var callerId = EndpointAuthorizationHelper.GetUserId(User);
-        if (callerId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(callerId.Value, PermissionIdentifier.CreateUser, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.CreateUser)) {
             await SendForbiddenAsync(ct);
             return;
         }

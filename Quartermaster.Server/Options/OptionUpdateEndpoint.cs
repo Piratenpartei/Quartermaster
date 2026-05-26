@@ -4,18 +4,17 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Options;
 using Quartermaster.Data.Options;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Options;
 
 public class OptionUpdateEndpoint : Endpoint<OptionUpdateRequest> {
     private readonly OptionRepository _optionRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public OptionUpdateEndpoint(OptionRepository optionRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public OptionUpdateEndpoint(OptionRepository optionRepo, PermissionContext perms) {
         _optionRepo = optionRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -23,12 +22,11 @@ public class OptionUpdateEndpoint : Endpoint<OptionUpdateRequest> {
     }
 
     public override async Task HandleAsync(OptionUpdateRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditOptions, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.EditOptions)) {
             await SendForbiddenAsync(ct);
             return;
         }

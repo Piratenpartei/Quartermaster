@@ -7,7 +7,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Data.AuditLog;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.AuditLog;
@@ -21,11 +20,11 @@ public class AuditLogRequest {
 
 public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
     private readonly AuditLogRepository _auditLogRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public AuditLogEndpoint(AuditLogRepository auditLogRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public AuditLogEndpoint(AuditLogRepository auditLogRepo, PermissionContext perms) {
         _auditLogRepo = auditLogRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -33,12 +32,11 @@ public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
     }
 
     public override async Task HandleAsync(AuditLogRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewAudit, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewAudit)) {
             await SendForbiddenAsync(ct);
             return;
         }

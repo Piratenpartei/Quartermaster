@@ -7,8 +7,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
@@ -16,15 +14,12 @@ namespace Quartermaster.Server.Events;
 public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchResponse> {
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
-    public EventListEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo, UserChapterPermissionRepository chapterPermRepo) {
+    public EventListEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -76,16 +71,13 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
     /// - Users with ViewEvents (global or any chapter): all three (Private included)
     /// </summary>
     private List<EventVisibility> GetAllowedVisibilities() {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null)
+        if (_perms.UserId == null)
             return new List<EventVisibility> { EventVisibility.Public };
 
-        var hasViewGlobal = EndpointAuthorizationHelper.HasGlobalPermission(
-            userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo);
-        var hasViewInAnyChapter = _chapterPermRepo.GetAllForUser(userId.Value)
-            .Any(kvp => kvp.Value.Contains(PermissionIdentifier.ViewEvents));
+        var permittedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewEvents);
+        var hasViewAnywhere = permittedChapterIds == null || permittedChapterIds.Count > 0;
 
-        if (hasViewGlobal || hasViewInAnyChapter)
+        if (hasViewAnywhere)
             return new List<EventVisibility> {
                 EventVisibility.Public,
                 EventVisibility.MembersOnly,

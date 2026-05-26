@@ -9,8 +9,6 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
@@ -26,22 +24,19 @@ public class MembershipApplicationDetailEndpoint
     private readonly ChapterRepository _chapterRepo;
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MotionRepository _motionRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public MembershipApplicationDetailEndpoint(
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
         DueSelectionRepository dueSelectionRepo,
         MotionRepository motionRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -55,19 +50,18 @@ public class MembershipApplicationDetailEndpoint
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
         if (app.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, app.ChapterId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            if (!_perms.Has(app.ChapterId.Value, PermissionIdentifier.ViewApplications)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
         } else {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewApplications, _globalPermRepo)) {
+            if (!_perms.HasGlobal(PermissionIdentifier.ViewApplications)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

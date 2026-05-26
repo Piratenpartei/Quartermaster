@@ -8,8 +8,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Motions;
@@ -17,15 +15,13 @@ namespace Quartermaster.Server.Motions;
 public class MotionListEndpoint : Endpoint<MotionListRequest, MotionListResponse> {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public MotionListEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo, UserChapterPermissionRepository chapterPermRepo) {
+        PermissionContext perms) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -44,11 +40,8 @@ public class MotionListEndpoint : Endpoint<MotionListRequest, MotionListResponse
         List<Guid>? nonPublicChapterIds = null;
 
         if (req.IncludeNonPublic) {
-            var userId = EndpointAuthorizationHelper.GetUserId(User);
-            if (userId != null) {
-                nonPublicChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-                    userId.Value, PermissionIdentifier.ViewMotions,
-                    _globalPermRepo, _chapterPermRepo, _chapterRepo);
+            if (_perms.UserId != null) {
+                nonPublicChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewMotions);
                 // null means global permission (all chapters), non-empty means specific chapters
                 includeNonPublic = nonPublicChapterIds == null || nonPublicChapterIds.Count > 0;
             }

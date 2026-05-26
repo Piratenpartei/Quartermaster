@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +8,7 @@ using Microsoft.Extensions.Logging;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -24,22 +20,16 @@ namespace Quartermaster.Server.Meetings;
 public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
     private readonly MeetingRepository _meetingRepo;
     private readonly AgendaItemRepository _agendaRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly IMeetingNotifier _notifier;
+    private readonly PermissionContext _perms;
 
     public AgendaItemPresenceEndpoint(
         MeetingRepository meetingRepo, AgendaItemRepository agendaRepo,
-        ChapterRepository chapterRepo, UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        IMeetingNotifier notifier) {
+        IMeetingNotifier notifier, PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
-        _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
         _notifier = notifier;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -65,12 +55,11 @@ public class AgendaItemPresenceEndpoint : Endpoint<AgendaItemPresenceRequest> {
             ThrowError(I18nKey.Error.Meeting.Agenda.NotPresenceItem);
             return;
         }
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, PermissionIdentifier.EditMeetings, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings)) {
             await SendForbiddenAsync(ct);
             return;
         }

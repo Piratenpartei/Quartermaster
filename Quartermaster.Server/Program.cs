@@ -95,6 +95,9 @@ public partial class Program {
             => options.UseMySqlConnector(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString")!));
         DbContext.AddRepositories(builder.Services);
 
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<PermissionContext>();
+
         // I18n: load the German translation file from wwwroot at startup. The
         // same file is also served as a static asset at /i18n/de.json so that
         // the Blazor WASM client and external API consumers can fetch it.

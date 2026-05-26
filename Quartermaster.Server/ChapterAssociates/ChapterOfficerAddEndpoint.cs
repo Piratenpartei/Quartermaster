@@ -5,29 +5,21 @@ using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.ChapterAssociates;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.ChapterAssociates;
 
 public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
     private readonly ChapterOfficerRepository _officerRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly ChapterRepository _chapterRepo;
     private readonly MemberRepository _memberRepo;
+    private readonly PermissionContext _perms;
 
     public ChapterOfficerAddEndpoint(ChapterOfficerRepository officerRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo, MemberRepository memberRepo) {
+        MemberRepository memberRepo, PermissionContext perms) {
         _officerRepo = officerRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -35,12 +27,11 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
     }
 
     public override async Task HandleAsync(ChapterOfficerAddRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, req.ChapterId, PermissionIdentifier.EditOfficers, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(req.ChapterId, PermissionIdentifier.EditOfficers)) {
             await SendForbiddenAsync(ct);
             return;
         }

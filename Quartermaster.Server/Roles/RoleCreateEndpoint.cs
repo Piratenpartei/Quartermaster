@@ -7,7 +7,6 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Api.Roles;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Roles;
@@ -15,13 +14,13 @@ namespace Quartermaster.Server.Roles;
 public class RoleCreateEndpoint : Endpoint<RoleCreateRequest, RoleDTO> {
     private readonly RoleRepository _roleRepo;
     private readonly PermissionRepository _permissionRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public RoleCreateEndpoint(RoleRepository roleRepo, PermissionRepository permissionRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _roleRepo = roleRepo;
         _permissionRepo = permissionRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -29,12 +28,11 @@ public class RoleCreateEndpoint : Endpoint<RoleCreateRequest, RoleDTO> {
     }
 
     public override async Task HandleAsync(RoleCreateRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ManageRoles, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ManageRoles)) {
             await SendForbiddenAsync(ct);
             return;
         }

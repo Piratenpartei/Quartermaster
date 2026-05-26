@@ -6,8 +6,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
@@ -15,15 +13,12 @@ namespace Quartermaster.Server.Events;
 public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
-    public EventCreateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo) {
+    public EventCreateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -31,12 +26,11 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
     }
 
     public override async Task HandleAsync(EventCreateRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, req.ChapterId, PermissionIdentifier.CreateEvents, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(req.ChapterId, PermissionIdentifier.CreateEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

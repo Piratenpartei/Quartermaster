@@ -167,8 +167,8 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 These don't fit a single TODO checkbox — each warrants its own plan document under `Quartermaster.Documentation/plans/`.
 
-- [ ] **Auth audit & cleanup.** Concentrates the highest-risk findings (token expiry unimplemented, security scopes unimplemented, `X-Forwarded-For` trusted, IDOR in officer-add, secrets leaking from options, SAML hardening gaps, dead `EndpointProcessors`, OIDC hardening). Worth a focused branch rather than piecemeal fixes.
+- [x] **Auth audit & cleanup.** Concentrates the highest-risk findings (token expiry unimplemented, security scopes unimplemented, `X-Forwarded-For` trusted, IDOR in officer-add, secrets leaking from options, SAML hardening gaps, dead `EndpointProcessors`, OIDC hardening). Worth a focused branch rather than piecemeal fixes.
 - [x] **DTO contracts cleanup pass.** `PaymentScedule` rename, status enum typing, pagination shape, dead types, move `Rendering/` out of `Api`, JSON-string-on-DTO refactor.
 - [x] **Pre-production M001 fold-in.** Composite-key PKs, soft-delete decision, audit-log diff helper, transactions in multi-write paths — all benefit from being in the in-flight migration rather than M002.
-- [ ] **Permission-check preprocessor.** ~30 endpoints repeat the same fetch-user → check-global → check-chapter → build-DTO boilerplate. Build a working `ChapterPermissionRequirement` (claims-based, not header-based) and adopt it. Replaces the dead processors that need to be deleted anyway.
+- [x] **Permission-check preprocessor.** ~30 endpoints repeat the same fetch-user → check-global → check-chapter → build-DTO boilerplate. Build a working `ChapterPermissionRequirement` (claims-based, not header-based) and adopt it. Replaces the dead processors that need to be deleted anyway.
 - [ ] **Blazor architecture cleanup.** AuthService static-state untangle, EventDetail/MeetingDetail/MeetingLive split (200-430 lines each), typed API client wrapper to replace stringly-typed `HttpClient` calls, generic `LazyTreeNode<T>` to dedupe the three tree-page pairs.

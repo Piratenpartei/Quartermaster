@@ -15,7 +15,6 @@ using Quartermaster.Data.Events;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Dashboard;
@@ -28,8 +27,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
     private readonly MotionRepository _motionRepo;
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public DashboardEndpoint(
         MembershipApplicationRepository applicationRepo,
@@ -37,15 +36,15 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         MotionRepository motionRepo,
         EventRepository eventRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo,
+        PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -54,14 +53,14 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        var userId = _perms.UserId;
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id, c => c.Name);
         var dto = new DashboardDTO();
 
         if (userId != null) {
-            dto.PendingApplications = FetchApplications(userId.Value, chapters);
-            dto.PendingDueSelections = FetchDueSelections(userId.Value);
-            dto.OpenMotions = FetchMotions(userId.Value, chapters);
+            dto.PendingApplications = FetchApplications(chapters);
+            dto.PendingDueSelections = FetchDueSelections();
+            dto.OpenMotions = FetchMotions(chapters);
         }
 
         dto.UpcomingEvents = FetchUpcomingEvents(userId, chapters);
@@ -69,9 +68,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         await SendAsync(dto, cancellation: ct);
     }
 
-    private DashboardSection<DashboardApplicationDTO>? FetchApplications(Guid userId, Dictionary<Guid, string> chapters) {
-        var chapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId, PermissionIdentifier.ViewApplications, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+    private DashboardSection<DashboardApplicationDTO>? FetchApplications(Dictionary<Guid, string> chapters) {
+        var chapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
 
         if (chapterIds is { Count: 0 })
             return null;
@@ -91,9 +89,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         };
     }
 
-    private DashboardSection<DashboardDueSelectionDTO>? FetchDueSelections(Guid userId) {
-        var chapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId, PermissionIdentifier.ViewDueSelections, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+    private DashboardSection<DashboardDueSelectionDTO>? FetchDueSelections() {
+        var chapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewDueSelections);
 
         if (chapterIds is { Count: 0 })
             return null;
@@ -111,9 +108,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         };
     }
 
-    private DashboardSection<DashboardMotionDTO>? FetchMotions(Guid userId, Dictionary<Guid, string> chapters) {
-        var chapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId, PermissionIdentifier.ViewMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+    private DashboardSection<DashboardMotionDTO>? FetchMotions(Dictionary<Guid, string> chapters) {
+        var chapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewMotions);
 
         if (chapterIds is { Count: 0 })
             return null;
@@ -147,8 +143,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         if (userId == null)
             return new List<EventVisibility> { EventVisibility.Public };
 
-        var hasViewGlobal = EndpointAuthorizationHelper.HasGlobalPermission(
-            userId.Value, PermissionIdentifier.ViewEvents, _globalPermRepo);
+        var hasViewGlobal = _perms.HasGlobal(PermissionIdentifier.ViewEvents);
         var hasViewInAnyChapter = _chapterPermRepo.GetAllForUser(userId.Value)
             .Any(kvp => kvp.Value.Contains(PermissionIdentifier.ViewEvents));
 

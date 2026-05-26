@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +20,7 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
     private readonly PermissionRepository _permissionRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public UserSettingsEndpoint(
         UserRepository userRepo,
@@ -29,13 +28,15 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
         ChapterRepository chapterRepo,
         PermissionRepository permissionRepo,
         UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        UserChapterPermissionRepository chapterPermRepo,
+        PermissionContext perms) {
         _userRepo = userRepo;
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
         _permissionRepo = permissionRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -43,7 +44,7 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        var userId = _perms.UserId;
         if (userId == null) {
             await SendUnauthorizedAsync(ct);
             return;

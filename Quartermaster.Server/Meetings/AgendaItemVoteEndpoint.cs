@@ -11,8 +11,6 @@ using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -28,9 +26,8 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly IMeetingNotifier _notifier;
+    private readonly PermissionContext _perms;
 
     public AgendaItemVoteEndpoint(
         MeetingRepository meetingRepo,
@@ -38,17 +35,15 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
         MotionRepository motionRepo,
         ChapterOfficerRepository officerRepo,
         ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        IMeetingNotifier notifier) {
+        IMeetingNotifier notifier,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _motionRepo = motionRepo;
         _officerRepo = officerRepo;
         _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
         _notifier = notifier;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -82,22 +77,22 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        var userId = _perms.UserId;
         if (userId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.SystemVote, _globalPermRepo) &&
-            !EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.VoteMotions, _globalPermRepo) &&
-            !_chapterPermRepo.HasPermissionForChapter(userId.Value, motion.ChapterId, PermissionIdentifier.VoteMotions)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.SystemVote) &&
+            !_perms.HasGlobal(PermissionIdentifier.VoteMotions) &&
+            !_perms.HasExact(motion.ChapterId, PermissionIdentifier.VoteMotions)) {
             await SendForbiddenAsync(ct);
             return;
         }
 
         // Delegation check — system_vote holders can vote for anyone, otherwise
         // standard delegation rules apply.
-        var hasSystemVote = EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.SystemVote, _globalPermRepo);
+        var hasSystemVote = _perms.HasGlobal(PermissionIdentifier.SystemVote);
         if (req.UserId != userId.Value && !hasSystemVote) {
             if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
                 AddError("UserId", I18nKey.Error.Meeting.Agenda.VoteTargetNotOfficer);
@@ -107,7 +102,7 @@ public class AgendaItemVoteEndpoint : Endpoint<AgendaItemVoteRequest> {
             var chapterAndAncestors = _chapterRepo.GetAncestorChain(motion.ChapterId).Select(c => c.Id).ToList();
             var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(userId.Value, chapterAndAncestors);
             if (!callerIsOfficer &&
-                !EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.VoteDelegateMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+                !_perms.Has(motion.ChapterId, PermissionIdentifier.VoteDelegateMotions)) {
                 AddError("UserId", I18nKey.Error.Meeting.Agenda.VoteNoProxyPermission);
                 await SendErrorsAsync(403, ct);
                 return;

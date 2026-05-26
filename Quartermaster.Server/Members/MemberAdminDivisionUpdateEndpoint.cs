@@ -8,10 +8,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
@@ -24,24 +21,18 @@ public class MemberAdminDivisionUpdateRequest {
 public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpdateRequest> {
     private readonly MemberRepository _memberRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly ChapterRepository _chapterRepo;
     private readonly DbContext _context;
+    private readonly PermissionContext _perms;
 
     public MemberAdminDivisionUpdateEndpoint(
         MemberRepository memberRepo,
         AdministrativeDivisionRepository adminDivRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo,
-        ChapterRepository chapterRepo,
-        DbContext context) {
+        DbContext context,
+        PermissionContext perms) {
         _memberRepo = memberRepo;
         _adminDivRepo = adminDivRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _chapterRepo = chapterRepo;
         _context = context;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -49,8 +40,7 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
     }
 
     public override async Task HandleAsync(MemberAdminDivisionUpdateRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
@@ -62,11 +52,11 @@ public class MemberAdminDivisionUpdateEndpoint : Endpoint<MemberAdminDivisionUpd
         }
 
         if (!member.ChapterId.HasValue) {
-            if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.EditMembers, _globalPermRepo)) {
+            if (!_perms.HasGlobal(PermissionIdentifier.EditMembers)) {
                 await SendForbiddenAsync(ct);
                 return;
             }
-        } else if (!EndpointAuthorizationHelper.HasPermission(userId.Value, member.ChapterId.Value, PermissionIdentifier.EditMembers, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        } else if (!_perms.Has(member.ChapterId.Value, PermissionIdentifier.EditMembers)) {
             await SendForbiddenAsync(ct);
             return;
         }

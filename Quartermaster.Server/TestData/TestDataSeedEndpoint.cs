@@ -4,7 +4,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.TestData;
@@ -22,13 +21,13 @@ public class TestDataSeedResponse {
 public class TestDataSeedEndpoint : EndpointWithoutRequest<TestDataSeedResponse> {
     private readonly DbContext _context;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public TestDataSeedEndpoint(DbContext context, ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _context = context;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -39,12 +38,11 @@ public class TestDataSeedEndpoint : EndpointWithoutRequest<TestDataSeedResponse>
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewOptions, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewOptions)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
@@ -17,13 +16,13 @@ public class MemberImportUploadRequest {
 
 public class MemberImportUploadEndpoint : Endpoint<MemberImportUploadRequest, MemberImportLogDTO> {
     private readonly MemberImportService _importService;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public MemberImportUploadEndpoint(
         MemberImportService importService,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _importService = importService;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -32,12 +31,11 @@ public class MemberImportUploadEndpoint : Endpoint<MemberImportUploadRequest, Me
     }
 
     public override async Task HandleAsync(MemberImportUploadRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.TriggerMemberImport, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.TriggerMemberImport)) {
             await SendForbiddenAsync(ct);
             return;
         }

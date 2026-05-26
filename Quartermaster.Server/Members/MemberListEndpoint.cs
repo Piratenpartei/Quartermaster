@@ -6,8 +6,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Members;
@@ -15,18 +13,15 @@ namespace Quartermaster.Server.Members;
 public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResponse> {
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public MemberListEndpoint(
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        PermissionContext perms) {
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -34,15 +29,13 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
     }
 
     public override async Task HandleAsync(MemberSearchRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        var allowedChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId.Value, PermissionIdentifier.ViewAllMembers, PermissionIdentifier.ViewMembers,
-            _globalPermRepo, _chapterPermRepo, _chapterRepo);
+        var allowedChapterIds = _perms.GetPermittedChapterIds(
+            PermissionIdentifier.ViewAllMembers, PermissionIdentifier.ViewMembers);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

@@ -7,7 +7,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
 
@@ -17,17 +16,17 @@ public class LoginLockoutListEndpoint : EndpointWithoutRequest<LoginLockoutListR
     private readonly LoginAttemptRepository _loginAttemptRepository;
     private readonly OptionRepository _optionRepository;
     private readonly ChapterRepository _chapterRepository;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public LoginLockoutListEndpoint(
         LoginAttemptRepository loginAttemptRepository,
         OptionRepository optionRepository,
         ChapterRepository chapterRepository,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _loginAttemptRepository = loginAttemptRepository;
         _optionRepository = optionRepository;
         _chapterRepository = chapterRepository;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -35,12 +34,11 @@ public class LoginLockoutListEndpoint : EndpointWithoutRequest<LoginLockoutListR
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewUsers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewUsers)) {
             await SendForbiddenAsync(ct);
             return;
         }

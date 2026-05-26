@@ -12,7 +12,6 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -20,24 +19,24 @@ namespace Quartermaster.Server.Meetings;
 public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListResponse> {
     private readonly MeetingRepository _meetingRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly RoleRepository _roleRepo;
     private readonly DbContext _db;
+    private readonly PermissionContext _perms;
 
     public MeetingListEndpoint(
         MeetingRepository meetingRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
         UserChapterPermissionRepository chapterPermRepo,
         RoleRepository roleRepo,
-        DbContext db) {
+        DbContext db,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
         _roleRepo = roleRepo;
         _db = db;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -46,7 +45,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
     }
 
     public override async Task HandleAsync(MeetingListRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
+        var userId = _perms.UserId;
 
         if (userId == null) {
             // Anonymous: only Public meetings.
@@ -61,8 +60,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
         //   (a) meetings in chapters where user has ViewMeetings (inheritance-aware), filtered by visibility rules
         //   (b) private meetings in chapters where user has direct officer/delegate role
         // plus global-ViewMeetings = sees everything.
-        var hasGlobalView = EndpointAuthorizationHelper.HasGlobalPermission(
-            userId.Value, PermissionIdentifier.ViewMeetings, _globalPermRepo);
+        var hasGlobalView = _perms.HasGlobal(PermissionIdentifier.ViewMeetings);
 
         if (hasGlobalView) {
             var (items, total) = _meetingRepo.List(

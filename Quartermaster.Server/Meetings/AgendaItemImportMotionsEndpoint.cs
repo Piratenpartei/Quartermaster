@@ -6,11 +6,8 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -33,20 +30,15 @@ public class AgendaItemImportMotionsEndpoint : Endpoint<AgendaItemImportMotionsR
     private readonly MeetingRepository _meetingRepo;
     private readonly AgendaItemRepository _agendaRepo;
     private readonly MotionRepository _motionRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public AgendaItemImportMotionsEndpoint(
         MeetingRepository meetingRepo, AgendaItemRepository agendaRepo,
-        MotionRepository motionRepo, ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo) {
+        MotionRepository motionRepo, PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _motionRepo = motionRepo;
-        _chapterRepo = chapterRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -60,12 +52,11 @@ public class AgendaItemImportMotionsEndpoint : Endpoint<AgendaItemImportMotionsR
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, PermissionIdentifier.EditMeetings, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings)) {
             await SendForbiddenAsync(ct);
             return;
         }
@@ -85,7 +76,7 @@ public class AgendaItemImportMotionsEndpoint : Endpoint<AgendaItemImportMotionsR
             if (alreadyLinked.Contains(motion.Id))
                 continue;
 
-            _agendaRepo.Create(new Data.Meetings.AgendaItem {
+            _agendaRepo.Create(new AgendaItem {
                 MeetingId = meeting.Id,
                 ParentId = req.ParentId,
                 Title = motion.Title,

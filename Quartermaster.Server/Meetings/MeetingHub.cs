@@ -12,8 +12,6 @@ using Quartermaster.Data.Collab;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Meetings;
@@ -57,36 +55,34 @@ public class MeetingHub : Hub {
     private readonly MeetingRepository _meetingRepo;
     private readonly AgendaItemRepository _agendaRepo;
     private readonly RoleRepository _roleRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly CollabDocumentRepository _collabRepo;
     private readonly OptionRepository _optionRepo;
+    private readonly PermissionContext _perms;
 
     public MeetingHub(
         MeetingRepository meetingRepo,
         AgendaItemRepository agendaRepo,
         RoleRepository roleRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo,
         ChapterRepository chapterRepo,
         CollabDocumentRepository collabRepo,
-        OptionRepository optionRepo) {
+        OptionRepository optionRepo,
+        PermissionContext perms) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _roleRepo = roleRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
         _chapterRepo = chapterRepo;
         _collabRepo = collabRepo;
         _optionRepo = optionRepo;
+        _perms = perms;
     }
 
     public static string GroupFor(Guid meetingId) => GroupPrefix + meetingId.ToString("N");
     public static string DocumentGroupFor(Guid agendaItemId) => "doc:" + agendaItemId.ToString("N");
 
     public async Task JoinMeeting(Guid meetingId) {
-        var userId = EndpointAuthorizationHelper.GetUserId(Context.User!);
+        _perms.Bind(Context.User!);
+        var userId = _perms.UserId;
 
         var meeting = _meetingRepo.Get(meetingId);
         if (meeting == null)
@@ -109,7 +105,8 @@ public class MeetingHub : Hub {
     /// per-agenda-item relay group so incoming updates get forwarded.
     /// </summary>
     public async Task<CollabDocumentSnapshot> LoadDocument(Guid agendaItemId) {
-        var userId = EndpointAuthorizationHelper.GetUserId(Context.User!);
+        _perms.Bind(Context.User!);
+        var userId = _perms.UserId;
 
         var item = _agendaRepo.Get(agendaItemId);
         if (item == null)
@@ -183,7 +180,8 @@ public class MeetingHub : Hub {
     /// can't poison the document state.
     /// </summary>
     public async Task SendUpdate(Guid agendaItemId, string updateBase64) {
-        var userId = EndpointAuthorizationHelper.GetUserId(Context.User!);
+        _perms.Bind(Context.User!);
+        var userId = _perms.UserId;
         if (userId == null)
             throw new HubException("unauthenticated");
 
@@ -207,7 +205,8 @@ public class MeetingHub : Hub {
     /// other clients. Awareness is ephemeral and requires only view access.
     /// </summary>
     public async Task SendAwareness(Guid agendaItemId, string awarenessBase64) {
-        var userId = EndpointAuthorizationHelper.GetUserId(Context.User!);
+        _perms.Bind(Context.User!);
+        var userId = _perms.UserId;
         if (userId == null)
             throw new HubException("unauthenticated");
 
@@ -233,7 +232,8 @@ public class MeetingHub : Hub {
     /// working without needing to parse Yjs binary on the server.
     /// </summary>
     public async Task SaveSnapshot(CollabSnapshotRequest req) {
-        var userId = EndpointAuthorizationHelper.GetUserId(Context.User!);
+        _perms.Bind(Context.User!);
+        var userId = _perms.UserId;
         if (userId == null)
             throw new HubException("unauthenticated");
 
@@ -307,16 +307,14 @@ public class MeetingHub : Hub {
             return meeting.Status != MeetingStatus.Draft
                 && meeting.Visibility == MeetingVisibility.Public;
         }
-        if (MeetingAccessHelper.CanUserViewMeeting(
-                userId, meeting, _roleRepo, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (MeetingAccessHelper.CanUserViewMeeting(userId, meeting, _roleRepo, _perms))
             return true;
-        }
         foreach (var perm in new[] {
             PermissionIdentifier.ViewMeetings,
             PermissionIdentifier.EditMeetings,
             PermissionIdentifier.CreateMeetings
         }) {
-            if (EndpointAuthorizationHelper.HasPermission(userId.Value, meeting.ChapterId, perm, _globalPermRepo, _chapterPermRepo, _chapterRepo))
+            if (_perms.Has(meeting.ChapterId, perm))
                 return true;
         }
         return false;
@@ -328,9 +326,7 @@ public class MeetingHub : Hub {
         // immutable — its protocol is considered final.
         if (meeting.Status != MeetingStatus.InProgress)
             return false;
-        return EndpointAuthorizationHelper.HasPermission(
-            userId, meeting.ChapterId, PermissionIdentifier.EditMeetings,
-            _globalPermRepo, _chapterPermRepo, _chapterRepo);
+        return _perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings);
     }
 
     private int ResolveSaveIntervalSeconds() {

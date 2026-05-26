@@ -3,27 +3,18 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Motions;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Motions;
 
 public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
     private readonly MotionRepository _motionRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly ChapterRepository _chapterRepo;
+    private readonly PermissionContext _perms;
 
-    public MotionStatusEndpoint(MotionRepository motionRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo) {
+    public MotionStatusEndpoint(MotionRepository motionRepo, PermissionContext perms) {
         _motionRepo = motionRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterRepo = chapterRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -37,12 +28,11 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.EditMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(motion.ChapterId, PermissionIdentifier.EditMotions)) {
             await SendForbiddenAsync(ct);
             return;
         }

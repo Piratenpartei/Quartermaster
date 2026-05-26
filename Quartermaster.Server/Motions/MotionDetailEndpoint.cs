@@ -9,8 +9,6 @@ using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Motions;
@@ -24,18 +22,16 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly DbContext _context;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public MotionDetailEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
         ChapterOfficerRepository officerRepo, DbContext context,
-        UserGlobalPermissionRepository globalPermRepo, UserChapterPermissionRepository chapterPermRepo) {
+        PermissionContext perms) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
         _context = context;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -51,12 +47,11 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
         }
 
         if (!motion.IsPublic) {
-            var userId = EndpointAuthorizationHelper.GetUserId(User);
-            if (userId == null) {
+            if (_perms.UserId == null) {
                 await SendNotFoundAsync(ct);
                 return;
             }
-            if (!EndpointAuthorizationHelper.HasPermission(userId.Value, motion.ChapterId, PermissionIdentifier.ViewMotions, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+            if (!_perms.Has(motion.ChapterId, PermissionIdentifier.ViewMotions)) {
                 await SendNotFoundAsync(ct);
                 return;
             }

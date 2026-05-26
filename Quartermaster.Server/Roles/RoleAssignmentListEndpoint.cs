@@ -7,7 +7,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Roles;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Roles;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
 
@@ -17,17 +16,17 @@ public class RoleAssignmentListEndpoint : EndpointWithoutRequest<List<UserRoleAs
     private readonly RoleRepository _roleRepo;
     private readonly UserRepository _userRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public RoleAssignmentListEndpoint(
         RoleRepository roleRepo,
         UserRepository userRepo,
         ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _roleRepo = roleRepo;
         _userRepo = userRepo;
         _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -35,12 +34,11 @@ public class RoleAssignmentListEndpoint : EndpointWithoutRequest<List<UserRoleAs
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ManageRoles, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ManageRoles)) {
             await SendForbiddenAsync(ct);
             return;
         }

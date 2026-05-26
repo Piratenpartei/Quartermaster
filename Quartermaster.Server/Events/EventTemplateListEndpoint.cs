@@ -7,29 +7,18 @@ using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
 public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTemplateDTO>> {
     private readonly EventRepository _eventRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
-    public EventTemplateListEndpoint(
-        EventRepository eventRepo,
-        ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+    public EventTemplateListEndpoint(EventRepository eventRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
-        _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -37,14 +26,12 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        var allowedChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId.Value, PermissionIdentifier.ViewTemplates, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+        var allowedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewTemplates);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

@@ -1,31 +1,21 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.I18n;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
 
 public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
     private readonly EventRepository _eventRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly ChapterRepository _chapterRepo;
+    private readonly PermissionContext _perms;
 
-    public EventStatusUpdateEndpoint(EventRepository eventRepo,
-        UserChapterPermissionRepository chapterPermRepo, UserGlobalPermissionRepository globalPermRepo,
-        ChapterRepository chapterRepo) {
+    public EventStatusUpdateEndpoint(EventRepository eventRepo, PermissionContext perms) {
         _eventRepo = eventRepo;
-        _chapterPermRepo = chapterPermRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterRepo = chapterRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -39,18 +29,16 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
             return;
         }
 
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        // Archive/unarchive uses DeleteEvents; other transitions use EditEvents
         var requiredPerm = req.Status == EventStatus.Archived || ev.Status == EventStatus.Archived
             ? PermissionIdentifier.DeleteEvents
             : PermissionIdentifier.EditEvents;
 
-        if (!EndpointAuthorizationHelper.HasPermission(userId.Value, ev.ChapterId, requiredPerm, _globalPermRepo, _chapterPermRepo, _chapterRepo)) {
+        if (!_perms.Has(ev.ChapterId, requiredPerm)) {
             await SendForbiddenAsync(ct);
             return;
         }
@@ -70,7 +58,6 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
         if (from == to)
             return false;
 
-        // Allowed manual transitions
         return (from, to) switch {
             (EventStatus.Draft, EventStatus.Active) => true,
             (EventStatus.Active, EventStatus.Draft) => true,

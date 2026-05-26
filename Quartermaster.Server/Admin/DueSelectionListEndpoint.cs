@@ -4,10 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
-using Quartermaster.Data.UserChapterPermissions;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Admin;
@@ -16,19 +13,13 @@ public class DueSelectionListEndpoint
     : Endpoint<DueSelectionListRequest, DueSelectionListResponse> {
 
     private readonly DueSelectionRepository _dueSelectionRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
-    private readonly UserChapterPermissionRepository _chapterPermRepo;
+    private readonly PermissionContext _perms;
 
     public DueSelectionListEndpoint(
         DueSelectionRepository dueSelectionRepo,
-        ChapterRepository chapterRepo,
-        UserGlobalPermissionRepository globalPermRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
+        PermissionContext perms) {
         _dueSelectionRepo = dueSelectionRepo;
-        _chapterRepo = chapterRepo;
-        _globalPermRepo = globalPermRepo;
-        _chapterPermRepo = chapterPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -36,14 +27,12 @@ public class DueSelectionListEndpoint
     }
 
     public override async Task HandleAsync(DueSelectionListRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
 
-        var allowedChapterIds = EndpointAuthorizationHelper.GetPermittedChapterIds(
-            userId.Value, PermissionIdentifier.ViewDueSelections, _globalPermRepo, _chapterPermRepo, _chapterRepo);
+        var allowedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewDueSelections);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

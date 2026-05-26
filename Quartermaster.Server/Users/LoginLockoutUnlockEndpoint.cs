@@ -4,7 +4,6 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
-using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
 
@@ -12,13 +11,13 @@ namespace Quartermaster.Server.Users;
 
 public class LoginLockoutUnlockEndpoint : Endpoint<LoginLockoutUnlockRequest> {
     private readonly LoginAttemptRepository _loginAttemptRepository;
-    private readonly UserGlobalPermissionRepository _globalPermRepo;
+    private readonly PermissionContext _perms;
 
     public LoginLockoutUnlockEndpoint(
         LoginAttemptRepository loginAttemptRepository,
-        UserGlobalPermissionRepository globalPermRepo) {
+        PermissionContext perms) {
         _loginAttemptRepository = loginAttemptRepository;
-        _globalPermRepo = globalPermRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -26,12 +25,11 @@ public class LoginLockoutUnlockEndpoint : Endpoint<LoginLockoutUnlockRequest> {
     }
 
     public override async Task HandleAsync(LoginLockoutUnlockRequest req, CancellationToken ct) {
-        var userId = EndpointAuthorizationHelper.GetUserId(User);
-        if (userId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(userId.Value, PermissionIdentifier.ViewUsers, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewUsers)) {
             await SendForbiddenAsync(ct);
             return;
         }

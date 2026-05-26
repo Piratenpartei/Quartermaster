@@ -13,11 +13,13 @@ namespace Quartermaster.Server.Users;
 public class GrantGlobalPermissionEndpoint : Endpoint<GrantGlobalPermissionRequest> {
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly PermissionRepository _permissionRepo;
+    private readonly PermissionContext _perms;
 
     public GrantGlobalPermissionEndpoint(UserGlobalPermissionRepository globalPermRepo,
-        PermissionRepository permissionRepo) {
+        PermissionRepository permissionRepo, PermissionContext perms) {
         _globalPermRepo = globalPermRepo;
         _permissionRepo = permissionRepo;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -25,12 +27,11 @@ public class GrantGlobalPermissionEndpoint : Endpoint<GrantGlobalPermissionReque
     }
 
     public override async Task HandleAsync(GrantGlobalPermissionRequest req, CancellationToken ct) {
-        var callerId = EndpointAuthorizationHelper.GetUserId(User);
-        if (callerId == null) {
+        if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!EndpointAuthorizationHelper.HasGlobalPermission(callerId.Value, PermissionIdentifier.CreateUser, _globalPermRepo)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.CreateUser)) {
             await SendForbiddenAsync(ct);
             return;
         }
