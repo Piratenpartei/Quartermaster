@@ -5,7 +5,7 @@ using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
 
-namespace Quartermaster.Api.Rendering;
+namespace Quartermaster.Rendering;
 
 public static class TemplateMockDataProvider {
     public static Dictionary<string, object> GetMockData(string templateModels) {

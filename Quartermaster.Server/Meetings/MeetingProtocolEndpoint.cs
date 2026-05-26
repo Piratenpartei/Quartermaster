@@ -8,7 +8,7 @@ using FastEndpoints;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;

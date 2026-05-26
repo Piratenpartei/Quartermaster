@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 

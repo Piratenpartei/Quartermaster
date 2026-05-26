@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;

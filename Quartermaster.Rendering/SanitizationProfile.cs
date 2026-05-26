@@ -1,4 +1,4 @@
-namespace Quartermaster.Api.Rendering;
+namespace Quartermaster.Rendering;
 
 public enum SanitizationProfile {
     Strict,

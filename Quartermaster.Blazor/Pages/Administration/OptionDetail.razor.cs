@@ -12,7 +12,7 @@ using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Options;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 

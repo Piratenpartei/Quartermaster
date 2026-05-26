@@ -5,7 +5,7 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.Motions;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Data.Motions;
 
 namespace Quartermaster.Server.Motions;

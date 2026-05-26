@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quartermaster.Blazor", "Qua
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quartermaster.Server.Tests", "Quartermaster.Server.Tests\Quartermaster.Server.Tests.csproj", "{5AE3A764-0141-4DB9-8940-017330A8A1B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Quartermaster.Rendering", "Quartermaster.Rendering\Quartermaster.Rendering.csproj", "{C56E323D-DE20-4AEF-A4A4-9222BF722F54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +90,18 @@ Global
 		{5AE3A764-0141-4DB9-8940-017330A8A1B4}.Release|x64.Build.0 = Release|Any CPU
 		{5AE3A764-0141-4DB9-8940-017330A8A1B4}.Release|x86.ActiveCfg = Release|Any CPU
 		{5AE3A764-0141-4DB9-8940-017330A8A1B4}.Release|x86.Build.0 = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|x64.Build.0 = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Debug|x86.Build.0 = Debug|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|x64.ActiveCfg = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|x64.Build.0 = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|x86.ActiveCfg = Release|Any CPU
+		{C56E323D-DE20-4AEF-A4A4-9222BF722F54}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

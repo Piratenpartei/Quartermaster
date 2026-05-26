@@ -1,4 +1,4 @@
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 
 namespace Quartermaster.Server.Tests.Rendering;
 

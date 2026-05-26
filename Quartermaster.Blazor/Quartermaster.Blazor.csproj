@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Quartermaster.Api\Quartermaster.Api.csproj" />
+    <ProjectReference Include="..\Quartermaster.Rendering\Quartermaster.Rendering.csproj" />
   </ItemGroup>
 
 </Project>

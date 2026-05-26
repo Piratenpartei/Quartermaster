@@ -1,6 +1,6 @@
 using Markdig;
 
-namespace Quartermaster.Api.Rendering;
+namespace Quartermaster.Rendering;
 
 public static class MarkdownService {
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()

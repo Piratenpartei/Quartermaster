@@ -1,6 +1,6 @@
 using Ganss.Xss;
 
-namespace Quartermaster.Api.Rendering;
+namespace Quartermaster.Rendering;
 
 public static class HtmlSanitizationService {
     private static readonly string[] FormattingTags = [

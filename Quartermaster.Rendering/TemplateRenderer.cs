@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Fluid;
 
-namespace Quartermaster.Api.Rendering;
+namespace Quartermaster.Rendering;
 
 public static class TemplateRenderer {
     private static readonly FluidParser Parser = new();

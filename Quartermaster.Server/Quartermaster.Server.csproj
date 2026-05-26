@@ -13,10 +13,8 @@
     <PackageReference Include="FluentMigrator" Version="6.2.0" />
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
-    <PackageReference Include="Fluid.Core" Version="3.0.0-beta.5" />
     <PackageReference Include="linq2db.AspNet" Version="5.4.1" />
     <PackageReference Include="MailKit" Version="4.15.1" />
-    <PackageReference Include="Markdig" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
     <PackageReference Include="QuestPDF" Version="2026.2.4" />
@@ -27,6 +25,7 @@
     <ProjectReference Include="..\Quartermaster.Api\Quartermaster.Api.csproj" />
     <ProjectReference Include="..\Quartermaster.Blazor\Quartermaster.Blazor.csproj" />
     <ProjectReference Include="..\Quartermaster.Data\Quartermaster.Data.csproj" />
+    <ProjectReference Include="..\Quartermaster.Rendering\Quartermaster.Rendering.csproj" />
   </ItemGroup>
 
 </Project>

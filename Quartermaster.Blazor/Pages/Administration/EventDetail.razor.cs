@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Events;
-using Quartermaster.Api.Rendering;
+using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
