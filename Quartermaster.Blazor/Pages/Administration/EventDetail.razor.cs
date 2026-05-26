@@ -38,11 +38,9 @@ public partial class EventDetail {
     private bool EditingTitle;
     private List<AuditLogDTO>? AuditLogs;
 
-    // Add item
     private string NewItemLabel { get; set; } = "";
     private ChecklistItemType NewItemType { get; set; } = ChecklistItemType.Text;
 
-    // Inline edit
     private Guid? EditingItemId;
     private string EditingItemLabel { get; set; } = "";
     private bool EditingUseDescription;
@@ -54,7 +52,6 @@ public partial class EventDetail {
     private string EditingMotionTitle { get; set; } = "";
     private string EditingMotionText { get; set; } = "";
 
-    // Email preview
     private Guid? ExpandedPreviewItemId;
     private Dictionary<Guid, string?> PreviewCache = new();
 
@@ -148,7 +145,6 @@ public partial class EventDetail {
         }
     }
 
-    // Checklist actions
     private async Task CheckTextItem(Guid itemId) {
         try {
             await Http.PostAsJsonAsync($"/api/events/{Id}/checklist/{itemId}/check",
@@ -181,7 +177,6 @@ public partial class EventDetail {
         }
     }
 
-    // Add item
     private async Task AddItem(ChecklistItemType itemType) {
         if (string.IsNullOrWhiteSpace(NewItemLabel))
             return;
@@ -210,7 +205,6 @@ public partial class EventDetail {
             await AddItem(NewItemType);
     }
 
-    // Inline edit
     private void StartEditing(EventChecklistItemDTO item) {
         EditingItemId = item.Id;
         EditingItemLabel = item.Label;

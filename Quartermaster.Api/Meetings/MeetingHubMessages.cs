@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Quartermaster.Api.Meetings;
 
@@ -11,9 +12,6 @@ public static class MeetingHubMethods {
     public const string AgendaItemChanged = "AgendaItemChanged";
     public const string MeetingStatusChanged = "MeetingStatusChanged";
     public const string PresenceChanged = "PresenceChanged";
-
-    // Collaborative editing — server → client broadcasts forwarded from other
-    // clients in the same meeting group.
     public const string ReceiveUpdate = "ReceiveUpdate";
     public const string ReceiveAwareness = "ReceiveAwareness";
 }
@@ -33,7 +31,7 @@ public class CollabDocumentSnapshot {
     /// contributed to this document. Accumulates across sessions so disconnected
     /// and deleted users' historical characters keep their original color and name.
     /// </summary>
-    public System.Collections.Generic.Dictionary<string, CollabAuthorInfo> KnownAuthors { get; set; } = new();
+    public Dictionary<string, CollabAuthorInfo> KnownAuthors { get; set; } = new();
 
     public int SaveIntervalSeconds { get; set; }
     public bool CanEdit { get; set; }
@@ -43,10 +41,10 @@ public class CollabDocumentSnapshot {
 }
 
 public class CollabSnapshotRequest {
-    public System.Guid AgendaItemId { get; set; }
+    public Guid AgendaItemId { get; set; }
     public string DocumentStateBase64 { get; set; } = "";
     public string PlainText { get; set; } = "";
-    public System.Collections.Generic.Dictionary<string, CollabAuthorInfo> KnownAuthors { get; set; } = new();
+    public Dictionary<string, CollabAuthorInfo> KnownAuthors { get; set; } = new();
 }
 
 /// <summary>Display info for a past or present collaborative-editor author.</summary>

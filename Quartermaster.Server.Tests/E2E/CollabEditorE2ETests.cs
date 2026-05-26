@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Playwright;
@@ -27,7 +28,6 @@ namespace Quartermaster.Server.Tests.E2E;
 /// </summary>
 [NotInParallel("CollabEditorE2E")]
 public class CollabEditorE2ETests : E2ETestBase {
-    // ---- Helpers ----------------------------------------------------------
 
     /// <summary>
     /// Shared fixture: one chapter, one in-progress meeting, one agenda item.
@@ -87,7 +87,7 @@ public class CollabEditorE2ETests : E2ETestBase {
     /// the Y.Text observer to attribute the inserted range cleanly.
     /// </summary>
     private static Task InsertAtEndAsync(IPage page, string text) {
-        var escaped = System.Text.Json.JsonSerializer.Serialize(text);
+        var escaped = JsonSerializer.Serialize(text);
         return page.EvaluateAsync(
             @$"() => {{
                 const cm = document.querySelector('.CodeMirror').CodeMirror;
@@ -100,7 +100,7 @@ public class CollabEditorE2ETests : E2ETestBase {
 
     /// <summary>Inserts text at a specific (line, ch) position.</summary>
     private static Task InsertAtAsync(IPage page, int line, int ch, string text) {
-        var escaped = System.Text.Json.JsonSerializer.Serialize(text);
+        var escaped = JsonSerializer.Serialize(text);
         return page.EvaluateAsync(
             @$"() => {{
                 const cm = document.querySelector('.CodeMirror').CodeMirror;
@@ -129,7 +129,7 @@ public class CollabEditorE2ETests : E2ETestBase {
                 });
                 return JSON.stringify(marks);
             }");
-        return System.Text.Json.JsonSerializer.Deserialize<List<MarkerRow>>(json)
+        return JsonSerializer.Deserialize<List<MarkerRow>>(json)
             ?? new List<MarkerRow>();
     }
 
@@ -140,7 +140,7 @@ public class CollabEditorE2ETests : E2ETestBase {
                 const map = window.cmEditor._debugKnownAuthors(handle);
                 return JSON.stringify(map);
             }");
-        var parsed = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, AuthorInfoJson>>(json)
+        var parsed = JsonSerializer.Deserialize<Dictionary<string, AuthorInfoJson>>(json)
             ?? new Dictionary<string, AuthorInfoJson>();
         var result = new Dictionary<string, string>();
         foreach (var kv in parsed) {
@@ -155,7 +155,7 @@ public class CollabEditorE2ETests : E2ETestBase {
     /// more reliable than a hardcoded sleep.
     /// </summary>
     private static Task WaitForEditorTextAsync(IPage page, string expectedSubstring, int timeoutMs = 10000) {
-        var escaped = System.Text.Json.JsonSerializer.Serialize(expectedSubstring);
+        var escaped = JsonSerializer.Serialize(expectedSubstring);
         return page.WaitForFunctionAsync(
             @$"() => {{
                 const cm = document.querySelector('.CodeMirror')?.CodeMirror;
@@ -174,8 +174,6 @@ public class CollabEditorE2ETests : E2ETestBase {
             }}",
             new PageWaitForFunctionOptions { Timeout = timeoutMs });
     }
-
-    // ---- Tests ------------------------------------------------------------
 
     [Test]
     public async Task Two_users_see_each_others_text_with_correct_author_colors() {
@@ -567,8 +565,6 @@ public class CollabEditorE2ETests : E2ETestBase {
             "() => /Gespeichert \\d{2}:\\d{2}:\\d{2}/.test(document.body.textContent)",
             new PageWaitForFunctionOptions { Timeout = 30000 });
     }
-
-    // ---- Private types ----------------------------------------------------
 
     private class MarkerRow {
         public string title { get; set; } = "";

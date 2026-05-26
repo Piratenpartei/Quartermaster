@@ -9,6 +9,9 @@ using LinqToDB;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data;
+using Quartermaster.Data.Options;
+using Quartermaster.Data.Permissions;
+using Quartermaster.Data.Roles;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -34,9 +37,9 @@ public abstract class IntegrationTestBase : IDisposable {
         // SupplementDefaults provides — CleanAllTables wipes them, but the shared factory
         // only runs SupplementDefaults once at startup.
         using (var scope = Factory.Services.CreateScope()) {
-            scope.ServiceProvider.GetRequiredService<Quartermaster.Data.Permissions.PermissionRepository>().SupplementDefaults();
-            scope.ServiceProvider.GetRequiredService<Quartermaster.Data.Roles.RoleRepository>().SupplementDefaults();
-            scope.ServiceProvider.GetRequiredService<Quartermaster.Data.Options.OptionRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         }
         Db = Database.CreateDbContext();
         Builder = new TestDataBuilder(Db);

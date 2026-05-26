@@ -66,6 +66,14 @@ public class RoleCreateEndpoint : Endpoint<RoleCreateRequest, RoleDTO> {
         _roleRepo.Create(role);
         _roleRepo.SetPermissions(role.Id, req.Permissions);
 
-        await SendAsync(RoleDtoBuilder.ToDto(role, req.Permissions), cancellation: ct);
+        await SendAsync(new RoleDTO {
+            Id = role.Id,
+            Identifier = role.Identifier,
+            Name = role.Name,
+            Description = role.Description,
+            Scope = role.Scope,
+            IsSystem = role.IsSystem,
+            Permissions = req.Permissions
+        }, cancellation: ct);
     }
 }

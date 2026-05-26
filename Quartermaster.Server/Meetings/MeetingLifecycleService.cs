@@ -166,7 +166,60 @@ public class MeetingLifecycleService {
             );
         }
 
-        return MeetingDtoBuilder.BuildMeetingDetailDTO(meeting, chapterName, agendaItems, motionsById, voteTallies);
+        var itemDtos = agendaItems
+            .OrderBy(a => a.ParentId.HasValue ? 1 : 0)
+            .ThenBy(a => a.ParentId)
+            .ThenBy(a => a.SortOrder)
+            .Select(a => {
+                string? motionTitle = null;
+                MotionApprovalStatus? motionApprovalStatus = null;
+                var approveCount = 0;
+                var denyCount = 0;
+                var abstainCount = 0;
+                if (a.MotionId.HasValue && motionsById.TryGetValue(a.MotionId.Value, out var motion)) {
+                    motionTitle = motion.Title;
+                    motionApprovalStatus = motion.ApprovalStatus;
+                    if (voteTallies.TryGetValue(a.MotionId.Value, out var tally)) {
+                        approveCount = tally.Approve;
+                        denyCount = tally.Deny;
+                        abstainCount = tally.Abstain;
+                    }
+                }
+                return new AgendaItemDTO {
+                    Id = a.Id,
+                    ParentId = a.ParentId,
+                    SortOrder = a.SortOrder,
+                    Title = a.Title,
+                    ItemType = a.ItemType,
+                    MotionId = a.MotionId,
+                    MotionTitle = motionTitle,
+                    MotionApprovalStatus = motionApprovalStatus,
+                    MotionVoteApproveCount = approveCount,
+                    MotionVoteDenyCount = denyCount,
+                    MotionVoteAbstainCount = abstainCount,
+                    Notes = a.Notes,
+                    Resolution = a.Resolution,
+                    StartedAt = a.StartedAt,
+                    CompletedAt = a.CompletedAt
+                };
+            })
+            .ToList();
+
+        return new MeetingDetailDTO {
+            Id = meeting.Id,
+            ChapterId = meeting.ChapterId,
+            ChapterName = chapterName,
+            Title = meeting.Title,
+            MeetingDate = meeting.MeetingDate,
+            Status = meeting.Status,
+            Visibility = meeting.Visibility,
+            Location = meeting.Location,
+            Description = meeting.Description,
+            StartedAt = meeting.StartedAt,
+            CompletedAt = meeting.CompletedAt,
+            ArchivedPdfPath = meeting.ArchivedPdfPath,
+            AgendaItems = itemDtos
+        };
     }
 
     private static string BuildResolutionText(MotionApprovalStatus status, int approve, int deny, int abstain) {

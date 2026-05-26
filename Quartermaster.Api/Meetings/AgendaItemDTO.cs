@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Api.Meetings;
@@ -22,7 +23,7 @@ public class AgendaItemDTO {
     /// <summary>
     /// For Motion-type items: per-officer vote breakdown. For Presence-type items: officer attendance list.
     /// </summary>
-    public System.Collections.Generic.List<AgendaItemOfficerVoteDTO>? OfficerVotes { get; set; }
+    public List<AgendaItemOfficerVoteDTO>? OfficerVotes { get; set; }
 }
 
 /// <summary>
@@ -33,7 +34,7 @@ public class AgendaItemOfficerVoteDTO {
     public string UserName { get; set; } = "";
     public string OfficerRole { get; set; } = "";
     public VoteType? Vote { get; set; }
-    public bool IsPresent { get; set; } // used for Presence items
+    public bool IsPresent { get; set; }
 }
 
 public enum AgendaItemType {

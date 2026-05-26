@@ -32,7 +32,6 @@ public class RoleRepository {
     public void Create(Role role) => _context.Insert(role);
 
     public void SupplementDefaults() {
-        // Seed "Chapter Officer" system role (locked, ChapterScoped, inherits to children)
         var officer = GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer);
         if (officer == null) {
             officer = new Role {
@@ -46,12 +45,10 @@ public class RoleRepository {
             };
             Create(officer);
         } else if (!officer.InheritsToChildren) {
-            // Correct drift — officers should always inherit.
             _context.Roles.Where(r => r.Id == officer.Id)
                 .Set(r => r.InheritsToChildren, true).Update();
         }
 
-        // Seed "General Chapter Delegate" system role (locked, ChapterScoped, does NOT inherit)
         var delegateRole = GetByIdentifier(PermissionIdentifier.SystemRole.GeneralChapterDelegate);
         if (delegateRole == null) {
             delegateRole = new Role {
@@ -65,12 +62,10 @@ public class RoleRepository {
             };
             Create(delegateRole);
         } else if (delegateRole.InheritsToChildren) {
-            // Correct drift — delegates must never inherit.
             _context.Roles.Where(r => r.Id == delegateRole.Id)
                 .Set(r => r.InheritsToChildren, false).Update();
         }
 
-        // Always refresh permissions on locked system roles to match DefaultOfficerPermissions.
         SetPermissions(officer.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(delegateRole.Id, PermissionIdentifier.DefaultOfficerPermissions);
     }

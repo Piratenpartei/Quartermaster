@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -128,15 +129,16 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
         var agendaItems = _agendaRepo.GetForMeeting(meeting.Id);
         var chapterName = _chapterRepo.Get(meeting.ChapterId)?.Name ?? "";
 
-        var motionsById = new System.Collections.Generic.Dictionary<Guid, Motion>();
-        var voteTallies = new System.Collections.Generic.Dictionary<Guid, (int Approve, int Deny, int Abstain)>();
+        var motionsById = new Dictionary<Guid, Motion>();
+        var voteTallies = new Dictionary<Guid, (int Approve, int Deny, int Abstain)>();
         foreach (var mid in agendaItems
                      .Where(a => a.MotionId.HasValue)
                      .Select(a => a.MotionId!.Value)
                      .Distinct()) {
             var m = _motionRepo.Get(mid);
-            if (m != null)
+            if (m != null) {
                 motionsById[mid] = m;
+            }
             var votes = _motionRepo.GetVotes(mid);
             voteTallies[mid] = (
                 votes.Count(v => v.Vote == VoteType.Approve),
@@ -145,6 +147,59 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
             );
         }
 
-        return MeetingDtoBuilder.BuildMeetingDetailDTO(meeting, chapterName, agendaItems, motionsById, voteTallies);
+        var itemDtos = agendaItems
+            .OrderBy(a => a.ParentId.HasValue ? 1 : 0)
+            .ThenBy(a => a.ParentId)
+            .ThenBy(a => a.SortOrder)
+            .Select(a => {
+                string? motionTitle = null;
+                MotionApprovalStatus? motionApprovalStatus = null;
+                var approveCount = 0;
+                var denyCount = 0;
+                var abstainCount = 0;
+                if (a.MotionId.HasValue && motionsById.TryGetValue(a.MotionId.Value, out var motion)) {
+                    motionTitle = motion.Title;
+                    motionApprovalStatus = motion.ApprovalStatus;
+                    if (voteTallies.TryGetValue(a.MotionId.Value, out var tally)) {
+                        approveCount = tally.Approve;
+                        denyCount = tally.Deny;
+                        abstainCount = tally.Abstain;
+                    }
+                }
+                return new AgendaItemDTO {
+                    Id = a.Id,
+                    ParentId = a.ParentId,
+                    SortOrder = a.SortOrder,
+                    Title = a.Title,
+                    ItemType = a.ItemType,
+                    MotionId = a.MotionId,
+                    MotionTitle = motionTitle,
+                    MotionApprovalStatus = motionApprovalStatus,
+                    MotionVoteApproveCount = approveCount,
+                    MotionVoteDenyCount = denyCount,
+                    MotionVoteAbstainCount = abstainCount,
+                    Notes = a.Notes,
+                    Resolution = a.Resolution,
+                    StartedAt = a.StartedAt,
+                    CompletedAt = a.CompletedAt
+                };
+            })
+            .ToList();
+
+        return new MeetingDetailDTO {
+            Id = meeting.Id,
+            ChapterId = meeting.ChapterId,
+            ChapterName = chapterName,
+            Title = meeting.Title,
+            MeetingDate = meeting.MeetingDate,
+            Status = meeting.Status,
+            Visibility = meeting.Visibility,
+            Location = meeting.Location,
+            Description = meeting.Description,
+            StartedAt = meeting.StartedAt,
+            CompletedAt = meeting.CompletedAt,
+            ArchivedPdfPath = meeting.ArchivedPdfPath,
+            AgendaItems = itemDtos
+        };
     }
 }

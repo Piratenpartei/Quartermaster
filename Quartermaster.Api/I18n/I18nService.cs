@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Web;
@@ -75,7 +76,7 @@ public class I18nService {
         var query = input.Substring(queryIdx + 1);
         var parameters = new Dictionary<string, string>();
 
-        foreach (var pair in query.Split('&', System.StringSplitOptions.RemoveEmptyEntries)) {
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries)) {
             var eq = pair.IndexOf('=');
             if (eq < 0) {
                 parameters[HttpUtility.UrlDecode(pair)] = "";

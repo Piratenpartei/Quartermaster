@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@ public abstract class E2ETestBase : IDisposable {
     private IPlaywright _playwright = default!;
     private IBrowser _browser = default!;
     private IBrowserContext _context = default!;
-    private readonly System.Collections.Generic.List<IBrowserContext> _extraContexts = new();
+    private readonly List<IBrowserContext> _extraContexts = new();
     private bool _disposed;
 
     protected E2ETestFactory Factory { get; private set; } = default!;

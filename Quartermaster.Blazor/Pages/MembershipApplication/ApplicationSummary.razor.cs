@@ -9,6 +9,8 @@ using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Blazor.Pages.DueSelector;
 using Quartermaster.Blazor.Services;
 
+using Quartermaster.Api.DueSelector;
+
 namespace Quartermaster.Blazor.Pages.MembershipApplication;
 
 public partial class ApplicationSummary {

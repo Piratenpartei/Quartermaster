@@ -44,8 +44,6 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
     [Parameter]
     public string CssClass { get; set; } = "";
 
-    // --- Collab-mode parameters ---
-
     /// <summary>When set together with <see cref="HubClient"/>, switches to collaborative editing.</summary>
     [Parameter]
     public Guid? AgendaItemId { get; set; }

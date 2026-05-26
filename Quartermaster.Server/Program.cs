@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Net;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.RateLimiting;
@@ -19,9 +21,17 @@ using Quartermaster.Api.Users;
 using Quartermaster.Data;
 using LinqToDB.AspNet;
 using LinqToDB;
+using Quartermaster.Data.AuditLog;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Migrations;
+using Quartermaster.Data.Options;
+using Quartermaster.Server.AdministrativeDivisions;
+using Quartermaster.Server.Antiforgery;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
+using Quartermaster.Server.Events;
+using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
 using Quartermaster.Server.Security;
 
@@ -30,7 +40,7 @@ namespace Quartermaster.Server;
 public partial class Program {
     public static void Main(string[] args) {
         if (args.Length > 0 && args[0] == "init-admin") {
-            System.Environment.Exit(Quartermaster.Server.Cli.AdminInitCommand.Execute(args));
+            Environment.Exit(AdminInitCommand.Execute(args));
             return;
         }
 
@@ -90,13 +100,13 @@ public partial class Program {
         // the Blazor WASM client and external API consumers can fetch it.
         // Single source of truth, no embedding.
         builder.Services.AddSingleton<I18nService>(_ => {
-            var path = System.IO.Path.Combine(builder.Environment.WebRootPath ?? "wwwroot", "i18n", "de.json");
-            var json = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : "";
+            var path = Path.Combine(builder.Environment.WebRootPath ?? "wwwroot", "i18n", "de.json");
+            var json = File.Exists(path) ? File.ReadAllText(path) : "";
             return new I18nService(json);
         });
 
-        builder.Services.AddSingleton<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportService>();
-        builder.Services.AddHostedService<Quartermaster.Server.AdministrativeDivisions.AdminDivisionImportHostedService>();
+        builder.Services.AddSingleton<AdminDivisionImportService>();
+        builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 
         builder.Services.AddSingleton<MemberImportService>();
         builder.Services.AddHostedService<MemberImportHostedService>();
@@ -107,8 +117,8 @@ public partial class Program {
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
-        builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
-        builder.Services.AddScoped<Quartermaster.Server.Meetings.MeetingLifecycleService>();
+        builder.Services.AddScoped<ChecklistItemExecutor>();
+        builder.Services.AddScoped<MeetingLifecycleService>();
 
         builder.Services.AddHttpClient();
         builder.Services.AddMemoryCache();
@@ -117,7 +127,7 @@ public partial class Program {
             filter: x => x.ValidatorType.BaseType?.GetGenericTypeDefinition() != typeof(Validator<>));
         builder.Services.AddFastEndpoints();
         builder.Services.AddSignalR();
-        builder.Services.AddScoped<Quartermaster.Server.Meetings.IMeetingNotifier, Quartermaster.Server.Meetings.MeetingNotifier>();
+        builder.Services.AddScoped<IMeetingNotifier, MeetingNotifier>();
         builder.Services.AddAntiforgery(options => {
             options.HeaderName = "X-CSRF-TOKEN";
             options.Cookie.Name = ".Quartermaster.Antiforgery";
@@ -134,7 +144,7 @@ public partial class Program {
     public static void ConfigureMiddleware(WebApplication app) {
         ConfigureForwardedHeaders(app);
 
-        app.UseMiddleware<Quartermaster.Server.Security.SecurityHeadersMiddleware>();
+        app.UseMiddleware<SecurityHeadersMiddleware>();
 
         app.UseExceptionHandler(appError => {
             appError.Run(async context => {
@@ -153,9 +163,9 @@ public partial class Program {
         app.UseAuthentication();
         app.Use(async (context, next) => {
             if (context.User.Identity?.IsAuthenticated == true) {
-                var idClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                var idClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
                 if (idClaim != null && Guid.TryParse(idClaim.Value, out var userId)) {
-                    var auditLog = context.RequestServices.GetRequiredService<Quartermaster.Data.AuditLog.AuditLogRepository>();
+                    var auditLog = context.RequestServices.GetRequiredService<AuditLogRepository>();
                     auditLog.SetCurrentUser(userId, context.User.Identity.Name ?? "System");
                 }
             }
@@ -164,7 +174,7 @@ public partial class Program {
 
         // Antiforgery validation must run after authentication so identity-bound CSRF tokens
         // match the user the cookie identifies (anonymous-context validation false-rejects).
-        app.UseMiddleware<Quartermaster.Server.Antiforgery.AntiforgeryMiddleware>();
+        app.UseMiddleware<AntiforgeryMiddleware>();
         app.UseAuthorization();
         app.UseFastEndpoints(c => {
             c.Errors.UseProblemDetails();
@@ -173,7 +183,7 @@ public partial class Program {
 #pragma warning disable ASP0014 // MapFallbackToFile does not exist as direct mapping.
         app.UseEndpoints(ep => {
             ep.MapStaticAssets();
-            ep.MapHub<Quartermaster.Server.Meetings.MeetingHub>("/hubs/meeting");
+            ep.MapHub<MeetingHub>("/hubs/meeting");
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014
@@ -198,8 +208,8 @@ public partial class Program {
         builder.Services.AddRateLimiter(options => {
             options.RejectionStatusCode = 429;
             options.AddPolicy(AnonymousCreateRateLimitPolicy, httpContext => {
-                var optionRepo = httpContext.RequestServices.GetRequiredService<Quartermaster.Data.Options.OptionRepository>();
-                var chapterRepo = httpContext.RequestServices.GetRequiredService<Quartermaster.Data.Chapters.ChapterRepository>();
+                var optionRepo = httpContext.RequestServices.GetRequiredService<OptionRepository>();
+                var chapterRepo = httpContext.RequestServices.GetRequiredService<ChapterRepository>();
 
                 var permits = ResolvePositiveInt(optionRepo, chapterRepo,
                     "auth.ratelimit.anonymous_create_permits", FallbackAnonymousCreatePermits);
@@ -219,8 +229,8 @@ public partial class Program {
     }
 
     private static int ResolvePositiveInt(
-        Quartermaster.Data.Options.OptionRepository options,
-        Quartermaster.Data.Chapters.ChapterRepository chapters,
+        OptionRepository options,
+        ChapterRepository chapters,
         string identifier, int fallback) {
         var raw = options.ResolveValue(identifier, null, chapters);
         if (int.TryParse(raw, out var parsed) && parsed > 0)

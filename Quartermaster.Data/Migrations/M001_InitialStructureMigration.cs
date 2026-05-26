@@ -1,3 +1,4 @@
+using System.Data;
 using FluentMigrator;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
@@ -99,7 +100,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_Tokens_UserId_User_Id")
             .FromTable(Token.TableName).ForeignColumn(nameof(Token.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.Table(Permission.TableName)
             .WithColumn(nameof(Permission.Id)).AsGuid().PrimaryKey().Indexed()
@@ -190,7 +191,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MotionId))
             .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.ForeignKey("FK_MotionVotes_UserId_Users_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.UserId))
@@ -215,7 +216,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_SystemOptions_ChapterId_Chapters_Id")
             .FromTable(SystemOption.TableName).ForeignColumn(nameof(SystemOption.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.Table(DueSelection.TableName)
             .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
@@ -420,7 +421,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_EventChecklistItems_EventId_Events_Id")
             .FromTable(EventChecklistItem.TableName).ForeignColumn(nameof(EventChecklistItem.EventId))
             .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.Table(EmailLog.TableName)
             .WithColumn(nameof(EmailLog.Id)).AsGuid().PrimaryKey()
@@ -499,7 +500,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_RolePermissions_RoleId_Roles_Id")
             .FromTable(RolePermission.TableName).ForeignColumn(nameof(RolePermission.RoleId))
             .ToTable(Role.TableName).PrimaryColumn(nameof(Role.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.Table(UserRoleAssignment.TableName)
             .WithColumn(nameof(UserRoleAssignment.Id)).AsGuid().PrimaryKey()
@@ -515,17 +516,17 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_UserRoleAssignments_UserId_Users_Id")
             .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.UserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.ForeignKey("FK_UserRoleAssignments_RoleId_Roles_Id")
             .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.RoleId))
             .ToTable(Role.TableName).PrimaryColumn(nameof(Role.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.ForeignKey("FK_UserRoleAssignments_ChapterId_Chapters_Id")
             .FromTable(UserRoleAssignment.TableName).ForeignColumn(nameof(UserRoleAssignment.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.Table(Meeting.TableName)
             .WithColumn(nameof(Meeting.Id)).AsGuid().PrimaryKey()
@@ -552,7 +553,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_Meetings_ChapterId_Chapters_Id")
             .FromTable(Meeting.TableName).ForeignColumn(nameof(Meeting.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
-            .OnDelete(System.Data.Rule.None);
+            .OnDelete(Rule.None);
 
         Create.Table(AgendaItem.TableName)
             .WithColumn(nameof(AgendaItem.Id)).AsGuid().PrimaryKey()
@@ -575,17 +576,17 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_AgendaItems_MeetingId_Meetings_Id")
             .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.MeetingId))
             .ToTable(Meeting.TableName).PrimaryColumn(nameof(Meeting.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.ForeignKey("FK_AgendaItems_ParentId_AgendaItems_Id")
             .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.ParentId))
             .ToTable(AgendaItem.TableName).PrimaryColumn(nameof(AgendaItem.Id))
-            .OnDelete(System.Data.Rule.Cascade);
+            .OnDelete(Rule.Cascade);
 
         Create.ForeignKey("FK_AgendaItems_MotionId_Motions_Id")
             .FromTable(AgendaItem.TableName).ForeignColumn(nameof(AgendaItem.MotionId))
             .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id))
-            .OnDelete(System.Data.Rule.SetNull);
+            .OnDelete(Rule.SetNull);
 
         Create.Index("IX_MotionVotes_MeetingId").OnTable(MotionVote.TableName)
             .OnColumn(nameof(MotionVote.MeetingId)).Ascending();
@@ -593,7 +594,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.ForeignKey("FK_MotionVotes_MeetingId_Meetings_Id")
             .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MeetingId))
             .ToTable(Meeting.TableName).PrimaryColumn(nameof(Meeting.Id))
-            .OnDelete(System.Data.Rule.SetNull);
+            .OnDelete(Rule.SetNull);
 
         Create.Table(CollabDocument.TableName)
             .WithColumn(nameof(CollabDocument.Id)).AsGuid().PrimaryKey()

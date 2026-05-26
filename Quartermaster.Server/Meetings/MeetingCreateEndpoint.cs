@@ -61,6 +61,16 @@ public class MeetingCreateEndpoint : Endpoint<MeetingCreateRequest, MeetingDTO> 
 
         _meetingRepo.Create(meeting);
 
-        await SendAsync(MeetingDtoBuilder.BuildMeetingDTO(meeting, chapter.Name, 0), cancellation: ct);
+        await SendAsync(new MeetingDTO {
+            Id = meeting.Id,
+            ChapterId = meeting.ChapterId,
+            ChapterName = chapter.Name,
+            Title = meeting.Title,
+            MeetingDate = meeting.MeetingDate,
+            Status = meeting.Status,
+            Visibility = meeting.Visibility,
+            Location = meeting.Location,
+            AgendaItemCount = 0
+        }, cancellation: ct);
     }
 }

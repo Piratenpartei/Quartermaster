@@ -2,6 +2,8 @@
 using Quartermaster.Blazor.Services;
 using System.Diagnostics;
 
+using Quartermaster.Api.DueSelector;
+
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class PaymentOptionSelection {

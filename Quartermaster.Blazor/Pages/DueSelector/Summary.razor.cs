@@ -5,6 +5,8 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Pages.MembershipApplication;
 using Quartermaster.Blazor.Services;
 
+using Quartermaster.Api.DueSelector;
+
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class Summary {

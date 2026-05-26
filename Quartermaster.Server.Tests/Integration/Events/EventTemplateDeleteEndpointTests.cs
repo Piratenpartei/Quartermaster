@@ -48,7 +48,7 @@ public class EventTemplateDeleteEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.DeleteAsync($"/api/eventtemplates/{template.Id}");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var remaining = Db.EventTemplates.Where(t => t.Id == template.Id).Count();
+        var remaining = Db.EventTemplates.Count(t => t.Id == template.Id);
         await Assert.That(remaining).IsEqualTo(0);
     }
 

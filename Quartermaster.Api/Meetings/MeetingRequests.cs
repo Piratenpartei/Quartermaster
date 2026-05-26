@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Api.Meetings;
@@ -37,7 +38,7 @@ public class MeetingListRequest : IPaginatedRequest {
 }
 
 public class MeetingListResponse : IPaginatedResponse<MeetingDTO> {
-    public System.Collections.Generic.List<MeetingDTO> Items { get; set; } = new();
+    public List<MeetingDTO> Items { get; set; } = new();
     public int TotalCount { get; set; }
     public int Page { get; set; }
     public int PageSize { get; set; }

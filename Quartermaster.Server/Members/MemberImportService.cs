@@ -39,7 +39,9 @@ public class MemberImportService {
         var fileName = displayFileName ?? Path.GetFileName(filePath);
         var fileHash = ComputeFileHash(filePath);
         var errors = new List<string>();
-        int totalRecords = 0, newRecords = 0, updatedRecords = 0;
+        var totalRecords = 0;
+        var newRecords = 0;
+        var updatedRecords = 0;
 
         using var scope = _scopeFactory.CreateScope();
         var memberRepo = scope.ServiceProvider.GetRequiredService<MemberRepository>();

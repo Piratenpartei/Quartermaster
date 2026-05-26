@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
+using Quartermaster.Api.DueSelector;
+
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class UserDataInput {

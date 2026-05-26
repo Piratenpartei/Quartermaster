@@ -36,7 +36,15 @@ public class RoleListEndpoint : EndpointWithoutRequest<List<RoleDTO>> {
         }
 
         var roles = _roleRepo.GetAll();
-        var dtos = roles.Select(r => RoleDtoBuilder.ToDto(r, _roleRepo.GetPermissions(r.Id))).ToList();
+        var dtos = roles.Select(r => new RoleDTO {
+            Id = r.Id,
+            Identifier = r.Identifier,
+            Name = r.Name,
+            Description = r.Description,
+            Scope = r.Scope,
+            IsSystem = r.IsSystem,
+            Permissions = _roleRepo.GetPermissions(r.Id)
+        }).ToList();
         await SendAsync(dtos, cancellation: ct);
     }
 }

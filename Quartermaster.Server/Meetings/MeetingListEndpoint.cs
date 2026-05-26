@@ -181,11 +181,17 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
             .Select(g => new { MeetingId = g.Key, Count = g.Count() })
             .ToDictionary(x => x.MeetingId, x => x.Count);
 
-        var dtos = items.Select(m => MeetingDtoBuilder.BuildMeetingDTO(
-            m,
-            chapterNames.TryGetValue(m.ChapterId, out var n) ? n : "",
-            counts.TryGetValue(m.Id, out var c) ? c : 0
-        )).ToList();
+        var dtos = items.Select(m => new MeetingDTO {
+            Id = m.Id,
+            ChapterId = m.ChapterId,
+            ChapterName = chapterNames.TryGetValue(m.ChapterId, out var n) ? n : "",
+            Title = m.Title,
+            MeetingDate = m.MeetingDate,
+            Status = m.Status,
+            Visibility = m.Visibility,
+            Location = m.Location,
+            AgendaItemCount = counts.TryGetValue(m.Id, out var c) ? c : 0
+        }).ToList();
 
         await SendAsync(new MeetingListResponse {
             Items = dtos,

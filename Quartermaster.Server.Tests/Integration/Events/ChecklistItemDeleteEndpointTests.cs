@@ -50,7 +50,7 @@ public class ChecklistItemDeleteEndpointTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.DeleteAsync($"/api/events/{ev.Id}/checklist/{item.Id}");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var remaining = Db.EventChecklistItems.Where(i => i.Id == item.Id).Count();
+        var remaining = Db.EventChecklistItems.Count(i => i.Id == item.Id);
         await Assert.That(remaining).IsEqualTo(0);
     }
 

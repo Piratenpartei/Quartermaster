@@ -1,4 +1,4 @@
-﻿using LinqToDB;
+using LinqToDB;
 using Quartermaster.Api;
 using System;
 using System.Collections.Generic;
@@ -7,26 +7,25 @@ using System.Linq;
 namespace Quartermaster.Data.Permissions;
 
 public class PermissionRepository {
-	private readonly DbContext _context;
+    private readonly DbContext _context;
 
-	public PermissionRepository(DbContext context) {
-		_context = context;
-	}
+    public PermissionRepository(DbContext context) {
+        _context = context;
+    }
 
     public List<Permission> GetAll()
-		=> _context.Permissions.OrderBy(p => p.Identifier).ToList();
+        => _context.Permissions.OrderBy(p => p.Identifier).ToList();
 
     public Permission? GetByIdentifier(string identifier)
-		=> _context.Permissions.Where(p => p.Identifier == identifier).FirstOrDefault();
+        => _context.Permissions.Where(p => p.Identifier == identifier).FirstOrDefault();
 
     public void Create(Permission permission) => _context.Insert(permission);
 
     public void SupplementDefaults() {
-        // Global permissions
-		AddIfNotExists(PermissionIdentifier.CreateUser, "Benutzer Erstellen", true);
-		AddIfNotExists(PermissionIdentifier.ViewUsers, "Benutzer anzeigen", true);
-		AddIfNotExists(PermissionIdentifier.DeleteUsers, "Benutzer löschen", true);
-		AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
+        AddIfNotExists(PermissionIdentifier.CreateUser, "Benutzer Erstellen", true);
+        AddIfNotExists(PermissionIdentifier.ViewUsers, "Benutzer anzeigen", true);
+        AddIfNotExists(PermissionIdentifier.DeleteUsers, "Benutzer löschen", true);
+        AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
         AddIfNotExists(PermissionIdentifier.ViewOptions, "Einstellungen anzeigen", true);
         AddIfNotExists(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
         AddIfNotExists(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);
@@ -37,7 +36,6 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
         AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
 
-        // Chapter-scoped permissions
         AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);
         AddIfNotExists(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge Bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.ViewDueSelections, "Beitragseinstufungen Einsehen", false);
@@ -60,9 +58,9 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.CreateMeetings, "Sitzungen erstellen", false);
         AddIfNotExists(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
-	}
+    }
 
-	private void AddIfNotExists(string identifier, string displayName, bool global) {
+    private void AddIfNotExists(string identifier, string displayName, bool global) {
         if (GetByIdentifier(identifier) != null)
             return;
 

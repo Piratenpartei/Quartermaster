@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -103,7 +104,7 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
             .ToList();
         var allVotes = motionIds.Count > 0
             ? _db.MotionVotes.Where(v => motionIds.Contains(v.MotionId)).ToList()
-            : new List<Data.Motions.MotionVote>();
+            : new List<MotionVote>();
 
         var itemDtos = agendaItems
             .OrderBy(a => a.ParentId.HasValue ? 1 : 0)
@@ -111,7 +112,7 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
             .ThenBy(a => a.SortOrder)
             .Select(a => {
                 List<AgendaItemOfficerVoteDTO>? officerVotes = null;
-                if (a.ItemType == Api.Meetings.AgendaItemType.Motion && a.MotionId.HasValue) {
+                if (a.ItemType == AgendaItemType.Motion && a.MotionId.HasValue) {
                     var motionVotes = allVotes.Where(v => v.MotionId == a.MotionId.Value).ToList();
                     officerVotes = officers.Select(o => {
                         var member = officerMembers.FirstOrDefault(m => m.Id == o.MemberId);
@@ -125,15 +126,14 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                             Vote = vote?.Vote
                         };
                     }).ToList();
-                } else if (a.ItemType == Api.Meetings.AgendaItemType.Presence) {
-                    // Presence stored as JSON array of user ID strings in Resolution field
+                } else if (a.ItemType == AgendaItemType.Presence) {
                     var presentIds = new HashSet<string>();
                     if (!string.IsNullOrWhiteSpace(a.Resolution)) {
                         try {
-                            var parsed = System.Text.Json.JsonSerializer.Deserialize<List<string>>(a.Resolution);
+                            var parsed = JsonSerializer.Deserialize<List<string>>(a.Resolution);
                             if (parsed != null)
                                 presentIds = new HashSet<string>(parsed);
-                        } catch (System.Text.Json.JsonException ex) {
+                        } catch (JsonException ex) {
                             Logger.LogWarning(ex, "Corrupted presence Resolution on agenda item {Id}; treating as empty", a.Id);
                         }
                     }
@@ -148,7 +148,38 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                         };
                     }).ToList();
                 }
-                return MeetingDtoBuilder.BuildAgendaItemDTO(a, motionsById, voteTallies, officerVotes);
+                string? motionTitle = null;
+                MotionApprovalStatus? motionApprovalStatus = null;
+                var approveCount = 0;
+                var denyCount = 0;
+                var abstainCount = 0;
+                if (a.MotionId.HasValue && motionsById.TryGetValue(a.MotionId.Value, out var motion)) {
+                    motionTitle = motion.Title;
+                    motionApprovalStatus = motion.ApprovalStatus;
+                    if (voteTallies.TryGetValue(a.MotionId.Value, out var tally)) {
+                        approveCount = tally.Approve;
+                        denyCount = tally.Deny;
+                        abstainCount = tally.Abstain;
+                    }
+                }
+                return new AgendaItemDTO {
+                    Id = a.Id,
+                    ParentId = a.ParentId,
+                    SortOrder = a.SortOrder,
+                    Title = a.Title,
+                    ItemType = a.ItemType,
+                    MotionId = a.MotionId,
+                    MotionTitle = motionTitle,
+                    MotionApprovalStatus = motionApprovalStatus,
+                    MotionVoteApproveCount = approveCount,
+                    MotionVoteDenyCount = denyCount,
+                    MotionVoteAbstainCount = abstainCount,
+                    Notes = a.Notes,
+                    Resolution = a.Resolution,
+                    StartedAt = a.StartedAt,
+                    CompletedAt = a.CompletedAt,
+                    OfficerVotes = officerVotes
+                };
             })
             .ToList();
 

@@ -25,7 +25,7 @@ public class ChapterOfficerRepository {
         => _context.ChapterOfficers.Where(o => o.ChapterId == chapterId).ToList();
 
     public int CountForChapter(Guid chapterId)
-        => _context.ChapterOfficers.Where(o => o.ChapterId == chapterId).Count();
+        => _context.ChapterOfficers.Count(o => o.ChapterId == chapterId);
 
     public void Create(ChapterOfficer officer) {
         _context.Insert(officer);

@@ -12,6 +12,7 @@ using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.Roles;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -29,7 +30,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
     public void Setup() {
         _context = Db;
         _motionRepo = new MotionRepository(_context, AuditLog);
-        var roleRepo = new Quartermaster.Data.Roles.RoleRepository(_context);
+        var roleRepo = new RoleRepository(_context);
         _officerRepo = new ChapterOfficerRepository(_context, AuditLog, roleRepo);
 
         // Seed an AdministrativeDivision for User FK constraints
