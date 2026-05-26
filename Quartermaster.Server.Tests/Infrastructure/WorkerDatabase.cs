@@ -83,7 +83,7 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE AgendaItems;
             TRUNCATE TABLE Meetings;
             TRUNCATE TABLE AuditLogs;
-            TRUNCATE TABLE EmailLogs;
+            TRUNCATE TABLE NotificationLogs;
             TRUNCATE TABLE EventChecklistItems;
             TRUNCATE TABLE Events;
             TRUNCATE TABLE EventTemplates;

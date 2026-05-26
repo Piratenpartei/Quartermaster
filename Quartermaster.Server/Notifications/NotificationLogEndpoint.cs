@@ -5,53 +5,56 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
-using Quartermaster.Api.Email;
-using Quartermaster.Data.Email;
+using Quartermaster.Api.Notifications;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Server.Authentication;
 
-namespace Quartermaster.Server.Email;
+namespace Quartermaster.Server.Notifications;
 
-public class EmailLogRequest {
+public class NotificationLogRequest {
     [QueryParam]
     public string? SourceEntityType { get; set; }
     [QueryParam]
     public Guid? SourceEntityId { get; set; }
 }
 
-public class EmailLogEndpoint : Endpoint<EmailLogRequest, List<EmailLogDTO>> {
-    private readonly EmailLogRepository _emailLogRepo;
+public class NotificationLogEndpoint : Endpoint<NotificationLogRequest, List<NotificationLogDTO>> {
+    private readonly NotificationLogRepository _logRepo;
     private readonly PermissionContext _perms;
 
-    public EmailLogEndpoint(EmailLogRepository emailLogRepo, PermissionContext perms) {
-        _emailLogRepo = emailLogRepo;
+    public NotificationLogEndpoint(NotificationLogRepository logRepo, PermissionContext perms) {
+        _logRepo = logRepo;
         _perms = perms;
     }
 
     public override void Configure() {
-        Get("/api/emaillogs");
+        Get("/api/notificationlogs");
     }
 
-    public override async Task HandleAsync(EmailLogRequest req, CancellationToken ct) {
+    public override async Task HandleAsync(NotificationLogRequest req, CancellationToken ct) {
         if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.HasGlobal(PermissionIdentifier.ViewEmailLogs)) {
+        if (!_perms.HasGlobal(PermissionIdentifier.ViewNotificationLogs)) {
             await SendForbiddenAsync(ct);
             return;
         }
 
-        List<EmailLog> logs;
+        List<NotificationLog> logs;
         if (!string.IsNullOrEmpty(req.SourceEntityType) && req.SourceEntityId.HasValue) {
-            logs = _emailLogRepo.GetForSource(req.SourceEntityType, req.SourceEntityId.Value);
+            logs = _logRepo.GetForSource(req.SourceEntityType, req.SourceEntityId.Value);
         } else {
-            logs = _emailLogRepo.GetRecent();
+            logs = _logRepo.GetRecent();
         }
 
-        var dtos = logs.Select(l => new EmailLogDTO {
+        var dtos = logs.Select(l => new NotificationLogDTO {
             Id = l.Id,
+            ChannelId = l.ChannelId,
             Recipient = l.Recipient,
+            RecipientUserId = l.RecipientUserId,
             Subject = l.Subject,
+            TriggerId = l.TriggerId,
             TemplateIdentifier = l.TemplateIdentifier,
             SourceEntityType = l.SourceEntityType,
             SourceEntityId = l.SourceEntityId,

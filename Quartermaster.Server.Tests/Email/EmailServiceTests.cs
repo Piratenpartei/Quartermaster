@@ -6,8 +6,8 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Messaging;
@@ -27,13 +27,13 @@ public class EmailServiceTests : RepositoryTestBase {
     [Before(Test)]
     public void Setup() {
         _context = Db;
-        var emailLogRepo = new EmailLogRepository(_context);
+        var logRepo = new NotificationLogRepository(_context);
         _optionRepo = new OptionRepository(_context, AuditLog);
         var memberRepo = new MemberRepository(_context, AuditLog);
         _chapterRepo = new ChapterRepository(_context, AuditLog);
         var adminDivRepo = new AdministrativeDivisionRepository(_context);
         _channel = Channel.CreateUnbounded<EmailMessage>();
-        var emailMessageChannel = new EmailMessageChannel(emailLogRepo, _channel);
+        var emailMessageChannel = new EmailMessageChannel(logRepo, _channel);
 
         _service = new EmailService(
             _optionRepo, memberRepo, _chapterRepo, adminDivRepo,

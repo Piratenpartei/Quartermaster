@@ -34,6 +34,7 @@ using Quartermaster.Server.Events;
 using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
 using Quartermaster.Server.Messaging;
+using Quartermaster.Server.Notifications;
 using Quartermaster.Server.Security;
 
 namespace Quartermaster.Server;
@@ -129,6 +130,9 @@ public partial class Program {
         builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<TelegramMessageChannel>());
         builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<PdfMessageChannel>());
         builder.Services.AddScoped<MessageChannelRegistry>();
+
+        builder.Services.AddScoped<IRecipientResolver, MotionSubmittedRecipientResolver>();
+        builder.Services.AddScoped<NotificationDispatcher>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();
         builder.Services.AddScoped<MeetingLifecycleService>();

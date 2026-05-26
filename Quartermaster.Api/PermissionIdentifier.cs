@@ -15,7 +15,7 @@ public static class PermissionIdentifier {
     public static readonly string ViewOptionSecrets = "options_view_secrets";
 
     public static readonly string ViewAudit = "audit_view";
-    public static readonly string ViewEmailLogs = "emaillogs_view";
+    public static readonly string ViewNotificationLogs = "notificationlogs_view";
     public static readonly string TriggerMemberImport = "member_import_trigger";
     public static readonly string ViewAllMembers = "members_view_all";
 

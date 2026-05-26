@@ -30,7 +30,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
         AddIfNotExists(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ViewAudit, "Audit-Log anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.ViewEmailLogs, "E-Mail-Log anzeigen", true);
+        AddIfNotExists(PermissionIdentifier.ViewNotificationLogs, "Benachrichtigungs-Log anzeigen", true);
         AddIfNotExists(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);
         AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);

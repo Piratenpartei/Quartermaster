@@ -5,16 +5,17 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api;
-using Quartermaster.Api.Email;
-using Quartermaster.Data.Email;
+using Quartermaster.Api.Notifications;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Server.Tests.Infrastructure;
 
-namespace Quartermaster.Server.Tests.Integration.Email;
+namespace Quartermaster.Server.Tests.Integration.Notifications;
 
-public class EmailLogEndpointTests : IntegrationTestBase {
+public class NotificationLogEndpointTests : IntegrationTestBase {
     private void SeedLog(string recipient, string? sourceType = null, Guid? sourceId = null) {
-        Db.Insert(new EmailLog {
+        Db.Insert(new NotificationLog {
             Id = Guid.NewGuid(),
+            ChannelId = "smtp",
             Recipient = recipient,
             Subject = "Test",
             SourceEntityType = sourceType,
@@ -28,15 +29,15 @@ public class EmailLogEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Returns_401_when_anonymous() {
         using var client = AnonymousClient();
-        var response = await client.GetAsync("/api/emaillogs");
+        var response = await client.GetAsync("/api/notificationlogs");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }
 
     [Test]
-    public async Task Returns_403_when_user_lacks_view_email_logs() {
+    public async Task Returns_403_when_user_lacks_view_notification_logs() {
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = AuthenticatedClient(token);
-        var response = await client.GetAsync("/api/emaillogs");
+        var response = await client.GetAsync("/api/notificationlogs");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
 
@@ -45,11 +46,11 @@ public class EmailLogEndpointTests : IntegrationTestBase {
         SeedLog("a@test.local");
         SeedLog("b@test.local");
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewEmailLogs });
+            globalPermissions: new[] { PermissionIdentifier.ViewNotificationLogs });
         using var client = AuthenticatedClient(token);
-        var response = await client.GetAsync("/api/emaillogs");
+        var response = await client.GetAsync("/api/notificationlogs");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var list = await response.Content.ReadFromJsonAsync<List<EmailLogDTO>>();
+        var list = await response.Content.ReadFromJsonAsync<List<NotificationLogDTO>>();
         await Assert.That(list).IsNotNull();
         await Assert.That(list!.Count).IsEqualTo(2);
     }
@@ -62,20 +63,20 @@ public class EmailLogEndpointTests : IntegrationTestBase {
         SeedLog("b@test.local", "Application", id2);
         SeedLog("c@test.local", "Application", id1);
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewEmailLogs });
+            globalPermissions: new[] { PermissionIdentifier.ViewNotificationLogs });
         using var client = AuthenticatedClient(token);
-        var response = await client.GetAsync($"/api/emaillogs?SourceEntityType=Application&SourceEntityId={id1}");
-        var list = await response.Content.ReadFromJsonAsync<List<EmailLogDTO>>();
+        var response = await client.GetAsync($"/api/notificationlogs?SourceEntityType=Application&SourceEntityId={id1}");
+        var list = await response.Content.ReadFromJsonAsync<List<NotificationLogDTO>>();
         await Assert.That(list!.Count).IsEqualTo(2);
     }
 
     [Test]
     public async Task Returns_empty_list_when_no_logs() {
         var (_, token) = Builder.SeedAuthenticatedUser(
-            globalPermissions: new[] { PermissionIdentifier.ViewEmailLogs });
+            globalPermissions: new[] { PermissionIdentifier.ViewNotificationLogs });
         using var client = AuthenticatedClient(token);
-        var response = await client.GetAsync("/api/emaillogs");
-        var list = await response.Content.ReadFromJsonAsync<List<EmailLogDTO>>();
+        var response = await client.GetAsync("/api/notificationlogs");
+        var list = await response.Content.ReadFromJsonAsync<List<NotificationLogDTO>>();
         await Assert.That(list!.Count).IsEqualTo(0);
     }
 }

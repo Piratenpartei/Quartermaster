@@ -75,6 +75,19 @@ public static class TemplateMockDataProvider {
                         LastImportedAt = DateTime.UtcNow
                     };
                     break;
+
+                case "MotionSubmittedPayload":
+                    data["motion"] = new {
+                        Id = Guid.NewGuid(),
+                        Title = "Beispielantrag: Änderung der Geschäftsordnung",
+                        AuthorName = "Erika Musterfrau",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    data["chapter"] = new {
+                        Id = Guid.NewGuid(),
+                        Name = "Piratenpartei Berlin"
+                    };
+                    break;
             }
         }
 

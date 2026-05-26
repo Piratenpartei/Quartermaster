@@ -10,8 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using Quartermaster.Data.Email;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.Messaging;
 
 namespace Quartermaster.Server.Email;
 
@@ -52,22 +53,18 @@ public class EmailSendingBackgroundService : BackgroundService {
         }
     }
 
-    /// <summary>
-    /// On startup, re-enqueue any EmailLog entries still marked Pending.
-    /// These are messages that were queued in memory when the server last shut down
-    /// (crash or restart) and never got sent. The body is restored from the DB.
-    /// </summary>
+    /// <summary>Re-enqueues SMTP-channel NotificationLog rows that were Pending at last shutdown.</summary>
     private void RequeuePendingLogs() {
         using var scope = _services.CreateScope();
-        var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
-        var pending = emailLogRepo.GetPending();
+        var logRepo = scope.ServiceProvider.GetRequiredService<NotificationLogRepository>();
+        var pending = logRepo.GetPendingForChannel(EmailMessageChannel.ChannelId);
 
         if (pending.Count == 0)
             return;
 
         _logger.LogInformation("Re-enqueuing {Count} pending email(s) after startup", pending.Count);
         foreach (var log in pending) {
-            _channel.Writer.TryWrite(new EmailMessage(log.Id, log.Recipient, log.Subject, log.HtmlBody ?? ""));
+            _channel.Writer.TryWrite(new EmailMessage(log.Id, log.Recipient, log.Subject, log.Body ?? ""));
         }
     }
 
@@ -83,13 +80,13 @@ public class EmailSendingBackgroundService : BackgroundService {
     private async Task ProcessBatchAsync(List<EmailMessage> batch, CancellationToken ct) {
         using var scope = _services.CreateScope();
         var optionRepo = scope.ServiceProvider.GetRequiredService<OptionRepository>();
-        var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
+        var logRepo = scope.ServiceProvider.GetRequiredService<NotificationLogRepository>();
 
         var config = ReadSmtpConfig(optionRepo);
         if (config == null) {
             foreach (var msg in batch) {
-                emailLogRepo.IncrementAttempt(msg.EmailLogId);
-                emailLogRepo.UpdateStatus(msg.EmailLogId, "Failed", "SMTP nicht konfiguriert.", null);
+                logRepo.IncrementAttempt(msg.NotificationLogId);
+                logRepo.UpdateStatus(msg.NotificationLogId, "Failed", "SMTP nicht konfiguriert.", null);
                 _logger.LogWarning("SMTP not configured, cannot send email to {Recipient}", msg.To);
             }
             return;
@@ -110,14 +107,13 @@ public class EmailSendingBackgroundService : BackgroundService {
             for (int i = 0; i < batch.Count; i++) {
                 var msg = batch[i];
                 try {
-                    emailLogRepo.IncrementAttempt(msg.EmailLogId);
+                    logRepo.IncrementAttempt(msg.NotificationLogId);
                     await SendOneAsync(client, msg, config, ct);
-                    emailLogRepo.UpdateStatus(msg.EmailLogId, "Sent", null, DateTime.UtcNow);
+                    logRepo.UpdateStatus(msg.NotificationLogId, "Sent", null, DateTime.UtcNow);
                     _logger.LogInformation("Email sent to {Recipient}", msg.To);
                 } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
                     throw;
                 } catch (ServiceNotConnectedException) {
-                    // Connection dropped mid-batch — re-queue this message and the rest
                     _logger.LogWarning("SMTP connection dropped, re-queueing remaining {Count} messages",
                         batch.Count - i);
                     for (int j = i; j < batch.Count; j++)
@@ -150,7 +146,7 @@ public class EmailSendingBackgroundService : BackgroundService {
         mimeMessage.From.Add(new MailboxAddress(config.SenderName, config.SenderAddress));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
         mimeMessage.Subject = message.Subject;
-        mimeMessage.Body = new TextPart("html") { Text = message.HtmlBody };
+        mimeMessage.Body = new TextPart("html") { Text = message.Body };
 
         await client.SendAsync(mimeMessage, ct);
     }
@@ -178,16 +174,16 @@ public class EmailSendingBackgroundService : BackgroundService {
 
     private Task HandleFailure(EmailMessage message, string error, CancellationToken ct) {
         using var scope = _services.CreateScope();
-        var emailLogRepo = scope.ServiceProvider.GetRequiredService<EmailLogRepository>();
+        var logRepo = scope.ServiceProvider.GetRequiredService<NotificationLogRepository>();
 
-        var log = emailLogRepo.Get(message.EmailLogId);
+        var log = logRepo.Get(message.NotificationLogId);
 
         if (log != null && log.AttemptCount < MaxRetries) {
             _logger.LogWarning("Retry {Attempt}/{Max} for email to {Recipient}",
                 log.AttemptCount, MaxRetries, message.To);
             ScheduleRetry(message, TimeSpan.FromSeconds(10 * log.AttemptCount), ct);
         } else {
-            emailLogRepo.UpdateStatus(message.EmailLogId, "Failed", error, null);
+            logRepo.UpdateStatus(message.NotificationLogId, "Failed", error, null);
         }
 
         return Task.CompletedTask;

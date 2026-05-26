@@ -9,9 +9,9 @@ using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
-using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
@@ -423,19 +423,22 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(Event.TableName).PrimaryColumn(nameof(Event.Id))
             .OnDelete(Rule.Cascade);
 
-        Create.Table(EmailLog.TableName)
-            .WithColumn(nameof(EmailLog.Id)).AsGuid().PrimaryKey()
-            .WithColumn(nameof(EmailLog.Recipient)).AsString(256)
-            .WithColumn(nameof(EmailLog.Subject)).AsString(512)
-            .WithColumn(nameof(EmailLog.TemplateIdentifier)).AsString(256).Nullable()
-            .WithColumn(nameof(EmailLog.SourceEntityType)).AsString(64).Nullable()
-            .WithColumn(nameof(EmailLog.SourceEntityId)).AsGuid().Nullable()
-            .WithColumn(nameof(EmailLog.Status)).AsString(32)
-            .WithColumn(nameof(EmailLog.Error)).AsCustom("TEXT").Nullable()
-            .WithColumn(nameof(EmailLog.AttemptCount)).AsInt32()
-            .WithColumn(nameof(EmailLog.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(EmailLog.SentAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(EmailLog.HtmlBody)).AsCustom("TEXT").Nullable();
+        Create.Table(NotificationLog.TableName)
+            .WithColumn(nameof(NotificationLog.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(NotificationLog.ChannelId)).AsString(32)
+            .WithColumn(nameof(NotificationLog.Recipient)).AsString(256)
+            .WithColumn(nameof(NotificationLog.RecipientUserId)).AsGuid().Nullable()
+            .WithColumn(nameof(NotificationLog.Subject)).AsString(512)
+            .WithColumn(nameof(NotificationLog.TriggerId)).AsString(64).Nullable()
+            .WithColumn(nameof(NotificationLog.TemplateIdentifier)).AsString(256).Nullable()
+            .WithColumn(nameof(NotificationLog.SourceEntityType)).AsString(64).Nullable()
+            .WithColumn(nameof(NotificationLog.SourceEntityId)).AsGuid().Nullable()
+            .WithColumn(nameof(NotificationLog.Status)).AsString(32)
+            .WithColumn(nameof(NotificationLog.Error)).AsCustom("TEXT").Nullable()
+            .WithColumn(nameof(NotificationLog.AttemptCount)).AsInt32()
+            .WithColumn(nameof(NotificationLog.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(NotificationLog.SentAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(NotificationLog.Body)).AsCustom("TEXT").Nullable();
 
         Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
@@ -460,10 +463,10 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Index("IX_MotionVotes_MotionId").OnTable(MotionVote.TableName).OnColumn("MotionId").Ascending();
         Create.Index("IX_ChapterAssociates_ChapterId").OnTable(ChapterOfficer.TableName).OnColumn("ChapterId").Ascending();
         Create.Index("IX_Tokens_UserId").OnTable(Token.TableName).OnColumn("UserId").Ascending();
-        Create.Index("IX_EmailLogs_SourceEntityType_SourceEntityId").OnTable(EmailLog.TableName)
-            .OnColumn(nameof(EmailLog.SourceEntityType)).Ascending().OnColumn(nameof(EmailLog.SourceEntityId)).Ascending();
-        Create.Index("IX_EmailLogs_Status").OnTable(EmailLog.TableName)
-            .OnColumn(nameof(EmailLog.Status)).Ascending();
+        Create.Index("IX_NotificationLogs_SourceEntityType_SourceEntityId").OnTable(NotificationLog.TableName)
+            .OnColumn(nameof(NotificationLog.SourceEntityType)).Ascending().OnColumn(nameof(NotificationLog.SourceEntityId)).Ascending();
+        Create.Index("IX_NotificationLogs_Status").OnTable(NotificationLog.TableName)
+            .OnColumn(nameof(NotificationLog.Status)).Ascending();
         Create.Index("IX_AuditLogs_EntityType_EntityId").OnTable(AuditEntry.TableName)
             .OnColumn("EntityType").Ascending().OnColumn("EntityId").Ascending();
 
@@ -651,7 +654,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(AdministrativeDivision.TableName);
         DropTableIfExists(Permission.TableName);
 
-        DropTableIfExists(EmailLog.TableName);
+        DropTableIfExists(NotificationLog.TableName);
         DropTableIfExists(AuditEntry.TableName);
         DropTableIfExists(LoginAttempt.TableName);
         DropTableIfExists(UserRoleAssignment.TableName);

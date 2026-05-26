@@ -1,11 +1,14 @@
 using System;
 
-namespace Quartermaster.Api.Email;
+namespace Quartermaster.Api.Notifications;
 
-public class EmailLogDTO {
+public class NotificationLogDTO {
     public Guid Id { get; set; }
+    public string ChannelId { get; set; } = "";
     public string Recipient { get; set; } = "";
+    public Guid? RecipientUserId { get; set; }
     public string Subject { get; set; } = "";
+    public string? TriggerId { get; set; }
     public string? TemplateIdentifier { get; set; }
     public string? SourceEntityType { get; set; }
     public Guid? SourceEntityId { get; set; }

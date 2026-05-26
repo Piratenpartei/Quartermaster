@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -6,15 +7,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.Motions;
 using Quartermaster.Rendering;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Motions;
+using Quartermaster.Server.Notifications;
 
 namespace Quartermaster.Server.Motions;
 
 public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     private readonly MotionRepository _motionRepo;
+    private readonly ChapterRepository _chapterRepo;
+    private readonly NotificationDispatcher _notifications;
 
-    public MotionCreateEndpoint(MotionRepository motionRepo) {
+    public MotionCreateEndpoint(
+        MotionRepository motionRepo,
+        ChapterRepository chapterRepo,
+        NotificationDispatcher notifications) {
         _motionRepo = motionRepo;
+        _chapterRepo = chapterRepo;
+        _notifications = notifications;
     }
 
     public override void Configure() {
@@ -36,6 +46,25 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
         };
 
         _motionRepo.Create(motion);
+
+        var chapterName = _chapterRepo.Get(motion.ChapterId)?.Name ?? "";
+        var payload = new MotionSubmittedPayload(
+            motion.Id, motion.ChapterId, motion.Title, motion.AuthorName, chapterName);
+        await _notifications.DispatchAsync(
+            NotificationTriggers.MotionSubmitted,
+            payload,
+            _ => new Dictionary<string, object> {
+                ["motion"] = new {
+                    motion.Id,
+                    motion.Title,
+                    motion.AuthorName,
+                    motion.CreatedAt
+                },
+                ["chapter"] = new { Id = motion.ChapterId, Name = chapterName }
+            },
+            sourceEntityType: "Motion",
+            sourceEntityId: motion.Id,
+            ct: ct);
 
         await SendAsync(new MotionDTO {
             Id = motion.Id,

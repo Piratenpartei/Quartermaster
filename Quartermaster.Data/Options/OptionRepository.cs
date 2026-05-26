@@ -254,6 +254,18 @@ public class OptionRepository {
             OptionDataType.String, false, "", "",
             description: "Absoluter Pfad zum Ordner, in dem generierte PDF-Briefe abgelegt werden. Leer ⇒ Standard 'data/printouts' relativ zum Anwendungsverzeichnis.");
 
+        AddDefinitionIfNotExists("notifications.motion_submitted.email.subject",
+            "Benachrichtigung: Neuer Antrag (Betreff)",
+            OptionDataType.Template, true,
+            "MotionSubmittedPayload",
+            "Neuer Antrag: {{ motion.Title }}");
+
+        AddDefinitionIfNotExists("notifications.motion_submitted.email.body",
+            "Benachrichtigung: Neuer Antrag (Inhalt)",
+            OptionDataType.Template, true,
+            "MotionSubmittedPayload",
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** wurde ein neuer Antrag eingereicht:\n\n*{{ motion.Title }}*\n\nEingereicht von: {{ motion.AuthorName }}\n");
+
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",
             OptionDataType.Number, false, "", "7",
