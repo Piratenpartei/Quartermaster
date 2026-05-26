@@ -30,7 +30,7 @@
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@Selection.FirstName</td></tr>
                     <tr><th>Nachname</th><td>@Selection.LastName</td></tr>
-                    <tr><th>E-Mail</th><td>@(Selection.EMail ?? "—")</td></tr>
+                    <tr><th>E-Mail</th><td>@(Selection.Email ?? "—")</td></tr>
                     <tr>
                         <th>Mitgliedsnummer</th>
                         <td>@(Selection.MemberNumber?.ToString() ?? "—")</td>

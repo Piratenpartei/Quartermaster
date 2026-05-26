@@ -43,7 +43,7 @@ public class RoleRepositoryTests : RepositoryTestBase {
         _context.Insert(new User {
             Id = _userId,
             Username = "testuser",
-            EMail = "test@example.com",
+            Email = "test@example.com",
             FirstName = "Test",
             LastName = "User"
         });

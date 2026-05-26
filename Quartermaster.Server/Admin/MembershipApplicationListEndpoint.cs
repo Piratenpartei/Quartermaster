@@ -78,7 +78,7 @@ public class MembershipApplicationListEndpoint
             Id = a.Id,
             FirstName = a.FirstName,
             LastName = a.LastName,
-            EMail = a.EMail,
+            Email = a.Email,
             AddressCity = a.AddressCity,
             ChapterId = a.ChapterId,
             ChapterName = a.ChapterId.HasValue && chapters.ContainsKey(a.ChapterId.Value)

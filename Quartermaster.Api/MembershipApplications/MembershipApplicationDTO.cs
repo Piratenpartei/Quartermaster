@@ -8,7 +8,7 @@ public class MembershipApplicationDTO {
     public string LastName { get; set; } = "";
     public DateTime DateOfBirth { get; set; }
     public string Citizenship { get; set; } = "";
-    public string EMail { get; set; } = "";
+    public string Email { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
 
     public string AddressStreet { get; set; } = "";

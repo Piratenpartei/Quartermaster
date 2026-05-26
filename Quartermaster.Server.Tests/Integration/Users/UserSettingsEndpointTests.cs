@@ -32,7 +32,7 @@ public class UserSettingsEndpointTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var dto = await response.Content.ReadFromJsonAsync<UserSettingsDTO>();
         await Assert.That(dto!.User.Id).IsEqualTo(user.Id);
-        await Assert.That(dto.User.EMail).IsEqualTo(user.EMail);
+        await Assert.That(dto.User.Email).IsEqualTo(user.Email);
     }
 
     [Test]

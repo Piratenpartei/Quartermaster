@@ -16,7 +16,7 @@ public class UserDetailRequest {
 public class UserDetailResponse {
     public Guid Id { get; set; }
     public string Username { get; set; } = "";
-    public string EMail { get; set; } = "";
+    public string Email { get; set; } = "";
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
 }
@@ -54,7 +54,7 @@ public class UserDetailEndpoint : Endpoint<UserDetailRequest, UserDetailResponse
         await SendAsync(new UserDetailResponse {
             Id = user.Id,
             Username = user.Username ?? "",
-            EMail = user.EMail,
+            Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName
         }, cancellation: ct);

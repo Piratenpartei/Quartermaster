@@ -60,19 +60,7 @@ public class MeetingLifecycleService {
             var deny = votes.Count(v => v.Vote == VoteType.Deny);
             var abstain = votes.Count(v => v.Vote == VoteType.Abstain);
 
-            MotionApprovalStatus newStatus;
-            if (approve == 0 && deny == 0 && abstain == 0) {
-                // No votes cast — mark as closed without action rather than approved/rejected.
-                newStatus = MotionApprovalStatus.ClosedWithoutAction;
-            } else if (approve > deny) {
-                newStatus = MotionApprovalStatus.Approved;
-            } else if (deny > approve) {
-                newStatus = MotionApprovalStatus.Rejected;
-            } else {
-                // Tied — formally rejected (German parlance: "abgelehnt durch Patt").
-                newStatus = MotionApprovalStatus.FormallyRejected;
-            }
-
+            var newStatus = DetermineApprovalStatus(approve, deny, abstain);
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
 
             if (string.IsNullOrWhiteSpace(item.Resolution)) {
@@ -99,21 +87,26 @@ public class MeetingLifecycleService {
         var deny = votes.Count(v => v.Vote == VoteType.Deny);
         var abstain = votes.Count(v => v.Vote == VoteType.Abstain);
 
-        MotionApprovalStatus newStatus;
-        if (approve == 0 && deny == 0 && abstain == 0) {
-            newStatus = MotionApprovalStatus.ClosedWithoutAction;
-        } else if (approve > deny) {
-            newStatus = MotionApprovalStatus.Approved;
-        } else if (deny > approve) {
-            newStatus = MotionApprovalStatus.Rejected;
-        } else {
-            newStatus = MotionApprovalStatus.FormallyRejected;
-        }
-
+        var newStatus = DetermineApprovalStatus(approve, deny, abstain);
         if (motion.ApprovalStatus == MotionApprovalStatus.Pending)
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
 
         _agendaRepo.UpdateResolution(item.Id, BuildResolutionText(newStatus, approve, deny, abstain));
+    }
+
+    /// <summary>
+    /// Maps a vote tally to the resulting <see cref="MotionApprovalStatus"/>:
+    /// no votes → <c>ClosedWithoutAction</c>; tied non-zero tally → <c>FormallyRejected</c>
+    /// (German parlance: "abgelehnt durch Patt"); majority wins otherwise.
+    /// </summary>
+    private static MotionApprovalStatus DetermineApprovalStatus(int approve, int deny, int abstain) {
+        if (approve == 0 && deny == 0 && abstain == 0)
+            return MotionApprovalStatus.ClosedWithoutAction;
+        if (approve > deny)
+            return MotionApprovalStatus.Approved;
+        if (deny > approve)
+            return MotionApprovalStatus.Rejected;
+        return MotionApprovalStatus.FormallyRejected;
     }
 
     /// <summary>

@@ -97,7 +97,7 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
             ChapterId = motion.ChapterId,
             ChapterName = chapter?.Name ?? "",
             AuthorName = motion.AuthorName,
-            AuthorEMail = motion.AuthorEMail,
+            AuthorEmail = motion.AuthorEmail,
             Title = motion.Title,
             Text = motion.Text,
             IsPublic = motion.IsPublic,

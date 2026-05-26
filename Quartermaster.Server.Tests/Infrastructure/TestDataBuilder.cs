@@ -133,7 +133,7 @@ public sealed class TestDataBuilder {
         int memberNumber = 0) {
         var user = new User {
             Id = Guid.NewGuid(),
-            EMail = email ?? $"user_{Guid.NewGuid():N}@test.local",
+            Email = email ?? $"user_{Guid.NewGuid():N}@test.local",
             Username = username,
             PasswordHash = password != null ? PasswordHasher.Hash(password) : null,
             FirstName = firstName,
@@ -214,7 +214,7 @@ public sealed class TestDataBuilder {
             MemberNumber = memberNumber == 0 ? NextMemberNumber() : memberNumber,
             FirstName = firstName,
             LastName = lastName,
-            EMail = email,
+            Email = email,
             ChapterId = chapterId,
             EntryDate = entryDate ?? DateTime.UtcNow.Date.AddYears(-1),
             ExitDate = exitDate,
@@ -297,7 +297,7 @@ public sealed class TestDataBuilder {
             Text = text,
             ApprovalStatus = status,
             AuthorName = authorName,
-            AuthorEMail = authorEmail,
+            AuthorEmail = authorEmail,
             IsRealized = isRealized,
             CreatedAt = DateTime.UtcNow
         };
@@ -328,7 +328,7 @@ public sealed class TestDataBuilder {
             ChapterId = chapterId,
             FirstName = firstName,
             LastName = lastName,
-            EMail = email,
+            Email = email,
             Status = status,
             DateOfBirth = new DateTime(1990, 1, 1),
             Citizenship = "DE",

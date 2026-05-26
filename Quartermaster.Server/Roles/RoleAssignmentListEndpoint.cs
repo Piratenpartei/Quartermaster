@@ -74,6 +74,6 @@ public class RoleAssignmentListEndpoint : EndpointWithoutRequest<List<UserRoleAs
             return "";
         if (!string.IsNullOrEmpty(user.FirstName) && !string.IsNullOrEmpty(user.LastName))
             return $"{user.FirstName} {user.LastName}";
-        return user.Username ?? user.EMail ?? "";
+        return user.Username ?? user.Email ?? "";
     }
 }

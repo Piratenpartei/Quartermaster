@@ -14,7 +14,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = "Das ist ein Antragstext."
         };
@@ -29,7 +29,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.Empty,
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = "Text"
         };
@@ -45,7 +45,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = "Text"
         };
@@ -61,7 +61,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = new string('A', 257),
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = "Text"
         };
@@ -77,7 +77,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = new string('A', 256),
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = "Text"
         };
@@ -88,66 +88,66 @@ public class MotionCreateRequestValidatorTests {
     }
 
     [Test]
-    public void EmptyAuthorEMail_ShouldHaveError() {
+    public void EmptyAuthorEmail_ShouldHaveError() {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "",
+            AuthorEmail = "",
             Title = "Testantrag",
             Text = "Text"
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
+        result.ShouldHaveValidationErrorFor(x => x.AuthorEmail)
             .WithErrorMessage(I18nKey.Error.Motion.EmailRequired);
     }
 
     [Test]
-    public void AuthorEMailWithoutAt_ShouldHaveError() {
+    public void AuthorEmailWithoutAt_ShouldHaveError() {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "maxexample.com",
+            AuthorEmail = "maxexample.com",
             Title = "Testantrag",
             Text = "Text"
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
+        result.ShouldHaveValidationErrorFor(x => x.AuthorEmail)
             .WithErrorMessage(I18nKey.Error.Motion.EmailInvalid);
     }
 
     [Test]
-    public void AuthorEMailExceedsMaxLength_ShouldHaveError() {
+    public void AuthorEmailExceedsMaxLength_ShouldHaveError() {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = new string('a', 251) + "@ab.de",
+            AuthorEmail = new string('a', 251) + "@ab.de",
             Title = "Testantrag",
             Text = "Text"
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.AuthorEMail)
+        result.ShouldHaveValidationErrorFor(x => x.AuthorEmail)
             .WithErrorMessage(I18nKey.Error.Motion.EmailMaxLength);
     }
 
     [Test]
-    public void AuthorEMailAtMaxLength_ShouldHaveNoError() {
+    public void AuthorEmailAtMaxLength_ShouldHaveNoError() {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = new string('a', 249) + "@ab.com",
+            AuthorEmail = new string('a', 249) + "@ab.com",
             Title = "Testantrag",
             Text = "Text"
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.AuthorEMail);
+        result.ShouldNotHaveValidationErrorFor(x => x.AuthorEmail);
     }
 
     [Test]
@@ -155,7 +155,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "",
             Text = "Text"
         };
@@ -171,7 +171,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = new string('A', 513),
             Text = "Text"
         };
@@ -187,7 +187,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = new string('A', 512),
             Text = "Text"
         };
@@ -202,7 +202,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = ""
         };
@@ -218,7 +218,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = new string('A', 8193)
         };
@@ -234,7 +234,7 @@ public class MotionCreateRequestValidatorTests {
         var request = new MotionCreateRequest {
             ChapterId = Guid.NewGuid(),
             AuthorName = "Max Mustermann",
-            AuthorEMail = "max@example.com",
+            AuthorEmail = "max@example.com",
             Title = "Testantrag",
             Text = new string('A', 8192)
         };

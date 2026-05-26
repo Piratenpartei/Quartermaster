@@ -14,6 +14,11 @@ public class TestDataSeedResponse {
     public string Message { get; set; } = "";
 }
 
+/// <summary>
+/// Dev-only seeder triggered from the Blazor user-settings page (button is also DEBUG-only).
+/// <c>DontRegister</c> elides the route entirely in Release builds; no test coverage is
+/// warranted because the endpoint cannot be reached in production.
+/// </summary>
 public class TestDataSeedEndpoint : EndpointWithoutRequest<TestDataSeedResponse> {
     private readonly DbContext _context;
     private readonly ChapterRepository _chapterRepo;

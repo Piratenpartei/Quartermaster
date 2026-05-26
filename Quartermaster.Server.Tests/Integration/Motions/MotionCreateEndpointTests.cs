@@ -23,7 +23,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Jane Author",
-            AuthorEMail = "jane@example.com",
+            AuthorEmail = "jane@example.com",
             Title = "My Motion",
             Text = "Some motion text."
         });
@@ -41,7 +41,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = Guid.Empty,
             AuthorName = "Jane",
-            AuthorEMail = "jane@example.com",
+            AuthorEmail = "jane@example.com",
             Title = "Title",
             Text = "Text"
         });
@@ -55,7 +55,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Jane",
-            AuthorEMail = "notanemail",
+            AuthorEmail = "notanemail",
             Title = "Title",
             Text = "Text"
         });
@@ -69,7 +69,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Jane",
-            AuthorEMail = "jane@example.com",
+            AuthorEmail = "jane@example.com",
             Title = "",
             Text = "Text"
         });
@@ -83,7 +83,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Jane",
-            AuthorEMail = "jane@example.com",
+            AuthorEmail = "jane@example.com",
             Title = "Title",
             Text = "This contains [a link](https://evil.example.com) inline."
         });
@@ -103,7 +103,7 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
         var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Jane",
-            AuthorEMail = "jane@example.com",
+            AuthorEmail = "jane@example.com",
             Title = "Title",
             Text = "Hello **world**"
         });

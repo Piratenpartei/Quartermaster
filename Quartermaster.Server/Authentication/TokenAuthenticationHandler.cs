@@ -47,7 +47,7 @@ public class TokenAuthenticationHandler : AuthenticationHandler<TokenAuthenticat
 
         var claims = new List<Claim> {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.Username ?? user.EMail)
+            new(ClaimTypes.Name, user.Username ?? user.Email)
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

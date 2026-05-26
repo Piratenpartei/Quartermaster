@@ -59,7 +59,7 @@ public class DueSelectionListEndpoint
             Id = d.Id,
             FirstName = d.FirstName,
             LastName = d.LastName,
-            EMail = d.EMail,
+            Email = d.Email,
             SelectedDue = d.SelectedDue,
             ReducedAmount = d.ReducedAmount,
             ReducedJustification = d.ReducedJustification,

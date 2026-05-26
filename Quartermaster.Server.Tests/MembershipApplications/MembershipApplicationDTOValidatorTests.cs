@@ -15,7 +15,7 @@ public class MembershipApplicationDTOValidatorTests {
         LastName = "Mustermann",
         DateOfBirth = new DateTime(1990, 1, 1),
         Citizenship = "deutsch",
-        EMail = "max@example.com",
+        Email = "max@example.com",
         PhoneNumber = "0123456789",
         AddressStreet = "Musterstraße",
         AddressHouseNbr = "42",
@@ -104,56 +104,56 @@ public class MembershipApplicationDTOValidatorTests {
     }
 
     [Test]
-    public void EmptyEMail_ShouldHaveError() {
+    public void EmptyEmail_ShouldHaveError() {
         var application = ValidApplication();
-        application.EMail = "";
+        application.Email = "";
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.Admin.Application.EmailRequired);
     }
 
     [Test]
-    public void EMailWithoutAtSign_ShouldHaveError() {
+    public void EmailWithoutAtSign_ShouldHaveError() {
         var application = ValidApplication();
-        application.EMail = "invalid-email";
+        application.Email = "invalid-email";
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.Admin.Application.EmailInvalid);
     }
 
     [Test]
-    public void EMailExceedsMaxLength_ShouldHaveError() {
+    public void EmailExceedsMaxLength_ShouldHaveError() {
         var application = ValidApplication();
-        application.EMail = new string('a', 250) + "@ab.com";
+        application.Email = new string('a', 250) + "@ab.com";
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.Admin.Application.EmailMaxLength);
     }
 
     [Test]
-    public void EMailAtMaxLength_ShouldHaveNoError() {
+    public void EmailAtMaxLength_ShouldHaveNoError() {
         var application = ValidApplication();
-        application.EMail = new string('a', 249) + "@ab.com";
+        application.Email = new string('a', 249) + "@ab.com";
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.EMail);
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
     }
 
     [Test]
-    public void ValidEMail_ShouldHaveNoError() {
+    public void ValidEmail_ShouldHaveNoError() {
         var application = ValidApplication();
-        application.EMail = "test@example.com";
+        application.Email = "test@example.com";
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.EMail);
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
     }
 
     [Test]

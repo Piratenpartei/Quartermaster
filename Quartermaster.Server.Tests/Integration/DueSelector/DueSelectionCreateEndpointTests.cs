@@ -12,7 +12,7 @@ public class DueSelectionCreateEndpointTests : IntegrationTestBase {
         return new DueSelectionDTO {
             FirstName = "Alice",
             LastName = "Anderson",
-            EMail = "alice@test.local",
+            Email = "alice@test.local",
             MemberNumber = 12345,
             SelectedValuation = SelectedValuation.OnePercentYearlyPay,
             YearlyIncome = 30000m,

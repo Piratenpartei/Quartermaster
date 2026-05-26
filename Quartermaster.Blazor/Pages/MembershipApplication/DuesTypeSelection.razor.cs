@@ -24,7 +24,7 @@ public partial class DuesTypeSelection {
             return;
         DuesState.FirstName = EntryState.FirstName;
         DuesState.LastName = EntryState.LastName;
-        DuesState.EMail = EntryState.EMail;
+        DuesState.Email = EntryState.Email;
     }
 
     private void SelectDueType(SelectedValuation valuation) {

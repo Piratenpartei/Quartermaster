@@ -72,9 +72,9 @@ public class EmailService {
         } else {
             var members = FetchTargetMembers(targetType, targetId);
             foreach (var member in members) {
-                if (string.IsNullOrEmpty(member.EMail))
+                if (string.IsNullOrEmpty(member.Email))
                     continue;
-                await EnqueueEmailAsync(member.EMail, subject, templateContent, templateIdentifier,
+                await EnqueueEmailAsync(member.Email, subject, templateContent, templateIdentifier,
                     member, sourceEntityType, sourceEntityId);
                 count++;
             }
@@ -94,7 +94,7 @@ public class EmailService {
             model["member"] = new {
                 member.FirstName,
                 member.LastName,
-                member.EMail,
+                member.Email,
                 member.MemberNumber,
                 member.City,
                 member.PostCode

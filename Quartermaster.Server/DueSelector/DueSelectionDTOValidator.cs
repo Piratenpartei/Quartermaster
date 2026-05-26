@@ -15,7 +15,7 @@ public class DueSelectionDTOValidator : Validator<DueSelectionDTO> {
             .NotEmpty()
             .WithMessage(I18nKey.Error.Admin.DueSelection.LastNameRequired);
 
-        RuleFor(x => x.EMail)
+        RuleFor(x => x.Email)
             .Must(e => string.IsNullOrEmpty(e) || e.Contains('@'))
             .WithMessage(I18nKey.Error.Admin.DueSelection.EmailInvalid);
 

@@ -9,7 +9,7 @@ public class MembershipApplicationEntryState : EntryStateBase {
     public string LastName { get; set; } = "";
     public DateTime? DateOfBirth { get; set; }
     public string Citizenship { get; set; } = "Deutsch";
-    public string EMail { get; set; } = "";
+    public string Email { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
 
     public bool IsGermany { get; set; } = true;

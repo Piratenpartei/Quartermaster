@@ -33,7 +33,7 @@
                     <tr><th>Nachname</th><td>@Member.LastName</td></tr>
                     <tr><th>Geburtsdatum</th><td>@(Member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
                     <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "—")</td></tr>
-                    <tr><th>E-Mail</th><td>@(Member.EMail ?? "—")</td></tr>
+                    <tr><th>E-Mail</th><td>@(Member.Email ?? "—")</td></tr>
                     <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
                 </tbody>
             </table>

@@ -34,7 +34,7 @@ public class ChecklistItemExecutor {
         var motion = new Motion {
             ChapterId = config.ChapterId.Value,
             AuthorName = "System (Event)",
-            AuthorEMail = "",
+            AuthorEmail = "",
             Title = config.MotionTitle ?? "",
             Text = MarkdownService.ToHtml(config.MotionText, SanitizationProfile.Strict),
             IsPublic = false,

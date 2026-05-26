@@ -70,7 +70,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
         var anna = _context.Members.Where(m => m.MemberNumber == 1001).First();
         await Assert.That(anna.FirstName).IsEqualTo("Anna");
         await Assert.That(anna.LastName).IsEqualTo("Mueller");
-        await Assert.That(anna.EMail).IsEqualTo("anna@example.com");
+        await Assert.That(anna.Email).IsEqualTo("anna@example.com");
     }
 
     [Test]

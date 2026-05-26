@@ -82,8 +82,8 @@ public class MemberImportService {
                     member.UserId = existing.UserId; // Preserve SSO link
 
                     // Sync email to linked user if it changed
-                    if (existing.UserId.HasValue && existing.EMail != member.EMail && !string.IsNullOrEmpty(member.EMail))
-                        userRepo.UpdateEmail(existing.UserId.Value, member.EMail);
+                    if (existing.UserId.HasValue && existing.Email != member.Email && !string.IsNullOrEmpty(member.Email))
+                        userRepo.UpdateEmail(existing.UserId.Value, member.Email);
 
                     // Invalidate all tokens when a member exits the party
                     if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
@@ -141,7 +141,7 @@ public class MemberImportService {
             PostCode = NullIfEmpty(record.LieferPLZ),
             City = NullIfEmpty(record.LieferOrt),
             Phone = NullIfEmpty(record.Telefon),
-            EMail = NullIfEmpty(record.EMail),
+            Email = NullIfEmpty(record.Email),
             DateOfBirth = ParseDateTime(record.USER_Geburtsdatum),
             Citizenship = NullIfEmpty(record.USER_Staatsbuergerschaft),
             MembershipFee = ParseDecimal(record.USER_Beitrag),

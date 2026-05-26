@@ -23,11 +23,31 @@ public class LoginAttemptRepository {
 
     public int CountRecentFailures(string ipAddress, string usernameOrEmail, DateTime since) {
         return _context.LoginAttempts
+            .Count(a => a.IpAddress == ipAddress
+                && a.UsernameOrEmail == usernameOrEmail
+                && !a.Success
+                && a.AttemptedAt >= since);
+    }
+
+    /// <summary>
+    /// Returns the timestamp of the failure whose expiry first releases a lockout — the
+    /// <paramref name="maxAttempts"/>-th most recent failed attempt in the window. When that
+    /// row's age exceeds the lockout duration, the count drops below the threshold and the
+    /// user can retry. Returns null when fewer than <paramref name="maxAttempts"/> failures exist.
+    /// </summary>
+    public DateTime? GetLockoutReleaseAnchor(string ipAddress, string usernameOrEmail, DateTime since, int maxAttempts) {
+        var timestamps = _context.LoginAttempts
             .Where(a => a.IpAddress == ipAddress
                 && a.UsernameOrEmail == usernameOrEmail
                 && !a.Success
                 && a.AttemptedAt >= since)
-            .Count();
+            .OrderByDescending(a => a.AttemptedAt)
+            .Take(maxAttempts)
+            .Select(a => a.AttemptedAt)
+            .ToList();
+        if (timestamps.Count < maxAttempts)
+            return null;
+        return timestamps[^1];
     }
 
     /// <summary>

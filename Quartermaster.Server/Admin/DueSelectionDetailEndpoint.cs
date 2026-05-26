@@ -73,7 +73,7 @@ public class DueSelectionDetailEndpoint
             Id = ds.Id,
             FirstName = ds.FirstName,
             LastName = ds.LastName,
-            EMail = ds.EMail,
+            Email = ds.Email,
             MemberNumber = ds.MemberNumber,
             SelectedValuation = ds.SelectedValuation,
             YearlyIncome = ds.YearlyIncome,

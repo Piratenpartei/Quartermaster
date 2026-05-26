@@ -27,7 +27,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
         var motion = new Motion {
             ChapterId = req.ChapterId,
             AuthorName = req.AuthorName,
-            AuthorEMail = req.AuthorEMail,
+            AuthorEmail = req.AuthorEmail,
             Title = req.Title,
             Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
             IsPublic = true,

@@ -88,7 +88,7 @@ public class MembershipApplicationRepository {
     public void Anonymize(Guid id) {
         var now = DateTime.UtcNow;
         _context.MembershipApplications.Where(a => a.Id == id)
-            .Set(a => a.EMail, "")
+            .Set(a => a.Email, "")
             .Set(a => a.PhoneNumber, "")
             .Set(a => a.AddressStreet, "")
             .Set(a => a.AddressHouseNbr, "")

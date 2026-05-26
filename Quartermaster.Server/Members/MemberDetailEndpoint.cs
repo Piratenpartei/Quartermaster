@@ -92,7 +92,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             PostCode = member.PostCode,
             City = member.City,
             Phone = member.Phone,
-            EMail = member.EMail,
+            Email = member.Email,
             DateOfBirth = member.DateOfBirth,
             Citizenship = member.Citizenship,
             MembershipFee = member.MembershipFee,

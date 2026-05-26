@@ -17,7 +17,7 @@ public class MotionCreateRequestValidator : Validator<MotionCreateRequest> {
             .MaximumLength(256)
             .WithMessage(I18nKey.Error.Motion.SubmitterNameMaxLength);
 
-        RuleFor(x => x.AuthorEMail)
+        RuleFor(x => x.AuthorEmail)
             .NotEmpty()
             .WithMessage(I18nKey.Error.Motion.EmailRequired)
             .Must(e => e != null && e.Contains('@'))

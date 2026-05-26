@@ -30,7 +30,7 @@ public class UserRepository {
         => _context.Users.Where(u => u.Username == username && u.DeletedAt == null).FirstOrDefault();
 
     public User? GetByEmail(string email)
-        => _context.Users.Where(u => u.EMail == email && u.DeletedAt == null).FirstOrDefault();
+        => _context.Users.Where(u => u.Email == email && u.DeletedAt == null).FirstOrDefault();
 
     public void SupplementDefaults(
         RootAccountSettings? accountSettings,
@@ -86,7 +86,7 @@ public class UserRepository {
     public void UpdateEmail(Guid id, string email) {
         _context.Users
             .Where(u => u.Id == id)
-            .Set(u => u.EMail, email)
+            .Set(u => u.Email, email)
             .Update();
     }
 

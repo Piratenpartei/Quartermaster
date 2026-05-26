@@ -51,8 +51,8 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
             User = new LoginUserInfo {
                 Id = user.Id,
                 Username = user.Username ?? "",
-                DisplayName = BuildDisplayName(user),
-                EMail = user.EMail
+                DisplayName = user.DisplayName(),
+                Email = user.Email
             },
             Permissions = new LoginPermissions {
                 Global = globalPermissions,
@@ -61,13 +61,5 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
                     kvp => kvp.Value)
             }
         }, cancellation: ct);
-    }
-
-    private static string BuildDisplayName(User user) {
-        if (!string.IsNullOrEmpty(user.FirstName) && !string.IsNullOrEmpty(user.LastName))
-            return $"{user.FirstName} {user.LastName}";
-        if (!string.IsNullOrEmpty(user.Username))
-            return user.Username;
-        return user.EMail;
     }
 }

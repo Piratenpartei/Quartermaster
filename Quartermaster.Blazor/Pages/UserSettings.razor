@@ -20,11 +20,11 @@
                         <tbody>
                             <tr><th style="width:180px">Anzeigename</th><td>@Settings.User.DisplayName</td></tr>
                             <tr><th>Benutzername</th><td>@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</td></tr>
-                            <tr><th>E-Mail</th><td>@(string.IsNullOrEmpty(Settings.User.EMail) ? "---" : Settings.User.EMail)</td></tr>
+                            <tr><th>E-Mail</th><td>@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</td></tr>
                             <tr>
                                 <th>Anmeldemethode</th>
                                 <td>
-                                    @if (Settings.User.Username == Settings.User.EMail) {
+                                    @if (Settings.User.Username == Settings.User.Email) {
                                         <span class="badge bg-primary"><i class="bi bi-shield-lock me-1"></i>SSO</span>
                                     } else {
                                         <span class="badge bg-secondary"><i class="bi bi-person-fill me-1"></i>Manuell</span>

@@ -100,20 +100,12 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
             User = new LoginUserInfo {
                 Id = user.Id,
                 Username = user.Username ?? "",
-                DisplayName = BuildDisplayName(user),
-                EMail = user.EMail
+                DisplayName = user.DisplayName(),
+                Email = user.Email
             },
             Member = memberInfo,
             GlobalPermissions = globalPerms,
             ChapterPermissions = chapterPerms
         }, cancellation: ct);
-    }
-
-    private static string BuildDisplayName(User user) {
-        if (!string.IsNullOrEmpty(user.FirstName) && !string.IsNullOrEmpty(user.LastName))
-            return $"{user.FirstName} {user.LastName}";
-        if (!string.IsNullOrEmpty(user.Username))
-            return user.Username;
-        return user.EMail;
     }
 }

@@ -12,7 +12,7 @@ public class MemberCsvRecord {
     public string? LieferPLZ { get; set; }
     public string? LieferOrt { get; set; }
     public string? Telefon { get; set; }
-    public string? EMail { get; set; }
+    public string? Email { get; set; }
     public string? USER_LV { get; set; }
     public string? USER_Bezirk { get; set; }
     public string? USER_Kreis { get; set; }
@@ -47,7 +47,7 @@ public sealed class MemberCsvRecordMap : ClassMap<MemberCsvRecord> {
         Map(m => m.LieferPLZ).Name("LieferPLZ");
         Map(m => m.LieferOrt).Name("LieferOrt");
         Map(m => m.Telefon).Name("Telefon");
-        Map(m => m.EMail).Name("EMail");
+        Map(m => m.Email).Name("EMail");
         Map(m => m.USER_LV).Name("USER_LV");
         Map(m => m.USER_Bezirk).Name("USER_Bezirk");
         Map(m => m.USER_Kreis).Name("USER_Kreis");

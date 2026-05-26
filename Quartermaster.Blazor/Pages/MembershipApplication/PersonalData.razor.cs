@@ -24,7 +24,7 @@ public partial class PersonalData {
             return false;
         if (string.IsNullOrEmpty(EntryState.Citizenship))
             return false;
-        if (string.IsNullOrEmpty(EntryState.EMail))
+        if (string.IsNullOrEmpty(EntryState.Email))
             return false;
         return true;
     }

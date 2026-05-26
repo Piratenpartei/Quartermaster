@@ -10,10 +10,10 @@ namespace Quartermaster.Api.I18n;
 ///
 /// Example:
 /// <code>
-/// ThrowError(I18nParams.With(I18nKey.Error.Meeting.StatusTransitionNotAllowed,
+/// ThrowError(I18nParams.With(I18nKey.Error.Meeting.Status.TransitionInvalid,
 ///     ("from", meeting.Status.ToString()),
 ///     ("to", req.Status.ToString())));
-/// // Produces: "error.meeting.status.transition_not_allowed?from=Draft&amp;to=Completed"
+/// // Produces: "error.meeting.status.transition_invalid?from=Draft&amp;to=Completed"
 /// </code>
 /// </summary>
 public static class I18nParams {

@@ -49,13 +49,19 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
             "021CCB025F86F04EF0DC29DA022FA923576CE4FE832B78E850;031DAE440EF21E786C7ECF5B064C1B73;500000;SHA512";
 
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var identifier = req.Username ?? req.EMail ?? "";
+        var identifier = req.Username ?? req.Email ?? "";
 
         // Lockout check
         var (maxAttempts, durationMinutes) = GetLockoutConfig();
         var windowStart = DateTime.UtcNow.AddMinutes(-durationMinutes);
         var recentFailures = _loginAttemptRepository.CountRecentFailures(ipAddress, identifier, windowStart);
         if (recentFailures >= maxAttempts) {
+            var releaseAnchor = _loginAttemptRepository.GetLockoutReleaseAnchor(ipAddress, identifier, windowStart, maxAttempts);
+            if (releaseAnchor.HasValue) {
+                var retryAfter = releaseAnchor.Value.AddMinutes(durationMinutes) - DateTime.UtcNow;
+                var seconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds));
+                HttpContext.Response.Headers["Retry-After"] = seconds.ToString();
+            }
             await SendAsync(new LoginResponse(), statusCode: 429, cancellation: ct);
             return;
         }
@@ -79,8 +85,8 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
                 User = new LoginUserInfo {
                     Id = user.Id,
                     Username = user.Username ?? "",
-                    DisplayName = BuildDisplayName(user),
-                    EMail = user.EMail
+                    DisplayName = user.DisplayName(),
+                    Email = user.Email
                 },
                 Permissions = new LoginPermissions {
                     Global = globalPermissions,
@@ -108,15 +114,5 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
         if (int.TryParse(value, out var parsed) && parsed > 0)
             return parsed;
         return fallback;
-    }
-
-    private static string BuildDisplayName(Data.Users.User user) {
-        if (!string.IsNullOrEmpty(user.FirstName) && !string.IsNullOrEmpty(user.LastName))
-            return $"{user.FirstName} {user.LastName}";
-
-        if (!string.IsNullOrEmpty(user.Username))
-            return user.Username;
-
-        return user.EMail;
     }
 }

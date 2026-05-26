@@ -109,7 +109,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 5001,
             FirstName = "Alice",
             LastName = "A",
-            EMail = "alice@test.com",
+            Email = "alice@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -117,7 +117,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 5002,
             FirstName = "Bob",
             LastName = "B",
-            EMail = "bob@test.com",
+            Email = "bob@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -145,7 +145,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 6001,
             FirstName = "NoEmail",
             LastName = "Person",
-            EMail = null,
+            Email = null,
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -153,7 +153,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 6002,
             FirstName = "HasEmail",
             LastName = "Person",
-            EMail = "has@test.com",
+            Email = "has@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -173,7 +173,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 7001,
             FirstName = "One",
             LastName = "Member",
-            EMail = "one@test.com",
+            Email = "one@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -181,7 +181,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 7002,
             FirstName = "Two",
             LastName = "Member",
-            EMail = "two@test.com",
+            Email = "two@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -189,7 +189,7 @@ public class EmailServiceTests : RepositoryTestBase {
             MemberNumber = 7003,
             FirstName = "Three",
             LastName = "Member",
-            EMail = "three@test.com",
+            Email = "three@test.com",
             ChapterId = _chapterId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -224,19 +224,19 @@ public class EmailServiceTests : RepositoryTestBase {
         // Seed members at different levels
         _context.Insert(new Member {
             MemberNumber = 9001, FirstName = "StateResident", LastName = "S",
-            EMail = "state@test.com",
+            Email = "state@test.com",
             ResidenceAdministrativeDivisionId = stateId,
             LastImportedAt = DateTime.UtcNow
         });
         _context.Insert(new Member {
             MemberNumber = 9002, FirstName = "CountyResident", LastName = "C",
-            EMail = "county@test.com",
+            Email = "county@test.com",
             ResidenceAdministrativeDivisionId = countyId,
             LastImportedAt = DateTime.UtcNow
         });
         _context.Insert(new Member {
             MemberNumber = 9003, FirstName = "CityResident", LastName = "Ci",
-            EMail = "city@test.com",
+            Email = "city@test.com",
             ResidenceAdministrativeDivisionId = cityId,
             LastImportedAt = DateTime.UtcNow
         });
@@ -267,13 +267,13 @@ public class EmailServiceTests : RepositoryTestBase {
 
         _context.Insert(new Member {
             MemberNumber = 9101, FirstName = "StateResident", LastName = "S",
-            EMail = "state@test.com",
+            Email = "state@test.com",
             ResidenceAdministrativeDivisionId = stateId,
             LastImportedAt = DateTime.UtcNow
         });
         _context.Insert(new Member {
             MemberNumber = 9102, FirstName = "CityResident", LastName = "Ci",
-            EMail = "city@test.com",
+            Email = "city@test.com",
             ResidenceAdministrativeDivisionId = cityId,
             LastImportedAt = DateTime.UtcNow
         });

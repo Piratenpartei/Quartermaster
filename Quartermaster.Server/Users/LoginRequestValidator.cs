@@ -9,10 +9,10 @@ public class LoginRequestValidator : Validator<LoginRequest> {
     public LoginRequestValidator() {
         RuleFor(x => x.Username)
             .NotEmpty()
-            .When(x => string.IsNullOrEmpty(x.EMail))
+            .When(x => string.IsNullOrEmpty(x.Email))
             .WithMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
 
-        RuleFor(x => x.EMail)
+        RuleFor(x => x.Email)
             .NotEmpty()
             .When(x => string.IsNullOrEmpty(x.Username))
             .WithMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);

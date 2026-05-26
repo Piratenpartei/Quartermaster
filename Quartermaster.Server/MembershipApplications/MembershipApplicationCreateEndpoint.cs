@@ -41,7 +41,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             var dueSelection = new DueSelection {
                 FirstName = req.DueSelection.FirstName,
                 LastName = req.DueSelection.LastName,
-                EMail = req.DueSelection.EMail,
+                Email = req.DueSelection.Email,
                 MemberNumber = req.DueSelection.MemberNumber,
                 SelectedValuation = req.DueSelection.SelectedValuation,
                 YearlyIncome = req.DueSelection.YearlyIncome,
@@ -68,7 +68,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             LastName = req.LastName,
             DateOfBirth = req.DateOfBirth,
             Citizenship = req.Citizenship,
-            EMail = req.EMail,
+            Email = req.Email,
             PhoneNumber = req.PhoneNumber,
             AddressStreet = req.AddressStreet,
             AddressHouseNbr = req.AddressHouseNbr,
@@ -90,7 +90,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
         // Spawn a single linked motion for chapter approval
         if (application.ChapterId.HasValue) {
             var md = $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
-                + $"- **E-Mail:** {application.EMail}\n"
+                + $"- **E-Mail:** {application.Email}\n"
                 + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
                 + $"{application.AddressPostCode} {application.AddressCity}\n";
 
@@ -111,7 +111,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             var motion = new Motion {
                 ChapterId = application.ChapterId.Value,
                 AuthorName = $"{application.FirstName} {application.LastName}",
-                AuthorEMail = application.EMail,
+                AuthorEmail = application.Email,
                 Title = title,
                 Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
                 IsPublic = false,

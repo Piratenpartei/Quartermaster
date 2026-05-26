@@ -38,7 +38,7 @@ public static class SsoLoginHelper {
 
             if (user == null) {
                 user = new User {
-                    EMail = email,
+                    Email = email,
                     Username = email,
                     FirstName = member.FirstName ?? "",
                     LastName = member.LastName ?? ""

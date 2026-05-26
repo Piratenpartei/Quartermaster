@@ -32,7 +32,7 @@ public class SessionEndpointTests : IntegrationTestBase {
         var dto = await response.Content.ReadFromJsonAsync<LoginResponse>();
         await Assert.That(dto).IsNotNull();
         await Assert.That(dto!.User.Id).IsEqualTo(user.Id);
-        await Assert.That(dto.User.EMail).IsEqualTo(user.EMail);
+        await Assert.That(dto.User.Email).IsEqualTo(user.Email);
     }
 
     [Test]

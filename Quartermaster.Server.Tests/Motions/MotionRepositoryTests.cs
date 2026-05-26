@@ -91,7 +91,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var motion = new Motion {
             ChapterId = _chapterId,
             AuthorName = "Test Author",
-            AuthorEMail = "test@example.com",
+            AuthorEmail = "test@example.com",
             Title = "Test Motion",
             Text = "Test text",
             IsPublic = true,
@@ -219,7 +219,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
             Id = appId,
             FirstName = "Test",
             LastName = "Applicant",
-            EMail = "test@example.com",
+            Email = "test@example.com",
             Status = ApplicationStatus.Pending,
             SubmittedAt = DateTime.UtcNow,
             EntryDate = DateTime.UtcNow

@@ -19,7 +19,7 @@ public partial class MotionCreate {
 
     private string SelectedChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
-    private string AuthorEMail { get; set; } = "";
+    private string AuthorEmail { get; set; } = "";
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
 
@@ -28,7 +28,7 @@ public partial class MotionCreate {
             return false;
         if (string.IsNullOrEmpty(AuthorName))
             return false;
-        if (string.IsNullOrEmpty(AuthorEMail))
+        if (string.IsNullOrEmpty(AuthorEmail))
             return false;
         if (string.IsNullOrEmpty(Title))
             return false;
@@ -44,7 +44,7 @@ public partial class MotionCreate {
         var result = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapterId,
             AuthorName = AuthorName,
-            AuthorEMail = AuthorEMail,
+            AuthorEmail = AuthorEmail,
             Title = Title,
             Text = Text
         });

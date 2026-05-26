@@ -59,7 +59,7 @@ public class AuthService {
     public async Task<bool> LoginAsync(string usernameOrEmail, string password) {
         var request = new LoginRequest { Password = password };
         if (usernameOrEmail.Contains('@'))
-            request.EMail = usernameOrEmail;
+            request.Email = usernameOrEmail;
         else
             request.Username = usernameOrEmail;
 

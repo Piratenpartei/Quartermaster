@@ -12,7 +12,7 @@ public class LoginRequestValidatorTests {
     public void ValidRequest_UsernameOnly_ShouldHaveNoErrors() {
         var request = new LoginRequest {
             Username = "testuser",
-            EMail = null,
+            Email = null,
             Password = "SecurePass123!"
         };
 
@@ -22,10 +22,10 @@ public class LoginRequestValidatorTests {
     }
 
     [Test]
-    public void ValidRequest_EMailOnly_ShouldHaveNoErrors() {
+    public void ValidRequest_EmailOnly_ShouldHaveNoErrors() {
         var request = new LoginRequest {
             Username = null,
-            EMail = "test@example.com",
+            Email = "test@example.com",
             Password = "SecurePass123!"
         };
 
@@ -35,10 +35,10 @@ public class LoginRequestValidatorTests {
     }
 
     [Test]
-    public void ValidRequest_BothUsernameAndEMail_ShouldHaveNoErrors() {
+    public void ValidRequest_BothUsernameAndEmail_ShouldHaveNoErrors() {
         var request = new LoginRequest {
             Username = "testuser",
-            EMail = "test@example.com",
+            Email = "test@example.com",
             Password = "SecurePass123!"
         };
 
@@ -48,10 +48,10 @@ public class LoginRequestValidatorTests {
     }
 
     [Test]
-    public void NeitherUsernameNorEMail_ShouldHaveErrors() {
+    public void NeitherUsernameNorEmail_ShouldHaveErrors() {
         var request = new LoginRequest {
             Username = null,
-            EMail = null,
+            Email = null,
             Password = "SecurePass123!"
         };
 
@@ -59,15 +59,15 @@ public class LoginRequestValidatorTests {
 
         result.ShouldHaveValidationErrorFor(x => x.Username)
             .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
     }
 
     [Test]
-    public void EmptyUsernameAndEmptyEMail_ShouldHaveErrors() {
+    public void EmptyUsernameAndEmptyEmail_ShouldHaveErrors() {
         var request = new LoginRequest {
             Username = "",
-            EMail = "",
+            Email = "",
             Password = "SecurePass123!"
         };
 
@@ -75,7 +75,7 @@ public class LoginRequestValidatorTests {
 
         result.ShouldHaveValidationErrorFor(x => x.Username)
             .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.User.Login.UsernameOrEmailRequired);
     }
 

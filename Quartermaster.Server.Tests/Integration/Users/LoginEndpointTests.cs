@@ -114,7 +114,7 @@ public class LoginEndpointTests : IntegrationTestBase {
         using var client = await AnonymousClientWithCsrfAsync();
         var response = await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
             Username = null,
-            EMail = null,
+            Email = null,
             Password = ValidPassword
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);

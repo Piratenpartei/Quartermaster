@@ -19,7 +19,7 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
             .MaximumLength(256)
             .WithMessage(I18nKey.Error.Admin.Application.LastNameMaxLength);
 
-        RuleFor(x => x.EMail)
+        RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage(I18nKey.Error.Admin.Application.EmailRequired)
             .Must(e => e != null && e.Contains('@'))

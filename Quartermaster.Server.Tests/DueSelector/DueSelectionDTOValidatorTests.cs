@@ -12,7 +12,7 @@ public class DueSelectionDTOValidatorTests {
     private static DueSelectionDTO ValidDueSelection() => new() {
         FirstName = "Max",
         LastName = "Mustermann",
-        EMail = "max@example.com",
+        Email = "max@example.com",
         MemberNumber = 12345,
         SelectedValuation = SelectedValuation.MonthlyPayGroup,
         YearlyIncome = 50000m,
@@ -59,34 +59,34 @@ public class DueSelectionDTOValidatorTests {
     }
 
     [Test]
-    public void EmptyEMail_ShouldHaveNoError() {
+    public void EmptyEmail_ShouldHaveNoError() {
         var selection = ValidDueSelection();
-        selection.EMail = "";
+        selection.Email = "";
 
         var result = _validator.TestValidate(selection);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.EMail);
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
     }
 
     [Test]
-    public void EMailWithoutAtSign_ShouldHaveError() {
+    public void EmailWithoutAtSign_ShouldHaveError() {
         var selection = ValidDueSelection();
-        selection.EMail = "invalid-email";
+        selection.Email = "invalid-email";
 
         var result = _validator.TestValidate(selection);
 
-        result.ShouldHaveValidationErrorFor(x => x.EMail)
+        result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorMessage(I18nKey.Error.Admin.DueSelection.EmailInvalid);
     }
 
     [Test]
-    public void ValidEMail_ShouldHaveNoError() {
+    public void ValidEmail_ShouldHaveNoError() {
         var selection = ValidDueSelection();
-        selection.EMail = "test@example.com";
+        selection.Email = "test@example.com";
 
         var result = _validator.TestValidate(selection);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.EMail);
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
     }
 
     [Test]

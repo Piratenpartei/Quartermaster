@@ -35,7 +35,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         await Assert.That(summary.MembersAnonymized).IsEqualTo(0);
         var m = _context.Members.Where(x => x.Id == id).First();
         await Assert.That(m.AnonymizedAt).IsNull();
-        await Assert.That(m.EMail).IsEqualTo("retained@example.com");
+        await Assert.That(m.Email).IsEqualTo("retained@example.com");
     }
 
     [Test]
@@ -46,7 +46,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         await Assert.That(summary.MembersAnonymized).IsEqualTo(1);
         var m = _context.Members.Where(x => x.Id == id).First();
         await Assert.That(m.AnonymizedAt).IsNotNull();
-        await Assert.That(m.EMail).IsNull();
+        await Assert.That(m.Email).IsNull();
         await Assert.That(m.Street).IsNull();
         // Preserved for re-join detection
         await Assert.That(m.FirstName).IsEqualTo("Jana");
@@ -83,7 +83,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         await Assert.That(summary.ApplicationsAnonymized).IsEqualTo(0);
         var app = _context.MembershipApplications.Where(a => a.Id == appId).First();
         await Assert.That(app.AnonymizedAt).IsNull();
-        await Assert.That(app.EMail).IsEqualTo("retained@app.example");
+        await Assert.That(app.Email).IsEqualTo("retained@app.example");
     }
 
     [Test]
@@ -92,7 +92,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         var summary = _svc.RunOnce(new DateTime(2099, 1, 1));
         await Assert.That(summary.ApplicationsAnonymized).IsEqualTo(1);
         var app = _context.MembershipApplications.Where(a => a.Id == appId).First();
-        await Assert.That(app.EMail).IsEqualTo("");
+        await Assert.That(app.Email).IsEqualTo("");
         await Assert.That(app.AnonymizedAt).IsNotNull();
         // Preserved
         await Assert.That(app.FirstName).IsEqualTo("Orphan");
@@ -127,7 +127,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
             LastName = lastName,
             DateOfBirth = dob ?? new DateTime(1980, 1, 1),
             ExitDate = exitDate,
-            EMail = "retained@example.com",
+            Email = "retained@example.com",
             Street = "Teststr. 1",
             City = "Berlin",
             LastImportedAt = DateTime.UtcNow
@@ -147,7 +147,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
             LastName = lastName,
             DateOfBirth = dob ?? new DateTime(1980, 1, 1),
             Citizenship = "DE",
-            EMail = "retained@app.example",
+            Email = "retained@app.example",
             PhoneNumber = "+49 30 1234567",
             AddressStreet = "Beispielweg",
             AddressHouseNbr = "7",

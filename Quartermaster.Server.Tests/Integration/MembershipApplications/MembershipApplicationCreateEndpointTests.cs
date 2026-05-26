@@ -16,7 +16,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
             LastName = "Applicant",
             DateOfBirth = new DateTime(1990, 1, 1),
             Citizenship = "DE",
-            EMail = "alice@test.local",
+            Email = "alice@test.local",
             PhoneNumber = "0123456789",
             AddressStreet = "Teststr.",
             AddressHouseNbr = "1",
@@ -75,7 +75,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var dto = ValidDto();
-        dto.EMail = "not-an-email";
+        dto.Email = "not-an-email";
         var response = await client.PostAsJsonAsync("/api/membershipapplications", dto);
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }

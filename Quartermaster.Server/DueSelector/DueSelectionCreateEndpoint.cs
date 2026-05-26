@@ -25,7 +25,7 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
         var dueSelection = new DueSelection {
             FirstName = req.FirstName,
             LastName = req.LastName,
-            EMail = req.EMail,
+            Email = req.Email,
             MemberNumber = req.MemberNumber,
             SelectedValuation = req.SelectedValuation,
             YearlyIncome = req.YearlyIncome,

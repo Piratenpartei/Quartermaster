@@ -80,7 +80,7 @@ public class TestDataSeeder {
                 Id = Guid.NewGuid(),
                 FirstName = firstName,
                 LastName = lastName,
-                EMail = email,
+                Email = email,
                 SelectedValuation = isReduced
                     ? SelectedValuation.Reduced
                     : faker.PickRandom(SelectedValuation.MonthlyPayGroup, SelectedValuation.OnePercentYearlyPay),
@@ -113,7 +113,7 @@ public class TestDataSeeder {
                 DateOfBirth = faker.Date.Between(
                     DateTime.Now.AddYears(-70), DateTime.Now.AddYears(-14)),
                 Citizenship = faker.Random.Bool(0.95f) ? "Deutsch" : faker.PickRandom("Österreichisch", "Schweizerisch", "Polnisch", "Türkisch"),
-                EMail = email,
+                Email = email,
                 PhoneNumber = faker.Phone.PhoneNumber("0### #######"),
                 AddressStreet = faker.PickRandom(germanStreets),
                 AddressHouseNbr = faker.Random.Int(1, 150).ToString(),
@@ -159,7 +159,7 @@ public class TestDataSeeder {
                 Id = Guid.NewGuid(),
                 ChapterId = chapter.Id,
                 AuthorName = $"{firstName} {lastName}",
-                AuthorEMail = email,
+                AuthorEmail = email,
                 Title = motionTitle,
                 Text = motionText,
                 IsPublic = false,
@@ -182,7 +182,7 @@ public class TestDataSeeder {
                 Id = Guid.NewGuid(),
                 FirstName = firstName,
                 LastName = lastName,
-                EMail = faker.Internet.Email(firstName, lastName),
+                Email = faker.Internet.Email(firstName, lastName),
                 MemberNumber = _nextMemberNumber++,
                 SelectedValuation = isReduced
                     ? SelectedValuation.Reduced
@@ -222,7 +222,7 @@ public class TestDataSeeder {
                     Id = Guid.NewGuid(),
                     FirstName = firstName,
                     LastName = lastName,
-                    EMail = faker.Internet.Email(),
+                    Email = faker.Internet.Email(),
                     ChapterId = chapter.Id,
                     MemberSince = faker.Date.Past(5)
                 };
@@ -233,7 +233,7 @@ public class TestDataSeeder {
                     MemberNumber = _nextMemberNumber++,
                     FirstName = firstName,
                     LastName = lastName,
-                    EMail = user.EMail,
+                    Email = user.Email,
                     UserId = user.Id,
                     LastImportedAt = DateTime.UtcNow
                 };
@@ -268,7 +268,7 @@ public class TestDataSeeder {
                 Id = Guid.NewGuid(),
                 ChapterId = chapter.Id,
                 AuthorName = faker.Name.FullName(),
-                AuthorEMail = faker.Internet.Email(),
+                AuthorEmail = faker.Internet.Email(),
                 Title = faker.PickRandom(motionTitles),
                 Text = $"<p>{faker.Lorem.Paragraphs(2)}</p>",
                 IsPublic = faker.Random.Bool(0.7f),

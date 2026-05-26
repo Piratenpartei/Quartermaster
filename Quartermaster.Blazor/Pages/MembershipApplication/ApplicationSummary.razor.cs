@@ -40,7 +40,7 @@ public partial class ApplicationSummary {
             LastName = EntryState.LastName,
             DateOfBirth = EntryState.DateOfBirth ?? DateTime.MinValue,
             Citizenship = EntryState.Citizenship,
-            EMail = EntryState.EMail,
+            Email = EntryState.Email,
             PhoneNumber = EntryState.PhoneNumber,
             AddressStreet = EntryState.AddressStreet,
             AddressHouseNbr = EntryState.AddressHouseNbr,

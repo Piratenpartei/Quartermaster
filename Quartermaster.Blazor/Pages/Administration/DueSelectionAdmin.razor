@@ -40,7 +40,7 @@
             @foreach (var ds in Response.Items) {
                 <tr>
                     <td><a href="/Administration/DueSelections/@ds.Id">@ds.FirstName @ds.LastName</a></td>
-                    <td>@ds.EMail</td>
+                    <td>@ds.Email</td>
                     <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                     <td>
                         @if (ds.SelectedValuation == SelectedValuation.Reduced) {

@@ -13,7 +13,7 @@ public class MemberDetailDTO {
     public string? PostCode { get; set; }
     public string? City { get; set; }
     public string? Phone { get; set; }
-    public string? EMail { get; set; }
+    public string? Email { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public string? Citizenship { get; set; }
     public decimal MembershipFee { get; set; }

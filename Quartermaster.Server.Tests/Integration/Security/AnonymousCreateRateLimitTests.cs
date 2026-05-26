@@ -30,7 +30,7 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
             var ok = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
                 ChapterId = chapter.Id,
                 AuthorName = $"User{i}",
-                AuthorEMail = $"u{i}@example.com",
+                AuthorEmail = $"u{i}@example.com",
                 Title = $"Title {i}",
                 Text = "x"
             });
@@ -40,7 +40,7 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
         var rejected = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
             AuthorName = "Spammer",
-            AuthorEMail = "spam@example.com",
+            AuthorEmail = "spam@example.com",
             Title = "Overflow",
             Text = "x"
         });
@@ -58,11 +58,11 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
 
         var first = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
-            AuthorName = "A", AuthorEMail = "a@x.com", Title = "T1", Text = "x"
+            AuthorName = "A", AuthorEmail = "a@x.com", Title = "T1", Text = "x"
         });
         var second = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapter.Id,
-            AuthorName = "B", AuthorEMail = "b@x.com", Title = "T2", Text = "x"
+            AuthorName = "B", AuthorEmail = "b@x.com", Title = "T2", Text = "x"
         });
         await Assert.That(first.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(second.StatusCode).IsEqualTo(HttpStatusCode.OK);

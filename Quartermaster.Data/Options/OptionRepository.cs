@@ -278,7 +278,7 @@ public class OptionRepository {
             OptionDataType.Template, true,
             "MotionDTO",
             "**Antrag:** {{ motion.Title }}\n\n**Antragsteller:** {{ motion.AuthorName }}\n\n{{ motion.Text }}\n\n---\n\n**Diskussion:**\n",
-            description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEMail, motion.Text");
+            description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEmail, motion.Text");
 
         AddDefinitionIfNotExists("meetings.collab.save_interval_seconds",
             "Sitzungen: Kollaborative Notizen – Speicherintervall (Sekunden)",

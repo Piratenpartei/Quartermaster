@@ -22,7 +22,7 @@ public class MemberRepository {
         => _context.Members.Where(m => m.MemberNumber == memberNumber).FirstOrDefault();
 
     public Member? GetByEmail(string email)
-        => _context.Members.Where(m => m.EMail == email).FirstOrDefault();
+        => _context.Members.Where(m => m.Email == email).FirstOrDefault();
 
     public Member? GetByUserId(Guid userId)
         => _context.Members.Where(m => m.UserId == userId).FirstOrDefault();
@@ -65,7 +65,7 @@ public class MemberRepository {
             } else {
                 q = q.Where(m => m.FirstName.Contains(query)
                     || m.LastName.Contains(query)
-                    || (m.EMail != null && m.EMail.Contains(query)));
+                    || (m.Email != null && m.Email.Contains(query)));
             }
         }
 
@@ -111,7 +111,7 @@ public class MemberRepository {
             .Set(m => m.PostCode, member.PostCode)
             .Set(m => m.City, member.City)
             .Set(m => m.Phone, member.Phone)
-            .Set(m => m.EMail, member.EMail)
+            .Set(m => m.Email, member.Email)
             .Set(m => m.DateOfBirth, member.DateOfBirth)
             .Set(m => m.Citizenship, member.Citizenship)
             .Set(m => m.MembershipFee, member.MembershipFee)
@@ -148,7 +148,7 @@ public class MemberRepository {
         _auditLog.LogFieldChange("Member", updated.Id, "PostCode", old.PostCode, updated.PostCode);
         _auditLog.LogFieldChange("Member", updated.Id, "City", old.City, updated.City);
         _auditLog.LogFieldChange("Member", updated.Id, "Phone", old.Phone, updated.Phone);
-        _auditLog.LogFieldChange("Member", updated.Id, "EMail", old.EMail, updated.EMail);
+        _auditLog.LogFieldChange("Member", updated.Id, "Email", old.Email, updated.Email);
         _auditLog.LogFieldChange("Member", updated.Id, "DateOfBirth", old.DateOfBirth?.ToString("o"), updated.DateOfBirth?.ToString("o"));
         _auditLog.LogFieldChange("Member", updated.Id, "Citizenship", old.Citizenship, updated.Citizenship);
         _auditLog.LogFieldChange("Member", updated.Id, "MembershipFee", old.MembershipFee.ToString(), updated.MembershipFee.ToString());
@@ -204,7 +204,7 @@ public class MemberRepository {
             .Set(m => m.PostCode, (string?)null)
             .Set(m => m.City, (string?)null)
             .Set(m => m.Phone, (string?)null)
-            .Set(m => m.EMail, (string?)null)
+            .Set(m => m.Email, (string?)null)
             .Set(m => m.Citizenship, (string?)null)
             .Set(m => m.FederalState, (string?)null)
             .Set(m => m.County, (string?)null)

@@ -21,7 +21,7 @@ public partial class MotionCreate {
 
     private string ChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
-    private string AuthorEMail { get; set; } = "";
+    private string AuthorEmail { get; set; } = "";
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
     private bool Submitting;
@@ -39,7 +39,7 @@ public partial class MotionCreate {
             var response = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
                 ChapterId = chapterId,
                 AuthorName = AuthorName,
-                AuthorEMail = AuthorEMail,
+                AuthorEmail = AuthorEmail,
                 Title = Title,
                 Text = Text
             });

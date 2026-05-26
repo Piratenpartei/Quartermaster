@@ -233,12 +233,12 @@ public class ChapterRepositoryTests : RepositoryTestBase {
         });
         var motionId = Guid.NewGuid();
         _context.Insert(new Motion {
-            Id = motionId, ChapterId = _lvId, AuthorName = "Anon", AuthorEMail = "a@x", Title = "Test", Text = "", IsPublic = true, CreatedAt = DateTime.UtcNow
+            Id = motionId, ChapterId = _lvId, AuthorName = "Anon", AuthorEmail = "a@x", Title = "Test", Text = "", IsPublic = true, CreatedAt = DateTime.UtcNow
         });
         var appId = Guid.NewGuid();
         _context.Insert(new MembershipApplication {
             Id = appId, ChapterId = _lvId, FirstName = "Pa", LastName = "Sa", DateOfBirth = new DateTime(1990, 1, 1),
-            Citizenship = "DE", EMail = "p@x", PhoneNumber = "", AddressStreet = "", AddressHouseNbr = "", AddressPostCode = "", AddressCity = "",
+            Citizenship = "DE", Email = "p@x", PhoneNumber = "", AddressStreet = "", AddressHouseNbr = "", AddressPostCode = "", AddressCity = "",
             EntryDate = DateTime.UtcNow, SubmittedAt = DateTime.UtcNow
         });
 

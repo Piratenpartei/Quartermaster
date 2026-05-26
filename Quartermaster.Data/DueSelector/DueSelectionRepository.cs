@@ -86,7 +86,7 @@ public class DueSelectionRepository {
     public void Anonymize(Guid id) {
         var now = DateTime.UtcNow;
         _context.DueSelections.Where(d => d.Id == id)
-            .Set(d => d.EMail, (string?)null)
+            .Set(d => d.Email, (string?)null)
             .Set(d => d.MemberNumber, (int?)null)
             .Set(d => d.AccountHolder, "")
             .Set(d => d.IBAN, "")
