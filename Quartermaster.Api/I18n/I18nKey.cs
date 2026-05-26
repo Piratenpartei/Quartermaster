@@ -253,6 +253,8 @@ public static class I18nKey {
             public const string PublicMotionSubmitted = "ui.toast.motion.public_submitted";
             public const string LoginFailedCredentials = "ui.toast.login.failed_credentials";
             public const string LoginFailedGeneric = "ui.toast.login.failed_generic";
+            public const string SessionRevoked = "ui.toast.session.revoked";
+            public const string SessionOthersRevoked = "ui.toast.session.others_revoked";
         }
 
         public static class Error {
@@ -277,6 +279,8 @@ public static class I18nKey {
             public const string EventArchive = "ui.confirm.event.archive";
             public const string EventBackToDraft = "ui.confirm.event.back_to_draft";
             public const string MeetingFinish = "ui.confirm.meeting_finish";
+            public const string SessionRevokeCurrent = "ui.confirm.session.revoke_current";
+            public const string SessionRevokeOthers = "ui.confirm.session.revoke_others";
         }
 
         public static class Label {

@@ -21,18 +21,17 @@ Real-time collaborative editing of agenda item notes during a meeting, plus live
 
 ## Active Sessions UI (per-user session management)
 
-A "Meine Sitzungen" page where a logged-in user can see all their currently valid login tokens with last-seen metadata, and revoke any of them. Came out of the 2026-05-22 code review: chosen as the user-visible counterpart to IP/UA audit columns on `Token`, in place of automatic IP-binding (which has bad mobile-UX tradeoffs).
+**Status: shipped (2026-05-26).**
 
-Infrastructure already in place after the May 2026 token-auth pass:
-- `Token.IssuedAt`, `Token.IssuedIp`, `Token.IssuedUserAgent` columns populated on login (manual + SAML + OIDC paths)
-- `TokenRepository.DeleteAllForUser` exists; needs a single-token revoke counterpart
+A "Meine Sitzungen" page at `/Sessions` where a logged-in user sees all their currently valid login tokens with audit metadata and can revoke individually or in bulk.
 
-Sketch of the work:
-- New `GET /api/users/sessions` endpoint → list of `(TokenId, IssuedAt, ExpiresAt, IssuedIp, IssuedUserAgent, IsCurrent)` for the calling user. `IsCurrent` marks the bearer token used to make the call.
-- New `DELETE /api/users/sessions/{id}` endpoint → revoke one token (must belong to caller). Returns 204 even if already gone (idempotent).
-- New `POST /api/users/sessions/revoke-others` endpoint → revoke all of caller's tokens except the current one.
-- New `Quartermaster.Blazor/Pages/UserSessions.razor(.cs)` page — table of sessions, "Diese Sitzung" badge on the current one, "Abmelden" button per row, "Alle anderen abmelden" button at the top. Link from the nav menu (next to UserSettings).
-- Tests: list-only-mine isolation, revoke-only-mine isolation, revoke-current works (and next request returns 401), revoke-others preserves the bearer.
-- Optionally: user-agent string prettifying (UA-Parser-style) so users see "Firefox on Windows" instead of the raw header. Defer until v2 — raw UA is acceptable for a v1.
+Implementation:
+- `Quartermaster.Api/Users/SessionDTO.cs` — `(TokenId, IssuedAt, ExpiresAt, IssuedIp, IssuedUserAgent, IsCurrent)`.
+- `TokenRepository` gained `GetActiveLoginTokensForUser`, `DeleteOwnedByUser` (silent no-op if the token doesn't belong to the caller — no ownership leak), and `DeleteOtherLoginTokensForUser`.
+- `TokenAuthenticationHandler` now stamps a `qm:token_id` claim (constant in new `AuthClaimTypes`) so the sessions endpoints can identify which row backs the current request without hashing the bearer again.
+- 3 endpoints: `GET /api/users/sessions`, `DELETE /api/users/sessions/{id}` (idempotent, 204 either way), `POST /api/users/sessions/revoke-others`.
+- `Quartermaster.Blazor/Pages/UserSessions.razor[.cs]` — table with "Diese Sitzung" badge, per-row "Abmelden", top-right "Alle anderen abmelden". Revoking the current session force-navigates to `/Login`. Nav link is a shield-lock icon next to the user-name link in `MainLayout`.
+- New i18n keys under `I18nKey.Ui.Toast.Session*` and `I18nKey.Ui.Confirm.Session*` (de + en).
+- 9 integration tests in `SessionEndpointsTests.cs` covering list-only-mine, expired-token filtering, current-token marking, idempotent foreign-token revoke, revoke-current → next 401, revoke-others preserves bearer, revoke-others doesn't touch other users.
 
-**Why a feature, not a quality fix:** the audit columns are already populated and stable. This is a new surface; tracked here rather than in `code-quality-review-todos.md`.
+Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago" relative-time column.

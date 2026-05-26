@@ -108,6 +108,9 @@
                     <a href="/Settings" class="text-body-secondary text-decoration-none me-1 btn-hover-scale1">
                         <i class="bi bi-person-fill"></i> @AuthService.CurrentUser?.DisplayName
                     </a>
+                    <a href="/Sessions" class="text-body-secondary text-decoration-none me-1 btn-hover-scale1" title="Meine Sitzungen">
+                        <i class="bi bi-shield-lock"></i>
+                    </a>
                     <button class="btn btn-outline-secondary btn-sm btn-hover-scale1" @onclick=HandleLogout>
                         Abmelden
                     </button>

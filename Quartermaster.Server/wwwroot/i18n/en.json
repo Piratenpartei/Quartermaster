@@ -173,6 +173,8 @@
   "ui.toast.motion.public_submitted": "Your motion has been submitted!",
   "ui.toast.login.failed_credentials": "Login failed. Please check your credentials.",
   "ui.toast.login.failed_generic": "Error during login.",
+  "ui.toast.session.revoked": "Session signed out.",
+  "ui.toast.session.others_revoked": "All other sessions signed out.",
 
   "ui.error.generic": "An error occurred.",
   "ui.error.user_required": "Please select a user.",
@@ -193,6 +195,8 @@
   "ui.confirm.event.archive": "Really archive this event?",
   "ui.confirm.event.back_to_draft": "Really set this event back to draft?",
   "ui.confirm.meeting_finish": "Finish this meeting? Open motions will be auto-resolved.",
+  "ui.confirm.session.revoke_current": "You will be signed out on this device. Continue?",
+  "ui.confirm.session.revoke_others": "Sign out of all other sessions? You will remain signed in on this device.",
 
   "ui.label.back_to_overview": "Back to overview",
   "ui.label.event_status.draft": "Draft",

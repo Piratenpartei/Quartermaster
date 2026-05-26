@@ -176,6 +176,8 @@
   "ui.toast.motion.public_submitted": "Dein Antrag wurde eingereicht!",
   "ui.toast.login.failed_credentials": "Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.",
   "ui.toast.login.failed_generic": "Fehler bei der Anmeldung.",
+  "ui.toast.session.revoked": "Sitzung abgemeldet.",
+  "ui.toast.session.others_revoked": "Alle anderen Sitzungen abgemeldet.",
 
   "ui.error.generic": "Es ist ein Fehler aufgetreten.",
   "ui.error.user_required": "Bitte Benutzer auswählen.",
@@ -196,6 +198,8 @@
   "ui.confirm.event.archive": "Dieses Event wirklich archivieren?",
   "ui.confirm.event.back_to_draft": "Dieses Event wirklich zurück in den Entwurfsstatus setzen?",
   "ui.confirm.meeting_finish": "Möchten Sie die Sitzung abschließen? Offene Anträge werden automatisch aufgelöst.",
+  "ui.confirm.session.revoke_current": "Du wirst von diesem Gerät abgemeldet. Fortfahren?",
+  "ui.confirm.session.revoke_others": "Alle anderen Sitzungen abmelden? Du bleibst auf diesem Gerät angemeldet.",
 
   "ui.label.back_to_overview": "Zurück zur Übersicht",
   "ui.label.event_status.draft": "Entwurf",
