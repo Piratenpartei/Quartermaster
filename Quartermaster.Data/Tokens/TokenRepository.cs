@@ -33,11 +33,7 @@ public class TokenRepository {
         _context.Tokens.Where(t => t.Id == tokenId).Delete();
     }
 
-    /// <summary>
-    /// Returns the user's currently-valid Login tokens (expiry in the future, or no expiry set).
-    /// Other token types (e.g. <see cref="TokenType.DonationMarker"/>) are not session tokens
-    /// and are filtered out.
-    /// </summary>
+    /// <summary>Currently-valid Login tokens for the user (filters expired + non-Login types).</summary>
     public List<Token> GetActiveLoginTokensForUser(Guid userId) {
         var now = DateTime.UtcNow;
         return _context.Tokens
@@ -48,10 +44,7 @@ public class TokenRepository {
             .ToList();
     }
 
-    /// <summary>
-    /// Deletes every Login token for the user EXCEPT the one matching <paramref name="exceptTokenId"/>.
-    /// Used by the "revoke other sessions" flow to log the user out everywhere except the current device.
-    /// </summary>
+    /// <summary>Deletes every Login token for the user except <paramref name="exceptTokenId"/>.</summary>
     public int DeleteOtherLoginTokensForUser(Guid userId, Guid exceptTokenId) {
         return _context.Tokens
             .Where(t => t.UserId == userId
@@ -60,11 +53,7 @@ public class TokenRepository {
             .Delete();
     }
 
-    /// <summary>
-    /// Deletes a single token by id IF it belongs to <paramref name="ownerUserId"/>. Returns
-    /// true when a row was removed; false when no such row exists (token already revoked, or
-    /// belongs to a different user — both treated the same to avoid leaking ownership).
-    /// </summary>
+    /// <summary>Deletes the token only if owned by <paramref name="ownerUserId"/>. Returns false on miss; foreign and missing are indistinguishable to avoid leaking ownership.</summary>
     public bool DeleteOwnedByUser(Guid tokenId, Guid ownerUserId) {
         return _context.Tokens
             .Where(t => t.Id == tokenId && t.UserId == ownerUserId)

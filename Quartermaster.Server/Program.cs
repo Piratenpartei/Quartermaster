@@ -33,6 +33,7 @@ using Quartermaster.Server.Email;
 using Quartermaster.Server.Events;
 using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
+using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Security;
 
 namespace Quartermaster.Server;
@@ -120,6 +121,15 @@ public partial class Program {
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
+
+        builder.Services.AddScoped<EmailMessageChannel>();
+        builder.Services.AddScoped<TelegramMessageChannel>();
+        builder.Services.AddScoped<PdfMessageChannel>();
+        builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<EmailMessageChannel>());
+        builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<TelegramMessageChannel>());
+        builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<PdfMessageChannel>());
+        builder.Services.AddScoped<MessageChannelRegistry>();
+
         builder.Services.AddScoped<ChecklistItemExecutor>();
         builder.Services.AddScoped<MeetingLifecycleService>();
 

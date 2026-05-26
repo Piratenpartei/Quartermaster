@@ -1,36 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Rendering;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.Messaging;
 
 namespace Quartermaster.Server.Email;
 
 public class EmailService {
-    private readonly EmailLogRepository _emailLogRepo;
     private readonly OptionRepository _optionRepo;
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
-    private readonly Channel<EmailMessage> _emailChannel;
+    private readonly EmailMessageChannel _emailChannel;
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
-        EmailLogRepository emailLogRepo,
         OptionRepository optionRepo,
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
         AdministrativeDivisionRepository adminDivRepo,
-        Channel<EmailMessage> emailChannel,
+        EmailMessageChannel emailChannel,
         ILogger<EmailService> logger) {
-        _emailLogRepo = emailLogRepo;
         _optionRepo = optionRepo;
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
@@ -106,22 +102,16 @@ public class EmailService {
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;
 
-        // Create log entry (body persisted so we can re-enqueue after server restart)
-        var log = new EmailLog {
-            Recipient = recipient,
-            Subject = subject,
-            TemplateIdentifier = templateIdentifier,
-            SourceEntityType = sourceEntityType,
-            SourceEntityId = sourceEntityId,
-            Status = "Pending",
-            AttemptCount = 0,
-            CreatedAt = DateTime.UtcNow,
-            HtmlBody = htmlBody
-        };
-        _emailLogRepo.Create(log);
-
-        // Enqueue for background sending
-        _emailChannel.Writer.TryWrite(new EmailMessage(log.Id, recipient, subject, htmlBody));
+        var metadata = templateIdentifier != null
+            ? new Dictionary<string, string> { [EmailMessageChannel.TemplateIdentifierMetadataKey] = templateIdentifier }
+            : null;
+        await _emailChannel.SendAsync(new ChannelMessage(
+            ChannelAddress: recipient,
+            Subject: subject,
+            Body: htmlBody,
+            SourceEntityType: sourceEntityType,
+            SourceEntityId: sourceEntityId,
+            Metadata: metadata));
     }
 
     private List<Member> FetchTargetMembers(string targetType, Guid targetId) {

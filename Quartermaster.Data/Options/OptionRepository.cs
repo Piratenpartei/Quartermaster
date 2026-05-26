@@ -243,6 +243,17 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "50",
             description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl sofort verfügbarer weiterer Nachrichten mit, und sendet alle über eine einzige Verbindung. Standard: 50.");
 
+        AddDefinitionIfNotExists("messaging.telegram.bot_token",
+            "Telegram: Bot-Token",
+            OptionDataType.String, false, "", "",
+            description: "Telegram Bot API Token (von @BotFather). Wenn leer, ist der Telegram-Kanal deaktiviert.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("messaging.pdf.output_dir",
+            "PDF-Ausdruck: Ausgabeverzeichnis",
+            OptionDataType.String, false, "", "",
+            description: "Absoluter Pfad zum Ordner, in dem generierte PDF-Briefe abgelegt werden. Leer ⇒ Standard 'data/printouts' relativ zum Anwendungsverzeichnis.");
+
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",
             OptionDataType.Number, false, "", "7",

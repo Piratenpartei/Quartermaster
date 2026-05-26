@@ -11,11 +11,7 @@ public class SessionRevokeOthersResponse {
     public int Revoked { get; set; }
 }
 
-/// <summary>
-/// Logs the calling user out of every device EXCEPT the one making this request. Useful
-/// after a "did I leave my laptop logged in somewhere?" moment. Returns the number of
-/// rows deleted (purely informational; the UI can decide whether to surface it).
-/// </summary>
+/// <summary>Revokes every token for the caller except the current one. Returns the revoked count.</summary>
 public class SessionRevokeOthersEndpoint : EndpointWithoutRequest<SessionRevokeOthersResponse> {
     private readonly TokenRepository _tokenRepo;
     private readonly PermissionContext _perms;
@@ -38,8 +34,7 @@ public class SessionRevokeOthersEndpoint : EndpointWithoutRequest<SessionRevokeO
 
         var currentTokenId = ResolveCurrentTokenId();
         if (currentTokenId == null) {
-            // We can't tell which token is the caller's, so refuse rather than risk
-            // logging the caller out alongside the rest.
+            // Refuse rather than risk revoking the caller's own token along with the others.
             await SendUnauthorizedAsync(ct);
             return;
         }

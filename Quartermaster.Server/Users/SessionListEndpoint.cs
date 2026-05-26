@@ -10,11 +10,7 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Users;
 
-/// <summary>
-/// Returns the calling user's active login tokens. The token that authenticated this
-/// very request is marked <see cref="SessionDTO.IsCurrent"/> so the UI can label it.
-/// Powers the "Meine Sitzungen" page.
-/// </summary>
+/// <summary>Active login tokens for the caller, with the request's own token flagged.</summary>
 public class SessionListEndpoint : EndpointWithoutRequest<List<SessionDTO>> {
     private readonly TokenRepository _tokenRepo;
     private readonly PermissionContext _perms;

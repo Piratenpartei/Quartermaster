@@ -11,11 +11,7 @@ public class SessionRevokeRequest {
     public Guid Id { get; set; }
 }
 
-/// <summary>
-/// Revokes a single login token belonging to the calling user. Idempotent — returns
-/// 204 whether the token existed or not, so we don't leak whether a given id is
-/// real or just unowned.
-/// </summary>
+/// <summary>Revokes one of the caller's tokens. Idempotent 204 — unowned/missing both 204 to avoid leaking ownership.</summary>
 public class SessionRevokeEndpoint : Endpoint<SessionRevokeRequest> {
     private readonly TokenRepository _tokenRepo;
     private readonly PermissionContext _perms;

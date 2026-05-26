@@ -59,7 +59,7 @@
 ### Email/Messaging System
 - [x] SMTP email sending — MailKit via `EmailSendingBackgroundService`, replaces stubbed `MemberEmailService` (deleted)
 - [x] SMTP configuration — 7 options in Options system (host, port, username, password, sender address/name, SSL), admin UI configurable
-- [ ] Message bus abstraction — deferred; just EmailService for now, extract when second channel needed
+- [x] Message bus abstraction — `IMessageChannel` in `Quartermaster.Server/Messaging/` + three implementations (`EmailMessageChannel`, `TelegramMessageChannel`, `PdfMessageChannel`) + `MessageChannelRegistry`. `ChannelMessage` carries an opaque `Metadata` bag for per-channel extras (e.g. email's `TemplateIdentifier`). `EmailService` delegates to `EmailMessageChannel`. New options: `messaging.telegram.bot_token` (secret), `messaging.pdf.output_dir`. Consumer-side wiring tracked in [`feature-todos.md`](./feature-todos.md).
 - [x] Email queue/retry — `Channel<EmailMessage>` with `BackgroundService` consumer, 3 retries with exponential backoff
 - [x] Per-member personalization — Fluid template rendering with `member.*` variables per recipient
 - [x] Email sending log — `EmailLog` table with recipient, subject, status, error, attempt count, source entity traceability (EntityType+EntityId); `GET /api/emaillogs` endpoint

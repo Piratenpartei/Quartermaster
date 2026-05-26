@@ -10,15 +10,9 @@ using Quartermaster.Data.UserGlobalPermissions;
 namespace Quartermaster.Server.Authentication;
 
 /// <summary>
-/// Request-scoped facade over the three permission repositories. Endpoints inject
-/// one <see cref="PermissionContext"/> instead of three repositories + a static helper,
-/// and permission checks become 1-arg / 2-arg calls.
-/// <para>
-/// The <see cref="UserId"/> is resolved lazily from the current <see cref="HttpContext"/>'s
-/// authenticated principal and cached for the lifetime of the request. For non-HTTP
-/// callers (notably SignalR hubs, where <c>HttpContext</c> is null but <c>Context.User</c>
-/// is populated), call <see cref="Bind"/> with the principal first.
-/// </para>
+/// Request-scoped facade over the three permission repositories. <see cref="UserId"/>
+/// is resolved lazily from <see cref="HttpContext"/>; SignalR hubs (HttpContext is null
+/// there) must call <see cref="Bind"/> with <c>Context.User</c> first.
 /// </summary>
 public class PermissionContext {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -54,12 +48,7 @@ public class PermissionContext {
         }
     }
 
-    /// <summary>
-    /// Bind the principal explicitly when no <see cref="HttpContext"/> is available
-    /// (e.g. from inside a SignalR <c>Hub</c> method, where <c>IHttpContextAccessor.HttpContext</c>
-    /// is null but <c>Context.User</c> carries the authenticated identity). Must be
-    /// called before any permission check on this instance.
-    /// </summary>
+    /// <summary>Explicit principal binding for non-HTTP callers (SignalR hubs). Call before any permission check.</summary>
     public void Bind(ClaimsPrincipal principal) {
         _userIdResolved = true;
         var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
@@ -74,10 +63,7 @@ public class PermissionContext {
         return _globalPermRepo.GetForUser(uid.Value).Any(p => p.Identifier == permission);
     }
 
-    /// <summary>
-    /// True when the caller is authenticated and holds the given permission either globally
-    /// or on the specified chapter (with ancestor inheritance).
-    /// </summary>
+    /// <summary>True if authenticated and holds the permission globally or on <paramref name="chapterId"/> (with inheritance).</summary>
     public bool Has(Guid chapterId, string permission) {
         var uid = UserId;
         if (uid == null)
@@ -88,9 +74,8 @@ public class PermissionContext {
     }
 
     /// <summary>
-    /// True when the caller is authenticated and holds the given permission on the EXACT
-    /// chapter (no ancestor inheritance). Use for chapter-bound privileges (e.g. voting)
-    /// where a parent-chapter holder should NOT inherit into child chapters.
+    /// True if authenticated and holds the permission on the exact chapter — no inheritance.
+    /// Use for chapter-bound privileges (voting) where parent-chapter holders must NOT inherit.
     /// </summary>
     public bool HasExact(Guid chapterId, string permission) {
         var uid = UserId;
@@ -99,11 +84,7 @@ public class PermissionContext {
         return _chapterPermRepo.HasPermissionForChapter(uid.Value, chapterId, permission);
     }
 
-    /// <summary>
-    /// True when the caller is authenticated and holds either <paramref name="globalPermission"/>
-    /// globally or <paramref name="chapterPermission"/> on the specified chapter (with inheritance).
-    /// Used by view-vs-view-all and similar pairings.
-    /// </summary>
+    /// <summary>Two-permission overload for view-vs-view-all pairings.</summary>
     public bool Has(Guid chapterId, string globalPermission, string chapterPermission) {
         var uid = UserId;
         if (uid == null)
@@ -114,9 +95,8 @@ public class PermissionContext {
     }
 
     /// <summary>
-    /// Returns the set of chapter IDs (including inheriting descendants) the caller may act on
-    /// for the given permission. Returns <c>null</c> when the caller holds the global form
-    /// (i.e. all chapters); an empty list when nothing is permitted.
+    /// Chapter IDs (and inheriting descendants) the caller may act on. <c>null</c> = all chapters
+    /// (global form held); empty list = nothing.
     /// </summary>
     public List<Guid>? GetPermittedChapterIds(string globalPermission, string chapterPermission) {
         var uid = UserId;

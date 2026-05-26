@@ -7,14 +7,8 @@ using Microsoft.AspNetCore.Components;
 namespace Quartermaster.Blazor.Components;
 
 /// <summary>
-/// Generic lazy-load tree node: collapses/expands on click, lazily fetches children
-/// via the consumer-supplied <see cref="LoadChildren"/> on first expand, and renders
-/// the per-row content via the consumer's <see cref="ItemContent"/> fragment.
-/// <para>
-/// Replaces the per-domain <c>ChapterTreeNode</c> / <c>TreeNode</c> components — every
-/// difference between them now lives in the consumer's render fragment, not duplicated
-/// toggle/spinner/chevron markup.
-/// </para>
+/// Generic lazy-load tree node: lazy-fetches children via <see cref="LoadChildren"/> on
+/// first expand, renders each row through the consumer's <see cref="ItemContent"/> fragment.
 /// </summary>
 public partial class LazyTreeNode<T> : ComponentBase {
     [Parameter]

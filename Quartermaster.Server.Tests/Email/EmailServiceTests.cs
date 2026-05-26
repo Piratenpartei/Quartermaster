@@ -10,6 +10,7 @@ using Quartermaster.Data.Email;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.Email;
+using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Email;
@@ -32,10 +33,11 @@ public class EmailServiceTests : RepositoryTestBase {
         _chapterRepo = new ChapterRepository(_context, AuditLog);
         var adminDivRepo = new AdministrativeDivisionRepository(_context);
         _channel = Channel.CreateUnbounded<EmailMessage>();
+        var emailMessageChannel = new EmailMessageChannel(emailLogRepo, _channel);
 
         _service = new EmailService(
-            emailLogRepo, _optionRepo, memberRepo, _chapterRepo, adminDivRepo,
-            _channel, NullLogger<EmailService>.Instance);
+            _optionRepo, memberRepo, _chapterRepo, adminDivRepo,
+            emailMessageChannel, NullLogger<EmailService>.Instance);
 
         // Seed chapter
         _chapterId = Guid.NewGuid();
