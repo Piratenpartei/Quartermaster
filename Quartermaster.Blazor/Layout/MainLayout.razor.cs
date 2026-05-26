@@ -21,6 +21,9 @@ public partial class MainLayout {
     public required AuthService AuthService { get; set; }
 
     [Inject]
+    public required AuthStateProvider AuthState { get; set; }
+
+    [Inject]
     public required NavigationManager Navigation { get; set; }
 
     private void ToggleMenu() {
@@ -37,7 +40,7 @@ public partial class MainLayout {
         await ConfigService.LoadAsync();
         await SetTheme();
 
-        AuthService.OnTokenExpired += OnTokenExpired;
+        AuthState.OnTokenExpired += OnTokenExpired;
     }
 
     private void OnTokenExpired() {
@@ -55,7 +58,7 @@ public partial class MainLayout {
     }
 
     public void Dispose() {
-        AuthService.OnTokenExpired -= OnTokenExpired;
+        AuthState.OnTokenExpired -= OnTokenExpired;
     }
 
     private async Task SetTheme() => await JS.InvokeVoidAsync("SetTheme", AppState.SelectedTheme.ToHtmlString());

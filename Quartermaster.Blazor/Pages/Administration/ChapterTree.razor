@@ -14,7 +14,17 @@
 } else {
     <div class="list-group">
         @foreach (var node in RootNodes) {
-            <ChapterTreeNode Node="node" Http="Http" />
+            <LazyTreeNode T="ChapterDTO" Node="node" LoadChildren="LoadChapterChildren">
+                <ItemContent>
+                    <span class="me-2">@context.Name</span>
+                    @if (!string.IsNullOrEmpty(context.ShortCode)) {
+                        <span class="badge bg-secondary me-1">@context.ShortCode</span>
+                    }
+                    @if (!string.IsNullOrEmpty(context.ExternalCode)) {
+                        <code class="small text-secondary">@context.ExternalCode</code>
+                    }
+                </ItemContent>
+            </LazyTreeNode>
         }
     </div>
 }

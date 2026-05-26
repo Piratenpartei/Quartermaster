@@ -1,16 +1,16 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Blazor.Api;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MeetingList {
     [Inject]
-    public required HttpClient Http { get; set; }
+    public required MeetingsApi MeetingsApi { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
 
@@ -71,19 +71,19 @@ public partial class MeetingList {
         StateHasChanged();
 
         try {
-            var url = $"/api/meetings?page={CurrentPage}&pageSize={PageSize}";
+            var query = $"page={CurrentPage}&pageSize={PageSize}";
             if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
-                url += $"&chapterId={chapterId}";
+                query += $"&chapterId={chapterId}";
             if (!string.IsNullOrEmpty(StatusFilter))
-                url += $"&status={StatusFilter}";
+                query += $"&status={StatusFilter}";
             if (!string.IsNullOrEmpty(VisibilityFilter))
-                url += $"&visibility={VisibilityFilter}";
+                query += $"&visibility={VisibilityFilter}";
             if (!string.IsNullOrEmpty(DateFromFilter))
-                url += $"&dateFrom={DateFromFilter}";
+                query += $"&dateFrom={DateFromFilter}";
             if (!string.IsNullOrEmpty(DateToFilter))
-                url += $"&dateTo={DateToFilter}";
+                query += $"&dateTo={DateToFilter}";
 
-            Response = await Http.GetFromJsonAsync<MeetingListResponse>(url);
+            Response = await MeetingsApi.ListAsync(query);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

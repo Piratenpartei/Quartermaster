@@ -1,4 +1,4 @@
-@using Quartermaster.Api.Chapters
+@typeparam T
 
 <div class="ms-3">
     <div class="d-flex align-items-center py-1">
@@ -18,19 +18,12 @@
                 }
             </button>
         }
-        <span class="me-2">@Node.Chapter.Name</span>
-        @if (!string.IsNullOrEmpty(Node.Chapter.ShortCode)) {
-            <span class="badge bg-secondary me-1">@Node.Chapter.ShortCode</span>
-        }
-        @if (!string.IsNullOrEmpty(Node.Chapter.ExternalCode)) {
-            <code class="small text-secondary">@Node.Chapter.ExternalCode</code>
-        }
+        @ItemContent(Node.Value)
     </div>
 
     @if (Node.Expanded && Node.Children != null) {
         @foreach (var child in Node.Children) {
-            <ChapterTreeNode Node="child" Http="Http" />
+            <LazyTreeNode T="T" Node="child" LoadChildren="LoadChildren" ItemContent="ItemContent" />
         }
     }
 </div>
-

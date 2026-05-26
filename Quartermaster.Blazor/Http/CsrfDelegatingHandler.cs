@@ -7,15 +7,20 @@ using Quartermaster.Blazor.Services;
 namespace Quartermaster.Blazor.Http;
 
 public class CsrfDelegatingHandler : DelegatingHandler {
+    private readonly AuthStateProvider _authState;
     private string? _csrfToken;
+
+    public CsrfDelegatingHandler(AuthStateProvider authState) {
+        _authState = authState;
+    }
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken) {
 
         // Wait for auth initialization before sending requests (prevents race condition on page reload)
-        if (!AuthService.Initialized)
-            await AuthService.WaitForInitialization;
-        var wasAuthenticated = AuthService.HasActiveSession;
+        if (!_authState.Initialized)
+            await _authState.WaitForInitialization;
+        var wasAuthenticated = _authState.HasActiveSession;
 
         if (request.Method != HttpMethod.Get &&
             request.Method != HttpMethod.Head &&
@@ -35,7 +40,7 @@ public class CsrfDelegatingHandler : DelegatingHandler {
         // 401 only matters when we expected to be authenticated — anonymous visitors
         // hitting a protected page see 401 by design and shouldn't be redirected.
         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && wasAuthenticated)
-            AuthService.NotifyTokenExpired();
+            _authState.NotifyTokenExpired();
 
         // If we get a 403, CSRF token may have expired — refetch and retry once
         if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&

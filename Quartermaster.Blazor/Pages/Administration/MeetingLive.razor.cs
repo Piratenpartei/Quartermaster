@@ -9,6 +9,7 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Options;
+using Quartermaster.Blazor.Api;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
@@ -17,6 +18,9 @@ namespace Quartermaster.Blazor.Pages.Administration;
 public partial class MeetingLive : IAsyncDisposable {
     [Inject]
     public required HttpClient Http { get; set; }
+
+    [Inject]
+    public required MeetingsApi MeetingsApi { get; set; }
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
@@ -108,7 +112,7 @@ public partial class MeetingLive : IAsyncDisposable {
     private async Task LoadMeeting() {
         Loading = true;
         try {
-            Meeting = await Http.GetFromJsonAsync<MeetingDetailDTO>($"/api/meetings/{Id}");
+            Meeting = await MeetingsApi.GetAsync(Id);
             if (Meeting != null) {
                 FlatItems = BuildFlatList(Meeting.AgendaItems);
                 if (SelectedActiveItemId == null) {
@@ -169,7 +173,7 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task StartAgendaItem(Guid itemId) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/start", new { });
+            await MeetingsApi.StartAgendaItemAsync(Id, itemId);
             await LoadMeeting();
             SelectedActiveItemId = itemId;
             LoadActiveItemFields();
@@ -180,7 +184,7 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task CompleteAgendaItem(Guid itemId) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/complete", new { });
+            await MeetingsApi.CompleteAgendaItemAsync(Id, itemId);
             AdvanceToNextItem(itemId);
             await LoadMeeting();
             LoadActiveItemFields();
@@ -191,7 +195,7 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task ReopenAgendaItem(Guid itemId) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/reopen", new { });
+            await MeetingsApi.ReopenAgendaItemAsync(Id, itemId);
             await LoadMeeting();
             LoadActiveItemFields();
             ToastService.ToastKey(I18nKey.Ui.Toast.TopReopened);
@@ -206,7 +210,7 @@ public partial class MeetingLive : IAsyncDisposable {
         if (!confirmed)
             return;
         try {
-            await Http.PutAsJsonAsync($"/api/meetings/{Id}/status",
+            await MeetingsApi.UpdateStatusAsync(
                 new MeetingStatusUpdateRequest { Id = Id, Status = MeetingStatus.Completed });
             ToastService.ToastKey(I18nKey.Ui.Toast.MeetingEnded);
             Navigation.NavigateTo($"/Administration/Meetings/{Id}");
@@ -223,13 +227,12 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task CastVoteFor(Guid agendaItemId, Guid targetUserId, VoteType vote) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/vote",
-                new AgendaItemVoteRequest {
-                    MeetingId = Id,
-                    ItemId = agendaItemId,
-                    UserId = targetUserId,
-                    Vote = vote
-                });
+            await MeetingsApi.VoteAgendaItemAsync(new AgendaItemVoteRequest {
+                MeetingId = Id,
+                ItemId = agendaItemId,
+                UserId = targetUserId,
+                Vote = vote
+            });
             await LoadMeeting();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -238,7 +241,7 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task CloseVote(Guid agendaItemId) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/close-vote", new { });
+            await MeetingsApi.CloseVoteAgendaItemAsync(Id, agendaItemId);
             ToastService.ToastKey(I18nKey.Ui.Toast.VoteEnded);
             await LoadMeeting();
         } catch (HttpRequestException ex) {
@@ -248,13 +251,12 @@ public partial class MeetingLive : IAsyncDisposable {
 
     private async Task TogglePresence(Guid agendaItemId, Guid userId, bool present) {
         try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{agendaItemId}/presence",
-                new AgendaItemPresenceRequest {
-                    MeetingId = Id,
-                    ItemId = agendaItemId,
-                    UserId = userId,
-                    Present = present
-                });
+            await MeetingsApi.SetPresenceAsync(new AgendaItemPresenceRequest {
+                MeetingId = Id,
+                ItemId = agendaItemId,
+                UserId = userId,
+                Present = present
+            });
             await LoadMeeting();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

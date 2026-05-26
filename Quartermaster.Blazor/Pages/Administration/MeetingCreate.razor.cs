@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Blazor.Api;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
 public partial class MeetingCreate {
     [Inject]
-    public required HttpClient Http { get; set; }
+    public required MeetingsApi MeetingsApi { get; set; }
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
@@ -38,7 +39,7 @@ public partial class MeetingCreate {
         StateHasChanged();
 
         try {
-            var response = await Http.PostAsJsonAsync("/api/meetings", new MeetingCreateRequest {
+            var response = await MeetingsApi.CreateAsync(new MeetingCreateRequest {
                 ChapterId = chapterId,
                 Title = Title,
                 Visibility = Visibility,

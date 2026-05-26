@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Api;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor;
@@ -35,10 +36,12 @@ public static class Program {
             builder.Services.AddSingleton(new I18nService(json));
         }
 
+        builder.Services.AddSingleton<AuthStateProvider>();
         builder.Services.AddScoped<ClientConfigService>();
         builder.Services.AddScoped<ToastService>();
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<MeetingHubClient>();
+        builder.Services.AddScoped<MeetingsApi>();
 
         await builder.Build().RunAsync();
     }

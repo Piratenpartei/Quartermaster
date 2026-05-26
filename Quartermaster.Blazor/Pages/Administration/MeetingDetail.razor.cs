@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.Meetings;
+using Quartermaster.Blazor.Api;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
@@ -17,6 +17,9 @@ namespace Quartermaster.Blazor.Pages.Administration;
 public partial class MeetingDetail {
     [Inject]
     public required HttpClient Http { get; set; }
+
+    [Inject]
+    public required MeetingsApi MeetingsApi { get; set; }
 
     [Inject]
     public required NavigationManager Navigation { get; set; }
@@ -53,7 +56,7 @@ public partial class MeetingDetail {
     private async Task LoadMeeting() {
         Loading = true;
         try {
-            Meeting = await Http.GetFromJsonAsync<MeetingDetailDTO>($"/api/meetings/{Id}");
+            Meeting = await MeetingsApi.GetAsync(Id);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -76,8 +79,7 @@ public partial class MeetingDetail {
         ProtocolLoading = true;
         StateHasChanged();
         try {
-            var draft = RequiresDraft ? "&draft=true" : "";
-            ProtocolHtml = await Http.GetStringAsync($"/api/meetings/{Id}/protocol?format=html{draft}");
+            ProtocolHtml = await MeetingsApi.GetProtocolHtmlAsync(Id, RequiresDraft);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -128,7 +130,7 @@ public partial class MeetingDetail {
         SavingMeta = true;
         StateHasChanged();
         try {
-            await Http.PutAsJsonAsync($"/api/meetings/{Id}", new MeetingUpdateRequest {
+            await MeetingsApi.UpdateAsync(new MeetingUpdateRequest {
                 Id = Id,
                 Title = Meeting.Title,
                 Visibility = Meeting.Visibility,
@@ -143,158 +145,6 @@ public partial class MeetingDetail {
         SavingMeta = false;
         _detailsForm?.Reset();
         StateHasChanged();
-    }
-
-    private Task AddAgendaItemChild(Guid parentId) => AddAgendaItem(parentId);
-
-    private async Task AddAgendaItem(Guid? parentId) {
-        if (Meeting == null)
-            return;
-
-        // Auto-parent under nearest preceding Section if no explicit parent given
-        if (parentId == null)
-            parentId = FindNearestPrecedingSection();
-
-        try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda", new AgendaItemCreateRequest {
-                MeetingId = Id,
-                ParentId = parentId,
-                Title = "Neuer TOP",
-                ItemType = AgendaItemType.Discussion
-            });
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private Guid? FindNearestPrecedingSection() {
-        if (Meeting == null)
-            return null;
-
-        var rootItems = Meeting.AgendaItems
-            .Where(a => a.ParentId == null)
-            .OrderBy(a => a.SortOrder)
-            .ToList();
-
-        for (var i = rootItems.Count - 1; i >= 0; i--) {
-            if (rootItems[i].ItemType == AgendaItemType.Section)
-                return rootItems[i].Id;
-        }
-        return null;
-    }
-
-    private async Task DeleteAgendaItem(Guid itemId) {
-        if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.AgendaItemDelete)))
-            return;
-        try {
-            await Http.DeleteAsync($"/api/meetings/{Id}/agenda/{itemId}");
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private async Task ReorderAgendaItem((Guid ItemId, int Direction) args) {
-        try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{args.ItemId}/reorder",
-                new AgendaItemReorderRequest {
-                    MeetingId = Id,
-                    ItemId = args.ItemId,
-                    Direction = args.Direction
-                });
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private async Task UpdateAgendaItem(AgendaItemUpdatePayload payload) {
-        if (Meeting == null)
-            return;
-        var existing = Meeting.AgendaItems.FirstOrDefault(a => a.Id == payload.ItemId);
-        try {
-            await Http.PutAsJsonAsync($"/api/meetings/{Id}/agenda/{payload.ItemId}",
-                new AgendaItemUpdateRequest {
-                    MeetingId = Id,
-                    ItemId = payload.ItemId,
-                    Title = payload.Title,
-                    ItemType = payload.ItemType,
-                    MotionId = payload.MotionId,
-                    Notes = existing?.Notes,
-                    Resolution = existing?.Resolution
-                });
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private async Task IndentAgendaItem(Guid itemId) {
-        if (Meeting == null)
-            return;
-        var item = Meeting.AgendaItems.FirstOrDefault(a => a.Id == itemId);
-        if (item == null)
-            return;
-
-        var siblings = Meeting.AgendaItems
-            .Where(a => a.ParentId == item.ParentId)
-            .OrderBy(a => a.SortOrder)
-            .ToList();
-        var idx = siblings.FindIndex(a => a.Id == itemId);
-        if (idx <= 0)
-            return;
-
-        var newParentId = siblings[idx - 1].Id;
-        try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/move",
-                new AgendaItemMoveRequest {
-                    MeetingId = Id,
-                    ItemId = itemId,
-                    NewParentId = newParentId
-                });
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private async Task OutdentAgendaItem(Guid itemId) {
-        if (Meeting == null)
-            return;
-        var item = Meeting.AgendaItems.FirstOrDefault(a => a.Id == itemId);
-        if (item?.ParentId == null)
-            return;
-
-        var parent = Meeting.AgendaItems.FirstOrDefault(a => a.Id == item.ParentId);
-        var newParentId = parent?.ParentId;
-
-        try {
-            await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/{itemId}/move",
-                new AgendaItemMoveRequest {
-                    MeetingId = Id,
-                    ItemId = itemId,
-                    NewParentId = newParentId
-                });
-            await LoadMeeting();
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
-    }
-
-    private async Task ImportMotions(Guid parentId) {
-        try {
-            var resp = await Http.PostAsJsonAsync($"/api/meetings/{Id}/agenda/import-motions",
-                new { MeetingId = Id, ParentId = parentId });
-            if (resp.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.MotionsImported);
-                await LoadMeeting();
-            } else {
-                await ToastService.ErrorAsync(resp);
-            }
-        } catch (HttpRequestException ex) {
-            ToastService.Error(ex);
-        }
     }
 
     private async Task ChangeStatus(MeetingStatus target) {
@@ -317,7 +167,7 @@ public partial class MeetingDetail {
             return;
 
         try {
-            var resp = await Http.PutAsJsonAsync($"/api/meetings/{Id}/status", new MeetingStatusUpdateRequest {
+            var resp = await MeetingsApi.UpdateStatusAsync(new MeetingStatusUpdateRequest {
                 Id = Id,
                 Status = target
             });
@@ -344,7 +194,7 @@ public partial class MeetingDetail {
         if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.MeetingDelete)))
             return;
         try {
-            await Http.DeleteAsync($"/api/meetings/{Id}");
+            await MeetingsApi.DeleteAsync(Id);
             ToastService.ToastKey(I18nKey.Ui.Toast.MeetingDeleted);
             Navigation.NavigateTo("/Administration/Meetings");
         } catch (HttpRequestException ex) {

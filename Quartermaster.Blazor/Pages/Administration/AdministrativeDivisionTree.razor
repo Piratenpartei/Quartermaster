@@ -1,4 +1,5 @@
 @page "/Administration/AdministrativeDivisionTree"
+@using Quartermaster.Api.AdministrativeDivisions
 
 <div class="mb-3">
     <h3>Gemeindedatenbank - Struktur</h3>
@@ -9,7 +10,18 @@
 } else {
     <div class="list-group">
         @foreach (var node in RootNodes) {
-            <TreeNode Node=node Http=Http />
+            <LazyTreeNode T="AdministrativeDivisionDTO" Node="node" LoadChildren="LoadDivisionChildren">
+                <ItemContent>
+                    <span class="me-2">@context.Name</span>
+                    <span class="badge bg-secondary">@DepthLabel(context.Depth)</span>
+                    @if (!string.IsNullOrEmpty(context.PostCodes)) {
+                        <span class="ms-2 text-secondary small text-truncate" style="max-width: 200px;"
+                              title="@context.PostCodes">
+                            PLZ: @context.PostCodes
+                        </span>
+                    }
+                </ItemContent>
+            </LazyTreeNode>
         }
     </div>
 }

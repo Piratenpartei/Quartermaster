@@ -1,6 +1,7 @@
 @page "/Administration/Meetings/{Id:guid}"
 @using Quartermaster.Api.AuditLog
 @using Quartermaster.Api.Meetings
+@using Quartermaster.Blazor.Components.Meetings
 
 <PageBackLink Href="/Administration/Meetings" />
 
@@ -85,31 +86,7 @@
 
     @if (ActiveTab == "agenda") {
         @if (IsEditableMode) {
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0">Tagesordnung</h5>
-                        <div class="d-flex gap-2">
-                            <a href="/Administration/Meetings/@Id/Edit" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil-square"></i> Agenda bearbeiten
-                            </a>
-                            <button class="btn btn-sm btn-primary" @onclick="@(() => AddAgendaItem(null))">
-                                <i class="bi bi-plus-circle"></i> Neuer TOP
-                            </button>
-                        </div>
-                    </div>
-                    <AgendaItemTree Items="@Meeting.AgendaItems"
-                                    Mode="AgendaTreeMode.Editor"
-                                    ChapterId="@Meeting.ChapterId.ToString()"
-                                    OnAddChild="AddAgendaItemChild"
-                                    OnDelete="DeleteAgendaItem"
-                                    OnReorder="ReorderAgendaItem"
-                                    OnUpdate="UpdateAgendaItem"
-                                    OnIndent="IndentAgendaItem"
-                                    OnOutdent="OutdentAgendaItem"
-                                    OnImportMotions="ImportMotions" />
-                </div>
-            </div>
+            <AgendaItemListEditor MeetingId="@Id" Meeting="@Meeting" OnChanged="@LoadMeeting" />
         } else {
             <div class="card">
                 <div class="card-body">
