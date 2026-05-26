@@ -15,13 +15,13 @@
 **Files:**
 - Modify: `Quartermaster.Server/Quartermaster.Server.csproj`
 
-- [ ] **Step 1: Add the package**
+- [x] **Step 1: Add the package**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet add Quartermaster.Server package System.IdentityModel.Tokens.Jwt
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -36,7 +36,7 @@ Expected: 0 errors.
 **Files:**
 - Modify: `Quartermaster.Data/Options/OptionRepository.cs` (SupplementDefaults method, after auth.sso.support_contact block ~line 137)
 
-- [ ] **Step 1: Add OIDC option definitions**
+- [x] **Step 1: Add OIDC option definitions**
 
 Add these after the `auth.sso.support_contact` block:
 
@@ -58,7 +58,7 @@ AddDefinitionIfNotExists("auth.oidc.button_text",
     OptionDataType.String, false, "", "OpenID Login");
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -75,7 +75,7 @@ Expected: 0 errors.
 - Modify: `Quartermaster.Server/Config/ClientConfigEndpoint.cs`
 - Modify: `Quartermaster.Blazor/Services/ClientConfigService.cs`
 
-- [ ] **Step 1: Add properties to ClientConfigDTO**
+- [x] **Step 1: Add properties to ClientConfigDTO**
 
 Add after the `SsoSupportContact` property in `Quartermaster.Api/Config/ClientConfigDTO.cs`:
 
@@ -84,7 +84,7 @@ public bool OidcEnabled { get; set; }
 public string OidcButtonText { get; set; } = "";
 ```
 
-- [ ] **Step 2: Populate in ClientConfigEndpoint**
+- [x] **Step 2: Populate in ClientConfigEndpoint**
 
 In `Quartermaster.Server/Config/ClientConfigEndpoint.cs`, add after the `ssoSupportContact` variable:
 
@@ -100,7 +100,7 @@ OidcEnabled = !string.IsNullOrEmpty(oidcAuthority),
 OidcButtonText = oidcButtonText
 ```
 
-- [ ] **Step 3: Expose in ClientConfigService**
+- [x] **Step 3: Expose in ClientConfigService**
 
 Add after `SsoSupportContact` in `Quartermaster.Blazor/Services/ClientConfigService.cs`:
 
@@ -109,7 +109,7 @@ public bool OidcEnabled => _config?.OidcEnabled ?? false;
 public string OidcButtonText => _config?.OidcButtonText ?? "OpenID Login";
 ```
 
-- [ ] **Step 4: Build to verify**
+- [x] **Step 4: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -127,7 +127,7 @@ The member→user→token pipeline is identical for SAML and OIDC. Extract it in
 - Create: `Quartermaster.Server/Users/SsoLoginHelper.cs`
 - Modify: `Quartermaster.Server/Users/SamlLoginConsumeEndpoint.cs`
 
-- [ ] **Step 1: Create SsoLoginHelper**
+- [x] **Step 1: Create SsoLoginHelper**
 
 Create `Quartermaster.Server/Users/SsoLoginHelper.cs`:
 
@@ -187,7 +187,7 @@ public static class SsoLoginHelper {
 }
 ```
 
-- [ ] **Step 2: Refactor SamlLoginConsumeEndpoint to use SsoLoginHelper**
+- [x] **Step 2: Refactor SamlLoginConsumeEndpoint to use SsoLoginHelper**
 
 Replace lines 88–131 of `SamlLoginConsumeEndpoint.cs` (from `// Find member by email` to `SendRedirectAsync($"/Login/SamlCallback#...") `) with:
 
@@ -207,7 +207,7 @@ Replace lines 88–131 of `SamlLoginConsumeEndpoint.cs` (from `// Find member by
         await SendRedirectAsync($"/Login/SamlCallback#{tokenContent}", allowRemoteRedirects: false);
 ```
 
-- [ ] **Step 3: Build and test**
+- [x] **Step 3: Build and test**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet test
@@ -224,7 +224,7 @@ This endpoint redirects the user to the IdP's authorization endpoint with PKCE p
 **Files:**
 - Create: `Quartermaster.Server/Users/OidcLoginStartEndpoint.cs`
 
-- [ ] **Step 1: Create the endpoint**
+- [x] **Step 1: Create the endpoint**
 
 Create `Quartermaster.Server/Users/OidcLoginStartEndpoint.cs`:
 
@@ -300,7 +300,7 @@ public class OidcLoginStartEndpoint : Endpoint<EmptyRequest> {
 }
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -317,7 +317,7 @@ This endpoint receives the authorization code, exchanges it for an ID token, val
 **Files:**
 - Create: `Quartermaster.Server/Users/OidcCallbackEndpoint.cs`
 
-- [ ] **Step 1: Create the endpoint**
+- [x] **Step 1: Create the endpoint**
 
 Create `Quartermaster.Server/Users/OidcCallbackEndpoint.cs`:
 
@@ -509,7 +509,7 @@ public class OidcCallbackRequest {
 }
 ```
 
-- [ ] **Step 2: Build to verify**
+- [x] **Step 2: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -525,7 +525,7 @@ Expected: 0 errors.
 - Modify: `Quartermaster.Blazor/Pages/Login.razor`
 - Modify: `Quartermaster.Blazor/Pages/Login.razor.cs`
 
-- [ ] **Step 1: Update Login.razor to show OIDC card**
+- [x] **Step 1: Update Login.razor to show OIDC card**
 
 Replace the current two-column layout (the `<div class="row g-4"...>` block) with a three-column layout that shows SSO options dynamically. The SSO card (SAML or OIDC, whichever is enabled) shows on the left, manual login on the right. If both SSO methods are enabled, show both. Replace the full `<div class="row g-4"...>` block:
 
@@ -578,7 +578,7 @@ Replace the current two-column layout (the `<div class="row g-4"...>` block) wit
 </div>
 ```
 
-- [ ] **Step 2: Add OIDC error messages to Login.razor.cs**
+- [x] **Step 2: Add OIDC error messages to Login.razor.cs**
 
 Add these cases to the error switch in `Login.razor.cs`:
 
@@ -592,7 +592,7 @@ Add these cases to the error switch in `Login.razor.cs`:
 "oidc_invalid_token" => "Die OpenID-Anmeldung ist fehlgeschlagen (ungültiges Token).",
 ```
 
-- [ ] **Step 3: Build to verify**
+- [x] **Step 3: Build to verify**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet build
@@ -604,7 +604,7 @@ Expected: 0 errors.
 
 ### Task 8: Run tests, restart server, verify
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 ```bash
 cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet test
@@ -612,7 +612,7 @@ cd /media/SMB/Quartermaster && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotne
 
 Expected: All tests pass.
 
-- [ ] **Step 2: Kill old server, restart**
+- [x] **Step 2: Kill old server, restart**
 
 ```bash
 lsof -ti :7213 -ti :5232 2>/dev/null | sort -u | xargs kill -9 2>/dev/null
@@ -620,7 +620,7 @@ sleep 3
 cd /media/SMB/Quartermaster/Quartermaster.Server && DOTNET_ROOT=/usr/lib/dotnet /usr/lib/dotnet/dotnet run
 ```
 
-- [ ] **Step 3: Verify page loads in Chrome**
+- [x] **Step 3: Verify page loads in Chrome**
 
 Navigate to `https://192.168.42.103:7213/Login` and verify:
 - If SAML is configured: SAML card shows
@@ -628,13 +628,13 @@ Navigate to `https://192.168.42.103:7213/Login` and verify:
 - Manual login card always shows
 - No console errors
 
-- [ ] **Step 4: Configure OIDC options in admin UI**
+- [x] **Step 4: Configure OIDC options in admin UI**
 
 Set these options:
 - `auth.oidc.authority` → `http://192.168.42.87:8080/realms/master`
 - `auth.oidc.client_id` → the OIDC client ID from Keycloak
 - `auth.oidc.client_secret` → the client secret from Keycloak
 
-- [ ] **Step 5: Test OIDC login flow**
+- [x] **Step 5: Test OIDC login flow**
 
 Hard-refresh the login page, click the OpenID card, authenticate with Keycloak, verify redirect back and successful login.

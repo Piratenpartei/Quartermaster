@@ -111,7 +111,7 @@
 - Create: `Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj`
 - Modify: `Quartermaster.sln`
 
-- [ ] **Step 1: Create the test project using dotnet CLI**
+- [x] **Step 1: Create the test project using dotnet CLI**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -122,11 +122,11 @@ dotnet add Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj referenc
 dotnet add Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj package FluentAssertions
 ```
 
-- [ ] **Step 2: Remove the auto-generated test file**
+- [x] **Step 2: Remove the auto-generated test file**
 
 Delete `Quartermaster.Server.Tests/UnitTest1.cs` (or `Test1.cs`) — it's a template placeholder.
 
-- [ ] **Step 3: Verify the project builds**
+- [x] **Step 3: Verify the project builds**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -135,7 +135,7 @@ dotnet build Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj
 
 Expected: Build succeeded.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj Quartermaster.sln
@@ -155,7 +155,7 @@ git commit -m "chore: add xUnit test project for server validators"
 
 **Context:** Request DTOs are in `Quartermaster.Api/Events/`. Validators use `FastEndpoints.Validator<T>` base class. All validation messages are in German.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 ```csharp
 using FluentAssertions;
@@ -341,7 +341,7 @@ public class EventTemplateCreateRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -350,7 +350,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~EventValidat
 
 Expected: Compilation errors — validator classes don't exist yet.
 
-- [ ] **Step 3: Implement EventCreateRequestValidator**
+- [x] **Step 3: Implement EventCreateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -374,7 +374,7 @@ public class EventCreateRequestValidator : Validator<EventCreateRequest> {
 }
 ```
 
-- [ ] **Step 4: Implement EventUpdateRequestValidator**
+- [x] **Step 4: Implement EventUpdateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -398,7 +398,7 @@ public class EventUpdateRequestValidator : Validator<EventUpdateRequest> {
 }
 ```
 
-- [ ] **Step 5: Implement EventFromTemplateRequestValidator**
+- [x] **Step 5: Implement EventFromTemplateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -419,7 +419,7 @@ public class EventFromTemplateRequestValidator : Validator<EventFromTemplateRequ
 }
 ```
 
-- [ ] **Step 6: Implement EventTemplateCreateRequestValidator**
+- [x] **Step 6: Implement EventTemplateCreateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -440,7 +440,7 @@ public class EventTemplateCreateRequestValidator : Validator<EventTemplateCreate
 }
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -449,7 +449,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~EventValidat
 
 Expected: All tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add Quartermaster.Server/Events/*Validator.cs Quartermaster.Server.Tests/Events/EventValidatorTests.cs
@@ -468,7 +468,7 @@ git commit -m "feat: add validators for event and template request DTOs"
 
 **Context:** `ChecklistItemCreateRequest` and `ChecklistItemUpdateRequest` are in `Quartermaster.Api/Events/`. `ChecklistItemReorderRequest` is defined inside `Quartermaster.Server/Events/ChecklistItemReorderEndpoint.cs`. `ChecklistItemType` enum: Text=0, CreateMotion=1, SendEmail=2. Label max 1024 chars.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 ```csharp
 using FluentAssertions;
@@ -669,7 +669,7 @@ public class ChecklistItemReorderRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -678,7 +678,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~ChecklistIte
 
 Expected: Compilation errors — validator classes don't exist yet.
 
-- [ ] **Step 3: Implement ChecklistItemCreateRequestValidator**
+- [x] **Step 3: Implement ChecklistItemCreateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -702,7 +702,7 @@ public class ChecklistItemCreateRequestValidator : Validator<ChecklistItemCreate
 }
 ```
 
-- [ ] **Step 4: Implement ChecklistItemUpdateRequestValidator**
+- [x] **Step 4: Implement ChecklistItemUpdateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -729,7 +729,7 @@ public class ChecklistItemUpdateRequestValidator : Validator<ChecklistItemUpdate
 }
 ```
 
-- [ ] **Step 5: Implement ChecklistItemReorderRequestValidator**
+- [x] **Step 5: Implement ChecklistItemReorderRequestValidator**
 
 Note: `ChecklistItemReorderRequest` is defined inside `ChecklistItemReorderEndpoint.cs` in the `Quartermaster.Server.Events` namespace. The validator goes in its own file in the same namespace.
 
@@ -754,7 +754,7 @@ public class ChecklistItemReorderRequestValidator : Validator<ChecklistItemReord
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -763,7 +763,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~ChecklistIte
 
 Expected: All tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Quartermaster.Server/Events/ChecklistItem*Validator.cs Quartermaster.Server.Tests/Events/ChecklistItemValidatorTests.cs
@@ -782,7 +782,7 @@ git commit -m "feat: add validators for checklist item request DTOs"
 
 **Context:** Request DTOs are in `Quartermaster.Api/Motions/`. Email validation: `Contains('@')` is sufficient. DB limits: AuthorName 256, AuthorEMail 256, Title 512, Text 8192. VoteType: 0–2. MotionApprovalStatus: 0–4.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 ```csharp
 using FluentAssertions;
@@ -962,7 +962,7 @@ public class MotionVoteRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -971,7 +971,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~MotionValida
 
 Expected: Compilation errors.
 
-- [ ] **Step 3: Implement MotionCreateRequestValidator**
+- [x] **Step 3: Implement MotionCreateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1002,7 +1002,7 @@ public class MotionCreateRequestValidator : Validator<MotionCreateRequest> {
 }
 ```
 
-- [ ] **Step 4: Implement MotionStatusRequestValidator**
+- [x] **Step 4: Implement MotionStatusRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1020,7 +1020,7 @@ public class MotionStatusRequestValidator : Validator<MotionStatusRequest> {
 }
 ```
 
-- [ ] **Step 5: Implement MotionVoteRequestValidator**
+- [x] **Step 5: Implement MotionVoteRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1044,7 +1044,7 @@ public class MotionVoteRequestValidator : Validator<MotionVoteRequest> {
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1053,7 +1053,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~MotionValida
 
 Expected: All tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Quartermaster.Server/Motions/*Validator.cs Quartermaster.Server.Tests/Motions/MotionValidatorTests.cs
@@ -1072,7 +1072,7 @@ git commit -m "feat: add validators for motion request DTOs"
 
 **Context:** These are the public-facing forms — highest priority for validation. `MembershipApplicationDTO` is in `Quartermaster.Api/MembershipApplications/`, `DueSelectionDTO` is in `Quartermaster.Api/DueSelector/`. Email validation: `Contains('@')` is sufficient. DB limits listed in the reference table above.
 
-- [ ] **Step 1: Write MembershipApplicationDTOValidatorTests**
+- [x] **Step 1: Write MembershipApplicationDTOValidatorTests**
 
 ```csharp
 using FluentAssertions;
@@ -1271,7 +1271,7 @@ public class MembershipApplicationDTOValidatorTests {
 }
 ```
 
-- [ ] **Step 2: Write DueSelectionDTOValidatorTests**
+- [x] **Step 2: Write DueSelectionDTOValidatorTests**
 
 ```csharp
 using FluentAssertions;
@@ -1357,7 +1357,7 @@ public class DueSelectionDTOValidatorTests {
 }
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1366,7 +1366,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~MembershipAp
 
 Expected: Compilation errors.
 
-- [ ] **Step 4: Implement MembershipApplicationDTOValidator**
+- [x] **Step 4: Implement MembershipApplicationDTOValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1412,7 +1412,7 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
 }
 ```
 
-- [ ] **Step 5: Implement DueSelectionDTOValidator**
+- [x] **Step 5: Implement DueSelectionDTOValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1443,7 +1443,7 @@ public class DueSelectionDTOValidator : Validator<DueSelectionDTO> {
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1452,7 +1452,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~MembershipAp
 
 Expected: All tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Quartermaster.Server/MembershipApplications/MembershipApplicationDTOValidator.cs \
@@ -1486,7 +1486,7 @@ git commit -m "feat: add validators for membership application and due selection
 - `TemplatePreviewRequest` is in `Quartermaster.Api/Options/`. TemplateText required.
 - `LoginRequest` is in `Quartermaster.Api/Users/`. Username OR Email required, Password min 12 chars.
 
-- [ ] **Step 1: Write ChapterOfficerAddRequestValidatorTests**
+- [x] **Step 1: Write ChapterOfficerAddRequestValidatorTests**
 
 ```csharp
 using FluentValidation.TestHelper;
@@ -1552,7 +1552,7 @@ public class ChapterOfficerAddRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 2: Write AdminProcessValidatorTests**
+- [x] **Step 2: Write AdminProcessValidatorTests**
 
 ```csharp
 using FluentValidation.TestHelper;
@@ -1630,7 +1630,7 @@ public class MembershipApplicationProcessRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 3: Write OptionValidatorTests**
+- [x] **Step 3: Write OptionValidatorTests**
 
 ```csharp
 using FluentValidation.TestHelper;
@@ -1683,7 +1683,7 @@ public class TemplatePreviewRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 4: Write LoginRequestValidatorTests**
+- [x] **Step 4: Write LoginRequestValidatorTests**
 
 ```csharp
 using FluentValidation.TestHelper;
@@ -1732,7 +1732,7 @@ public class LoginRequestValidatorTests {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they fail**
+- [x] **Step 5: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1741,7 +1741,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~ChapterOffic
 
 Expected: Compilation errors.
 
-- [ ] **Step 6: Implement ChapterOfficerAddRequestValidator**
+- [x] **Step 6: Implement ChapterOfficerAddRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1765,7 +1765,7 @@ public class ChapterOfficerAddRequestValidator : Validator<ChapterOfficerAddRequ
 }
 ```
 
-- [ ] **Step 7: Implement DueSelectionProcessRequestValidator**
+- [x] **Step 7: Implement DueSelectionProcessRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1785,7 +1785,7 @@ public class DueSelectionProcessRequestValidator : Validator<DueSelectionProcess
 }
 ```
 
-- [ ] **Step 8: Implement MembershipApplicationProcessRequestValidator**
+- [x] **Step 8: Implement MembershipApplicationProcessRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1805,7 +1805,7 @@ public class MembershipApplicationProcessRequestValidator : Validator<Membership
 }
 ```
 
-- [ ] **Step 9: Implement OptionUpdateRequestValidator**
+- [x] **Step 9: Implement OptionUpdateRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1826,7 +1826,7 @@ public class OptionUpdateRequestValidator : Validator<OptionUpdateRequest> {
 }
 ```
 
-- [ ] **Step 10: Implement TemplatePreviewRequestValidator**
+- [x] **Step 10: Implement TemplatePreviewRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1844,7 +1844,7 @@ public class TemplatePreviewRequestValidator : Validator<TemplatePreviewRequest>
 }
 ```
 
-- [ ] **Step 11: Implement LoginRequestValidator**
+- [x] **Step 11: Implement LoginRequestValidator**
 
 ```csharp
 using FastEndpoints;
@@ -1870,7 +1870,7 @@ public class LoginRequestValidator : Validator<LoginRequest> {
 }
 ```
 
-- [ ] **Step 12: Run tests to verify they pass**
+- [x] **Step 12: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1879,7 +1879,7 @@ dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~ChapterOffic
 
 Expected: All tests pass.
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 git add Quartermaster.Server/ChapterAssociates/ChapterOfficerAddRequestValidator.cs \
@@ -1902,7 +1902,7 @@ git commit -m "feat: add validators for admin, auth, and option request DTOs"
 **Files:**
 - Modify: `Quartermaster.Api/Users/LoginRequest.cs` (remove commented-out validator)
 
-- [ ] **Step 1: Remove commented-out validator from LoginRequest.cs**
+- [x] **Step 1: Remove commented-out validator from LoginRequest.cs**
 
 In `Quartermaster.Api/Users/LoginRequest.cs`, remove all commented-out code. The file should only contain:
 
@@ -1916,7 +1916,7 @@ public class LoginRequest {
 }
 ```
 
-- [ ] **Step 2: Run full test suite**
+- [x] **Step 2: Run full test suite**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1925,7 +1925,7 @@ dotnet test Quartermaster.Server.Tests --verbosity normal
 
 Expected: All tests pass (should be ~60+ tests).
 
-- [ ] **Step 3: Build and start the server to verify no runtime issues**
+- [x] **Step 3: Build and start the server to verify no runtime issues**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -1935,7 +1935,7 @@ dotnet run --project Quartermaster.Server/Quartermaster.Server.csproj
 
 Verify: Server starts without errors. FastEndpoints discovers all validators during startup.
 
-- [ ] **Step 4: Commit cleanup**
+- [x] **Step 4: Commit cleanup**
 
 ```bash
 git add Quartermaster.Api/Users/LoginRequest.cs

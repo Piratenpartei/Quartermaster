@@ -40,7 +40,7 @@
 **Files:**
 - Create: `Quartermaster.Server/appsettings.template.json`
 
-- [ ] **Step 1: Create the template file**
+- [x] **Step 1: Create the template file**
 
 Create `Quartermaster.Server/appsettings.template.json`:
 
@@ -61,11 +61,11 @@ Create `Quartermaster.Server/appsettings.template.json`:
 
 This file is tracked in git (not in .gitignore). It documents the required configuration for production deployment. Developers copy it to `appsettings.json` or `appsettings.development.json` and fill in real values.
 
-- [ ] **Step 2: Verify it's not gitignored**
+- [x] **Step 2: Verify it's not gitignored**
 
 Check `.gitignore` — it ignores `appsettings.json` and `appsettings.Development.json` but NOT `appsettings.template.json`.
 
-- [ ] **Step 3: Verify build**
+- [x] **Step 3: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -82,7 +82,7 @@ cd /media/SMB/Quartermaster
 
 **Context:** The server currently auto-seeds an admin user from `RootAccountSettings` in appsettings on every startup. For production, the admin should be created via a one-time CLI command: `dotnet run -- init-admin`. The command bootstraps the minimal services needed (DB, repositories), prompts for username and password via console, creates the user, grants permissions, and exits.
 
-- [ ] **Step 1: Create AdminInitCommand**
+- [x] **Step 1: Create AdminInitCommand**
 
 Create `Quartermaster.Server/Cli/AdminInitCommand.cs`:
 
@@ -187,7 +187,7 @@ public static class AdminInitCommand {
 }
 ```
 
-- [ ] **Step 2: Update Program.cs to route CLI commands**
+- [x] **Step 2: Update Program.cs to route CLI commands**
 
 In `Quartermaster.Server/Program.cs`, at the very beginning of `Main()`, before `var builder = ...`, add:
 
@@ -198,7 +198,7 @@ if (args.Length > 0 && args[0] == "init-admin") {
 }
 ```
 
-- [ ] **Step 3: Verify build**
+- [x] **Step 3: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -216,7 +216,7 @@ cd /media/SMB/Quartermaster
 
 **Context:** In DEBUG builds (development), the admin user is still auto-seeded from appsettings for convenience. In RELEASE builds (production), auto-seeding is skipped — admin must be created via `init-admin` CLI command.
 
-- [ ] **Step 1: Make RootAccountSettings optional**
+- [x] **Step 1: Make RootAccountSettings optional**
 
 In `Quartermaster.Data/RootAccountSettings.cs`, change `required` to nullable:
 
@@ -229,7 +229,7 @@ public class RootAccountSettings {
 }
 ```
 
-- [ ] **Step 2: Wrap root account seeding in #if DEBUG in DbContext.cs**
+- [x] **Step 2: Wrap root account seeding in #if DEBUG in DbContext.cs**
 
 In `Quartermaster.Data/DbContext.cs`, wrap the UserRepository.SupplementDefaults call (lines 70-71):
 
@@ -249,7 +249,7 @@ To:
 #endif
 ```
 
-- [ ] **Step 3: Guard UserRepository.SupplementDefaults against null**
+- [x] **Step 3: Guard UserRepository.SupplementDefaults against null**
 
 In `Quartermaster.Data/Users/UserRepository.cs`, update the `SupplementDefaults` method signature:
 
@@ -274,14 +274,14 @@ And update `AddRootAccount`:
         };
 ```
 
-- [ ] **Step 4: Verify build in Debug**
+- [x] **Step 4: Verify build in Debug**
 
 ```bash
 cd /media/SMB/Quartermaster
 /usr/lib/dotnet/dotnet build Quartermaster.Server/Quartermaster.Server.csproj -c Debug
 ```
 
-- [ ] **Step 5: Verify build in Release**
+- [x] **Step 5: Verify build in Release**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -303,7 +303,7 @@ Both must succeed.
 
 **Context:** SAML settings move from appsettings.json (file-based) to the Options system (database-stored). This allows admins to configure SAML from within the application UI. The three settings (`SamlEndpoint`, `SamlClientId`, `SamlCertificate`) become global, non-overridable OptionDefinitions. SAML endpoints read from OptionRepository and return 503 if not configured.
 
-- [ ] **Step 1: Add SAML option definitions to OptionRepository.SupplementDefaults()**
+- [x] **Step 1: Add SAML option definitions to OptionRepository.SupplementDefaults()**
 
 In `Quartermaster.Data/Options/OptionRepository.cs`, add at the end of `SupplementDefaults()`, before the closing `}`:
 
@@ -321,7 +321,7 @@ In `Quartermaster.Data/Options/OptionRepository.cs`, add at the end of `Suppleme
             OptionDataType.String, false, "", "");
 ```
 
-- [ ] **Step 2: Update SamlLoginStartEndpoint to use OptionRepository**
+- [x] **Step 2: Update SamlLoginStartEndpoint to use OptionRepository**
 
 Replace the entire content of `Quartermaster.Server/Users/SamlLoginStartEndpoint.cs`:
 
@@ -362,7 +362,7 @@ public class SamlLoginStartEndpoint : Endpoint<EmptyRequest> {
 }
 ```
 
-- [ ] **Step 3: Update SamlLoginConsumeEndpoint to use OptionRepository**
+- [x] **Step 3: Update SamlLoginConsumeEndpoint to use OptionRepository**
 
 Replace the entire content of `Quartermaster.Server/Users/SamlLoginConsumeEndpoint.cs`:
 
@@ -411,7 +411,7 @@ public class SamlLoginRequest {
 }
 ```
 
-- [ ] **Step 4: Remove SamlSettings from Program.cs**
+- [x] **Step 4: Remove SamlSettings from Program.cs**
 
 In `Quartermaster.Server/Program.cs`, remove:
 
@@ -421,11 +421,11 @@ builder.Services.Configure<SamlSettings>(builder.Configuration.GetSection("SamlS
 
 And remove the `using Quartermaster.Data;` import if it was only needed for SamlSettings (check if other Data types are used — they likely are via DbContext, so the using probably stays).
 
-- [ ] **Step 5: Delete SamlSettings.cs**
+- [x] **Step 5: Delete SamlSettings.cs**
 
 Delete `Quartermaster.Data/SamlSettings.cs`.
 
-- [ ] **Step 6: Verify build and tests**
+- [x] **Step 6: Verify build and tests**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -440,7 +440,7 @@ cd /media/SMB/Quartermaster
 **Files:**
 - Modify: `Quartermaster.Server/Program.cs`
 
-- [ ] **Step 1: Remove RootAccountSettings Configure from release builds**
+- [x] **Step 1: Remove RootAccountSettings Configure from release builds**
 
 In `Quartermaster.Server/Program.cs`, wrap the RootAccountSettings configuration:
 
@@ -456,7 +456,7 @@ builder.Services.Configure<RootAccountSettings>(builder.Configuration.GetSection
 #endif
 ```
 
-- [ ] **Step 2: Verify the full server pipeline**
+- [x] **Step 2: Verify the full server pipeline**
 
 Build, run all tests, start server, verify in Chrome:
 

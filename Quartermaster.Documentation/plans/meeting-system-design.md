@@ -466,85 +466,85 @@ Sequential; each phase ends at a point where the system is demoable.
 
 ### Phase 0 — Role inheritance flag + delegate role
 (prerequisite; touches existing auth code)
-- [ ] Add `Role.InheritsToChildren` column (migration step included in M003 below)
-- [ ] Update `UserChapterPermissionRepository` to distinguish direct vs inheritable role lookups
-- [ ] Seed `general_chapter_delegate` system role
-- [ ] Add `PermissionIdentifier.SystemRole.GeneralChapterDelegate` constant
-- [ ] `RoleInheritanceFlagTests` + update existing permission-inheritance tests to cover both role types
+- [x] Add `Role.InheritsToChildren` column (migration step included in M003 below)
+- [x] Update `UserChapterPermissionRepository` to distinguish direct vs inheritable role lookups
+- [x] Seed `general_chapter_delegate` system role
+- [x] Add `PermissionIdentifier.SystemRole.GeneralChapterDelegate` constant
+- [x] `RoleInheritanceFlagTests` + update existing permission-inheritance tests to cover both role types
 
 ### Phase 1 — Core model + CRUD (no UI)
-- [ ] M003 migration: Meeting, AgendaItem tables + MotionVote.MeetingId column + Role.InheritsToChildren column + new permissions + delegate system role
-- [ ] Entities: `Meeting.cs`, `AgendaItem.cs`, `MeetingStatus` enum, `MeetingVisibility` enum, `AgendaItemType` enum
-- [ ] Repositories: `MeetingRepository` (CRUD + list with visibility filter + status change + auto-resolve-on-complete + pdf-snapshot-on-archive), `AgendaItemRepository` (CRUD + reorder + move + complete/start timestamps + tree traversal)
-- [ ] Tree helpers: `AgendaItemRepository.GetChildren`, `GetDescendants`, `GetDepth`, `WouldCreateCycle`
-- [ ] DTOs under `Quartermaster.Api/Meetings/`
-- [ ] Mappers (Mapperly for simple cases, manual for MeetingDetailDTO which joins agenda items)
-- [ ] Permissions seeded, `DefaultOfficerPermissions` extended (shared by officer + delegate roles)
-- [ ] `MeetingAccessHelper` for Public/Private visibility check
-- [ ] Unit tests: `MeetingRepositoryTests`, `AgendaItemRepositoryTests`, `MeetingAccessHelperTests`
+- [x] M003 migration: Meeting, AgendaItem tables + MotionVote.MeetingId column + Role.InheritsToChildren column + new permissions + delegate system role
+- [x] Entities: `Meeting.cs`, `AgendaItem.cs`, `MeetingStatus` enum, `MeetingVisibility` enum, `AgendaItemType` enum
+- [x] Repositories: `MeetingRepository` (CRUD + list with visibility filter + status change + auto-resolve-on-complete + pdf-snapshot-on-archive), `AgendaItemRepository` (CRUD + reorder + move + complete/start timestamps + tree traversal)
+- [x] Tree helpers: `AgendaItemRepository.GetChildren`, `GetDescendants`, `GetDepth`, `WouldCreateCycle`
+- [x] DTOs under `Quartermaster.Api/Meetings/`
+- [x] Mappers (Mapperly for simple cases, manual for MeetingDetailDTO which joins agenda items)
+- [x] Permissions seeded, `DefaultOfficerPermissions` extended (shared by officer + delegate roles)
+- [x] `MeetingAccessHelper` for Public/Private visibility check
+- [x] Unit tests: `MeetingRepositoryTests`, `AgendaItemRepositoryTests`, `MeetingAccessHelperTests`
 
 ### Phase 2 — Meeting endpoints + integration tests
-- [ ] Meeting CRUD endpoints (6 endpoints)
-- [ ] Status transition endpoint with matrix validation
-- [ ] Validators for meeting request DTOs
-- [ ] Integration tests for all meeting endpoints
+- [x] Meeting CRUD endpoints (6 endpoints)
+- [x] Status transition endpoint with matrix validation
+- [x] Validators for meeting request DTOs
+- [x] Integration tests for all meeting endpoints
 
 ### Phase 3 — Agenda endpoints + integration tests
-- [ ] Agenda CRUD + reorder + move (5 endpoints)
-- [ ] Start/complete/notes endpoints (3 endpoints)
-- [ ] Validators (enforce Motion FK requirements, chapter match, parent cycle/depth/same-meeting checks)
-- [ ] Integration tests for all agenda endpoints (including hierarchy validation cases)
+- [x] Agenda CRUD + reorder + move (5 endpoints)
+- [x] Start/complete/notes endpoints (3 endpoints)
+- [x] Validators (enforce Motion FK requirements, chapter match, parent cycle/depth/same-meeting checks)
+- [x] Integration tests for all agenda endpoints (including hierarchy validation cases)
 
 ### Phase 4 — Voting integration + auto-resolve
-- [ ] `AgendaItemVoteEndpoint` — thin wrapper that calls existing motion-vote logic with MeetingId set
-- [ ] `AgendaItemCloseVoteEndpoint` — tally + update motion + auto-fill agenda item resolution
-- [ ] `MotionRepository.CloseVoteWithTally` method
-- [ ] Auto-resolve-on-Completed: `MeetingRepository.AutoResolveLinkedMotions(meetingId)` called from status transition
-- [ ] Disable `TryAutoResolve` for votes cast with non-null `MeetingId` (meetings always require explicit close or the on-complete sweep)
-- [ ] Integration tests for vote + close-vote + auto-resolve-on-complete flows
+- [x] `AgendaItemVoteEndpoint` — thin wrapper that calls existing motion-vote logic with MeetingId set
+- [x] `AgendaItemCloseVoteEndpoint` — tally + update motion + auto-fill agenda item resolution
+- [x] `MotionRepository.CloseVoteWithTally` method
+- [x] Auto-resolve-on-Completed: `MeetingRepository.AutoResolveLinkedMotions(meetingId)` called from status transition
+- [x] Disable `TryAutoResolve` for votes cast with non-null `MeetingId` (meetings always require explicit close or the on-complete sweep)
+- [x] Integration tests for vote + close-vote + auto-resolve-on-complete flows
 
 ### Phase 5 — Protocol generation (QuestPDF + archive snapshot)
-- [ ] Add `QuestPDF` package to `Quartermaster.Server.csproj`; set `LicenseType.Community` in startup
-- [ ] `ProtocolRenderer` service (Fluid template → markdown, walks agenda tree recursively)
-- [ ] `ProtocolPdfRenderer` service (QuestPDF Document → PDF bytes)
-- [ ] Protocol endpoint with format switch (md / html / pdf, `draft=true` for live-regenerate)
-- [ ] Archive-time snapshot: write PDF to `{meetings.protocol.archive_dir}/{year}/{meeting_id}.pdf` on Completed→Archived transition
-- [ ] Option entries: `meetings.protocol.template_md`, `meetings.protocol.archive_dir`
-- [ ] Unit tests for `ProtocolRenderer` + `ProtocolPdfRenderer` against various agenda shapes
-- [ ] Integration tests for protocol endpoint + archive-time snapshot
+- [x] Add `QuestPDF` package to `Quartermaster.Server.csproj`; set `LicenseType.Community` in startup
+- [x] `ProtocolRenderer` service (Fluid template → markdown, walks agenda tree recursively)
+- [x] `ProtocolPdfRenderer` service (QuestPDF Document → PDF bytes)
+- [x] Protocol endpoint with format switch (md / html / pdf, `draft=true` for live-regenerate)
+- [x] Archive-time snapshot: write PDF to `{meetings.protocol.archive_dir}/{year}/{meeting_id}.pdf` on Completed→Archived transition
+- [x] Option entries: `meetings.protocol.template_md`, `meetings.protocol.archive_dir`
+- [x] Unit tests for `ProtocolRenderer` + `ProtocolPdfRenderer` against various agenda shapes
+- [x] Integration tests for protocol endpoint + archive-time snapshot
 
 ### Phase 6 — Frontend: read-only views
-- [ ] `/Administration/Meetings` list page
-- [ ] `/Administration/Meetings/{Id}` detail page (read-only initially, agenda as static list)
-- [ ] Status badges + transition buttons (wired to existing permission checks)
-- [ ] Nav menu entry
-- [ ] `MotionPicker` component (selects from existing motions in chapter)
+- [x] `/Administration/Meetings` list page
+- [x] `/Administration/Meetings/{Id}` detail page (read-only initially, agenda as static list)
+- [x] Status badges + transition buttons (wired to existing permission checks)
+- [x] Nav menu entry
+- [x] `MotionPicker` component (selects from existing motions in chapter)
 
 ### Phase 7 — Frontend: agenda editor (with tree)
-- [ ] Agenda editor on detail page (visible when Draft/Scheduled)
-- [ ] `AgendaItemTree` recursive component with indented rendering + hierarchical numbering
-- [ ] Add root item / add subitem buttons; reorder within siblings; move-between-parents dropdown
-- [ ] `AgendaItemEditor` component with conditional motion picker
-- [ ] Inline "create new motion" modal reusing motion-create flow
-- [ ] Delegate-role management UI: extend ChapterOfficer management page to also list/add/remove delegates (or add a sibling tab)
+- [x] Agenda editor on detail page (visible when Draft/Scheduled)
+- [x] `AgendaItemTree` recursive component with indented rendering + hierarchical numbering
+- [x] Add root item / add subitem buttons; reorder within siblings; move-between-parents dropdown
+- [x] `AgendaItemEditor` component with conditional motion picker
+- [x] Inline "create new motion" modal reusing motion-create flow
+- [x] Delegate-role management UI: extend ChapterOfficer management page to also list/add/remove delegates (or add a sibling tab)
 
 ### Phase 8 — Frontend: live minute-taking mode
-- [ ] InProgress view on detail page: progress rail + active-item panel
-- [ ] Auto-save notes (debounced, 3s)
-- [ ] Vote buttons + officer status list per motion item
-- [ ] Close-vote action with auto-generated resolution preview
-- [ ] "Complete item" / "Start next" advance flow
+- [x] InProgress view on detail page: progress rail + active-item panel
+- [x] Auto-save notes (debounced, 3s)
+- [x] Vote buttons + officer status list per motion item
+- [x] Close-vote action with auto-generated resolution preview
+- [x] "Complete item" / "Start next" advance flow
 
 ### Phase 9 — Frontend: protocol view + export
-- [ ] Protocol preview tab on detail page (HTML-rendered)
-- [ ] Download buttons (md / pdf) — pdf button streams archived snapshot for Archived meetings, regenerates for Completed
-- [ ] Visibility badge + public-access marketing copy on public-visible detail page
+- [x] Protocol preview tab on detail page (HTML-rendered)
+- [x] Download buttons (md / pdf) — pdf button streams archived snapshot for Archived meetings, regenerates for Completed
+- [x] Visibility badge + public-access marketing copy on public-visible detail page
 
 ### Phase 10 — E2E test + polish
-- [ ] E2E flow test (full meeting lifecycle)
-- [ ] Audit log tab on meeting detail
-- [ ] German translations pass (all user-facing strings)
-- [ ] Mobile responsiveness check (agenda editor on tablet)
+- [x] E2E flow test (full meeting lifecycle)
+- [x] Audit log tab on meeting detail
+- [x] German translations pass (all user-facing strings)
+- [x] Mobile responsiveness check (agenda editor on tablet)
 
 ---
 

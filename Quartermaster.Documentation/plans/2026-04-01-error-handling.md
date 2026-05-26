@@ -42,7 +42,7 @@
 - Create: `Quartermaster.Api/Config/ClientConfigDTO.cs`
 - Create: `Quartermaster.Server/Config/ClientConfigEndpoint.cs`
 
-- [ ] **Step 1: Add error contact option definition**
+- [x] **Step 1: Add error contact option definition**
 
 In `Quartermaster.Data/Options/OptionRepository.cs`, add at the end of `SupplementDefaults()` before the closing `}`:
 
@@ -52,7 +52,7 @@ In `Quartermaster.Data/Options/OptionRepository.cs`, add at the end of `Suppleme
             OptionDataType.String, true, "", "Bei Problemen wende dich bitte an den Vorstand deiner Gliederung.");
 ```
 
-- [ ] **Step 2: Create ClientConfigDTO**
+- [x] **Step 2: Create ClientConfigDTO**
 
 Create `Quartermaster.Api/Config/ClientConfigDTO.cs`:
 
@@ -64,7 +64,7 @@ public class ClientConfigDTO {
 }
 ```
 
-- [ ] **Step 3: Create ClientConfigEndpoint**
+- [x] **Step 3: Create ClientConfigEndpoint**
 
 Create `Quartermaster.Server/Config/ClientConfigEndpoint.cs`:
 
@@ -99,7 +99,7 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
 }
 ```
 
-- [ ] **Step 4: Verify build**
+- [x] **Step 4: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -113,7 +113,7 @@ cd /media/SMB/Quartermaster
 **Files:**
 - Modify: `Quartermaster.Server/Program.cs`
 
-- [ ] **Step 1: Configure exception handler in UseFastEndpoints**
+- [x] **Step 1: Configure exception handler in UseFastEndpoints**
 
 In `Quartermaster.Server/Program.cs`, change:
 
@@ -164,7 +164,7 @@ app.UseExceptionHandler(appError => {
 
 Place this right after `app.UseHttpsRedirection();` and before `app.UseRouting();`.
 
-- [ ] **Step 2: Verify build and tests**
+- [x] **Step 2: Verify build and tests**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -182,7 +182,7 @@ cd /media/SMB/Quartermaster
 - Modify: `Quartermaster.Blazor/App.razor`
 - Modify: `Quartermaster.Blazor/Program.cs`
 
-- [ ] **Step 1: Create ClientConfigService**
+- [x] **Step 1: Create ClientConfigService**
 
 Create `Quartermaster.Blazor/Services/ClientConfigService.cs`:
 
@@ -214,7 +214,7 @@ public class ClientConfigService {
 }
 ```
 
-- [ ] **Step 2: Register ClientConfigService in Blazor Program.cs**
+- [x] **Step 2: Register ClientConfigService in Blazor Program.cs**
 
 In `Quartermaster.Blazor/Program.cs`, add after the HttpClient registration:
 
@@ -222,7 +222,7 @@ In `Quartermaster.Blazor/Program.cs`, add after the HttpClient registration:
 builder.Services.AddScoped<Quartermaster.Blazor.Services.ClientConfigService>();
 ```
 
-- [ ] **Step 3: Create AppErrorBoundary component**
+- [x] **Step 3: Create AppErrorBoundary component**
 
 Create `Quartermaster.Blazor/Components/AppErrorBoundary.razor`:
 
@@ -248,7 +248,7 @@ Create `Quartermaster.Blazor/Components/AppErrorBoundary.razor`:
 }
 ```
 
-- [ ] **Step 4: Wrap Router in App.razor with ErrorBoundary**
+- [x] **Step 4: Wrap Router in App.razor with ErrorBoundary**
 
 Read `Quartermaster.Blazor/App.razor` first, then wrap the `<Router>` component.
 
@@ -264,7 +264,7 @@ The current App.razor has a `<Router>` component. Wrap it:
 
 Add `@using Quartermaster.Blazor.Components` at the top if not already present.
 
-- [ ] **Step 5: Load ClientConfig on app startup**
+- [x] **Step 5: Load ClientConfig on app startup**
 
 In `Quartermaster.Blazor/App.razor`, add initialization. The simplest approach: add `@code` block that loads config:
 
@@ -286,7 +286,7 @@ protected override async Task OnInitializedAsync() {
 
 If MainLayout already has `OnInitializedAsync`, add `await ConfigService.LoadAsync();` to it.
 
-- [ ] **Step 6: Verify build**
+- [x] **Step 6: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -335,13 +335,13 @@ if (!response.IsSuccessStatusCode) {
 
 **Important:** Read each file before modifying. Don't add duplicate error handling where it already exists. Only add where missing.
 
-- [ ] **Step 1: Fix MemberDetail.razor.cs**
-- [ ] **Step 2: Fix EventDetail.razor.cs**
-- [ ] **Step 3: Fix MotionDetail.razor.cs**
-- [ ] **Step 4: Fix EventCreateFromTemplate.razor.cs**
-- [ ] **Step 5: Fix OptionDetail.razor.cs**
-- [ ] **Step 6: Scan for any other pages with missing error handling and fix**
-- [ ] **Step 7: Verify build**
+- [x] **Step 1: Fix MemberDetail.razor.cs**
+- [x] **Step 2: Fix EventDetail.razor.cs**
+- [x] **Step 3: Fix MotionDetail.razor.cs**
+- [x] **Step 4: Fix EventCreateFromTemplate.razor.cs**
+- [x] **Step 5: Fix OptionDetail.razor.cs**
+- [x] **Step 6: Scan for any other pages with missing error handling and fix**
+- [x] **Step 7: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -352,14 +352,14 @@ cd /media/SMB/Quartermaster
 
 ### Task 5: Final verification
 
-- [ ] **Step 1: Run all tests**
+- [x] **Step 1: Run all tests**
 
 ```bash
 cd /media/SMB/Quartermaster
 /usr/lib/dotnet/dotnet test --project Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj
 ```
 
-- [ ] **Step 2: Restart server and verify in Chrome**
+- [x] **Step 2: Restart server and verify in Chrome**
 
 Drop DB, restart, generate test data, navigate around to verify no errors:
 

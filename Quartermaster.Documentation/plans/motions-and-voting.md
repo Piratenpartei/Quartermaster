@@ -54,7 +54,7 @@
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Create Motion entity**
+- [x] **Step 1: Create Motion entity**
 
 Create `Quartermaster.Data/Motions/Motion.cs`:
 
@@ -103,7 +103,7 @@ public enum MotionApprovalStatus {
 }
 ```
 
-- [ ] **Step 2: Create MotionVote entity**
+- [x] **Step 2: Create MotionVote entity**
 
 Create `Quartermaster.Data/Motions/MotionVote.cs`:
 
@@ -133,7 +133,7 @@ public enum VoteType {
 }
 ```
 
-- [ ] **Step 3: Update M001 migration**
+- [x] **Step 3: Update M001 migration**
 
 Add the Motions and MotionVotes tables to `M001_InitialStructureMigration.cs`. Add usings for `Quartermaster.Data.Motions`.
 
@@ -193,7 +193,7 @@ And add to the table deletes:
         Delete.Table(Motion.TableName);
 ```
 
-- [ ] **Step 4: Register in DbContext**
+- [x] **Step 4: Register in DbContext**
 
 Add to `DbContext.cs`:
 - `using Quartermaster.Data.Motions;`
@@ -204,7 +204,7 @@ Add to `DbContext.cs`:
 - In `AddRepositories`: `services.AddScoped<MotionRepository>();`
 - In `AddRepositories`: `services.AddScoped<ChapterOfficerRepository>();`
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `cd /media/SMB/Quartermaster && dotnet build`
 Expected: Build succeeded, 0 errors
@@ -217,7 +217,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Data/ChapterAssociates/ChapterOfficerRepository.cs`
 - Create: `Quartermaster.Data/Motions/MotionRepository.cs`
 
-- [ ] **Step 1: Create ChapterOfficerRepository**
+- [x] **Step 1: Create ChapterOfficerRepository**
 
 ```csharp
 using LinqToDB;
@@ -244,7 +244,7 @@ public class ChapterOfficerRepository {
 }
 ```
 
-- [ ] **Step 2: Create MotionRepository**
+- [x] **Step 2: Create MotionRepository**
 
 ```csharp
 using LinqToDB;
@@ -389,7 +389,7 @@ public class MotionRepository {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -408,7 +408,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Api/Motions/MotionVoteRequest.cs`
 - Create: `Quartermaster.Api/Motions/MotionStatusRequest.cs`
 
-- [ ] **Step 1: Create all DTO files**
+- [x] **Step 1: Create all DTO files**
 
 `MotionDTO.cs`:
 ```csharp
@@ -542,7 +542,7 @@ public class MotionStatusRequest {
 }
 ```
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -558,7 +558,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Server/Motions/MotionVoteEndpoint.cs`
 - Create: `Quartermaster.Server/Motions/MotionStatusEndpoint.cs`
 
-- [ ] **Step 1: Create all 5 endpoint files**
+- [x] **Step 1: Create all 5 endpoint files**
 
 `MotionListEndpoint.cs`:
 ```csharp
@@ -851,7 +851,7 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
 }
 ```
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -863,7 +863,7 @@ Expected: Build succeeded, 0 errors
 **Files:**
 - Modify: `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs`
 
-- [ ] **Step 1: Spawn linked motion when creating a membership application**
+- [x] **Step 1: Spawn linked motion when creating a membership application**
 
 Update `MembershipApplicationCreateEndpoint` to inject `MotionRepository` and create a linked motion. After creating the application, add:
 
@@ -914,7 +914,7 @@ Also spawn a motion for reduced due selections. After creating dueSelection, if 
 
 Add constructor injection for `MotionRepository _motionRepo` and the using `using Quartermaster.Data.Motions;`.
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -926,7 +926,7 @@ Expected: Build succeeded, 0 errors
 **Files:**
 - Modify: `Quartermaster.Server/TestData/TestDataSeeder.cs`
 
-- [ ] **Step 1: Add officer and motion seeding**
+- [x] **Step 1: Add officer and motion seeding**
 
 Add `using Quartermaster.Data.ChapterAssociates;`, `using Quartermaster.Data.Motions;`, and `using Quartermaster.Data.Users;` to the seeder.
 
@@ -1010,7 +1010,7 @@ Then create test motions (some public, some with votes):
 
 Update the constructor to accept the additional repositories and pass them through.
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1023,7 +1023,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/Motions/MotionCreate.razor`
 - Create: `Quartermaster.Blazor/Pages/Motions/MotionCreate.razor.cs`
 
-- [ ] **Step 1: Create MotionCreate.razor**
+- [x] **Step 1: Create MotionCreate.razor**
 
 ```razor
 @page "/Motions/Create"
@@ -1073,7 +1073,7 @@ Expected: Build succeeded, 0 errors
 </div>
 ```
 
-- [ ] **Step 2: Create MotionCreate.razor.cs**
+- [x] **Step 2: Create MotionCreate.razor.cs**
 
 ```csharp
 using System;
@@ -1143,7 +1143,7 @@ public partial class MotionCreate {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1156,7 +1156,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionList.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionList.razor.cs`
 
-- [ ] **Step 1: Create MotionList.razor**
+- [x] **Step 1: Create MotionList.razor**
 
 ```razor
 @page "/Administration/Motions"
@@ -1242,7 +1242,7 @@ Expected: Build succeeded, 0 errors
 }
 ```
 
-- [ ] **Step 2: Create MotionList.razor.cs**
+- [x] **Step 2: Create MotionList.razor.cs**
 
 ```csharp
 using System;
@@ -1320,7 +1320,7 @@ public partial class MotionList {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1333,7 +1333,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor.cs`
 
-- [ ] **Step 1: Create MotionDetail.razor**
+- [x] **Step 1: Create MotionDetail.razor**
 
 ```razor
 @page "/Administration/Motions/{Id:guid}"
@@ -1491,7 +1491,7 @@ Expected: Build succeeded, 0 errors
 }
 ```
 
-- [ ] **Step 2: Create MotionDetail.razor.cs**
+- [x] **Step 2: Create MotionDetail.razor.cs**
 
 ```csharp
 using System;
@@ -1605,7 +1605,7 @@ public partial class MotionDetail {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1618,7 +1618,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 - Modify: `Quartermaster.Documentation/Translations.md`
 
-- [ ] **Step 1: Update navigation**
+- [x] **Step 1: Update navigation**
 
 In `MainLayout.razor`, add to Vorstandsarbeit dropdown:
 ```razor
@@ -1630,7 +1630,7 @@ Add to Mitgliedsportal dropdown:
                             <li><a class="dropdown-item" href="/Motions/Create">Antrag einreichen</a></li>
 ```
 
-- [ ] **Step 2: Add motion terms to Translations.md**
+- [x] **Step 2: Add motion terms to Translations.md**
 
 Append:
 ```markdown
@@ -1660,7 +1660,7 @@ Append:
 | Schatzmeister | Treasurer | Quartermaster (pirate naming) |
 ```
 
-- [ ] **Step 3: Build full solution and verify**
+- [x] **Step 3: Build full solution and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors

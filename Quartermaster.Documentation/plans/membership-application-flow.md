@@ -51,7 +51,7 @@
 - Modify: `Quartermaster.Data/Chapters/Chapter.cs`
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 
-- [ ] **Step 1: Add fields to Chapter entity**
+- [x] **Step 1: Add fields to Chapter entity**
 
 In `Quartermaster.Data/Chapters/Chapter.cs`, add `AdministrativeDivisionId` and `ParentChapterId`:
 
@@ -72,7 +72,7 @@ public class Chapter {
 }
 ```
 
-- [ ] **Step 2: Update M001 migration — Chapters table**
+- [x] **Step 2: Update M001 migration — Chapters table**
 
 In `M001_InitialStructureMigration.cs`, update the Chapters table creation to add the two new columns and their foreign keys. Replace the Chapters table block:
 
@@ -105,7 +105,7 @@ Delete.ForeignKey("FK_Chapters_ParentChapterId_Chapters_Id")
     .OnTable(Chapter.TableName);
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build Quartermaster.Data`
 Expected: Build succeeded, 0 errors
@@ -118,7 +118,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Data/MembershipApplications/MembershipApplication.cs`
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 
-- [ ] **Step 1: Expand MembershipApplication entity**
+- [x] **Step 1: Expand MembershipApplication entity**
 
 Replace the full content of `MembershipApplication.cs`:
 
@@ -168,7 +168,7 @@ public class MembershipApplication {
 }
 ```
 
-- [ ] **Step 2: Update M001 migration — MembershipApplications table**
+- [x] **Step 2: Update M001 migration — MembershipApplications table**
 
 Replace the MembershipApplications table creation block in `M001_InitialStructureMigration.cs`. Remove the old `FK_MembershipApplications_UserId_Users_Id` foreign key since we no longer have `UserId`:
 
@@ -219,7 +219,7 @@ Delete.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
     .OnTable(MembershipApplication.TableName);
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build Quartermaster.Data`
 Expected: Build succeeded, 0 errors
@@ -233,7 +233,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionRepository.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Add GetAncestors to AdministrativeDivisionRepository**
+- [x] **Step 1: Add GetAncestors to AdministrativeDivisionRepository**
 
 Add this method to `AdministrativeDivisionRepository.cs`:
 
@@ -251,7 +251,7 @@ public List<Guid> GetAncestorIds(Guid divisionId) {
 }
 ```
 
-- [ ] **Step 2: Create ChapterRepository**
+- [x] **Step 2: Create ChapterRepository**
 
 Create `Quartermaster.Data/Chapters/ChapterRepository.cs`:
 
@@ -338,7 +338,7 @@ public class ChapterRepository {
 }
 ```
 
-- [ ] **Step 3: Register in DbContext**
+- [x] **Step 3: Register in DbContext**
 
 In `DbContext.cs`, add `ITable<Chapter>` and register the repository:
 
@@ -363,7 +363,7 @@ Add the using:
 using Quartermaster.Data.Chapters;
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -376,7 +376,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Create MembershipApplicationRepository**
+- [x] **Step 1: Create MembershipApplicationRepository**
 
 Create `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs`:
 
@@ -397,7 +397,7 @@ public class MembershipApplicationRepository {
 }
 ```
 
-- [ ] **Step 2: Register in DbContext**
+- [x] **Step 2: Register in DbContext**
 
 Add to `DbContext.cs`:
 
@@ -416,7 +416,7 @@ Add the using:
 using Quartermaster.Data.MembershipApplications;
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -429,7 +429,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Api/Chapters/ChapterDTO.cs`
 - Create: `Quartermaster.Api/MembershipApplications/MembershipApplicationDTO.cs`
 
-- [ ] **Step 1: Create ChapterDTO**
+- [x] **Step 1: Create ChapterDTO**
 
 Create `Quartermaster.Api/Chapters/ChapterDTO.cs`:
 
@@ -446,7 +446,7 @@ public class ChapterDTO {
 }
 ```
 
-- [ ] **Step 2: Create MembershipApplicationDTO**
+- [x] **Step 2: Create MembershipApplicationDTO**
 
 Create `Quartermaster.Api/MembershipApplications/MembershipApplicationDTO.cs`:
 
@@ -489,7 +489,7 @@ public class MembershipApplicationDTO {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -502,7 +502,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Data/Chapters/ChapterMapper.cs`
 - Create: `Quartermaster.Data/MembershipApplications/MembershipApplicationMapper.cs`
 
-- [ ] **Step 1: Create ChapterMapper**
+- [x] **Step 1: Create ChapterMapper**
 
 Create `Quartermaster.Data/Chapters/ChapterMapper.cs`:
 
@@ -518,7 +518,7 @@ public static partial class ChapterMapper {
 }
 ```
 
-- [ ] **Step 2: Create MembershipApplicationMapper**
+- [x] **Step 2: Create MembershipApplicationMapper**
 
 Create `Quartermaster.Data/MembershipApplications/MembershipApplicationMapper.cs`:
 
@@ -535,7 +535,7 @@ public static partial class MembershipApplicationMapper {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -549,7 +549,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Server/Chapters/ChapterListEndpoint.cs`
 - Create: `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs`
 
-- [ ] **Step 1: Create ChapterForDivisionEndpoint**
+- [x] **Step 1: Create ChapterForDivisionEndpoint**
 
 Create `Quartermaster.Server/Chapters/ChapterForDivisionEndpoint.cs`:
 
@@ -594,7 +594,7 @@ public class ChapterForDivisionEndpoint : Endpoint<ChapterForDivisionRequest, Ch
 }
 ```
 
-- [ ] **Step 2: Create ChapterListEndpoint**
+- [x] **Step 2: Create ChapterListEndpoint**
 
 Create `Quartermaster.Server/Chapters/ChapterListEndpoint.cs`:
 
@@ -628,7 +628,7 @@ public class ChapterListEndpoint : EndpointWithoutRequest<List<ChapterDTO>> {
 }
 ```
 
-- [ ] **Step 3: Create MembershipApplicationCreateEndpoint**
+- [x] **Step 3: Create MembershipApplicationCreateEndpoint**
 
 Create `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs`:
 
@@ -679,7 +679,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
 }
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -692,7 +692,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/MembershipApplicationEntryState.cs`
 - Modify: `Quartermaster.Blazor/Services/AppStateService.cs`
 
-- [ ] **Step 1: Create MembershipApplicationEntryState**
+- [x] **Step 1: Create MembershipApplicationEntryState**
 
 Create `Quartermaster.Blazor/Pages/MembershipApplication/MembershipApplicationEntryState.cs`:
 
@@ -737,7 +737,7 @@ public class MembershipApplicationEntryState : EntryStateBase {
 }
 ```
 
-- [ ] **Step 2: Register in AppStateService**
+- [x] **Step 2: Register in AppStateService**
 
 In `Quartermaster.Blazor/Services/AppStateService.cs`, add to the constructor:
 
@@ -750,7 +750,7 @@ Add the using:
 using Quartermaster.Blazor.Pages.MembershipApplication;
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -763,7 +763,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/PersonalData.razor`
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/PersonalData.razor.cs`
 
-- [ ] **Step 1: Create PersonalData.razor**
+- [x] **Step 1: Create PersonalData.razor**
 
 ```razor
 @page "/MembershipApplication/PersonalData"
@@ -814,7 +814,7 @@ Expected: Build succeeded, 0 errors
 </div>
 ```
 
-- [ ] **Step 2: Create PersonalData.razor.cs**
+- [x] **Step 2: Create PersonalData.razor.cs**
 
 ```csharp
 using Microsoft.AspNetCore.Components;
@@ -845,7 +845,7 @@ public partial class PersonalData {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -858,7 +858,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/AddressAndChapter.razor`
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/AddressAndChapter.razor.cs`
 
-- [ ] **Step 1: Create AddressAndChapter.razor**
+- [x] **Step 1: Create AddressAndChapter.razor**
 
 ```razor
 @page "/MembershipApplication/Address"
@@ -927,7 +927,7 @@ Expected: Build succeeded, 0 errors
 </div>
 ```
 
-- [ ] **Step 2: Create AddressAndChapter.razor.cs**
+- [x] **Step 2: Create AddressAndChapter.razor.cs**
 
 ```csharp
 using System;
@@ -1013,7 +1013,7 @@ public partial class AddressAndChapter {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1028,7 +1028,7 @@ This page is a thin wrapper that syncs the `MembershipApplicationEntryState.Dues
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/DuesTypeSelection.razor`
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/DuesTypeSelection.razor.cs`
 
-- [ ] **Step 1: Create DuesTypeSelection.razor**
+- [x] **Step 1: Create DuesTypeSelection.razor**
 
 ```razor
 @page "/MembershipApplication/DuesTypeSelection"
@@ -1073,7 +1073,7 @@ This page is a thin wrapper that syncs the `MembershipApplicationEntryState.Dues
 </div>
 ```
 
-- [ ] **Step 2: Create DuesTypeSelection.razor.cs**
+- [x] **Step 2: Create DuesTypeSelection.razor.cs**
 
 ```csharp
 using Microsoft.AspNetCore.Components;
@@ -1119,7 +1119,7 @@ public partial class DuesTypeSelection {
 
 Note: The existing DueSelector pages navigate to `/DueSelector/Summary/{ReturnUrl}` at the end, and the Summary page submits the dues independently. For the membership flow, the dues summary page's "Zurück" URL chain will eventually lead back to `/MembershipApplication/DuesTypeSelection`. The user completes the full dues flow (including payment options and dues summary/submission), then can navigate to Declarations. We'll add a "Weiter zum Mitgliedsantrag" link in the next task.
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1132,7 +1132,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/Declarations.razor`
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/Declarations.razor.cs`
 
-- [ ] **Step 1: Create Declarations.razor**
+- [x] **Step 1: Create Declarations.razor**
 
 ```razor
 @page "/MembershipApplication/Declarations"
@@ -1191,7 +1191,7 @@ Expected: Build succeeded, 0 errors
 </div>
 ```
 
-- [ ] **Step 2: Create Declarations.razor.cs**
+- [x] **Step 2: Create Declarations.razor.cs**
 
 ```csharp
 using Microsoft.AspNetCore.Components;
@@ -1223,7 +1223,7 @@ public partial class Declarations {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1236,7 +1236,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/ApplicationSummary.razor`
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/ApplicationSummary.razor.cs`
 
-- [ ] **Step 1: Create ApplicationSummary.razor**
+- [x] **Step 1: Create ApplicationSummary.razor**
 
 ```razor
 @page "/MembershipApplication/Summary"
@@ -1335,7 +1335,7 @@ Expected: Build succeeded, 0 errors
 </div>
 ```
 
-- [ ] **Step 2: Create ApplicationSummary.razor.cs**
+- [x] **Step 2: Create ApplicationSummary.razor.cs**
 
 ```csharp
 using System;
@@ -1411,7 +1411,7 @@ public partial class ApplicationSummary {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1423,7 +1423,7 @@ Expected: Build succeeded, 0 errors
 **Files:**
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 
-- [ ] **Step 1: Add Mitgliedsantrag to navigation**
+- [x] **Step 1: Add Mitgliedsantrag to navigation**
 
 In `MainLayout.razor`, add the membership application link under the Mitgliedsportal dropdown, after the Beitragseinstufung link:
 
@@ -1443,12 +1443,12 @@ The full dropdown section becomes:
 </NavMenuDropdown>
 ```
 
-- [ ] **Step 2: Build full solution and verify**
+- [x] **Step 2: Build full solution and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
 
-- [ ] **Step 3: Start server with fresh DB and verify**
+- [x] **Step 3: Start server with fresh DB and verify**
 
 ```bash
 # Clean, rebuild, fresh DB
@@ -1470,7 +1470,7 @@ Verify:
 **Files:**
 - Modify: `Quartermaster.Documentation/Translations.md`
 
-- [ ] **Step 1: Add membership application terms**
+- [x] **Step 1: Add membership application terms**
 
 Add this section to `Translations.md`:
 

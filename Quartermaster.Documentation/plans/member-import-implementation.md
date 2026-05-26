@@ -66,7 +66,7 @@
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Create the Member entity**
+- [x] **Step 1: Create the Member entity**
 
 Create `Quartermaster.Data/Members/Member.cs`:
 
@@ -117,7 +117,7 @@ public class Member {
 }
 ```
 
-- [ ] **Step 2: Create the MemberImportLog entity**
+- [x] **Step 2: Create the MemberImportLog entity**
 
 Create `Quartermaster.Data/Members/MemberImportLog.cs`:
 
@@ -145,7 +145,7 @@ public class MemberImportLog {
 }
 ```
 
-- [ ] **Step 3: Add ExternalCode to Chapter entity**
+- [x] **Step 3: Add ExternalCode to Chapter entity**
 
 In `Quartermaster.Data/Chapters/Chapter.cs`, add below the `ShortCode` property:
 
@@ -153,7 +153,7 @@ In `Quartermaster.Data/Chapters/Chapter.cs`, add below the `ShortCode` property:
 public string? ExternalCode { get; set; }
 ```
 
-- [ ] **Step 4: Add Members and MemberImportLogs tables to migration**
+- [x] **Step 4: Add Members and MemberImportLogs tables to migration**
 
 In `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`, add the following in the `Up()` method, after the `MembershipApplications` foreign keys block (before the closing `}` of `Up()`):
 
@@ -239,7 +239,7 @@ Delete.Table(Members.MemberImportLog.TableName);
 Delete.Table(Members.Member.TableName);
 ```
 
-- [ ] **Step 5: Update DbContext**
+- [x] **Step 5: Update DbContext**
 
 In `Quartermaster.Data/DbContext.cs`:
 
@@ -259,13 +259,13 @@ Add repository registration in `AddRepositories()`:
 services.AddScoped<MemberRepository>();
 ```
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Data/Quartermaster.Data.csproj`
 
 This will fail because `MemberRepository` doesn't exist yet — that's expected and will be created in the next task.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add Quartermaster.Data/Members/Member.cs Quartermaster.Data/Members/MemberImportLog.cs Quartermaster.Data/Chapters/Chapter.cs Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs Quartermaster.Data/DbContext.cs
@@ -279,7 +279,7 @@ git commit -m "feat: add Member and MemberImportLog entities, ExternalCode on Ch
 **Files:**
 - Create: `Quartermaster.Data/Members/MemberRepository.cs`
 
-- [ ] **Step 1: Create the MemberRepository**
+- [x] **Step 1: Create the MemberRepository**
 
 Create `Quartermaster.Data/Members/MemberRepository.cs`:
 
@@ -383,12 +383,12 @@ public class MemberRepository {
 }
 ```
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Data/Quartermaster.Data.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Quartermaster.Data/Members/MemberRepository.cs
@@ -431,7 +431,7 @@ This task extends `SupplementDefaults()` to:
 | TH | Thüringen |
 | Ausland | (no existing chapter) |
 
-- [ ] **Step 1: Add FindByExternalCode and state code mapping**
+- [x] **Step 1: Add FindByExternalCode and state code mapping**
 
 In `Quartermaster.Data/Chapters/ChapterRepository.cs`, add a new method and a static dictionary. Add `using System.Collections.Generic;` if not already present.
 
@@ -458,7 +458,7 @@ public Chapter? FindByExternalCodeAndParent(string externalCode, Guid? parentCha
         .FirstOrDefault();
 ```
 
-- [ ] **Step 2: Extend SupplementDefaults to set ExternalCode on state chapters and seed sub-chapters**
+- [x] **Step 2: Extend SupplementDefaults to set ExternalCode on state chapters and seed sub-chapters**
 
 In `SupplementDefaults()`, after the existing `foreach` loop that creates state chapters, add:
 
@@ -500,7 +500,7 @@ Create(ausland);
 SeedSubChapters(bundesverband.Id);
 ```
 
-- [ ] **Step 3: Add the SeedSubChapters method**
+- [x] **Step 3: Add the SeedSubChapters method**
 
 Add this method to `ChapterRepository`. It contains the hardcoded chapter structure derived from the CSV export. The data is grouped by state for readability. Each tuple is `(bezirkName, kreisName)` where either can be null.
 
@@ -728,12 +728,12 @@ private void SeedSubChapters(Guid bundesverbandId) {
 }
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Data/Quartermaster.Data.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Quartermaster.Data/Chapters/ChapterRepository.cs
@@ -752,7 +752,7 @@ git commit -m "feat: seed Bezirk and Kreis chapters with ExternalCode from CSV d
 - Create: `Quartermaster.Api/Members/MemberImportLogDTO.cs`
 - Create: `Quartermaster.Api/Members/MemberImportLogListResponse.cs`
 
-- [ ] **Step 1: Create MemberDTO**
+- [x] **Step 1: Create MemberDTO**
 
 Create `Quartermaster.Api/Members/MemberDTO.cs`:
 
@@ -777,7 +777,7 @@ public class MemberDTO {
 }
 ```
 
-- [ ] **Step 2: Create MemberDetailDTO**
+- [x] **Step 2: Create MemberDetailDTO**
 
 Create `Quartermaster.Api/Members/MemberDetailDTO.cs`:
 
@@ -825,7 +825,7 @@ public class MemberDetailDTO {
 }
 ```
 
-- [ ] **Step 3: Create MemberSearchRequest and MemberSearchResponse**
+- [x] **Step 3: Create MemberSearchRequest and MemberSearchResponse**
 
 Create `Quartermaster.Api/Members/MemberSearchRequest.cs`:
 
@@ -855,7 +855,7 @@ public class MemberSearchResponse {
 }
 ```
 
-- [ ] **Step 4: Create MemberImportLogDTO and MemberImportLogListResponse**
+- [x] **Step 4: Create MemberImportLogDTO and MemberImportLogListResponse**
 
 Create `Quartermaster.Api/Members/MemberImportLogDTO.cs`:
 
@@ -891,12 +891,12 @@ public class MemberImportLogListResponse {
 }
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Api/Quartermaster.Api.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Quartermaster.Api/Members/
@@ -912,11 +912,11 @@ git commit -m "feat: add Member API DTOs for list, detail, search, and import lo
 - Create: `Quartermaster.Server/Members/MemberCsvRecord.cs`
 - Create: `Quartermaster.Server/Members/MemberImportService.cs`
 
-- [ ] **Step 1: Add CsvHelper NuGet package**
+- [x] **Step 1: Add CsvHelper NuGet package**
 
 Run: `dotnet add /media/SMB/Quartermaster/Quartermaster.Server/Quartermaster.Server.csproj package CsvHelper`
 
-- [ ] **Step 2: Create MemberCsvRecord**
+- [x] **Step 2: Create MemberCsvRecord**
 
 Create `Quartermaster.Server/Members/MemberCsvRecord.cs`:
 
@@ -996,7 +996,7 @@ public sealed class MemberCsvRecordMap : ClassMap<MemberCsvRecord> {
 }
 ```
 
-- [ ] **Step 3: Create MemberImportService**
+- [x] **Step 3: Create MemberImportService**
 
 Create `Quartermaster.Server/Members/MemberImportService.cs`:
 
@@ -1251,12 +1251,12 @@ public class MemberImportService {
 }
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Server/Quartermaster.Server.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Quartermaster.Server/Quartermaster.Server.csproj Quartermaster.Server/Members/MemberCsvRecord.cs Quartermaster.Server/Members/MemberImportService.cs
@@ -1272,7 +1272,7 @@ git commit -m "feat: add MemberImportService with CsvHelper parsing and chapter 
 - Modify: `Quartermaster.Data/Options/OptionRepository.cs`
 - Modify: `Quartermaster.Server/Program.cs`
 
-- [ ] **Step 1: Add import options to SupplementDefaults**
+- [x] **Step 1: Add import options to SupplementDefaults**
 
 In `Quartermaster.Data/Options/OptionRepository.cs`, add at the end of `SupplementDefaults()`:
 
@@ -1286,7 +1286,7 @@ AddDefinitionIfNotExists("member_import.polling_interval_minutes",
     OptionDataType.Number, false, "", "10");
 ```
 
-- [ ] **Step 2: Create MemberImportHostedService**
+- [x] **Step 2: Create MemberImportHostedService**
 
 Create `Quartermaster.Server/Members/MemberImportHostedService.cs`:
 
@@ -1368,7 +1368,7 @@ public class MemberImportHostedService : BackgroundService {
 }
 ```
 
-- [ ] **Step 3: Register services in Program.cs**
+- [x] **Step 3: Register services in Program.cs**
 
 In `Quartermaster.Server/Program.cs`, add the using at the top:
 
@@ -1383,12 +1383,12 @@ builder.Services.AddSingleton<MemberImportService>();
 builder.Services.AddHostedService<MemberImportHostedService>();
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Server/Quartermaster.Server.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add Quartermaster.Server/Members/MemberImportHostedService.cs Quartermaster.Data/Options/OptionRepository.cs Quartermaster.Server/Program.cs
@@ -1405,7 +1405,7 @@ git commit -m "feat: add MemberImportHostedService with polling and options seed
 - Create: `Quartermaster.Server/Members/MemberImportTriggerEndpoint.cs`
 - Create: `Quartermaster.Server/Members/MemberImportHistoryEndpoint.cs`
 
-- [ ] **Step 1: Create MemberListEndpoint**
+- [x] **Step 1: Create MemberListEndpoint**
 
 Create `Quartermaster.Server/Members/MemberListEndpoint.cs`:
 
@@ -1461,7 +1461,7 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
 }
 ```
 
-- [ ] **Step 2: Create MemberDetailEndpoint**
+- [x] **Step 2: Create MemberDetailEndpoint**
 
 Create `Quartermaster.Server/Members/MemberDetailEndpoint.cs`:
 
@@ -1562,7 +1562,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
 }
 ```
 
-- [ ] **Step 3: Create MemberImportTriggerEndpoint**
+- [x] **Step 3: Create MemberImportTriggerEndpoint**
 
 Create `Quartermaster.Server/Members/MemberImportTriggerEndpoint.cs`:
 
@@ -1621,7 +1621,7 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
 }
 ```
 
-- [ ] **Step 4: Create MemberImportHistoryEndpoint**
+- [x] **Step 4: Create MemberImportHistoryEndpoint**
 
 Create `Quartermaster.Server/Members/MemberImportHistoryEndpoint.cs`:
 
@@ -1678,12 +1678,12 @@ public class MemberImportHistoryEndpoint
 }
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Server/Quartermaster.Server.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add Quartermaster.Server/Members/MemberListEndpoint.cs Quartermaster.Server/Members/MemberDetailEndpoint.cs Quartermaster.Server/Members/MemberImportTriggerEndpoint.cs Quartermaster.Server/Members/MemberImportHistoryEndpoint.cs
@@ -1698,7 +1698,7 @@ git commit -m "feat: add member list, detail, import trigger, and import history
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberList.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberList.razor.cs`
 
-- [ ] **Step 1: Create MemberList.razor**
+- [x] **Step 1: Create MemberList.razor**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberList.razor`:
 
@@ -1782,7 +1782,7 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberList.razor`:
 }
 ```
 
-- [ ] **Step 2: Create MemberList.razor.cs**
+- [x] **Step 2: Create MemberList.razor.cs**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberList.razor.cs`:
 
@@ -1855,12 +1855,12 @@ public partial class MemberList {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Blazor/Quartermaster.Blazor.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Quartermaster.Blazor/Pages/Administration/MemberList.razor Quartermaster.Blazor/Pages/Administration/MemberList.razor.cs
@@ -1875,7 +1875,7 @@ git commit -m "feat: add member list Blazor page with search and chapter filter"
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor.cs`
 
-- [ ] **Step 1: Create MemberDetail.razor**
+- [x] **Step 1: Create MemberDetail.razor**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
 
@@ -2015,7 +2015,7 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
 }
 ```
 
-- [ ] **Step 2: Create MemberDetail.razor.cs**
+- [x] **Step 2: Create MemberDetail.razor.cs**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor.cs`:
 
@@ -2071,12 +2071,12 @@ In the razor, replace each `@BoolIcon(Member.HasVotingRights)` etc. with:
 
 Apply this pattern for all 5 boolean preference fields.
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Blazor/Quartermaster.Blazor.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Quartermaster.Blazor/Pages/Administration/MemberDetail.razor Quartermaster.Blazor/Pages/Administration/MemberDetail.razor.cs
@@ -2091,7 +2091,7 @@ git commit -m "feat: add member detail Blazor page with all data sections"
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor.cs`
 
-- [ ] **Step 1: Create MemberImportHistory.razor**
+- [x] **Step 1: Create MemberImportHistory.razor**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor`:
 
@@ -2187,7 +2187,7 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor`:
 }
 ```
 
-- [ ] **Step 2: Create MemberImportHistory.razor.cs**
+- [x] **Step 2: Create MemberImportHistory.razor.cs**
 
 Create `Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor.cs`:
 
@@ -2278,12 +2278,12 @@ public partial class MemberImportHistory {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Blazor/Quartermaster.Blazor.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor Quartermaster.Blazor/Pages/Administration/MemberImportHistory.razor.cs
@@ -2297,7 +2297,7 @@ git commit -m "feat: add import history Blazor page with manual trigger and erro
 **Files:**
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 
-- [ ] **Step 1: Add Mitglieder link to navigation**
+- [x] **Step 1: Add Mitglieder link to navigation**
 
 In `Quartermaster.Blazor/Layout/MainLayout.razor`, find the "Vorstandsarbeit" dropdown section. Add a new entry after the existing items inside the `<DropdownContent>`:
 
@@ -2308,12 +2308,12 @@ After the line `<li><a class="dropdown-item" href="/Administration/DueSelections
 <li><a class="dropdown-item" href="/Administration/Members">Mitglieder</a></li>
 ```
 
-- [ ] **Step 2: Build the full solution**
+- [x] **Step 2: Build the full solution**
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Server/Quartermaster.Server.csproj`
 Expected: 0 errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Quartermaster.Blazor/Layout/MainLayout.razor
@@ -2324,17 +2324,17 @@ git commit -m "feat: add Mitglieder link to Vorstandsarbeit navigation dropdown"
 
 ## Task 12: End-to-End Test
 
-- [ ] **Step 1: Configure the import file path**
+- [x] **Step 1: Configure the import file path**
 
 Start the server. Navigate to `/Administration/Options`, find `member_import.file_path`, and set it to `/media/SMB/sampledata/system_export_testdata.csv`.
 
-- [ ] **Step 2: Test manual import**
+- [x] **Step 2: Test manual import**
 
 Navigate to `/Administration/Members/Import`. Click "Manueller Import". Verify:
 - Import completes with 1 total record, 1 new, 0 updated, 0 errors
 - Import log appears in the history table
 
-- [ ] **Step 3: Test member list**
+- [x] **Step 3: Test member list**
 
 Navigate to `/Administration/Members`. Verify:
 - One member appears: Joscha Germerott, member number 47125
@@ -2342,7 +2342,7 @@ Navigate to `/Administration/Members`. Verify:
 - Chapter resolved from `USER_LV=NI` (should show Niedersachsen or a sub-chapter)
 - Status badge shows "Aktiv" (no exit date, not pending)
 
-- [ ] **Step 4: Test member detail**
+- [x] **Step 4: Test member detail**
 
 Click on the member name. Verify all sections:
 - Personal data: name, DOB 16.04.1997, citizenship DE, email
@@ -2353,11 +2353,11 @@ Click on the member name. Verify all sections:
 - System: not linked, last import timestamp
 - Audit log: "Wird in Kürze verfügbar sein."
 
-- [ ] **Step 5: Test re-import (idempotent)**
+- [x] **Step 5: Test re-import (idempotent)**
 
 Go back to import history. Click "Manueller Import" again. Verify:
 - 1 total, 0 new, 1 updated, 0 errors (same member updated)
 
-- [ ] **Step 6: Commit (if any fixes needed)**
+- [x] **Step 6: Commit (if any fixes needed)**
 
 Only commit if fixes were needed during testing.

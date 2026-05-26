@@ -50,14 +50,14 @@
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Add ShortCode to Chapter**
+- [x] **Step 1: Add ShortCode to Chapter**
 
 Add to `Chapter.cs`:
 ```csharp
     public string? ShortCode { get; set; }
 ```
 
-- [ ] **Step 2: Create SystemOption entity**
+- [x] **Step 2: Create SystemOption entity**
 
 Create `Quartermaster.Data/Options/SystemOption.cs`:
 ```csharp
@@ -79,7 +79,7 @@ public class SystemOption {
 }
 ```
 
-- [ ] **Step 3: Create OptionDefinition entity**
+- [x] **Step 3: Create OptionDefinition entity**
 
 Create `Quartermaster.Data/Options/OptionDefinition.cs`:
 ```csharp
@@ -114,7 +114,7 @@ public enum OptionDataType {
 }
 ```
 
-- [ ] **Step 4: Update M001 migration**
+- [x] **Step 4: Update M001 migration**
 
 Add `using Quartermaster.Data.Options;` to the migration.
 
@@ -152,7 +152,7 @@ Add to Down():
         Delete.Table(OptionDefinition.TableName);
 ```
 
-- [ ] **Step 5: Register in DbContext**
+- [x] **Step 5: Register in DbContext**
 
 Add:
 - `using Quartermaster.Data.Options;`
@@ -160,7 +160,7 @@ Add:
 - `public ITable<OptionDefinition> OptionDefinitions => this.GetTable<OptionDefinition>();`
 - `services.AddScoped<OptionRepository>();` in AddRepositories
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `dotnet build`
 
@@ -172,7 +172,7 @@ Run: `dotnet build`
 - Modify: `Quartermaster.Data/Chapters/ChapterRepository.cs`
 - Create: `Quartermaster.Data/Options/OptionRepository.cs`
 
-- [ ] **Step 1: Update Chapter seeding with ShortCodes**
+- [x] **Step 1: Update Chapter seeding with ShortCodes**
 
 In `ChapterRepository.SupplementDefaults`, update the Bundesverband creation:
 ```csharp
@@ -208,7 +208,7 @@ Update the state chapter creation:
             });
 ```
 
-- [ ] **Step 2: Add GetAncestorChapters to ChapterRepository**
+- [x] **Step 2: Add GetAncestorChapters to ChapterRepository**
 
 ```csharp
     public List<Chapter> GetAncestorChain(Guid chapterId) {
@@ -224,7 +224,7 @@ Update the state chapter creation:
     }
 ```
 
-- [ ] **Step 3: Create OptionRepository**
+- [x] **Step 3: Create OptionRepository**
 
 Create `Quartermaster.Data/Options/OptionRepository.cs`:
 ```csharp
@@ -358,14 +358,14 @@ public class OptionRepository {
 }
 ```
 
-- [ ] **Step 4: Register SupplementDefaults**
+- [x] **Step 4: Register SupplementDefaults**
 
 In `DbContext.SupplementDefaults`, add after permissions:
 ```csharp
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 ---
 
@@ -378,7 +378,7 @@ In `DbContext.SupplementDefaults`, add after permissions:
 - Create: `Quartermaster.Api/Options/TemplatePreviewRequest.cs`
 - Create: `Quartermaster.Api/Options/TemplatePreviewResponse.cs`
 
-- [ ] **Step 1: Create all DTOs**
+- [x] **Step 1: Create all DTOs**
 
 `OptionDefinitionDTO.cs`:
 ```csharp
@@ -451,7 +451,7 @@ public class TemplatePreviewResponse {
 }
 ```
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 ---
 
@@ -461,7 +461,7 @@ public class TemplatePreviewResponse {
 - Create: `Quartermaster.Server/Options/TemplateRenderer.cs`
 - Create: `Quartermaster.Server/Options/TemplateMockDataProvider.cs`
 
-- [ ] **Step 1: Create TemplateRenderer**
+- [x] **Step 1: Create TemplateRenderer**
 
 ```csharp
 using System.Collections.Generic;
@@ -495,7 +495,7 @@ public static class TemplateRenderer {
 }
 ```
 
-- [ ] **Step 2: Create TemplateMockDataProvider**
+- [x] **Step 2: Create TemplateMockDataProvider**
 
 This generates sample data for each known model type, using the API DTOs so they work on both server and client.
 
@@ -563,7 +563,7 @@ public static class TemplateMockDataProvider {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 ---
 
@@ -574,7 +574,7 @@ public static class TemplateMockDataProvider {
 - Create: `Quartermaster.Server/Options/OptionUpdateEndpoint.cs`
 - Create: `Quartermaster.Server/Options/TemplatePreviewEndpoint.cs`
 
-- [ ] **Step 1: Create OptionListEndpoint**
+- [x] **Step 1: Create OptionListEndpoint**
 
 ```csharp
 using System.Linq;
@@ -638,7 +638,7 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
 }
 ```
 
-- [ ] **Step 2: Create OptionUpdateEndpoint**
+- [x] **Step 2: Create OptionUpdateEndpoint**
 
 ```csharp
 using System.Threading;
@@ -679,7 +679,7 @@ public class OptionUpdateEndpoint : Endpoint<OptionUpdateRequest> {
 }
 ```
 
-- [ ] **Step 3: Create TemplatePreviewEndpoint**
+- [x] **Step 3: Create TemplatePreviewEndpoint**
 
 ```csharp
 using System.Threading;
@@ -707,7 +707,7 @@ public class TemplatePreviewEndpoint : Endpoint<TemplatePreviewRequest, Template
 }
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 ---
 
@@ -717,7 +717,7 @@ public class TemplatePreviewEndpoint : Endpoint<TemplatePreviewRequest, Template
 - Create: `Quartermaster.Blazor/Pages/Administration/OptionList.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/OptionList.razor.cs`
 
-- [ ] **Step 1: Create OptionList.razor**
+- [x] **Step 1: Create OptionList.razor**
 
 Page showing all option definitions with their global values and chapter overrides. Each option is an expandable card. Template options have an edit textarea with live preview button. String/Number options have a simple input. Overridable options show a chapter selector to add/edit overrides.
 
@@ -821,7 +821,7 @@ Page showing all option definitions with their global values and chapter overrid
 }
 ```
 
-- [ ] **Step 2: Create OptionList.razor.cs**
+- [x] **Step 2: Create OptionList.razor.cs**
 
 ```csharp
 using System;
@@ -932,7 +932,7 @@ public partial class OptionList {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 ---
 
@@ -941,7 +941,7 @@ public partial class OptionList {
 **Files:**
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 
-- [ ] **Step 1: Add options link**
+- [x] **Step 1: Add options link**
 
 In the Verwaltung dropdown, add:
 ```razor
@@ -949,7 +949,7 @@ In the Verwaltung dropdown, add:
                             <li><a class="dropdown-item" href="/Administration/Options">Einstellungen</a></li>
 ```
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 ---
 

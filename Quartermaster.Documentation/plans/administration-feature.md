@@ -51,7 +51,7 @@
 - Modify: `Quartermaster.Data/DueSelector/DueSelection.cs`
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 
-- [ ] **Step 1: Add status enum and fields to MembershipApplication**
+- [x] **Step 1: Add status enum and fields to MembershipApplication**
 
 Add at the end of `MembershipApplication.cs`, before the closing brace:
 
@@ -89,7 +89,7 @@ public enum ApplicationStatus {
 }
 ```
 
-- [ ] **Step 2: Add status enum and fields to DueSelection**
+- [x] **Step 2: Add status enum and fields to DueSelection**
 
 Add to `DueSelection.cs`, before the closing brace of the class, after `PaymentSchedule`:
 
@@ -111,7 +111,7 @@ public enum DueSelectionStatus {
 }
 ```
 
-- [ ] **Step 3: Update M001 migration — MembershipApplications columns**
+- [x] **Step 3: Update M001 migration — MembershipApplications columns**
 
 In the MembershipApplications table creation, add after `SubmittedAt`:
 
@@ -136,7 +136,7 @@ Add to Down():
             .OnTable(MembershipApplication.TableName);
 ```
 
-- [ ] **Step 4: Update M001 migration — DueSelections columns**
+- [x] **Step 4: Update M001 migration — DueSelections columns**
 
 In the DueSelections table creation, add after `PaymentSchedule`:
 
@@ -161,7 +161,7 @@ Add to Down():
             .OnTable(DueSelection.TableName);
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `cd /media/SMB/Quartermaster && dotnet build`
 Expected: Build succeeded, 0 errors
@@ -173,7 +173,7 @@ Expected: Build succeeded, 0 errors
 **Files:**
 - Modify: `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs`
 
-- [ ] **Step 1: Set status when creating application and due selection**
+- [x] **Step 1: Set status when creating application and due selection**
 
 In `MembershipApplicationCreateEndpoint.HandleAsync`, after creating the due selection, set its status:
 
@@ -204,7 +204,7 @@ In `MembershipApplicationCreateEndpoint.HandleAsync`, after creating the due sel
 
 Add using: `using Quartermaster.Data.DueSelector;` (for the enums) and `using Quartermaster.Data.MembershipApplications;` (for ApplicationStatus).
 
-- [ ] **Step 2: Build and verify**
+- [x] **Step 2: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -218,7 +218,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs`
 - Modify: `Quartermaster.Data/DueSelector/DueSelectionRepository.cs`
 
-- [ ] **Step 1: Add GetDescendantIds to ChapterRepository**
+- [x] **Step 1: Add GetDescendantIds to ChapterRepository**
 
 Add this method to `ChapterRepository`:
 
@@ -245,7 +245,7 @@ Add this method to `ChapterRepository`:
     }
 ```
 
-- [ ] **Step 2: Add query methods to MembershipApplicationRepository**
+- [x] **Step 2: Add query methods to MembershipApplicationRepository**
 
 Replace the full content of `MembershipApplicationRepository.cs`:
 
@@ -300,7 +300,7 @@ public class MembershipApplicationRepository {
 }
 ```
 
-- [ ] **Step 3: Add query methods to DueSelectionRepository**
+- [x] **Step 3: Add query methods to DueSelectionRepository**
 
 Replace the full content of `DueSelectionRepository.cs`:
 
@@ -353,7 +353,7 @@ public class DueSelectionRepository : RepositoryBase<DueSelection> {
 }
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -366,7 +366,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Api/PermissionIdentifier.cs`
 - Modify: `Quartermaster.Data/Permissions/PermissionRepository.cs`
 
-- [ ] **Step 1: Add admin permission identifiers**
+- [x] **Step 1: Add admin permission identifiers**
 
 Add to `PermissionIdentifier.cs`:
 
@@ -377,7 +377,7 @@ Add to `PermissionIdentifier.cs`:
     public static readonly string ProcessDueSelections = "dueselections_process";
 ```
 
-- [ ] **Step 2: Seed new permissions**
+- [x] **Step 2: Seed new permissions**
 
 Add to `PermissionRepository.SupplementDefaults()`:
 
@@ -390,7 +390,7 @@ Add to `PermissionRepository.SupplementDefaults()`:
 
 Note: `Global = false` because these are chapter-scoped permissions.
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -407,7 +407,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Api/DueSelector/DueSelectionListRequest.cs`
 - Create: `Quartermaster.Api/DueSelector/DueSelectionListResponse.cs`
 
-- [ ] **Step 1: Create MembershipApplication admin DTOs**
+- [x] **Step 1: Create MembershipApplication admin DTOs**
 
 `MembershipApplicationAdminDTO.cs`:
 
@@ -460,7 +460,7 @@ public class MembershipApplicationListResponse {
 }
 ```
 
-- [ ] **Step 2: Create DueSelection admin DTOs**
+- [x] **Step 2: Create DueSelection admin DTOs**
 
 `DueSelectionAdminDTO.cs`:
 
@@ -510,7 +510,7 @@ public class DueSelectionListResponse {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -525,7 +525,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Server/Admin/DueSelectionListEndpoint.cs`
 - Create: `Quartermaster.Server/Admin/DueSelectionProcessEndpoint.cs`
 
-- [ ] **Step 1: Create MembershipApplicationListEndpoint**
+- [x] **Step 1: Create MembershipApplicationListEndpoint**
 
 ```csharp
 using System.Linq;
@@ -594,7 +594,7 @@ public class MembershipApplicationListEndpoint
 }
 ```
 
-- [ ] **Step 2: Create MembershipApplicationProcessEndpoint**
+- [x] **Step 2: Create MembershipApplicationProcessEndpoint**
 
 ```csharp
 using System;
@@ -641,7 +641,7 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
 }
 ```
 
-- [ ] **Step 3: Create DueSelectionListEndpoint**
+- [x] **Step 3: Create DueSelectionListEndpoint**
 
 ```csharp
 using System.Linq;
@@ -697,7 +697,7 @@ public class DueSelectionListEndpoint
 }
 ```
 
-- [ ] **Step 4: Create DueSelectionProcessEndpoint**
+- [x] **Step 4: Create DueSelectionProcessEndpoint**
 
 ```csharp
 using System;
@@ -744,7 +744,7 @@ public class DueSelectionProcessEndpoint : Endpoint<DueSelectionProcessRequest> 
 }
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -757,7 +757,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/Administration/MembershipApplicationAdmin.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/MembershipApplicationAdmin.razor.cs`
 
-- [ ] **Step 1: Create MembershipApplicationAdmin.razor**
+- [x] **Step 1: Create MembershipApplicationAdmin.razor**
 
 ```razor
 @page "/Administration/MembershipApplications"
@@ -851,7 +851,7 @@ Expected: Build succeeded, 0 errors
 }
 ```
 
-- [ ] **Step 2: Create MembershipApplicationAdmin.razor.cs**
+- [x] **Step 2: Create MembershipApplicationAdmin.razor.cs**
 
 ```csharp
 using System;
@@ -927,7 +927,7 @@ public partial class MembershipApplicationAdmin {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -940,7 +940,7 @@ Expected: Build succeeded, 0 errors
 - Create: `Quartermaster.Blazor/Pages/Administration/DueSelectionAdmin.razor`
 - Create: `Quartermaster.Blazor/Pages/Administration/DueSelectionAdmin.razor.cs`
 
-- [ ] **Step 1: Create DueSelectionAdmin.razor**
+- [x] **Step 1: Create DueSelectionAdmin.razor**
 
 ```razor
 @page "/Administration/DueSelections"
@@ -1031,7 +1031,7 @@ Expected: Build succeeded, 0 errors
 }
 ```
 
-- [ ] **Step 2: Create DueSelectionAdmin.razor.cs**
+- [x] **Step 2: Create DueSelectionAdmin.razor.cs**
 
 ```csharp
 using System;
@@ -1093,7 +1093,7 @@ public partial class DueSelectionAdmin {
 }
 ```
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors
@@ -1106,7 +1106,7 @@ Expected: Build succeeded, 0 errors
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 - Modify: `Quartermaster.Documentation/Translations.md`
 
-- [ ] **Step 1: Add admin links to navigation**
+- [x] **Step 1: Add admin links to navigation**
 
 In `MainLayout.razor`, in the Verwaltung dropdown, add after the existing Gemeindedatenbank links:
 
@@ -1116,7 +1116,7 @@ In `MainLayout.razor`, in the Verwaltung dropdown, add after the existing Gemein
 <li><a class="dropdown-item" href="/Administration/DueSelections">Beitragseinstufungen</a></li>
 ```
 
-- [ ] **Step 2: Add admin terms to Translations.md**
+- [x] **Step 2: Add admin terms to Translations.md**
 
 Append to `Translations.md`:
 
@@ -1137,7 +1137,7 @@ Append to `Translations.md`:
 | Geminderter Betrag | Reduced Amount | |
 ```
 
-- [ ] **Step 3: Build full solution and verify**
+- [x] **Step 3: Build full solution and verify**
 
 Run: `dotnet build`
 Expected: Build succeeded, 0 errors

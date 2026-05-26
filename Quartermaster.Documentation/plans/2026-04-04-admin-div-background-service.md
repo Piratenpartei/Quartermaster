@@ -16,7 +16,7 @@
 - Modify: `Quartermaster.Data/DbContext.cs`
 - Modify: `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionRepository.cs`
 
-- [ ] **Step 1:** In `DbContext.SupplementDefaults()`, change `SupplementDefaults(true)` to `SupplementDefaults(false)` — the background service will handle file loading instead.
+- [x] **Step 1:** In `DbContext.SupplementDefaults()`, change `SupplementDefaults(true)` to `SupplementDefaults(false)` — the background service will handle file loading instead.
 
 ```csharp
 // Before:
@@ -25,7 +25,7 @@ scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().Sup
 scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults(false);
 ```
 
-- [ ] **Step 2:** Build and verify startup is fast.
+- [x] **Step 2:** Build and verify startup is fast.
 
 ---
 
@@ -36,7 +36,7 @@ scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().Sup
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 - Modify: `Quartermaster.Data/DbContext.cs` (add ITable)
 
-- [ ] **Step 1:** Create entity:
+- [x] **Step 1:** Create entity:
 
 ```csharp
 namespace Quartermaster.Data.AdministrativeDivisions;
@@ -61,7 +61,7 @@ public class AdminDivisionImportLog {
 }
 ```
 
-- [ ] **Step 2:** Add table to M001 migration and DbContext.
+- [x] **Step 2:** Add table to M001 migration and DbContext.
 
 ---
 
@@ -99,7 +99,7 @@ This is the core service. It:
 **Files:**
 - Modify: `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionLoader.cs`
 
-- [ ] **Step 1:** Extract the file parsing logic into a method that returns the list of `AdministrativeDivision` objects without inserting them. Keep the existing `Load()` method as a convenience wrapper that calls parse + insert.
+- [x] **Step 1:** Extract the file parsing logic into a method that returns the list of `AdministrativeDivision` objects without inserting them. Keep the existing `Load()` method as a convenience wrapper that calls parse + insert.
 
 ```csharp
 public static List<AdministrativeDivision> Parse(string baseFilePath, string postcodeFilePath) {
@@ -121,13 +121,13 @@ public static void Load(string baseFilePath, string postcodeFilePath,
 - Create: `Quartermaster.Server/AdministrativeDivisions/AdminDivisionImportHostedService.cs`
 - Modify: `Quartermaster.Server/Program.cs` (register services)
 
-- [ ] **Step 1:** Create hosted service following MemberImportHostedService pattern:
+- [x] **Step 1:** Create hosted service following MemberImportHostedService pattern:
 - Runs once 5 seconds after startup (non-blocking)
 - Then polls daily
 - Uses file hash to skip if files haven't changed
 - Calls `AdminDivisionImportService.Import()`
 
-- [ ] **Step 2:** Register in Program.cs:
+- [x] **Step 2:** Register in Program.cs:
 ```csharp
 builder.Services.AddSingleton<AdminDivisionImportService>();
 builder.Services.AddHostedService<AdminDivisionImportHostedService>();
@@ -141,9 +141,9 @@ builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 - Create: `Quartermaster.Server/AdministrativeDivisions/AdminDivisionImportTriggerEndpoint.cs`
 - Create: `Quartermaster.Server/AdministrativeDivisions/AdminDivisionImportHistoryEndpoint.cs`
 
-- [ ] **Step 1:** Trigger endpoint (POST `/api/admin/admindivisions/import`) — requires `TriggerMemberImport` permission (reuse existing permission), calls `AdminDivisionImportService.Import()`, returns log.
+- [x] **Step 1:** Trigger endpoint (POST `/api/admin/admindivisions/import`) — requires `TriggerMemberImport` permission (reuse existing permission), calls `AdminDivisionImportService.Import()`, returns log.
 
-- [ ] **Step 2:** History endpoint (GET `/api/admin/admindivisions/importlogs`) — returns recent import logs for admin review.
+- [x] **Step 2:** History endpoint (GET `/api/admin/admindivisions/importlogs`) — returns recent import logs for admin review.
 
 ---
 
@@ -158,7 +158,7 @@ Add to production-readiness-todos.md:
 
 ### Task 8: Build, test, verify
 
-- [ ] Build and run tests
-- [ ] Restart server — verify startup is fast (no AdminDivs loading)
-- [ ] Verify admin divisions load in background (check logs)
-- [ ] Verify manual trigger works via API
+- [x] Build and run tests
+- [x] Restart server — verify startup is fast (no AdminDivs loading)
+- [x] Verify admin divisions load in background (check logs)
+- [x] Verify manual trigger works via API

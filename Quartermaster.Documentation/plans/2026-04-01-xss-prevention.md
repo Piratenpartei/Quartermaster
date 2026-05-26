@@ -68,14 +68,14 @@
 - Create: `Quartermaster.Api/Rendering/HtmlSanitizationService.cs`
 - Test: `Quartermaster.Server.Tests/Rendering/HtmlSanitizationServiceTests.cs`
 
-- [ ] **Step 1: Add HtmlSanitizer NuGet package to Api project**
+- [x] **Step 1: Add HtmlSanitizer NuGet package to Api project**
 
 ```bash
 cd /media/SMB/Quartermaster
 /usr/lib/dotnet/dotnet add Quartermaster.Api/Quartermaster.Api.csproj package HtmlSanitizer
 ```
 
-- [ ] **Step 2: Create SanitizationProfile enum**
+- [x] **Step 2: Create SanitizationProfile enum**
 
 Create `Quartermaster.Api/Rendering/SanitizationProfile.cs`:
 
@@ -88,7 +88,7 @@ public enum SanitizationProfile {
 }
 ```
 
-- [ ] **Step 3: Write the test file**
+- [x] **Step 3: Write the test file**
 
 Create `Quartermaster.Server.Tests/Rendering/HtmlSanitizationServiceTests.cs`:
 
@@ -249,7 +249,7 @@ public class HtmlSanitizationServiceStandardTests {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they fail**
+- [x] **Step 4: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -258,7 +258,7 @@ cd /media/SMB/Quartermaster
 
 Expected: Compilation error — `HtmlSanitizationService` doesn't exist yet.
 
-- [ ] **Step 5: Implement HtmlSanitizationService**
+- [x] **Step 5: Implement HtmlSanitizationService**
 
 Create `Quartermaster.Api/Rendering/HtmlSanitizationService.cs`:
 
@@ -330,7 +330,7 @@ public static class HtmlSanitizationService {
 }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -339,7 +339,7 @@ cd /media/SMB/Quartermaster
 
 Expected: All tests pass (existing 173 + new sanitization tests).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ---
 
@@ -351,7 +351,7 @@ Expected: All tests pass (existing 173 + new sanitization tests).
 
 **Context:** This wraps Markdig + HtmlSanitizationService into a single call. It replaces 5 separate `MarkdownPipeline` static fields scattered across the codebase. Lives in Api project so both Server and Blazor WASM can use it.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 Create `Quartermaster.Server.Tests/Rendering/MarkdownServiceTests.cs`:
 
@@ -435,7 +435,7 @@ public class MarkdownServiceTests {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -444,7 +444,7 @@ cd /media/SMB/Quartermaster
 
 Expected: Compilation error — `MarkdownService` doesn't exist yet.
 
-- [ ] **Step 3: Implement MarkdownService**
+- [x] **Step 3: Implement MarkdownService**
 
 Create `Quartermaster.Api/Rendering/MarkdownService.cs`:
 
@@ -468,7 +468,7 @@ public static class MarkdownService {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -477,7 +477,7 @@ cd /media/SMB/Quartermaster
 
 Expected: All tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -491,7 +491,7 @@ Expected: All tests pass.
 
 **Context:** Replace all direct `Markdown.ToHtml()` calls and local `MarkdownPipeline` fields with `MarkdownService.ToHtml()`. Motions use `Strict` profile. Template rendering uses `Standard` profile.
 
-- [ ] **Step 1: Update MotionCreateEndpoint**
+- [x] **Step 1: Update MotionCreateEndpoint**
 
 In `Quartermaster.Server/Motions/MotionCreateEndpoint.cs`:
 
@@ -520,7 +520,7 @@ with:
             Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
 ```
 
-- [ ] **Step 2: Update MembershipApplicationCreateEndpoint**
+- [x] **Step 2: Update MembershipApplicationCreateEndpoint**
 
 In `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs`:
 
@@ -549,7 +549,7 @@ with:
                 Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
 ```
 
-- [ ] **Step 3: Update ChecklistItemExecutor**
+- [x] **Step 3: Update ChecklistItemExecutor**
 
 In `Quartermaster.Server/Events/ChecklistItemExecutor.cs`:
 
@@ -578,7 +578,7 @@ with:
             Text = MarkdownService.ToHtml(config.MotionText, SanitizationProfile.Strict),
 ```
 
-- [ ] **Step 4: Update TemplateRenderer**
+- [x] **Step 4: Update TemplateRenderer**
 
 In `Quartermaster.Api/Rendering/TemplateRenderer.cs`:
 
@@ -602,7 +602,7 @@ with:
         var html = MarkdownService.ToHtml(rendered, SanitizationProfile.Standard);
 ```
 
-- [ ] **Step 5: Verify build**
+- [x] **Step 5: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -611,7 +611,7 @@ cd /media/SMB/Quartermaster
 
 Expected: Build succeeded with 0 errors.
 
-- [ ] **Step 6: Run all tests**
+- [x] **Step 6: Run all tests**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -620,7 +620,7 @@ cd /media/SMB/Quartermaster
 
 Expected: All tests pass.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ---
 
@@ -633,7 +633,7 @@ Expected: All tests pass.
 
 **Context:** MarkdownEditor currently has its own `MarkdownPipeline` and calls `Markdown.ToHtml()` directly without sanitization. Add a `Profile` parameter (defaults to `Standard`) and replace with `MarkdownService.ToHtml()`. Then update callers to pass the appropriate profile.
 
-- [ ] **Step 1: Update MarkdownEditor.razor.cs**
+- [x] **Step 1: Update MarkdownEditor.razor.cs**
 
 Replace the entire content of `Quartermaster.Blazor/Components/Inputs/MarkdownEditor.razor.cs` with:
 
@@ -683,7 +683,7 @@ public partial class MarkdownEditor {
 }
 ```
 
-- [ ] **Step 2: Update EventDetail.razor MarkdownEditor usages**
+- [x] **Step 2: Update EventDetail.razor MarkdownEditor usages**
 
 In `Quartermaster.Blazor/Pages/Administration/EventDetail.razor`:
 
@@ -705,7 +705,7 @@ to:
 
 Add `@using Quartermaster.Api.Rendering` at the top of the file if not already present.
 
-- [ ] **Step 3: Update MotionCreate.razor**
+- [x] **Step 3: Update MotionCreate.razor**
 
 In `Quartermaster.Blazor/Pages/Administration/MotionCreate.razor`:
 
@@ -720,7 +720,7 @@ to:
 
 Add `@using Quartermaster.Api.Rendering` at the top of the file if not already present.
 
-- [ ] **Step 4: Verify build**
+- [x] **Step 4: Verify build**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -729,7 +729,7 @@ cd /media/SMB/Quartermaster
 
 Expected: Build succeeded.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -740,7 +740,7 @@ Expected: Build succeeded.
 
 **Context:** The `LoadEmailPreview` method renders templates via `TemplateRenderer.RenderAsync()` and stores the HTML in `PreviewCache`. `TemplateRenderer` now sanitizes internally (Task 3), so the preview HTML is already sanitized. However, there are two hardcoded HTML strings that bypass `TemplateRenderer` — these need sanitization too: the "no template" hint (line 275) and the error messages (lines 283, 285). Since these are system-generated strings with no user input, they're safe. No changes needed beyond verifying `TemplateRenderer` integration.
 
-- [ ] **Step 1: Verify TemplateRenderer covers the preview path**
+- [x] **Step 1: Verify TemplateRenderer covers the preview path**
 
 Read `Quartermaster.Blazor/Pages/Administration/EventDetail.razor.cs` around line 282.
 
@@ -750,7 +750,7 @@ The hardcoded HTML strings at lines 275, 283, 285 are safe because they only con
 
 No code changes needed for this task — just verification.
 
-- [ ] **Step 2: Verify build and tests still pass**
+- [x] **Step 2: Verify build and tests still pass**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -769,13 +769,13 @@ Expected: Build and all tests pass.
 
 **Context:** Existing Motion.Text records in the database contain unsanitized HTML from before this change. Since this is only test data, dropping and recreating the database via the existing migration is the cleanest approach.
 
-- [ ] **Step 1: Stop the running server**
+- [x] **Step 1: Stop the running server**
 
 ```bash
 pkill -f "Quartermaster.Server" 2>/dev/null
 ```
 
-- [ ] **Step 2: Drop the database**
+- [x] **Step 2: Drop the database**
 
 The server uses MySQL/MariaDB. The database name is in `appsettings.json`. Drop it and let the migration recreate on next startup.
 
@@ -787,7 +787,7 @@ mysql -u root -e "DROP DATABASE IF EXISTS <database_name>;"
 
 Or if credentials are needed, read them from the connection string.
 
-- [ ] **Step 3: Rebuild and start server**
+- [x] **Step 3: Rebuild and start server**
 
 ```bash
 cd /media/SMB/Quartermaster
@@ -796,7 +796,7 @@ cd /media/SMB/Quartermaster
 
 Verify: Server starts, migration runs, tables recreated. Test by loading `http://localhost:5232` in browser.
 
-- [ ] **Step 4: Run all tests one final time**
+- [x] **Step 4: Run all tests one final time**
 
 ```bash
 cd /media/SMB/Quartermaster

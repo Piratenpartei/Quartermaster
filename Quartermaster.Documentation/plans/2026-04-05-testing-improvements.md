@@ -54,12 +54,12 @@ Replace the static fixture with a **worker-scoped** one. TUnit assigns each test
 - `Quartermaster.Server.Tests/Infrastructure/GlobalTestHooks.cs` — new, assembly-level setup/teardown
 
 **Tasks:**
-- [ ] Add `WorkerId` helper that returns a stable `int` per TUnit worker
-- [ ] Rewrite `TestDatabaseFixture` as per-worker (connection string derived from worker ID)
-- [ ] Add `[Before(Assembly)]` hook that probes connection, fails fast with friendly error if MySQL unavailable
-- [ ] Add optional `[After(Assembly)]` hook to drop worker DBs (controlled by `QM_TEST_KEEP_DB=1` env var)
-- [ ] Remove all `[NotInParallel]` from existing test classes
-- [ ] Verify existing 283 tests still pass in parallel mode
+- [x] Add `WorkerId` helper that returns a stable `int` per TUnit worker
+- [x] Rewrite `TestDatabaseFixture` as per-worker (connection string derived from worker ID)
+- [x] Add `[Before(Assembly)]` hook that probes connection, fails fast with friendly error if MySQL unavailable
+- [x] Add optional `[After(Assembly)]` hook to drop worker DBs (controlled by `QM_TEST_KEEP_DB=1` env var)
+- [x] Remove all `[NotInParallel]` from existing test classes
+- [x] Verify existing 283 tests still pass in parallel mode
 
 ## Task 1.2 — Test data builders
 
@@ -76,10 +76,10 @@ Current tests hand-construct entities with `new Chapter { ... }`. For integratio
 - `Quartermaster.Server.Tests/Infrastructure/Builders/*Builder.cs` — one per entity family
 
 **Tasks:**
-- [ ] Create `TestDataBuilder` with `DbContext` field
-- [ ] Add builders for: `Chapter` (with parent chain), `User` (with token), `Member`, `AdministrativeDivision`, `Event`, `Motion`, `Role`, `MembershipApplication`, `DueSelection`
-- [ ] Helper `SeedAuthenticatedUser(string[] globalPerms, Dictionary<Guid, string[]> chapterPerms)` returns `(User, string token)`
-- [ ] Replace existing hand-rolled setups in 3–4 existing test classes as a sanity check
+- [x] Create `TestDataBuilder` with `DbContext` field
+- [x] Add builders for: `Chapter` (with parent chain), `User` (with token), `Member`, `AdministrativeDivision`, `Event`, `Motion`, `Role`, `MembershipApplication`, `DueSelection`
+- [x] Helper `SeedAuthenticatedUser(string[] globalPerms, Dictionary<Guid, string[]> chapterPerms)` returns `(User, string token)`
+- [x] Replace existing hand-rolled setups in 3–4 existing test classes as a sanity check
 
 ## Task 1.3 — Integration test host (`WebApplicationFactory<Program>`)
 
@@ -103,12 +103,12 @@ FastEndpoints + our `Program.cs` should work with `WebApplicationFactory<Program
 - `Quartermaster.Server/Program.cs` — add `public partial class Program { }` sentinel if needed so `WebApplicationFactory<Program>` resolves
 
 **Tasks:**
-- [ ] Make `Program` class accessible to test project (partial class marker, or `InternalsVisibleTo`)
-- [ ] Implement `IntegrationTestFactory` with background service removal
-- [ ] Implement `TestEmailSink` capturing `EmailMessage` to a thread-safe list
-- [ ] Implement `IntegrationTestBase` with `Factory`, `Builder`, `CleanupAsync()`
-- [ ] Add helper `PostJsonAsync<TReq>(string url, TReq req, string? token)` with CSRF handling
-- [ ] Smoke test: one integration test hitting `GET /api/chapters` returns 200
+- [x] Make `Program` class accessible to test project (partial class marker, or `InternalsVisibleTo`)
+- [x] Implement `IntegrationTestFactory` with background service removal
+- [x] Implement `TestEmailSink` capturing `EmailMessage` to a thread-safe list
+- [x] Implement `IntegrationTestBase` with `Factory`, `Builder`, `CleanupAsync()`
+- [x] Add helper `PostJsonAsync<TReq>(string url, TReq req, string? token)` with CSRF handling
+- [x] Smoke test: one integration test hitting `GET /api/chapters` returns 200
 
 ## Task 1.4 — Playwright / E2E host
 
@@ -128,12 +128,12 @@ E2E tests need the Blazor WASM app served alongside the API. `WebApplicationFact
 - `Quartermaster.Server.Tests/Infrastructure/PlaywrightInstall.cs` — new, one-time install in assembly setup
 
 **Tasks:**
-- [ ] Add `TUnit.Playwright` package reference
-- [ ] Add MSBuild `BeforeTargets="Build"` target that publishes Blazor to `bin/$(Configuration)/net10.0/TestWebRoot`
-- [ ] Implement `E2ETestFactory` wiring static files + WASM content types
-- [ ] Install Chromium via assembly-level hook (first run downloads, subsequent runs skip)
-- [ ] Implement `E2ETestBase` with `Page`, `BaseURL`, per-test browser context, screenshot-on-failure
-- [ ] Smoke test: navigate to `/Login`, assert page title
+- [x] Add `TUnit.Playwright` package reference
+- [x] Add MSBuild `BeforeTargets="Build"` target that publishes Blazor to `bin/$(Configuration)/net10.0/TestWebRoot`
+- [x] Implement `E2ETestFactory` wiring static files + WASM content types
+- [x] Install Chromium via assembly-level hook (first run downloads, subsequent runs skip)
+- [x] Implement `E2ETestBase` with `Page`, `BaseURL`, per-test browser context, screenshot-on-failure
+- [x] Smoke test: navigate to `/Login`, assert page title
 
 ---
 
@@ -148,15 +148,15 @@ Audit existing suites for edge cases before adding integration tests. This is ch
 For each existing suite, create a TODO list of missing cases, then add tests.
 
 **Suites to audit:**
-- [ ] `Chapters/ChapterRepositoryTests` — deep hierarchies, circular-parent rejection, orphan handling, search with unicode
-- [ ] `Options/OptionRepositoryTests` — chapter override precedence, inheritance collapse, default-value fallback with missing parent
-- [ ] `Motions/MotionRepositoryTests` — auto-resolve boundary conditions (exactly at threshold, tied votes, all-abstain)
-- [ ] `Members/MemberImportServiceTests` — malformed CSV rows, duplicate member numbers, BOM handling, trailing whitespace, empty fields, field count mismatch
-- [ ] `AdministrativeDivisions/AdminDivisionImportServiceTests` — depth-10 hierarchies, cycle in imported data, all-removed edge case
-- [ ] `Email/EmailServiceTests` — template rendering with missing variables, empty recipient list, batch size boundary
-- [ ] `Users/UserRepositoryTests` — case-insensitive email match, unicode usernames, deleted-user lookup
-- [ ] `Roles/RoleRepositoryTests` — system role edit rejection, assignment for Global role with non-null ChapterId (invalid combo)
-- [ ] All validator suites — Guid.Empty, string at exact column length + 1, whitespace-only strings, control chars
+- [x] `Chapters/ChapterRepositoryTests` — deep hierarchies, circular-parent rejection, orphan handling, search with unicode
+- [x] `Options/OptionRepositoryTests` — chapter override precedence, inheritance collapse, default-value fallback with missing parent
+- [x] `Motions/MotionRepositoryTests` — auto-resolve boundary conditions (exactly at threshold, tied votes, all-abstain)
+- [x] `Members/MemberImportServiceTests` — malformed CSV rows, duplicate member numbers, BOM handling, trailing whitespace, empty fields, field count mismatch
+- [x] `AdministrativeDivisions/AdminDivisionImportServiceTests` — depth-10 hierarchies, cycle in imported data, all-removed edge case
+- [x] `Email/EmailServiceTests` — template rendering with missing variables, empty recipient list, batch size boundary
+- [x] `Users/UserRepositoryTests` — case-insensitive email match, unicode usernames, deleted-user lookup
+- [x] `Roles/RoleRepositoryTests` — system role edit rejection, assignment for Global role with non-null ChapterId (invalid combo)
+- [x] All validator suites — Guid.Empty, string at exact column length + 1, whitespace-only strings, control chars
 
 **Deliverable:** per suite, +5–10 edge-case tests. Target: **~80 new unit tests** total.
 
@@ -164,12 +164,12 @@ For each existing suite, create a TODO list of missing cases, then add tests.
 
 Areas with no existing coverage that aren't endpoint-shaped:
 
-- [ ] `Authentication/TokenAuthenticationHandlerTests` — expired token, missing token, malformed header, revoked token, soft-deleted user, token for non-existent user
-- [ ] `Authentication/EndpointAuthorizationHelperTests` — global perm grants, chapter perm with inheritance (up ancestor chain), perm via role assignment, perm via officer role
-- [ ] `Permissions/PermissionInheritanceTests` — 10-level chapter tree, grant at root resolves for leaf, grant at leaf does NOT resolve for root, write-perm exact-match enforcement
-- [ ] `LoginAttempts/LockoutLogicTests` — exactly-at-threshold, sliding window boundary, lockout expiry, lockout per-(IP+user) isolation
-- [ ] `Antiforgery/AntiforgeryIntegrationTests` — token issuance, rejection without header, rejection with wrong token, GET skips check
-- [ ] `SecurityHeaders/SecurityHeadersMiddlewareTests` — all headers present, HSTS only on HTTPS, CSP wasm-unsafe-eval present
+- [x] `Authentication/TokenAuthenticationHandlerTests` — expired token, missing token, malformed header, revoked token, soft-deleted user, token for non-existent user
+- [x] `Authentication/EndpointAuthorizationHelperTests` — global perm grants, chapter perm with inheritance (up ancestor chain), perm via role assignment, perm via officer role
+- [x] `Permissions/PermissionInheritanceTests` — 10-level chapter tree, grant at root resolves for leaf, grant at leaf does NOT resolve for root, write-perm exact-match enforcement
+- [x] `LoginAttempts/LockoutLogicTests` — exactly-at-threshold, sliding window boundary, lockout expiry, lockout per-(IP+user) isolation
+- [x] `Antiforgery/AntiforgeryIntegrationTests` — token issuance, rejection without header, rejection with wrong token, GET skips check
+- [x] `SecurityHeaders/SecurityHeadersMiddlewareTests` — all headers present, HSTS only on HTTPS, CSP wasm-unsafe-eval present
 
 ---
 
@@ -182,155 +182,155 @@ Areas with no existing coverage that aren't endpoint-shaped:
 Define canonical test patterns by endpoint shape. Every endpoint gets tested against its applicable template.
 
 ### Template: List endpoint (paginated)
-- [ ] `Returns_401_when_anonymous` (if auth required)
-- [ ] `Returns_403_when_user_lacks_permission`
-- [ ] `Returns_empty_page_when_no_data`
-- [ ] `Returns_single_page_of_data`
-- [ ] `Paginates_correctly_across_multiple_pages`
-- [ ] `Rejects_page_size_over_100` (validator)
-- [ ] `Rejects_negative_page` (validator)
-- [ ] `Respects_chapter_scoping` (chapter-scoped users see only their chapters)
-- [ ] `Search_filter_matches_case_insensitively` (if searchable)
+- [x] `Returns_401_when_anonymous` (if auth required)
+- [x] `Returns_403_when_user_lacks_permission`
+- [x] `Returns_empty_page_when_no_data`
+- [x] `Returns_single_page_of_data`
+- [x] `Paginates_correctly_across_multiple_pages`
+- [x] `Rejects_page_size_over_100` (validator)
+- [x] `Rejects_negative_page` (validator)
+- [x] `Respects_chapter_scoping` (chapter-scoped users see only their chapters)
+- [x] `Search_filter_matches_case_insensitively` (if searchable)
 
 ### Template: Detail endpoint
-- [ ] `Returns_401_when_anonymous`
-- [ ] `Returns_403_when_user_lacks_permission`
-- [ ] `Returns_404_for_nonexistent_id`
-- [ ] `Returns_404_for_soft_deleted_entity`
-- [ ] `Returns_entity_with_all_fields_populated`
-- [ ] `Chapter_scoped_user_sees_only_their_chapter_entities`
+- [x] `Returns_401_when_anonymous`
+- [x] `Returns_403_when_user_lacks_permission`
+- [x] `Returns_404_for_nonexistent_id`
+- [x] `Returns_404_for_soft_deleted_entity`
+- [x] `Returns_entity_with_all_fields_populated`
+- [x] `Chapter_scoped_user_sees_only_their_chapter_entities`
 
 ### Template: Create endpoint
-- [ ] `Returns_401_when_anonymous`
-- [ ] `Returns_403_when_user_lacks_permission`
-- [ ] `Returns_400_for_missing_required_field`
-- [ ] `Returns_400_for_string_over_column_length`
-- [ ] `Returns_400_for_Guid_Empty_refs`
-- [ ] `Returns_400_for_nonexistent_FK_targets` (or 404 depending on convention)
-- [ ] `Creates_entity_and_returns_201`
-- [ ] `Writes_audit_log_entry`
-- [ ] `CSRF_token_required_for_state_change`
+- [x] `Returns_401_when_anonymous`
+- [x] `Returns_403_when_user_lacks_permission`
+- [x] `Returns_400_for_missing_required_field`
+- [x] `Returns_400_for_string_over_column_length`
+- [x] `Returns_400_for_Guid_Empty_refs`
+- [x] `Returns_400_for_nonexistent_FK_targets` (or 404 depending on convention)
+- [x] `Creates_entity_and_returns_201`
+- [x] `Writes_audit_log_entry`
+- [x] `CSRF_token_required_for_state_change`
 
 ### Template: Update endpoint
-- [ ] `Returns_401_when_anonymous`
-- [ ] `Returns_403_when_user_lacks_permission`
-- [ ] `Returns_404_for_nonexistent_id`
-- [ ] `Returns_400_for_invalid_fields`
-- [ ] `Updates_all_mutable_fields`
-- [ ] `Writes_per_field_audit_diff`
-- [ ] `Does_not_allow_changing_immutable_fields` (e.g., Id, CreatedAt)
+- [x] `Returns_401_when_anonymous`
+- [x] `Returns_403_when_user_lacks_permission`
+- [x] `Returns_404_for_nonexistent_id`
+- [x] `Returns_400_for_invalid_fields`
+- [x] `Updates_all_mutable_fields`
+- [x] `Writes_per_field_audit_diff`
+- [x] `Does_not_allow_changing_immutable_fields` (e.g., Id, CreatedAt)
 
 ### Template: Delete endpoint
-- [ ] `Returns_401_when_anonymous`
-- [ ] `Returns_403_when_user_lacks_permission`
-- [ ] `Returns_404_for_nonexistent_id`
-- [ ] `Soft_deletes_entity_and_returns_204` (or hard-deletes for leaf entities)
-- [ ] `Soft_deleted_entity_no_longer_appears_in_list`
-- [ ] `Cascades_to_dependent_rows_correctly`
-- [ ] `Writes_audit_log`
+- [x] `Returns_401_when_anonymous`
+- [x] `Returns_403_when_user_lacks_permission`
+- [x] `Returns_404_for_nonexistent_id`
+- [x] `Soft_deletes_entity_and_returns_204` (or hard-deletes for leaf entities)
+- [x] `Soft_deleted_entity_no_longer_appears_in_list`
+- [x] `Cascades_to_dependent_rows_correctly`
+- [x] `Writes_audit_log`
 
 ## Task 3.2 — Endpoint-by-endpoint implementation
 
 For each of the 77 endpoints, apply the matching template. Additional per-endpoint cases below call out non-obvious behavior.
 
 ### Admin (due selections, membership applications)
-- [ ] `DueSelectionListEndpoint` — chapter scoping intersection logic, pending-only filter
-- [ ] `DueSelectionDetailEndpoint` — chapter scoping, related member lookup
-- [ ] `DueSelectionProcessEndpoint` — status transition matrix, email fanout triggers
-- [ ] `MembershipApplicationListEndpoint` — chapter filter intersected with auth-permitted chapters, status filter
-- [ ] `MembershipApplicationDetailEndpoint`
-- [ ] `MembershipApplicationProcessEndpoint` — approve transitions to member-linked state, reject sets reason
+- [x] `DueSelectionListEndpoint` — chapter scoping intersection logic, pending-only filter
+- [x] `DueSelectionDetailEndpoint` — chapter scoping, related member lookup
+- [x] `DueSelectionProcessEndpoint` — status transition matrix, email fanout triggers
+- [x] `MembershipApplicationListEndpoint` — chapter filter intersected with auth-permitted chapters, status filter
+- [x] `MembershipApplicationDetailEndpoint`
+- [x] `MembershipApplicationProcessEndpoint` — approve transitions to member-linked state, reject sets reason
 
 ### AdministrativeDivisions
-- [ ] `AdminDivisionImportHistoryEndpoint` — paginated, newest-first
-- [ ] `AdministrativeDivisionChildrenEndpoint` — depth traversal
-- [ ] `AdministrativeDivisionRootsEndpoint` — returns only root-level divisions
-- [ ] `AdministrativeDivisionSearchEndpoint` — name + postcode match, limit enforcement
+- [x] `AdminDivisionImportHistoryEndpoint` — paginated, newest-first
+- [x] `AdministrativeDivisionChildrenEndpoint` — depth traversal
+- [x] `AdministrativeDivisionRootsEndpoint` — returns only root-level divisions
+- [x] `AdministrativeDivisionSearchEndpoint` — name + postcode match, limit enforcement
 
 ### Antiforgery
-- [ ] `AntiforgeryTokenEndpoint` — issues token, sets cookie, subsequent POST with matching header succeeds, missing header → 400
+- [x] `AntiforgeryTokenEndpoint` — issues token, sets cookie, subsequent POST with matching header succeeds, missing header → 400
 
 ### AuditLog
-- [ ] `AuditLogEndpoint` — filter by entity type + id, permission-gated, chronological order
+- [x] `AuditLogEndpoint` — filter by entity type + id, permission-gated, chronological order
 
 ### ChapterAssociates
-- [ ] `ChapterOfficerAddEndpoint` — auto-grants 16 default permissions, creates Vorstand role assignment, blocks duplicates
-- [ ] `ChapterOfficerDeleteEndpoint` — revokes all default permissions, removes role assignment
-- [ ] `ChapterOfficerListEndpoint` — scoped to chapter
+- [x] `ChapterOfficerAddEndpoint` — auto-grants 16 default permissions, creates Vorstand role assignment, blocks duplicates
+- [x] `ChapterOfficerDeleteEndpoint` — revokes all default permissions, removes role assignment
+- [x] `ChapterOfficerListEndpoint` — scoped to chapter
 
 ### Chapters
-- [ ] `ChapterListEndpoint`, `ChapterDetailEndpoint`, `ChapterSearchEndpoint`, `ChapterRootsEndpoint`, `ChapterChildrenEndpoint`
-- [ ] `ChapterForDivisionEndpoint` — admin-div → chapter resolution, postcode fallback
+- [x] `ChapterListEndpoint`, `ChapterDetailEndpoint`, `ChapterSearchEndpoint`, `ChapterRootsEndpoint`, `ChapterChildrenEndpoint`
+- [x] `ChapterForDivisionEndpoint` — admin-div → chapter resolution, postcode fallback
 
 ### Config
-- [ ] `ClientConfigEndpoint` — anonymous accessible, returns error contact + SAML availability
+- [x] `ClientConfigEndpoint` — anonymous accessible, returns error contact + SAML availability
 
 ### Dashboard
-- [ ] `DashboardEndpoint` — each section nulls out when user lacks permission, counts + first-10-items shape, anonymous sees Public events only, auth sees MembersOnly, ViewEvents sees all
+- [x] `DashboardEndpoint` — each section nulls out when user lacks permission, counts + first-10-items shape, anonymous sees Public events only, auth sees MembersOnly, ViewEvents sees all
 
 ### DueSelector (public)
-- [ ] `DueSelectionCreateEndpoint` — anonymous allowed, validates member match, idempotency per member?
+- [x] `DueSelectionCreateEndpoint` — anonymous allowed, validates member match, idempotency per member?
 
 ### Email
-- [ ] `EmailLogEndpoint` — permission-gated, paginated, filter by entity
+- [x] `EmailLogEndpoint` — permission-gated, paginated, filter by entity
 
 ### Events
-- [ ] `EventListEndpoint` — visibility filtering (anonymous → Public only, auth → MembersOnly, ViewEvents → Private), chapter scoping, status filter
-- [ ] `EventDetailEndpoint` — visibility respected, checklist populated, audit log populated
-- [ ] `EventCreateEndpoint` — defaults to Draft + Private, chapter-scoped perm check
-- [ ] `EventUpdateEndpoint` — status-gated edits, visibility change updates ACL
-- [ ] `EventArchiveEndpoint` — status transition matrix (Completed → Archived only)
-- [ ] `EventStatusUpdateEndpoint` — allowed-transition matrix, auto-transitions via `RefreshStatus`
-- [ ] `EventFromTemplateEndpoint` — copies checklist, inherits chapter
-- [ ] `EventTemplateCreateEndpoint` — only from Draft event
-- [ ] `EventTemplateListEndpoint`, `EventTemplateDetailEndpoint`, `EventTemplateDeleteEndpoint`
-- [ ] `ChecklistItemAddEndpoint`, `UpdateEndpoint`, `DeleteEndpoint`, `ReorderEndpoint`
-- [ ] `ChecklistItemCheckEndpoint` — Draft→Active transition on first check, fires email via ChecklistItemExecutor
-- [ ] `ChecklistItemUncheckEndpoint` — idempotent, reverses status if needed
+- [x] `EventListEndpoint` — visibility filtering (anonymous → Public only, auth → MembersOnly, ViewEvents → Private), chapter scoping, status filter
+- [x] `EventDetailEndpoint` — visibility respected, checklist populated, audit log populated
+- [x] `EventCreateEndpoint` — defaults to Draft + Private, chapter-scoped perm check
+- [x] `EventUpdateEndpoint` — status-gated edits, visibility change updates ACL
+- [x] `EventArchiveEndpoint` — status transition matrix (Completed → Archived only)
+- [x] `EventStatusUpdateEndpoint` — allowed-transition matrix, auto-transitions via `RefreshStatus`
+- [x] `EventFromTemplateEndpoint` — copies checklist, inherits chapter
+- [x] `EventTemplateCreateEndpoint` — only from Draft event
+- [x] `EventTemplateListEndpoint`, `EventTemplateDetailEndpoint`, `EventTemplateDeleteEndpoint`
+- [x] `ChecklistItemAddEndpoint`, `UpdateEndpoint`, `DeleteEndpoint`, `ReorderEndpoint`
+- [x] `ChecklistItemCheckEndpoint` — Draft→Active transition on first check, fires email via ChecklistItemExecutor
+- [x] `ChecklistItemUncheckEndpoint` — idempotent, reverses status if needed
 
 ### MembershipApplications (public)
-- [ ] `MembershipApplicationCreateEndpoint` — anonymous allowed, sanitizes markdown, honors chapter
+- [x] `MembershipApplicationCreateEndpoint` — anonymous allowed, sanitizes markdown, honors chapter
 
 ### Members
-- [ ] `MemberListEndpoint` — chapter scoping, orphan filter, search, pagination
-- [ ] `MemberDetailEndpoint` — chapter scoping, audit log populated
-- [ ] `MemberAdminDivisionUpdateEndpoint` — orphan-flag recompute, audit entry
-- [ ] `MemberImportHistoryEndpoint`, `MemberImportTriggerEndpoint`, `MemberImportUploadEndpoint` — multipart file, 20MB limit, invalid CSV → 400
+- [x] `MemberListEndpoint` — chapter scoping, orphan filter, search, pagination
+- [x] `MemberDetailEndpoint` — chapter scoping, audit log populated
+- [x] `MemberAdminDivisionUpdateEndpoint` — orphan-flag recompute, audit entry
+- [x] `MemberImportHistoryEndpoint`, `MemberImportTriggerEndpoint`, `MemberImportUploadEndpoint` — multipart file, 20MB limit, invalid CSV → 400
 
 ### Motions
-- [ ] `MotionListEndpoint` — chapter scoping, status filter
-- [ ] `MotionDetailEndpoint` — vote counts, per-member vote resolution
-- [ ] `MotionCreateEndpoint` — markdown sanitization, defaults to Open
-- [ ] `MotionStatusEndpoint` — manual resolve transitions
-- [ ] `MotionVoteEndpoint` — self-vote happy path, delegation auth (target officer check, caller officer OR delegate perm), auto-resolve trigger
+- [x] `MotionListEndpoint` — chapter scoping, status filter
+- [x] `MotionDetailEndpoint` — vote counts, per-member vote resolution
+- [x] `MotionCreateEndpoint` — markdown sanitization, defaults to Open
+- [x] `MotionStatusEndpoint` — manual resolve transitions
+- [x] `MotionVoteEndpoint` — self-vote happy path, delegation auth (target officer check, caller officer OR delegate perm), auto-resolve trigger
 
 ### Options
-- [ ] `OptionListEndpoint` — global vs chapter-scoped return
-- [ ] `OptionUpdateEndpoint` — value validation per OptionDefinition.Kind
+- [x] `OptionListEndpoint` — global vs chapter-scoped return
+- [x] `OptionUpdateEndpoint` — value validation per OptionDefinition.Kind
 
 ### Permissions
-- [ ] `PermissionListEndpoint` — returns all 25 seeded permissions
+- [x] `PermissionListEndpoint` — returns all 25 seeded permissions
 
 ### Roles
-- [ ] `RoleListEndpoint` — system + custom roles
-- [ ] `RoleCreateEndpoint` — permission scope validation (Global role cannot have chapter permissions)
-- [ ] `RoleUpdateEndpoint` — cannot edit system roles
-- [ ] `RoleDeleteEndpoint` — cannot delete system roles, cascades assignments
-- [ ] `RoleAssignmentListEndpoint`, `CreateEndpoint`, `DeleteEndpoint` — Global role requires null ChapterId, ChapterScoped requires non-null
+- [x] `RoleListEndpoint` — system + custom roles
+- [x] `RoleCreateEndpoint` — permission scope validation (Global role cannot have chapter permissions)
+- [x] `RoleUpdateEndpoint` — cannot edit system roles
+- [x] `RoleDeleteEndpoint` — cannot delete system roles, cascades assignments
+- [x] `RoleAssignmentListEndpoint`, `CreateEndpoint`, `DeleteEndpoint` — Global role requires null ChapterId, ChapterScoped requires non-null
 
 ### Users
-- [ ] `LoginEndpoint` — manual login happy path, wrong password → 401, locked-out IP+user → 429, non-existent user → 401 (no account disclosure), exited member → 401
-- [ ] `LoginLockoutListEndpoint`, `UnlockEndpoint` — permission-gated, unlock clears attempts
-- [ ] `SamlLoginStartEndpoint`, `SamlLoginConsumeEndpoint` — 503 when unconfigured, success flow with email match, exited-member rejection
-- [ ] `OidcLoginStartEndpoint`, `OidcCallbackEndpoint` — parallel to SAML
-- [ ] `SessionEndpoint` — token-based recovery, returns user+perms
-- [ ] `UserListEndpoint` — permission-gated
-- [ ] `UserDetailEndpoint` — returns perms breakdown
-- [ ] `UserDeleteEndpoint` — prevents self-deletion, invalidates tokens, soft-deletes
-- [ ] `UserSettingsEndpoint` — returns own settings, permission-gated for others
+- [x] `LoginEndpoint` — manual login happy path, wrong password → 401, locked-out IP+user → 429, non-existent user → 401 (no account disclosure), exited member → 401
+- [x] `LoginLockoutListEndpoint`, `UnlockEndpoint` — permission-gated, unlock clears attempts
+- [x] `SamlLoginStartEndpoint`, `SamlLoginConsumeEndpoint` — 503 when unconfigured, success flow with email match, exited-member rejection
+- [x] `OidcLoginStartEndpoint`, `OidcCallbackEndpoint` — parallel to SAML
+- [x] `SessionEndpoint` — token-based recovery, returns user+perms
+- [x] `UserListEndpoint` — permission-gated
+- [x] `UserDetailEndpoint` — returns perms breakdown
+- [x] `UserDeleteEndpoint` — prevents self-deletion, invalidates tokens, soft-deletes
+- [x] `UserSettingsEndpoint` — returns own settings, permission-gated for others
 
 ### TestData (dev-only)
-- [ ] `TestDataSeedEndpoint` — if present in test env, happy path only
+- [x] `TestDataSeedEndpoint` — if present in test env, happy path only
 
 ---
 
@@ -341,71 +341,71 @@ For each of the 77 endpoints, apply the matching template. Additional per-endpoi
 ## Task 4.1 — E2E flow tests
 
 ### Login Flow (`LoginFlowE2ETests`)
-- [ ] `Manual_login_succeeds_with_valid_credentials` — nav shows username, dashboard visible
-- [ ] `Manual_login_shows_error_on_wrong_password`
-- [ ] `Manual_login_locks_out_after_n_attempts`
-- [ ] `Logout_clears_session_and_redirects_to_login`
-- [ ] `SSO_card_disabled_when_saml_unconfigured`
-- [ ] `Session_recovery_from_localStorage_token_on_reload`
+- [x] `Manual_login_succeeds_with_valid_credentials` — nav shows username, dashboard visible
+- [x] `Manual_login_shows_error_on_wrong_password`
+- [x] `Manual_login_locks_out_after_n_attempts`
+- [x] `Logout_clears_session_and_redirects_to_login`
+- [x] `SSO_card_disabled_when_saml_unconfigured`
+- [x] `Session_recovery_from_localStorage_token_on_reload`
 
 ### Membership Application Flow (`MembershipApplicationE2ETests`)
-- [ ] `Anonymous_user_can_submit_application` — fill form, submit, success toast
-- [ ] `Admin_sees_new_application_in_list`
-- [ ] `Admin_approves_application_creates_member`
-- [ ] `Admin_rejects_application_with_reason`
-- [ ] `Validation_errors_shown_inline`
+- [x] `Anonymous_user_can_submit_application` — fill form, submit, success toast
+- [x] `Admin_sees_new_application_in_list`
+- [x] `Admin_approves_application_creates_member`
+- [x] `Admin_rejects_application_with_reason`
+- [x] `Validation_errors_shown_inline`
 
 ### Event Lifecycle Flow (`EventLifecycleE2ETests`)
-- [ ] `Officer_creates_draft_event`
-- [ ] `Officer_adds_checklist_items`
-- [ ] `Checking_first_item_transitions_to_Active`
-- [ ] `Completing_all_items_after_event_date_transitions_to_Completed`
-- [ ] `Officer_archives_completed_event`
-- [ ] `Officer_creates_template_from_draft_event`
-- [ ] `Officer_creates_event_from_template` — checklist copied
+- [x] `Officer_creates_draft_event`
+- [x] `Officer_adds_checklist_items`
+- [x] `Checking_first_item_transitions_to_Active`
+- [x] `Completing_all_items_after_event_date_transitions_to_Completed`
+- [x] `Officer_archives_completed_event`
+- [x] `Officer_creates_template_from_draft_event`
+- [x] `Officer_creates_event_from_template` — checklist copied
 
 ### Motion Voting Flow (`MotionVotingE2ETests`)
-- [ ] `Officer_submits_motion_with_markdown_description`
-- [ ] `Officer_votes_Ja_on_motion` — vote count updates
-- [ ] `Second_officer_votes_Nein` — count updates
-- [ ] `Meeting_threshold_triggers_auto_resolve`
-- [ ] `Delegation_flow_vote_cast_for_other_officer`
+- [x] `Officer_submits_motion_with_markdown_description`
+- [x] `Officer_votes_Ja_on_motion` — vote count updates
+- [x] `Second_officer_votes_Nein` — count updates
+- [x] `Meeting_threshold_triggers_auto_resolve`
+- [x] `Delegation_flow_vote_cast_for_other_officer`
 
 ### Member CSV Import Flow (`MemberImportE2ETests`)
-- [ ] `Admin_uploads_valid_CSV_and_sees_import_log`
-- [ ] `Invalid_CSV_shows_error_without_partial_import`
-- [ ] `20MB_limit_enforced_client_side`
-- [ ] `Import_history_shows_previous_runs`
+- [x] `Admin_uploads_valid_CSV_and_sees_import_log`
+- [x] `Invalid_CSV_shows_error_without_partial_import`
+- [x] `20MB_limit_enforced_client_side`
+- [x] `Import_history_shows_previous_runs`
 
 ### Chapter Officer Permission Grant Flow (`ChapterOfficerPermissionsE2ETests`)
-- [ ] `Adding_officer_grants_default_permissions` — verify by logging in as officer, checking nav visibility
-- [ ] `Removing_officer_revokes_permissions`
-- [ ] `Role_assignment_created_automatically`
+- [x] `Adding_officer_grants_default_permissions` — verify by logging in as officer, checking nav visibility
+- [x] `Removing_officer_revokes_permissions`
+- [x] `Role_assignment_created_automatically`
 
 ### Due Selector Public Flow (`DueSelectorE2ETests`)
-- [ ] `Anonymous_member_selects_due_tier`
-- [ ] `Admin_sees_submission_in_list`
-- [ ] `Admin_processes_due_selection`
+- [x] `Anonymous_member_selects_due_tier`
+- [x] `Admin_sees_submission_in_list`
+- [x] `Admin_processes_due_selection`
 
 ### Smoke pack (`SmokeE2ETests`)
-- [ ] `Home_page_loads_for_anonymous_user`
-- [ ] `Public_event_list_renders`
-- [ ] `Nav_menu_collapses_at_375px`
-- [ ] `All_admin_tables_scroll_horizontally_at_375px`
+- [x] `Home_page_loads_for_anonymous_user`
+- [x] `Public_event_list_renders`
+- [x] `Nav_menu_collapses_at_375px`
+- [x] `All_admin_tables_scroll_horizontally_at_375px`
 
 ---
 
 # Phase 5 — CI Integration & Cleanup
 
 ## Task 5.1 — CI pipeline
-- [ ] Document local test DB requirements (MySQL running on localhost, root no password)
-- [ ] Add `dotnet test` invocation to any CI scripts that exist; ensure Playwright install runs once
-- [ ] Capture test timing; flag slow tests (> 5s) for review
-- [ ] Artifact upload: Playwright traces + screenshots on failure
+- [x] Document local test DB requirements (MySQL running on localhost, root no password)
+- [x] Add `dotnet test` invocation to any CI scripts that exist; ensure Playwright install runs once
+- [x] Capture test timing; flag slow tests (> 5s) for review
+- [x] Artifact upload: Playwright traces + screenshots on failure
 
 ## Task 5.2 — Mark TODOs complete
-- [ ] `production-readiness-todos.md` — check off "Integration tests for API endpoints" and "End-to-end tests for key user flows"
-- [ ] `code-quality-todos.md` — check off "Test coverage review"
+- [x] `production-readiness-todos.md` — check off "Integration tests for API endpoints" and "End-to-end tests for key user flows"
+- [x] `code-quality-todos.md` — check off "Test coverage review"
 
 ---
 

@@ -88,7 +88,7 @@
 - Modify: `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`
 - Modify: `Quartermaster.Data/DbContext.cs`
 
-- [ ] **Step 1: Create Event entity**
+- [x] **Step 1: Create Event entity**
 
 Create `Quartermaster.Data/Events/Event.cs`:
 
@@ -115,7 +115,7 @@ public class Event {
 }
 ```
 
-- [ ] **Step 2: Create EventChecklistItem entity**
+- [x] **Step 2: Create EventChecklistItem entity**
 
 Create `Quartermaster.Data/Events/EventChecklistItem.cs`:
 
@@ -148,7 +148,7 @@ public enum ChecklistItemType {
 }
 ```
 
-- [ ] **Step 3: Create EventTemplate entity**
+- [x] **Step 3: Create EventTemplate entity**
 
 Create `Quartermaster.Data/Events/EventTemplate.cs`:
 
@@ -174,7 +174,7 @@ public class EventTemplate {
 }
 ```
 
-- [ ] **Step 4: Add tables to migration**
+- [x] **Step 4: Add tables to migration**
 
 In `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs`, add `using Quartermaster.Data.Events;` to the imports.
 
@@ -238,7 +238,7 @@ DropTableIfExists(Event.TableName);
 DropTableIfExists(EventTemplate.TableName);
 ```
 
-- [ ] **Step 5: Update DbContext**
+- [x] **Step 5: Update DbContext**
 
 In `Quartermaster.Data/DbContext.cs`:
 
@@ -258,7 +258,7 @@ services.AddScoped<EventRepository>();
 
 (EventRepository will be created in the next task.)
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Data/Quartermaster.Data.csproj`
 
@@ -271,7 +271,7 @@ Expected: Build may fail on missing EventRepository — that's fine. Or comment 
 **Files:**
 - Create: `Quartermaster.Data/Events/EventRepository.cs`
 
-- [ ] **Step 1: Create EventRepository**
+- [x] **Step 1: Create EventRepository**
 
 Create `Quartermaster.Data/Events/EventRepository.cs`:
 
@@ -389,9 +389,9 @@ public class EventRepository {
 }
 ```
 
-- [ ] **Step 2: Uncomment EventRepository registration in DbContext if it was commented out.**
+- [x] **Step 2: Uncomment EventRepository registration in DbContext if it was commented out.**
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Data/Quartermaster.Data.csproj`
 
@@ -404,7 +404,7 @@ Expected: 0 errors.
 **Files:**
 - Create all files in `Quartermaster.Api/Events/`
 
-- [ ] **Step 1: Create EventDTO**
+- [x] **Step 1: Create EventDTO**
 
 Create `Quartermaster.Api/Events/EventDTO.cs`:
 
@@ -426,7 +426,7 @@ public class EventDTO {
 }
 ```
 
-- [ ] **Step 2: Create EventChecklistItemDTO**
+- [x] **Step 2: Create EventChecklistItemDTO**
 
 Create `Quartermaster.Api/Events/EventChecklistItemDTO.cs`:
 
@@ -447,7 +447,7 @@ public class EventChecklistItemDTO {
 }
 ```
 
-- [ ] **Step 3: Create EventDetailDTO**
+- [x] **Step 3: Create EventDetailDTO**
 
 Create `Quartermaster.Api/Events/EventDetailDTO.cs`:
 
@@ -472,7 +472,7 @@ public class EventDetailDTO {
 }
 ```
 
-- [ ] **Step 4: Create request/response DTOs**
+- [x] **Step 4: Create request/response DTOs**
 
 Create `Quartermaster.Api/Events/EventCreateRequest.cs`:
 
@@ -581,7 +581,7 @@ public class ChecklistItemCheckRequest {
 }
 ```
 
-- [ ] **Step 5: Create template DTOs**
+- [x] **Step 5: Create template DTOs**
 
 Create `Quartermaster.Api/Events/EventTemplateDTO.cs`:
 
@@ -648,7 +648,7 @@ public class EventFromTemplateRequest {
 }
 ```
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Api/Quartermaster.Api.csproj`
 
@@ -665,11 +665,11 @@ Expected: 0 errors.
 - Modify: `Quartermaster.Server/Options/TemplateRenderer.cs`
 - Modify: `Quartermaster.Server/Options/TemplateMockDataProvider.cs`
 
-- [ ] **Step 1: Add Fluid.Core and Markdig to Api project**
+- [x] **Step 1: Add Fluid.Core and Markdig to Api project**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet add Quartermaster.Api/Quartermaster.Api.csproj package Fluid.Core --version 3.0.0-beta.5 && dotnet add Quartermaster.Api/Quartermaster.Api.csproj package Markdig`
 
-- [ ] **Step 2: Create shared TemplateRenderer**
+- [x] **Step 2: Create shared TemplateRenderer**
 
 Create `Quartermaster.Api/Rendering/TemplateRenderer.cs`:
 
@@ -704,7 +704,7 @@ public static class TemplateRenderer {
 }
 ```
 
-- [ ] **Step 3: Create shared TemplateMockDataProvider**
+- [x] **Step 3: Create shared TemplateMockDataProvider**
 
 Create `Quartermaster.Api/Rendering/TemplateMockDataProvider.cs`:
 
@@ -794,7 +794,7 @@ public static class TemplateMockDataProvider {
 }
 ```
 
-- [ ] **Step 4: Update Server versions to delegate to shared ones**
+- [x] **Step 4: Update Server versions to delegate to shared ones**
 
 Replace `Quartermaster.Server/Options/TemplateRenderer.cs` contents with:
 
@@ -826,7 +826,7 @@ public static class TemplateMockDataProvider {
 }
 ```
 
-- [ ] **Step 5: Build and verify**
+- [x] **Step 5: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Server/Quartermaster.Server.csproj`
 
@@ -841,7 +841,7 @@ Expected: 0 errors.
 - Create: `Quartermaster.Server/Events/MemberEmailService.cs`
 - Modify: `Quartermaster.Server/Program.cs`
 
-- [ ] **Step 1: Create MemberEmailService (stubbed)**
+- [x] **Step 1: Create MemberEmailService (stubbed)**
 
 Create `Quartermaster.Server/Events/MemberEmailService.cs`:
 
@@ -912,7 +912,7 @@ public class MemberEmailService {
 }
 ```
 
-- [ ] **Step 2: Create ChecklistItemExecutor**
+- [x] **Step 2: Create ChecklistItemExecutor**
 
 Create `Quartermaster.Server/Events/ChecklistItemExecutor.cs`:
 
@@ -998,7 +998,7 @@ public class ChecklistItemExecutor {
 }
 ```
 
-- [ ] **Step 3: Register services in Program.cs**
+- [x] **Step 3: Register services in Program.cs**
 
 In `Quartermaster.Server/Program.cs`, add after the existing service registrations (after the MemberImportService/HostedService lines):
 
@@ -1007,7 +1007,7 @@ builder.Services.AddSingleton<Quartermaster.Server.Events.MemberEmailService>();
 builder.Services.AddScoped<Quartermaster.Server.Events.ChecklistItemExecutor>();
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Server/Quartermaster.Server.csproj`
 
@@ -1024,7 +1024,7 @@ Expected: 0 errors.
 - Create: `Quartermaster.Server/Events/EventUpdateEndpoint.cs`
 - Create: `Quartermaster.Server/Events/EventArchiveEndpoint.cs`
 
-- [ ] **Step 1: Create EventListEndpoint**
+- [x] **Step 1: Create EventListEndpoint**
 
 Create `Quartermaster.Server/Events/EventListEndpoint.cs`:
 
@@ -1080,7 +1080,7 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
 }
 ```
 
-- [ ] **Step 2: Create EventCreateEndpoint**
+- [x] **Step 2: Create EventCreateEndpoint**
 
 Create `Quartermaster.Server/Events/EventCreateEndpoint.cs`:
 
@@ -1138,7 +1138,7 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
 }
 ```
 
-- [ ] **Step 3: Create EventDetailEndpoint**
+- [x] **Step 3: Create EventDetailEndpoint**
 
 Create `Quartermaster.Server/Events/EventDetailEndpoint.cs`:
 
@@ -1208,7 +1208,7 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
 }
 ```
 
-- [ ] **Step 4: Create EventUpdateEndpoint**
+- [x] **Step 4: Create EventUpdateEndpoint**
 
 Create `Quartermaster.Server/Events/EventUpdateEndpoint.cs`:
 
@@ -1247,7 +1247,7 @@ public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
 }
 ```
 
-- [ ] **Step 5: Create EventArchiveEndpoint**
+- [x] **Step 5: Create EventArchiveEndpoint**
 
 Create `Quartermaster.Server/Events/EventArchiveEndpoint.cs`:
 
@@ -1289,7 +1289,7 @@ public class EventArchiveEndpoint : Endpoint<EventArchiveRequest> {
 }
 ```
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Server/Quartermaster.Server.csproj`
 
@@ -1306,7 +1306,7 @@ Expected: 0 errors.
 - Create: `Quartermaster.Server/Events/ChecklistItemCheckEndpoint.cs`
 - Create: `Quartermaster.Server/Events/ChecklistItemUncheckEndpoint.cs`
 
-- [ ] **Step 1: Create ChecklistItemAddEndpoint**
+- [x] **Step 1: Create ChecklistItemAddEndpoint**
 
 Create `Quartermaster.Server/Events/ChecklistItemAddEndpoint.cs`:
 
@@ -1353,7 +1353,7 @@ public class ChecklistItemAddEndpoint : Endpoint<ChecklistItemCreateRequest, Eve
 }
 ```
 
-- [ ] **Step 2: Create ChecklistItemUpdateEndpoint**
+- [x] **Step 2: Create ChecklistItemUpdateEndpoint**
 
 Create `Quartermaster.Server/Events/ChecklistItemUpdateEndpoint.cs`:
 
@@ -1392,7 +1392,7 @@ public class ChecklistItemUpdateEndpoint : Endpoint<ChecklistItemUpdateRequest> 
 }
 ```
 
-- [ ] **Step 3: Create ChecklistItemDeleteEndpoint**
+- [x] **Step 3: Create ChecklistItemDeleteEndpoint**
 
 Create `Quartermaster.Server/Events/ChecklistItemDeleteEndpoint.cs`:
 
@@ -1429,7 +1429,7 @@ public class ChecklistItemDeleteEndpoint : Endpoint<ChecklistItemDeleteRequest> 
 }
 ```
 
-- [ ] **Step 4: Create ChecklistItemCheckEndpoint**
+- [x] **Step 4: Create ChecklistItemCheckEndpoint**
 
 Create `Quartermaster.Server/Events/ChecklistItemCheckEndpoint.cs`:
 
@@ -1484,7 +1484,7 @@ public class ChecklistItemCheckEndpoint : Endpoint<ChecklistItemCheckRequest> {
 }
 ```
 
-- [ ] **Step 5: Create ChecklistItemUncheckEndpoint**
+- [x] **Step 5: Create ChecklistItemUncheckEndpoint**
 
 Create `Quartermaster.Server/Events/ChecklistItemUncheckEndpoint.cs`:
 
@@ -1532,7 +1532,7 @@ public class ChecklistItemUncheckEndpoint : Endpoint<ChecklistItemUncheckRequest
 }
 ```
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Server/Quartermaster.Server.csproj`
 
@@ -1549,7 +1549,7 @@ Expected: 0 errors.
 - Create: `Quartermaster.Server/Events/EventTemplateDeleteEndpoint.cs`
 - Create: `Quartermaster.Server/Events/EventFromTemplateEndpoint.cs`
 
-- [ ] **Step 1: Create EventTemplateListEndpoint**
+- [x] **Step 1: Create EventTemplateListEndpoint**
 
 Create `Quartermaster.Server/Events/EventTemplateListEndpoint.cs`:
 
@@ -1598,7 +1598,7 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
 }
 ```
 
-- [ ] **Step 2: Create EventTemplateCreateEndpoint**
+- [x] **Step 2: Create EventTemplateCreateEndpoint**
 
 Create `Quartermaster.Server/Events/EventTemplateCreateEndpoint.cs`:
 
@@ -1668,7 +1668,7 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
 }
 ```
 
-- [ ] **Step 3: Create EventTemplateDetailEndpoint**
+- [x] **Step 3: Create EventTemplateDetailEndpoint**
 
 Create `Quartermaster.Server/Events/EventTemplateDetailEndpoint.cs`:
 
@@ -1719,7 +1719,7 @@ public class EventTemplateDetailEndpoint : Endpoint<EventTemplateDetailRequest, 
 }
 ```
 
-- [ ] **Step 4: Create EventTemplateDeleteEndpoint**
+- [x] **Step 4: Create EventTemplateDeleteEndpoint**
 
 Create `Quartermaster.Server/Events/EventTemplateDeleteEndpoint.cs`:
 
@@ -1755,7 +1755,7 @@ public class EventTemplateDeleteEndpoint : Endpoint<EventTemplateDeleteRequest> 
 }
 ```
 
-- [ ] **Step 5: Create EventFromTemplateEndpoint**
+- [x] **Step 5: Create EventFromTemplateEndpoint**
 
 Create `Quartermaster.Server/Events/EventFromTemplateEndpoint.cs`:
 
@@ -1873,7 +1873,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
 }
 ```
 
-- [ ] **Step 6: Build and verify**
+- [x] **Step 6: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Server/Quartermaster.Server.csproj`
 
@@ -1888,19 +1888,19 @@ Expected: 0 errors.
 - Create: `Quartermaster.Blazor/Pages/Administration/EventCreate.razor` + `.cs`
 - Modify: `Quartermaster.Blazor/Layout/MainLayout.razor`
 
-- [ ] **Step 1: Create EventList page**
+- [x] **Step 1: Create EventList page**
 
 Create `Quartermaster.Blazor/Pages/Administration/EventList.razor` — paginated table with chapter filter, archive toggle, header buttons for "Neues Event" and "Aus Vorlage erstellen" (links to template list). Columns: Public Name (link to detail), Chapter, Date, Progress (e.g. "3/5"), Created. Follow the `MemberList.razor` pattern exactly.
 
 Create `Quartermaster.Blazor/Pages/Administration/EventList.razor.cs` — code-behind with chapter filter, archive toggle, pagination. Same pattern as `MemberList.razor.cs`.
 
-- [ ] **Step 2: Create EventCreate page**
+- [x] **Step 2: Create EventCreate page**
 
 Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor` — form with chapter picker, internal name, public name, description textarea (markdown), date picker. On submit creates event and navigates to detail page. Follow the `MotionCreate.razor` pattern.
 
 Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor.cs` — code-behind with form fields, chapter list loading, submit handler that POSTs to `/api/events` and navigates to `/Administration/Events/{id}`.
 
-- [ ] **Step 3: Update MainLayout navigation**
+- [x] **Step 3: Update MainLayout navigation**
 
 In `Quartermaster.Blazor/Layout/MainLayout.razor`, find the "Vorstandsarbeit" dropdown. Add after the "Mitglieder" link:
 
@@ -1910,7 +1910,7 @@ In `Quartermaster.Blazor/Layout/MainLayout.razor`, find the "Vorstandsarbeit" dr
 <li><a class="dropdown-item" href="/Administration/EventTemplates">Event-Vorlagen</a></li>
 ```
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Blazor/Quartermaster.Blazor.csproj`
 
@@ -1925,7 +1925,7 @@ Expected: 0 errors.
 
 This is the most complex page. It shows event details, the checklist with typed items, and action buttons.
 
-- [ ] **Step 1: Create EventDetail.razor**
+- [x] **Step 1: Create EventDetail.razor**
 
 The page should include:
 - Back button to event list
@@ -1945,7 +1945,7 @@ The page should include:
 
 Route: `/Administration/Events/{Id:guid}`
 
-- [ ] **Step 2: Create EventDetail.razor.cs**
+- [x] **Step 2: Create EventDetail.razor.cs**
 
 Code-behind with:
 - Load event detail on init
@@ -1958,7 +1958,7 @@ Code-behind with:
 - `RenderEmailPreview(string templateIdentifier)` — uses shared `TemplateRenderer` + `TemplateMockDataProvider` client-side to render preview HTML
 - Helper methods: `RoleLabel()`, item type labels, confirmation handling
 
-- [ ] **Step 3: Build and verify**
+- [x] **Step 3: Build and verify**
 
 ---
 
@@ -1969,13 +1969,13 @@ Code-behind with:
 - Create: `Quartermaster.Blazor/Pages/Administration/EventTemplateSave.razor` + `.cs`
 - Create: `Quartermaster.Blazor/Pages/Administration/EventCreateFromTemplate.razor` + `.cs`
 
-- [ ] **Step 1: Create EventTemplateList page**
+- [x] **Step 1: Create EventTemplateList page**
 
 Simple table: Name, Variable count, Checklist item count, Created, Delete button, "Aus Vorlage erstellen" button per row linking to `/Administration/Events/CreateFromTemplate/{id}`.
 
 Route: `/Administration/EventTemplates`
 
-- [ ] **Step 2: Create EventTemplateSave page**
+- [x] **Step 2: Create EventTemplateSave page**
 
 Route: `/Administration/Events/{EventId:guid}/SaveAsTemplate`
 
@@ -1986,7 +1986,7 @@ Page loads the event, scans PublicName + Description + all checklist item Labels
 
 Code-behind: regex `\{\{(\w+)\}\}` to find variables, deduplicates, POSTs create request with event ID + name + variables JSON.
 
-- [ ] **Step 3: Create EventCreateFromTemplate page**
+- [x] **Step 3: Create EventCreateFromTemplate page**
 
 Route: `/Administration/Events/CreateFromTemplate/{TemplateId:guid}`
 
@@ -2002,40 +2002,40 @@ Also shows chapter picker for the event and live preview of resolved public name
 
 On submit: POSTs to `/api/events/from-template` with template ID, chapter ID, and variable values dictionary. Navigates to the created event's detail page.
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 ---
 
 ## Task 12: End-to-End Test
 
-- [ ] **Step 1: Start server and verify all event endpoints respond**
+- [x] **Step 1: Start server and verify all event endpoints respond**
 
-- [ ] **Step 2: Create an event manually via the UI**
+- [x] **Step 2: Create an event manually via the UI**
 
 Navigate to `/Administration/Events/Create`, fill in a chapter + names + description + date. Verify redirect to detail page.
 
-- [ ] **Step 3: Add checklist items**
+- [x] **Step 3: Add checklist items**
 
 On the event detail page, add:
 - A text item
 - A CreateMotion item (with chapter, title, text)
 - A SendEmail item (with chapter target, template identifier)
 
-- [ ] **Step 4: Test checklist execution**
+- [x] **Step 4: Test checklist execution**
 
 - Check the text item, verify it toggles
 - Uncheck the text item, verify it toggles back
 - Click "Erstellen & abhaken" on the motion item, verify motion is created and link appears
 - Click "Bereits erledigt" on the email item, verify it's checked without sending
 
-- [ ] **Step 5: Test email preview**
+- [x] **Step 5: Test email preview**
 
 Expand the email preview on an unchecked email item. Verify it renders the template with mock member data.
 
-- [ ] **Step 6: Test save as template**
+- [x] **Step 6: Test save as template**
 
 Click "Als Vorlage speichern", verify variables are detected, set types, save.
 
-- [ ] **Step 7: Test create from template**
+- [x] **Step 7: Test create from template**
 
 Navigate to template list, click create from template, fill in variables, verify event is created with resolved text.
