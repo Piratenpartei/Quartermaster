@@ -99,10 +99,10 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### Test Quality & Coverage
 
-- [ ] **Coverage gap: entire vote lifecycle on agenda items** is untested. Add tests for `AgendaItemVoteEndpoint`, `AgendaItemCloseVoteEndpoint`, `AgendaItemReopenEndpoint`, `AgendaItemImportMotionsEndpoint`, `AgendaItemPresenceEndpoint`.
-- [ ] **Coverage gap: SSO/SAML/OIDC entirely untested** — `OidcLoginStartEndpoint`, `OidcCallbackEndpoint`, `SamlLoginStartEndpoint`, `SamlLoginConsumeEndpoint`. Security-critical; add at minimum auth-error path + happy-path tests.
-- [ ] **Coverage gap: security plumbing untested** — `TokenAuthenticationHandler`, `AntiforgeryMiddleware`, the endpoint processors. Direct unit tests instead of indirect smoke.
-- [ ] **Coverage gap: 10+ meeting/chapter validators untested.** Listed in tests review.
+- [x] **Coverage gap: entire vote lifecycle on agenda items** is untested. Add tests for `AgendaItemVoteEndpoint`, `AgendaItemCloseVoteEndpoint`, `AgendaItemReopenEndpoint`, `AgendaItemImportMotionsEndpoint`, `AgendaItemPresenceEndpoint`.
+- [x] **Coverage gap: SSO/SAML/OIDC entirely untested** — `OidcLoginStartEndpoint`, `OidcCallbackEndpoint`, `SamlLoginStartEndpoint`, `SamlLoginConsumeEndpoint`. Security-critical; add at minimum auth-error path + happy-path tests.
+- [x] **Coverage gap: security plumbing untested** — `TokenAuthenticationHandler`, `AntiforgeryMiddleware`, the endpoint processors. Direct unit tests instead of indirect smoke.
+- [x] **Coverage gap: 10+ meeting/chapter validators untested.** Listed in tests review.
 - [x] **E2E factory leaks Kestrel hosts.** Promoted `E2ETestFactory` to a per-worker shared lazy on `WorkerDatabase` (mirrors the existing `IntegrationTestFactory` lifecycle). `E2ETestBase.SetupBrowser` now hands back `Database.E2EFactory` instead of constructing a fresh one per test; `Dispose` no longer disposes the factory (worker fixture owns it). `WorkerDatabase.Drop` disposes both factories. Bonus: switched `_factoryLock` from `object` to `System.Threading.Lock` (.NET 10 rule). Added `E2ETestFactory.Services` accessor and re-seed `Permission`/`Role`/`Option` defaults per test in `E2ETestBase` (since the shared factory only runs `SupplementDefaults` once but `CleanAllTables` wipes those rows every test) — matches `IntegrationTestBase`'s pattern.
 - [x] **Collab E2E tests don't actually distinguish authors.** Passed distinct `firstName`/`lastName` (`Alice/Author`, `Bob/Builder`, `Victor/Viewer`) to `SeedAuthenticatedUser` in the 6 multi-user or name-asserting Collab tests. The `"Geschrieben von Alice Author"` marker assertions now actually constrain author identity instead of matching every default-seeded `"Test User"`.
 - [x] **Drop 33 s of hardcoded sleeps in `CollabEditorE2ETests`.** Pre-seeded the `meetings.collab.save_interval_seconds` option to `1` in `E2ETestBase.SetupBrowser` (clamped to 2 s by `MeetingHub`). Replaced the two `setTimeout(11000)` waits with `Page.WaitForFunctionAsync` against the on-screen `"Gespeichert HH:MM:SS"` indicator — resolves as soon as the snapshot actually round-trips. Saves ~22 s per Collab suite run and removes the blind timing assumption.
@@ -118,12 +118,12 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
 
 ### CLAUDE.md Violations
 
-- [ ] **Extracted `*DtoBuilder` mapper classes** (rule: hand-written inline mapping at call site). Inline and delete: `Server/Roles/RoleDtoBuilder.cs` (called from `RoleCreateEndpoint:69`, `RoleListEndpoint:39`) and `Server/Meetings/MeetingDtoBuilder.cs` (called from `MeetingDetailEndpoint:147`, `MeetingProtocolEndpoint:146`, `MeetingListEndpoint:184`, `MeetingCreateEndpoint:64`, `MeetingLifecycleService:167`).
-- [ ] **`using` aliases** (rule: rename instead of alias):
+- [x] **Extracted `*DtoBuilder` mapper classes** (rule: hand-written inline mapping at call site). Inline and delete: `Server/Roles/RoleDtoBuilder.cs` (called from `RoleCreateEndpoint:69`, `RoleListEndpoint:39`) and `Server/Meetings/MeetingDtoBuilder.cs` (called from `MeetingDetailEndpoint:147`, `MeetingProtocolEndpoint:146`, `MeetingListEndpoint:184`, `MeetingCreateEndpoint:64`, `MeetingLifecycleService:167`).
+- [x] **`using` aliases** (rule: rename instead of alias):
   - `Server/DueSelector/DueSelectionCreateEndpoint.cs:5` — `using DataDueSelector = Quartermaster.Data.DueSelector;`
   - `Blazor/Pages/DueSelector/DueSelectorEntryState.cs:2` — `using ApiDueSelector = Quartermaster.Api.DueSelector;`
-- [ ] **Fully-qualified types despite available `using` directives.** Heavy in `Server/Program.cs:26,89-156` and `Server/Meetings/MeetingDetailEndpoint.cs:104-134`. Also `Api/I18n/I18nService.cs:78`, `Api/Meetings/MeetingHubMessages.cs:36,46,49`, `Api/Meetings/MeetingRequests.cs:39`, `Data/Migrations/M001_InitialStructureMigration.cs` (multiple `System.Data.Rule.*`, fix with `using System.Data;`), `Tests/Infrastructure/IntegrationTestBase.cs:35-37`, `Tests/Infrastructure/E2ETestBase.cs:18`, `Tests/E2E/CollabEditorE2ETests.cs:90-158` (`System.Text.Json.JsonSerializer`).
-- [ ] **Region-separator comments** (banned):
+- [x] **Fully-qualified types despite available `using` directives.** Heavy in `Server/Program.cs:26,89-156` and `Server/Meetings/MeetingDetailEndpoint.cs:104-134`. Also `Api/I18n/I18nService.cs:78`, `Api/Meetings/MeetingHubMessages.cs:36,46,49`, `Api/Meetings/MeetingRequests.cs:39`, `Data/Migrations/M001_InitialStructureMigration.cs` (multiple `System.Data.Rule.*`, fix with `using System.Data;`), `Tests/Infrastructure/IntegrationTestBase.cs:35-37`, `Tests/Infrastructure/E2ETestBase.cs:18`, `Tests/E2E/CollabEditorE2ETests.cs:90-158` (`System.Text.Json.JsonSerializer`).
+- [x] **Region-separator comments** (banned):
   - `Data/Permissions/PermissionRepository.cs:27,41` (`// Global permissions` / `// Chapter-scoped permissions`)
   - `Data/Roles/RoleRepository.cs:48,67`
   - `Blazor/Pages/Administration/EventDetail.razor.cs:41,45,57,151,184,213` (6 section labels in one 429-line file)
@@ -132,34 +132,34 @@ Findings from a full-codebase parallel review across the five projects (Api, Dat
   - `Api/DueSelector/DueSelectionDetailDTO.cs:8-33`
   - `Api/MembershipApplications/MembershipApplicationDetailDTO.cs:9-44`
   - `Api/Meetings/MeetingHubMessages.cs:15-16`
-- [ ] **`object _factoryLock = new();`** — use `System.Threading.Lock` (.NET 10). `Tests/Infrastructure/TestDatabaseFixture.cs:92`.
-- [ ] **Mixed tabs/spaces** in `Data/Tokens/TokenRepository.cs` and `Data/Permissions/PermissionRepository.cs`.
-- [ ] **`Where(predicate).Count()`** at `Data/ChapterAssociates/ChapterOfficerRepository.cs:28`, `Tests/Integration/Events/ChecklistItemDeleteEndpointTests.cs:53`, `Tests/Integration/Events/EventTemplateDeleteEndpointTests.cs:51`.
-- [ ] **Field typo `_contenxt`** at `Data/Tokens/TokenRepository.cs:11,14,17,20,23,26,40`.
-- [ ] **One-class-per-file violations**:
+- [x] **`object _factoryLock = new();`** — use `System.Threading.Lock` (.NET 10). `Tests/Infrastructure/TestDatabaseFixture.cs:92`.
+- [x] **Mixed tabs/spaces** in `Data/Tokens/TokenRepository.cs` and `Data/Permissions/PermissionRepository.cs`.
+- [x] **`Where(predicate).Count()`** at `Data/ChapterAssociates/ChapterOfficerRepository.cs:28`, `Tests/Integration/Events/ChecklistItemDeleteEndpointTests.cs:53`, `Tests/Integration/Events/EventTemplateDeleteEndpointTests.cs:51`.
+- [x] **Field typo `_contenxt`** at `Data/Tokens/TokenRepository.cs:11,14,17,20,23,26,40`.
+- [x] **One-class-per-file violations**:
   - `Tests/Infrastructure/TestDatabaseFixture.cs:20,80` — two logic-bearing classes (`TestDatabaseFixture` + `WorkerDatabase`).
   - `Api/Meetings/MeetingRequests.cs` — 9 request classes bundled.
   - `Api/Users/LoginLockoutDTO.cs`, `Api/Users/UserPermissionsDTO.cs`, `Api/Roles/RoleDTO.cs` (5 unrelated types).
   - `Data/Users/LoginAttemptRepository.cs:70`.
 - [x] **Code on same line as `if`** — 5 inline-if violations reformatted to body-on-next-line: `MeetingProtocolEndpoint.cs:138` (`motionsById` populate), `MeetingLifecycleService.cs:159` (same shape), `ProtocolPdfRenderer.cs:63` (the `t.Span("  •  ")` separator), and the two `await … CloseAsync()` lines in `E2ETestBase.cs:97-98`. (`CollabEditorE2ETests.cs:171` was a grep false positive — it's JS inside a `WaitForFunctionAsync` verbatim string, not C#.)
-- [ ] **Narration-only comments** restating code: `Data/Roles/RoleRepository.cs:48,67`, `Api/Meetings/MeetingRequests.cs:85`, `Api/Meetings/AgendaItemDTO.cs:34` (the latter should be an enum, not a comment explaining the numeric encoding).
-- [ ] **`E2ETestBase.cs:93`** swallows `ctx.CloseAsync()` exception with bare `catch { }`.
-- [ ] **`E2ESmokeTests.cs:22,29`** throws generic `Exception`.
-- [ ] **`MeetingRepositoryTests:30`** and **`MotionRepositoryTests:30`** use fully-qualified `Quartermaster.Data.Roles.RoleRepository`.
-- [ ] **`MemberImportService.cs:42`** declares `int totalRecords = 0, newRecords = 0, updatedRecords = 0;` — violates "one statement per line" and "prefer `var`".
+- [x] **Narration-only comments** restating code: `Data/Roles/RoleRepository.cs:48,67`, `Api/Meetings/MeetingRequests.cs:85`, `Api/Meetings/AgendaItemDTO.cs:34` (the latter should be an enum, not a comment explaining the numeric encoding).
+- [x] **`E2ETestBase.cs:93`** swallows `ctx.CloseAsync()` exception with bare `catch { }`.
+- [x] **`E2ESmokeTests.cs:22,29`** throws generic `Exception`.
+- [x] **`MeetingRepositoryTests:30`** and **`MotionRepositoryTests:30`** use fully-qualified `Quartermaster.Data.Roles.RoleRepository`.
+- [x] **`MemberImportService.cs:42`** declares `int totalRecords = 0, newRecords = 0, updatedRecords = 0;` — violates "one statement per line" and "prefer `var`".
 
 ### Dead Code
 
-- [ ] **7 dead types in `Quartermaster.Api`** (zero references solution-wide): `Options/SystemOptionDTO`, `Options/TemplatePreviewRequest`, `Options/TemplatePreviewResponse`, `Tokens/TokenDTO` (+ `ExtendTypeDTO`), `Users/UserPermissionsDTO.PermissionGrantRequest`, `Users/UserPermissionsDTO.ChapterPermissionGrantRequest`.
-- [ ] **`Quartermaster.Server/TestData/TestDataSeedEndpoint.cs`** is dev-only but never invoked by tests. Move out of `Quartermaster.Server` or cover.
-- [ ] **`I18nParams.cs:13` docstring references `I18nKey.Error.Meeting.StatusTransitionNotAllowed`** which doesn't exist (real key is `Error.Meeting.Status.TransitionInvalid`). Fix docstring or add the constant.
+- [x] **7 dead types in `Quartermaster.Api`** (zero references solution-wide): `Options/SystemOptionDTO`, `Options/TemplatePreviewRequest`, `Options/TemplatePreviewResponse`, `Tokens/TokenDTO` (+ `ExtendTypeDTO`), `Users/UserPermissionsDTO.PermissionGrantRequest`, `Users/UserPermissionsDTO.ChapterPermissionGrantRequest`.
+- [x] **`Quartermaster.Server/TestData/TestDataSeedEndpoint.cs`** is dev-only but never invoked by tests. Move out of `Quartermaster.Server` or cover.
+- [x] **`I18nParams.cs:13` docstring references `I18nKey.Error.Meeting.StatusTransitionNotAllowed`** which doesn't exist (real key is `Error.Meeting.Status.TransitionInvalid`). Fix docstring or add the constant.
 
 ### Naming
 
-- [ ] **`EMail` vs `Email`, `IBAN` vs `Iban`** inconsistencies across DTOs and i18n keys. Pick one spelling per term and align.
-- [ ] **Login lockout responds 429 with empty body** (`Server/Users/LoginEndpoint.cs:46-49`). Add `Retry-After` header.
-- [ ] **Duplicated `BuildDisplayName`** in `LoginEndpoint.cs:118-126`, `SessionEndpoint.cs:66-72`, `UserSettingsEndpoint.cs:112-118`. Extract.
-- [ ] **Duplicated approve/deny/abstain switch logic** in `MeetingLifecycleService.cs:62-110` and `CloseVoteForAgendaItem`. Extract.
+- [x] **`EMail` vs `Email`, `IBAN` vs `Iban`** inconsistencies across DTOs and i18n keys. Pick one spelling per term and align.
+- [x] **Login lockout responds 429 with empty body** (`Server/Users/LoginEndpoint.cs:46-49`). Add `Retry-After` header.
+- [x] **Duplicated `BuildDisplayName`** in `LoginEndpoint.cs:118-126`, `SessionEndpoint.cs:66-72`, `UserSettingsEndpoint.cs:112-118`. Extract.
+- [x] **Duplicated approve/deny/abstain switch logic** in `MeetingLifecycleService.cs:62-110` and `CloseVoteForAgendaItem`. Extract.
 
 ---
 
@@ -169,6 +169,6 @@ These don't fit a single TODO checkbox — each warrants its own plan document u
 
 - [ ] **Auth audit & cleanup.** Concentrates the highest-risk findings (token expiry unimplemented, security scopes unimplemented, `X-Forwarded-For` trusted, IDOR in officer-add, secrets leaking from options, SAML hardening gaps, dead `EndpointProcessors`, OIDC hardening). Worth a focused branch rather than piecemeal fixes.
 - [ ] **DTO contracts cleanup pass.** `PaymentScedule` rename, status enum typing, pagination shape, dead types, move `Rendering/` out of `Api`, JSON-string-on-DTO refactor.
-- [ ] **Pre-production M001 fold-in.** Composite-key PKs, soft-delete decision, audit-log diff helper, transactions in multi-write paths — all benefit from being in the in-flight migration rather than M002.
+- [x] **Pre-production M001 fold-in.** Composite-key PKs, soft-delete decision, audit-log diff helper, transactions in multi-write paths — all benefit from being in the in-flight migration rather than M002.
 - [ ] **Permission-check preprocessor.** ~30 endpoints repeat the same fetch-user → check-global → check-chapter → build-DTO boilerplate. Build a working `ChapterPermissionRequirement` (claims-based, not header-based) and adopt it. Replaces the dead processors that need to be deleted anyway.
 - [ ] **Blazor architecture cleanup.** AuthService static-state untangle, EventDetail/MeetingDetail/MeetingLive split (200-430 lines each), typed API client wrapper to replace stringly-typed `HttpClient` calls, generic `LazyTreeNode<T>` to dedupe the three tree-page pairs.
