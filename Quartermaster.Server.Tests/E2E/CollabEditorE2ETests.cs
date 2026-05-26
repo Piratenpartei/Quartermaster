@@ -181,9 +181,11 @@ public class CollabEditorE2ETests : E2ETestBase {
     public async Task Two_users_see_each_others_text_with_correct_author_colors() {
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem();
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
         var (bob, bobToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Bob", lastName: "Builder");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
@@ -233,9 +235,11 @@ public class CollabEditorE2ETests : E2ETestBase {
     public async Task Authors_stay_colored_after_one_user_disconnects() {
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem();
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
         var (bob, bobToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Bob", lastName: "Builder");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
@@ -276,7 +280,8 @@ public class CollabEditorE2ETests : E2ETestBase {
     public async Task Authors_survive_page_reload_via_server_snapshot() {
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem();
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
@@ -286,19 +291,14 @@ public class CollabEditorE2ETests : E2ETestBase {
         // Give the marker layer a beat to settle so the format transaction fires.
         await WaitForMarkerCountAsync(Page, 1);
 
-        // Force an immediate snapshot save via the hub method, bypassing
-        // the 10-second client-side timer. We reach in through the JS layer.
-        await Page.EvaluateAsync(@"
-            async () => {
-                // The snapshot timer fires every ~10s — skip the wait by
-                // calling the Blazor-side trigger if exposed, otherwise
-                // fall back to a manual wait.
-                await new Promise(r => setTimeout(r, 11000));
-            }");
+        // Wait for the snapshot to land (clamped to a 2s tick in E2E env, see
+        // E2ETestBase) — the "Gespeichert HH:MM:SS" indicator confirms it.
+        await Page.WaitForFunctionAsync(
+            "() => /Gespeichert \\d{2}:\\d{2}:\\d{2}/.test(document.body.textContent)",
+            new PageWaitForFunctionOptions { Timeout = 10000 });
 
-        // Now reload the page from scratch. AuthService re-reads localStorage
-        // and Blazor re-initializes the collaborative editor from the server
-        // snapshot + the persisted known-authors map.
+        // Now reload the page from scratch. Blazor re-initializes the collaborative
+        // editor from the server snapshot + the persisted known-authors map.
         await Page.ReloadAsync();
         await WaitForCollabEditorAsync(Page);
         await WaitForEditorTextAsync(Page, "Text that should persist.");
@@ -324,7 +324,8 @@ public class CollabEditorE2ETests : E2ETestBase {
             status: MeetingStatus.InProgress,
             visibility: MeetingVisibility.Public);
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
 
         // Alice writes some text as an authenticated user.
         await InjectAuthTokenAsync(aliceToken);
@@ -334,8 +335,12 @@ public class CollabEditorE2ETests : E2ETestBase {
         await WaitForMarkerCountAsync(Page, 1);
 
         // Wait for the snapshot to persist so the anonymous viewer reads it
-        // from CollabDocument rather than from the empty legacy Notes.
-        await Page.EvaluateAsync("async () => { await new Promise(r => setTimeout(r, 11000)); }");
+        // from CollabDocument rather than from the empty legacy Notes. Tied to
+        // the "Gespeichert" indicator so it resolves as soon as the snapshot
+        // round-trips (vs. blind 11s sleep).
+        await Page.WaitForFunctionAsync(
+            "() => /Gespeichert \\d{2}:\\d{2}:\\d{2}/.test(document.body.textContent)",
+            new PageWaitForFunctionOptions { Timeout = 10000 });
 
         // Anonymous viewer opens a fresh context — no token injected.
         var anonPage = await NewAnonymousPageAsync();
@@ -368,9 +373,11 @@ public class CollabEditorE2ETests : E2ETestBase {
     public async Task Read_only_viewer_cannot_edit_but_still_sees_colors() {
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem();
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
         var (viewer, viewerToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.ViewMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.ViewMeetings } },
+            firstName: "Victor", lastName: "Viewer");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
@@ -401,7 +408,8 @@ public class CollabEditorE2ETests : E2ETestBase {
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem(
             status: MeetingStatus.InProgress);
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings, PermissionIdentifier.DeleteMeetings } });
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings, PermissionIdentifier.DeleteMeetings } },
+            firstName: "Alice", lastName: "Author");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
@@ -492,7 +500,8 @@ public class CollabEditorE2ETests : E2ETestBase {
             .Update();
 
         var (alice, aliceToken) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMeetings } });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMeetings } },
+            firstName: "Alice", lastName: "Author");
 
         await InjectAuthTokenAsync(aliceToken);
         await Page.GotoAsync($"/Administration/Meetings/{meeting.Id}/Live");

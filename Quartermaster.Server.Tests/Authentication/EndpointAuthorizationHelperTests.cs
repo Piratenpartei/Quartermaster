@@ -12,8 +12,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Authentication;
 
-public class EndpointAuthorizationHelperTests {
-    private WorkerDatabase _db = default!;
+public class EndpointAuthorizationHelperTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private ChapterRepository _chapterRepo = default!;
@@ -22,22 +21,14 @@ public class EndpointAuthorizationHelperTests {
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
-        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _chapterRepo = new ChapterRepository(_context, AuditLog);
         var permRepo = new PermissionRepository(_context);
         permRepo.SupplementDefaults();
         var roleRepo = new RoleRepository(_context);
         _globalRepo = new UserGlobalPermissionRepository(_context, roleRepo);
         _chapterRepo_perms = new UserChapterPermissionRepository(_context, roleRepo);
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
     }
 
     [Test]

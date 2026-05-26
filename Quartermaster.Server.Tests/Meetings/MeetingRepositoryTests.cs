@@ -8,25 +8,16 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Meetings;
 
-public class MeetingRepositoryTests {
-    private WorkerDatabase _db = default!;
+public class MeetingRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private MeetingRepository _repo = default!;
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
-        _repo = new MeetingRepository(_context, new AuditLogRepository(_context));
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
+        _repo = new MeetingRepository(_context, AuditLog);
     }
 
     [Test]

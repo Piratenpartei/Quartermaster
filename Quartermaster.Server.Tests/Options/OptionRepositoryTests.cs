@@ -8,7 +8,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Options;
 
-public class OptionRepositoryTests : IDisposable {
+public class OptionRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private OptionRepository _repo = default!;
     private ChapterRepository _chapterRepo = default!;
@@ -20,11 +20,9 @@ public class OptionRepositoryTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
-        var auditLog = new AuditLogRepository(_context);
-        _repo = new OptionRepository(_context, auditLog);
-        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _context = Db;
+        _repo = new OptionRepository(_context, AuditLog);
+        _chapterRepo = new ChapterRepository(_context, AuditLog);
 
         _bundId = Guid.NewGuid();
         _lvId = Guid.NewGuid();
@@ -166,7 +164,4 @@ public class OptionRepositoryTests : IDisposable {
         }
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

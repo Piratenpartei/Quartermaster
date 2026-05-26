@@ -1,3 +1,5 @@
+using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 
@@ -19,14 +21,14 @@ public class E2ESmokeTests : E2ETestBase {
         var rootResp = await Page.GotoAsync("/");
         if (rootResp == null || !rootResp.Ok) {
             var body = rootResp != null ? await rootResp.TextAsync() : "(null response)";
-            throw new Exception($"/ returned {rootResp?.Status}: {body[..Math.Min(500, body.Length)]}");
+            throw new HttpRequestException($"/ returned {rootResp?.Status}: {body[..Math.Min(500, body.Length)]}");
         }
         // Then /Login (should be mapped via fallback to index.html too)
         var response = await Page.GotoAsync("/Login");
         await Assert.That(response).IsNotNull();
         if (!response!.Ok) {
             var body = await response.TextAsync();
-            throw new Exception($"/Login returned status {response.Status}: {body[..Math.Min(500, body.Length)]}");
+            throw new HttpRequestException($"/Login returned status {response.Status}: {body[..Math.Min(500, body.Length)]}");
         }
     }
 }

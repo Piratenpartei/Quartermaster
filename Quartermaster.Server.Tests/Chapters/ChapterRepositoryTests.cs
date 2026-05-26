@@ -14,7 +14,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Chapters;
 
-public class ChapterRepositoryTests : IDisposable {
+public class ChapterRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private ChapterRepository _repo = default!;
 
@@ -26,9 +26,8 @@ public class ChapterRepositoryTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
-        _repo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _context = Db;
+        _repo = new ChapterRepository(_context, AuditLog);
 
         _bundId = Guid.NewGuid();
         _lvId = Guid.NewGuid();
@@ -266,7 +265,4 @@ public class ChapterRepositoryTests : IDisposable {
         await Assert.That(_context.ChapterOfficers.Any(o => o.ChapterId == _lvId)).IsFalse();
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

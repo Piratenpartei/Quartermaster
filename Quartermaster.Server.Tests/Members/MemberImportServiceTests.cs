@@ -10,7 +10,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Members;
 
-public class MemberImportServiceTests : IDisposable {
+public class MemberImportServiceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private IServiceProvider _serviceProvider = default!;
     private MemberImportService _service = default!;
@@ -22,8 +22,7 @@ public class MemberImportServiceTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
+        _context = Db;
         _serviceProvider = TestDatabaseFixture.CreateServiceProvider();
 
         var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
@@ -329,7 +328,4 @@ public class MemberImportServiceTests : IDisposable {
         await Assert.That(anna.ResidenceAdministrativeDivisionId).IsNull();
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

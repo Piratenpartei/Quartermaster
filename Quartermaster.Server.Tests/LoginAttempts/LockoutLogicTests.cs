@@ -6,23 +6,14 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.LoginAttempts;
 
-public class LockoutLogicTests {
-    private WorkerDatabase _db = default!;
+public class LockoutLogicTests : RepositoryTestBase {
     private DbContext _context = default!;
     private LoginAttemptRepository _repo = default!;
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _repo = new LoginAttemptRepository(_context);
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
     }
 
     [Test]
@@ -55,11 +46,11 @@ public class LockoutLogicTests {
     [Test]
     public async Task CountRecentFailures_respects_sliding_window() {
         _repo.LogAttempt("1.2.3.4", "alice", success: false);
-        // Count in the next 1-minute window
-        await Task.Delay(10);
-        var recentWindow = DateTime.UtcNow.AddMilliseconds(-5);
-        var count = _repo.CountRecentFailures("1.2.3.4", "alice", recentWindow);
-        // The attempt we logged is just before the window, should not count
+        // Window start far in the future → the attempt is definitely outside.
+        // Previously raced a 10 ms Task.Delay against a 5 ms window edge and
+        // intermittently saw the attempt as still inside the window.
+        var futureWindow = DateTime.UtcNow.AddDays(1);
+        var count = _repo.CountRecentFailures("1.2.3.4", "alice", futureWindow);
         await Assert.That(count).IsEqualTo(0);
     }
 

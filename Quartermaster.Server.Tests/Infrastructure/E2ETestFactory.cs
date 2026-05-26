@@ -23,6 +23,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 public sealed class E2ETestFactory : IDisposable {
     private readonly WebApplication _app;
     public string BaseUrl { get; }
+    public IServiceProvider Services => _app.Services;
 
     public E2ETestFactory(string connectionString) {
         var contentRoot = FindServerContentRoot();

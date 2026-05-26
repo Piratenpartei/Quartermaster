@@ -11,28 +11,19 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Meetings;
 
-public class MeetingAccessHelperTests {
-    private WorkerDatabase _db = default!;
+public class MeetingAccessHelperTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private RoleRepository _roleRepo = default!;
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
         var permRepo = new PermissionRepository(_context);
         permRepo.SupplementDefaults();
         _roleRepo = new RoleRepository(_context);
         _roleRepo.SupplementDefaults();
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
     }
 
     [Test]

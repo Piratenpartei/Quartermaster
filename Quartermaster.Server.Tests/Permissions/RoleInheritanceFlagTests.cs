@@ -14,8 +14,7 @@ namespace Quartermaster.Server.Tests.Permissions;
 /// propagate their permissions down the chapter tree via ancestor-walk, roles flagged
 /// non-inheriting only grant access to their exact assigned chapter.
 /// </summary>
-public class RoleInheritanceFlagTests {
-    private WorkerDatabase _db = default!;
+public class RoleInheritanceFlagTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private ChapterRepository _chapterRepo = default!;
@@ -24,22 +23,14 @@ public class RoleInheritanceFlagTests {
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
-        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _chapterRepo = new ChapterRepository(_context, AuditLog);
         var permRepo = new PermissionRepository(_context);
         permRepo.SupplementDefaults();
         _roleRepo = new RoleRepository(_context);
         _roleRepo.SupplementDefaults(); // seeds both chapter_officer and general_chapter_delegate
         _chapterPermRepo = new UserChapterPermissionRepository(_context, _roleRepo);
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
     }
 
     [Test]

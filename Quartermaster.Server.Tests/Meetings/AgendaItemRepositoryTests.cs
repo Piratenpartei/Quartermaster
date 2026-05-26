@@ -7,25 +7,16 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Meetings;
 
-public class AgendaItemRepositoryTests {
-    private WorkerDatabase _db = default!;
+public class AgendaItemRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private AgendaItemRepository _repo = default!;
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
-        _repo = new AgendaItemRepository(_context, new AuditLogRepository(_context));
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
+        _repo = new AgendaItemRepository(_context, AuditLog);
     }
 
     [Test]

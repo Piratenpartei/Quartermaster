@@ -14,18 +14,16 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Members;
 
-public class RetentionAnonymizationServiceTests : IDisposable {
+public class RetentionAnonymizationServiceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private RetentionAnonymizationService _svc = default!;
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
-        var auditLog = new AuditLogRepository(_context);
-        var memberRepo = new MemberRepository(_context, auditLog);
-        var applicationRepo = new MembershipApplicationRepository(_context, auditLog);
-        var selectionRepo = new DueSelectionRepository(_context, auditLog);
+        _context = Db;
+        var memberRepo = new MemberRepository(_context, AuditLog);
+        var applicationRepo = new MembershipApplicationRepository(_context, AuditLog);
+        var selectionRepo = new DueSelectionRepository(_context, AuditLog);
         _svc = new RetentionAnonymizationService(memberRepo, applicationRepo, selectionRepo, _context,
             NullLogger<RetentionAnonymizationService>.Instance);
     }
@@ -163,7 +161,4 @@ public class RetentionAnonymizationServiceTests : IDisposable {
         return id;
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

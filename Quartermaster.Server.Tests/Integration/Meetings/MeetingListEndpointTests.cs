@@ -40,9 +40,6 @@ public class MeetingListEndpointTests : IntegrationTestBase {
         var chain = Builder.SeedChapterHierarchy("Parent", "Child");
         Builder.SeedMeeting(chain[0].Id, title: "ParentPrivate", visibility: MeetingVisibility.Private);
         var (user, token) = Builder.SeedAuthenticatedUser();
-        // Trigger factory startup so system roles are seeded.
-        using var bootClient = AuthenticatedClient(token);
-        var _unused = await bootClient.GetAsync("/api/meetings");
         var officerRole = Db.Roles.First(r => r.Identifier == PermissionIdentifier.SystemRole.ChapterOfficer);
         Builder.AssignRoleToUser(user.Id, officerRole.Id, chain[1].Id);
         using var client = AuthenticatedClient(token);
@@ -56,8 +53,6 @@ public class MeetingListEndpointTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("C");
         Builder.SeedMeeting(chapter.Id, title: "Private", visibility: MeetingVisibility.Private);
         var (user, token) = Builder.SeedAuthenticatedUser();
-        using var bootClient = AuthenticatedClient(token);
-        var _unused = await bootClient.GetAsync("/api/meetings");
         var delegateRole = Db.Roles.First(r => r.Identifier == PermissionIdentifier.SystemRole.GeneralChapterDelegate);
         Builder.AssignRoleToUser(user.Id, delegateRole.Id, chapter.Id);
         using var client = AuthenticatedClient(token);

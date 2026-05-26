@@ -34,12 +34,20 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// Use <see cref="SeedAuthenticatedUser"/> for the common case of creating a user with permissions + login token.
 /// </summary>
 public sealed class TestDataBuilder {
+    /// <summary>
+    /// Monotonic seed for <c>MemberNumber</c> defaults — replaces `Random.Shared.Next` so
+    /// concurrent tests can't draw the same number and trip the unique index.
+    /// </summary>
+    private static int _nextMemberNumber = 100_000;
+
     private readonly DbContext _db;
     private Guid? _nullIslandId;
 
     public TestDataBuilder(DbContext db) {
         _db = db;
     }
+
+    private static int NextMemberNumber() => System.Threading.Interlocked.Increment(ref _nextMemberNumber);
 
     /// <summary>
     /// Returns (or creates) the "Null Island" admin division used to satisfy FK constraints
@@ -134,7 +142,7 @@ public sealed class TestDataBuilder {
             CitizenshipAdministrativeDivisionId = NullIslandAdminDivisionId,
             AddressAdministrativeDivisionId = NullIslandAdminDivisionId,
             MemberSince = DateTime.UtcNow.Date,
-            MemberNumber = memberNumber == 0 ? Random.Shared.Next(10000, 999999) : memberNumber,
+            MemberNumber = memberNumber == 0 ? NextMemberNumber() : memberNumber,
             AddressStreet = "Teststr.",
             AddressHouseNbr = "1"
         };
@@ -203,7 +211,7 @@ public sealed class TestDataBuilder {
         Guid? userId = null) {
         var member = new Member {
             Id = Guid.NewGuid(),
-            MemberNumber = memberNumber == 0 ? Random.Shared.Next(10000, 999999) : memberNumber,
+            MemberNumber = memberNumber == 0 ? NextMemberNumber() : memberNumber,
             FirstName = firstName,
             LastName = lastName,
             EMail = email,

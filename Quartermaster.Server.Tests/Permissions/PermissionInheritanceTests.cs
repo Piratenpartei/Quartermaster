@@ -14,8 +14,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Permissions;
 
-public class PermissionInheritanceTests {
-    private WorkerDatabase _db = default!;
+public class PermissionInheritanceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private ChapterRepository _chapterRepo = default!;
@@ -24,21 +23,13 @@ public class PermissionInheritanceTests {
 
     [Before(Test)]
     public void Setup() {
-        _db = TestDatabaseFixture.Acquire();
-        _db.CleanAllTables();
-        _context = _db.CreateDbContext();
+        _context = Db;
         _builder = new TestDataBuilder(_context);
-        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _chapterRepo = new ChapterRepository(_context, AuditLog);
         _permRepo = new PermissionRepository(_context);
         var roleRepo = new RoleRepository(_context);
         _chapterPermRepo = new UserChapterPermissionRepository(_context, roleRepo);
         _permRepo.SupplementDefaults();
-    }
-
-    [After(Test)]
-    public void Teardown() {
-        _context?.Dispose();
-        TestDatabaseFixture.Release(_db);
     }
 
     [Test]

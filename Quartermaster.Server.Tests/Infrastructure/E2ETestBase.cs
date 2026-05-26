@@ -1,7 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using LinqToDB;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Playwright;
 using Quartermaster.Data;
+using Quartermaster.Data.Options;
+using Quartermaster.Data.Permissions;
+using Quartermaster.Data.Roles;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -73,9 +78,30 @@ public abstract class E2ETestBase : IDisposable {
     public async Task SetupBrowser() {
         TestDatabaseFixture.CleanAllTables();
         Database = TestDatabaseFixture.ForCurrentWorker();
+        // Shared per-worker — disposed by the worker fixture when the DB is dropped,
+        // not per-test. Previously a fresh factory + Kestrel host per test, which
+        // leaked a service provider + listener socket every time.
+        Factory = Database.E2EFactory;
+
+        // CleanAllTables wiped the permission/role/option seed; re-seed via the
+        // factory's DI scope so any endpoint hit during the test sees the standard
+        // defaults. Matches IntegrationTestBase's pattern.
+        using (var scope = Factory.Services.CreateScope()) {
+            scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
+        }
+
         Db = Database.CreateDbContext();
         Builder = new TestDataBuilder(Db);
-        Factory = new E2ETestFactory(Database.ConnectionString);
+
+        // Shrink the meeting-collab snapshot interval so tests don't have to wait
+        // the production 10s for a snapshot to fire. MeetingHub clamps to a 2s
+        // minimum, so this gives ~2s ticks.
+        Db.SystemOptions
+            .Where(o => o.Identifier == "meetings.collab.save_interval_seconds" && o.ChapterId == null)
+            .Set(o => o.Value, "1")
+            .Update();
 
         _playwright = await Playwright.CreateAsync();
         _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions {
@@ -91,7 +117,9 @@ public abstract class E2ETestBase : IDisposable {
     [After(Test)]
     public async Task TeardownBrowser() {
         foreach (var ctx in _extraContexts) {
-            try { await ctx.CloseAsync(); } catch { }
+            try { await ctx.CloseAsync(); } catch (PlaywrightException ex) {
+                Console.Error.WriteLine($"E2ETestBase.TeardownBrowser: closing extra context failed (best-effort). {ex}");
+            }
         }
         _extraContexts.Clear();
         if (_context != null)
@@ -105,7 +133,7 @@ public abstract class E2ETestBase : IDisposable {
         if (_disposed)
             return;
         _disposed = true;
-        Factory?.Dispose();
+        // Factory is NOT disposed here — shared per worker via WorkerDatabase.
         Db?.Dispose();
         GC.SuppressFinalize(this);
     }

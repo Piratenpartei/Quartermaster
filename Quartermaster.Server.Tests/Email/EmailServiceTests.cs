@@ -14,7 +14,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Email;
 
-public class EmailServiceTests : IDisposable {
+public class EmailServiceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private EmailService _service = default!;
     private Channel<EmailMessage> _channel = default!;
@@ -25,13 +25,11 @@ public class EmailServiceTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
-        var auditLog = new AuditLogRepository(_context);
+        _context = Db;
         var emailLogRepo = new EmailLogRepository(_context);
-        _optionRepo = new OptionRepository(_context, auditLog);
-        var memberRepo = new MemberRepository(_context, auditLog);
-        _chapterRepo = new ChapterRepository(_context, new Quartermaster.Data.AuditLog.AuditLogRepository(_context));
+        _optionRepo = new OptionRepository(_context, AuditLog);
+        var memberRepo = new MemberRepository(_context, AuditLog);
+        _chapterRepo = new ChapterRepository(_context, AuditLog);
         var adminDivRepo = new AdministrativeDivisionRepository(_context);
         _channel = Channel.CreateUnbounded<EmailMessage>();
 
@@ -291,7 +289,4 @@ public class EmailServiceTests : IDisposable {
         await Assert.That(error).IsNull();
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

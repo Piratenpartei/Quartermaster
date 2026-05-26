@@ -17,7 +17,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Motions;
 
-public class MotionRepositoryTests : IDisposable {
+public class MotionRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private MotionRepository _motionRepo = default!;
     private ChapterOfficerRepository _officerRepo = default!;
@@ -27,12 +27,10 @@ public class MotionRepositoryTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
-        var auditLog = new AuditLogRepository(_context);
-        _motionRepo = new MotionRepository(_context, auditLog);
+        _context = Db;
+        _motionRepo = new MotionRepository(_context, AuditLog);
         var roleRepo = new Quartermaster.Data.Roles.RoleRepository(_context);
-        _officerRepo = new ChapterOfficerRepository(_context, auditLog, roleRepo);
+        _officerRepo = new ChapterOfficerRepository(_context, AuditLog, roleRepo);
 
         // Seed an AdministrativeDivision for User FK constraints
         _adminDivId = Guid.NewGuid();
@@ -277,7 +275,4 @@ public class MotionRepositoryTests : IDisposable {
         await Assert.That(motion!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }

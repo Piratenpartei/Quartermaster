@@ -10,7 +10,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.AdministrativeDivisions;
 
-public class AdminDivisionImportServiceTests : IDisposable {
+public class AdminDivisionImportServiceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private IServiceProvider _serviceProvider = default!;
     private AdminDivisionImportService _service = default!;
@@ -18,8 +18,7 @@ public class AdminDivisionImportServiceTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
+        _context = Db;
         _serviceProvider = TestDatabaseFixture.CreateServiceProvider();
 
         var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
@@ -29,8 +28,8 @@ public class AdminDivisionImportServiceTests : IDisposable {
         Directory.CreateDirectory(_tempDir);
     }
 
-    public void Dispose() {
-        _context?.Dispose();
+    public override void Dispose() {
+        base.Dispose();
         if (Directory.Exists(_tempDir))
             Directory.Delete(_tempDir, true);
     }

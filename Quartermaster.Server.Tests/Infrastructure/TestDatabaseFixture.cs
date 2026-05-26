@@ -89,7 +89,8 @@ public sealed class WorkerDatabase {
     /// Created lazily on first access; disposed when the worker DB is dropped.
     /// </summary>
     private IntegrationTestFactory? _factory;
-    private readonly object _factoryLock = new();
+    private E2ETestFactory? _e2eFactory;
+    private readonly System.Threading.Lock _factoryLock = new();
 
     public IntegrationTestFactory Factory {
         get {
@@ -99,6 +100,23 @@ public sealed class WorkerDatabase {
                 _factory ??= new IntegrationTestFactory(ConnectionString);
             }
             return _factory;
+        }
+    }
+
+    /// <summary>
+    /// Shared <see cref="E2ETestFactory"/> (real Kestrel host on an ephemeral port)
+    /// for all Playwright tests leasing this worker. Created lazily on first access;
+    /// disposed when the worker DB is dropped. Previously per-test, which leaked
+    /// one host + service provider per Playwright test.
+    /// </summary>
+    public E2ETestFactory E2EFactory {
+        get {
+            if (_e2eFactory != null)
+                return _e2eFactory;
+            lock (_factoryLock) {
+                _e2eFactory ??= new E2ETestFactory(ConnectionString);
+            }
+            return _e2eFactory;
         }
     }
 
@@ -166,6 +184,8 @@ public sealed class WorkerDatabase {
         lock (_factoryLock) {
             _factory?.Dispose();
             _factory = null;
+            _e2eFactory?.Dispose();
+            _e2eFactory = null;
         }
         using var conn = new MySqlConnector.MySqlConnection(ServerConnectionString);
         conn.Open();

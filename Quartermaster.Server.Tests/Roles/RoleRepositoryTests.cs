@@ -13,7 +13,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Roles;
 
-public class RoleRepositoryTests : IDisposable {
+public class RoleRepositoryTests : RepositoryTestBase {
     private DbContext _context = default!;
     private RoleRepository _roleRepo = default!;
     private PermissionRepository _permissionRepo = default!;
@@ -26,8 +26,7 @@ public class RoleRepositoryTests : IDisposable {
 
     [Before(Test)]
     public void Setup() {
-        TestDatabaseFixture.CleanAllTables();
-        _context = TestDatabaseFixture.CreateDbContext();
+        _context = Db;
         _roleRepo = new RoleRepository(_context);
         _permissionRepo = new PermissionRepository(_context);
         _globalPermRepo = new UserGlobalPermissionRepository(_context, _roleRepo);
@@ -213,7 +212,4 @@ public class RoleRepositoryTests : IDisposable {
         await Assert.That(after.Contains(PermissionIdentifier.ViewMotions)).IsTrue();
     }
 
-    public void Dispose() {
-        _context?.Dispose();
-    }
 }
