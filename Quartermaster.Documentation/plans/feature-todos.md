@@ -46,7 +46,11 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 - First trigger: `motion_submitted`. `MotionSubmittedRecipientResolver` notifies users with `EditMotions` on the motion's chapter — direct grants, global perm, role-derived from the chapter or any ancestor where the role inherits to children. `MotionCreateEndpoint` dispatches after persist. Default template seeded.
 - Tests: 10 resolver tests + 4 integration tests fanning the trigger through the endpoint into `NotificationLog`.
 
-**Phase 2 (next):** Two more triggers — `application_submitted` and `due_selection_submitted` — wired through their public-create endpoints. Recipients via `ProcessApplications` / `ProcessDueSelections`. Default templates seeded.
+**Phase 2: shipped (2026-05-27).** Two more triggers wired end-to-end.
+- `ChapterPermissionRecipientResolver<TPayload>` base extracted — `MotionSubmittedRecipientResolver` collapsed to a 5-line subclass; new resolvers follow the same shape.
+- `application_submitted`: dispatched from `MembershipApplicationCreateEndpoint` when the application carries a chapter; recipients hold `ProcessApplications`. Notification is in addition to the linked motion the endpoint also spawns.
+- `due_selection_submitted`: dispatched from `DueSelectionCreateEndpoint` when the submitter's `MemberNumber` resolves to a member with a chapter; recipients hold `ProcessDueSelections`. Standalone submissions without a resolvable chapter skip the notification (handled via the linked application's own trigger when bundled).
+- Templates + mock data + DI registration in place. Resolver smoke tests + 3 integration tests per trigger.
 
 **Phase 3:** Per-user channel preferences. New `UserNotificationPreference(UserId, TriggerId, ChannelId, Enabled)` table; dispatcher consults before fanning out (default: email-on for every trigger). New `/Account/Benachrichtigungen` Blazor page.
 

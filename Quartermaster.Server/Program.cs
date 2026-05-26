@@ -132,6 +132,8 @@ public partial class Program {
         builder.Services.AddScoped<MessageChannelRegistry>();
 
         builder.Services.AddScoped<IRecipientResolver, MotionSubmittedRecipientResolver>();
+        builder.Services.AddScoped<IRecipientResolver, ApplicationSubmittedRecipientResolver>();
+        builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();
         builder.Services.AddScoped<NotificationDispatcher>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();

@@ -266,6 +266,30 @@ public class OptionRepository {
             "MotionSubmittedPayload",
             "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** wurde ein neuer Antrag eingereicht:\n\n*{{ motion.Title }}*\n\nEingereicht von: {{ motion.AuthorName }}\n");
 
+        AddDefinitionIfNotExists("notifications.application_submitted.email.subject",
+            "Benachrichtigung: Neuer Mitgliedsantrag (Betreff)",
+            OptionDataType.Template, true,
+            "ApplicationSubmittedPayload",
+            "Neuer Mitgliedsantrag: {{ application.FirstName }} {{ application.LastName }}");
+
+        AddDefinitionIfNotExists("notifications.application_submitted.email.body",
+            "Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
+            OptionDataType.Template, true,
+            "ApplicationSubmittedPayload",
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist ein neuer Mitgliedsantrag eingegangen:\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n{% if application.HasReducedDueSelection %}\nDer Antrag enthält einen Antrag auf Beitragsminderung.\n{% endif %}");
+
+        AddDefinitionIfNotExists("notifications.due_selection_submitted.email.subject",
+            "Benachrichtigung: Neue Beitragseinstufung (Betreff)",
+            OptionDataType.Template, true,
+            "DueSelectionSubmittedPayload",
+            "Neue Beitragsminderung: {{ selection.FirstName }} {{ selection.LastName }}");
+
+        AddDefinitionIfNotExists("notifications.due_selection_submitted.email.body",
+            "Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
+            OptionDataType.Template, true,
+            "DueSelectionSubmittedPayload",
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist eine neue Beitragsminderung eingegangen:\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\n\nGewünschter Betrag: {{ selection.ReducedAmount }}€\nBegründung: {{ selection.ReducedJustification }}\n");
+
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",
             OptionDataType.Number, false, "", "7",

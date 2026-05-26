@@ -88,6 +88,38 @@ public static class TemplateMockDataProvider {
                         Name = "Piratenpartei Berlin"
                     };
                     break;
+
+                case "ApplicationSubmittedPayload":
+                    data["application"] = new {
+                        Id = Guid.NewGuid(),
+                        FirstName = "Max",
+                        LastName = "Mustermann",
+                        Email = "max.mustermann@example.com",
+                        SubmittedAt = DateTime.UtcNow,
+                        HasReducedDueSelection = true
+                    };
+                    data["chapter"] = new {
+                        Id = Guid.NewGuid(),
+                        Name = "Piratenpartei Berlin"
+                    };
+                    break;
+
+                case "DueSelectionSubmittedPayload":
+                    data["selection"] = new {
+                        Id = Guid.NewGuid(),
+                        FirstName = "Max",
+                        LastName = "Mustermann",
+                        Email = "max.mustermann@example.com",
+                        SelectedDue = 12m,
+                        ReducedAmount = 12m,
+                        ReducedJustification = "Studierender ohne Einkommen",
+                        SubmittedAt = DateTime.UtcNow
+                    };
+                    data["chapter"] = new {
+                        Id = Guid.NewGuid(),
+                        Name = "Piratenpartei Berlin"
+                    };
+                    break;
             }
         }
 

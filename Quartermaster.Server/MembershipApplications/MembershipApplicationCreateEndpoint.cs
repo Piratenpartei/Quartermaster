@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -8,9 +9,11 @@ using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
 using Quartermaster.Rendering;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Server.Notifications;
 
 namespace Quartermaster.Server.MembershipApplications;
 
@@ -18,14 +21,20 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     private readonly MembershipApplicationRepository _applicationRepository;
     private readonly DueSelectionRepository _dueSelectionRepository;
     private readonly MotionRepository _motionRepo;
+    private readonly ChapterRepository _chapterRepo;
+    private readonly NotificationDispatcher _notifications;
 
     public MembershipApplicationCreateEndpoint(
         MembershipApplicationRepository applicationRepository,
         DueSelectionRepository dueSelectionRepository,
-        MotionRepository motionRepo) {
+        MotionRepository motionRepo,
+        ChapterRepository chapterRepo,
+        NotificationDispatcher notifications) {
         _applicationRepository = applicationRepository;
         _dueSelectionRepository = dueSelectionRepository;
         _motionRepo = motionRepo;
+        _chapterRepo = chapterRepo;
+        _notifications = notifications;
     }
 
     public override void Configure() {
@@ -121,6 +130,28 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
                 CreatedAt = DateTime.UtcNow
             };
             _motionRepo.Create(motion);
+
+            var chapterName = _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
+            var payload = new ApplicationSubmittedPayload(
+                application.Id, application.ChapterId.Value, chapterName,
+                application.FirstName, application.LastName, isReduced);
+            await _notifications.DispatchAsync(
+                NotificationTriggers.ApplicationSubmitted,
+                payload,
+                _ => new Dictionary<string, object> {
+                    ["application"] = new {
+                        application.Id,
+                        application.FirstName,
+                        application.LastName,
+                        application.Email,
+                        application.SubmittedAt,
+                        HasReducedDueSelection = isReduced
+                    },
+                    ["chapter"] = new { Id = application.ChapterId.Value, Name = chapterName }
+                },
+                sourceEntityType: "MembershipApplication",
+                sourceEntityId: application.Id,
+                ct: ct);
         }
 
         await SendOkAsync(ct);

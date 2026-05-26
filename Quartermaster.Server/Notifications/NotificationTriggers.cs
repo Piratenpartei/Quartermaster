@@ -6,4 +6,6 @@ namespace Quartermaster.Server.Notifications;
 /// </summary>
 public static class NotificationTriggers {
     public const string MotionSubmitted = "motion_submitted";
+    public const string ApplicationSubmitted = "application_submitted";
+    public const string DueSelectionSubmitted = "due_selection_submitted";
 }
