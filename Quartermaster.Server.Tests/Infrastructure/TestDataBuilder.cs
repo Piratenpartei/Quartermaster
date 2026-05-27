@@ -289,7 +289,8 @@ public sealed class TestDataBuilder {
         MotionApprovalStatus status = MotionApprovalStatus.Pending,
         string authorName = "Author",
         string authorEmail = "author@test.local",
-        bool isRealized = false) {
+        bool isRealized = false,
+        bool isPublic = true) {
         var motion = new Motion {
             Id = Guid.NewGuid(),
             ChapterId = chapterId,
@@ -299,6 +300,7 @@ public sealed class TestDataBuilder {
             AuthorName = authorName,
             AuthorEmail = authorEmail,
             IsRealized = isRealized,
+            IsPublic = isPublic,
             CreatedAt = DateTime.UtcNow
         };
         _db.Insert(motion);

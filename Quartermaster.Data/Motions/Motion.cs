@@ -18,7 +18,7 @@ public class Motion {
 
     public string Title { get; set; } = "";
     public string Text { get; set; } = "";
-    public bool IsPublic { get; set; } = true;
+    public bool IsPublic { get; set; }
 
     public Guid? LinkedMembershipApplicationId { get; set; }
     public Guid? LinkedDueSelectionId { get; set; }

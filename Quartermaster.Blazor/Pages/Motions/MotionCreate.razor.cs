@@ -22,6 +22,7 @@ public partial class MotionCreate {
     private string AuthorEmail { get; set; } = "";
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
+    private bool Submitting;
 
     private bool CanSubmit() {
         if (string.IsNullOrEmpty(SelectedChapterId))
@@ -38,22 +39,35 @@ public partial class MotionCreate {
     }
 
     private async Task Submit() {
-        if (!Guid.TryParse(SelectedChapterId, out var chapterId))
+        if (Submitting || !CanSubmit()) {
             return;
+        }
+        if (!Guid.TryParse(SelectedChapterId, out var chapterId)) {
+            return;
+        }
+        Submitting = true;
+        StateHasChanged();
+        try {
+            var result = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+                ChapterId = chapterId,
+                AuthorName = AuthorName,
+                AuthorEmail = AuthorEmail,
+                Title = Title,
+                Text = Text
+            });
 
-        var result = await Http.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
-            ChapterId = chapterId,
-            AuthorName = AuthorName,
-            AuthorEmail = AuthorEmail,
-            Title = Title,
-            Text = Text
-        });
-
-        if (result.IsSuccessStatusCode) {
-            NavigationManager.NavigateTo("/");
-            ToastService.ToastKey(I18nKey.Ui.Toast.PublicMotionSubmitted);
-        } else {
-            await ToastService.ErrorAsync(result);
+            if (result.IsSuccessStatusCode) {
+                NavigationManager.NavigateTo("/");
+                ToastService.ToastKey(I18nKey.Ui.Toast.PublicMotionSubmitted);
+            } else {
+                Submitting = false;
+                await ToastService.ErrorAsync(result);
+                StateHasChanged();
+            }
+        } catch (HttpRequestException ex) {
+            Submitting = false;
+            ToastService.Error(ex);
+            StateHasChanged();
         }
     }
 }

@@ -201,6 +201,17 @@ public class MotionRepository {
         _auditLog.LogFieldChange("Motion", id, "IsRealized", existing?.IsRealized.ToString(), realized.ToString());
     }
 
+    public void SetPublic(Guid id, bool isPublic) {
+        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+
+        _context.Motions
+            .Where(m => m.Id == id)
+            .Set(m => m.IsPublic, isPublic)
+            .Update();
+
+        _auditLog.LogFieldChange("Motion", id, "IsPublic", existing?.IsPublic.ToString(), isPublic.ToString());
+    }
+
     public void SoftDelete(Guid id) {
         _context.Motions.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
         _auditLog.LogSoftDeleted("Motion", id);

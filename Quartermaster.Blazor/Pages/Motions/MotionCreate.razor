@@ -31,7 +31,10 @@
 </div>
 
 <div class="d-flex justify-content-end">
-    <button class="btn btn-primary @(CanSubmit() ? "" : "disabled")" @onclick="Submit">
+    <button class="btn btn-primary btn-hover-scale1" @onclick="Submit" disabled="@(!CanSubmit() || Submitting)">
+        @if (Submitting) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
         Antrag einreichen
     </button>
 </div>

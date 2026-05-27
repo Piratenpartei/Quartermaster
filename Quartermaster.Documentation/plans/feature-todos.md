@@ -90,3 +90,25 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 - **Caller-side trigger** — an "invite to meeting" admin endpoint that walks meeting attendees, picks the PDF channel for those without email, and produces a print batch in the output dir.
 
 V1 is the file-on-disk plumbing. This is the usable-by-an-actual-human layer.
+
+## Async notification dispatch (off the request thread)
+
+Today every submit endpoint (`MotionCreateEndpoint`, `MembershipApplicationCreateEndpoint`, `DueSelectionCreateEndpoint`) calls `NotificationDispatcher.DispatchAsync` inline before responding. Email is fine — it queues to a `Channel<EmailMessage>` and returns immediately. Telegram is not — `TelegramMessageChannel.SendAsync` does a synchronous HTTPS round-trip to `api.telegram.org` per recipient, so the user's POST hangs for roughly `recipientsWithTelegram × ~300ms` before the page can redirect.
+
+- New `Channel<NotificationDispatchRequest>` singleton holding `(triggerId, payload-snapshot, modelFactoryArgs, sourceEntityType, sourceEntityId)`. Payload has to be a snapshot the background worker can use without the original request scope — most current payloads are already pure records, but the model factory closures capture per-recipient state and need to be reshaped (probably move template-model construction into the resolver or onto the payload itself).
+- New `NotificationDispatchBackgroundService` drains the queue in its own scope and runs the existing dispatcher logic. Errors get logged per-trigger; failed sends already get tracked in `NotificationLog` rows via the channels themselves.
+- All three submit endpoints (plus future ones) call a thin `_notifications.Enqueue(...)` instead of `await DispatchAsync(...)`.
+- Re-enqueue any "Pending" `NotificationLog` rows on startup for crash recovery, mirroring `EmailSendingBackgroundService.RequeuePendingLogs`. Caveat: NotificationLog rows are written by channels DURING dispatch, so the queue itself needs its own persistence (or the dispatcher writes a "queued" log row before handing off to channels).
+
+Effect: submit-endpoint latency drops to single-digit ms regardless of recipient count or channel mix.
+
+## Motion full edit + audit log
+
+Today motions support partial mutations only: approval status / realized flag (`MotionStatusEndpoint`) and visibility toggle (`POST /api/motions/status` with `IsPublic`). All three already write `AuditEntry` rows via `MotionRepository.SetRealized`/`SetPublic`/`UpdateApprovalStatus`.
+
+Missing: editing the substantive fields (Title, Text, AuthorName, AuthorEmail, LinkedMembershipApplicationId, LinkedDueSelectionId).
+
+- New endpoint (e.g. `PUT /api/motions/{id}`) gated by `EditMotions` on the motion's chapter.
+- Diff every changed field against the stored row and emit one `AuditEntry` per change via `_auditLog.LogFieldChange` (the pattern is already used by every other motion mutation). For long Text changes the audit row stores the full before/after — fine for now, can be moved to a diff/patch representation later if volume becomes a problem.
+- For motions already linked to a meeting (or already resolved), think about whether edits should be allowed at all or require an explicit "supersede" workflow. Simplest first cut: lock editing once `ApprovalStatus != Pending`.
+- Audit-log viewer page on the motion detail to make change history visible to officers — the entries exist already but nothing surfaces them yet.

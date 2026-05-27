@@ -24,6 +24,7 @@ public partial class MotionDetail {
 
     private MotionDetailDTO? Motion;
     private bool Loading = true;
+    private bool TogglingPublic;
 
     protected override async Task OnInitializedAsync() {
         await LoadMotion();
@@ -81,6 +82,31 @@ public partial class MotionDetail {
             StateHasChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        }
+    }
+
+    private async Task TogglePublic() {
+        if (Motion == null) {
+            return;
+        }
+        TogglingPublic = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+                MotionId = Id,
+                IsPublic = !Motion.IsPublic
+            });
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.MotionStatusUpdated);
+                await LoadMotion();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            TogglingPublic = false;
+            StateHasChanged();
         }
     }
 

@@ -38,6 +38,43 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Toggle_IsPublic_persists_and_logs_audit() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, isPublic: false);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            MotionId = motion.Id,
+            IsPublic = true
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var stored = Db.Motions.Single(m => m.Id == motion.Id);
+        await Assert.That(stored.IsPublic).IsTrue();
+
+        var audit = Db.AuditLogs.Where(a => a.EntityType == "Motion" && a.EntityId == motion.Id && a.FieldName == "IsPublic").ToList();
+        await Assert.That(audit.Count).IsEqualTo(1);
+        await Assert.That(audit[0].OldValue).IsEqualTo("False");
+        await Assert.That(audit[0].NewValue).IsEqualTo("True");
+    }
+
+    [Test]
+    public async Task Returns_403_when_toggling_IsPublic_without_permission() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, isPublic: false);
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            MotionId = motion.Id,
+            IsPublic = true
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+    }
+
+    [Test]
     public async Task Returns_404_for_nonexistent_motion() {
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);

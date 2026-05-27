@@ -49,6 +49,9 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
         if (req.IsRealized.HasValue)
             _motionRepo.SetRealized(req.MotionId, req.IsRealized.Value);
 
+        if (req.IsPublic.HasValue)
+            _motionRepo.SetPublic(req.MotionId, req.IsPublic.Value);
+
         await SendOkAsync(ct);
     }
 }

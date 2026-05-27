@@ -40,7 +40,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
             AuthorEmail = req.AuthorEmail,
             Title = req.Title,
             Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
-            IsPublic = true,
+            IsPublic = false,
             ApprovalStatus = MotionApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -71,7 +71,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
             ChapterId = motion.ChapterId,
             AuthorName = motion.AuthorName,
             Title = motion.Title,
-            IsPublic = true,
+            IsPublic = false,
             ApprovalStatus = 0,
             CreatedAt = motion.CreatedAt
         }, cancellation: ct);
