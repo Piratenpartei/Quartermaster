@@ -25,6 +25,18 @@
     background-color: var(--bs-secondary-bg);
 }
 
+.icon-btn-round {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    aspect-ratio: 1 / 1;
+}
+
 .hover-interact.qm-bg-body {
     background-color: var(--bs-body-bg);
     transition: 0.3s;

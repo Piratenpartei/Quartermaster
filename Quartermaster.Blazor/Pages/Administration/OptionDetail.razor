@@ -12,7 +12,7 @@
     <h3 class="mb-3">@Option.FriendlyName</h3>
 
     <div class="row">
-        <div class="@(Option.DataType == OptionDataType.Template && Schemas != null && Schemas.Count > 0 ? "col-lg-8" : "col-12")">
+        <div class="@(Option.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels) ? "col-lg-8" : "col-12")">
             <DirtyForm @ref="_globalForm">
                 <div class="card mb-3">
                     <div class="card-body">
@@ -138,40 +138,9 @@
             }
         </div>
 
-        @if (Option.DataType == OptionDataType.Template && Schemas != null && Schemas.Count > 0) {
+        @if (Option.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels)) {
             <div class="col-lg-4">
-                <div class="card position-sticky" style="top: 1rem;">
-                    <div class="card-body">
-                        <h5>Verfügbare Felder</h5>
-                        @foreach (var schema in Schemas) {
-                            <h6 class="mt-3 mb-1">
-                                <code>@schema.VariablePrefix</code>
-                                <span class="text-secondary small">(@schema.ModelName)</span>
-                            </h6>
-                            <div class="table-responsive">
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
-                                    @foreach (var field in schema.Fields) {
-                                        <tr>
-                                            <td class="py-0">
-                                                <code class="small">@field.Name</code>
-                                                <span class="text-secondary small">@field.Type</span>
-                                            </td>
-                                            <td class="py-0 text-end" style="width: 40px;">
-                                                <button class="btn btn-outline-secondary btn-sm py-0 px-1"
-                                                        title="In Template einfügen" aria-label="In Template einfügen"
-                                                        @onclick="() => InsertField(field.FluidExpression)">
-                                                    <i class="bi bi-plus-circle" style="font-size: 0.75rem;"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                            </div>
-                        }
-                    </div>
-                </div>
+                <TemplateFieldPalette Models="@Option.TemplateModels" OnInsertField="InsertField" />
             </div>
         }
     </div>

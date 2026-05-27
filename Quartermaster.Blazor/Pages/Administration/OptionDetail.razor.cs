@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Chapters;
-using Quartermaster.Api.DueSelector;
-using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Options;
 using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
@@ -29,7 +26,6 @@ public partial class OptionDetail {
 
     private OptionDefinitionDTO? Option;
     private List<ChapterDTO>? Chapters;
-    private List<TemplateModelSchemaDTO>? Schemas;
     private bool Loading = true;
     private string NewOverrideChapterId { get; set; } = "";
     private string? PreviewHtml;
@@ -39,82 +35,17 @@ public partial class OptionDetail {
     private DirtyForm _globalForm = default!;
     private CancellationTokenSource? _previewDebounce;
 
-    private static readonly Dictionary<string, (string Prefix, Type Type)> ModelMap = new() {
-        ["MembershipApplicationDetailDTO"] = ("application", typeof(MembershipApplicationDetailDTO)),
-        ["DueSelectionDetailDTO"] = ("selection", typeof(DueSelectionDetailDTO)),
-        ["ChapterDTO"] = ("chapter", typeof(ChapterDTO))
-    };
-
     protected override async Task OnInitializedAsync() {
         try {
             Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
 
             var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
             Option = options?.FirstOrDefault(o => o.Id == Id);
-
-            if (Option?.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels))
-                Schemas = BuildSchemas(Option.TemplateModels);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
 
         Loading = false;
-    }
-
-    private static List<TemplateModelSchemaDTO> BuildSchemas(string templateModels) {
-        var models = templateModels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        var result = new List<TemplateModelSchemaDTO>();
-
-        foreach (var modelName in models) {
-            if (!ModelMap.TryGetValue(modelName, out var entry))
-                continue;
-
-            var fields = entry.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => !IsComplexType(p.PropertyType))
-                .Select(p => new TemplateFieldDTO {
-                    Name = p.Name,
-                    Type = FriendlyTypeName(p.PropertyType),
-                    FluidExpression = $"{{{{ {entry.Prefix}.{p.Name} }}}}"
-                })
-                .ToList();
-
-            result.Add(new TemplateModelSchemaDTO {
-                ModelName = modelName,
-                VariablePrefix = entry.Prefix,
-                Fields = fields
-            });
-        }
-
-        return result;
-    }
-
-    private static bool IsComplexType(Type type) {
-        var underlying = Nullable.GetUnderlyingType(type) ?? type;
-        return !underlying.IsPrimitive
-            && underlying != typeof(string)
-            && underlying != typeof(decimal)
-            && underlying != typeof(DateTime)
-            && underlying != typeof(Guid);
-    }
-
-    private static string FriendlyTypeName(Type type) {
-        var underlying = Nullable.GetUnderlyingType(type);
-        if (underlying != null)
-            return FriendlyTypeName(underlying) + "?";
-
-        if (type == typeof(string))
-            return "string";
-        if (type == typeof(int))
-            return "int";
-        if (type == typeof(decimal))
-            return "decimal";
-        if (type == typeof(bool))
-            return "bool";
-        if (type == typeof(DateTime))
-            return "DateTime";
-        if (type == typeof(Guid))
-            return "Guid";
-        return type.Name;
     }
 
     private async Task OnTemplateValueChanged(string value) {

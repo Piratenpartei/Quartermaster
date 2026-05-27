@@ -91,6 +91,26 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 
 V1 is the file-on-disk plumbing. This is the usable-by-an-actual-human layer.
 
+## Applicant-facing membership-application confirmation email
+
+When someone submits a membership application via `MembershipApplicationCreateEndpoint`, the chapter's processing officers get notified (existing `notifications.application_submitted.*` trigger), but the applicant themselves does not. They should receive a simple "Antrag eingegangen" confirmation with a short summary of what they submitted and what happens next.
+
+- New template option `templates.membershipapplication.confirmation.email` (subject + body) — `MembershipApplicationDetailDTO,ChapterDTO`, default body something like "Hallo {{ application.FirstName }}, dein Mitgliedsantrag bei {{ chapter.Name }} ist eingegangen und wird vom Vorstand geprüft."
+- Trigger from `MembershipApplicationCreateEndpoint` after the row is written — synchronous send via `EmailService` is fine for this single recipient (matches the existing approved/rejected email pattern in `MembershipApplicationProcessEndpoint`).
+- Not a notification-system trigger; this is a directly-addressed transactional mail, not a chapter-perm broadcast.
+- Tests: applicant gets a `NotificationLog` row on submit; subject is rendered plain-text (no HTML wrapping).
+
+## Member welcome email on first dues payment
+
+When a member's first dues invoice is marked paid, they transition from "approved applicant" to "active member" and get their `MemberNumber` assigned. They should receive a welcome mail containing the new member number, links to relevant resources, and the contact info from `general.contact.email`.
+
+- New template option `templates.member.welcome.email` (subject + body) — `MemberDetailDTO,ChapterDTO`, default body greets by `{{ member.FirstName }}`, surfaces `{{ member.MemberNumber }}`, includes a `globals.base_url` link to the member area.
+- Trigger: needs first dues-payment tracking. Today the system has `Member.MembershipFee` and `EntryDate` but no per-payment ledger. Two paths:
+  1. Add a `MemberPayment` table that ingests first via the member-import flow, then triggers welcome-on-first-paid via a hosted service.
+  2. Simpler v1: trigger when `Member.MemberNumber` is first set (currently happens during import for already-paid members). Tie a `WelcomeSentAt` column on Member so we don't re-send.
+- Welcome content should reference `globals.app_name` and `globals.base_url` so it works without per-deploy template edits.
+- Tests: simulate first-payment / member-number assignment, assert one email goes out and a second assignment doesn't trigger a duplicate.
+
 ## Async notification dispatch (off the request thread)
 
 Today every submit endpoint (`MotionCreateEndpoint`, `MembershipApplicationCreateEndpoint`, `DueSelectionCreateEndpoint`) calls `NotificationDispatcher.DispatchAsync` inline before responding. Email is fine — it queues to a `Channel<EmailMessage>` and returns immediately. Telegram is not — `TelegramMessageChannel.SendAsync` does a synchronous HTTPS round-trip to `api.telegram.org` per recipient, so the user's POST hangs for roughly `recipientsWithTelegram × ~300ms` before the page can redirect.
