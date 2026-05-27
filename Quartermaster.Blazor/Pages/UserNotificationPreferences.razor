@@ -3,7 +3,17 @@
 
 <PageTitle>Benachrichtigungen</PageTitle>
 
-<h3 class="mb-3">Benachrichtigungen</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Benachrichtigungen</h3>
+    <button class="btn btn-primary btn-sm btn-hover-scale1" @onclick="Save" disabled="@(Saving || Loading || Data == null)">
+        @if (Saving) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        } else {
+            <i class="bi bi-check-circle me-1"></i>
+        }
+        Speichern
+    </button>
+</div>
 
 <p class="text-secondary">Lege fest, über welchen Kanal du bei welchen Ereignissen benachrichtigt werden möchtest. Standardmäßig sind E-Mail-Benachrichtigungen aktiviert.</p>
 
@@ -71,17 +81,6 @@
 } else if (Data == null) {
     <div class="alert alert-warning">Konnte Einstellungen nicht laden.</div>
 } else {
-    <div class="d-flex justify-content-end mb-2">
-        <button class="btn btn-primary btn-sm" @onclick="Save" disabled="@Saving">
-            @if (Saving) {
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            } else {
-                <i class="bi bi-check-circle me-1"></i>
-            }
-            Speichern
-        </button>
-    </div>
-
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>

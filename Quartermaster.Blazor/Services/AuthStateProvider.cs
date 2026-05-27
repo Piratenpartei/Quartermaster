@@ -30,6 +30,9 @@ public class AuthStateProvider {
     /// <summary>Raised on 401 from an authenticated request; <c>MainLayout</c> redirects to /Login.</summary>
     public event Action? OnTokenExpired;
 
+    /// <summary>Raised whenever the auth state changes (login, logout, session refresh). Layout + permission-gated components subscribe to re-render.</summary>
+    public event Action? OnStateChanged;
+
     public void MarkInitialized() {
         Initialized = true;
         _initTcs.TrySetResult();
@@ -37,6 +40,7 @@ public class AuthStateProvider {
 
     public void SetState(LoginResponse? state) {
         _state = state;
+        OnStateChanged?.Invoke();
     }
 
     public void NotifyTokenExpired() {

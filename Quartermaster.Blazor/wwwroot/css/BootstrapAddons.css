@@ -2,6 +2,10 @@
     --bs-btn-hover-bg: var(--bs-body-bg);
 }
 
+.form-check-input:not(:disabled) {
+    cursor: pointer;
+}
+
 .hover-scale1 {
     transform: scale(1);
 }

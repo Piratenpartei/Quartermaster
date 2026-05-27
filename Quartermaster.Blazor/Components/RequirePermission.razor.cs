@@ -1,12 +1,28 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Components;
 
-public partial class RequirePermission {
+public partial class RequirePermission : IDisposable {
     [Inject]
     public required AuthService AuthService { get; set; }
+
+    [Inject]
+    public required AuthStateProvider AuthState { get; set; }
+
+    protected override void OnInitialized() {
+        AuthState.OnStateChanged += OnAuthStateChanged;
+    }
+
+    private void OnAuthStateChanged() {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() {
+        AuthState.OnStateChanged -= OnAuthStateChanged;
+    }
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

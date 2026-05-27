@@ -41,6 +41,11 @@ public partial class MainNavBar : IDisposable {
         await SetTheme();
 
         AuthState.OnTokenExpired += OnTokenExpired;
+        AuthState.OnStateChanged += OnAuthStateChanged;
+    }
+
+    private void OnAuthStateChanged() {
+        InvokeAsync(StateHasChanged);
     }
 
     private void OnTokenExpired() {
@@ -59,6 +64,7 @@ public partial class MainNavBar : IDisposable {
 
     public void Dispose() {
         AuthState.OnTokenExpired -= OnTokenExpired;
+        AuthState.OnStateChanged -= OnAuthStateChanged;
     }
 
     private async Task SetTheme() => await JS.InvokeVoidAsync("SetTheme", AppState.SelectedTheme.ToHtmlString());
