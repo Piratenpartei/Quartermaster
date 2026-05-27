@@ -111,6 +111,28 @@ public class MultiChannelDispatchTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Telegram_body_contains_deeplink_built_from_globals_base_url() {
+        var chapter = Builder.SeedChapter("Chapter X");
+        var (user, _) = Builder.SeedAuthenticatedUser(
+            email: "user@test.local",
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+        Db.Users.Where(u => u.Id == user.Id).Set(u => u.TelegramChatId, "555").Update();
+        Db.Insert(new SystemOption { Identifier = "messaging.telegram.bot_token", Value = "12345:ABC" });
+        Db.Insert(new SystemOption { Identifier = "system.public_base_url", Value = "https://qm.test.local" });
+        Db.Insert(new UserNotificationPreference {
+            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "telegram", Enabled = true
+        });
+
+        using var host = HostWithStubBot();
+        using var client = host.CreateClient();
+        await SubmitMotion(client, chapter.Id, "Linked Motion");
+
+        var motion = Db.Motions.Single(m => m.Title == "Linked Motion");
+        var log = Db.NotificationLogs.Single(l => l.ChannelId == "telegram");
+        await Assert.That(log.Body!.Contains($"https://qm.test.local/Administration/Motions/{motion.Id}")).IsTrue();
+    }
+
+    [Test]
     public async Task Telegram_body_is_raw_markdown_not_html() {
         var chapter = Builder.SeedChapter("Chapter X");
         var (user, _) = Builder.SeedAuthenticatedUser(

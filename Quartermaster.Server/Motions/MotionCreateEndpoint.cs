@@ -34,6 +34,13 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     }
 
     public override async Task HandleAsync(MotionCreateRequest req, CancellationToken ct) {
+        var chapter = _chapterRepo.Get(req.ChapterId);
+        if (chapter == null) {
+            AddError(r => r.ChapterId, "Die gewählte Gliederung existiert nicht.");
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         var motion = new Motion {
             ChapterId = req.ChapterId,
             AuthorName = req.AuthorName,
@@ -47,7 +54,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
 
         _motionRepo.Create(motion);
 
-        var chapterName = _chapterRepo.Get(motion.ChapterId)?.Name ?? "";
+        var chapterName = chapter.Name;
         var payload = new MotionSubmittedPayload(
             motion.Id, motion.ChapterId, motion.Title, motion.AuthorName, chapterName);
         await _notifications.DispatchAsync(

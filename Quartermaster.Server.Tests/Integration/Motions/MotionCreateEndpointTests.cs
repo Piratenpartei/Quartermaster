@@ -49,6 +49,19 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Returns_400_when_chapter_does_not_exist() {
+        using var client = await AnonymousClientWithCsrfAsync();
+        var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+            ChapterId = Guid.NewGuid(),
+            AuthorName = "Jane",
+            AuthorEmail = "jane@example.com",
+            Title = "Title",
+            Text = "Text"
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
     public async Task Returns_400_when_email_missing_at_sign() {
         var chapter = Builder.SeedChapter();
         using var client = await AnonymousClientWithCsrfAsync();

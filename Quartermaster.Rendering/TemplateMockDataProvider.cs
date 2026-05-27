@@ -9,7 +9,13 @@ namespace Quartermaster.Rendering;
 
 public static class TemplateMockDataProvider {
     public static Dictionary<string, object> GetMockData(string templateModels) {
-        var data = new Dictionary<string, object>();
+        var data = new Dictionary<string, object> {
+            ["globals"] = new Dictionary<string, object?> {
+                ["base_url"] = "https://quartermaster.example.local",
+                ["app_name"] = "Quartermaster",
+                ["now"] = DateTime.UtcNow
+            }
+        };
         var models = templateModels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         foreach (var model in models) {

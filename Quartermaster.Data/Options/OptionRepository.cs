@@ -249,6 +249,16 @@ public class OptionRepository {
             description: "Telegram Bot API Token (von @BotFather). Wenn leer, ist der Telegram-Kanal deaktiviert.",
             isSecret: true);
 
+        AddDefinitionIfNotExists("system.public_base_url",
+            "System: Öffentliche Basis-URL",
+            OptionDataType.String, false, "", "",
+            description: "Vollständige öffentliche URL der Anwendung ohne abschließenden Schrägstrich, z. B. https://quartermaster.example.de. Wird in Benachrichtigungen verwendet, um Direktlinks (z. B. zu Anträgen) aufzubauen. Leer ⇒ Links werden nicht generiert.");
+
+        AddDefinitionIfNotExists("system.app_name",
+            "System: Anzeigename",
+            OptionDataType.String, false, "", "Quartermaster",
+            description: "Anzeigename der Anwendung, wird in Benachrichtigungstexten und Branding verwendet. Standard: Quartermaster.");
+
         AddDefinitionIfNotExists("messaging.telegram.bot_username",
             "Telegram: Bot-Benutzername",
             OptionDataType.String, false, "", "",
@@ -269,7 +279,7 @@ public class OptionRepository {
             "Benachrichtigung: Neuer Antrag (Inhalt)",
             OptionDataType.Template, true,
             "MotionSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** wurde ein neuer Antrag eingereicht:\n\n*{{ motion.Title }}*\n\nEingereicht von: {{ motion.AuthorName }}\n");
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** wurde ein neuer Antrag eingereicht:\n\n*{{ motion.Title }}*\n\nEingereicht von: {{ motion.AuthorName }}\n\n[Antrag öffnen]({{ globals.base_url }}/Administration/Motions/{{ motion.Id }})\n");
 
         AddDefinitionIfNotExists("notifications.application_submitted.email.subject",
             "Benachrichtigung: Neuer Mitgliedsantrag (Betreff)",
@@ -281,7 +291,7 @@ public class OptionRepository {
             "Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
             OptionDataType.Template, true,
             "ApplicationSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist ein neuer Mitgliedsantrag eingegangen:\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n{% if application.HasReducedDueSelection %}\nDer Antrag enthält einen Antrag auf Beitragsminderung.\n{% endif %}");
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist ein neuer Mitgliedsantrag eingegangen:\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n{% if application.HasReducedDueSelection %}\nDer Antrag enthält einen Antrag auf Beitragsminderung.\n{% endif %}\n[Mitgliedsantrag öffnen]({{ globals.base_url }}/Administration/MembershipApplications/{{ application.Id }})\n");
 
         AddDefinitionIfNotExists("notifications.due_selection_submitted.email.subject",
             "Benachrichtigung: Neue Beitragseinstufung (Betreff)",
@@ -293,25 +303,25 @@ public class OptionRepository {
             "Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
             OptionDataType.Template, true,
             "DueSelectionSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist eine neue Beitragsminderung eingegangen:\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\n\nGewünschter Betrag: {{ selection.ReducedAmount }}€\nBegründung: {{ selection.ReducedJustification }}\n");
+            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist eine neue Beitragsminderung eingegangen:\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\n\nGewünschter Betrag: {{ selection.ReducedAmount }}€\nBegründung: {{ selection.ReducedJustification }}\n\n[Beitragseinstufung öffnen]({{ globals.base_url }}/Administration/DueSelections/{{ selection.Id }})\n");
 
         AddDefinitionIfNotExists("notifications.motion_submitted.telegram.body",
             "Telegram-Benachrichtigung: Neuer Antrag (Inhalt)",
             OptionDataType.Template, true,
             "MotionSubmittedPayload",
-            "Neuer Antrag in *{{ chapter.Name }}*\n\n*{{ motion.Title }}*\nEingereicht von {{ motion.AuthorName }}");
+            "Neuer Antrag in *{{ chapter.Name }}*\n\n*{{ motion.Title }}*\nEingereicht von {{ motion.AuthorName }}\n\n[Antrag öffnen]({{ globals.base_url }}/Administration/Motions/{{ motion.Id }})");
 
         AddDefinitionIfNotExists("notifications.application_submitted.telegram.body",
             "Telegram-Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
             OptionDataType.Template, true,
             "ApplicationSubmittedPayload",
-            "Neuer Mitgliedsantrag in *{{ chapter.Name }}*\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})");
+            "Neuer Mitgliedsantrag in *{{ chapter.Name }}*\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n\n[Mitgliedsantrag öffnen]({{ globals.base_url }}/Administration/MembershipApplications/{{ application.Id }})");
 
         AddDefinitionIfNotExists("notifications.due_selection_submitted.telegram.body",
             "Telegram-Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
             OptionDataType.Template, true,
             "DueSelectionSubmittedPayload",
-            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\nGewünscht: {{ selection.ReducedAmount }}€");
+            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\nGewünscht: {{ selection.ReducedAmount }}€\n\n[Beitragseinstufung öffnen]({{ globals.base_url }}/Administration/DueSelections/{{ selection.Id }})");
 
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",

@@ -35,8 +35,6 @@ public partial class ChapterPicker {
     [Parameter]
     public List<Guid>? ExcludeIds { get; set; }
 
-    private static List<ChapterDTO>? _cachedChapters;
-
     private List<ChapterDTO>? Chapters;
     private string SearchText = "";
     private bool ShowDropdown;
@@ -69,9 +67,7 @@ public partial class ChapterPicker {
     }
 
     protected override async Task OnInitializedAsync() {
-        if (_cachedChapters == null)
-            _cachedChapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters");
-        Chapters = _cachedChapters ?? new();
+        Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters") ?? new();
 
         // If a value is already set, show its name in the search box
         if (!string.IsNullOrEmpty(Value) && Guid.TryParse(Value, out var id) && Chapters != null) {

@@ -136,6 +136,7 @@ public partial class Program {
         builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<PdfMessageChannel>());
         builder.Services.AddScoped<MessageChannelRegistry>();
 
+        builder.Services.AddScoped<NotificationTemplateGlobals>();
         builder.Services.AddScoped<IRecipientResolver, MotionSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, ApplicationSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();

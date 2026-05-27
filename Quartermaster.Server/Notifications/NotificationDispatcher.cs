@@ -28,6 +28,7 @@ public class NotificationDispatcher {
     private readonly OptionRepository _optionRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly UserNotificationPreferenceRepository _prefRepo;
+    private readonly NotificationTemplateGlobals _globals;
     private readonly ILogger<NotificationDispatcher> _logger;
 
     public NotificationDispatcher(
@@ -38,6 +39,7 @@ public class NotificationDispatcher {
         OptionRepository optionRepo,
         ChapterRepository chapterRepo,
         UserNotificationPreferenceRepository prefRepo,
+        NotificationTemplateGlobals globals,
         ILogger<NotificationDispatcher> logger) {
         _resolvers = resolvers.ToDictionary(r => r.TriggerId, r => r);
         _emailChannel = emailChannel;
@@ -46,6 +48,7 @@ public class NotificationDispatcher {
         _optionRepo = optionRepo;
         _chapterRepo = chapterRepo;
         _prefRepo = prefRepo;
+        _globals = globals;
         _logger = logger;
     }
 
@@ -77,6 +80,7 @@ public class NotificationDispatcher {
         var perChannelTemplates = LoadTemplates(triggerId, channels);
 
         var telegramAddressByUserId = LoadTelegramAddresses(recipients, channels);
+        var globals = _globals.Build();
 
         foreach (var recipient in recipients) {
             foreach (var channel in channels) {
@@ -92,6 +96,7 @@ public class NotificationDispatcher {
                     continue;
                 }
                 var model = modelFactory(recipient);
+                model["globals"] = globals;
                 var renderedSubject = await RenderSubject(subjectTpl, model, triggerId, channel.Id, recipient);
                 var renderedBody = await RenderBody(bodyTpl, model, channel.BodyFormat, triggerId, channel.Id, recipient);
 
