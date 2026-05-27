@@ -98,10 +98,7 @@ public class DbContext : DataConnection {
 #if DEBUG
         var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;
         if (!string.IsNullOrEmpty(rootSettings.Username) && !string.IsNullOrEmpty(rootSettings.Password)) {
-            scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(
-                rootSettings,
-                scope.ServiceProvider.GetRequiredService<ChapterRepository>(),
-                scope.ServiceProvider.GetRequiredService<UserChapterPermissionRepository>());
+            scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(rootSettings);
         }
 #endif
     }

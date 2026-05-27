@@ -1,8 +1,6 @@
 ﻿using LinqToDB;
 using Quartermaster.Api;
-using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Permissions;
-using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using System;
 using System.Linq;
@@ -32,28 +30,20 @@ public class UserRepository {
     public User? GetByEmail(string email)
         => _context.Users.Where(u => u.Email == email && u.DeletedAt == null).FirstOrDefault();
 
-    public void SupplementDefaults(
-        RootAccountSettings? accountSettings,
-        ChapterRepository chapterRepo,
-        UserChapterPermissionRepository chapterPermRepo) {
-
+    /// <summary>
+    /// Ensures the root admin account exists and holds every permission as a global grant.
+    /// Chapter-scoped perms count as "granted everywhere" because <c>PermissionContext.HasChapter</c>
+    /// short-circuits on the global lookup — so the admin works regardless of which chapters exist.
+    /// </summary>
+    public void SupplementDefaults(RootAccountSettings? accountSettings) {
         if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))
             return;
 
         var admin = GetByUsername(accountSettings.Username);
         admin ??= AddRootAccount(accountSettings);
 
-        // Grant all global permissions
-        var allPermissions = _permissionRepository.GetAll();
-        foreach (var perm in allPermissions.Where(p => p.Global))
+        foreach (var perm in _permissionRepository.GetAll()) {
             _userGlobalPermissionRepository.AddForUser(admin.Id, perm);
-
-        // Grant all chapter-scoped permissions for the federal chapter (Bundesverband = root chapter)
-        var roots = chapterRepo.GetRoots();
-        var bundesverband = roots.FirstOrDefault();
-        if (bundesverband != null) {
-            foreach (var perm in allPermissions.Where(p => !p.Global))
-                chapterPermRepo.AddForUser(admin.Id, bundesverband.Id, perm.Id);
         }
     }
 

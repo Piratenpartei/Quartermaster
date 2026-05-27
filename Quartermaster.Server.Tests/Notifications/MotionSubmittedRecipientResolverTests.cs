@@ -85,14 +85,16 @@ public class MotionSubmittedRecipientResolverTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Excludes_user_without_email() {
+    public async Task Includes_user_without_email_so_dispatcher_can_route_to_other_channels() {
         var chapter = _builder.SeedChapter("C");
         var (user, _) = _builder.SeedAuthenticatedUser(
             email: "",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
 
         var result = _resolver.Resolve(PayloadFor(chapter.Id));
-        await Assert.That(result.Count).IsEqualTo(0);
+        await Assert.That(result.Count).IsEqualTo(1);
+        await Assert.That(result[0].UserId).IsEqualTo(user.Id);
+        await Assert.That(result[0].ChannelAddress).IsEqualTo("");
     }
 
     [Test]

@@ -80,13 +80,10 @@ public abstract class ChapterPermissionRecipientResolver<TPayload> : IRecipientR
             return Array.Empty<NotificationRecipient>();
 
         return _db.Users
-            .Where(u => userIds.Contains(u.Id)
-                && u.DeletedAt == null
-                && u.Email != null
-                && u.Email != "")
+            .Where(u => userIds.Contains(u.Id) && u.DeletedAt == null)
             .Select(u => new { u.Id, u.Email })
             .ToList()
-            .Select(u => new NotificationRecipient(u.Id, u.Email))
+            .Select(u => new NotificationRecipient(u.Id, u.Email ?? ""))
             .ToList();
     }
 }
