@@ -15,7 +15,7 @@ public class NotificationLogEndpointTests : IntegrationTestBase {
     private void SeedLog(string recipient, string? sourceType = null, Guid? sourceId = null) {
         Db.Insert(new NotificationLog {
             Id = Guid.NewGuid(),
-            ChannelId = "smtp",
+            ChannelId = "email",
             Recipient = recipient,
             Subject = "Test",
             SourceEntityType = sourceType,

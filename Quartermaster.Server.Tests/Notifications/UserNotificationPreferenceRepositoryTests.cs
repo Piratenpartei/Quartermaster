@@ -21,9 +21,9 @@ public class UserNotificationPreferenceRepositoryTests : RepositoryTestBase {
     [Test]
     public async Task IsEnabled_returns_default_when_no_row() {
         var user = _builder.SeedUser();
-        var result = _repo.IsEnabled(user.Id, "motion_submitted", "smtp", defaultIfMissing: true);
+        var result = _repo.IsEnabled(user.Id, "motion_submitted", "email", defaultIfMissing: true);
         await Assert.That(result).IsTrue();
-        result = _repo.IsEnabled(user.Id, "motion_submitted", "smtp", defaultIfMissing: false);
+        result = _repo.IsEnabled(user.Id, "motion_submitted", "email", defaultIfMissing: false);
         await Assert.That(result).IsFalse();
     }
 
@@ -31,9 +31,9 @@ public class UserNotificationPreferenceRepositoryTests : RepositoryTestBase {
     public async Task IsEnabled_returns_explicit_override() {
         var user = _builder.SeedUser();
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
-        var result = _repo.IsEnabled(user.Id, "motion_submitted", "smtp", defaultIfMissing: true);
+        var result = _repo.IsEnabled(user.Id, "motion_submitted", "email", defaultIfMissing: true);
         await Assert.That(result).IsFalse();
     }
 
@@ -41,12 +41,12 @@ public class UserNotificationPreferenceRepositoryTests : RepositoryTestBase {
     public async Task Replace_wipes_old_and_inserts_new() {
         var user = _builder.SeedUser();
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "old_trigger", ChannelId = "smtp", Enabled = true
+            UserId = user.Id, TriggerId = "old_trigger", ChannelId = "email", Enabled = true
         });
 
         _repo.Replace(user.Id, new[] {
-            new UserNotificationPreference { TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false },
-            new UserNotificationPreference { TriggerId = "application_submitted", ChannelId = "smtp", Enabled = true }
+            new UserNotificationPreference { TriggerId = "motion_submitted", ChannelId = "email", Enabled = false },
+            new UserNotificationPreference { TriggerId = "application_submitted", ChannelId = "email", Enabled = true }
         });
 
         var rows = _repo.GetForUser(user.Id);
@@ -60,7 +60,7 @@ public class UserNotificationPreferenceRepositoryTests : RepositoryTestBase {
     public async Task Replace_with_empty_list_clears_user() {
         var user = _builder.SeedUser();
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = true
+            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = true
         });
         _repo.Replace(user.Id, Array.Empty<UserNotificationPreference>());
         var rows = _repo.GetForUser(user.Id);
@@ -72,10 +72,10 @@ public class UserNotificationPreferenceRepositoryTests : RepositoryTestBase {
         var alice = _builder.SeedUser(firstName: "Alice");
         var bob = _builder.SeedUser(firstName: "Bob");
         Db.Insert(new UserNotificationPreference {
-            UserId = alice.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = alice.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
         Db.Insert(new UserNotificationPreference {
-            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
         _repo.Replace(alice.Id, Array.Empty<UserNotificationPreference>());
         await Assert.That(_repo.GetForUser(alice.Id).Count).IsEqualTo(0);

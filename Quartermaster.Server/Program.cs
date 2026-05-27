@@ -35,6 +35,7 @@ using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
 using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Notifications;
+using Quartermaster.Server.Notifications.Telegram;
 using Quartermaster.Server.Security;
 
 namespace Quartermaster.Server;
@@ -124,7 +125,11 @@ public partial class Program {
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
 
         builder.Services.AddScoped<EmailMessageChannel>();
+        builder.Services.AddSingleton<TelegramBotClientCache>();
+        builder.Services.AddScoped<TelegramBotClientFactory>();
         builder.Services.AddScoped<TelegramMessageChannel>();
+        builder.Services.AddScoped<TelegramUpdateHandler>();
+        builder.Services.AddHostedService<TelegramReceiverBackgroundService>();
         builder.Services.AddScoped<PdfMessageChannel>();
         builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<EmailMessageChannel>());
         builder.Services.AddScoped<IMessageChannel>(sp => sp.GetRequiredService<TelegramMessageChannel>());

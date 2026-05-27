@@ -43,7 +43,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(User.AddressHouseNbr)).AsString(32)
             .WithColumn(nameof(User.AddressAdministrativeDivisionId)).AsGuid()
             .WithColumn(nameof(User.ChapterId)).AsGuid().Nullable()
-            .WithColumn(nameof(User.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(User.DeletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(User.TelegramChatId)).AsString(64).Nullable();
 
         Create.Table(AdministrativeDivision.TableName)
             .WithColumn(nameof(AdministrativeDivision.Id)).AsGuid().PrimaryKey().Indexed()
@@ -458,6 +459,18 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
             .OnDelete(Rule.Cascade);
 
+        Create.Table(TelegramLinkToken.TableName)
+            .WithColumn(nameof(TelegramLinkToken.Token)).AsString(64).PrimaryKey()
+            .WithColumn(nameof(TelegramLinkToken.UserId)).AsGuid()
+            .WithColumn(nameof(TelegramLinkToken.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(TelegramLinkToken.ExpiresAt)).AsDateTime()
+            .WithColumn(nameof(TelegramLinkToken.ConsumedAt)).AsDateTime().Nullable();
+
+        Create.ForeignKey("FK_TelegramLinkTokens_UserId_User_Id")
+            .FromTable(TelegramLinkToken.TableName).ForeignColumn(nameof(TelegramLinkToken.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
+            .OnDelete(Rule.Cascade);
+
         Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
             .WithColumn("EntityType").AsString(64)
@@ -672,6 +685,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(AdministrativeDivision.TableName);
         DropTableIfExists(Permission.TableName);
 
+        DropTableIfExists(TelegramLinkToken.TableName);
         DropTableIfExists(UserNotificationPreference.TableName);
         DropTableIfExists(NotificationLog.TableName);
         DropTableIfExists(AuditEntry.TableName);

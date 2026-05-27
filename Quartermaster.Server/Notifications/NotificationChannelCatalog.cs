@@ -13,7 +13,7 @@ public record NotificationChannelDescriptor(string ChannelId, string DisplayName
 public static class NotificationChannelCatalog {
     public static IReadOnlyList<NotificationChannelDescriptor> All { get; } = new[] {
         new NotificationChannelDescriptor(EmailMessageChannel.ChannelId, "E-Mail", true),
-        new NotificationChannelDescriptor(TelegramMessageChannel.ChannelId, "Telegram", false),
+        new NotificationChannelDescriptor(TelegramMessageChannel.ChannelId, "Telegram", true),
         new NotificationChannelDescriptor(PdfMessageChannel.ChannelId, "Brief (Postversand)", false)
     };
 }

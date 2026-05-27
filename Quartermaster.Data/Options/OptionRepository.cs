@@ -249,6 +249,11 @@ public class OptionRepository {
             description: "Telegram Bot API Token (von @BotFather). Wenn leer, ist der Telegram-Kanal deaktiviert.",
             isSecret: true);
 
+        AddDefinitionIfNotExists("messaging.telegram.bot_username",
+            "Telegram: Bot-Benutzername",
+            OptionDataType.String, false, "", "",
+            description: "Telegram Bot-Benutzername ohne führendes @. Wird benötigt, um Deeplinks der Form https://t.me/<Benutzername>?start=<Token> aufzubauen, die Benutzer*innen zum Verknüpfen ihres Telegram-Accounts verwenden.");
+
         AddDefinitionIfNotExists("messaging.pdf.output_dir",
             "PDF-Ausdruck: Ausgabeverzeichnis",
             OptionDataType.String, false, "", "",
@@ -289,6 +294,24 @@ public class OptionRepository {
             OptionDataType.Template, true,
             "DueSelectionSubmittedPayload",
             "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist eine neue Beitragsminderung eingegangen:\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\n\nGewünschter Betrag: {{ selection.ReducedAmount }}€\nBegründung: {{ selection.ReducedJustification }}\n");
+
+        AddDefinitionIfNotExists("notifications.motion_submitted.telegram.body",
+            "Telegram-Benachrichtigung: Neuer Antrag (Inhalt)",
+            OptionDataType.Template, true,
+            "MotionSubmittedPayload",
+            "Neuer Antrag in *{{ chapter.Name }}*\n\n*{{ motion.Title }}*\nEingereicht von {{ motion.AuthorName }}");
+
+        AddDefinitionIfNotExists("notifications.application_submitted.telegram.body",
+            "Telegram-Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
+            OptionDataType.Template, true,
+            "ApplicationSubmittedPayload",
+            "Neuer Mitgliedsantrag in *{{ chapter.Name }}*\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})");
+
+        AddDefinitionIfNotExists("notifications.due_selection_submitted.telegram.body",
+            "Telegram-Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
+            OptionDataType.Template, true,
+            "DueSelectionSubmittedPayload",
+            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\nGewünscht: {{ selection.ReducedAmount }}€");
 
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",

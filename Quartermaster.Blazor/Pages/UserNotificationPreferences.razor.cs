@@ -22,8 +22,12 @@ public partial class UserNotificationPreferences {
     private bool Loading = true;
     private bool Saving;
 
+    private TelegramLinkStatusDTO? TelegramStatus;
+    private TelegramLinkStartDTO? TelegramLinkStart;
+    private bool TelegramBusy;
+
     protected override async Task OnInitializedAsync() {
-        await Load();
+        await Task.WhenAll(Load(), LoadTelegramStatus());
     }
 
     private async Task Load() {
@@ -36,6 +40,56 @@ public partial class UserNotificationPreferences {
         }
         Loading = false;
         StateHasChanged();
+    }
+
+    private async Task LoadTelegramStatus() {
+        try {
+            TelegramStatus = await Http.GetFromJsonAsync<TelegramLinkStatusDTO>("/api/users/telegram-link");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+        StateHasChanged();
+    }
+
+    private async Task StartLink() {
+        TelegramBusy = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PostAsync("/api/users/telegram-link", null);
+            if (resp.IsSuccessStatusCode) {
+                TelegramLinkStart = await resp.Content.ReadFromJsonAsync<TelegramLinkStartDTO>();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            TelegramBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CancelLinkStart() {
+        TelegramLinkStart = null;
+    }
+
+    private async Task Unlink() {
+        TelegramBusy = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.DeleteAsync("/api/users/telegram-link");
+            if (resp.IsSuccessStatusCode) {
+                TelegramStatus = new TelegramLinkStatusDTO { Linked = false };
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            TelegramBusy = false;
+            StateHasChanged();
+        }
     }
 
     private bool IsChecked((string TriggerId, string ChannelId) key)

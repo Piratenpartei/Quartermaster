@@ -40,7 +40,7 @@ public class DispatcherPreferenceGatingTests : IntegrationTestBase {
 
         // Bob opts out of motion_submitted email.
         Db.Insert(new UserNotificationPreference {
-            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
 
         await SubmitMotion(chapter.Id, "Test Motion");
@@ -76,7 +76,7 @@ public class DispatcherPreferenceGatingTests : IntegrationTestBase {
 
         // User opts out of application_submitted, NOT motion_submitted.
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "application_submitted", ChannelId = "smtp", Enabled = false
+            UserId = user.Id, TriggerId = "application_submitted", ChannelId = "email", Enabled = false
         });
 
         await SubmitMotion(chapter.Id, "Should Still Fire");

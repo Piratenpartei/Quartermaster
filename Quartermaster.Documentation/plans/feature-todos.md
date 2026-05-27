@@ -61,7 +61,19 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 - Blazor `/Account/Benachrichtigungen` page — table with one row per trigger, one checkbox per channel; channels marked `Available = false` render disabled with a "bald" badge. Nav bell-icon next to the shield-lock.
 - Tests: 5 repo, 6 endpoint, 3 dispatcher-gating integration.
 
-**Phase 4:** Replace v1 raw-HTTP `TelegramMessageChannel` with `Telegram.Bot` NuGet + a long-polling `TelegramReceiverBackgroundService` for the `/start <link-token>` deeplink flow. New `TelegramLinkToken` table; account-page UI to start the link. Switches outbound to `ITelegramBotClient.SendTextMessageAsync` for the package's rate-limiting / retry.
+**Phase 4: shipped (2026-05-27).** Telegram channel end-to-end + multi-channel dispatcher.
+- `Telegram.Bot` 22.10 NuGet; outbound rewritten to `ITelegramBotClient.SendMessage`; channel writes its own Pending → Sent/Failed `NotificationLog` row (was email-only before).
+- `User.TelegramChatId` column + new `TelegramLinkToken` (Token PK, UserId, CreatedAt, ExpiresAt, ConsumedAt) table — FK to User with cascade-delete. Both folded into M001.
+- `TelegramBotClientFactory` builds an `ITelegramBotClient` per call from the current bot-token option (so token swaps take effect without restart). Surfaces `IsConfigured` via "token present?".
+- `TelegramUpdateHandler` — pure logic, unit-testable with synthetic `Update` objects; handles `/start <token>` (transactional Consume via `TelegramLinkTokenRepository`) and replies with a hint for everything else.
+- `TelegramReceiverBackgroundService` — long-polling `IHostedService` (30s timeout, message-only allowedUpdates). Idle when no token configured; per-iteration scope so each handler invocation gets a fresh DbContext.
+- **Multi-channel dispatcher** (real change): iterates `recipients × channels`, per-channel `IsConfigured` gate, per-channel address resolution (email = recipient address from resolver, telegram = `User.TelegramChatId` looked up in one batch query), per-channel template (`notifications.{trigger}.{channelId}.body`). Email channel id aligned to `"email"` (was `"smtp"`) so the audit id matches the option-key path.
+- Telegram body templates seeded for all three triggers; channel marked `Available = true` in catalog.
+- `NotificationLogMetadataKeys` central constants (was scattered on `EmailMessageChannel`).
+- Endpoints: `GET /api/users/telegram-link` (status), `POST` (start — returns token + deeplink built from `messaging.telegram.bot_username` option, null when not configured), `DELETE` (unlink — clears chat id + revokes unconsumed tokens).
+- Blazor `/Account/Benachrichtigungen` gains a Telegram-link section: button to start link → opens deeplink in new tab, or shows raw token if username not configured; "Verknüpfung aufheben" for linked users.
+- Phase 3 `NotificationPreferencesGetEndpoint`'s query-syntax LINQ was refactored to fluent in the same sweep.
+- Tests: 7 link-token repo, 5 update-handler (synthetic Updates against a stub HttpMessageHandler), 6 endpoint, 4 multi-channel dispatcher (with stub `TelegramBotClientFactory` so we never call `api.telegram.org`). Refreshed the 6 `TelegramMessageChannelTests` for the `Telegram.Bot` rewrite.
 
 ---
 

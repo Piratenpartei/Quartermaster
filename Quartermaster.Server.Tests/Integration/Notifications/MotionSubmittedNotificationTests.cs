@@ -70,7 +70,7 @@ public class MotionSubmittedNotificationTests : IntegrationTestBase {
         await Assert.That(dto).IsNotNull();
 
         var log = Db.NotificationLogs.First(l => l.TriggerId == "motion_submitted");
-        await Assert.That(log.ChannelId).IsEqualTo("smtp");
+        await Assert.That(log.ChannelId).IsEqualTo("email");
         await Assert.That(log.SourceEntityType).IsEqualTo("Motion");
         await Assert.That(log.SourceEntityId).IsEqualTo(dto!.Id);
         await Assert.That(log.Subject!.Contains("Trackable Motion")).IsTrue();

@@ -103,7 +103,7 @@ public class EmailService {
         var htmlBody = html ?? templateContent;
 
         var metadata = templateIdentifier != null
-            ? new Dictionary<string, string> { [EmailMessageChannel.TemplateIdentifierMetadataKey] = templateIdentifier }
+            ? new Dictionary<string, string> { [NotificationLogMetadataKeys.TemplateIdentifier] = templateIdentifier }
             : null;
         await _emailChannel.SendAsync(new ChannelMessage(
             ChannelAddress: recipient,

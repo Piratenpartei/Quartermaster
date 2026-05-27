@@ -85,6 +85,7 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE AuditLogs;
             TRUNCATE TABLE NotificationLogs;
             TRUNCATE TABLE UserNotificationPreferences;
+            TRUNCATE TABLE TelegramLinkTokens;
             TRUNCATE TABLE EventChecklistItems;
             TRUNCATE TABLE Events;
             TRUNCATE TABLE EventTemplates;

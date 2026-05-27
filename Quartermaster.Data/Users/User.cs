@@ -29,4 +29,7 @@ public class User {
 
     public Guid? ChapterId { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    /// <summary>Telegram chat id (numeric string) once the user has consumed a link token via the bot's <c>/start</c> deeplink. Null = not linked.</summary>
+    public string? TelegramChatId { get; set; }
 }

@@ -10,7 +10,7 @@ public class NotificationLog {
     [Column, PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    /// <summary>Stable channel id — <c>"smtp"</c> / <c>"telegram"</c> / <c>"pdf"</c>.</summary>
+    /// <summary>Stable channel id — <c>"email"</c> / <c>"telegram"</c> / <c>"pdf"</c>.</summary>
     [Column]
     public string ChannelId { get; set; } = "";
 

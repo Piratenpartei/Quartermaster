@@ -9,7 +9,7 @@ namespace Quartermaster.Server.Messaging;
 /// own queueing/batching/retry.
 /// </summary>
 public interface IMessageChannel {
-    /// <summary>Stable identifier — e.g. <c>"smtp"</c>, <c>"telegram"</c>, <c>"pdf"</c>.</summary>
+    /// <summary>Stable identifier — e.g. <c>"email"</c>, <c>"telegram"</c>, <c>"pdf"</c>.</summary>
     string Id { get; }
 
     /// <summary>True when the channel has the config it needs to deliver. Dispatchers skip unconfigured channels rather than failing.</summary>

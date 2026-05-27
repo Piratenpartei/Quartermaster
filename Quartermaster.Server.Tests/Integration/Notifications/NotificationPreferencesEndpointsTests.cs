@@ -33,7 +33,7 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
 
         // Defaults: smtp on for everything, others off.
         foreach (var cell in dto.Cells) {
-            var expected = cell.ChannelId == "smtp";
+            var expected = cell.ChannelId == "email";
             await Assert.That(cell.Enabled).IsEqualTo(expected);
         }
     }
@@ -42,12 +42,12 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
     public async Task GET_reflects_explicit_overrides() {
         var (user, token) = Builder.SeedAuthenticatedUser();
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
         using var client = AuthenticatedClient(token);
         var dto = await client.GetFromJsonAsync<NotificationPreferencesDTO>("/api/users/notification-preferences");
 
-        var cell = dto!.Cells.Single(c => c.TriggerId == "motion_submitted" && c.ChannelId == "smtp");
+        var cell = dto!.Cells.Single(c => c.TriggerId == "motion_submitted" && c.ChannelId == "email");
         await Assert.That(cell.Enabled).IsFalse();
     }
 
@@ -56,14 +56,14 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
         var (alice, token) = Builder.SeedAuthenticatedUser(firstName: "Alice");
         var (bob, _) = Builder.SeedAuthenticatedUser(firstName: "Bob");
         Db.Insert(new UserNotificationPreference {
-            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false
+            UserId = bob.Id, TriggerId = "motion_submitted", ChannelId = "email", Enabled = false
         });
 
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var req = new UpdateNotificationPreferencesRequest {
             Cells = new() {
-                new() { TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false },
-                new() { TriggerId = "application_submitted", ChannelId = "smtp", Enabled = true }
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = false },
+                new() { TriggerId = "application_submitted", ChannelId = "email", Enabled = true }
             }
         };
         var response = await client.PutAsJsonAsync("/api/users/notification-preferences", req);
@@ -82,8 +82,8 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
 
         var req = new UpdateNotificationPreferencesRequest {
             Cells = new() {
-                new() { TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = true },
-                new() { TriggerId = "made_up_trigger", ChannelId = "smtp", Enabled = true },
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = true },
+                new() { TriggerId = "made_up_trigger", ChannelId = "email", Enabled = true },
                 new() { TriggerId = "motion_submitted", ChannelId = "fictional_channel", Enabled = true }
             }
         };
@@ -98,13 +98,13 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
     public async Task PUT_replaces_prior_overrides() {
         var (user, token) = Builder.SeedAuthenticatedUser();
         Db.Insert(new UserNotificationPreference {
-            UserId = user.Id, TriggerId = "old_trigger_in_db", ChannelId = "smtp", Enabled = true
+            UserId = user.Id, TriggerId = "old_trigger_in_db", ChannelId = "email", Enabled = true
         });
 
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var req = new UpdateNotificationPreferencesRequest {
             Cells = new() {
-                new() { TriggerId = "motion_submitted", ChannelId = "smtp", Enabled = false }
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = false }
             }
         };
         await client.PutAsJsonAsync("/api/users/notification-preferences", req);

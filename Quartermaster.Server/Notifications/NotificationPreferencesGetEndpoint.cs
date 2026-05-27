@@ -36,17 +36,15 @@ public class NotificationPreferencesGetEndpoint : EndpointWithoutRequest<Notific
         var overrides = _prefRepo.GetForUser(userId.Value)
             .ToDictionary(p => (p.TriggerId, p.ChannelId), p => p.Enabled);
 
-        var cells = (
-            from trigger in NotificationTriggerCatalog.All
-            from channel in NotificationChannelCatalog.All
-            let effective = overrides.TryGetValue((trigger.TriggerId, channel.ChannelId), out var v)
-                ? v
-                : NotificationDefaults.IsEnabledByDefault(channel.ChannelId)
-            select new NotificationPreferenceCellDTO {
-                TriggerId = trigger.TriggerId,
-                ChannelId = channel.ChannelId,
-                Enabled = effective
-            }).ToList();
+        var cells = NotificationTriggerCatalog.All
+            .SelectMany(_ => NotificationChannelCatalog.All, (t, c) => new NotificationPreferenceCellDTO {
+                TriggerId = t.TriggerId,
+                ChannelId = c.ChannelId,
+                Enabled = overrides.TryGetValue((t.TriggerId, c.ChannelId), out var v)
+                    ? v
+                    : NotificationDefaults.IsEnabledByDefault(c.ChannelId)
+            })
+            .ToList();
 
         await SendAsync(new NotificationPreferencesDTO {
             Triggers = NotificationTriggerCatalog.All

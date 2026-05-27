@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,10 +14,7 @@ namespace Quartermaster.Server.Messaging;
 /// drains. Body is pre-rendered HTML.
 /// </summary>
 public class EmailMessageChannel : IMessageChannel {
-    public const string ChannelId = "smtp";
-    public const string TemplateIdentifierMetadataKey = "TemplateIdentifier";
-    public const string TriggerIdMetadataKey = "TriggerId";
-    public const string RecipientUserIdMetadataKey = "RecipientUserId";
+    public const string ChannelId = "email";
 
     private readonly NotificationLogRepository _logRepo;
     private readonly Channel<EmailMessage> _emailChannel;
@@ -36,12 +34,13 @@ public class EmailMessageChannel : IMessageChannel {
 
     public Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default) {
         var meta = message.Metadata;
-        var templateIdentifier = TryGet(meta, TemplateIdentifierMetadataKey);
-        var triggerId = TryGet(meta, TriggerIdMetadataKey);
+        var templateIdentifier = TryGet(meta, NotificationLogMetadataKeys.TemplateIdentifier);
+        var triggerId = TryGet(meta, NotificationLogMetadataKeys.TriggerId);
         Guid? recipientUserId = null;
-        var recipientUserIdStr = TryGet(meta, RecipientUserIdMetadataKey);
-        if (recipientUserIdStr != null && Guid.TryParse(recipientUserIdStr, out var parsed))
+        var recipientUserIdStr = TryGet(meta, NotificationLogMetadataKeys.RecipientUserId);
+        if (recipientUserIdStr != null && Guid.TryParse(recipientUserIdStr, out var parsed)) {
             recipientUserId = parsed;
+        }
 
         var log = new NotificationLog {
             ChannelId = ChannelId,
@@ -65,7 +64,7 @@ public class EmailMessageChannel : IMessageChannel {
             : ChannelDeliveryResult.Fail("Email queue rejected the message."));
     }
 
-    private static string? TryGet(System.Collections.Generic.IReadOnlyDictionary<string, string>? meta, string key) {
+    private static string? TryGet(IReadOnlyDictionary<string, string>? meta, string key) {
         return meta != null && meta.TryGetValue(key, out var v) ? v : null;
     }
 }

@@ -1,87 +1,106 @@
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Quartermaster.Data.Options;
+using Quartermaster.Data.Notifications;
+using Quartermaster.Server.Notifications.Telegram;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace Quartermaster.Server.Messaging;
 
 /// <summary>
-/// Telegram Bot API outbound. <see cref="ChannelMessage.ChannelAddress"/> is the chat id
-/// (numeric for DMs, <c>@channelname</c> for public channels). Sync HTTP per message.
-/// <para>
-/// V1 outbound-only via raw HTTP — the production path (Telegram.Bot package + hosted
-/// long-polling receiver for chat-id discovery via <c>/start</c>) is tracked in the
-/// notification system feature todo.
-/// </para>
+/// Outbound Telegram delivery via <see cref="ITelegramBotClient.SendMessage"/>.
+/// Synchronous send — writes a Pending <see cref="NotificationLog"/> row and updates
+/// to Sent/Failed inline. <see cref="ChannelMessage.ChannelAddress"/> is the chat id
+/// (numeric for DMs, <c>@channelname</c> for public channels).
 /// </summary>
 public class TelegramMessageChannel : IMessageChannel {
     public const string ChannelId = "telegram";
-    private const string ApiBaseUrl = "https://api.telegram.org";
 
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly OptionRepository _optionRepo;
+    private readonly TelegramBotClientFactory _factory;
+    private readonly NotificationLogRepository _logRepo;
     private readonly ILogger<TelegramMessageChannel> _logger;
 
     public TelegramMessageChannel(
-        IHttpClientFactory httpClientFactory,
-        OptionRepository optionRepo,
+        TelegramBotClientFactory factory,
+        NotificationLogRepository logRepo,
         ILogger<TelegramMessageChannel> logger) {
-        _httpClientFactory = httpClientFactory;
-        _optionRepo = optionRepo;
+        _factory = factory;
+        _logRepo = logRepo;
         _logger = logger;
     }
 
     public string Id => ChannelId;
 
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(GetBotToken());
+    public bool IsConfigured => _factory.CreateOrNull() != null;
 
     public async Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default) {
-        var token = GetBotToken();
-        if (string.IsNullOrWhiteSpace(token))
+        var bot = _factory.CreateOrNull();
+        if (bot == null) {
             return ChannelDeliveryResult.Fail("Telegram bot token is not configured.");
-
-        if (string.IsNullOrWhiteSpace(message.ChannelAddress))
+        }
+        if (string.IsNullOrWhiteSpace(message.ChannelAddress)) {
             return ChannelDeliveryResult.Fail("Telegram chat id is empty.");
+        }
 
-        var client = _httpClientFactory.CreateClient(ChannelId);
-        var url = $"{ApiBaseUrl}/bot{token}/sendMessage";
+        var log = WritePendingLog(message);
+
         var text = string.IsNullOrEmpty(message.Subject)
             ? message.Body
             : $"*{message.Subject}*\n\n{message.Body}";
+        var chatId = ParseChatId(message.ChannelAddress);
 
-        HttpResponseMessage response;
         try {
-            response = await client.PostAsJsonAsync(url, new {
-                chat_id = message.ChannelAddress,
-                text,
-                parse_mode = "Markdown"
-            }, ct);
-        } catch (HttpRequestException ex) {
-            _logger.LogWarning(ex, "Telegram HTTP request failed for chat {ChatId}", message.ChannelAddress);
-            return ChannelDeliveryResult.Fail($"Telegram request failed: {ex.Message}");
+            await bot.SendMessage(chatId, text, parseMode: ParseMode.Markdown, cancellationToken: ct);
+            _logRepo.IncrementAttempt(log.Id);
+            _logRepo.UpdateStatus(log.Id, "Sent", null, DateTime.UtcNow);
+            return ChannelDeliveryResult.Ok();
+        } catch (Exception ex) {
+            _logger.LogWarning(ex, "Telegram send failed for chat {ChatId}", message.ChannelAddress);
+            _logRepo.IncrementAttempt(log.Id);
+            _logRepo.UpdateStatus(log.Id, "Failed", ex.Message, null);
+            return ChannelDeliveryResult.Fail($"Telegram send failed: {ex.Message}");
         }
-
-        if (!response.IsSuccessStatusCode) {
-            var body = await response.Content.ReadAsStringAsync(ct);
-            _logger.LogWarning("Telegram returned {Status} for chat {ChatId}: {Body}",
-                response.StatusCode, message.ChannelAddress, body);
-            return ChannelDeliveryResult.Fail($"Telegram returned {(int)response.StatusCode}: {body}");
-        }
-
-        // Bot API returns 200 with {ok:false,...} for application-level errors (bad chat id, blocked bot, etc.).
-        var payload = await response.Content.ReadFromJsonAsync<JsonElement>(ct);
-        if (payload.TryGetProperty("ok", out var ok) && !ok.GetBoolean()) {
-            var description = payload.TryGetProperty("description", out var d) ? d.GetString() : "(no description)";
-            _logger.LogWarning("Telegram API rejected message for chat {ChatId}: {Description}",
-                message.ChannelAddress, description);
-            return ChannelDeliveryResult.Fail($"Telegram rejected message: {description}");
-        }
-
-        return ChannelDeliveryResult.Ok();
     }
 
-    private string? GetBotToken() => _optionRepo.GetGlobalValue("messaging.telegram.bot_token")?.Value;
+    private NotificationLog WritePendingLog(ChannelMessage message) {
+        var meta = message.Metadata;
+        var templateIdentifier = TryGet(meta, NotificationLogMetadataKeys.TemplateIdentifier);
+        var triggerId = TryGet(meta, NotificationLogMetadataKeys.TriggerId);
+        Guid? recipientUserId = null;
+        var recipientUserIdStr = TryGet(meta, NotificationLogMetadataKeys.RecipientUserId);
+        if (recipientUserIdStr != null && Guid.TryParse(recipientUserIdStr, out var parsed)) {
+            recipientUserId = parsed;
+        }
+        var log = new NotificationLog {
+            ChannelId = ChannelId,
+            Recipient = message.ChannelAddress,
+            RecipientUserId = recipientUserId,
+            Subject = message.Subject,
+            TriggerId = triggerId,
+            TemplateIdentifier = templateIdentifier,
+            SourceEntityType = message.SourceEntityType,
+            SourceEntityId = message.SourceEntityId,
+            Status = "Pending",
+            AttemptCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            Body = message.Body
+        };
+        _logRepo.Create(log);
+        return log;
+    }
+
+    private static string? TryGet(IReadOnlyDictionary<string, string>? meta, string key) {
+        return meta != null && meta.TryGetValue(key, out var v) ? v : null;
+    }
+
+    private static ChatId ParseChatId(string raw) {
+        if (long.TryParse(raw, out var numeric)) {
+            return new ChatId(numeric);
+        }
+        return new ChatId(raw);
+    }
 }

@@ -5,7 +5,44 @@
 
 <h3 class="mb-3">Benachrichtigungen</h3>
 
-<p class="text-secondary">Lege fest, über welchen Kanal du bei welchen Ereignissen benachrichtigt werden möchtest. Standardmäßig sind E-Mail-Benachrichtigungen aktiviert; weitere Kanäle werden in Kürze freigeschaltet.</p>
+<p class="text-secondary">Lege fest, über welchen Kanal du bei welchen Ereignissen benachrichtigt werden möchtest. Standardmäßig sind E-Mail-Benachrichtigungen aktiviert.</p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">
+            <i class="bi bi-telegram me-1"></i>
+            Telegram
+        </h5>
+        @if (TelegramStatus == null) {
+            <LoadingSpinner />
+        } else if (TelegramStatus.Linked) {
+            <p class="mb-2">Verknüpft mit Chat-ID <code>@TelegramStatus.ChatId</code>.</p>
+            <button class="btn btn-outline-danger btn-sm" @onclick="Unlink" disabled="@TelegramBusy">
+                <i class="bi bi-link-45deg me-1"></i>
+                Verknüpfung aufheben
+            </button>
+        } else if (TelegramLinkStart != null) {
+            @if (!string.IsNullOrEmpty(TelegramLinkStart.Deeplink)) {
+                <p class="mb-2">Öffne den folgenden Link in Telegram und sende dort <code>/start @TelegramLinkStart.Token</code>:</p>
+                <a class="btn btn-primary btn-sm me-2" href="@TelegramLinkStart.Deeplink" target="_blank" rel="noopener">
+                    <i class="bi bi-telegram me-1"></i>
+                    In Telegram öffnen
+                </a>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">Abbrechen</button>
+            } else {
+                <p class="mb-2">Kein Telegram-Bot-Benutzername konfiguriert. Bitte den folgenden Token im Bot-Chat schicken: <code>/start @TelegramLinkStart.Token</code></p>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">Abbrechen</button>
+            }
+            <div class="text-secondary small mt-2">Gültig bis @TelegramLinkStart.ExpiresAt.ToLocalTime().ToString("HH:mm")</div>
+        } else {
+            <p class="text-secondary mb-2">Verknüpfe deinen Telegram-Account, um Benachrichtigungen dort zu erhalten.</p>
+            <button class="btn btn-primary btn-sm" @onclick="StartLink" disabled="@TelegramBusy">
+                <i class="bi bi-telegram me-1"></i>
+                Telegram verknüpfen
+            </button>
+        }
+    </div>
+</div>
 
 @if (Loading) {
     <LoadingSpinner />
