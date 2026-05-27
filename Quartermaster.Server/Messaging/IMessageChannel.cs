@@ -15,5 +15,8 @@ public interface IMessageChannel {
     /// <summary>True when the channel has the config it needs to deliver. Dispatchers skip unconfigured channels rather than failing.</summary>
     bool IsConfigured { get; }
 
+    /// <summary>Body format the channel expects — the dispatcher renders templates accordingly.</summary>
+    NotificationBodyFormat BodyFormat { get; }
+
     Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default);
 }

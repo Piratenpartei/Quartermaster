@@ -97,7 +97,7 @@ public class EmailService {
             };
         }
 
-        var (html, error) = await TemplateRenderer.RenderAsync(templateContent, model);
+        var (html, error) = await TemplateRenderer.RenderHtmlAsync(templateContent, model);
         if (error != null)
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;

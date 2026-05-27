@@ -32,6 +32,8 @@ public class EmailMessageChannel : IMessageChannel {
     /// </summary>
     public bool IsConfigured => true;
 
+    public NotificationBodyFormat BodyFormat => NotificationBodyFormat.Html;
+
     public Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default) {
         var meta = message.Metadata;
         var templateIdentifier = TryGet(meta, NotificationLogMetadataKeys.TemplateIdentifier);

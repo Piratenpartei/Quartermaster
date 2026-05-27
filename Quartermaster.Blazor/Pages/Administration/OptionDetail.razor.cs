@@ -225,7 +225,7 @@ public partial class OptionDetail {
             return;
 
         var mockData = TemplateMockDataProvider.GetMockData(Option.TemplateModels);
-        var (html, error) = await TemplateRenderer.RenderAsync(Option.GlobalValue, mockData);
+        var (html, error) = await TemplateRenderer.RenderHtmlAsync(Option.GlobalValue, mockData);
 
         if (error != null)
             PreviewHtml = $"<p class=\"text-danger\">{error}</p>";

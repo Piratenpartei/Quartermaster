@@ -32,6 +32,8 @@ public class PdfMessageChannel : IMessageChannel {
     /// <summary>Always true — falls back to a default dir under <see cref="AppContext.BaseDirectory"/> when unconfigured.</summary>
     public bool IsConfigured => true;
 
+    public NotificationBodyFormat BodyFormat => NotificationBodyFormat.Html;
+
     public Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default) {
         try {
             var dir = ResolveOutputDir();

@@ -79,6 +79,33 @@ public class MotionSubmittedNotificationTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Email_subject_is_plain_text_not_html_wrapped() {
+        var chapter = Builder.SeedChapter("C");
+        Builder.SeedAuthenticatedUser(
+            email: "officer@test.local",
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+
+        await SubmitMotion(chapter.Id, "Plain Subject Motion");
+
+        var log = Db.NotificationLogs.First(l => l.TriggerId == "motion_submitted" && l.ChannelId == "email");
+        await Assert.That(log.Subject).IsEqualTo("Neuer Antrag: Plain Subject Motion");
+    }
+
+    [Test]
+    public async Task Email_body_is_html_rendered_from_markdown_template() {
+        var chapter = Builder.SeedChapter("C");
+        Builder.SeedAuthenticatedUser(
+            email: "officer@test.local",
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+
+        await SubmitMotion(chapter.Id, "Html Body Motion");
+
+        var log = Db.NotificationLogs.First(l => l.TriggerId == "motion_submitted" && l.ChannelId == "email");
+        await Assert.That(log.Body!.Contains("<")).IsTrue();
+        await Assert.That(log.Body!.Contains("Html Body Motion")).IsTrue();
+    }
+
+    [Test]
     public async Task Officer_role_inherits_to_child_chapter() {
         var chain = Builder.SeedChapterHierarchy("Parent", "Child");
         var (parentOfficer, _) = Builder.SeedAuthenticatedUser(

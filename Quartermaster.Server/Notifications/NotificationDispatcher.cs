@@ -92,8 +92,8 @@ public class NotificationDispatcher {
                     continue;
                 }
                 var model = modelFactory(recipient);
-                var renderedSubject = await RenderOptional(subjectTpl, model, triggerId, channel.Id, recipient);
-                var renderedBody = await RenderRequired(bodyTpl, model, triggerId, channel.Id, recipient);
+                var renderedSubject = await RenderSubject(subjectTpl, model, triggerId, channel.Id, recipient);
+                var renderedBody = await RenderBody(bodyTpl, model, channel.BodyFormat, triggerId, channel.Id, recipient);
 
                 var metadata = new Dictionary<string, string> {
                     [NotificationLogMetadataKeys.TriggerId] = triggerId,
@@ -171,25 +171,28 @@ public class NotificationDispatcher {
         return null;
     }
 
-    private async Task<string?> RenderOptional(string? template, Dictionary<string, object> model, string triggerId, string channelId, NotificationRecipient recipient) {
+    /// <summary>Subjects are always rendered as plain text — markdown formatting in an email subject line just leaks as literal characters.</summary>
+    private async Task<string?> RenderSubject(string? template, Dictionary<string, object> model, string triggerId, string channelId, NotificationRecipient recipient) {
         if (string.IsNullOrEmpty(template)) {
             return null;
         }
-        var (text, error) = await TemplateRenderer.RenderAsync(template, model);
+        var (text, error) = await TemplateRenderer.RenderTextAsync(template, model);
         if (error != null) {
-            _logger.LogWarning("Template render error for {Trigger}/{Channel} recipient {Address}: {Error}",
+            _logger.LogWarning("Template render error for {Trigger}/{Channel} subject (recipient {Address}): {Error}",
                 triggerId, channelId, recipient.ChannelAddress, error);
         }
         return text ?? template;
     }
 
-    private async Task<string> RenderRequired(string template, Dictionary<string, object> model, string triggerId, string channelId, NotificationRecipient recipient) {
-        var (text, error) = await TemplateRenderer.RenderAsync(template, model);
+    private async Task<string> RenderBody(string template, Dictionary<string, object> model, NotificationBodyFormat format, string triggerId, string channelId, NotificationRecipient recipient) {
+        var (rendered, error) = format == NotificationBodyFormat.Html
+            ? await TemplateRenderer.RenderHtmlAsync(template, model)
+            : await TemplateRenderer.RenderTextAsync(template, model);
         if (error != null) {
-            _logger.LogWarning("Template render error for {Trigger}/{Channel} recipient {Address}: {Error}",
+            _logger.LogWarning("Template render error for {Trigger}/{Channel} body (recipient {Address}): {Error}",
                 triggerId, channelId, recipient.ChannelAddress, error);
         }
-        return text ?? template;
+        return rendered ?? template;
     }
 
     private bool _prefAllows(NotificationRecipient recipient, string triggerId, string channelId) {

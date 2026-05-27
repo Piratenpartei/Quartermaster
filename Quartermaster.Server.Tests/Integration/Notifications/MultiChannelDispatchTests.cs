@@ -111,6 +111,29 @@ public class MultiChannelDispatchTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Telegram_body_is_raw_markdown_not_html() {
+        var chapter = Builder.SeedChapter("Chapter X");
+        var (user, _) = Builder.SeedAuthenticatedUser(
+            email: "user@test.local",
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+        Db.Users.Where(u => u.Id == user.Id).Set(u => u.TelegramChatId, "555").Update();
+        Db.Insert(new SystemOption { Identifier = "messaging.telegram.bot_token", Value = "12345:ABC" });
+        Db.Insert(new UserNotificationPreference {
+            UserId = user.Id, TriggerId = "motion_submitted", ChannelId = "telegram", Enabled = true
+        });
+
+        using var host = HostWithStubBot();
+        using var client = host.CreateClient();
+        await SubmitMotion(client, chapter.Id, "Markdown Motion");
+
+        var log = Db.NotificationLogs.Single(l => l.ChannelId == "telegram");
+        await Assert.That(log.Body!.Contains("<p>")).IsFalse();
+        await Assert.That(log.Body!.Contains("<em>")).IsFalse();
+        await Assert.That(log.Body!.Contains("*Chapter X*")).IsTrue();
+        await Assert.That(log.Body!.Contains("*Markdown Motion*")).IsTrue();
+    }
+
+    [Test]
     public async Task Telegram_skipped_when_user_opted_out_even_if_linked() {
         var chapter = Builder.SeedChapter("C");
         var (user, _) = Builder.SeedAuthenticatedUser(

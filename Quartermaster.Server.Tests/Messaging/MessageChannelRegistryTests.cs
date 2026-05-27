@@ -36,6 +36,7 @@ public class MessageChannelRegistryTests {
         }
         public string Id { get; }
         public bool IsConfigured => true;
+        public NotificationBodyFormat BodyFormat => NotificationBodyFormat.Text;
         public Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default)
             => Task.FromResult(ChannelDeliveryResult.Ok());
     }

@@ -37,6 +37,8 @@ public class TelegramMessageChannel : IMessageChannel {
 
     public bool IsConfigured => _factory.CreateOrNull() != null;
 
+    public NotificationBodyFormat BodyFormat => NotificationBodyFormat.Text;
+
     public async Task<ChannelDeliveryResult> SendAsync(ChannelMessage message, CancellationToken ct = default) {
         var bot = _factory.CreateOrNull();
         if (bot == null) {

@@ -246,7 +246,7 @@ public partial class EventChecklistEditor {
                 }
 
                 var mockData = TemplateMockDataProvider.GetMockData("MemberDetailDTO");
-                var (html, error) = await TemplateRenderer.RenderAsync(templateContent, mockData);
+                var (html, error) = await TemplateRenderer.RenderHtmlAsync(templateContent, mockData);
                 PreviewCache[itemId] = html ?? $"<p class=\"text-danger\">{error}</p>";
             } catch (Exception ex) {
                 PreviewCache[itemId] = $"<p class=\"text-secondary\">Vorschau nicht verfügbar: {ex.Message}</p>";
