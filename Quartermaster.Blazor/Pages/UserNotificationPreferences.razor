@@ -1,0 +1,62 @@
+@page "/Account/Benachrichtigungen"
+@using Quartermaster.Api.Notifications
+
+<PageTitle>Benachrichtigungen</PageTitle>
+
+<h3 class="mb-3">Benachrichtigungen</h3>
+
+<p class="text-secondary">Lege fest, über welchen Kanal du bei welchen Ereignissen benachrichtigt werden möchtest. Standardmäßig sind E-Mail-Benachrichtigungen aktiviert; weitere Kanäle werden in Kürze freigeschaltet.</p>
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Data == null) {
+    <div class="alert alert-warning">Konnte Einstellungen nicht laden.</div>
+} else {
+    <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-primary btn-sm" @onclick="Save" disabled="@Saving">
+            @if (Saving) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            } else {
+                <i class="bi bi-check-circle me-1"></i>
+            }
+            Speichern
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Ereignis</th>
+                    @foreach (var ch in Data.Channels) {
+                        <th class="text-center" style="width:120px">
+                            @ch.DisplayName
+                            @if (!ch.Available) {
+                                <span class="badge bg-secondary ms-1" title="Noch nicht verfügbar">bald</span>
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var trigger in Data.Triggers) {
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">@trigger.DisplayName</div>
+                            <div class="text-secondary small">@trigger.Description</div>
+                        </td>
+                        @foreach (var ch in Data.Channels) {
+                            var key = (trigger.TriggerId, ch.ChannelId);
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input"
+                                       checked="@IsChecked(key)"
+                                       disabled="@(!ch.Available)"
+                                       @onchange="@(e => OnToggle(key, (bool)e.Value!))" />
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

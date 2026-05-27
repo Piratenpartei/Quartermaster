@@ -52,7 +52,14 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 - `due_selection_submitted`: dispatched from `DueSelectionCreateEndpoint` when the submitter's `MemberNumber` resolves to a member with a chapter; recipients hold `ProcessDueSelections`. Standalone submissions without a resolvable chapter skip the notification (handled via the linked application's own trigger when bundled).
 - Templates + mock data + DI registration in place. Resolver smoke tests + 3 integration tests per trigger.
 
-**Phase 3:** Per-user channel preferences. New `UserNotificationPreference(UserId, TriggerId, ChannelId, Enabled)` table; dispatcher consults before fanning out (default: email-on for every trigger). New `/Account/Benachrichtigungen` Blazor page.
+**Phase 3: shipped (2026-05-27).** Per-user channel preferences.
+- `UserNotificationPreference(UserId, TriggerId, ChannelId, Enabled)` table with composite PK + cascade-delete FK to User (folded into M001).
+- `UserNotificationPreferenceRepository` with `IsEnabled(default)` lookup and atomic `Replace` (delete + inserts in one transaction).
+- `NotificationTriggerCatalog` + `NotificationChannelCatalog` + `NotificationDefaults` for the per-channel "on by default?" answer (smtp on, others off until their underlying flow lands).
+- `NotificationDispatcher` consults the repo per (recipient, trigger) before sending; anonymous recipients (no userId) fall back to channel default.
+- `GET /api/users/notification-preferences` returns the full matrix (catalog × channels × cells with effective values); `PUT` replaces the caller's overrides (unknown trigger/channel ids silently dropped).
+- Blazor `/Account/Benachrichtigungen` page — table with one row per trigger, one checkbox per channel; channels marked `Available = false` render disabled with a "bald" badge. Nav bell-icon next to the shield-lock.
+- Tests: 5 repo, 6 endpoint, 3 dispatcher-gating integration.
 
 **Phase 4:** Replace v1 raw-HTTP `TelegramMessageChannel` with `Telegram.Bot` NuGet + a long-polling `TelegramReceiverBackgroundService` for the `/start <link-token>` deeplink flow. New `TelegramLinkToken` table; account-page UI to start the link. Switches outbound to `ITelegramBotClient.SendTextMessageAsync` for the package's rate-limiting / retry.
 

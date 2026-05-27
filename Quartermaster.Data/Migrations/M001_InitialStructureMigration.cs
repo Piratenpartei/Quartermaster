@@ -440,6 +440,24 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(NotificationLog.SentAt)).AsDateTime().Nullable()
             .WithColumn(nameof(NotificationLog.Body)).AsCustom("TEXT").Nullable();
 
+        Create.Table(UserNotificationPreference.TableName)
+            .WithColumn(nameof(UserNotificationPreference.UserId)).AsGuid()
+            .WithColumn(nameof(UserNotificationPreference.TriggerId)).AsString(64)
+            .WithColumn(nameof(UserNotificationPreference.ChannelId)).AsString(32)
+            .WithColumn(nameof(UserNotificationPreference.Enabled)).AsBoolean();
+
+        Create.PrimaryKey("PK_UserNotificationPreferences")
+            .OnTable(UserNotificationPreference.TableName)
+            .Columns(
+                nameof(UserNotificationPreference.UserId),
+                nameof(UserNotificationPreference.TriggerId),
+                nameof(UserNotificationPreference.ChannelId));
+
+        Create.ForeignKey("FK_UserNotificationPreferences_UserId_User_Id")
+            .FromTable(UserNotificationPreference.TableName).ForeignColumn(nameof(UserNotificationPreference.UserId))
+            .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
+            .OnDelete(Rule.Cascade);
+
         Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
             .WithColumn("EntityType").AsString(64)
@@ -654,6 +672,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(AdministrativeDivision.TableName);
         DropTableIfExists(Permission.TableName);
 
+        DropTableIfExists(UserNotificationPreference.TableName);
         DropTableIfExists(NotificationLog.TableName);
         DropTableIfExists(AuditEntry.TableName);
         DropTableIfExists(LoginAttempt.TableName);

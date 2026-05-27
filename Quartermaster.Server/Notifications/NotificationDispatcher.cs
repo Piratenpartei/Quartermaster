@@ -6,24 +6,23 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Rendering;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.Messaging;
 
 namespace Quartermaster.Server.Notifications;
 
 /// <summary>
-/// Phase-1 dispatcher. For a given trigger, looks up the recipient resolver, renders
-/// the email template (subject + body) once per recipient with the per-recipient model,
-/// and hands the rendered message to the email channel.
-/// <para>
-/// Per-user channel preferences and multi-channel fanout arrive in Phase 3 / 4.
-/// </para>
+/// Resolves recipients for a trigger, renders the email template per recipient, consults
+/// each user's preferences, and hands accepted messages to the email channel. Phase 3
+/// gates email per (user, trigger); Phase 4 will fan out to additional channels.
 /// </summary>
 public class NotificationDispatcher {
     private readonly Dictionary<string, IRecipientResolver> _resolvers;
     private readonly EmailMessageChannel _emailChannel;
     private readonly OptionRepository _optionRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly UserNotificationPreferenceRepository _prefRepo;
     private readonly ILogger<NotificationDispatcher> _logger;
 
     public NotificationDispatcher(
@@ -31,11 +30,13 @@ public class NotificationDispatcher {
         EmailMessageChannel emailChannel,
         OptionRepository optionRepo,
         ChapterRepository chapterRepo,
+        UserNotificationPreferenceRepository prefRepo,
         ILogger<NotificationDispatcher> logger) {
         _resolvers = resolvers.ToDictionary(r => r.TriggerId, r => r);
         _emailChannel = emailChannel;
         _optionRepo = optionRepo;
         _chapterRepo = chapterRepo;
+        _prefRepo = prefRepo;
         _logger = logger;
     }
 
@@ -74,6 +75,9 @@ public class NotificationDispatcher {
         }
 
         foreach (var recipient in recipients) {
+            if (!IsEmailEnabledFor(recipient, triggerId))
+                continue;
+
             var model = modelFactory(recipient);
             var (renderedSubject, subjectError) = await TemplateRenderer.RenderAsync(subjectTemplate, model);
             var (renderedBody, bodyError) = await TemplateRenderer.RenderAsync(bodyTemplate, model);
@@ -98,5 +102,17 @@ public class NotificationDispatcher {
                 SourceEntityId: sourceEntityId,
                 Metadata: metadata), ct);
         }
+    }
+
+    /// <summary>
+    /// Anonymous recipients (no user id) follow the channel default; identified users
+    /// follow their explicit override, or the default when none is set.
+    /// </summary>
+    private bool IsEmailEnabledFor(NotificationRecipient recipient, string triggerId) {
+        var channelId = EmailMessageChannel.ChannelId;
+        var defaultValue = NotificationDefaults.IsEnabledByDefault(channelId);
+        if (recipient.UserId == null)
+            return defaultValue;
+        return _prefRepo.IsEnabled(recipient.UserId.Value, triggerId, channelId, defaultValue);
     }
 }
