@@ -42,7 +42,7 @@ public class TelegramLinkStartEndpoint : EndpointWithoutRequest<TelegramLinkStar
         var botUsername = _factory.GetBotUsername();
         var deeplink = string.IsNullOrEmpty(botUsername)
             ? null
-            : $"https://t.me/{botUsername}?start={token.Token}";
+            : $"https://t.me/{botUsername}";
         await SendAsync(new TelegramLinkStartDTO {
             Token = token.Token,
             ExpiresAt = token.ExpiresAt,

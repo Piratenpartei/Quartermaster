@@ -1,21 +1,29 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Notifications;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages;
 
-public partial class UserNotificationPreferences {
+public partial class UserNotificationPreferences : IDisposable {
+    private static readonly TimeSpan LinkPollInterval = TimeSpan.FromSeconds(5);
+
     [Inject]
     public required HttpClient Http { get; set; }
 
     [Inject]
     public required ToastService ToastService { get; set; }
+
+    [Inject]
+    public required IJSRuntime JS { get; set; }
 
     private NotificationPreferencesDTO? Data;
     private Dictionary<(string TriggerId, string ChannelId), bool> _state = new();
@@ -25,6 +33,9 @@ public partial class UserNotificationPreferences {
     private TelegramLinkStatusDTO? TelegramStatus;
     private TelegramLinkStartDTO? TelegramLinkStart;
     private bool TelegramBusy;
+    private bool LinkCommandCopied;
+    private Timer? _linkPollTimer;
+    private string LinkCommand => TelegramLinkStart == null ? "" : $"/link {TelegramLinkStart.Token}";
 
     protected override async Task OnInitializedAsync() {
         await Task.WhenAll(Load(), LoadTelegramStatus());
@@ -58,6 +69,7 @@ public partial class UserNotificationPreferences {
             var resp = await Http.PostAsync("/api/users/telegram-link", null);
             if (resp.IsSuccessStatusCode) {
                 TelegramLinkStart = await resp.Content.ReadFromJsonAsync<TelegramLinkStartDTO>();
+                StartLinkPolling();
             } else {
                 await ToastService.ErrorAsync(resp);
             }
@@ -70,7 +82,49 @@ public partial class UserNotificationPreferences {
     }
 
     private void CancelLinkStart() {
+        StopLinkPolling();
         TelegramLinkStart = null;
+        LinkCommandCopied = false;
+    }
+
+    private async Task CopyLinkCommand() {
+        if (TelegramLinkStart == null) {
+            return;
+        }
+        try {
+            var ok = await JS.InvokeAsync<bool>("CopyToClipboard", LinkCommand);
+            if (ok) {
+                LinkCommandCopied = true;
+                StateHasChanged();
+            }
+        } catch (JSException ex) {
+            ToastService.Error(ex);
+        }
+    }
+
+    /// <summary>Triggered by the manual "Check Link" button and the background timer.</summary>
+    private async Task CheckLinkStatus() {
+        await LoadTelegramStatus();
+        if (TelegramStatus?.Linked == true) {
+            StopLinkPolling();
+            TelegramLinkStart = null;
+            LinkCommandCopied = false;
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            await Load();
+            StateHasChanged();
+        }
+    }
+
+    private void StartLinkPolling() {
+        _linkPollTimer?.Dispose();
+        _linkPollTimer = new Timer(_ => {
+            _ = InvokeAsync(CheckLinkStatus);
+        }, null, LinkPollInterval, LinkPollInterval);
+    }
+
+    private void StopLinkPolling() {
+        _linkPollTimer?.Dispose();
+        _linkPollTimer = null;
     }
 
     private async Task Unlink() {
@@ -81,6 +135,7 @@ public partial class UserNotificationPreferences {
             if (resp.IsSuccessStatusCode) {
                 TelegramStatus = new TelegramLinkStatusDTO { Linked = false };
                 ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                await Load();
             } else {
                 await ToastService.ErrorAsync(resp);
             }
@@ -122,5 +177,9 @@ public partial class UserNotificationPreferences {
             Saving = false;
             StateHasChanged();
         }
+    }
+
+    public void Dispose() {
+        StopLinkPolling();
     }
 }

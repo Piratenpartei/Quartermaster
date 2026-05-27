@@ -44,13 +44,15 @@ public class TelegramReceiverBackgroundService : BackgroundService {
     }
 
     private async Task<int> PollOnceAsync(int offset, CancellationToken ct) {
-        using var scope = _scopeFactory.CreateScope();
-        var factory = scope.ServiceProvider.GetRequiredService<TelegramBotClientFactory>();
-        var bot = factory.CreateOrNull();
+        ITelegramBotClient? bot;
+        using (var lookupScope = _scopeFactory.CreateScope()) {
+            bot = lookupScope.ServiceProvider.GetRequiredService<TelegramBotClientFactory>().CreateOrNull();
+        }
         if (bot == null) {
             await Task.Delay(RetryDelay, ct);
             return offset;
         }
+
         var updates = await bot.GetUpdates(
             offset: offset,
             timeout: LongPollSeconds,
@@ -59,7 +61,9 @@ public class TelegramReceiverBackgroundService : BackgroundService {
         if (updates.Length == 0) {
             return offset;
         }
-        var handler = scope.ServiceProvider.GetRequiredService<TelegramUpdateHandler>();
+
+        using var handlerScope = _scopeFactory.CreateScope();
+        var handler = handlerScope.ServiceProvider.GetRequiredService<TelegramUpdateHandler>();
         var now = DateTime.UtcNow;
         foreach (var update in updates) {
             if (update.Id >= offset) {

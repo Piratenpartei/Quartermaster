@@ -11,6 +11,16 @@
     transition: 0.3s;
 }
 
+.btn-hover-scale1 {
+    transform: scale(1);
+    transition: transform 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.btn-hover-scale1:hover {
+    transform: scale(1.05);
+    background-color: var(--bs-secondary-bg);
+}
+
 .hover-interact.qm-bg-body {
     background-color: var(--bs-body-bg);
     transition: 0.3s;

@@ -18,8 +18,10 @@ public class NotificationTriggerDescriptorDTO {
 public class NotificationChannelDescriptorDTO {
     public string ChannelId { get; set; } = "";
     public string DisplayName { get; set; } = "";
-    /// <summary>False when the channel exists but isn't yet wired (Phase 4 / PDF rendering).</summary>
+    /// <summary>False when this channel can't be enabled for the calling user (e.g. missing email address).</summary>
     public bool Available { get; set; }
+    /// <summary>German reason shown to the user when <see cref="Available"/> is false. Null when available.</summary>
+    public string? UnavailableReason { get; set; }
 }
 
 public class NotificationPreferenceCellDTO {

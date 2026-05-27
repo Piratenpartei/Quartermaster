@@ -13,7 +13,7 @@ namespace Quartermaster.Data.Notifications;
 /// </summary>
 public class TelegramLinkTokenRepository {
     /// <summary>Tokens older than this are considered expired and refused on consume.</summary>
-    public static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(30);
+    public static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(10);
 
     private readonly DbContext _context;
 

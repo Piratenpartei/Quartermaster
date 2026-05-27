@@ -17,6 +17,7 @@ namespace Quartermaster.Server.Notifications.Telegram;
 /// </summary>
 public class TelegramUpdateHandler {
     private const string StartCommand = "/start";
+    private const string LinkCommand = "/link";
 
     private readonly TelegramLinkTokenRepository _tokenRepo;
     private readonly ILogger<TelegramUpdateHandler> _logger;
@@ -32,22 +33,29 @@ public class TelegramUpdateHandler {
         }
         var text = update.Message.Text.Trim();
         var chatId = update.Message.Chat.Id;
+
+        if (text.StartsWith(LinkCommand, StringComparison.Ordinal)) {
+            await HandleLinkAsync(bot, chatId, text, now, ct);
+            return;
+        }
         if (text.StartsWith(StartCommand, StringComparison.Ordinal)) {
-            await HandleStartAsync(bot, chatId, text, now, ct);
+            await ReplyAsync(bot, chatId,
+                "Willkommen bei Quartermaster! Um deinen Telegram-Account zu verknüpfen, sende /link <Token>. Den Token findest du in deinem Quartermaster-Account unter Benachrichtigungen.",
+                ct);
             return;
         }
         await ReplyAsync(bot, chatId,
-            "Hallo! Benutze /start <Token>, um deinen Telegram-Account mit Quartermaster zu verknüpfen. Den Token findest du in deinem Account unter Benachrichtigungen.",
+            "Hallo! Benutze /link <Token>, um deinen Telegram-Account mit Quartermaster zu verknüpfen. Den Token findest du in deinem Account unter Benachrichtigungen.",
             ct);
     }
 
-    private async Task HandleStartAsync(ITelegramBotClient bot, long chatId, string text, DateTime now, CancellationToken ct) {
-        var token = text.Length > StartCommand.Length
-            ? text.Substring(StartCommand.Length).Trim()
+    private async Task HandleLinkAsync(ITelegramBotClient bot, long chatId, string text, DateTime now, CancellationToken ct) {
+        var token = text.Length > LinkCommand.Length
+            ? text.Substring(LinkCommand.Length).Trim()
             : "";
         if (string.IsNullOrEmpty(token)) {
             await ReplyAsync(bot, chatId,
-                "Bitte einen Link-Token mitschicken: /start <Token>. Den findest du in deinem Quartermaster-Account unter Benachrichtigungen.",
+                "Bitte einen Link-Token mitschicken: /link <Token>. Den findest du in deinem Quartermaster-Account unter Benachrichtigungen.",
                 ct);
             return;
         }

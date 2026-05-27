@@ -51,12 +51,12 @@ public class TelegramUpdateHandlerTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Start_with_valid_token_links_user_and_replies() {
+    public async Task Link_with_valid_token_links_user_and_replies() {
         var user = _builder.SeedUser();
         var now = new DateTime(2026, 5, 27, 12, 0, 0, DateTimeKind.Utc);
         var token = _tokenRepo.Create(user.Id, now);
 
-        await _handler.HandleAsync(_bot, StartUpdate(555, $"/start {token.Token}"), now, CancellationToken.None);
+        await _handler.HandleAsync(_bot, StartUpdate(555, $"/link {token.Token}"), now, CancellationToken.None);
 
         var updatedUser = Db.Users.Single(u => u.Id == user.Id);
         await Assert.That(updatedUser.TelegramChatId).IsEqualTo("555");
@@ -65,11 +65,11 @@ public class TelegramUpdateHandlerTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Start_with_unknown_token_does_not_link_user() {
+    public async Task Link_with_unknown_token_does_not_link_user() {
         var user = _builder.SeedUser();
         var now = new DateTime(2026, 5, 27, 12, 0, 0, DateTimeKind.Utc);
 
-        await _handler.HandleAsync(_bot, StartUpdate(555, "/start bogustoken"), now, CancellationToken.None);
+        await _handler.HandleAsync(_bot, StartUpdate(555, "/link bogustoken"), now, CancellationToken.None);
 
         var updatedUser = Db.Users.Single(u => u.Id == user.Id);
         await Assert.That(updatedUser.TelegramChatId).IsNull();
@@ -77,12 +77,27 @@ public class TelegramUpdateHandlerTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Start_without_token_replies_with_help() {
+    public async Task Link_without_token_replies_with_help() {
         var now = new DateTime(2026, 5, 27, 12, 0, 0, DateTimeKind.Utc);
 
-        await _handler.HandleAsync(_bot, StartUpdate(555, "/start"), now, CancellationToken.None);
+        await _handler.HandleAsync(_bot, StartUpdate(555, "/link"), now, CancellationToken.None);
 
         await Assert.That(_httpHandler.Requests.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Start_replies_with_welcome_and_does_not_link() {
+        var user = _builder.SeedUser();
+        var now = new DateTime(2026, 5, 27, 12, 0, 0, DateTimeKind.Utc);
+        var token = _tokenRepo.Create(user.Id, now);
+
+        await _handler.HandleAsync(_bot, StartUpdate(555, $"/start {token.Token}"), now, CancellationToken.None);
+
+        var updatedUser = Db.Users.Single(u => u.Id == user.Id);
+        await Assert.That(updatedUser.TelegramChatId).IsNull();
+        await Assert.That(_httpHandler.Requests.Count).IsEqualTo(1);
+        var unconsumedToken = _tokenRepo.Get(token.Token);
+        await Assert.That(unconsumedToken!.ConsumedAt).IsNull();
     }
 
     [Test]

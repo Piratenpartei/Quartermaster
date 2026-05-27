@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
-using Quartermaster.Blazor.Services;
-using Quartermaster.Blazor.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Layout;
 
-public partial class MainLayout {
+public partial class MainNavBar : IDisposable {
     private bool Collapsed = true;
 
     [Inject]
@@ -15,7 +15,7 @@ public partial class MainLayout {
     public required IJSRuntime JS { get; set; }
 
     [Inject]
-    public required Services.ClientConfigService ConfigService { get; set; }
+    public required ClientConfigService ConfigService { get; set; }
 
     [Inject]
     public required AuthService AuthService { get; set; }

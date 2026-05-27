@@ -11,6 +11,90 @@ namespace Quartermaster.Server.Tests.Integration.Notifications;
 
 public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
     [Test]
+    public async Task GET_marks_email_unavailable_when_user_has_no_address() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+        Db.Users.Where(u => u.Id == user.Id).Set(u => u.Email, "").Update();
+
+        using var client = AuthenticatedClient(token);
+        var dto = await client.GetFromJsonAsync<NotificationPreferencesDTO>("/api/users/notification-preferences");
+
+        var emailChannel = dto!.Channels.Single(c => c.ChannelId == "email");
+        await Assert.That(emailChannel.Available).IsFalse();
+        await Assert.That(emailChannel.UnavailableReason).IsEqualTo("Keine E-Mail-Adresse hinterlegt");
+
+        var emailCells = dto.Cells.Where(c => c.ChannelId == "email").ToList();
+        await Assert.That(emailCells.All(c => !c.Enabled)).IsTrue();
+    }
+
+    [Test]
+    public async Task GET_marks_telegram_unavailable_when_user_not_linked() {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+
+        using var client = AuthenticatedClient(token);
+        var dto = await client.GetFromJsonAsync<NotificationPreferencesDTO>("/api/users/notification-preferences");
+
+        var telegramChannel = dto!.Channels.Single(c => c.ChannelId == "telegram");
+        await Assert.That(telegramChannel.Available).IsFalse();
+        await Assert.That(telegramChannel.UnavailableReason).IsEqualTo("Telegram-Konto nicht verknüpft");
+
+        var telegramCells = dto.Cells.Where(c => c.ChannelId == "telegram").ToList();
+        await Assert.That(telegramCells.All(c => !c.Enabled)).IsTrue();
+    }
+
+    [Test]
+    public async Task GET_marks_telegram_available_once_user_is_linked() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+        Db.Users.Where(u => u.Id == user.Id).Set(u => u.TelegramChatId, "12345").Update();
+
+        using var client = AuthenticatedClient(token);
+        var dto = await client.GetFromJsonAsync<NotificationPreferencesDTO>("/api/users/notification-preferences");
+
+        var telegramChannel = dto!.Channels.Single(c => c.ChannelId == "telegram");
+        await Assert.That(telegramChannel.Available).IsTrue();
+        await Assert.That(telegramChannel.UnavailableReason).IsNull();
+    }
+
+    [Test]
+    public async Task PUT_drops_telegram_cells_when_user_not_linked() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var req = new UpdateNotificationPreferencesRequest {
+            Cells = new() {
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = true },
+                new() { TriggerId = "motion_submitted", ChannelId = "telegram", Enabled = true }
+            }
+        };
+        await client.PutAsJsonAsync("/api/users/notification-preferences", req);
+
+        var rows = Db.UserNotificationPreferences.Where(p => p.UserId == user.Id).ToList();
+        await Assert.That(rows.Count).IsEqualTo(1);
+        await Assert.That(rows[0].ChannelId).IsEqualTo("email");
+    }
+
+    [Test]
+    public async Task PUT_drops_email_cells_when_user_has_no_address() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+        Db.Users.Where(u => u.Id == user.Id)
+            .Set(u => u.Email, "")
+            .Set(u => u.TelegramChatId, "12345")
+            .Update();
+
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var req = new UpdateNotificationPreferencesRequest {
+            Cells = new() {
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = true },
+                new() { TriggerId = "motion_submitted", ChannelId = "telegram", Enabled = true }
+            }
+        };
+        await client.PutAsJsonAsync("/api/users/notification-preferences", req);
+
+        var rows = Db.UserNotificationPreferences.Where(p => p.UserId == user.Id).ToList();
+        await Assert.That(rows.Count).IsEqualTo(1);
+        await Assert.That(rows[0].ChannelId).IsEqualTo("telegram");
+    }
+
+    [Test]
     public async Task GET_returns_401_when_anonymous() {
         using var client = AnonymousClient();
         var response = await client.GetAsync("/api/users/notification-preferences");
@@ -28,10 +112,11 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
         var dto = await response.Content.ReadFromJsonAsync<NotificationPreferencesDTO>();
         await Assert.That(dto).IsNotNull();
         await Assert.That(dto!.Triggers.Count).IsGreaterThanOrEqualTo(3);
-        await Assert.That(dto.Channels.Count).IsGreaterThanOrEqualTo(3);
+        await Assert.That(dto.Channels.Count).IsEqualTo(2);
+        await Assert.That(dto.Channels.Any(c => c.ChannelId == "pdf")).IsFalse();
         await Assert.That(dto.Cells.Count).IsEqualTo(dto.Triggers.Count * dto.Channels.Count);
 
-        // Defaults: smtp on for everything, others off.
+        // Defaults: email on for everything, others off.
         foreach (var cell in dto.Cells) {
             var expected = cell.ChannelId == "email";
             await Assert.That(cell.Enabled).IsEqualTo(expected);
@@ -73,6 +158,24 @@ public class NotificationPreferencesEndpointsTests : IntegrationTestBase {
         await Assert.That(aliceRows.Count).IsEqualTo(2);
         var bobRows = Db.UserNotificationPreferences.Where(p => p.UserId == bob.Id).ToList();
         await Assert.That(bobRows.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task PUT_drops_non_user_selectable_channels() {
+        var (user, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var req = new UpdateNotificationPreferencesRequest {
+            Cells = new() {
+                new() { TriggerId = "motion_submitted", ChannelId = "email", Enabled = true },
+                new() { TriggerId = "motion_submitted", ChannelId = "pdf", Enabled = true }
+            }
+        };
+        await client.PutAsJsonAsync("/api/users/notification-preferences", req);
+
+        var rows = Db.UserNotificationPreferences.Where(p => p.UserId == user.Id).ToList();
+        await Assert.That(rows.Count).IsEqualTo(1);
+        await Assert.That(rows[0].ChannelId).IsEqualTo("email");
     }
 
     [Test]

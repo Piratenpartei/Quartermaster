@@ -22,18 +22,40 @@
                 Verknüpfung aufheben
             </button>
         } else if (TelegramLinkStart != null) {
-            @if (!string.IsNullOrEmpty(TelegramLinkStart.Deeplink)) {
-                <p class="mb-2">Öffne den folgenden Link in Telegram und sende dort <code>/start @TelegramLinkStart.Token</code>:</p>
-                <a class="btn btn-primary btn-sm me-2" href="@TelegramLinkStart.Deeplink" target="_blank" rel="noopener">
-                    <i class="bi bi-telegram me-1"></i>
-                    In Telegram öffnen
-                </a>
+            <ol class="mb-2 ps-3">
+                <li>
+                    @if (!string.IsNullOrEmpty(TelegramLinkStart.Deeplink)) {
+                        <span>
+                            Öffne den Bot in Telegram:
+                            <a href="@TelegramLinkStart.Deeplink" target="_blank" rel="noopener">@@@TelegramLinkStart.BotUsername</a>
+                        </span>
+                    } else {
+                        <span>Öffne den Quartermaster-Bot in Telegram.</span>
+                    }
+                </li>
+                <li>Drücke im Bot-Chat den <strong>Start</strong>-Knopf.</li>
+                <li>
+                    Sende anschließend folgenden Befehl:
+                    <div class="input-group input-group-sm mt-1" style="max-width: 420px;">
+                        <input type="text" class="form-control font-monospace" readonly value="@LinkCommand" />
+                        <button class="btn btn-outline-secondary btn-hover-scale1" type="button" @onclick="CopyLinkCommand" title="In die Zwischenablage kopieren">
+                            @if (LinkCommandCopied) {
+                                <i class="bi bi-check2"></i>
+                            } else {
+                                <i class="bi bi-clipboard"></i>
+                            }
+                        </button>
+                    </div>
+                </li>
+            </ol>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="CheckLinkStatus" title="Verknüpfung prüfen">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Verknüpfung prüfen
+                </button>
                 <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">Abbrechen</button>
-            } else {
-                <p class="mb-2">Kein Telegram-Bot-Benutzername konfiguriert. Bitte den folgenden Token im Bot-Chat schicken: <code>/start @TelegramLinkStart.Token</code></p>
-                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">Abbrechen</button>
-            }
-            <div class="text-secondary small mt-2">Gültig bis @TelegramLinkStart.ExpiresAt.ToLocalTime().ToString("HH:mm")</div>
+            </div>
+            <div class="text-secondary small mt-2">Gültig bis @TelegramLinkStart.ExpiresAt.ToLocalTime().ToString("HH:mm") — automatische Prüfung alle 5 Sekunden</div>
         } else {
             <p class="text-secondary mb-2">Verknüpfe deinen Telegram-Account, um Benachrichtigungen dort zu erhalten.</p>
             <button class="btn btn-primary btn-sm" @onclick="StartLink" disabled="@TelegramBusy">
@@ -68,8 +90,8 @@
                     @foreach (var ch in Data.Channels) {
                         <th class="text-center" style="width:120px">
                             @ch.DisplayName
-                            @if (!ch.Available) {
-                                <span class="badge bg-secondary ms-1" title="Noch nicht verfügbar">bald</span>
+                            @if (!ch.Available && !string.IsNullOrEmpty(ch.UnavailableReason)) {
+                                <div class="text-secondary small fw-normal" title="@ch.UnavailableReason">@ch.UnavailableReason</div>
                             }
                         </th>
                     }

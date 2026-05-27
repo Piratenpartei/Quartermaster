@@ -50,7 +50,7 @@ public class TelegramLinkEndpointsTests : IntegrationTestBase {
         var dto = await response.Content.ReadFromJsonAsync<TelegramLinkStartDTO>();
 
         await Assert.That(dto!.Token.Length).IsGreaterThan(20);
-        await Assert.That(dto.Deeplink).IsEqualTo($"https://t.me/QuartermasterBot?start={dto.Token}");
+        await Assert.That(dto.Deeplink).IsEqualTo("https://t.me/QuartermasterBot");
         await Assert.That(dto.BotUsername).IsEqualTo("QuartermasterBot");
         await Assert.That(dto.ExpiresAt > DateTime.UtcNow).IsTrue();
 
