@@ -31,19 +31,36 @@ public partial class ChapterPicker {
     [Parameter]
     public string SizeClass { get; set; } = "";
 
+    /// <summary>Chapter ids to hide from the selectable list (e.g. the chapter being edited to prevent self-as-parent).</summary>
+    [Parameter]
+    public List<Guid>? ExcludeIds { get; set; }
+
     private static List<ChapterDTO>? _cachedChapters;
 
     private List<ChapterDTO>? Chapters;
     private string SearchText = "";
     private bool ShowDropdown;
 
+    private List<ChapterDTO> VisibleChapters {
+        get {
+            if (Chapters == null) {
+                return new();
+            }
+            if (ExcludeIds == null || ExcludeIds.Count == 0) {
+                return Chapters;
+            }
+            var excluded = new HashSet<Guid>(ExcludeIds);
+            return Chapters.Where(c => !excluded.Contains(c.Id)).ToList();
+        }
+    }
+
     private List<ChapterDTO> FilteredChapters {
         get {
-            if (Chapters == null)
-                return new();
-            if (string.IsNullOrWhiteSpace(SearchText))
-                return Chapters;
-            return Chapters.Where(c =>
+            var source = VisibleChapters;
+            if (string.IsNullOrWhiteSpace(SearchText)) {
+                return source;
+            }
+            return source.Where(c =>
                 c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || (c.ShortCode != null && c.ShortCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
                 || (c.ExternalCode != null && c.ExternalCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase))

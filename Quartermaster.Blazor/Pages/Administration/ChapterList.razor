@@ -1,8 +1,14 @@
 @page "/Administration/Chapters"
+@using Quartermaster.Api
 @using Quartermaster.Api.Chapters
 
 <PageHeader Title="Gliederungen - Liste">
     <Actions>
+        <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
+            <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary btn-hover-scale1">
+                <i class="bi bi-plus-lg"></i> Neue Gliederung
+            </a>
+        </RequirePermission>
         <a href="/Administration/ChapterTree" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-diagram-3"></i> Struktur
         </a>

@@ -9,6 +9,8 @@ public static class PermissionIdentifier {
     public static readonly string DeleteUsers = "users_delete";
 
     public static readonly string CreateChapter = "chapters_create";
+    public static readonly string EditChapter = "chapters_edit";
+    public static readonly string DeleteChapter = "chapters_delete";
 
     public static readonly string ViewOptions = "options_view";
     public static readonly string EditOptions = "options_edit";

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -23,16 +25,28 @@ public partial class ChapterDetail {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required NavigationManager Navigation { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
 
     private ChapterDetailResponse? Detail;
     private bool Loading = true;
+    private bool Editing;
+    private bool Saving;
+
+    private string EditName = "";
+    private string EditShortCode = "";
+    private string EditExternalCode = "";
+    private string EditParentChapterId = "";
+
+    private ConfirmDialog DeleteConfirm = default!;
 
     protected override async Task OnParametersSetAsync() {
         Loading = true;
         Detail = null;
+        Editing = false;
 
         try {
             Detail = await Http.GetFromJsonAsync<ChapterDetailResponse>($"/api/chapters/{Id}");
@@ -41,6 +55,84 @@ public partial class ChapterDetail {
         }
 
         Loading = false;
+    }
+
+    private void BeginEdit() {
+        if (Detail == null) {
+            return;
+        }
+        EditName = Detail.Chapter.Name;
+        EditShortCode = Detail.Chapter.ShortCode ?? "";
+        EditExternalCode = Detail.Chapter.ExternalCode ?? "";
+        EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
+        Editing = true;
+    }
+
+    private void CancelEdit() {
+        Editing = false;
+    }
+
+    private void OnParentChanged(string id) {
+        EditParentChapterId = id;
+    }
+
+    private async Task SaveEdit() {
+        if (Detail == null) {
+            return;
+        }
+        Saving = true;
+        StateHasChanged();
+        try {
+            var req = new ChapterUpdateRequest {
+                Name = EditName.Trim(),
+                ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
+                ExternalCode = string.IsNullOrWhiteSpace(EditExternalCode) ? null : EditExternalCode.Trim(),
+                ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null,
+                AdministrativeDivisionId = Detail.Chapter.AdministrativeDivisionId
+            };
+            var resp = await Http.PutAsJsonAsync($"/api/chapters/{Id}", req);
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                Editing = false;
+                await ReloadDetail();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Saving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConfirmDelete() {
+        if (Detail == null) {
+            return;
+        }
+        var ok = await DeleteConfirm.ShowAsync($"Möchtest du die Gliederung „{Detail.Chapter.Name}\" wirklich löschen?");
+        if (!ok) {
+            return;
+        }
+        try {
+            var resp = await Http.DeleteAsync($"/api/chapters/{Id}");
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                Navigation.NavigateTo("/Administration/Chapters");
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+    }
+
+    private async Task ReloadDetail() {
+        try {
+            Detail = await Http.GetFromJsonAsync<ChapterDetailResponse>($"/api/chapters/{Id}");
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private static string RoleLabel(ChapterOfficerType role) => role switch {

@@ -2,12 +2,12 @@
 
 @if (Chapters == null) {
     <div class="spinner-border spinner-border-sm" role="status"></div>
-} else if (Chapters.Count <= 5) {
+} else if (VisibleChapters.Count <= 5) {
     <select class="form-select @SizeClass" value="@Value" @onchange="OnDropdownChanged">
         @if (AllowEmpty) {
             <option value="">@EmptyLabel</option>
         }
-        @foreach (var chapter in Chapters) {
+        @foreach (var chapter in VisibleChapters) {
             <option value="@chapter.Id">@chapter.Name</option>
         }
     </select>

@@ -23,6 +23,23 @@ public class ChapterRepository {
 
     public void Create(Chapter chapter) => _context.Insert(chapter);
 
+    public void Update(Chapter chapter) {
+        _context.Chapters
+            .Where(c => c.Id == chapter.Id)
+            .Set(c => c.Name, chapter.Name)
+            .Set(c => c.ShortCode, chapter.ShortCode)
+            .Set(c => c.ExternalCode, chapter.ExternalCode)
+            .Set(c => c.ParentChapterId, chapter.ParentChapterId)
+            .Set(c => c.AdministrativeDivisionId, chapter.AdministrativeDivisionId)
+            .Update();
+    }
+
+    public bool HasNonDeletedChildren(Guid chapterId)
+        => _context.Chapters.Any(c => c.ParentChapterId == chapterId && c.DeletedAt == null);
+
+    public void SoftDelete(Guid id)
+        => _context.Chapters.Where(c => c.Id == id).Set(c => c.DeletedAt, DateTime.UtcNow).Update();
+
     public List<Chapter> GetByExternalCode(string externalCode)
         => _context.Chapters.Where(c => c.ExternalCode == externalCode && c.DeletedAt == null).ToList();
 

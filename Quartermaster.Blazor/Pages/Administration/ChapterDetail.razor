@@ -1,6 +1,9 @@
 @page "/Administration/Chapters/{Id:guid}"
+@using System.Collections.Generic
+@using Quartermaster.Api
 @using Quartermaster.Api.Chapters
 @using Quartermaster.Api.ChapterAssociates
+@using Quartermaster.Blazor.Components.Inputs
 
 <PageBackLink Href="/Administration/Chapters" />
 
@@ -9,32 +12,79 @@
 } else if (Detail == null) {
     <div class="alert alert-danger">Gliederung nicht gefunden.</div>
 } else {
-    <div class="mb-3">
-        <h3>@Detail.Chapter.Name</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">@Detail.Chapter.Name</h3>
+        <div class="d-flex gap-2">
+            @if (!Editing) {
+                <RequirePermission GlobalPermission="@PermissionIdentifier.EditChapter">
+                    <button class="btn btn-sm btn-outline-primary btn-hover-scale1" @onclick="BeginEdit">
+                        <i class="bi bi-pencil me-1"></i> Bearbeiten
+                    </button>
+                </RequirePermission>
+                <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteChapter">
+                    <button class="btn btn-sm btn-outline-danger btn-hover-scale1" @onclick="ConfirmDelete" disabled="@Detail.Children.Any()"
+                            title="@(Detail.Children.Any() ? "Untergliederungen müssen zuerst gelöscht werden" : "Gliederung löschen")">
+                        <i class="bi bi-trash me-1"></i> Löschen
+                    </button>
+                </RequirePermission>
+            }
+        </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
             <h5>Details</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">Name</th><td>@Detail.Chapter.Name</td></tr>
-                    <tr><th>Kürzel</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
-                    <tr><th>Externer Code</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
-                    <tr>
-                        <th>Übergeordnete Gliederung</th>
-                        <td>
-                            @if (Detail.ParentChapterId.HasValue) {
-                                <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
-                            } else {
-                                <span>—</span>
-                            }
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
+            @if (Editing) {
+                <div class="mb-3">
+                    <label class="form-label">Name <RequiredStar /></label>
+                    <input type="text" class="form-control" @bind="EditName" @bind:event="oninput" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Kürzel</label>
+                    <input type="text" class="form-control" @bind="EditShortCode" @bind:event="oninput" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Externer Code</label>
+                    <input type="text" class="form-control" @bind="EditExternalCode" @bind:event="oninput" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Übergeordnete Gliederung</label>
+                    <ChapterPicker Value="@EditParentChapterId" ValueChanged="OnParentChanged"
+                                   AllowEmpty="true" EmptyLabel="Keine — Top-Level-Gliederung"
+                                   ExcludeIds="@(new List<Guid> { Id })" />
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary" @onclick="CancelEdit">Abbrechen</button>
+                    <button class="btn btn-primary btn-hover-scale1" @onclick="SaveEdit" disabled="@(Saving || string.IsNullOrWhiteSpace(EditName))">
+                        @if (Saving) {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        } else {
+                            <i class="bi bi-check-circle me-1"></i>
+                        }
+                        Speichern
+                    </button>
+                </div>
+            } else {
+                <div class="table-responsive">
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <tr><th style="width:200px">Name</th><td>@Detail.Chapter.Name</td></tr>
+                        <tr><th>Kürzel</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
+                        <tr><th>Externer Code</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
+                        <tr>
+                            <th>Übergeordnete Gliederung</th>
+                            <td>
+                                @if (Detail.ParentChapterId.HasValue) {
+                                    <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
+                                } else {
+                                    <span>—</span>
+                                }
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            }
         </div>
     </div>
 
@@ -89,3 +139,5 @@
         </div>
     }
 }
+
+<ConfirmDialog @ref="DeleteConfirm" Title="Gliederung löschen" ConfirmText="Löschen" />
