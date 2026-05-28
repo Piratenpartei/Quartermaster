@@ -116,7 +116,9 @@ public class MembershipApplicationDetailEndpoint
             SubmittedAt = app.SubmittedAt,
             Status = app.Status,
             ProcessedAt = app.ProcessedAt,
-            LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id
+            LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id,
+            MemberNumber = app.MemberNumber,
+            WelcomeSentAt = app.WelcomeSentAt
         }, cancellation: ct);
     }
 }

@@ -7,6 +7,7 @@ using Quartermaster.Api.DueSelector;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.DueSelector;
 
 namespace Quartermaster.Server.Admin;
 
@@ -18,12 +19,15 @@ public class DueSelectionProcessRequest {
 public class DueSelectionProcessEndpoint : Endpoint<DueSelectionProcessRequest> {
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MembershipApplicationRepository _applicationRepo;
+    private readonly DueSelectionMailService _mailService;
     private readonly PermissionContext _perms;
 
     public DueSelectionProcessEndpoint(DueSelectionRepository dueSelectionRepo,
-        MembershipApplicationRepository applicationRepo, PermissionContext perms) {
+        MembershipApplicationRepository applicationRepo, DueSelectionMailService mailService,
+        PermissionContext perms) {
         _dueSelectionRepo = dueSelectionRepo;
         _applicationRepo = applicationRepo;
+        _mailService = mailService;
         _perms = perms;
     }
 
@@ -62,6 +66,12 @@ public class DueSelectionProcessEndpoint : Endpoint<DueSelectionProcessRequest> 
         }
 
         _dueSelectionRepo.UpdateStatus(req.Id, req.Status, null);
+
+        var updated = _dueSelectionRepo.Get(req.Id);
+        if (updated != null) {
+            await _mailService.SendDueSelectionDecisionAsync(updated, ct);
+        }
+
         await SendOkAsync(ct);
     }
 }

@@ -27,4 +27,6 @@ public class MembershipApplicationDetailDTO {
     public ApplicationStatus Status { get; set; }
     public DateTime? ProcessedAt { get; set; }
     public Guid? LinkedMotionId { get; set; }
+    public int? MemberNumber { get; set; }
+    public DateTime? WelcomeSentAt { get; set; }
 }

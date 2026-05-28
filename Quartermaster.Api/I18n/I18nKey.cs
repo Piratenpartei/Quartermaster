@@ -195,6 +195,9 @@ public static class I18nKey {
                 public const string CityMaxLength = "error.admin.application.city_max_length";
                 public const string BodyMaxLength = "error.admin.application.body_max_length";
                 public const string DeclarationRequired = "error.admin.application.declaration_required";
+                public const string MemberNumberRequired = "error.admin.application.member_number_required";
+                public const string NotApprovedForWelcome = "error.admin.application.not_approved_for_welcome";
+                public const string WelcomeAlreadySent = "error.admin.application.welcome_already_sent";
             }
 
             public static class DueSelection {
@@ -255,6 +258,7 @@ public static class I18nKey {
             public const string LoginFailedGeneric = "ui.toast.login.failed_generic";
             public const string SessionRevoked = "ui.toast.session.revoked";
             public const string SessionOthersRevoked = "ui.toast.session.others_revoked";
+            public const string WelcomeMailSent = "ui.toast.membership_application.welcome_sent";
         }
 
         public static class Error {

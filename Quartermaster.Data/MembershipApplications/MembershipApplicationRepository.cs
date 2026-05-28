@@ -68,6 +68,17 @@ public class MembershipApplicationRepository {
         tx.Commit();
     }
 
+    public void SetMemberNumberAndWelcome(Guid id, int memberNumber, DateTime sentAt) {
+        using var tx = _context.BeginTransaction();
+        _context.MembershipApplications
+            .Where(a => a.Id == id)
+            .Set(a => a.MemberNumber, (int?)memberNumber)
+            .Set(a => a.WelcomeSentAt, (DateTime?)sentAt)
+            .Update();
+        _auditLog.LogFieldChange("MembershipApplication", id, "MemberNumber", null, memberNumber.ToString());
+        tx.Commit();
+    }
+
     public void SoftDelete(Guid id) {
         _context.MembershipApplications.Where(x => x.Id == id).Set(x => x.DeletedAt, DateTime.UtcNow).Update();
         _auditLog.LogSoftDeleted("MembershipApplication", id);

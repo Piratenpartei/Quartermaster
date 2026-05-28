@@ -31,6 +31,9 @@ using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Rendering;
+using Quartermaster.Server.DueSelector;
+using Quartermaster.Server.MembershipApplications;
+using Quartermaster.Server.Motions;
 using Quartermaster.Server.Submissions;
 using Quartermaster.Server.Events;
 using Quartermaster.Server.Meetings;
@@ -152,6 +155,9 @@ public partial class Program {
         builder.Services.AddScoped<SubmissionConfirmationEmailService>();
         builder.Services.AddScoped<SubmissionIntakeService>();
         builder.Services.AddScoped<SubmissionMaterializer>();
+        builder.Services.AddScoped<MembershipApplicationMailService>();
+        builder.Services.AddScoped<DueSelectionMailService>();
+        builder.Services.AddScoped<MotionResolutionDecisionMailer>();
         builder.Services.AddHostedService<PendingSubmissionCleanupHostedService>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();

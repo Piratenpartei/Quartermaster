@@ -277,7 +277,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MembershipApplication.ProcessedByUserId)).AsGuid().Nullable()
             .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable()
             .WithColumn(nameof(MembershipApplication.DeletedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(MembershipApplication.AnonymizedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(MembershipApplication.AnonymizedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(MembershipApplication.MemberNumber)).AsInt32().Nullable()
+            .WithColumn(nameof(MembershipApplication.WelcomeSentAt)).AsDateTime().Nullable();
 
         Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))

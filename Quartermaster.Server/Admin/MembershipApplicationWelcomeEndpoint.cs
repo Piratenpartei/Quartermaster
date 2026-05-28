@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Authentication;
@@ -10,28 +11,34 @@ using Quartermaster.Server.MembershipApplications;
 
 namespace Quartermaster.Server.Admin;
 
-public class MembershipApplicationProcessRequest {
+public class MembershipApplicationWelcomeRequest {
     public Guid Id { get; set; }
-    public ApplicationStatus Status { get; set; }
+    public int MemberNumber { get; set; }
 }
 
-public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicationProcessRequest> {
+/// <summary>
+/// Manually assigns a member number to an approved application and sends the applicant the
+/// welcome mail carrying that number. Single-use per application (guarded by WelcomeSentAt).
+/// </summary>
+public class MembershipApplicationWelcomeEndpoint : Endpoint<MembershipApplicationWelcomeRequest> {
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly MembershipApplicationMailService _mailService;
     private readonly PermissionContext _perms;
 
-    public MembershipApplicationProcessEndpoint(MembershipApplicationRepository applicationRepo,
-        MembershipApplicationMailService mailService, PermissionContext perms) {
+    public MembershipApplicationWelcomeEndpoint(
+        MembershipApplicationRepository applicationRepo,
+        MembershipApplicationMailService mailService,
+        PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _mailService = mailService;
         _perms = perms;
     }
 
     public override void Configure() {
-        Post("/api/admin/membershipapplications/process");
+        Post("/api/admin/membershipapplications/welcome");
     }
 
-    public override async Task HandleAsync(MembershipApplicationProcessRequest req, CancellationToken ct) {
+    public override async Task HandleAsync(MembershipApplicationWelcomeRequest req, CancellationToken ct) {
         var application = _applicationRepo.Get(req.Id);
         if (application == null) {
             await SendNotFoundAsync(ct);
@@ -55,18 +62,20 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             }
         }
 
-        if (req.Status != ApplicationStatus.Approved && req.Status != ApplicationStatus.Rejected) {
-            await SendErrorsAsync(400, ct);
+        if (application.Status != ApplicationStatus.Approved) {
+            AddError(r => r.Id, I18nKey.Error.Admin.Application.NotApprovedForWelcome);
+            await SendErrorsAsync(cancellation: ct);
             return;
         }
 
-        _applicationRepo.UpdateStatus(req.Id, req.Status, null);
-
-        var updated = _applicationRepo.Get(req.Id);
-        if (updated != null) {
-            await _mailService.SendApplicationDecisionAsync(updated, ct);
+        if (application.WelcomeSentAt != null) {
+            AddError(r => r.Id, I18nKey.Error.Admin.Application.WelcomeAlreadySent);
+            await SendErrorsAsync(cancellation: ct);
+            return;
         }
 
+        _applicationRepo.SetMemberNumberAndWelcome(application.Id, req.MemberNumber, DateTime.UtcNow);
+        await _mailService.SendWelcomeAsync(application, req.MemberNumber, ct);
         await SendOkAsync(ct);
     }
 }

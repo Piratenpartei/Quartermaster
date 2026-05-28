@@ -128,6 +128,9 @@
   "error.admin.application.city_max_length": "City must be at most 256 characters long.",
   "error.admin.application.body_max_length": "Application text must be at most 2048 characters long.",
   "error.admin.application.declaration_required": "The statement of principles must be accepted.",
+  "error.admin.application.member_number_required": "Member number must be greater than 0.",
+  "error.admin.application.not_approved_for_welcome": "A welcome mail can only be sent for approved applications.",
+  "error.admin.application.welcome_already_sent": "A welcome mail has already been sent for this application.",
 
   "error.admin.due_selection.id_required": "Due selection ID must not be empty.",
   "error.admin.due_selection.status_invalid": "Status must be 'Approved' or 'Rejected'.",
@@ -175,6 +178,7 @@
   "ui.toast.login.failed_generic": "Error during login.",
   "ui.toast.session.revoked": "Session signed out.",
   "ui.toast.session.others_revoked": "All other sessions signed out.",
+  "ui.toast.membership_application.welcome_sent": "Welcome mail sent to the new member.",
 
   "ui.error.generic": "An error occurred.",
   "ui.error.user_required": "Please select a user.",

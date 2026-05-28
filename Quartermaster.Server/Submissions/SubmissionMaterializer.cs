@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
@@ -12,6 +14,7 @@ using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Rendering;
+using Quartermaster.Server.MembershipApplications;
 using Quartermaster.Server.Notifications;
 
 namespace Quartermaster.Server.Submissions;
@@ -28,6 +31,7 @@ public class SubmissionMaterializer {
     private readonly ChapterRepository _chapterRepo;
     private readonly MemberRepository _memberRepo;
     private readonly INotificationDispatchQueue _notifications;
+    private readonly MembershipApplicationMailService _applicantMail;
     private readonly ILogger<SubmissionMaterializer> _logger;
 
     public SubmissionMaterializer(
@@ -37,6 +41,7 @@ public class SubmissionMaterializer {
         ChapterRepository chapterRepo,
         MemberRepository memberRepo,
         INotificationDispatchQueue notifications,
+        MembershipApplicationMailService applicantMail,
         ILogger<SubmissionMaterializer> logger) {
         _motionRepo = motionRepo;
         _dueSelectionRepo = dueSelectionRepo;
@@ -44,10 +49,11 @@ public class SubmissionMaterializer {
         _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
         _notifications = notifications;
+        _applicantMail = applicantMail;
         _logger = logger;
     }
 
-    public void Materialize(PendingSubmission pending) {
+    public async Task MaterializeAsync(PendingSubmission pending, CancellationToken ct = default) {
         switch (pending.Kind) {
             case PendingSubmissionKind.Motion:
                 MaterializeMotion(Deserialize<MotionCreateRequest>(pending.PayloadJson));
@@ -56,7 +62,7 @@ public class SubmissionMaterializer {
                 MaterializeDueSelection(Deserialize<DueSelectionDTO>(pending.PayloadJson));
                 break;
             case PendingSubmissionKind.MembershipApplication:
-                MaterializeApplication(Deserialize<MembershipApplicationDTO>(pending.PayloadJson));
+                await MaterializeApplicationAsync(Deserialize<MembershipApplicationDTO>(pending.PayloadJson), ct);
                 break;
             default:
                 _logger.LogWarning("Unknown pending submission kind {Kind}", pending.Kind);
@@ -150,7 +156,7 @@ public class SubmissionMaterializer {
         }
     }
 
-    private void MaterializeApplication(MembershipApplicationDTO req) {
+    private async Task MaterializeApplicationAsync(MembershipApplicationDTO req, CancellationToken ct) {
         Guid? dueSelectionId = null;
         var isReduced = false;
         if (req.DueSelection != null) {
@@ -202,6 +208,8 @@ public class SubmissionMaterializer {
             Status = ApplicationStatus.Pending
         };
         _applicationRepo.Create(application);
+
+        await _applicantMail.SendApplicationReceivedAsync(application, isReduced, ct);
 
         if (!application.ChapterId.HasValue) {
             return;

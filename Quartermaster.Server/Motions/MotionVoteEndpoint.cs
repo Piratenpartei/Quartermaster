@@ -17,13 +17,15 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly MotionResolutionDecisionMailer _decisionMailer;
     private readonly PermissionContext _perms;
 
     public MotionVoteEndpoint(MotionRepository motionRepo, ChapterOfficerRepository officerRepo,
-        ChapterRepository chapterRepo, PermissionContext perms) {
+        ChapterRepository chapterRepo, MotionResolutionDecisionMailer decisionMailer, PermissionContext perms) {
         _motionRepo = motionRepo;
         _officerRepo = officerRepo;
         _chapterRepo = chapterRepo;
+        _decisionMailer = decisionMailer;
         _perms = perms;
     }
 
@@ -83,7 +85,9 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             VotedAt = DateTime.UtcNow
         });
 
-        _motionRepo.TryAutoResolve(req.MotionId, _officerRepo);
+        if (_motionRepo.TryAutoResolve(req.MotionId, _officerRepo)) {
+            await _decisionMailer.NotifyAsync(req.MotionId, ct);
+        }
 
         await SendOkAsync(ct);
     }

@@ -29,7 +29,7 @@ public class NotificationLog {
     [Column]
     public string? TriggerId { get; set; }
 
-    /// <summary>Template option key (<c>"templates.membershipapplication.approved.email"</c>).</summary>
+    /// <summary>Template option key (<c>"templates.membershipapplication.approved.email.body"</c>).</summary>
     [Column]
     public string? TemplateIdentifier { get; set; }
 

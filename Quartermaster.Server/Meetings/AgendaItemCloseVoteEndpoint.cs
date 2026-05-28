@@ -74,7 +74,7 @@ public class AgendaItemCloseVoteEndpoint : Endpoint<AgendaItemCloseVoteRequest> 
             return;
         }
 
-        _lifecycle.CloseVoteForAgendaItem(req.ItemId);
+        await _lifecycle.CloseVoteForAgendaItem(req.ItemId, ct);
         await _notifier.NotifyAgendaItemChangedAsync(req.MeetingId, req.ItemId, "vote_closed");
         await SendOkAsync(ct);
     }

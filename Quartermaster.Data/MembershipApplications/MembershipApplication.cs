@@ -48,4 +48,8 @@ public class MembershipApplication {
     public DateTime? ProcessedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
     public DateTime? AnonymizedAt { get; set; }
+
+    // Manual member activation
+    public int? MemberNumber { get; set; }
+    public DateTime? WelcomeSentAt { get; set; }
 }

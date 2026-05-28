@@ -69,7 +69,7 @@ public class MeetingStatusUpdateEndpoint : Endpoint<MeetingStatusUpdateRequest> 
 
         // Completed transition: auto-resolve any linked motions that weren't closed manually.
         if (req.Status == MeetingStatus.Completed && meeting.Status == MeetingStatus.InProgress)
-            _lifecycle.AutoResolveLinkedMotions(req.Id);
+            await _lifecycle.AutoResolveLinkedMotions(req.Id, ct);
 
         // Archived transition from Completed: generate immutable PDF snapshot.
         if (req.Status == MeetingStatus.Archived && meeting.Status == MeetingStatus.Completed)

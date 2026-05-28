@@ -152,27 +152,7 @@ public class MotionRepository {
 
         _auditLog.LogFieldChange("Motion", motionId, "ApprovalStatus", motion.ApprovalStatus.ToString(), newStatus.Value.ToString());
 
-        if (motion.LinkedMembershipApplicationId.HasValue) {
-            var appStatus = newStatus == MotionApprovalStatus.Approved
-                ? ApplicationStatus.Approved
-                : ApplicationStatus.Rejected;
-            _context.MembershipApplications
-                .Where(a => a.Id == motion.LinkedMembershipApplicationId.Value)
-                .Set(a => a.Status, appStatus)
-                .Set(a => a.ProcessedAt, DateTime.UtcNow)
-                .Update();
-        }
-
-        if (motion.LinkedDueSelectionId.HasValue) {
-            var dsStatus = newStatus == MotionApprovalStatus.Approved
-                ? DueSelectionStatus.Approved
-                : DueSelectionStatus.Rejected;
-            _context.DueSelections
-                .Where(d => d.Id == motion.LinkedDueSelectionId.Value)
-                .Set(d => d.Status, dsStatus)
-                .Set(d => d.ProcessedAt, DateTime.UtcNow)
-                .Update();
-        }
+        CascadeResolutionToLinkedEntities(motion, newStatus.Value);
 
         tx.Commit();
         return true;
@@ -180,6 +160,10 @@ public class MotionRepository {
 
     public void UpdateApprovalStatus(Guid id, MotionApprovalStatus status) {
         var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+        if (existing == null)
+            return;
+
+        using var tx = _context.BeginTransaction();
 
         _context.Motions
             .Where(m => m.Id == id)
@@ -187,8 +171,51 @@ public class MotionRepository {
             .Set(m => m.ResolvedAt, DateTime.UtcNow)
             .Update();
 
-        _auditLog.LogFieldChange("Motion", id, "ApprovalStatus", existing?.ApprovalStatus.ToString(), status.ToString());
+        _auditLog.LogFieldChange("Motion", id, "ApprovalStatus", existing.ApprovalStatus.ToString(), status.ToString());
+
+        CascadeResolutionToLinkedEntities(existing, status);
+
+        tx.Commit();
     }
+
+    /// <summary>
+    /// Propagates a motion resolution to its linked membership application and/or due selection.
+    /// <c>ClosedWithoutAction</c> (and any non-terminal status) leaves the linked entity untouched —
+    /// only a real approve/reject decision flips it. Must run inside the caller's transaction.
+    /// </summary>
+    private void CascadeResolutionToLinkedEntities(Motion motion, MotionApprovalStatus newStatus) {
+        var appStatus = MapToApplicationStatus(newStatus);
+        if (motion.LinkedMembershipApplicationId.HasValue && appStatus.HasValue) {
+            _context.MembershipApplications
+                .Where(a => a.Id == motion.LinkedMembershipApplicationId.Value)
+                .Set(a => a.Status, appStatus.Value)
+                .Set(a => a.ProcessedAt, DateTime.UtcNow)
+                .Update();
+        }
+
+        var dsStatus = MapToDueSelectionStatus(newStatus);
+        if (motion.LinkedDueSelectionId.HasValue && dsStatus.HasValue) {
+            _context.DueSelections
+                .Where(d => d.Id == motion.LinkedDueSelectionId.Value)
+                .Set(d => d.Status, dsStatus.Value)
+                .Set(d => d.ProcessedAt, DateTime.UtcNow)
+                .Update();
+        }
+    }
+
+    private static ApplicationStatus? MapToApplicationStatus(MotionApprovalStatus status) => status switch {
+        MotionApprovalStatus.Approved => ApplicationStatus.Approved,
+        MotionApprovalStatus.Rejected => ApplicationStatus.Rejected,
+        MotionApprovalStatus.FormallyRejected => ApplicationStatus.Rejected,
+        _ => null
+    };
+
+    private static DueSelectionStatus? MapToDueSelectionStatus(MotionApprovalStatus status) => status switch {
+        MotionApprovalStatus.Approved => DueSelectionStatus.Approved,
+        MotionApprovalStatus.Rejected => DueSelectionStatus.Rejected,
+        MotionApprovalStatus.FormallyRejected => DueSelectionStatus.Rejected,
+        _ => null
+    };
 
     public void SetRealized(Guid id, bool realized) {
         var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();

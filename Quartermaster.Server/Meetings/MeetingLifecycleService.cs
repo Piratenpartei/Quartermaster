@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
@@ -9,6 +11,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.Motions;
 
 namespace Quartermaster.Server.Meetings;
 
@@ -23,6 +26,7 @@ public class MeetingLifecycleService {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly OptionRepository _optionRepo;
+    private readonly MotionResolutionDecisionMailer _decisionMailer;
     private readonly ILogger<MeetingLifecycleService> _logger;
 
     public MeetingLifecycleService(
@@ -31,12 +35,14 @@ public class MeetingLifecycleService {
         MotionRepository motionRepo,
         ChapterRepository chapterRepo,
         OptionRepository optionRepo,
+        MotionResolutionDecisionMailer decisionMailer,
         ILogger<MeetingLifecycleService> logger) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _optionRepo = optionRepo;
+        _decisionMailer = decisionMailer;
         _logger = logger;
     }
 
@@ -45,7 +51,7 @@ public class MeetingLifecycleService {
     /// Pending, tally the votes and set the motion's ApprovalStatus + ResolvedAt. Also
     /// auto-fills the agenda item's Resolution field if it's empty.
     /// </summary>
-    public void AutoResolveLinkedMotions(Guid meetingId) {
+    public async Task AutoResolveLinkedMotions(Guid meetingId, CancellationToken ct) {
         var items = _agendaRepo.GetForMeeting(meetingId)
             .Where(a => a.ItemType == AgendaItemType.Motion && a.MotionId.HasValue)
             .ToList();
@@ -62,6 +68,7 @@ public class MeetingLifecycleService {
 
             var newStatus = DetermineApprovalStatus(approve, deny, abstain);
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
+            await _decisionMailer.NotifyAsync(motion.Id, ct);
 
             if (string.IsNullOrWhiteSpace(item.Resolution)) {
                 var resolutionText = BuildResolutionText(newStatus, approve, deny, abstain);
@@ -74,7 +81,7 @@ public class MeetingLifecycleService {
     /// Tally votes for a single agenda item's linked motion, close the motion, and fill
     /// the item's Resolution field. Used by the explicit close-vote endpoint.
     /// </summary>
-    public void CloseVoteForAgendaItem(Guid agendaItemId) {
+    public async Task CloseVoteForAgendaItem(Guid agendaItemId, CancellationToken ct) {
         var item = _agendaRepo.Get(agendaItemId);
         if (item == null || item.ItemType != AgendaItemType.Motion || !item.MotionId.HasValue)
             return;
@@ -88,8 +95,10 @@ public class MeetingLifecycleService {
         var abstain = votes.Count(v => v.Vote == VoteType.Abstain);
 
         var newStatus = DetermineApprovalStatus(approve, deny, abstain);
-        if (motion.ApprovalStatus == MotionApprovalStatus.Pending)
+        if (motion.ApprovalStatus == MotionApprovalStatus.Pending) {
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
+            await _decisionMailer.NotifyAsync(motion.Id, ct);
+        }
 
         _agendaRepo.UpdateResolution(item.Id, BuildResolutionText(newStatus, approve, deny, abstain));
     }

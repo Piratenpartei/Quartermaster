@@ -92,6 +92,18 @@ public partial class TemplateFieldPalette {
                 }
             },
             ChapterMiniSchema()
+        },
+        ["MemberWelcome"] = new() {
+            new() {
+                ModelName = "Mitglied", VariablePrefix = "member",
+                Fields = new() {
+                    Field("FirstName", "string", "member"),
+                    Field("LastName", "string", "member"),
+                    Field("Email", "string", "member"),
+                    Field("MemberNumber", "int", "member")
+                }
+            },
+            ChapterMiniSchema()
         }
     };
 

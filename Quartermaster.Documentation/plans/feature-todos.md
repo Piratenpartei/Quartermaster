@@ -4,18 +4,17 @@ Features that aren't quality fixes — net-new functionality, infrastructure for
 
 ---
 
-## Collaborative meeting notes (SignalR + CodeMirror)
+## Collaborative meeting notes (SignalR + CodeMirror) — DONE (2026-05)
 
-Real-time collaborative editing of agenda item notes during a meeting, plus live meeting page updates (votes, status changes, agenda completions). Six implementation phases, ~29–43 hours total estimated effort. Phases 1–2 (~10h) deliver standalone value (live page updates + a much better notes editor with line numbers); Phase 3 is the make-or-break collaborative-editing core.
+Shipped all 6 planned phases plus polish. Real-time collaborative editing of agenda-item notes during a meeting, with per-character authorship colors, cursor/presence sync, and live meeting page updates.
+
+- **Server**: `MeetingHub` SignalR relay (`JoinMeeting`/`LeaveMeeting`, `LoadDocument`, `SendUpdate`/`ReceiveUpdate`, `SendAwareness`/`ReceiveAwareness`, `SaveSnapshot`); `CollabDocument` table (Yjs `DocumentState` + `PlainText` snapshot + `ClientUserMap` authorship map, folded into M001); `MeetingNotifier`/`IMeetingNotifier` for live page broadcasts (agenda/status/presence); `AgendaItemNotesEndpoint`.
+- **Client**: Yjs CRDT + CodeMirror 5 vendored with no build step (`wwwroot/js/collab-editor/`, see its `VERSIONS.md`); `codemirror-editor.js` imperative API with per-character author tagging via `Y.Text.format` + `rebuildAuthorMarkers` + a known-authors cache seeded from the server snapshot; cursor/presence awareness; theme-aware dark mode. Wired into `MeetingLive` through `CodeMirrorEditorWithPreview` + `MeetingHubClient`.
+- **Tests**: `CollabEditorE2ETests` (10) covering two-user color sync, authorship surviving disconnect + reload-via-snapshot, anonymous + read-only viewers, completed-meeting freeze, mid-line markers, legacy uncolored text, dark-mode toggle, save-indicator states.
+
+The 5 pre-implementation questions were all resolved (recorded in the plan): vendored CM5 (no JS pipeline), CM5 single-file UMD over CM6, markdown preview kept, etc.
 
 **Full plan**: [`2026-04-10-collaborative-meeting-notes.md`](./2026-04-10-collaborative-meeting-notes.md)
-
-**Open questions for the user before implementation begins** (see end of plan):
-1. Vendored CodeMirror vs add a JS build pipeline?
-2. Acceptable worst-case edit loss on server restart? (30s with the proposed save interval)
-3. Keep the markdown preview pane in the editor?
-4. Color palette preference (suggesting Tol Bright)?
-5. Does the protocol PDF need real-time consistency, or is "few seconds behind live" acceptable?
 
 ---
 
@@ -91,27 +90,37 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 
 V1 is the file-on-disk plumbing. This is the usable-by-an-actual-human layer.
 
-## Applicant-facing membership-application confirmation email
+## Applicant-facing membership-application confirmation email — DONE (2026-05-28)
 
-When someone submits a membership application via `MembershipApplicationCreateEndpoint`, the chapter's processing officers get notified (existing `notifications.application_submitted.*` trigger), but the applicant themselves does not. They should receive a simple "Antrag eingegangen" confirmation with a short summary of what they submitted and what happens next.
+**DONE (2026-05-28).** The applicant now receives an "Antrag eingegangen" mail after they confirm their email (fired from `SubmissionMaterializer` once the real row is created — not at submit, where they already get the confirm-link mail). Direct transactional send via `MembershipApplicationMailService` → `EmailMessageChannel` (not a notification trigger). Templates `templates.membershipapplication.received.email.{subject,body}` (schema `ApplicationSubmittedPayload`), seeded in `OptionRepository`. Sent regardless of chapter. Tests in `ApplicationReceivedMailTests` (no log before confirm; one `application_received` log to the applicant after confirm; fires without a chapter).
 
-- New template option `templates.membershipapplication.confirmation.email` (subject + body) — `MembershipApplicationDetailDTO,ChapterDTO`, default body something like "Hallo {{ application.FirstName }}, dein Mitgliedsantrag bei {{ chapter.Name }} ist eingegangen und wird vom Vorstand geprüft."
-- Trigger from `MembershipApplicationCreateEndpoint` after the row is written — synchronous send via `EmailService` is fine for this single recipient (matches the existing approved/rejected email pattern in `MembershipApplicationProcessEndpoint`).
-- Not a notification-system trigger; this is a directly-addressed transactional mail, not a chapter-perm broadcast.
-- Tests: applicant gets a `NotificationLog` row on submit; subject is rendered plain-text (no HTML wrapping).
+## Application + due-selection approved/rejected decision mails — DONE (2026-05-28)
 
-## Member welcome email on first dues payment
+The previously-dead approved/rejected templates are now wired and sent to the applicant/submitter on decision.
 
-When a member's first dues invoice is marked paid, they transition from "approved applicant" to "active member" and get their `MemberNumber` assigned. They should receive a welcome mail containing the new member number, links to relevant resources, and the contact info from `general.contact.email`.
+- Templates restructured from single body-only keys to split `.subject`/`.body` (consistent with the received/welcome mails): `templates.{membershipapplication,dueselection}.{approved,rejected}.email.{subject,body}`. The 4 old single keys were removed (and purged from the dev DB).
+- `MembershipApplicationMailService.SendApplicationDecisionAsync` + new `DueSelectionMailService.SendDueSelectionDecisionAsync` pick approved/rejected by the entity's current status and send directly via `EmailMessageChannel` (skip if not a terminal Approved/Rejected status, or if no email).
+- Fired on every real transition through a shared `MotionResolutionDecisionMailer` (resolves a motion's linked application/due-selection and mails each): after a non-meeting motion vote auto-resolves (`MotionVoteEndpoint` → `TryAutoResolve`), after meeting close/complete (`MeetingLifecycleService`), and on the direct admin process endpoints (`MembershipApplicationProcessEndpoint`, `DueSelectionProcessEndpoint`).
+- **Cascade gap fixed:** `MotionRepository.UpdateApprovalStatus` now cascades the motion resolution into the linked membership application + due selection (extracted a shared `CascadeResolutionToLinkedEntities` used by both it and `TryAutoResolve`; `FormallyRejected`→Rejected, `ClosedWithoutAction`→no change). Previously meeting-resolved motions left the linked application stuck Pending.
+- Tests: `ApplicationDecisionMailTests` (2), `DueSelectionDecisionMailTests` (2), `MotionDecisionMailTests` (2: vote auto-resolve + meeting-complete cascade, each asserting both the status flip and the mail).
 
-- New template option `templates.member.welcome.email` (subject + body) — `MemberDetailDTO,ChapterDTO`, default body greets by `{{ member.FirstName }}`, surfaces `{{ member.MemberNumber }}`, includes a `globals.base_url` link to the member area.
-- Trigger: needs first dues-payment tracking. Today the system has `Member.MembershipFee` and `EntryDate` but no per-payment ledger. Two paths:
-  1. Add a `MemberPayment` table that ingests first via the member-import flow, then triggers welcome-on-first-paid via a hosted service.
-  2. Simpler v1: trigger when `Member.MemberNumber` is first set (currently happens during import for already-paid members). Tie a `WelcomeSentAt` column on Member so we don't re-send.
-- Welcome content should reference `globals.app_name` and `globals.base_url` so it works without per-deploy template edits.
-- Tests: simulate first-payment / member-number assignment, assert one email goes out and a second assignment doesn't trigger a duplicate.
+## Member welcome email — manual activation flow — DONE (2026-05-28)
 
-## Guided setup pages for SMTP / SAML / OIDC
+Reframed per user: no automated first-payment tracking. Instead, an officer manually assigns a member number and sends the welcome mail from the **approved application's** detail page.
+
+- `MembershipApplication` gained `MemberNumber` (int?) + `WelcomeSentAt` (DateTime?), folded into M001.
+- `POST /api/admin/membershipapplications/welcome` ({Id, MemberNumber}) — gated on `ProcessApplications` (chapter-scoped, global fallback), requires `Status == Approved`, single-use (guarded by `WelcomeSentAt`). Sets number + timestamp, then `MembershipApplicationMailService.SendWelcomeAsync` mails the applicant the welcome with their number.
+- Templates `templates.member.welcome.email.{subject,body}` (new `MemberWelcome` palette schema: `member.{FirstName,LastName,Email,MemberNumber}` + `chapter`).
+- UI: a "Mitglied aktivieren" card on `MembershipApplicationDetail` (shown when Approved + caller has `ProcessApplications`): member-number input + "Willkommens-Mail senden"; after sending it shows the number + sent timestamp.
+- Tests in `MembershipApplicationWelcomeEndpointTests` (8): auth/perm gating, not-approved guard, non-positive number, success sets fields + sends mail with the number in the body, idempotency, chapter-scoped processor.
+
+A real first-dues-payment ledger / auto-trigger remains a possible future enhancement (a `MemberPayment` table), but is out of scope for this manual flow.
+
+## Guided setup pages for SMTP / SAML / OIDC — DONE (2026-05-28)
+
+Shipped: three permission-gated pages (`/Administration/Setup/{Smtp,Saml,Oidc}`, gated on `EditOptions`) reached from a button row under the "System – Einstellungen" header. Built on a reusable `OptionGroupEditor` component that loads `/api/options`, renders each key as checkbox / number / password (secret fields blank with "(unverändert lassen)", only saved when non-empty) / text, and saves through the existing options API. SMTP page adds a test-send card (`POST /api/email/test` → `SmtpTestService`, synchronous, surfaces the SMTP error inline). Runtime pickup verified: all SAML/OIDC consumers read per-request via the uncached `OptionRepository.GetGlobalValue`, so server-side changes take effect with no restart; `OptionGroupEditor.OnSaved` force-refreshes the admin's client-config snapshot so the login-page SSO buttons update without a manual reload.
+
+Original spec below for reference.
 
 The generic options list (`/Administration/Options`) works but is a poor first-run experience for multi-field integrations. Add focused, permission-gated setup pages that group the related settings and (for SMTP) let you test it.
 

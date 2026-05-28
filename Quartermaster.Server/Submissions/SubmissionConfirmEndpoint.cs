@@ -48,7 +48,7 @@ public class SubmissionConfirmEndpoint : EndpointWithoutRequest<SubmissionConfir
             return;
         }
 
-        _materializer.Materialize(pending);
+        await _materializer.MaterializeAsync(pending, ct);
         await SendResult(SubmissionConfirmStatus.Confirmed, ct);
     }
 
