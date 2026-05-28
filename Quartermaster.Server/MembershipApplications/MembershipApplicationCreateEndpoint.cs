@@ -22,14 +22,14 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     private readonly DueSelectionRepository _dueSelectionRepository;
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly NotificationDispatcher _notifications;
+    private readonly INotificationDispatchQueue _notifications;
 
     public MembershipApplicationCreateEndpoint(
         MembershipApplicationRepository applicationRepository,
         DueSelectionRepository dueSelectionRepository,
         MotionRepository motionRepo,
         ChapterRepository chapterRepo,
-        NotificationDispatcher notifications) {
+        INotificationDispatchQueue notifications) {
         _applicationRepository = applicationRepository;
         _dueSelectionRepository = dueSelectionRepository;
         _motionRepo = motionRepo;
@@ -135,7 +135,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             var payload = new ApplicationSubmittedPayload(
                 application.Id, application.ChapterId.Value, chapterName,
                 application.FirstName, application.LastName, isReduced);
-            await _notifications.DispatchAsync(
+            _notifications.Enqueue(new NotificationDispatchRequest(
                 NotificationTriggers.ApplicationSubmitted,
                 payload,
                 _ => new Dictionary<string, object> {
@@ -149,9 +149,8 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
                     },
                     ["chapter"] = new { Id = application.ChapterId.Value, Name = chapterName }
                 },
-                sourceEntityType: "MembershipApplication",
-                sourceEntityId: application.Id,
-                ct: ct);
+                SourceEntityType: "MembershipApplication",
+                SourceEntityId: application.Id));
         }
 
         await SendOkAsync(ct);

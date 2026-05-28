@@ -30,6 +30,7 @@ using Quartermaster.Server.Antiforgery;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
+using Quartermaster.Server.Rendering;
 using Quartermaster.Server.Events;
 using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
@@ -123,6 +124,7 @@ public partial class Program {
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
+        builder.Services.AddHostedService<MarkdownWarmupHostedService>();
 
         builder.Services.AddScoped<EmailMessageChannel>();
         builder.Services.AddSingleton<TelegramBotClientCache>();
@@ -141,6 +143,9 @@ public partial class Program {
         builder.Services.AddScoped<IRecipientResolver, ApplicationSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();
         builder.Services.AddScoped<NotificationDispatcher>();
+        builder.Services.AddSingleton<ChannelNotificationDispatchQueue>();
+        builder.Services.AddSingleton<INotificationDispatchQueue>(sp => sp.GetRequiredService<ChannelNotificationDispatchQueue>());
+        builder.Services.AddHostedService<NotificationDispatchBackgroundService>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();
         builder.Services.AddScoped<MeetingLifecycleService>();

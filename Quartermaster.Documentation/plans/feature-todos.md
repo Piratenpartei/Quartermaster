@@ -111,16 +111,13 @@ When a member's first dues invoice is marked paid, they transition from "approve
 - Welcome content should reference `globals.app_name` and `globals.base_url` so it works without per-deploy template edits.
 - Tests: simulate first-payment / member-number assignment, assert one email goes out and a second assignment doesn't trigger a duplicate.
 
-## Async notification dispatch (off the request thread)
+## Async notification dispatch (off the request thread) — DONE (2026-05-28)
 
-Today every submit endpoint (`MotionCreateEndpoint`, `MembershipApplicationCreateEndpoint`, `DueSelectionCreateEndpoint`) calls `NotificationDispatcher.DispatchAsync` inline before responding. Email is fine — it queues to a `Channel<EmailMessage>` and returns immediately. Telegram is not — `TelegramMessageChannel.SendAsync` does a synchronous HTTPS round-trip to `api.telegram.org` per recipient, so the user's POST hangs for roughly `recipientsWithTelegram × ~300ms` before the page can redirect.
+Shipped: `INotificationDispatchQueue` with `ChannelNotificationDispatchQueue` (singleton, unbounded `Channel<NotificationDispatchRequest>`) + `NotificationDispatchBackgroundService` draining it in a per-item scope. The three submit endpoints call `_notifications.Enqueue(...)` instead of `await DispatchAsync(...)`. Tests swap in `InlineNotificationDispatchQueue` (runs dispatch synchronously) so the "submit then assert on logs" tests stay deterministic. Submit-endpoint latency is now independent of recipient count / channel mix.
 
-- New `Channel<NotificationDispatchRequest>` singleton holding `(triggerId, payload-snapshot, modelFactoryArgs, sourceEntityType, sourceEntityId)`. Payload has to be a snapshot the background worker can use without the original request scope — most current payloads are already pure records, but the model factory closures capture per-recipient state and need to be reshaped (probably move template-model construction into the resolver or onto the payload itself).
-- New `NotificationDispatchBackgroundService` drains the queue in its own scope and runs the existing dispatcher logic. Errors get logged per-trigger; failed sends already get tracked in `NotificationLog` rows via the channels themselves.
-- All three submit endpoints (plus future ones) call a thin `_notifications.Enqueue(...)` instead of `await DispatchAsync(...)`.
-- Re-enqueue any "Pending" `NotificationLog` rows on startup for crash recovery, mirroring `EmailSendingBackgroundService.RequeuePendingLogs`. Caveat: NotificationLog rows are written by channels DURING dispatch, so the queue itself needs its own persistence (or the dispatcher writes a "queued" log row before handing off to channels).
+The model-factory closures turned out to already capture only plain data (entity POCOs + strings), so no reshaping into payload snapshots was needed — they run fine in the background scope as-is.
 
-Effect: submit-endpoint latency drops to single-digit ms regardless of recipient count or channel mix.
+**Still open (deferred):** crash-recovery re-enqueue. The in-memory channel loses queued-but-undispatched requests on a hard restart. Lower priority than the email re-queue because a lost notification dispatch just means officers don't get pinged about one submission — the underlying motion/application/due-selection row is still safely persisted. If we want durability, the dispatch request itself needs persistence (a `PendingDispatch` table drained on startup), since `NotificationLog` rows are only written once dispatch reaches a channel.
 
 ## Motion full edit + audit log
 

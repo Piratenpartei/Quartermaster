@@ -16,12 +16,12 @@ namespace Quartermaster.Server.Motions;
 public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly NotificationDispatcher _notifications;
+    private readonly INotificationDispatchQueue _notifications;
 
     public MotionCreateEndpoint(
         MotionRepository motionRepo,
         ChapterRepository chapterRepo,
-        NotificationDispatcher notifications) {
+        INotificationDispatchQueue notifications) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _notifications = notifications;
@@ -57,7 +57,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
         var chapterName = chapter.Name;
         var payload = new MotionSubmittedPayload(
             motion.Id, motion.ChapterId, motion.Title, motion.AuthorName, chapterName);
-        await _notifications.DispatchAsync(
+        _notifications.Enqueue(new NotificationDispatchRequest(
             NotificationTriggers.MotionSubmitted,
             payload,
             _ => new Dictionary<string, object> {
@@ -69,9 +69,8 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
                 },
                 ["chapter"] = new { Id = motion.ChapterId, Name = chapterName }
             },
-            sourceEntityType: "Motion",
-            sourceEntityId: motion.Id,
-            ct: ct);
+            SourceEntityType: "Motion",
+            SourceEntityId: motion.Id));
 
         await SendAsync(new MotionDTO {
             Id = motion.Id,

@@ -16,13 +16,13 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
     private readonly DueSelectionRepository _dueSelectionRepository;
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
-    private readonly NotificationDispatcher _notifications;
+    private readonly INotificationDispatchQueue _notifications;
 
     public DueSelectionCreateEndpoint(
         DueSelectionRepository dueSelectionRepository,
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
-        NotificationDispatcher notifications) {
+        INotificationDispatchQueue notifications) {
         _dueSelectionRepository = dueSelectionRepository;
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
@@ -65,7 +65,7 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
                 var payload = new DueSelectionSubmittedPayload(
                     dueSelection.Id, chapterId, chapterName,
                     dueSelection.FirstName, dueSelection.LastName, dueSelection.SelectedDue);
-                await _notifications.DispatchAsync(
+                _notifications.Enqueue(new NotificationDispatchRequest(
                     NotificationTriggers.DueSelectionSubmitted,
                     payload,
                     _ => new Dictionary<string, object> {
@@ -80,9 +80,8 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO> {
                         },
                         ["chapter"] = new { Id = chapterId, Name = chapterName }
                     },
-                    sourceEntityType: "DueSelection",
-                    sourceEntityId: dueSelection.Id,
-                    ct: ct);
+                    SourceEntityType: "DueSelection",
+                    SourceEntityId: dueSelection.Id));
             }
         }
 

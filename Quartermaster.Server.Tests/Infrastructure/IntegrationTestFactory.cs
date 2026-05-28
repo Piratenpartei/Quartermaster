@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Quartermaster.Server.Notifications;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -41,6 +42,11 @@ public sealed class IntegrationTestFactory : WebApplicationFactory<Program> {
             // SMTP sending) that interferes with tests and may fail without a filesystem
             // or SMTP server.
             RemoveHostedServices(services);
+
+            // Run notification dispatch inline + synchronously so "submit then assert on
+            // NotificationLog" tests stay deterministic (the background drainer is removed above).
+            services.RemoveAll<INotificationDispatchQueue>();
+            services.AddScoped<INotificationDispatchQueue, InlineNotificationDispatchQueue>();
         });
     }
 

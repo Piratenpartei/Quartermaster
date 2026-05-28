@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Quartermaster.Server.Notifications;
 using Microsoft.Extensions.Hosting;
 using Quartermaster.Data;
 
@@ -49,6 +51,10 @@ public sealed class E2ETestFactory : IDisposable {
         var hosted = builder.Services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
         foreach (var d in hosted)
             builder.Services.Remove(d);
+
+        // Dispatch notifications inline since the background drainer was just removed.
+        builder.Services.RemoveAll<INotificationDispatchQueue>();
+        builder.Services.AddScoped<INotificationDispatchQueue, InlineNotificationDispatchQueue>();
 
         _app = builder.Build();
 
