@@ -1,9 +1,24 @@
 @page "/Administration/Options"
+@using Quartermaster.Api
 @using Quartermaster.Api.Options
 
 <div class="mb-3">
     <h3>System - Einstellungen</h3>
 </div>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="/Administration/Setup/Smtp" class="btn btn-outline-primary btn-hover-scale1">
+            <i class="bi bi-envelope-gear me-1"></i> SMTP einrichten
+        </a>
+        <a href="/Administration/Setup/Saml" class="btn btn-outline-primary btn-hover-scale1">
+            <i class="bi bi-shield-lock me-1"></i> SAML einrichten
+        </a>
+        <a href="/Administration/Setup/Oidc" class="btn btn-outline-primary btn-hover-scale1">
+            <i class="bi bi-key me-1"></i> OIDC einrichten
+        </a>
+    </div>
+</RequirePermission>
 
 @if (Loading) {
     <LoadingSpinner />

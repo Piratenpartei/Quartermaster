@@ -1,0 +1,15 @@
+@page "/Administration/Setup/Oidc"
+@using Quartermaster.Api
+
+<PageBackLink Href="/Administration/Options" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-3">OpenID Connect (OIDC) einrichten</h3>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title mb-3">OIDC-Einstellungen</h5>
+            <OptionGroupEditor Keys="@OidcKeys" FullWidthFields="true" OnSaved="RefreshClientConfig" />
+        </div>
+    </div>
+</RequirePermission>

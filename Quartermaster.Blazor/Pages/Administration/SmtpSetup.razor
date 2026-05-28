@@ -1,0 +1,42 @@
+@page "/Administration/Setup/Smtp"
+@using Quartermaster.Api
+
+<PageBackLink Href="/Administration/Options" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-3">SMTP einrichten</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Server-Einstellungen</h5>
+            <OptionGroupEditor Keys="@SmtpKeys" />
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Testnachricht senden</h5>
+            <p class="text-secondary">Sendet eine Test-E-Mail mit den aktuell gespeicherten Einstellungen. Speichere Änderungen oben zuerst.</p>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control" placeholder="empfaenger@example.com"
+                       value="@TestRecipient" @oninput="e => TestRecipient = e.Value?.ToString() ?? string.Empty" />
+                <button class="btn btn-primary btn-hover-scale1" @onclick="SendTest" disabled="@(Sending || string.IsNullOrWhiteSpace(TestRecipient))">
+                    @if (Sending) {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    }
+                    Test senden
+                </button>
+            </div>
+            @if (TestResult != null) {
+                <div class="alert @(TestResult.Success ? "alert-success" : "alert-danger") mt-3 mb-0">
+                    @if (TestResult.Success) {
+                        <span><i class="bi bi-check-circle me-1"></i>Testnachricht erfolgreich gesendet.</span>
+                    } else {
+                        <span><i class="bi bi-x-circle me-1"></i>Fehler: @TestResult.Error</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</RequirePermission>

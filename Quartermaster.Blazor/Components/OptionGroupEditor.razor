@@ -1,0 +1,46 @@
+@using Quartermaster.Api.Options
+
+@if (Fields == null) {
+    <LoadingSpinner />
+} else if (Fields.Count == 0) {
+    <div class="alert alert-warning mb-0">Keine passenden Einstellungen gefunden.</div>
+} else {
+    <div class="row g-3">
+        @foreach (var field in Fields) {
+            <div class="@ColumnClass(field)">
+                <label class="form-label">@field.FriendlyName</label>
+                @if (IsBool(field)) {
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="@field.Identifier"
+                               checked="@BoolValue(field.Identifier)"
+                               @onchange="e => SetBool(field.Identifier, (bool)e.Value!)" />
+                        <label class="form-check-label" for="@field.Identifier">Aktiviert</label>
+                    </div>
+                } else if (field.IsSecret) {
+                    <input type="password" class="form-control" autocomplete="new-password"
+                           placeholder="@(HasStoredSecret(field) ? "(unverändert lassen)" : "")"
+                           value="@_values[field.Identifier]"
+                           @oninput="e => OnInput(field.Identifier, e)" />
+                } else {
+                    <input type="@(field.DataType == OptionDataType.Number ? "number" : "text")" class="form-control"
+                           value="@_values[field.Identifier]"
+                           @oninput="e => OnInput(field.Identifier, e)" />
+                }
+                @if (!string.IsNullOrEmpty(field.Description)) {
+                    <div class="form-text">@field.Description</div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-primary btn-hover-scale1" @onclick="Save" disabled="@Saving">
+            @if (Saving) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            } else {
+                <i class="bi bi-check-circle me-1"></i>
+            }
+            Speichern
+        </button>
+    </div>
+}

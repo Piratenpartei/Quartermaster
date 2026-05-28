@@ -124,6 +124,7 @@ public partial class Program {
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
+        builder.Services.AddScoped<SmtpTestService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
         builder.Services.AddHostedService<MarkdownWarmupHostedService>();
 
