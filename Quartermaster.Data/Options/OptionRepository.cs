@@ -117,6 +117,42 @@ public class OptionRepository {
             "DueSelectionDetailDTO,ChapterDTO",
             "Hallo **{{ selection.FirstName }}**,\n\ndein Antrag auf Beitragsminderung wurde leider abgelehnt.\n");
 
+        AddDefinitionIfNotExists("templates.submission.motion.confirmation.email.subject",
+            "E-Mail: Antrag bestätigen (Betreff)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,MotionSubmittedPayload",
+            "Bitte bestätige deinen Antrag");
+
+        AddDefinitionIfNotExists("templates.submission.motion.confirmation.email.body",
+            "E-Mail: Antrag bestätigen (Inhalt)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,MotionSubmittedPayload",
+            "Hallo {{ motion.AuthorName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Antrag bearbeitet wird:\n\n**[Antrag jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gliederung:** {{ chapter.Name }}\n- **Titel:** {{ motion.Title }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
+
+        AddDefinitionIfNotExists("templates.submission.dueselection.confirmation.email.subject",
+            "E-Mail: Beitragseinstufung bestätigen (Betreff)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,DueSelectionSubmittedPayload",
+            "Bitte bestätige deine Beitragseinstufung");
+
+        AddDefinitionIfNotExists("templates.submission.dueselection.confirmation.email.body",
+            "E-Mail: Beitragseinstufung bestätigen (Inhalt)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,DueSelectionSubmittedPayload",
+            "Hallo {{ selection.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit deine Beitragseinstufung bearbeitet wird:\n\n**[Einstufung jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gewählter Beitrag:** {{ selection.SelectedDue }}€\n\nWenn du das nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
+
+        AddDefinitionIfNotExists("templates.submission.membershipapplication.confirmation.email.subject",
+            "E-Mail: Mitgliedsantrag bestätigen (Betreff)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,ApplicationSubmittedPayload",
+            "Bitte bestätige deinen Mitgliedsantrag");
+
+        AddDefinitionIfNotExists("templates.submission.membershipapplication.confirmation.email.body",
+            "E-Mail: Mitgliedsantrag bestätigen (Inhalt)",
+            OptionDataType.Template, true,
+            "SubmissionConfirmation,ApplicationSubmittedPayload",
+            "Hallo {{ application.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Mitgliedsantrag bearbeitet wird:\n\n**[Mitgliedsantrag jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Name:** {{ application.FirstName }} {{ application.LastName }}\n- **Gliederung:** {{ chapter.Name }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
+
         AddDefinitionIfNotExists("general.chaptername.display",
             "Anzeigename der Gliederung",
             OptionDataType.String, true, "", "");

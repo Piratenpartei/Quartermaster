@@ -26,6 +26,7 @@ public class DispatcherPreferenceGatingTests : IntegrationTestBase {
             Title = title,
             Text = "Body"
         });
+        await ConfirmAllPendingSubmissionsAsync();
     }
 
     [Test]

@@ -5,6 +5,11 @@
     <h3>Antrag einreichen</h3>
 </div>
 
+@if (SubmittedEmail != null) {
+    <SubmissionConfirmationNotice Email="@SubmittedEmail" />
+    return;
+}
+
 <div class="mb-3">
     <label class="form-label">Gliederung <RequiredStar /></label>
     <ChapterPicker @bind-Value="SelectedChapterId" />

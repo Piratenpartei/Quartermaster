@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Blazor.Pages.DueSelector;
 using Quartermaster.Blazor.Services;
@@ -19,12 +18,11 @@ public partial class ApplicationSummary {
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
-    public required NavigationManager NavigationManager { get; set; }
-    [Inject]
     public required ToastService ToastService { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
     private DueSelectorEntryState? DuesState;
+    private string? SubmittedEmail;
 
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<MembershipApplicationEntryState>();
@@ -59,10 +57,10 @@ public partial class ApplicationSummary {
         try {
             var result = await Http.PostAsJsonAsync("/api/membershipapplications", dto);
             if (result.IsSuccessStatusCode) {
+                SubmittedEmail = EntryState.Email;
                 AppState.ResetEntryState<MembershipApplicationEntryState>();
                 AppState.ResetEntryState<DueSelectorEntryState>();
-                NavigationManager.NavigateTo("/");
-                ToastService.ToastKey(I18nKey.Ui.Toast.MembershipApplicationSubmitted);
+                StateHasChanged();
             } else {
                 await ToastService.ErrorAsync(result);
             }

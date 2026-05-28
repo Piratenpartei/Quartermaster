@@ -18,6 +18,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.Saml;
+using Quartermaster.Data.Submissions;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -49,6 +50,7 @@ public class DbContext : DataConnection {
     public ITable<NotificationLog> NotificationLogs => this.GetTable<NotificationLog>();
     public ITable<UserNotificationPreference> UserNotificationPreferences => this.GetTable<UserNotificationPreference>();
     public ITable<TelegramLinkToken> TelegramLinkTokens => this.GetTable<TelegramLinkToken>();
+    public ITable<PendingSubmission> PendingSubmissions => this.GetTable<PendingSubmission>();
     public ITable<AuditEntry> AuditLogs => this.GetTable<AuditEntry>();
     public ITable<LoginAttempt> LoginAttempts => this.GetTable<LoginAttempt>();
     public ITable<Role> Roles => this.GetTable<Role>();
@@ -79,6 +81,7 @@ public class DbContext : DataConnection {
         services.AddScoped<NotificationLogRepository>();
         services.AddScoped<UserNotificationPreferenceRepository>();
         services.AddScoped<TelegramLinkTokenRepository>();
+        services.AddScoped<Submissions.PendingSubmissionRepository>();
         services.AddScoped<AuditLogRepository>();
         services.AddScoped<LoginAttemptRepository>();
         services.AddScoped<RoleRepository>();

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Pages.MembershipApplication;
 using Quartermaster.Blazor.Services;
 
@@ -23,6 +22,7 @@ public partial class Summary {
     public required string ReturnUrl { get; set; }
 
     private DueSelectorEntryState? EntryState;
+    private string? SubmittedEmail;
 
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
@@ -43,9 +43,9 @@ public partial class Summary {
         try {
             var result = await Http.PostAsJsonAsync("/api/dueselector", EntryState.ToDTO());
             if (result.IsSuccessStatusCode) {
+                SubmittedEmail = EntryState.Email;
                 AppState.ResetEntryState<DueSelectorEntryState>();
-                NavigationManager.NavigateTo("/");
-                ToastService.ToastKey(I18nKey.Ui.Toast.DueSelectionThanks);
+                StateHasChanged();
             } else {
                 await ToastService.ErrorAsync(result);
             }

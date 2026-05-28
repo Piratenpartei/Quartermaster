@@ -1,30 +1,28 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.Motions;
-using Quartermaster.Rendering;
+using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.Motions;
-using Quartermaster.Server.Notifications;
+using Quartermaster.Data.Submissions;
+using Quartermaster.Server.Submissions;
 
 namespace Quartermaster.Server.Motions;
 
-public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
-    private readonly MotionRepository _motionRepo;
+/// <summary>
+/// Public motion submission. Validates and stashes the request as a pending submission,
+/// then emails the author a confirmation link — the motion is only created once they
+/// confirm, so unconfirmed spam never reaches the live table or notifies officers.
+/// </summary>
+public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcceptedResponse> {
     private readonly ChapterRepository _chapterRepo;
-    private readonly INotificationDispatchQueue _notifications;
+    private readonly SubmissionIntakeService _intake;
 
-    public MotionCreateEndpoint(
-        MotionRepository motionRepo,
-        ChapterRepository chapterRepo,
-        INotificationDispatchQueue notifications) {
-        _motionRepo = motionRepo;
+    public MotionCreateEndpoint(ChapterRepository chapterRepo, SubmissionIntakeService intake) {
         _chapterRepo = chapterRepo;
-        _notifications = notifications;
+        _intake = intake;
     }
 
     public override void Configure() {
@@ -34,52 +32,13 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, MotionDTO> {
     }
 
     public override async Task HandleAsync(MotionCreateRequest req, CancellationToken ct) {
-        var chapter = _chapterRepo.Get(req.ChapterId);
-        if (chapter == null) {
+        if (_chapterRepo.Get(req.ChapterId) == null) {
             AddError(r => r.ChapterId, "Die gewählte Gliederung existiert nicht.");
             await SendErrorsAsync(cancellation: ct);
             return;
         }
 
-        var motion = new Motion {
-            ChapterId = req.ChapterId,
-            AuthorName = req.AuthorName,
-            AuthorEmail = req.AuthorEmail,
-            Title = req.Title,
-            Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
-            IsPublic = false,
-            ApprovalStatus = MotionApprovalStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _motionRepo.Create(motion);
-
-        var chapterName = chapter.Name;
-        var payload = new MotionSubmittedPayload(
-            motion.Id, motion.ChapterId, motion.Title, motion.AuthorName, chapterName);
-        _notifications.Enqueue(new NotificationDispatchRequest(
-            NotificationTriggers.MotionSubmitted,
-            payload,
-            _ => new Dictionary<string, object> {
-                ["motion"] = new {
-                    motion.Id,
-                    motion.Title,
-                    motion.AuthorName,
-                    motion.CreatedAt
-                },
-                ["chapter"] = new { Id = motion.ChapterId, Name = chapterName }
-            },
-            SourceEntityType: "Motion",
-            SourceEntityId: motion.Id));
-
-        await SendAsync(new MotionDTO {
-            Id = motion.Id,
-            ChapterId = motion.ChapterId,
-            AuthorName = motion.AuthorName,
-            Title = motion.Title,
-            IsPublic = false,
-            ApprovalStatus = 0,
-            CreatedAt = motion.CreatedAt
-        }, cancellation: ct);
+        await _intake.AcceptAsync(PendingSubmissionKind.Motion, req, req.AuthorEmail, ct);
+        await SendAsync(new SubmissionAcceptedResponse { Email = req.AuthorEmail }, cancellation: ct);
     }
 }

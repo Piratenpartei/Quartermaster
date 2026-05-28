@@ -34,6 +34,16 @@ public class MultiChannelDispatchTests : IntegrationTestBase {
             Title = title,
             Text = "Body"
         });
+        // Confirm through the SAME (stub-bot) host so materialization + telegram dispatch
+        // use the stubbed bot factory rather than the base host's real one.
+        var tokens = Db.PendingSubmissions
+            .Where(p => p.ConfirmedAt == null)
+            .Select(p => p.Token)
+            .ToList();
+        foreach (var token in tokens) {
+            var resp = await client.PostAsync($"/api/submissions/{token}/confirm", null);
+            resp.EnsureSuccessStatusCode();
+        }
     }
 
     private WebApplicationFactory<Program> HostWithStubBot() {
@@ -64,7 +74,7 @@ public class MultiChannelDispatchTests : IntegrationTestBase {
 
         var telegramLogs = Db.NotificationLogs.Where(l => l.ChannelId == "telegram").ToList();
         await Assert.That(telegramLogs.Count).IsEqualTo(0);
-        var smtpLogs = Db.NotificationLogs.Where(l => l.ChannelId == "email").ToList();
+        var smtpLogs = Db.NotificationLogs.Where(l => l.ChannelId == "email" && l.TriggerId == "motion_submitted").ToList();
         await Assert.That(smtpLogs.Count).IsEqualTo(1);
     }
 

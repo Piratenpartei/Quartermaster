@@ -37,39 +37,49 @@ public class DueSelectionCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Creates_persisted_due_selection() {
+    public async Task Submit_stashes_pending_and_does_not_create_due_selection() {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/dueselector", ValidDto());
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.DueSelections.Count()).IsEqualTo(0);
+        await Assert.That(Db.PendingSubmissions.Count(p => p.ConfirmedAt == null)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Creates_persisted_due_selection_on_confirm() {
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        await client.PostAsJsonAsync("/api/dueselector", ValidDto());
+        await ConfirmAllPendingSubmissionsAsync();
         var persisted = Db.DueSelections.Count(d => d.FirstName == "Alice" && d.LastName == "Anderson");
         await Assert.That(persisted).IsEqualTo(1);
     }
 
     [Test]
-    public async Task Persists_submitted_iban_and_account_holder() {
+    public async Task Persists_submitted_iban_and_account_holder_on_confirm() {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var dto = ValidDto();
         dto.IBAN = "DE02700100800030876808";
         dto.AccountHolder = "Different Holder";
-        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
-        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await client.PostAsJsonAsync("/api/dueselector", dto);
+        await ConfirmAllPendingSubmissionsAsync();
         var saved = Db.DueSelections.First(d => d.FirstName == "Alice");
         await Assert.That(saved.IBAN).IsEqualTo("DE02700100800030876808");
         await Assert.That(saved.AccountHolder).IsEqualTo("Different Holder");
     }
 
     [Test]
-    public async Task Persists_reduced_valuation_selection() {
+    public async Task Persists_reduced_valuation_selection_on_confirm() {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var dto = ValidDto();
         dto.SelectedValuation = SelectedValuation.Reduced;
         dto.ReducedAmount = 5m;
         dto.ReducedJustification = "Low income";
-        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
-        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await client.PostAsJsonAsync("/api/dueselector", dto);
+        await ConfirmAllPendingSubmissionsAsync();
         var saved = Db.DueSelections.First(d => d.FirstName == "Alice");
         await Assert.That(saved.ReducedAmount).IsEqualTo(5m);
         await Assert.That(saved.ReducedJustification).IsEqualTo("Low income");

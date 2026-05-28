@@ -14,13 +14,15 @@ public class MotionSubmittedNotificationTests : IntegrationTestBase {
     private async Task<HttpResponseMessage> SubmitMotion(Guid chapterId, string title) {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        return await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+        var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
             ChapterId = chapterId,
             AuthorName = "Anonymous Author",
             AuthorEmail = "author@example.com",
             Title = title,
             Text = "Motion body."
         });
+        await ConfirmAllPendingSubmissionsAsync();
+        return response;
     }
 
     [Test]
@@ -65,14 +67,13 @@ public class MotionSubmittedNotificationTests : IntegrationTestBase {
             email: "officer@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
 
-        var response = await SubmitMotion(chapter.Id, "Trackable Motion");
-        var dto = await response.Content.ReadFromJsonAsync<MotionDTO>();
-        await Assert.That(dto).IsNotNull();
+        await SubmitMotion(chapter.Id, "Trackable Motion");
 
+        var motion = Db.Motions.Single(m => m.Title == "Trackable Motion");
         var log = Db.NotificationLogs.First(l => l.TriggerId == "motion_submitted");
         await Assert.That(log.ChannelId).IsEqualTo("email");
         await Assert.That(log.SourceEntityType).IsEqualTo("Motion");
-        await Assert.That(log.SourceEntityId).IsEqualTo(dto!.Id);
+        await Assert.That(log.SourceEntityId).IsEqualTo(motion.Id);
         await Assert.That(log.Subject!.Contains("Trackable Motion")).IsTrue();
         await Assert.That(log.Body!.Contains("Trackable Motion")).IsTrue();
         await Assert.That(log.Body!.Contains("Anonymous Author")).IsTrue();

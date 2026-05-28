@@ -31,6 +31,7 @@ using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Rendering;
+using Quartermaster.Server.Submissions;
 using Quartermaster.Server.Events;
 using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
@@ -146,6 +147,11 @@ public partial class Program {
         builder.Services.AddSingleton<ChannelNotificationDispatchQueue>();
         builder.Services.AddSingleton<INotificationDispatchQueue>(sp => sp.GetRequiredService<ChannelNotificationDispatchQueue>());
         builder.Services.AddHostedService<NotificationDispatchBackgroundService>();
+
+        builder.Services.AddScoped<SubmissionConfirmationEmailService>();
+        builder.Services.AddScoped<SubmissionIntakeService>();
+        builder.Services.AddScoped<SubmissionMaterializer>();
+        builder.Services.AddHostedService<PendingSubmissionCleanupHostedService>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();
         builder.Services.AddScoped<MeetingLifecycleService>();

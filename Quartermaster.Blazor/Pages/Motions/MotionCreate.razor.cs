@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
 
@@ -13,8 +12,6 @@ public partial class MotionCreate {
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
-    public required NavigationManager NavigationManager { get; set; }
-    [Inject]
     public required ToastService ToastService { get; set; }
 
     private string SelectedChapterId { get; set; } = "";
@@ -23,6 +20,7 @@ public partial class MotionCreate {
     private string Title { get; set; } = "";
     private string Text { get; set; } = "";
     private bool Submitting;
+    private string? SubmittedEmail;
 
     private bool CanSubmit() {
         if (string.IsNullOrEmpty(SelectedChapterId))
@@ -57,8 +55,8 @@ public partial class MotionCreate {
             });
 
             if (result.IsSuccessStatusCode) {
-                NavigationManager.NavigateTo("/");
-                ToastService.ToastKey(I18nKey.Ui.Toast.PublicMotionSubmitted);
+                SubmittedEmail = AuthorEmail;
+                StateHasChanged();
             } else {
                 Submitting = false;
                 await ToastService.ErrorAsync(result);

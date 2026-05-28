@@ -86,6 +86,24 @@ public abstract class IntegrationTestBase : IDisposable {
         return client;
     }
 
+    /// <summary>
+    /// Confirms every unconfirmed pending submission, materializing the real entities (and,
+    /// via the inline dispatch queue, firing notifications synchronously). Public submit
+    /// endpoints only stash a pending row; tests call this to drive the rest of the flow.
+    /// </summary>
+    protected async Task ConfirmAllPendingSubmissionsAsync() {
+        var tokens = Db.PendingSubmissions
+            .Where(p => p.ConfirmedAt == null)
+            .Select(p => p.Token)
+            .ToList();
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        foreach (var token in tokens) {
+            var response = await client.PostAsync($"/api/submissions/{token}/confirm", null);
+            response.EnsureSuccessStatusCode();
+        }
+    }
+
     public virtual void Dispose() {
         if (_disposed)
             return;

@@ -44,6 +44,14 @@ public partial class TemplateFieldPalette {
     /// <c>MembershipApplicationCreateEndpoint</c>, and <c>DueSelectionCreateEndpoint</c>.
     /// </summary>
     private static readonly Dictionary<string, List<TemplateModelSchemaDTO>> NotificationSchemas = new() {
+        ["SubmissionConfirmation"] = new() {
+            new() {
+                ModelName = "Bestätigung", VariablePrefix = "confirm",
+                Fields = new() {
+                    Field("url", "string", "confirm")
+                }
+            }
+        },
         ["MotionSubmittedPayload"] = new() {
             new() {
                 ModelName = "Antrag", VariablePrefix = "motion",

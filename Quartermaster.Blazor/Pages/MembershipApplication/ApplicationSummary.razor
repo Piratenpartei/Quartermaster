@@ -6,6 +6,11 @@
     <h3>Mitgliedsantrag - Zusammenfassung</h3>
 </div>
 
+@if (SubmittedEmail != null) {
+    <SubmissionConfirmationNotice Email="@SubmittedEmail" />
+    return;
+}
+
 @if (EntryState == null)
     return;
 

@@ -16,6 +16,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.Saml;
+using Quartermaster.Data.Submissions;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -471,6 +472,15 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id))
             .OnDelete(Rule.Cascade);
 
+        Create.Table(PendingSubmission.TableName)
+            .WithColumn(nameof(PendingSubmission.Token)).AsString(64).PrimaryKey()
+            .WithColumn(nameof(PendingSubmission.Kind)).AsInt32()
+            .WithColumn(nameof(PendingSubmission.PayloadJson)).AsCustom("TEXT")
+            .WithColumn(nameof(PendingSubmission.Email)).AsString(256)
+            .WithColumn(nameof(PendingSubmission.CreatedAt)).AsDateTime()
+            .WithColumn(nameof(PendingSubmission.ExpiresAt)).AsDateTime()
+            .WithColumn(nameof(PendingSubmission.ConfirmedAt)).AsDateTime().Nullable();
+
         Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
             .WithColumn("EntityType").AsString(64)
@@ -685,6 +695,7 @@ public class M001_InitialStructureMigration : MigrationBase {
         DropTableIfExists(AdministrativeDivision.TableName);
         DropTableIfExists(Permission.TableName);
 
+        DropTableIfExists(PendingSubmission.TableName);
         DropTableIfExists(TelegramLinkToken.TableName);
         DropTableIfExists(UserNotificationPreference.TableName);
         DropTableIfExists(NotificationLog.TableName);

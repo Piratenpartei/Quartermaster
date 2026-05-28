@@ -39,12 +39,23 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Persists_application_with_pending_status() {
+    public async Task Submit_stashes_pending_and_does_not_create_application() {
         var chapter = Builder.SeedChapter("C");
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
+        await Assert.That(Db.PendingSubmissions.Count(p => p.ConfirmedAt == null)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Persists_application_with_pending_status_on_confirm() {
+        var chapter = Builder.SeedChapter("C");
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+        await ConfirmAllPendingSubmissionsAsync();
         var saved = Db.MembershipApplications.First(a => a.FirstName == "Alice");
         await Assert.That(saved.Status).IsEqualTo(ApplicationStatus.Pending);
         await Assert.That(saved.ChapterId).IsEqualTo(chapter.Id);
@@ -81,12 +92,12 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Creates_linked_motion_when_chapter_provided() {
+    public async Task Creates_linked_motion_when_chapter_provided_on_confirm() {
         var chapter = Builder.SeedChapter("C");
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
-        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+        await ConfirmAllPendingSubmissionsAsync();
         var savedApp = Db.MembershipApplications.First(a => a.FirstName == "Alice");
         var motion = Db.Motions.FirstOrDefault(m => m.LinkedMembershipApplicationId == savedApp.Id);
         await Assert.That(motion).IsNotNull();

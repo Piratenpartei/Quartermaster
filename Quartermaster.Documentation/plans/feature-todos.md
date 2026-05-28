@@ -111,6 +111,35 @@ When a member's first dues invoice is marked paid, they transition from "approve
 - Welcome content should reference `globals.app_name` and `globals.base_url` so it works without per-deploy template edits.
 - Tests: simulate first-payment / member-number assignment, assert one email goes out and a second assignment doesn't trigger a duplicate.
 
+## Guided setup pages for SMTP / SAML / OIDC
+
+The generic options list (`/Administration/Options`) works but is a poor first-run experience for multi-field integrations. Add focused, permission-gated setup pages that group the related settings and (for SMTP) let you test it.
+
+- **Entry points:** a row of buttons directly under the "System – Einstellungen" header (above the options list) linking to the three setup pages. Each button gated by the same permission that controls editing options (`ViewOptions`/`EditOptions`), so they only appear if the user may configure them.
+- **SMTP page** — two stacked cards:
+  - Top card: all 8 SMTP settings side-by-side / in a grid — `email.smtp.host`, `email.smtp.port`, `email.smtp.use_ssl`, `email.smtp.username`, `email.smtp.password`, `email.smtp.sender_address`, `email.smtp.sender_name`, `email.smtp.batch_size`. Save writes them through the existing options API.
+  - Bottom card: a **test send** — an email field + "Test-E-Mail senden" button that hits a new endpoint which sends a fixed test message via the current SMTP config and reports success/failure inline (surface the SMTP error text on failure). Needs a small `POST /api/email/test` endpoint (permission-gated) that sends synchronously and returns the result rather than going through the queue, so the user sees the outcome immediately.
+- **SAML page** — groups `auth.saml.endpoint`, `auth.saml.client_id`, `auth.saml.certificate`, `auth.saml.button_text`, `auth.saml.expected_audience`, `auth.saml.expected_destination`, plus `auth.sso.support_contact`. (No live test send — SAML needs a full browser round-trip; out of scope.)
+- **OIDC page** — groups `auth.oidc.authority`, `auth.oidc.client_id`, `auth.oidc.client_secret`, `auth.oidc.button_text`, plus `auth.sso.support_contact`.
+- These are just nicer views over the same `SystemOption` rows — no new persistence. The generic options page stays as the fallback/advanced editor.
+
+## Authenticated submissions skip email confirmation
+
+Context: as of 2026-05-28 every public submission (motion / due selection / membership application) is held in `PendingSubmission` until the submitter clicks an emailed confirm link — the spam barrier. This applies to *everyone*, including logged-in officers/admins, because the three create endpoints (`MotionCreateEndpoint`, `DueSelectionCreateEndpoint`, `MembershipApplicationCreateEndpoint`) are `AllowAnonymous` and treat all callers identically. An authenticated user creating a motion from the admin UI currently has to email-confirm it too, which is wrong.
+
+Goal: authenticated users create directly (no confirmation), anonymous users keep the confirm flow.
+
+**Backend**
+- In each create endpoint, branch on `_perms.UserId != null` (possibly gate on a permission): authed → call `SubmissionMaterializer` directly (entity created + notifications fire immediately); anonymous → keep `SubmissionIntakeService.AcceptAsync` (stash + confirm email). The materializer is already factored out and callable.
+- Response shape differs per branch (materialized entity vs `SubmissionAcceptedResponse`) — pick a response the frontend can disambiguate, or return a flag like `{ requiresConfirmation: bool }`.
+
+**Frontend** (the reason this isn't a trivial backend change)
+- **Membership application wizard:** if the user is authenticated, warn up front that they are logged in and may therefore only submit an application *on behalf of another person* (an officer entering a paper application). Don't pre-fill from their account — it's explicitly for someone else.
+- **Motion + due selection:** if authenticated, auto-fill the author/submitter fields (name, email) from the logged-in user's account and disable those inputs — no need to ask. On submit, the entity is created immediately (no "check your email" step; go straight to the success/redirect path).
+- Keep the current anonymous flow (manual fields + confirmation notice) unchanged when not logged in.
+
+**Tests:** authed create → entity exists immediately + notifications fire, no `PendingSubmission` row; anonymous create → unchanged (pending + confirm).
+
 ## Async notification dispatch (off the request thread) — DONE (2026-05-28)
 
 Shipped: `INotificationDispatchQueue` with `ChannelNotificationDispatchQueue` (singleton, unbounded `Channel<NotificationDispatchRequest>`) + `NotificationDispatchBackgroundService` draining it in a per-item scope. The three submit endpoints call `_notifications.Enqueue(...)` instead of `await DispatchAsync(...)`. Tests swap in `InlineNotificationDispatchQueue` (runs dispatch synchronously) so the "submit then assert on logs" tests stay deterministic. Submit-endpoint latency is now independent of recipient count / channel mix.

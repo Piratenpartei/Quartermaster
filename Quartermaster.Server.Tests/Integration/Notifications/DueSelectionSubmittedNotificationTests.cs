@@ -33,7 +33,9 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
     private async Task<HttpResponseMessage> Submit(DueSelectionDTO dto) {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        return await client.PostAsJsonAsync("/api/dueselector", dto);
+        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
+        await ConfirmAllPendingSubmissionsAsync();
+        return response;
     }
 
     [Test]

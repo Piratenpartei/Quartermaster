@@ -1,40 +1,25 @@
-using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
-using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
-using Quartermaster.Api.Motions;
-using Quartermaster.Rendering;
-using Quartermaster.Data.Chapters;
-using Quartermaster.Data.DueSelector;
-using Quartermaster.Data.MembershipApplications;
-using Quartermaster.Data.Motions;
-using Quartermaster.Server.Notifications;
+using Quartermaster.Api.Submissions;
+using Quartermaster.Data.Submissions;
+using Quartermaster.Server.Submissions;
 
 namespace Quartermaster.Server.MembershipApplications;
 
-public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicationDTO> {
-    private readonly MembershipApplicationRepository _applicationRepository;
-    private readonly DueSelectionRepository _dueSelectionRepository;
-    private readonly MotionRepository _motionRepo;
-    private readonly ChapterRepository _chapterRepo;
-    private readonly INotificationDispatchQueue _notifications;
+/// <summary>
+/// Public membership-application submission. Stashes the request and emails a confirmation
+/// link; the application (plus its linked due selection and approval motion) is created only
+/// on confirmation.
+/// </summary>
+public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicationDTO, SubmissionAcceptedResponse> {
+    private readonly SubmissionIntakeService _intake;
 
-    public MembershipApplicationCreateEndpoint(
-        MembershipApplicationRepository applicationRepository,
-        DueSelectionRepository dueSelectionRepository,
-        MotionRepository motionRepo,
-        ChapterRepository chapterRepo,
-        INotificationDispatchQueue notifications) {
-        _applicationRepository = applicationRepository;
-        _dueSelectionRepository = dueSelectionRepository;
-        _motionRepo = motionRepo;
-        _chapterRepo = chapterRepo;
-        _notifications = notifications;
+    public MembershipApplicationCreateEndpoint(SubmissionIntakeService intake) {
+        _intake = intake;
     }
 
     public override void Configure() {
@@ -44,115 +29,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     }
 
     public override async Task HandleAsync(MembershipApplicationDTO req, CancellationToken ct) {
-        Guid? dueSelectionId = null;
-        var isReduced = false;
-        if (req.DueSelection != null) {
-            var dueSelection = new DueSelection {
-                FirstName = req.DueSelection.FirstName,
-                LastName = req.DueSelection.LastName,
-                Email = req.DueSelection.Email,
-                MemberNumber = req.DueSelection.MemberNumber,
-                SelectedValuation = req.DueSelection.SelectedValuation,
-                YearlyIncome = req.DueSelection.YearlyIncome,
-                MonthlyIncomeGroup = req.DueSelection.MonthlyIncomeGroup,
-                ReducedAmount = req.DueSelection.ReducedAmount,
-                SelectedDue = req.DueSelection.SelectedDue,
-                ReducedJustification = req.DueSelection.ReducedJustification,
-                ReducedTimeSpan = req.DueSelection.ReducedTimeSpan,
-                IsDirectDeposit = req.DueSelection.IsDirectDeposit,
-                AccountHolder = req.DueSelection.AccountHolder,
-                IBAN = req.DueSelection.IBAN,
-                PaymentSchedule = req.DueSelection.PaymentSchedule
-            };
-            isReduced = dueSelection.SelectedValuation == SelectedValuation.Reduced;
-            dueSelection.Status = isReduced
-                ? DueSelectionStatus.Pending
-                : DueSelectionStatus.AutoApproved;
-            _dueSelectionRepository.Create(dueSelection);
-            dueSelectionId = dueSelection.Id;
-        }
-
-        var application = new MembershipApplication {
-            FirstName = req.FirstName,
-            LastName = req.LastName,
-            DateOfBirth = req.DateOfBirth,
-            Citizenship = req.Citizenship,
-            Email = req.Email,
-            PhoneNumber = req.PhoneNumber,
-            AddressStreet = req.AddressStreet,
-            AddressHouseNbr = req.AddressHouseNbr,
-            AddressPostCode = req.AddressPostCode,
-            AddressCity = req.AddressCity,
-            AddressAdministrativeDivisionId = req.AddressAdministrativeDivisionId,
-            ChapterId = req.ChapterId,
-            ConformityDeclarationAccepted = req.ConformityDeclarationAccepted,
-            HasPriorDeclinedApplication = req.HasPriorDeclinedApplication,
-            IsMemberOfAnotherParty = req.IsMemberOfAnotherParty,
-            ApplicationText = req.ApplicationText,
-            EntryDate = req.EntryDate,
-            DueSelectionId = dueSelectionId,
-            SubmittedAt = DateTime.UtcNow,
-            Status = ApplicationStatus.Pending
-        };
-        _applicationRepository.Create(application);
-
-        // Spawn a single linked motion for chapter approval
-        if (application.ChapterId.HasValue) {
-            var md = $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
-                + $"- **E-Mail:** {application.Email}\n"
-                + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
-                + $"{application.AddressPostCode} {application.AddressCity}\n";
-
-            if (isReduced && req.DueSelection != null) {
-                md += $"\n---\n\n"
-                    + $"**Antrag auf Beitragsminderung**\n\n"
-                    + $"- **Gewünschter Betrag:** {req.DueSelection.ReducedAmount}€\n"
-                    + $"- **Begründung:** {req.DueSelection.ReducedJustification}\n"
-                    + $"\n[Einstufung ansehen](/Administration/DueSelections/{dueSelectionId})\n";
-            }
-
-            md += $"\n[Antrag ansehen](/Administration/MembershipApplications/{application.Id})\n";
-
-            var title = isReduced
-                ? $"Mitgliedsantrag + Beitragsminderung: {application.FirstName} {application.LastName}"
-                : $"Mitgliedsantrag: {application.FirstName} {application.LastName}";
-
-            var motion = new Motion {
-                ChapterId = application.ChapterId.Value,
-                AuthorName = $"{application.FirstName} {application.LastName}",
-                AuthorEmail = application.Email,
-                Title = title,
-                Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
-                IsPublic = false,
-                LinkedMembershipApplicationId = application.Id,
-                LinkedDueSelectionId = isReduced ? dueSelectionId : null,
-                ApprovalStatus = MotionApprovalStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-            _motionRepo.Create(motion);
-
-            var chapterName = _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
-            var payload = new ApplicationSubmittedPayload(
-                application.Id, application.ChapterId.Value, chapterName,
-                application.FirstName, application.LastName, isReduced);
-            _notifications.Enqueue(new NotificationDispatchRequest(
-                NotificationTriggers.ApplicationSubmitted,
-                payload,
-                _ => new Dictionary<string, object> {
-                    ["application"] = new {
-                        application.Id,
-                        application.FirstName,
-                        application.LastName,
-                        application.Email,
-                        application.SubmittedAt,
-                        HasReducedDueSelection = isReduced
-                    },
-                    ["chapter"] = new { Id = application.ChapterId.Value, Name = chapterName }
-                },
-                SourceEntityType: "MembershipApplication",
-                SourceEntityId: application.Id));
-        }
-
-        await SendOkAsync(ct);
+        await _intake.AcceptAsync(PendingSubmissionKind.MembershipApplication, req, req.Email, ct);
+        await SendAsync(new SubmissionAcceptedResponse { Email = req.Email }, cancellation: ct);
     }
 }
