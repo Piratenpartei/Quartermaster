@@ -37,6 +37,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
         AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
+        AddIfNotExists(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);
 
         AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);
         AddIfNotExists(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge Bearbeiten", false);

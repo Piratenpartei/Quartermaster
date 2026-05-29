@@ -32,6 +32,7 @@ public class SubmissionMaterializer {
     private readonly MemberRepository _memberRepo;
     private readonly INotificationDispatchQueue _notifications;
     private readonly MembershipApplicationMailService _applicantMail;
+    private readonly ApplicationReviewService _reviewService;
     private readonly ILogger<SubmissionMaterializer> _logger;
 
     public SubmissionMaterializer(
@@ -42,6 +43,7 @@ public class SubmissionMaterializer {
         MemberRepository memberRepo,
         INotificationDispatchQueue notifications,
         MembershipApplicationMailService applicantMail,
+        ApplicationReviewService reviewService,
         ILogger<SubmissionMaterializer> logger) {
         _motionRepo = motionRepo;
         _dueSelectionRepo = dueSelectionRepo;
@@ -50,6 +52,7 @@ public class SubmissionMaterializer {
         _memberRepo = memberRepo;
         _notifications = notifications;
         _applicantMail = applicantMail;
+        _reviewService = reviewService;
         _logger = logger;
     }
 
@@ -205,69 +208,20 @@ public class SubmissionMaterializer {
             EntryDate = req.EntryDate,
             DueSelectionId = dueSelectionId,
             SubmittedAt = DateTime.UtcNow,
-            Status = ApplicationStatus.Pending
+            // No chapter (manual/foreign address) → held for division linking instead of normal review.
+            Status = req.ChapterId.HasValue ? ApplicationStatus.Pending : ApplicationStatus.PendingDivisionLinking
         };
         _applicationRepo.Create(application);
 
         await _applicantMail.SendApplicationReceivedAsync(application, isReduced, ct);
 
+        // Without a chapter the application waits in PendingDivisionLinking (set above) — no review
+        // motion, no officer notification — until someone assigns a chapter via the linking endpoint.
         if (!application.ChapterId.HasValue) {
             return;
         }
 
-        var md = $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
-            + $"- **E-Mail:** {application.Email}\n"
-            + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
-            + $"{application.AddressPostCode} {application.AddressCity}\n";
-
-        if (isReduced && req.DueSelection != null) {
-            md += $"\n---\n\n"
-                + $"**Antrag auf Beitragsminderung**\n\n"
-                + $"- **Gewünschter Betrag:** {req.DueSelection.ReducedAmount}€\n"
-                + $"- **Begründung:** {req.DueSelection.ReducedJustification}\n"
-                + $"\n[Einstufung ansehen](/Administration/DueSelections/{dueSelectionId})\n";
-        }
-
-        md += $"\n[Antrag ansehen](/Administration/MembershipApplications/{application.Id})\n";
-
-        var title = isReduced
-            ? $"Mitgliedsantrag + Beitragsminderung: {application.FirstName} {application.LastName}"
-            : $"Mitgliedsantrag: {application.FirstName} {application.LastName}";
-
-        var motion = new Motion {
-            ChapterId = application.ChapterId.Value,
-            AuthorName = $"{application.FirstName} {application.LastName}",
-            AuthorEmail = application.Email,
-            Title = title,
-            Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
-            IsPublic = false,
-            LinkedMembershipApplicationId = application.Id,
-            LinkedDueSelectionId = isReduced ? dueSelectionId : null,
-            ApprovalStatus = MotionApprovalStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
-        _motionRepo.Create(motion);
-
-        var chapterName = _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
-        var payload = new ApplicationSubmittedPayload(
-            application.Id, application.ChapterId.Value, chapterName,
-            application.FirstName, application.LastName, isReduced);
-        _notifications.Enqueue(new NotificationDispatchRequest(
-            NotificationTriggers.ApplicationSubmitted,
-            payload,
-            _ => new Dictionary<string, object> {
-                ["application"] = new {
-                    application.Id,
-                    application.FirstName,
-                    application.LastName,
-                    application.Email,
-                    application.SubmittedAt,
-                    HasReducedDueSelection = isReduced
-                },
-                ["chapter"] = new { Id = application.ChapterId.Value, Name = chapterName }
-            },
-            SourceEntityType: "MembershipApplication",
-            SourceEntityId: application.Id));
+        _reviewService.CreateReviewMotionAndNotify(application);
     }
 
     private static T Deserialize<T>(string json) {

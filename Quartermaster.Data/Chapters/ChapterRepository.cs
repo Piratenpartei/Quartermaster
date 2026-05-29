@@ -71,7 +71,7 @@ public class ChapterRepository {
         return GetRootChapter();
     }
 
-    private Chapter? GetRootChapter() {
+    public Chapter? GetRootChapter() {
         return _context.Chapters
             .Where(c => c.ParentChapterId == null && c.DeletedAt == null)
             .OrderBy(c => c.Name)

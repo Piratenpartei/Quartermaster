@@ -131,6 +131,9 @@
   "error.admin.application.member_number_required": "Member number must be greater than 0.",
   "error.admin.application.not_approved_for_welcome": "A welcome mail can only be sent for approved applications.",
   "error.admin.application.welcome_already_sent": "A welcome mail has already been sent for this application.",
+  "error.admin.application.not_pending_division_linking": "This application is not awaiting administrative division linking.",
+  "error.admin.application.division_required": "Please select a municipality or confirm this is not a German address.",
+  "error.admin.application.no_chapter_for_division": "No chapter could be determined for this municipality.",
 
   "error.admin.due_selection.id_required": "Due selection ID must not be empty.",
   "error.admin.due_selection.status_invalid": "Status must be 'Approved' or 'Rejected'.",
@@ -179,6 +182,7 @@
   "ui.toast.session.revoked": "Session signed out.",
   "ui.toast.session.others_revoked": "All other sessions signed out.",
   "ui.toast.membership_application.welcome_sent": "Welcome mail sent to the new member.",
+  "ui.toast.membership_application.division_linked": "Chapter assigned — the application has been moved to review.",
 
   "ui.error.generic": "An error occurred.",
   "ui.error.user_required": "Please select a user.",

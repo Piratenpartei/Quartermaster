@@ -18,6 +18,7 @@
             <option value="0" selected>Ausstehend</option>
             <option value="1">Genehmigt</option>
             <option value="2">Abgelehnt</option>
+            <option value="3">Gliederung ausstehend</option>
         </select>
     </div>
 </div>
@@ -53,6 +54,8 @@
                             <span class="badge border border-warning text-warning-emphasis">Ausstehend</span>
                         } else if (app.Status == ApplicationStatus.Approved) {
                             <span class="badge border border-success text-success-emphasis">Genehmigt</span>
+                        } else if (app.Status == ApplicationStatus.PendingDivisionLinking) {
+                            <span class="badge border border-info text-info-emphasis">Gliederung ausstehend</span>
                         } else {
                             <span class="badge border border-danger text-danger-emphasis">Abgelehnt</span>
                         }

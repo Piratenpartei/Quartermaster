@@ -23,6 +23,10 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageRoles = "roles_manage";
 
+    // Global: assign an administrative division/chapter to applications that arrived without one
+    // (manual or foreign address) so they can enter the normal review flow.
+    public static readonly string LinkApplicationDivision = "applications_link_division";
+
     // System-wide override permissions (global, prefixed with system_)
     // These grant the permission across ALL chapters regardless of chapter-scoped grants.
     // Applied to the root admin by default.

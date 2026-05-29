@@ -198,6 +198,9 @@ public static class I18nKey {
                 public const string MemberNumberRequired = "error.admin.application.member_number_required";
                 public const string NotApprovedForWelcome = "error.admin.application.not_approved_for_welcome";
                 public const string WelcomeAlreadySent = "error.admin.application.welcome_already_sent";
+                public const string NotPendingDivisionLinking = "error.admin.application.not_pending_division_linking";
+                public const string DivisionRequired = "error.admin.application.division_required";
+                public const string NoChapterForDivision = "error.admin.application.no_chapter_for_division";
             }
 
             public static class DueSelection {
@@ -259,6 +262,7 @@ public static class I18nKey {
             public const string SessionRevoked = "ui.toast.session.revoked";
             public const string SessionOthersRevoked = "ui.toast.session.others_revoked";
             public const string WelcomeMailSent = "ui.toast.membership_application.welcome_sent";
+            public const string DivisionLinked = "ui.toast.membership_application.division_linked";
         }
 
         public static class Error {

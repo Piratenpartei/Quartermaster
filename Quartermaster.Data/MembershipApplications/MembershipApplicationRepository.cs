@@ -68,6 +68,24 @@ public class MembershipApplicationRepository {
         tx.Commit();
     }
 
+    /// <summary>
+    /// Assigns the administrative division + chapter to an application that was waiting in
+    /// PendingDivisionLinking and moves it to Pending so normal review can begin.
+    /// </summary>
+    public void LinkDivisionAndChapter(Guid id, Guid? divisionId, Guid? chapterId) {
+        using var tx = _context.BeginTransaction();
+        var existing = Get(id);
+        _context.MembershipApplications
+            .Where(a => a.Id == id)
+            .Set(a => a.AddressAdministrativeDivisionId, divisionId)
+            .Set(a => a.ChapterId, chapterId)
+            .Set(a => a.Status, ApplicationStatus.Pending)
+            .Update();
+        if (existing != null)
+            _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId?.ToString());
+        tx.Commit();
+    }
+
     public void SetMemberNumberAndWelcome(Guid id, int memberNumber, DateTime sentAt) {
         using var tx = _context.BeginTransaction();
         _context.MembershipApplications

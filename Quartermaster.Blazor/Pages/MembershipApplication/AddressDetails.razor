@@ -17,13 +17,18 @@
 <div class="row g-3 mb-3">
     <div class="col-sm-auto">
         <label for="addressPostCode" class="form-label">Postleitzahl <RequiredStar /></label>
-        <input type="text" class="form-control" style="max-width: 10em;" id="addressPostCode" @bind=EntryState.AddressPostCode @bind:event="oninput" />
+        <input type="text" class="form-control" style="max-width: 10em;" id="addressPostCode"
+               disabled="@FromMunicipality" @bind=EntryState.AddressPostCode @bind:event="oninput" />
     </div>
     <div class="col-sm">
         <label for="addressCity" class="form-label">Ort <RequiredStar /></label>
-        <input type="text" class="form-control" id="addressCity" @bind=EntryState.AddressCity @bind:event="oninput" />
+        <input type="text" class="form-control" id="addressCity"
+               disabled="@FromMunicipality" @bind=EntryState.AddressCity @bind:event="oninput" />
     </div>
 </div>
+@if (FromMunicipality) {
+    <p class="text-secondary small mb-3">Postleitzahl und Ort stammen aus der gewählten Gemeinde.</p>
+}
 
 <div class="mb-3 d-flex flex-row">
     <div class="flex-grow-1 pe-3">

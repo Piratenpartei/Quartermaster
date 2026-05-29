@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.DueSelector
 @using Quartermaster.Api.MembershipApplications
+@using Quartermaster.Blazor.Components.Inputs
 @using System.Globalization
 
 <PageBackLink Href="/Administration/MembershipApplications" />
@@ -17,10 +18,53 @@
             <span class="badge border border-warning text-warning-emphasis fs-6">Ausstehend</span>
         } else if (App.Status == ApplicationStatus.Approved) {
             <span class="badge border border-success text-success-emphasis fs-6">Genehmigt</span>
+        } else if (App.Status == ApplicationStatus.PendingDivisionLinking) {
+            <span class="badge border border-info text-info-emphasis fs-6">Gliederung ausstehend</span>
         } else {
             <span class="badge border border-danger text-danger-emphasis fs-6">Abgelehnt</span>
         }
     </div>
+
+    @if (App.Status == ApplicationStatus.PendingDivisionLinking) {
+        <RequirePermission GlobalPermission="@PermissionIdentifier.LinkApplicationDivision">
+            <div class="card border-warning mb-3">
+                <div class="card-body">
+                    <h5>Gliederung zuordnen</h5>
+                    <p class="text-secondary">
+                        Dieser Antrag wurde ohne Gliederung eingereicht (manuelle oder ausländische Adresse).
+                        Suche die passende Gemeinde und ordne sie zu, damit der Antrag in die normale Bearbeitung übergeht.
+                    </p>
+                    <p class="mb-3">
+                        <strong>Angegebene Adresse:</strong>
+                        @App.AddressStreet @App.AddressHouseNbr, @App.AddressPostCode @App.AddressCity
+                    </p>
+
+                    <MunicipalityPicker InitialNameQuery="@App.AddressCity" OnSelect="OnDivisionSelected" />
+
+                    @if (SelectedDivision != null) {
+                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                            <span>
+                                Ausgewählt: <strong>@SelectedDivision.Name</strong>
+                                @if (!string.IsNullOrEmpty(SelectedChapterName)) {
+                                    <span class="d-block text-body-secondary small">Gliederung: @SelectedChapterName</span>
+                                } else {
+                                    <span class="d-block text-body-secondary small">Keine zugeordnete Gliederung (geht an Bundesverband)</span>
+                                }
+                            </span>
+                            <button class="btn btn-success btn-hover-scale1" @onclick="ConfirmDivision" disabled="@Linking">
+                                <i class="bi bi-check-circle me-1"></i> Zuordnen & weiterleiten
+                            </button>
+                        </div>
+                    }
+
+                    <hr />
+                    <button class="btn btn-outline-secondary" @onclick="MarkNotInGermany" disabled="@Linking">
+                        Kein deutscher Wohnsitz (an Bundesverband weiterleiten)
+                    </button>
+                </div>
+            </div>
+        </RequirePermission>
+    }
 
     <div class="card mb-3">
         <div class="card-body">

@@ -156,6 +156,7 @@ public partial class Program {
         builder.Services.AddScoped<SubmissionIntakeService>();
         builder.Services.AddScoped<SubmissionMaterializer>();
         builder.Services.AddScoped<MembershipApplicationMailService>();
+        builder.Services.AddScoped<ApplicationReviewService>();
         builder.Services.AddScoped<DueSelectionMailService>();
         builder.Services.AddScoped<MotionResolutionDecisionMailer>();
         builder.Services.AddHostedService<PendingSubmissionCleanupHostedService>();

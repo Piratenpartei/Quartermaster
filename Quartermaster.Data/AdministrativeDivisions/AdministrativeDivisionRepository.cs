@@ -36,6 +36,14 @@ public class AdministrativeDivisionRepository {
     public List<AdministrativeDivision> GetChildren(Guid parentId)
         => _context.AdministrativeDivisions.Where(ad => ad.ParentId == parentId && ad.Id != parentId).OrderBy(ad => ad.Name).ToList();
 
+    /// <summary>Children of several divisions in one query — for batch resolution of representative data.</summary>
+    public List<AdministrativeDivision> GetChildrenForParents(List<Guid> parentIds)
+        => parentIds.Count == 0
+            ? new List<AdministrativeDivision>()
+            : _context.AdministrativeDivisions
+                .Where(ad => ad.ParentId != null && parentIds.Contains(ad.ParentId.Value) && ad.Id != ad.ParentId)
+                .ToList();
+
     public (List<AdministrativeDivision> Items, int TotalCount) Search(string? query, int page, int pageSize) {
         var q = _context.AdministrativeDivisions.AsQueryable();
 

@@ -13,6 +13,8 @@ public partial class AddressDetails {
         ? "/MembershipApplication/Address"
         : "/MembershipApplication/CountrySelection";
 
+    private bool FromMunicipality => EntryState?.AddressAdministrativeDivisionId != null;
+
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<MembershipApplicationEntryState>();
     }

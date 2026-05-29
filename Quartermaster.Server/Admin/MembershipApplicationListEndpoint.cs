@@ -38,6 +38,20 @@ public class MembershipApplicationListEndpoint
             return;
         }
 
+        ApplicationStatus? status = req.Status.HasValue
+            ? (ApplicationStatus)req.Status.Value
+            : null;
+
+        // Division-linking queue: these applications have no chapter, so chapter-scoped view rules
+        // can't reach them. Holders of the linking permission see the whole queue regardless.
+        if (status == ApplicationStatus.PendingDivisionLinking
+            && _perms.HasGlobal(PermissionIdentifier.LinkApplicationDivision)) {
+            var (queueItems, queueTotal) = _applicationRepo.List(
+                chapterIds: null, ApplicationStatus.PendingDivisionLinking, req.Page, req.PageSize);
+            await SendListAsync(queueItems, queueTotal, req, ct);
+            return;
+        }
+
         var allowedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
@@ -59,12 +73,12 @@ public class MembershipApplicationListEndpoint
                 : allowedChapterIds;
         }
 
-        ApplicationStatus? status = req.Status.HasValue
-            ? (ApplicationStatus)req.Status.Value
-            : null;
-
         var (items, totalCount) = _applicationRepo.List(chapterIds, status, req.Page, req.PageSize);
+        await SendListAsync(items, totalCount, req, ct);
+    }
 
+    private async Task SendListAsync(
+        List<MembershipApplication> items, int totalCount, MembershipApplicationListRequest req, CancellationToken ct) {
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id, c => c.Name);
 
         var dtos = items.Select(a => new MembershipApplicationAdminDTO {

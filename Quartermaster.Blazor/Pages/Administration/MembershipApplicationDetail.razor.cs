@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api;
+using Quartermaster.Api.AdministrativeDivisions;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
@@ -25,6 +28,9 @@ public partial class MembershipApplicationDetail {
     private bool Loading = true;
     private int? WelcomeMemberNumber;
     private bool Sending;
+    private AdministrativeDivisionDTO? SelectedDivision;
+    private string? SelectedChapterName;
+    private bool Linking;
 
     private static readonly List<string> WelcomePermissions = new() { PermissionIdentifier.ProcessApplications };
 
@@ -61,6 +67,66 @@ public partial class MembershipApplicationDetail {
             ToastService.Error(ex);
         } finally {
             Sending = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnDivisionSelected(AdministrativeDivisionDTO division) {
+        SelectedDivision = division;
+        SelectedChapterName = null;
+        StateHasChanged();
+        await LookupChapter(division.Id);
+    }
+
+    private async Task LookupChapter(Guid divisionId) {
+        try {
+            var resp = await Http.GetAsync($"/api/chapters/for-division/{divisionId}");
+            if (resp.StatusCode == HttpStatusCode.NotFound) {
+                SelectedChapterName = null;
+                return;
+            }
+            resp.EnsureSuccessStatusCode();
+            var chapter = await resp.Content.ReadFromJsonAsync<ChapterDTO>();
+            SelectedChapterName = chapter?.Name;
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+            SelectedChapterName = null;
+        } finally {
+            StateHasChanged();
+        }
+    }
+
+    private Task ConfirmDivision() {
+        if (SelectedDivision == null) {
+            return Task.CompletedTask;
+        }
+        return LinkDivision(new { Id = App!.Id, AdministrativeDivisionId = SelectedDivision.Id, NotInGermany = false });
+    }
+
+    private Task MarkNotInGermany() {
+        return LinkDivision(new { Id = App!.Id, AdministrativeDivisionId = (Guid?)null, NotInGermany = true });
+    }
+
+    private async Task LinkDivision(object request) {
+        if (Linking || App == null) {
+            return;
+        }
+        Linking = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PostAsJsonAsync("/api/admin/membershipapplications/link-division", request);
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.DivisionLinked);
+                SelectedDivision = null;
+                SelectedChapterName = null;
+                await LoadAsync();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Linking = false;
             StateHasChanged();
         }
     }

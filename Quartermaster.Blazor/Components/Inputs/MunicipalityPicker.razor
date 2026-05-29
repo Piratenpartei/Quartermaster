@@ -1,0 +1,41 @@
+@using Quartermaster.Api.AdministrativeDivisions
+
+<div class="row g-3 mb-3 align-items-end">
+    <div class="col-md">
+        <label class="form-label">Gemeinde/Stadt/Ort</label>
+        <input type="text" class="form-control" placeholder="Gemeinde, Stadt oder Ort..."
+               value="@NameQuery" @oninput="OnNameInput" />
+    </div>
+    <div class="col-md-auto">
+        <label class="form-label">Postleitzahl</label>
+        <div class="d-flex align-items-center">
+            <input type="text" class="form-control" style="width: 10em;" maxlength="5"
+                   placeholder="z. B. 30159" value="@PostCodeQuery" @oninput="OnPostCodeInput" />
+            @if (Searching) {
+                <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+            }
+        </div>
+    </div>
+</div>
+
+@if (MatchingDivisions != null && MatchingDivisions.Count > 0) {
+    <div class="mb-3">
+        <label class="form-label">Gemeinde</label>
+        <div style="max-height: 400px; overflow-y: auto;">
+            @foreach (var div in MatchingDivisions) {
+                <div class="mb-1">
+                    <CardButton OnClick="@(() => OnSelect.InvokeAsync(div))" CardBorderType="primary">
+                        <span class="d-flex justify-content-between align-items-center">
+                            <span>@div.Name</span>
+                            @if (!string.IsNullOrEmpty(div.PrimaryPostCode)) {
+                                <span class="badge border text-secondary-emphasis ms-2">@div.PrimaryPostCode</span>
+                            }
+                        </span>
+                    </CardButton>
+                </div>
+            }
+        </div>
+    </div>
+} else if (HasSearched && !Searching) {
+    <p class="text-secondary">Keine Gemeinde gefunden.</p>
+}

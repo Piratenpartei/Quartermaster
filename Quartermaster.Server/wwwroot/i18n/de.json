@@ -134,6 +134,9 @@
   "error.admin.application.member_number_required": "Mitgliedsnummer muss größer als 0 sein.",
   "error.admin.application.not_approved_for_welcome": "Eine Willkommens-Mail kann nur für genehmigte Anträge versendet werden.",
   "error.admin.application.welcome_already_sent": "Für diesen Antrag wurde bereits eine Willkommens-Mail versendet.",
+  "error.admin.application.not_pending_division_linking": "Dieser Antrag wartet nicht auf eine Gliederungszuordnung.",
+  "error.admin.application.division_required": "Bitte wähle eine Gemeinde aus oder bestätige, dass es keine deutsche Adresse ist.",
+  "error.admin.application.no_chapter_for_division": "Für diese Gemeinde konnte keine Gliederung ermittelt werden.",
 
   "error.admin.due_selection.id_required": "Beitragsauswahl-ID darf nicht leer sein.",
   "error.admin.due_selection.status_invalid": "Status muss 'Genehmigt' oder 'Abgelehnt' sein.",
@@ -182,6 +185,7 @@
   "ui.toast.session.revoked": "Sitzung abgemeldet.",
   "ui.toast.session.others_revoked": "Alle anderen Sitzungen abgemeldet.",
   "ui.toast.membership_application.welcome_sent": "Willkommens-Mail an das neue Mitglied versendet.",
+  "ui.toast.membership_application.division_linked": "Gliederung zugeordnet — der Antrag wurde zur Bearbeitung weitergeleitet.",
 
   "ui.error.generic": "Es ist ein Fehler aufgetreten.",
   "ui.error.user_required": "Bitte Benutzer auswählen.",
