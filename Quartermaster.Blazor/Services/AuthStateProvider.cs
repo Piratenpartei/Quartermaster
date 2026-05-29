@@ -11,6 +11,7 @@ namespace Quartermaster.Blazor.Services;
 /// </summary>
 public class AuthStateProvider {
     private readonly TaskCompletionSource _initTcs = new();
+    private readonly TaskCompletionSource _sessionTcs = new();
     private LoginResponse? _state;
 
     public bool Initialized { get; private set; }
@@ -19,9 +20,17 @@ public class AuthStateProvider {
 
     /// <summary>
     /// Completes when <see cref="MarkInitialized"/> is first called. <c>CsrfDelegatingHandler</c>
-    /// awaits this to avoid racing the first <c>/api/users/session</c> on boot.
+    /// awaits this to avoid racing the first <c>/api/users/session</c> on boot. Fires BEFORE the
+    /// session response arrives — do NOT use to gate reads of <see cref="CurrentUser"/>.
     /// </summary>
     public Task WaitForInitialization => _initTcs.Task;
+
+    /// <summary>
+    /// Completes once the initial <c>/api/users/session</c> response has been processed (success
+    /// or failure). Page initializers that read <see cref="CurrentUser"/> on first render should
+    /// await this to avoid the cold-load race.
+    /// </summary>
+    public Task WaitForSessionFetch => _sessionTcs.Task;
 
     public LoginResponse? State => _state;
     public LoginUserInfo? CurrentUser => _state?.User;
@@ -36,6 +45,10 @@ public class AuthStateProvider {
     public void MarkInitialized() {
         Initialized = true;
         _initTcs.TrySetResult();
+    }
+
+    public void MarkSessionFetched() {
+        _sessionTcs.TrySetResult();
     }
 
     public void SetState(LoginResponse? state) {

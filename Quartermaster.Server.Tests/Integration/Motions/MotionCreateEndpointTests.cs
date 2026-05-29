@@ -130,6 +130,28 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Authenticated_caller_creates_motion_directly_without_pending_row() {
+        var chapter = Builder.SeedChapter("Chapter");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+            ChapterId = chapter.Id,
+            AuthorName = "Officer Olga",
+            AuthorEmail = "olga@test.local",
+            Title = "Direct motion",
+            Text = "Body."
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var accepted = await response.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
+        await Assert.That(accepted!.RequiresConfirmation).IsFalse();
+        await Assert.That(accepted.CreatedEntityId).IsNotNull();
+        await Assert.That(Db.Motions.Single().Id).IsEqualTo(accepted.CreatedEntityId!.Value);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+    }
+
+    [Test]
     public async Task Renders_markdown_paragraph_to_html_on_confirm() {
         var chapter = Builder.SeedChapter();
         using var client = await AnonymousClientWithCsrfAsync();

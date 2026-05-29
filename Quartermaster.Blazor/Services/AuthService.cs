@@ -22,6 +22,13 @@ public class AuthService {
     public LoginUserInfo? CurrentUser => _state.CurrentUser;
     public LoginPermissions? Permissions => _state.Permissions;
 
+    /// <summary>
+    /// Completes once the initial session fetch finishes (or fails). Page initializers that read
+    /// <see cref="CurrentUser"/> on first render must await this to avoid the cold-load race where
+    /// the page initializes before <see cref="InitializeAsync"/> has populated auth state.
+    /// </summary>
+    public Task WaitForInitializationAsync() => _state.WaitForSessionFetch;
+
     /// <summary>Reads identity from <c>/api/users/session</c>; the auth cookie (if present) rides along automatically.</summary>
     public async Task InitializeAsync() {
         // Flip Initialized BEFORE the HTTP call — CsrfDelegatingHandler waits on
@@ -33,6 +40,8 @@ public class AuthService {
                 _state.SetState(await response.Content.ReadFromJsonAsync<LoginResponse>());
         } catch (Exception ex) {
             Console.Error.WriteLine($"AuthService.InitializeAsync: session fetch failed, treating as anonymous. {ex}");
+        } finally {
+            _state.MarkSessionFetched();
         }
     }
 

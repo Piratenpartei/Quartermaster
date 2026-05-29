@@ -5,6 +5,14 @@
     <h3>Antrag einreichen</h3>
 </div>
 
+@if (SubmittedDirect) {
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        Dein Antrag wurde eingereicht und an die Officer weitergeleitet.
+    </div>
+    return;
+}
+
 @if (SubmittedEmail != null) {
     <SubmissionConfirmationNotice Email="@SubmittedEmail" />
     return;
@@ -17,13 +25,17 @@
 
 <div class="mb-3">
     <label for="authorName" class="form-label">Dein Name <RequiredStar /></label>
-    <input type="text" class="form-control" id="authorName" @bind="AuthorName" @bind:event="oninput" />
+    <input type="text" class="form-control" id="authorName" @bind="AuthorName" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
 </div>
 
 <div class="mb-3">
     <label for="authorEmail" class="form-label">Deine E-Mail Adresse <RequiredStar /></label>
-    <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" @bind:event="oninput" />
+    <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
 </div>
+
+@if (AuthService.IsAuthenticated) {
+    <p class="text-secondary small mb-3">Name und E-Mail sind mit deinem Konto vorausgefüllt.</p>
+}
 
 <div class="mb-3">
     <label for="title" class="form-label">Titel des Antrags <RequiredStar /></label>

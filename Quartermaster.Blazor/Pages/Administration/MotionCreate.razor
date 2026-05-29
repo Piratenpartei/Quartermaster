@@ -15,13 +15,16 @@
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="authorName" class="form-label">Antragsteller (Name)</label>
-                <input type="text" class="form-control" id="authorName" @bind="AuthorName" />
+                <input type="text" class="form-control" id="authorName" @bind="AuthorName" disabled="@AuthService.IsAuthenticated" />
             </div>
             <div class="col-md-6">
                 <label for="authorEmail" class="form-label">Antragsteller (E-Mail)</label>
-                <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" />
+                <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" disabled="@AuthService.IsAuthenticated" />
             </div>
         </div>
+        @if (AuthService.IsAuthenticated) {
+            <p class="text-secondary small mb-3">Antragsteller-Felder sind mit deinem Konto vorausgefüllt.</p>
+        }
         <div class="mb-3">
             <label for="title" class="form-label">Titel</label>
             <input type="text" class="form-control" id="title" @bind="Title" />

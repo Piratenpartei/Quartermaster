@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.Submissions;
 using Quartermaster.Blazor.Pages.MembershipApplication;
 using Quartermaster.Blazor.Services;
 
@@ -23,6 +24,7 @@ public partial class Summary {
 
     private DueSelectorEntryState? EntryState;
     private string? SubmittedEmail;
+    private bool SubmittedDirect;
 
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
@@ -43,7 +45,12 @@ public partial class Summary {
         try {
             var result = await Http.PostAsJsonAsync("/api/dueselector", EntryState.ToDTO());
             if (result.IsSuccessStatusCode) {
-                SubmittedEmail = EntryState.Email;
+                var body = await result.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
+                if (body?.RequiresConfirmation == false) {
+                    SubmittedDirect = true;
+                } else {
+                    SubmittedEmail = EntryState.Email;
+                }
                 AppState.ResetEntryState<DueSelectorEntryState>();
                 StateHasChanged();
             } else {

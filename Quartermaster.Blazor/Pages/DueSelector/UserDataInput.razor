@@ -10,17 +10,20 @@
 <div class="mb-3 d-flex flex-row">
     <div class="flex-grow-1 pe-3">
         <label for="firstName" class="form-label">Vorname <RequiredStar /></label>
-        <input type="text" class="form-control" id="firstName" @bind=EntryState.FirstName @bind:event="oninput" />
+        <input type="text" class="form-control" id="firstName" @bind=EntryState.FirstName @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
     </div>
     <div class="flex-grow-1">
         <label for="lastName" class="form-label">Nachname <RequiredStar /></label>
-        <input type="text" class="form-control" id="lastName" @bind=EntryState.LastName @bind:event="oninput" />
+        <input type="text" class="form-control" id="lastName" @bind=EntryState.LastName @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
     </div>
 </div>
 <div class="mb-3">
     <label for="eMail" class="form-label">E-Mail Adresse <RequiredStar /></label>
-    <input type="email" class="form-control" id="eMail" @bind=EntryState.Email @bind:event="oninput" />
+    <input type="email" class="form-control" id="eMail" @bind=EntryState.Email @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
 </div>
+@if (AuthService.IsAuthenticated) {
+    <p class="text-secondary small mb-3">Name und E-Mail sind mit deinem Konto vorausgefüllt.</p>
+}
 <div class="mb-3">
     <label for="memberNumber" class="form-label">Mitgliedsnummer <RequiredStar /></label>
     <input type="number" step="1" class="form-control" id="memberNumber" @bind=EntryState.MemberNumber @bind:event="oninput" />

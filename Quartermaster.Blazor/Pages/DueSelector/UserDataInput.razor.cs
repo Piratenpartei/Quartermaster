@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
@@ -8,11 +9,20 @@ namespace Quartermaster.Blazor.Pages.DueSelector;
 public partial class UserDataInput {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     private DueSelectorEntryState? EntryState;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
+        await AuthService.WaitForInitializationAsync();
+        var user = AuthService.CurrentUser;
+        if (user != null) {
+            EntryState.FirstName = user.FirstName;
+            EntryState.LastName = user.LastName;
+            EntryState.Email = user.Email;
+        }
     }
 
     private bool CanContinue() {

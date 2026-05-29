@@ -73,11 +73,25 @@ public class SubmissionMaterializer {
         }
     }
 
-    private void MaterializeMotion(MotionCreateRequest req) {
+    /// <summary>
+    /// Direct-path overload for authenticated callers: materialize a request without going through
+    /// the email-confirm spam barrier. Returns the new entity's id, or <c>null</c> if the request
+    /// referenced a missing chapter and was dropped.
+    /// </summary>
+    public Guid? MaterializeMotionDirect(MotionCreateRequest req) => MaterializeMotion(req);
+
+    /// <summary>Direct-path overload for authenticated callers — see <see cref="MaterializeMotionDirect"/>.</summary>
+    public Guid MaterializeDueSelectionDirect(DueSelectionDTO req) => MaterializeDueSelection(req);
+
+    /// <summary>Direct-path overload for authenticated callers — see <see cref="MaterializeMotionDirect"/>.</summary>
+    public Task<Guid> MaterializeApplicationDirectAsync(MembershipApplicationDTO req, CancellationToken ct = default)
+        => MaterializeApplicationAsync(req, ct);
+
+    private Guid? MaterializeMotion(MotionCreateRequest req) {
         var chapter = _chapterRepo.Get(req.ChapterId);
         if (chapter == null) {
             _logger.LogWarning("Confirmed motion references a chapter that no longer exists: {ChapterId}", req.ChapterId);
-            return;
+            return null;
         }
 
         var motion = new Motion {
@@ -109,9 +123,10 @@ public class SubmissionMaterializer {
             },
             SourceEntityType: "Motion",
             SourceEntityId: motion.Id));
+        return motion.Id;
     }
 
-    private void MaterializeDueSelection(DueSelectionDTO req) {
+    private Guid MaterializeDueSelection(DueSelectionDTO req) {
         var dueSelection = new DueSelection {
             FirstName = req.FirstName,
             LastName = req.LastName,
@@ -157,9 +172,10 @@ public class SubmissionMaterializer {
                     SourceEntityId: dueSelection.Id));
             }
         }
+        return dueSelection.Id;
     }
 
-    private async Task MaterializeApplicationAsync(MembershipApplicationDTO req, CancellationToken ct) {
+    private async Task<Guid> MaterializeApplicationAsync(MembershipApplicationDTO req, CancellationToken ct) {
         Guid? dueSelectionId = null;
         var isReduced = false;
         if (req.DueSelection != null) {
@@ -218,10 +234,11 @@ public class SubmissionMaterializer {
         // Without a chapter the application waits in PendingDivisionLinking (set above) — no review
         // motion, no officer notification — until someone assigns a chapter via the linking endpoint.
         if (!application.ChapterId.HasValue) {
-            return;
+            return application.Id;
         }
 
         _reviewService.CreateReviewMotionAndNotify(application);
+        return application.Id;
     }
 
     private static T Deserialize<T>(string json) {

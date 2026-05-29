@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.Submissions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.DueSelector;
@@ -68,6 +69,21 @@ public class DueSelectionCreateEndpointTests : IntegrationTestBase {
         var saved = Db.DueSelections.First(d => d.FirstName == "Alice");
         await Assert.That(saved.IBAN).IsEqualTo("DE02700100800030876808");
         await Assert.That(saved.AccountHolder).IsEqualTo("Different Holder");
+    }
+
+    [Test]
+    public async Task Authenticated_caller_creates_due_selection_directly_without_pending_row() {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/dueselector", ValidDto());
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var accepted = await response.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
+        await Assert.That(accepted!.RequiresConfirmation).IsFalse();
+        await Assert.That(accepted.CreatedEntityId).IsNotNull();
+        await Assert.That(Db.DueSelections.Single().Id).IsEqualTo(accepted.CreatedEntityId!.Value);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
     }
 
     [Test]

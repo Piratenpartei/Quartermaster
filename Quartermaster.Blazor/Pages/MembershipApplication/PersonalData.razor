@@ -4,6 +4,13 @@
     <h3>Mitgliedsantrag - Persönliche Daten</h3>
 </div>
 
+@if (AuthService.IsAuthenticated) {
+    <div class="alert alert-warning">
+        <i class="bi bi-info-circle me-2"></i>
+        Du bist eingeloggt. Dieser Antrag wird im Namen einer anderen Person eingereicht (z. B. ein Vorstandsmitglied, das einen Papierantrag einträgt). Die hier eingegebenen Daten beziehen sich auf die antragstellende Person, nicht auf dein Konto.
+    </div>
+}
+
 @if (EntryState == null)
     return;
 

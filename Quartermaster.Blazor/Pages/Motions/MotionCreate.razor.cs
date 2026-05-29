@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Motions;
+using Quartermaster.Api.Submissions;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Motions;
@@ -13,6 +14,8 @@ public partial class MotionCreate {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     private string SelectedChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";
@@ -21,6 +24,16 @@ public partial class MotionCreate {
     private string Text { get; set; } = "";
     private bool Submitting;
     private string? SubmittedEmail;
+    private bool SubmittedDirect;
+
+    protected override async Task OnInitializedAsync() {
+        await AuthService.WaitForInitializationAsync();
+        var user = AuthService.CurrentUser;
+        if (user != null) {
+            AuthorName = user.DisplayName;
+            AuthorEmail = user.Email;
+        }
+    }
 
     private bool CanSubmit() {
         if (string.IsNullOrEmpty(SelectedChapterId))
@@ -55,7 +68,12 @@ public partial class MotionCreate {
             });
 
             if (result.IsSuccessStatusCode) {
-                SubmittedEmail = AuthorEmail;
+                var body = await result.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
+                if (body?.RequiresConfirmation == false) {
+                    SubmittedDirect = true;
+                } else {
+                    SubmittedEmail = AuthorEmail;
+                }
                 StateHasChanged();
             } else {
                 Submitting = false;

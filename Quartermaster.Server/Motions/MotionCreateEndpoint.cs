@@ -7,22 +7,29 @@ using Quartermaster.Api.Motions;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Submissions;
+using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Submissions;
 
 namespace Quartermaster.Server.Motions;
 
 /// <summary>
-/// Public motion submission. Validates and stashes the request as a pending submission,
-/// then emails the author a confirmation link — the motion is only created once they
-/// confirm, so unconfirmed spam never reaches the live table or notifies officers.
+/// Motion submission. Authenticated callers create the motion directly (already-trusted
+/// origin, no spam barrier). Anonymous callers go through the email-confirm pending flow:
+/// the motion is only materialized once they click the link, so unconfirmed spam never
+/// reaches the live table or pings officers.
 /// </summary>
 public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcceptedResponse> {
     private readonly ChapterRepository _chapterRepo;
     private readonly SubmissionIntakeService _intake;
+    private readonly SubmissionMaterializer _materializer;
+    private readonly PermissionContext _perms;
 
-    public MotionCreateEndpoint(ChapterRepository chapterRepo, SubmissionIntakeService intake) {
+    public MotionCreateEndpoint(ChapterRepository chapterRepo, SubmissionIntakeService intake,
+        SubmissionMaterializer materializer, PermissionContext perms) {
         _chapterRepo = chapterRepo;
         _intake = intake;
+        _materializer = materializer;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -35,6 +42,16 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcce
         if (_chapterRepo.Get(req.ChapterId) == null) {
             AddError(r => r.ChapterId, "Die gewählte Gliederung existiert nicht.");
             await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
+        if (_perms.UserId != null) {
+            var motionId = _materializer.MaterializeMotionDirect(req);
+            await SendAsync(new SubmissionAcceptedResponse {
+                Email = req.AuthorEmail,
+                RequiresConfirmation = false,
+                CreatedEntityId = motionId
+            }, cancellation: ct);
             return;
         }
 

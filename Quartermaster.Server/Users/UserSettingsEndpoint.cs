@@ -101,6 +101,8 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
             User = new LoginUserInfo {
                 Id = user.Id,
                 Username = user.Username ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 DisplayName = user.DisplayName(),
                 Email = user.Email
             },

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Submissions;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -101,5 +102,25 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         var savedApp = Db.MembershipApplications.First(a => a.FirstName == "Alice");
         var motion = Db.Motions.FirstOrDefault(m => m.LinkedMembershipApplicationId == savedApp.Id);
         await Assert.That(motion).IsNotNull();
+    }
+
+    [Test]
+    public async Task Authenticated_caller_creates_application_directly_without_pending_row() {
+        var chapter = Builder.SeedChapter("C");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var accepted = await response.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
+        await Assert.That(accepted!.RequiresConfirmation).IsFalse();
+        await Assert.That(accepted.CreatedEntityId).IsNotNull();
+
+        var saved = Db.MembershipApplications.Single();
+        await Assert.That(saved.Id).IsEqualTo(accepted.CreatedEntityId!.Value);
+        await Assert.That(saved.Status).IsEqualTo(ApplicationStatus.Pending);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+        await Assert.That(Db.Motions.Count(m => m.LinkedMembershipApplicationId == saved.Id)).IsEqualTo(1);
     }
 }

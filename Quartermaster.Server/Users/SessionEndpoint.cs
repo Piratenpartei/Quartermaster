@@ -54,6 +54,8 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
             User = new LoginUserInfo {
                 Id = user.Id,
                 Username = user.Username ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 DisplayName = user.DisplayName(),
                 Email = user.Email
             },

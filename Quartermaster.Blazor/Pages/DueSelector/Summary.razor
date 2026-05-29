@@ -5,6 +5,14 @@
     <h3>Zusammenfassung</h3>
 </div>
 
+@if (SubmittedDirect) {
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        Deine Einstufung wurde übermittelt.
+    </div>
+    return;
+}
+
 @if (SubmittedEmail != null) {
     <SubmissionConfirmationNotice Email="@SubmittedEmail" />
     return;

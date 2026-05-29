@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Blazor.Services;
 
@@ -6,11 +7,14 @@ namespace Quartermaster.Blazor.Pages.MembershipApplication;
 public partial class PersonalData {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
         EntryState = AppState.GetEntryState<MembershipApplicationEntryState>();
+        await AuthService.WaitForInitializationAsync();
     }
 
     private bool CanContinue() {
