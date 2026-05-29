@@ -5,6 +5,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.ChapterAssociates;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Server.Authentication;
 
@@ -13,12 +14,14 @@ namespace Quartermaster.Server.ChapterAssociates;
 public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly MemberRepository _memberRepo;
+    private readonly ChapterRepository _chapterRepo;
     private readonly PermissionContext _perms;
 
     public ChapterOfficerAddEndpoint(ChapterOfficerRepository officerRepo,
-        MemberRepository memberRepo, PermissionContext perms) {
+        MemberRepository memberRepo, ChapterRepository chapterRepo, PermissionContext perms) {
         _officerRepo = officerRepo;
         _memberRepo = memberRepo;
+        _chapterRepo = chapterRepo;
         _perms = perms;
     }
 
@@ -42,10 +45,14 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
             await SendErrorsAsync(cancellation: ct);
             return;
         }
-        // Cross-chapter IDOR guard: a caller with EditOfficers on chapter X must not be able
-        // to promote a member belonging to chapter Y — doing so would also grant that member's
-        // user account the officer role for chapter X via GrantDefaultPermissions below.
-        if (member.ChapterId != req.ChapterId) {
+        // Cross-chapter IDOR guard: block lateral promotion (e.g. Bayern caller promoting a
+        // Niedersachsen member). Allowed cases: the member's own chapter, or any ancestor of it
+        // (PPDE root chapter has no direct local members — federal-only Direktmitglieder are
+        // attributed to root by the import — so the request chapter may be the member's own
+        // chapter or any chapter on the way up to the root).
+        if (member.ChapterId == null
+            || (member.ChapterId != req.ChapterId
+                && !_chapterRepo.GetAncestorChainIds(member.ChapterId.Value).Contains(req.ChapterId))) {
             AddError(r => r.MemberId, I18nKey.Error.Chapter.Officer.MemberChapterMismatch);
             await SendErrorsAsync(cancellation: ct);
             return;

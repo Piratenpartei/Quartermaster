@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api;
+using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Blazor.Services;
@@ -18,6 +20,8 @@ public partial class MotionDetail {
     public required NavigationManager NavigationManager { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -26,8 +30,20 @@ public partial class MotionDetail {
     private bool Loading = true;
     private bool TogglingPublic;
 
+    private bool EditMode;
+    private bool Saving;
+    private string EditTitle = "";
+    private string EditTextMarkdown = "";
+    private string EditAuthorName = "";
+    private string EditAuthorEmail = "";
+
+    private List<AuditLogDTO>? AuditEntries;
+    private bool AuditLoading;
+    private bool AuditUnavailable;
+
     protected override async Task OnInitializedAsync() {
         await LoadMotion();
+        await LoadAuditAsync();
     }
 
     private async Task LoadMotion() {
@@ -39,6 +55,95 @@ public partial class MotionDetail {
         }
         Loading = false;
     }
+
+    private bool CanEdit
+        => Motion != null
+            && Motion.ApprovalStatus == MotionApprovalStatus.Pending
+            && AuthService.HasPermission(Motion.ChapterId, PermissionIdentifier.EditMotions)
+            && Motion.TextMarkdown != null;
+
+    private void BeginEdit() {
+        if (Motion == null)
+            return;
+        EditTitle = Motion.Title;
+        EditTextMarkdown = Motion.TextMarkdown ?? "";
+        EditAuthorName = Motion.AuthorName;
+        EditAuthorEmail = Motion.AuthorEmail;
+        EditMode = true;
+    }
+
+    private void CancelEdit() {
+        EditMode = false;
+    }
+
+    private async Task SaveEdit() {
+        if (Motion == null || Saving)
+            return;
+        Saving = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PutAsJsonAsync($"/api/motions/{Id}", new MotionUpdateRequest {
+                Id = Id,
+                Title = EditTitle,
+                TextMarkdown = EditTextMarkdown,
+                AuthorName = EditAuthorName,
+                AuthorEmail = EditAuthorEmail,
+                LinkedMembershipApplicationId = Motion.LinkedMembershipApplicationId,
+                LinkedDueSelectionId = Motion.LinkedDueSelectionId
+            });
+            if (resp.IsSuccessStatusCode) {
+                EditMode = false;
+                await LoadMotion();
+                await LoadAuditAsync();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Saving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadAuditAsync() {
+        AuditLoading = true;
+        AuditUnavailable = false;
+        try {
+            var resp = await Http.GetAsync($"/api/auditlog?EntityType=Motion&EntityId={Id}");
+            if (resp.IsSuccessStatusCode) {
+                AuditEntries = await resp.Content.ReadFromJsonAsync<List<AuditLogDTO>>();
+            } else {
+                AuditUnavailable = true;
+            }
+        } catch (HttpRequestException) {
+            AuditUnavailable = true;
+        } finally {
+            AuditLoading = false;
+        }
+    }
+
+    private static string FieldLabel(string? fieldName) => fieldName switch {
+        "Title" => "Titel",
+        "TextMarkdown" => "Antragstext",
+        "AuthorName" => "Antragsteller",
+        "AuthorEmail" => "E-Mail",
+        "LinkedMembershipApplicationId" => "Verknüpfter Mitgliedsantrag",
+        "LinkedDueSelectionId" => "Verknüpfte Beitragseinstufung",
+        "ApprovalStatus" => "Status",
+        "IsRealized" => "Umgesetzt",
+        "IsPublic" => "Sichtbarkeit",
+        null => "",
+        _ => fieldName
+    };
+
+    private static string ActionLabel(string action) => action switch {
+        "Created" => "Erstellt",
+        "Updated" => "Geändert",
+        "SoftDeleted" => "Gelöscht",
+        "Deleted" => "Gelöscht",
+        _ => action
+    };
 
     private async Task CastVote(Guid memberId, VoteType vote) {
         try {

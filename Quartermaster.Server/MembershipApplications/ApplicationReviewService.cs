@@ -64,6 +64,7 @@ public class ApplicationReviewService {
             AuthorEmail = application.Email,
             Title = title,
             Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
+            TextMarkdown = md,
             IsPublic = false,
             LinkedMembershipApplicationId = application.Id,
             LinkedDueSelectionId = isReduced ? application.DueSelectionId : null,

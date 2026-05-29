@@ -10,7 +10,13 @@ public class MotionDetailDTO {
     public string AuthorName { get; set; } = "";
     public string AuthorEmail { get; set; } = "";
     public string Title { get; set; } = "";
+
+    /// <summary>Rendered HTML for display.</summary>
     public string Text { get; set; } = "";
+
+    /// <summary>Markdown source — populated for officers who may edit; <c>null</c> for public/read-only callers.</summary>
+    public string? TextMarkdown { get; set; }
+
     public bool IsPublic { get; set; }
     public Guid? LinkedMembershipApplicationId { get; set; }
     public Guid? LinkedDueSelectionId { get; set; }

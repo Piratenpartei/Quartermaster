@@ -264,13 +264,15 @@ public class TestDataSeeder {
                 return off != null;
             }).ToList();
 
+            var seedMarkdown = faker.Lorem.Paragraphs(2);
             var motion = new Motion {
                 Id = Guid.NewGuid(),
                 ChapterId = chapter.Id,
                 AuthorName = faker.Name.FullName(),
                 AuthorEmail = faker.Internet.Email(),
                 Title = faker.PickRandom(motionTitles),
-                Text = $"<p>{faker.Lorem.Paragraphs(2)}</p>",
+                Text = $"<p>{seedMarkdown}</p>",
+                TextMarkdown = seedMarkdown,
                 IsPublic = faker.Random.Bool(0.7f),
                 ApprovalStatus = MotionApprovalStatus.Pending,
                 CreatedAt = faker.Date.Between(DateTime.UtcNow.AddMonths(-2), DateTime.UtcNow)

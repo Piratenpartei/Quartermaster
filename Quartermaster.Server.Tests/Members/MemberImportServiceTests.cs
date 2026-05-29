@@ -172,7 +172,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task ImportFromFile_ResolvesChapter_AllEmpty_ReturnsNull() {
+    public async Task ImportFromFile_ResolvesChapter_AllEmpty_FallsBackToRootChapter() {
         var tempPath = Path.GetTempFileName();
         try {
             var header = "USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend";
@@ -182,7 +182,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
             _service.ImportFromFile(tempPath);
 
             var member = _context.Members.Where(m => m.MemberNumber == 7001).First();
-            await Assert.That(member.ChapterId).IsNull();
+            await Assert.That(member.ChapterId).IsEqualTo(_bundId);
         } finally {
             File.Delete(tempPath);
         }

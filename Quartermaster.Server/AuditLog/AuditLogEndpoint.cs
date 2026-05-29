@@ -7,6 +7,7 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Data.AuditLog;
+using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.AuditLog;
@@ -20,10 +21,12 @@ public class AuditLogRequest {
 
 public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
     private readonly AuditLogRepository _auditLogRepo;
+    private readonly MotionRepository _motionRepo;
     private readonly PermissionContext _perms;
 
-    public AuditLogEndpoint(AuditLogRepository auditLogRepo, PermissionContext perms) {
+    public AuditLogEndpoint(AuditLogRepository auditLogRepo, MotionRepository motionRepo, PermissionContext perms) {
         _auditLogRepo = auditLogRepo;
+        _motionRepo = motionRepo;
         _perms = perms;
     }
 
@@ -36,7 +39,7 @@ public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.HasGlobal(PermissionIdentifier.ViewAudit)) {
+        if (!IsAuthorizedFor(req)) {
             await SendForbiddenAsync(ct);
             return;
         }
@@ -54,5 +57,16 @@ public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
             Timestamp = l.Timestamp
         }).ToList();
         await SendAsync(dtos, cancellation: ct);
+    }
+
+    private bool IsAuthorizedFor(AuditLogRequest req) {
+        if (_perms.HasGlobal(PermissionIdentifier.ViewAudit))
+            return true;
+        if (req.EntityType == "Motion") {
+            var motion = _motionRepo.Get(req.EntityId);
+            if (motion != null && _perms.Has(motion.ChapterId, PermissionIdentifier.ViewMotions))
+                return true;
+        }
+        return false;
     }
 }

@@ -9,6 +9,10 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Submissions;
+#if DEBUG
+using Quartermaster.Data.Options;
+using Quartermaster.Server.Email;
+#endif
 
 namespace Quartermaster.Server.Motions;
 
@@ -23,13 +27,23 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcce
     private readonly SubmissionIntakeService _intake;
     private readonly SubmissionMaterializer _materializer;
     private readonly PermissionContext _perms;
+#if DEBUG
+    private readonly OptionRepository _optionRepo;
+#endif
 
     public MotionCreateEndpoint(ChapterRepository chapterRepo, SubmissionIntakeService intake,
-        SubmissionMaterializer materializer, PermissionContext perms) {
+        SubmissionMaterializer materializer, PermissionContext perms
+#if DEBUG
+        , OptionRepository optionRepo
+#endif
+    ) {
         _chapterRepo = chapterRepo;
         _intake = intake;
         _materializer = materializer;
         _perms = perms;
+#if DEBUG
+        _optionRepo = optionRepo;
+#endif
     }
 
     public override void Configure() {
@@ -45,7 +59,12 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcce
             return;
         }
 
-        if (_perms.UserId != null) {
+        var skipConfirmation = false;
+#if DEBUG
+        skipConfirmation = SmtpConfig.ReadFrom(_optionRepo) == null;
+#endif
+
+        if (_perms.UserId != null || skipConfirmation) {
             var motionId = _materializer.MaterializeMotionDirect(req);
             await SendAsync(new SubmissionAcceptedResponse {
                 Email = req.AuthorEmail,

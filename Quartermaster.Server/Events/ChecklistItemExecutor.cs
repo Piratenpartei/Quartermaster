@@ -37,6 +37,7 @@ public class ChecklistItemExecutor {
             AuthorEmail = "",
             Title = config.MotionTitle ?? "",
             Text = MarkdownService.ToHtml(config.MotionText, SanitizationProfile.Strict),
+            TextMarkdown = config.MotionText,
             IsPublic = false,
             ApprovalStatus = MotionApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow

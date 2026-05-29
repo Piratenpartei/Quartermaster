@@ -62,6 +62,34 @@ public class AuditLogEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Chapter_view_motions_permission_returns_motion_audit_entries() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id);
+        SeedAudit("Motion", motion.Id, "Created");
+        SeedAudit("Motion", motion.Id, "Updated");
+        var (_, token) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [chapter.Id] = new[] { PermissionIdentifier.ViewMotions }
+        });
+        using var client = AuthenticatedClient(token);
+        var response = await client.GetAsync($"/api/auditlog?EntityType=Motion&EntityId={motion.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var list = await response.Content.ReadFromJsonAsync<List<AuditLogDTO>>();
+        await Assert.That(list!.Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task Chapter_view_motions_permission_does_not_grant_access_to_other_entity_types() {
+        var chapter = Builder.SeedChapter();
+        SeedAudit("User", Guid.NewGuid());
+        var (_, token) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [chapter.Id] = new[] { PermissionIdentifier.ViewMotions }
+        });
+        using var client = AuthenticatedClient(token);
+        var response = await client.GetAsync($"/api/auditlog?EntityType=User&EntityId={Guid.NewGuid()}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+    }
+
+    [Test]
     public async Task Does_not_return_entries_for_different_entity_type() {
         var entityId = Guid.NewGuid();
         SeedAudit("User", entityId);

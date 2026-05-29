@@ -17,7 +17,13 @@ public class Motion {
     public string AuthorEmail { get; set; } = "";
 
     public string Title { get; set; } = "";
+
+    /// <summary>Rendered, sanitized HTML for display. Derived from <see cref="TextMarkdown"/>.</summary>
     public string Text { get; set; } = "";
+
+    /// <summary>Markdown source — the canonical edit surface and what's diffed in the audit log.</summary>
+    public string TextMarkdown { get; set; } = "";
+
     public bool IsPublic { get; set; }
 
     public Guid? LinkedMembershipApplicationId { get; set; }

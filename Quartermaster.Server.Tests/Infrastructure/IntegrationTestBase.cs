@@ -54,6 +54,16 @@ public abstract class IntegrationTestBase : IDisposable {
             .Where(o => o.Identifier == "auth.ratelimit.anonymous_create_permits" && o.ChapterId == null)
             .Set(o => o.Value, "10000")
             .Update();
+
+        // Seed dummy SMTP values so the public-submit endpoints' DEBUG-only no-SMTP bypass
+        // (which materializes directly when host/sender are missing) doesn't fire and skip
+        // the pending-confirmation flow that the intake tests assert on. SupplementDefaults
+        // only seeds OptionDefinition rows, not SystemOption values, so insert them here.
+        using (var scope = Factory.Services.CreateScope()) {
+            var optionRepo = scope.ServiceProvider.GetRequiredService<OptionRepository>();
+            optionRepo.SetValue("email.smtp.host", null, "smtp.test.local");
+            optionRepo.SetValue("email.smtp.sender_address", null, "no-reply@test.local");
+        }
     }
 
     protected HttpClient CreateClient() {

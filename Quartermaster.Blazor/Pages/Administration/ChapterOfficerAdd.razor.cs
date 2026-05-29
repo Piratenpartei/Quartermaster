@@ -82,14 +82,20 @@ public partial class ChapterOfficerAdd {
         StateHasChanged();
 
         try {
-            await Http.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
+            var response = await Http.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
                 MemberId = SelectedMemberId.Value,
                 ChapterId = ChapterId,
                 AssociateType = SelectedRole
             });
 
-            ToastService.ToastKey(I18nKey.Ui.Toast.OfficerAdded);
-            Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
+            if (response.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.OfficerAdded);
+                Navigation.NavigateTo($"/Administration/Chapters/{ChapterId}");
+            } else {
+                await ToastService.ErrorAsync(response);
+                Submitting = false;
+                StateHasChanged();
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
             Submitting = false;

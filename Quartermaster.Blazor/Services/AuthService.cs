@@ -98,4 +98,15 @@ public class AuthService {
             return false;
         return chapters.TryGetValue(chapterId.ToString(), out var perms) && perms.Contains(permission);
     }
+
+    /// <summary>
+    /// Mirrors <c>PermissionContext.Has</c> on the server: global grant satisfies any chapter,
+    /// chapter-specific grant satisfies the exact chapter (no client-side inheritance — that's
+    /// a server-side concern and the chapter dictionary is already flattened from <c>SessionEndpoint</c>).
+    /// </summary>
+    public bool HasPermission(Guid chapterId, string permission) {
+        if (HasGlobalPermission(permission))
+            return true;
+        return HasChapterPermission(chapterId, permission);
+    }
 }

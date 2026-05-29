@@ -218,6 +218,73 @@ public class MotionRepository {
         _ => null
     };
 
+    /// <summary>
+    /// Field-level substantive edit. Performs a per-field diff against the stored row, persists
+    /// only the changed columns, and emits one <see cref="AuditLogRepository.LogFieldChange"/>
+    /// per change — all inside a single transaction. The caller (endpoint) is responsible for
+    /// the permission and lifecycle gates (e.g. only allow while ApprovalStatus == Pending).
+    /// </summary>
+    public void Update(
+        Guid id,
+        string title,
+        string textMarkdown,
+        string textHtml,
+        string authorName,
+        string authorEmail,
+        Guid? linkedMembershipApplicationId,
+        Guid? linkedDueSelectionId) {
+
+        var existing = _context.Motions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
+        if (existing == null)
+            return;
+
+        using var tx = _context.BeginTransaction();
+
+        if (existing.Title != title) {
+            _context.Motions.Where(m => m.Id == id).Set(m => m.Title, title).Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.Title), existing.Title, title);
+        }
+
+        if (existing.TextMarkdown != textMarkdown) {
+            _context.Motions
+                .Where(m => m.Id == id)
+                .Set(m => m.TextMarkdown, textMarkdown)
+                .Set(m => m.Text, textHtml)
+                .Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.TextMarkdown), existing.TextMarkdown, textMarkdown);
+        }
+
+        if (existing.AuthorName != authorName) {
+            _context.Motions.Where(m => m.Id == id).Set(m => m.AuthorName, authorName).Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.AuthorName), existing.AuthorName, authorName);
+        }
+
+        if (existing.AuthorEmail != authorEmail) {
+            _context.Motions.Where(m => m.Id == id).Set(m => m.AuthorEmail, authorEmail).Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.AuthorEmail), existing.AuthorEmail, authorEmail);
+        }
+
+        if (existing.LinkedMembershipApplicationId != linkedMembershipApplicationId) {
+            _context.Motions
+                .Where(m => m.Id == id)
+                .Set(m => m.LinkedMembershipApplicationId, linkedMembershipApplicationId)
+                .Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.LinkedMembershipApplicationId),
+                existing.LinkedMembershipApplicationId?.ToString(), linkedMembershipApplicationId?.ToString());
+        }
+
+        if (existing.LinkedDueSelectionId != linkedDueSelectionId) {
+            _context.Motions
+                .Where(m => m.Id == id)
+                .Set(m => m.LinkedDueSelectionId, linkedDueSelectionId)
+                .Update();
+            _auditLog.LogFieldChange("Motion", id, nameof(Motion.LinkedDueSelectionId),
+                existing.LinkedDueSelectionId?.ToString(), linkedDueSelectionId?.ToString());
+        }
+
+        tx.Commit();
+    }
+
     public void SetRealized(Guid id, bool realized) {
         var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
 

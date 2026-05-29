@@ -155,6 +155,26 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Allows_member_of_descendant_chapter_to_be_officer_of_ancestor_chapter() {
+        var hierarchy = Builder.SeedChapterHierarchy("PPDE", "Niedersachsen");
+        var root = hierarchy[0];
+        var state = hierarchy[1];
+        var stateMember = Builder.SeedMember(state.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [root.Id] = new[] { PermissionIdentifier.EditOfficers } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
+            MemberId = stateMember.Id,
+            ChapterId = root.Id,
+            AssociateType = ChapterOfficerType.Captain
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var officer = Db.ChapterOfficers.SingleOrDefault(o => o.MemberId == stateMember.Id && o.ChapterId == root.Id);
+        await Assert.That(officer).IsNotNull();
+    }
+
+    [Test]
     public async Task Rejects_nonexistent_member() {
         var chapter = Builder.SeedChapter("A");
         var (_, token) = Builder.SeedAuthenticatedUser(

@@ -100,6 +100,7 @@ public class SubmissionMaterializer {
             AuthorEmail = req.AuthorEmail,
             Title = req.Title,
             Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
+            TextMarkdown = req.Text,
             IsPublic = false,
             ApprovalStatus = MotionApprovalStatus.Pending,
             CreatedAt = DateTime.UtcNow

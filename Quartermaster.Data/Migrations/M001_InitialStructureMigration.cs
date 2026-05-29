@@ -169,6 +169,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Motion.AuthorEmail)).AsString(256)
             .WithColumn(nameof(Motion.Title)).AsString(512)
             .WithColumn(nameof(Motion.Text)).AsString(8192)
+            .WithColumn(nameof(Motion.TextMarkdown)).AsString(8192).NotNullable().WithDefaultValue("")
             .WithColumn(nameof(Motion.IsPublic)).AsBoolean()
             .WithColumn(nameof(Motion.LinkedMembershipApplicationId)).AsGuid().Nullable()
             .WithColumn(nameof(Motion.LinkedDueSelectionId)).AsGuid().Nullable()

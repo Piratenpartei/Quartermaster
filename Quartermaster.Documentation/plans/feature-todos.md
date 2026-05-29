@@ -157,13 +157,26 @@ The model-factory closures turned out to already capture only plain data (entity
 
 **Still open (deferred):** crash-recovery re-enqueue. The in-memory channel loses queued-but-undispatched requests on a hard restart. Lower priority than the email re-queue because a lost notification dispatch just means officers don't get pinged about one submission — the underlying motion/application/due-selection row is still safely persisted. If we want durability, the dispatch request itself needs persistence (a `PendingDispatch` table drained on startup), since `NotificationLog` rows are only written once dispatch reaches a channel.
 
-## Motion full edit + audit log
+## Motion full edit + audit log — DONE (2026-05-30)
 
-Today motions support partial mutations only: approval status / realized flag (`MotionStatusEndpoint`) and visibility toggle (`POST /api/motions/status` with `IsPublic`). All three already write `AuditEntry` rows via `MotionRepository.SetRealized`/`SetPublic`/`UpdateApprovalStatus`.
+Shipped:
+- **`PUT /api/motions/{id}`** (`MotionUpdateEndpoint` + `MotionUpdateRequest` + validator). Gated by `EditMotions` on the motion's chapter; locked once `ApprovalStatus != Pending` (409). Validates `LinkedMembershipApplicationId` / `LinkedDueSelectionId` exist when non-null.
+- **Markdown source on Motion**: new `TextMarkdown` column folded into M001 (`Text` remains the rendered HTML for display). `SubmissionMaterializer`, `ApplicationReviewService`, and `ChecklistItemExecutor` populate both. Audit diffs the Markdown, not the HTML.
+- **`MotionRepository.Update`**: per-field diff + transactional persist + one `_auditLog.LogFieldChange` per change. Unchanged fields produce zero audit entries.
+- **`AuditLogEndpoint` loosened**: for `entityType == "Motion"`, accepts `ViewMotions` on the motion's chapter (global `ViewAudit` still works as a superset). Other entity types still require global `ViewAudit`.
+- **`MotionDetailDTO.TextMarkdown`** populated only when the caller has `EditMotions` (used to prefill the edit form).
+- **Frontend**: `MotionDetail` page gained a "Bearbeiten" button (visible when `EditMotions` + Pending) toggling an inline edit form with `MarkdownEditor`. New "Änderungsverlauf" card at the bottom lists audit entries with German field labels.
+- **Tests**: 6 `MotionUpdateEndpointTests` (auth/perm gates, lock when not Pending, per-field diff produces correct rows, no-op when unchanged, linked-id validation), 2 new `AuditLogEndpointTests` for the chapter-perm path.
 
-Missing: editing the substantive fields (Title, Text, AuthorName, AuthorEmail, LinkedMembershipApplicationId, LinkedDueSelectionId).
+## Frontend timezone sweep — show local time, not UTC
 
-- New endpoint (e.g. `PUT /api/motions/{id}`) gated by `EditMotions` on the motion's chapter.
-- Diff every changed field against the stored row and emit one `AuditEntry` per change via `_auditLog.LogFieldChange` (the pattern is already used by every other motion mutation). For long Text changes the audit row stores the full before/after — fine for now, can be moved to a diff/patch representation later if volume becomes a problem.
-- For motions already linked to a meeting (or already resolved), think about whether edits should be allowed at all or require an explicit "supersede" workflow. Simplest first cut: lock editing once `ApprovalStatus != Pending`.
-- Audit-log viewer page on the motion detail to make change history visible to officers — the entries exist already but nothing surfaces them yet.
+Today the server stores everything as `DateTime` (UTC by convention, but the type doesn't carry the offset) and the Blazor frontend renders those raw via `.ToString("dd.MM.yyyy HH:mm")` — which displays the UTC clock instead of the user's local clock. Surfaces affected so far (non-exhaustive — there will be more): MotionDetail (Erstellt / Beschlossen / Änderungsverlauf timestamps), MeetingLive, ApplicationDecisionMail times, NotificationLog, etc.
+
+Plan:
+- **Backend**: switch persisted timestamps from `DateTime` to `DateTimeOffset` everywhere the value is wall-clock-meaningful (created/resolved/sent/etc.). Stored values should still be UTC; the offset = `+00:00` for canonical UTC. Audit-log entries inherit the change.
+- **DTOs**: emit `DateTimeOffset` over the wire so the browser side gets timezone-aware values.
+- **Frontend**: a single helper (e.g. `TimeService.Local(DateTimeOffset)`) that converts to the browser's local time and formats — replace every `.ToString("dd.MM.yyyy HH:mm")` with it. Probably a small `<LocalTime Value="..." />` component so the call sites stay readable.
+- **Tests**: existing date assertions need to use `DateTimeOffset`. Test data builder helpers updated.
+- **Migration**: in pre-prod, fold the column type change into M001 and apply via ALTER on the dev DB (MySQL `MODIFY COLUMN ... DATETIME(6)` → keep MySQL-side, but adjust the C# binding). Verify LinqToDB roundtripping with `DateTimeKind.Utc` / offset zero.
+
+User pain point: dates currently show in UTC, which is ~2h off in CEST and obviously wrong.

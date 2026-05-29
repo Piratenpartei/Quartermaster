@@ -227,7 +227,9 @@ public class MemberImportService {
         if (lv != null && chaptersByExtCode.TryGetValue(lv, out var lvChapters))
             return lvChapters.FirstOrDefault()?.Id;
 
-        return null;
+        // Fallback: every member belongs to *some* chapter — if the CSV didn't identify
+        // a state/district/county, attribute them to the federal root (Direktmitglied).
+        return allChapters.FirstOrDefault(c => c.ParentChapterId == null)?.Id;
     }
 
     private static string? NullIfEmpty(string? value)

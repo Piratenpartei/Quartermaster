@@ -85,6 +85,8 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
             };
         }).ToList();
 
+        var canEdit = _perms.UserId != null && _perms.Has(motion.ChapterId, PermissionIdentifier.EditMotions);
+
         await SendAsync(new MotionDetailDTO {
             Id = motion.Id,
             ChapterId = motion.ChapterId,
@@ -93,6 +95,7 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
             AuthorEmail = motion.AuthorEmail,
             Title = motion.Title,
             Text = motion.Text,
+            TextMarkdown = canEdit ? motion.TextMarkdown : null,
             IsPublic = motion.IsPublic,
             LinkedMembershipApplicationId = motion.LinkedMembershipApplicationId,
             LinkedDueSelectionId = motion.LinkedDueSelectionId,
