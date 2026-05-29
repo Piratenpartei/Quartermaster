@@ -252,6 +252,11 @@ public class MotionRepository {
                 .Set(m => m.Text, textHtml)
                 .Update();
             _auditLog.LogFieldChange("Motion", id, nameof(Motion.TextMarkdown), existing.TextMarkdown, textMarkdown);
+
+            var staleVotes = _context.MotionVotes.Where(v => v.MotionId == id).ToList();
+            foreach (var v in staleVotes)
+                _auditLog.LogDeleted("MotionVote", v.Id);
+            _context.MotionVotes.Where(v => v.MotionId == id).Delete();
         }
 
         if (existing.AuthorName != authorName) {

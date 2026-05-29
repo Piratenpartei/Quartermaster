@@ -136,6 +136,55 @@ public class MotionUpdateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Editing_text_markdown_resets_all_votes_on_the_motion() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, text: "<p>Old</p>", textMarkdown: "Old");
+        var (officer, officerToken) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [chapter.Id] = new[] { PermissionIdentifier.EditMotions }
+        });
+        var voterMember = Builder.SeedMember(chapter.Id, userId: officer.Id);
+        Builder.SeedMotionVote(motion.Id, voterMember.Id, officer.Id, VoteType.Approve);
+        await Assert.That(Db.MotionVotes.Count(v => v.MotionId == motion.Id)).IsEqualTo(1);
+        using var client = await AuthenticatedClientWithCsrfAsync(officerToken);
+
+        var response = await client.PutAsJsonAsync($"/api/motions/{motion.Id}", new MotionUpdateRequest {
+            Id = motion.Id,
+            Title = "Test Motion",
+            TextMarkdown = "Reworded text",
+            AuthorName = "Author",
+            AuthorEmail = "author@test.local"
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        await Assert.That(Db.MotionVotes.Count(v => v.MotionId == motion.Id)).IsEqualTo(0);
+        var deletedAudit = Db.AuditLogs.Count(a => a.EntityType == "MotionVote" && a.Action == "Deleted");
+        await Assert.That(deletedAudit).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Editing_only_title_preserves_votes() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, title: "Old Title", text: "<p>Body</p>", textMarkdown: "Body");
+        var (officer, officerToken) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [chapter.Id] = new[] { PermissionIdentifier.EditMotions }
+        });
+        var voterMember = Builder.SeedMember(chapter.Id, userId: officer.Id);
+        Builder.SeedMotionVote(motion.Id, voterMember.Id, officer.Id, VoteType.Approve);
+        using var client = await AuthenticatedClientWithCsrfAsync(officerToken);
+
+        var response = await client.PutAsJsonAsync($"/api/motions/{motion.Id}", new MotionUpdateRequest {
+            Id = motion.Id,
+            Title = "New Title",
+            TextMarkdown = "Body",
+            AuthorName = "Author",
+            AuthorEmail = "author@test.local"
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        await Assert.That(Db.MotionVotes.Count(v => v.MotionId == motion.Id)).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task Returns_400_when_linked_application_does_not_exist() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
