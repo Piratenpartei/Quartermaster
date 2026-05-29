@@ -1,0 +1,54 @@
+@page "/MembershipApplication/AddressDetails"
+
+<div class="mb-3">
+    <h3>Mitgliedsantrag - Adresse</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+@if (!EntryState.IsGermany) {
+    <div class="mb-3">
+        <label for="addressCountry" class="form-label">Land <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressCountry" @bind=EntryState.AddressCountry @bind:event="oninput" />
+    </div>
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-sm-auto">
+        <label for="addressPostCode" class="form-label">Postleitzahl <RequiredStar /></label>
+        <input type="text" class="form-control" style="max-width: 10em;" id="addressPostCode" @bind=EntryState.AddressPostCode @bind:event="oninput" />
+    </div>
+    <div class="col-sm">
+        <label for="addressCity" class="form-label">Ort <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressCity" @bind=EntryState.AddressCity @bind:event="oninput" />
+    </div>
+</div>
+
+<div class="mb-3 d-flex flex-row">
+    <div class="flex-grow-1 pe-3">
+        <label for="addressStreet" class="form-label">Straße <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressStreet" @bind=EntryState.AddressStreet @bind:event="oninput" />
+    </div>
+    <div style="width: 8em;">
+        <label for="addressHouseNbr" class="form-label">Hausnr. <RequiredStar /></label>
+        <input type="text" class="form-control" id="addressHouseNbr" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
+    </div>
+</div>
+
+@if (EntryState.ChapterName != null) {
+    <div class="mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h5>Zugeordnete Gliederung</h5>
+                <p class="card-text mb-0">@EntryState.ChapterName</p>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="d-flex justify-content-between">
+    <a href="@BackHref" class="btn btn-primary">Zurück</a>
+    <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
+       href="/MembershipApplication/DuesTypeSelection">Weiter</a>
+</div>

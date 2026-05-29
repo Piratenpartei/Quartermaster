@@ -1,0 +1,51 @@
+@page "/MembershipApplication/Address"
+@using Quartermaster.Api.AdministrativeDivisions
+
+<div class="mb-3">
+    <h3>Gemeinde Suchen</h3>
+</div>
+
+@if (EntryState == null)
+    return;
+
+<div class="row g-3 mb-3 align-items-end">
+    <div class="col-md">
+        <label for="nameSearch" class="form-label">Name</label>
+        <input type="text" class="form-control" id="nameSearch" placeholder="Gemeinde oder Stadt..."
+               value="@NameQuery" @oninput="OnNameInput" />
+    </div>
+    <div class="col-md-auto">
+        <label for="postCodeSearch" class="form-label">Postleitzahl</label>
+        <div class="d-flex align-items-center">
+            <input type="text" class="form-control" style="width: 10em;" maxlength="5" id="postCodeSearch"
+                   placeholder="z. B. 30159" value="@PostCodeQuery" @oninput="OnPostCodeInput" />
+            @if (Searching) {
+                <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+            }
+        </div>
+    </div>
+</div>
+
+@if (MatchingDivisions != null && MatchingDivisions.Count > 0) {
+    <div class="mb-3">
+        <label class="form-label">Gemeinde</label>
+        <div style="max-height: 400px; overflow-y: auto;">
+            @foreach (var div in MatchingDivisions) {
+                <div class="mb-1">
+                    <CardButton OnClick="@(() => SelectDivision(div))" CardBorderType="primary">
+                        <span>@div.Name</span>
+                    </CardButton>
+                </div>
+            }
+        </div>
+    </div>
+} else if (HasSearched && !Searching) {
+    <p class="text-secondary">Keine Gemeinde gefunden.</p>
+}
+
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="/MembershipApplication/CountrySelection" class="btn btn-primary">Zurück</a>
+    <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="EnterManually">
+        Adresse manuell eingeben
+    </a>
+</div>

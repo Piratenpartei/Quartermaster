@@ -12,54 +12,58 @@ using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.MembershipApplication;
 
-public partial class AddressAndChapter {
+public partial class MunicipalitySearch {
     [Inject]
     public required AppStateService AppState { get; set; }
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required NavigationManager Navigation { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
+    private string NameQuery = "";
+    private string PostCodeQuery = "";
     private List<AdministrativeDivisionDTO>? MatchingDivisions;
-    private bool SearchingPostCode;
+    private bool Searching;
+    private bool HasSearched;
     private CancellationTokenSource? _searchTokenSource;
 
     protected override void OnInitialized() {
         EntryState = AppState.GetEntryState<MembershipApplicationEntryState>();
     }
 
+    private async Task OnNameInput(ChangeEventArgs e) {
+        NameQuery = e.Value?.ToString() ?? "";
+        await Search();
+    }
+
     private async Task OnPostCodeInput(ChangeEventArgs e) {
-        if (EntryState == null || !EntryState.IsGermany)
+        PostCodeQuery = e.Value?.ToString() ?? "";
+        await Search();
+    }
+
+    private async Task Search() {
+        // Name is the primary query; fall back to the post code.
+        var query = !string.IsNullOrWhiteSpace(NameQuery) ? NameQuery.Trim() : PostCodeQuery.Trim();
+        if (query.Length < 2) {
+            MatchingDivisions = null;
+            HasSearched = false;
+            StateHasChanged();
             return;
-
-        var value = e.Value?.ToString() ?? "";
-        EntryState.AddressPostCode = value;
-
-        // Reset selection when post code changes
-        EntryState.AddressAdministrativeDivisionId = null;
-        EntryState.AddressCity = "";
-        EntryState.AddressStreet = "";
-        EntryState.AddressHouseNbr = "";
-        EntryState.ChapterId = null;
-        EntryState.ChapterName = null;
-        MatchingDivisions = null;
-
-        // Auto-search when 5 digits entered
-        if (value.Length < 5)
-            return;
+        }
 
         _searchTokenSource?.Cancel();
         _searchTokenSource = new CancellationTokenSource();
         var token = _searchTokenSource.Token;
 
         try {
-            SearchingPostCode = true;
+            Searching = true;
             StateHasChanged();
 
             var response = await Http.GetFromJsonAsync<AdministrativeDivisionSearchResponse>(
-                $"/api/administrativedivisions/search?query={Uri.EscapeDataString(value)}&page=1&pageSize=50",
-                token);
+                $"/api/administrativedivisions/search?query={Uri.EscapeDataString(query)}&page=1&pageSize=50", token);
 
             if (response != null) {
                 MatchingDivisions = response.Items.FindAll(d => d.Depth == 7);
@@ -67,12 +71,13 @@ public partial class AddressAndChapter {
                     MatchingDivisions = response.Items;
             }
 
-            SearchingPostCode = false;
+            HasSearched = true;
+            Searching = false;
             StateHasChanged();
         } catch (TaskCanceledException) {
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
-            SearchingPostCode = false;
+            Searching = false;
             StateHasChanged();
         }
     }
@@ -83,9 +88,18 @@ public partial class AddressAndChapter {
 
         EntryState.AddressAdministrativeDivisionId = division.Id;
         EntryState.AddressCity = division.Name;
+        EntryState.AddressPostCode = ResolvePostCode(division);
 
         await LookupChapter(division.Id);
-        StateHasChanged();
+        Navigation.NavigateTo("/MembershipApplication/AddressDetails");
+    }
+
+    private string ResolvePostCode(AdministrativeDivisionDTO division) {
+        var searched = PostCodeQuery.Trim();
+        if (!string.IsNullOrEmpty(searched) && division.PostCodes != null && division.PostCodes.Contains(searched))
+            return searched;
+        var codes = division.PostCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return codes != null && codes.Length > 0 ? codes[0] : searched;
     }
 
     private async Task LookupChapter(Guid divisionId) {
@@ -95,8 +109,6 @@ public partial class AddressAndChapter {
         try {
             var response = await Http.GetAsync($"/api/chapters/for-division/{divisionId}");
             if (response.StatusCode == HttpStatusCode.NotFound) {
-                // No chapter covers this area — not an error. The application can still be
-                // submitted; it just isn't pre-assigned to a regional chapter.
                 EntryState.ChapterId = null;
                 EntryState.ChapterName = null;
                 return;
@@ -114,26 +126,17 @@ public partial class AddressAndChapter {
         }
     }
 
-    private bool CanContinue() {
+    private void EnterManually() {
         if (EntryState == null)
-            return false;
-        if (string.IsNullOrEmpty(EntryState.AddressPostCode))
-            return false;
-        if (string.IsNullOrEmpty(EntryState.AddressStreet))
-            return false;
-        if (string.IsNullOrEmpty(EntryState.AddressHouseNbr))
-            return false;
+            return;
 
-        if (EntryState.IsGermany) {
-            if (EntryState.AddressAdministrativeDivisionId == null)
-                return false;
-        } else {
-            if (string.IsNullOrEmpty(EntryState.AddressCountry))
-                return false;
-            if (string.IsNullOrEmpty(EntryState.AddressCity))
-                return false;
-        }
-
-        return true;
+        // Manual entry is the last resort: drop any matched municipality so the next page
+        // starts blank rather than carrying a stale selection.
+        EntryState.AddressAdministrativeDivisionId = null;
+        EntryState.ChapterId = null;
+        EntryState.ChapterName = null;
+        EntryState.AddressCity = "";
+        EntryState.AddressPostCode = "";
+        Navigation.NavigateTo("/MembershipApplication/AddressDetails");
     }
 }
