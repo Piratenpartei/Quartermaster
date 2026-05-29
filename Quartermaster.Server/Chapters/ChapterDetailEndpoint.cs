@@ -7,6 +7,7 @@ using FastEndpoints;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Data;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 
@@ -20,6 +21,7 @@ public class ChapterDetailResponse {
     public ChapterDTO Chapter { get; set; } = new();
     public Guid? ParentChapterId { get; set; }
     public string? ParentChapterName { get; set; }
+    public string? AdministrativeDivisionName { get; set; }
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
 }
@@ -27,11 +29,14 @@ public class ChapterDetailResponse {
 public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetailResponse> {
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
+    private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly DbContext _context;
 
-    public ChapterDetailEndpoint(ChapterRepository chapterRepo, ChapterOfficerRepository officerRepo, DbContext context) {
+    public ChapterDetailEndpoint(ChapterRepository chapterRepo, ChapterOfficerRepository officerRepo,
+        AdministrativeDivisionRepository adminDivRepo, DbContext context) {
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
+        _adminDivRepo = adminDivRepo;
         _context = context;
     }
 
@@ -52,6 +57,13 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
             var parent = _chapterRepo.Get(chapter.ParentChapterId.Value);
             if (parent != null)
                 parentName = parent.Name;
+        }
+
+        string? divisionName = null;
+        if (chapter.AdministrativeDivisionId.HasValue) {
+            var division = _adminDivRepo.Get(chapter.AdministrativeDivisionId.Value);
+            if (division != null)
+                divisionName = division.Name;
         }
 
         var officers = _officerRepo.GetForChapter(chapter.Id);
@@ -84,6 +96,7 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
             },
             ParentChapterId = chapter.ParentChapterId,
             ParentChapterName = parentName,
+            AdministrativeDivisionName = divisionName,
             Officers = officerDtos,
             Children = children.Select(c => new ChapterDTO {
                 Id = c.Id,

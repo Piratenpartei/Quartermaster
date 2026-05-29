@@ -4,22 +4,29 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
+using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Motions;
-using Quartermaster.Data.Motions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.Motions;
 
 public class MotionVoteEndpointTests : IntegrationTestBase {
+    private Guid SeedOfficerMember(Guid chapterId, Guid? userId = null) {
+        var member = Builder.SeedMember(chapterId, userId: userId);
+        Builder.SeedChapterOfficer(member.Id, chapterId);
+        return member.Id;
+    }
+
     [Test]
     public async Task Returns_401_when_anonymous() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
+        var officerMemberId = SeedOfficerMember(chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = Guid.NewGuid(),
+            MemberId = officerMemberId,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
@@ -29,11 +36,12 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
     public async Task Returns_403_when_user_lacks_vote_motions_permission() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
-        var (user, token) = Builder.SeedAuthenticatedUser();
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = user.Id,
+            MemberId = officerMemberId,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
@@ -41,11 +49,11 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
 
     [Test]
     public async Task Returns_404_for_nonexistent_motion() {
-        var (user, token) = Builder.SeedAuthenticatedUser();
+        var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = user.Id,
+            MemberId = Guid.NewGuid(),
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
@@ -55,12 +63,29 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
     public async Task Returns_400_when_vote_value_out_of_range() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
-        var (user, token) = Builder.SeedAuthenticatedUser();
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = user.Id,
+            MemberId = officerMemberId,
             Vote = (VoteType)99
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
+    public async Task Returns_400_when_target_is_not_an_officer() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id);
+        var nonOfficer = Builder.SeedMember(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.SystemVote });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
+            MotionId = motion.Id,
+            MemberId = nonOfficer.Id,
+            Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -71,75 +96,75 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var motion = Builder.SeedMotion(chapter.Id);
         var (user, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.VoteMotions } });
+        var ownMemberId = SeedOfficerMember(chapter.Id, userId: user.Id);
         using var client = await AuthenticatedClientWithCsrfAsync(token);
+
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = user.Id,
+            MemberId = ownMemberId,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.UserId == user.Id);
+        var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.MemberId == ownMemberId);
         await Assert.That(persisted).IsNotNull();
         await Assert.That(persisted!.Vote).IsEqualTo(VoteType.Approve);
+        await Assert.That(persisted.CastByUserId).IsEqualTo(user.Id);
     }
 
     [Test]
-    public async Task Delegation_fails_when_target_is_not_officer() {
+    public async Task System_vote_holder_can_record_vote_for_any_officer() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
-        var (caller, token) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.VoteMotions } });
-        var target = Builder.SeedUser();
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        var (admin, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.SystemVote });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
+
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = target.Id,
+            MemberId = officerMemberId,
             Vote = VoteType.Approve
         });
-        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.MemberId == officerMemberId);
+        await Assert.That(persisted).IsNotNull();
+        await Assert.That(persisted!.CastByUserId).IsEqualTo(admin.Id);
     }
 
     [Test]
-    public async Task Delegation_fails_when_caller_lacks_delegate_permission() {
+    public async Task Delegation_fails_when_caller_not_officer_and_lacks_delegate() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
-        // Caller has VoteMotions but is not an officer and lacks delegate perm.
-        var (caller, token) = Builder.SeedAuthenticatedUser(
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        // Caller has VoteMotions but is neither an officer nor a delegate.
+        var (_, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.VoteMotions } });
-        // Target is an officer.
-        var target = Builder.SeedUser();
-        var targetMember = Builder.SeedMember(chapter.Id, firstName: "T", lastName: "Target", userId: target.Id);
-        Builder.SeedChapterOfficer(targetMember.Id, chapter.Id);
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = target.Id,
+            MemberId = officerMemberId,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
 
     [Test]
-    public async Task Delegation_succeeds_with_delegate_permission_and_officer_target() {
+    public async Task Delegation_succeeds_with_delegate_permission() {
         var chapter = Builder.SeedChapter();
         var motion = Builder.SeedMotion(chapter.Id);
-        // Caller has both VoteMotions and VoteDelegateMotions globally.
-        var (caller, token) = Builder.SeedAuthenticatedUser(
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapter.Id] = new[] {
                 PermissionIdentifier.VoteMotions, PermissionIdentifier.VoteDelegateMotions
             } });
-        // Target is an officer.
-        var target = Builder.SeedUser();
-        var targetMember = Builder.SeedMember(chapter.Id, firstName: "T", lastName: "Target", userId: target.Id);
-        Builder.SeedChapterOfficer(targetMember.Id, chapter.Id);
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = target.Id,
+            MemberId = officerMemberId,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.UserId == target.Id);
+        var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.MemberId == officerMemberId);
         await Assert.That(persisted).IsNotNull();
     }
 }

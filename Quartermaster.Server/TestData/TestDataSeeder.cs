@@ -283,7 +283,8 @@ public class TestDataSeeder {
                         _context.Insert(new MotionVote {
                             Id = Guid.NewGuid(),
                             MotionId = motion.Id,
-                            UserId = member.UserId.Value,
+                            MemberId = member.Id,
+                            CastByUserId = member.UserId.Value,
                             Vote = faker.PickRandom<VoteType>(),
                             VotedAt = faker.Date.Between(motion.CreatedAt, DateTime.UtcNow)
                         });

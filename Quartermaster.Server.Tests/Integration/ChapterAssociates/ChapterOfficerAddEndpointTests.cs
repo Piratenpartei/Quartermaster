@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -102,6 +103,36 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         // System role "chapter_officer" should have been assigned to the linked user
         var hasAssignment = Db.UserRoleAssignments.Any(a => a.UserId == user.Id && a.ChapterId == chapter.Id);
         await Assert.That(hasAssignment).IsTrue();
+    }
+
+    [Test]
+    public async Task Adding_officer_does_not_create_a_user_but_officer_is_votable() {
+        var chapter = Builder.SeedChapter("C");
+        var member = Builder.SeedMember(chapter.Id, email: "officer@test.local");
+        var (_, adminToken) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.EditOfficers, PermissionIdentifier.SystemVote });
+        using var admin = await AuthenticatedClientWithCsrfAsync(adminToken);
+
+        var addResponse = await admin.PostAsJsonAsync("/api/chapterofficers", new ChapterOfficerAddRequest {
+            MemberId = member.Id,
+            ChapterId = chapter.Id,
+            AssociateType = ChapterOfficerType.Captain
+        });
+        await Assert.That(addResponse.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        // No user account is minted for the officer — that's SSO's job.
+        var updatedMember = Db.Members.Single(m => m.Id == member.Id);
+        await Assert.That(updatedMember.UserId).IsNull();
+
+        // Yet the officer can immediately be voted for (vote belongs to the member).
+        var motion = Builder.SeedMotion(chapter.Id);
+        var voteResponse = await admin.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
+            MotionId = motion.Id,
+            MemberId = member.Id,
+            Vote = VoteType.Approve
+        });
+        await Assert.That(voteResponse.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MotionVotes.Any(v => v.MotionId == motion.Id && v.MemberId == member.Id)).IsTrue();
     }
 
     [Test]

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -92,8 +93,16 @@ public partial class AddressAndChapter {
             return;
 
         try {
-            var chapter = await Http.GetFromJsonAsync<ChapterDTO>(
-                $"/api/chapters/for-division/{divisionId}");
+            var response = await Http.GetAsync($"/api/chapters/for-division/{divisionId}");
+            if (response.StatusCode == HttpStatusCode.NotFound) {
+                // No chapter covers this area — not an error. The application can still be
+                // submitted; it just isn't pre-assigned to a regional chapter.
+                EntryState.ChapterId = null;
+                EntryState.ChapterName = null;
+                return;
+            }
+            response.EnsureSuccessStatusCode();
+            var chapter = await response.Content.ReadFromJsonAsync<ChapterDTO>();
             if (chapter != null) {
                 EntryState.ChapterId = chapter.Id;
                 EntryState.ChapterName = chapter.Name;

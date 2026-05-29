@@ -50,26 +50,32 @@ public class ChapterRepository {
 
     public Chapter? FindForDivision(Guid divisionId, AdministrativeDivisions.AdministrativeDivisionRepository adminDivRepo) {
         var ancestorIds = adminDivRepo.GetAncestorIds(divisionId);
-        if (ancestorIds.Count == 0)
-            return null;
 
-        var chapters = _context.Chapters
-            .Where(c => c.AdministrativeDivisionId != null
-                && ancestorIds.Contains(c.AdministrativeDivisionId.Value)
-                && c.DeletedAt == null)
-            .ToList();
+        var chapters = ancestorIds.Count == 0
+            ? new List<Chapter>()
+            : _context.Chapters
+                .Where(c => c.AdministrativeDivisionId != null
+                    && ancestorIds.Contains(c.AdministrativeDivisionId.Value)
+                    && c.DeletedAt == null)
+                .ToList();
 
-        if (chapters.Count == 0)
-            return null;
-
-        // Return the chapter whose division appears earliest in ancestor list (most specific)
+        // Most specific match wins: the chapter whose division appears earliest in the ancestor chain.
         foreach (var ancestorId in ancestorIds) {
             var match = chapters.FirstOrDefault(c => c.AdministrativeDivisionId == ancestorId);
             if (match != null)
                 return match;
         }
 
-        return chapters[0];
+        // No region-specific chapter covers this division — fall back to the top-level
+        // (national) chapter so an application still routes to a reviewable body.
+        return GetRootChapter();
+    }
+
+    private Chapter? GetRootChapter() {
+        return _context.Chapters
+            .Where(c => c.ParentChapterId == null && c.DeletedAt == null)
+            .OrderBy(c => c.Name)
+            .FirstOrDefault();
     }
 
     private class ChapterTreeRow {

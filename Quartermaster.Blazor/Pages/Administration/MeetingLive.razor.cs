@@ -225,12 +225,12 @@ public partial class MeetingLive : IAsyncDisposable {
             SelectedActiveItemId = FlatItems[idx + 1].Item.Id;
     }
 
-    private async Task CastVoteFor(Guid agendaItemId, Guid targetUserId, VoteType vote) {
+    private async Task CastVoteFor(Guid agendaItemId, Guid targetMemberId, VoteType vote) {
         try {
             await MeetingsApi.VoteAgendaItemAsync(new AgendaItemVoteRequest {
                 MeetingId = Id,
                 ItemId = agendaItemId,
-                UserId = targetUserId,
+                MemberId = targetMemberId,
                 Vote = vote
             });
             await LoadMeeting();

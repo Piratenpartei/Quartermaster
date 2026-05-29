@@ -11,11 +11,11 @@
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>@Motion.Title</h3>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
             @if (Motion.IsRealized) {
                 <span class="badge border border-success text-success-emphasis fs-6">Umgesetzt</span>
             }
-            <MotionApprovalBadge Status="@Motion.ApprovalStatus" />
+            <MotionApprovalBadge Status="@Motion.ApprovalStatus" Class="fs-6" />
         </div>
     </div>
 
@@ -94,9 +94,9 @@
                 </thead>
                 <tbody>
                     @foreach (var officer in Motion.Officers) {
-                        var existingVote = GetVoteForOfficer(officer.UserId);
+                        var existingVote = GetVoteForOfficer(officer.MemberId);
                         <tr>
-                            <td>@officer.UserName</td>
+                            <td>@officer.MemberName</td>
                             <td>@OfficerRoleLabel(officer.OfficerRole)</td>
                             <td>
                                 @if (existingVote != null) {
@@ -115,15 +115,15 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
-                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.UserId, VoteType.Approve)">
+                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
                                         <i class="bi bi-hand-thumbs-up-fill"></i>
                                     </button>
                                     <button class="btn btn-danger btn-sm @(existingVote?.Vote == VoteType.Deny ? "active" : "")"
-                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.UserId, VoteType.Deny)">
+                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.MemberId, VoteType.Deny)">
                                         <i class="bi bi-hand-thumbs-down-fill"></i>
                                     </button>
                                     <button class="btn btn-secondary btn-sm @(existingVote?.Vote == VoteType.Abstain ? "active" : "")"
-                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.UserId, VoteType.Abstain)">
+                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.MemberId, VoteType.Abstain)">
                                         <i class="bi bi-dash-circle"></i>
                                     </button>
                                 </div>

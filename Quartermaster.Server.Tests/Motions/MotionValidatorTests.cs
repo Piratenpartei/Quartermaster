@@ -295,7 +295,7 @@ public class MotionVoteRequestValidatorTests {
     public void ValidRequest_Approve_ShouldHaveNoErrors() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = VoteType.Approve
         };
 
@@ -308,7 +308,7 @@ public class MotionVoteRequestValidatorTests {
     public void ValidRequest_Deny_ShouldHaveNoErrors() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = VoteType.Deny
         };
 
@@ -321,7 +321,7 @@ public class MotionVoteRequestValidatorTests {
     public void ValidRequest_Abstain_ShouldHaveNoErrors() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = VoteType.Abstain
         };
 
@@ -334,7 +334,7 @@ public class MotionVoteRequestValidatorTests {
     public void EmptyMotionId_ShouldHaveError() {
         var request = new MotionVoteRequest {
             MotionId = Guid.Empty,
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = VoteType.Approve
         };
 
@@ -345,24 +345,24 @@ public class MotionVoteRequestValidatorTests {
     }
 
     [Test]
-    public void EmptyUserId_ShouldHaveError() {
+    public void EmptyMemberId_ShouldHaveError() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.Empty,
+            MemberId = Guid.Empty,
             Vote = VoteType.Approve
         };
 
         var result = _validator.TestValidate(request);
 
-        result.ShouldHaveValidationErrorFor(x => x.UserId)
-            .WithErrorMessage(I18nKey.Error.Motion.Vote.UserIdRequired);
+        result.ShouldHaveValidationErrorFor(x => x.MemberId)
+            .WithErrorMessage(I18nKey.Error.Motion.Vote.MemberIdRequired);
     }
 
     [Test]
     public void VoteBelowRange_ShouldHaveError() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = (VoteType)(-1)
         };
 
@@ -376,7 +376,7 @@ public class MotionVoteRequestValidatorTests {
     public void VoteAboveRange_ShouldHaveError() {
         var request = new MotionVoteRequest {
             MotionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            MemberId = Guid.NewGuid(),
             Vote = (VoteType)3
         };
 

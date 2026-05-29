@@ -26,18 +26,18 @@ public class MotionDecisionMailTests : IntegrationTestBase {
         var motion = Builder.SeedMotion(chapter.Id);
         LinkMotionToApplication(motion.Id, app.Id);
 
-        // One officer makes the majority denominator 1, so a single approve vote resolves it.
-        var officer = Builder.SeedUser();
-        var officerMember = Builder.SeedMember(chapter.Id, firstName: "O", lastName: "fficer", userId: officer.Id);
+        // One officer (no user account) makes the majority denominator 1; the admin records
+        // their vote — mirroring the real flow where an officer hasn't logged in via SSO yet.
+        var officerMember = Builder.SeedMember(chapter.Id, firstName: "O", lastName: "fficer");
         Builder.SeedChapterOfficer(officerMember.Id, chapter.Id);
 
-        var (voter, token) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.VoteMotions } });
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.SystemVote });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
         var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
             MotionId = motion.Id,
-            UserId = voter.Id,
+            MemberId = officerMember.Id,
             Vote = VoteType.Approve
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
@@ -61,8 +61,9 @@ public class MotionDecisionMailTests : IntegrationTestBase {
         Builder.SeedAgendaItem(meeting.Id, itemType: AgendaItemType.Motion, motionId: motion.Id);
 
         // A single approve vote tips DetermineApprovalStatus to Approved on meeting completion.
-        var voter = Builder.SeedUser();
-        Builder.SeedMotionVote(motion.Id, voter.Id, VoteType.Approve);
+        var voterMember = Builder.SeedMember(chapter.Id);
+        var caster = Builder.SeedUser();
+        Builder.SeedMotionVote(motion.Id, voterMember.Id, caster.Id, VoteType.Approve);
 
         var (_, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMeetings } });

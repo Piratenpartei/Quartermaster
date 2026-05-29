@@ -187,7 +187,7 @@ public class AgendaItemVoteRequestValidatorTests {
     private static AgendaItemVoteRequest Valid() => new() {
         MeetingId = Guid.NewGuid(),
         ItemId = Guid.NewGuid(),
-        UserId = Guid.NewGuid(),
+        MemberId = Guid.NewGuid(),
         Vote = VoteType.Approve
     };
 
@@ -198,11 +198,11 @@ public class AgendaItemVoteRequestValidatorTests {
     }
 
     [Test]
-    public void Empty_user_id_errors() {
+    public void Empty_member_id_errors() {
         var req = Valid();
-        req.UserId = Guid.Empty;
+        req.MemberId = Guid.Empty;
         var result = _validator.TestValidate(req);
-        result.ShouldHaveValidationErrorFor(x => x.UserId);
+        result.ShouldHaveValidationErrorFor(x => x.MemberId);
     }
 
     [Test]

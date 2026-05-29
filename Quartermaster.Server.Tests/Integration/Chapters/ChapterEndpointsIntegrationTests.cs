@@ -201,4 +201,27 @@ public class ChapterForDivisionEndpointTests : IntegrationTestBase {
         var response = await client.GetAsync($"/api/chapters/for-division/{System.Guid.NewGuid()}");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
+
+    [Test]
+    public async Task Falls_back_to_root_chapter_when_no_division_specific_chapter() {
+        var national = Builder.SeedChapter("Piratenpartei Deutschland");
+        var div = Builder.SeedAdminDivision("Sibbesse");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync($"/api/chapters/for-division/{div.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<ChapterDTO>();
+        await Assert.That(result!.Id).IsEqualTo(national.Id);
+    }
+
+    [Test]
+    public async Task Prefers_region_specific_chapter_over_root_fallback() {
+        var national = Builder.SeedChapter("National");
+        var div = Builder.SeedAdminDivision("Region");
+        var regional = Builder.SeedChapter("Regional", national.Id, adminDivisionId: div.Id);
+        using var client = AnonymousClient();
+        var response = await client.GetAsync($"/api/chapters/for-division/{div.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var result = await response.Content.ReadFromJsonAsync<ChapterDTO>();
+        await Assert.That(result!.Id).IsEqualTo(regional.Id);
+    }
 }

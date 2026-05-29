@@ -30,6 +30,10 @@ public class AgendaItemDTO {
 /// One row per chapter officer for vote display (motion items) or attendance (presence items).
 /// </summary>
 public class AgendaItemOfficerVoteDTO {
+    /// <summary>The officer (member) — used as the vote target for motion items.</summary>
+    public Guid MemberId { get; set; }
+
+    /// <summary>The officer's linked user, if any — used for presence (attendance) items.</summary>
     public Guid UserId { get; set; }
     public string UserName { get; set; } = "";
     public string OfficerRole { get; set; } = "";

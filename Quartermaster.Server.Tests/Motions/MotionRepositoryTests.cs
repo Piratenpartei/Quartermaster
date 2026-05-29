@@ -51,35 +51,37 @@ public class MotionRepositoryTests : RepositoryTestBase {
     }
 
     /// <summary>
-    /// Seeds a Member, User, and ChapterOfficer. Returns the User ID (for casting votes).
+    /// Seeds a Member, User, and ChapterOfficer. Returns the member id (the vote target) and
+    /// the linked user id (the recorder for self-votes).
     /// </summary>
-    private Guid SeedOfficer() {
+    private (Guid MemberId, Guid UserId) SeedOfficer() {
         var memberId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
-        _context.Insert(new Member {
-            Id = memberId,
-            MemberNumber = Random.Shared.Next(100000, 999999),
-            FirstName = "Officer",
-            LastName = memberId.ToString()[..8],
-            LastImportedAt = DateTime.UtcNow
-        });
         _context.Insert(new User {
             Id = userId,
             Username = $"user-{userId.ToString()[..8]}",
             CitizenshipAdministrativeDivisionId = _adminDivId,
             AddressAdministrativeDivisionId = _adminDivId
         });
+        _context.Insert(new Member {
+            Id = memberId,
+            MemberNumber = Random.Shared.Next(100000, 999999),
+            FirstName = "Officer",
+            LastName = memberId.ToString()[..8],
+            UserId = userId,
+            LastImportedAt = DateTime.UtcNow
+        });
         _context.Insert(new ChapterOfficer {
             MemberId = memberId,
             ChapterId = _chapterId,
             AssociateType = ChapterOfficerType.Member
         });
-        return userId;
+        return (memberId, userId);
     }
 
-    private List<Guid> SeedOfficers(int count) {
-        var ids = new List<Guid>();
+    private List<(Guid MemberId, Guid UserId)> SeedOfficers(int count) {
+        var ids = new List<(Guid, Guid)>();
         for (int i = 0; i < count; i++)
             ids.Add(SeedOfficer());
         return ids;
@@ -104,10 +106,11 @@ public class MotionRepositoryTests : RepositoryTestBase {
         return motion.Id;
     }
 
-    private void CastVote(Guid motionId, Guid userId, VoteType voteType) {
+    private void CastVote(Guid motionId, (Guid MemberId, Guid UserId) officer, VoteType voteType) {
         _motionRepo.CastVote(new MotionVote {
             MotionId = motionId,
-            UserId = userId,
+            MemberId = officer.MemberId,
+            CastByUserId = officer.UserId,
             Vote = voteType,
             VotedAt = DateTime.UtcNow
         });

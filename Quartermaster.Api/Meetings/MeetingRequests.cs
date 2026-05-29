@@ -83,6 +83,8 @@ public class AgendaItemMoveRequest {
 public class AgendaItemVoteRequest {
     public Guid MeetingId { get; set; }
     public Guid ItemId { get; set; }
-    public Guid UserId { get; set; }
+
+    /// <summary>The officer (member) whose vote is being recorded.</summary>
+    public Guid MemberId { get; set; }
     public VoteType Vote { get; set; }
 }

@@ -16,6 +16,7 @@ public class ChapterDetailResponse {
     public ChapterDTO Chapter { get; set; } = new();
     public Guid? ParentChapterId { get; set; }
     public string? ParentChapterName { get; set; }
+    public string? AdministrativeDivisionName { get; set; }
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
 }
@@ -40,6 +41,7 @@ public partial class ChapterDetail {
     private string EditShortCode = "";
     private string EditExternalCode = "";
     private string EditParentChapterId = "";
+    private string EditAdministrativeDivisionId = "";
 
     private ConfirmDialog DeleteConfirm = default!;
 
@@ -65,6 +67,7 @@ public partial class ChapterDetail {
         EditShortCode = Detail.Chapter.ShortCode ?? "";
         EditExternalCode = Detail.Chapter.ExternalCode ?? "";
         EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
+        EditAdministrativeDivisionId = Detail.Chapter.AdministrativeDivisionId?.ToString() ?? "";
         Editing = true;
     }
 
@@ -74,6 +77,10 @@ public partial class ChapterDetail {
 
     private void OnParentChanged(string id) {
         EditParentChapterId = id;
+    }
+
+    private void OnDivisionChanged(string id) {
+        EditAdministrativeDivisionId = id;
     }
 
     private async Task SaveEdit() {
@@ -88,7 +95,7 @@ public partial class ChapterDetail {
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
                 ExternalCode = string.IsNullOrWhiteSpace(EditExternalCode) ? null : EditExternalCode.Trim(),
                 ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null,
-                AdministrativeDivisionId = Detail.Chapter.AdministrativeDivisionId
+                AdministrativeDivisionId = Guid.TryParse(EditAdministrativeDivisionId, out var divParsed) ? divParsed : null
             };
             var resp = await Http.PutAsJsonAsync($"/api/chapters/{Id}", req);
             if (resp.IsSuccessStatusCode) {

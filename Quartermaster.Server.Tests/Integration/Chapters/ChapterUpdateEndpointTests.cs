@@ -44,6 +44,40 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Updates_administrative_division_link() {
+        var div = Builder.SeedAdminDivision("Niedersachsen");
+        var chapter = Builder.SeedChapter("LV");
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
+            Name = "LV",
+            AdministrativeDivisionId = div.Id
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
+        await Assert.That(stored.AdministrativeDivisionId).IsEqualTo(div.Id);
+    }
+
+    [Test]
+    public async Task Clearing_administrative_division_unsets_it() {
+        var div = Builder.SeedAdminDivision("Niedersachsen");
+        var chapter = Builder.SeedChapter("LV", adminDivisionId: div.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
+            Name = "LV",
+            AdministrativeDivisionId = null
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
+        await Assert.That(stored.AdministrativeDivisionId).IsNull();
+    }
+
+    [Test]
     public async Task Clearing_parent_makes_it_top_level() {
         var parent = Builder.SeedChapter("Parent");
         var child = Builder.SeedChapter("Child", parentChapterId: parent.Id);

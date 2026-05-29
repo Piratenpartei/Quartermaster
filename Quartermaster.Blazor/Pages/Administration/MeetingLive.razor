@@ -122,11 +122,11 @@
                                                     <td>
                                                         <div class="d-flex gap-1">
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Approve ? "btn-success" : "btn-outline-success")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Approve)">Ja</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Approve)">Ja</button>
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Deny ? "btn-danger" : "btn-outline-danger")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Deny)">Nein</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Deny)">Nein</button>
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Abstain ? "btn-secondary" : "btn-outline-secondary")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.UserId, VoteType.Abstain)">Enthaltung</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Abstain)">Enthaltung</button>
                                                         </div>
                                                     </td>
                                                 </tr>

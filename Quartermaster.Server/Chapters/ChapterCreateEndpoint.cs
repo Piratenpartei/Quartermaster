@@ -65,7 +65,8 @@ public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> 
             Name = name,
             ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim(),
             ExternalCode = externalCode,
-            ParentChapterId = req.ParentChapterId
+            ParentChapterId = req.ParentChapterId,
+            AdministrativeDivisionId = req.AdministrativeDivisionId
         };
         _chapterRepo.Create(chapter);
 

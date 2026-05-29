@@ -8,6 +8,7 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
 
@@ -17,14 +18,17 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
     private readonly MotionRepository _motionRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly ChapterRepository _chapterRepo;
+    private readonly MemberRepository _memberRepo;
     private readonly MotionResolutionDecisionMailer _decisionMailer;
     private readonly PermissionContext _perms;
 
     public MotionVoteEndpoint(MotionRepository motionRepo, ChapterOfficerRepository officerRepo,
-        ChapterRepository chapterRepo, MotionResolutionDecisionMailer decisionMailer, PermissionContext perms) {
+        ChapterRepository chapterRepo, MemberRepository memberRepo,
+        MotionResolutionDecisionMailer decisionMailer, PermissionContext perms) {
         _motionRepo = motionRepo;
         _officerRepo = officerRepo;
         _chapterRepo = chapterRepo;
+        _memberRepo = memberRepo;
         _decisionMailer = decisionMailer;
         _perms = perms;
     }
@@ -52,36 +56,34 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             return;
         }
 
-        // Delegation: voting on behalf of another user requires additional checks.
-        // system_vote holders can vote for anyone without delegation checks.
-        var hasSystemVote = _perms.HasGlobal(PermissionIdentifier.SystemVote);
-        if (req.UserId != _perms.UserId.Value && !hasSystemVote) {
-            // Target must be a chapter officer of the motion's chapter
-            if (!_officerRepo.IsOfficerByUserId(req.UserId, motion.ChapterId)) {
-                AddError("UserId", I18nKey.Error.Motion.Vote.TargetNotOfficer);
-                await SendErrorsAsync(400, ct);
-                return;
-            }
+        // The vote belongs to an officer (member) of the motion's chapter.
+        if (!_officerRepo.IsOfficer(req.MemberId, motion.ChapterId)) {
+            AddError("MemberId", I18nKey.Error.Motion.Vote.TargetNotOfficer);
+            await SendErrorsAsync(400, ct);
+            return;
+        }
 
-            // Caller must be an officer of the chapter or a parent chapter,
-            // OR have the motions_vote_delegate permission
+        // Recording a vote for an officer other than yourself needs delegation rights —
+        // unless you hold system_vote. (Self = the recorder's own member.)
+        var callerMember = _memberRepo.GetByUserId(_perms.UserId.Value);
+        var isSelf = callerMember != null && callerMember.Id == req.MemberId;
+        if (!isSelf && !_perms.HasGlobal(PermissionIdentifier.SystemVote)) {
             var chapterAndAncestors = _chapterRepo.GetAncestorChain(motion.ChapterId)
                 .Select(c => c.Id).ToList();
             var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(_perms.UserId.Value, chapterAndAncestors);
-
             if (!callerIsOfficer &&
                 !_perms.Has(motion.ChapterId, PermissionIdentifier.VoteDelegateMotions)) {
-                AddError("UserId", I18nKey.Error.Motion.Vote.NoProxyPermission);
+                AddError("MemberId", I18nKey.Error.Motion.Vote.NoProxyPermission);
                 await SendErrorsAsync(403, ct);
                 return;
             }
         }
 
-        var vote = (VoteType)req.Vote;
         _motionRepo.CastVote(new MotionVote {
             MotionId = req.MotionId,
-            UserId = req.UserId,
-            Vote = vote,
+            MemberId = req.MemberId,
+            CastByUserId = _perms.UserId.Value,
+            Vote = (VoteType)req.Vote,
             VotedAt = DateTime.UtcNow
         });
 

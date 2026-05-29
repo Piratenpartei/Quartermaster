@@ -4,6 +4,10 @@
     <input type="text" class="form-control @SizeClass" placeholder="PLZ, Name oder Code..."
            value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
            style="border-radius: 0;" />
+    @if (AllowClear && !string.IsNullOrEmpty(SearchText)) {
+        <button type="button" class="btn-close" aria-label="Leeren" @onclick="Clear"
+                style="position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); z-index: 5;"></button>
+    }
     @if (ShowDropdown && SearchResults != null && SearchResults.Count > 0) {
         <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
             @foreach (var div in SearchResults.Take(20)) {

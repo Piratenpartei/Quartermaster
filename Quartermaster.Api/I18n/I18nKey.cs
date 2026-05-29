@@ -68,7 +68,7 @@ public static class I18nKey {
 
             public static class Vote {
                 public const string MotionIdRequired = "error.motion.vote.motion_id_required";
-                public const string UserIdRequired = "error.motion.vote.user_id_required";
+                public const string MemberIdRequired = "error.motion.vote.member_id_required";
                 public const string InvalidVote = "error.motion.vote.invalid_vote";
                 public const string TargetNotOfficer = "error.motion.vote.target_not_officer";
                 public const string NoProxyPermission = "error.motion.vote.no_proxy_permission";

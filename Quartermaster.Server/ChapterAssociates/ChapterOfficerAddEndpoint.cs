@@ -57,6 +57,10 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
             AssociateType = (ChapterOfficerType)req.AssociateType
         });
 
+        // Officer permissions attach to the member's user account. A member with no user yet
+        // (not logged in via SSO) gets the officer role automatically when SSO first links them
+        // — see SsoLoginHelper.GrantDefaultPermissionsForAllChapters. Votes don't need a user;
+        // they're recorded against the officer member directly.
         if (member.UserId.HasValue)
             _officerRepo.GrantDefaultPermissions(member.UserId.Value, req.ChapterId);
 

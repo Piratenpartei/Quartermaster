@@ -63,6 +63,10 @@ public class ChapterOfficerRepository {
         return (items, totalCount);
     }
 
+    public bool IsOfficer(Guid memberId, Guid chapterId) {
+        return _context.ChapterOfficers.Any(o => o.MemberId == memberId && o.ChapterId == chapterId);
+    }
+
     public bool IsOfficerByUserId(Guid userId, Guid chapterId) {
         return _context.Members
             .Where(m => m.UserId == userId)

@@ -65,6 +65,25 @@ public class ChapterCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Creates_chapter_linked_to_administrative_division() {
+        var div = Builder.SeedAdminDivision("Niedersachsen");
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.CreateChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/chapters", new ChapterCreateRequest {
+            Name = "Landesverband Niedersachsen",
+            AdministrativeDivisionId = div.Id
+        });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+
+        var dto = await response.Content.ReadFromJsonAsync<ChapterDTO>();
+        await Assert.That(dto!.AdministrativeDivisionId).IsEqualTo(div.Id);
+
+        var stored = Db.Chapters.Single(c => c.Id == dto.Id);
+        await Assert.That(stored.AdministrativeDivisionId).IsEqualTo(div.Id);
+    }
+
+    [Test]
     public async Task Returns_400_when_name_missing() {
         var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.CreateChapter });
         using var client = await AuthenticatedClientWithCsrfAsync(token);

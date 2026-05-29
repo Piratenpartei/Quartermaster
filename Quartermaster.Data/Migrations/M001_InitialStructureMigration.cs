@@ -185,7 +185,8 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Table(MotionVote.TableName)
             .WithColumn(nameof(MotionVote.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(MotionVote.MotionId)).AsGuid()
-            .WithColumn(nameof(MotionVote.UserId)).AsGuid()
+            .WithColumn(nameof(MotionVote.MemberId)).AsGuid()
+            .WithColumn(nameof(MotionVote.CastByUserId)).AsGuid()
             .WithColumn(nameof(MotionVote.Vote)).AsInt32()
             .WithColumn(nameof(MotionVote.VotedAt)).AsDateTime()
             .WithColumn(nameof(MotionVote.MeetingId)).AsGuid().Nullable();
@@ -195,9 +196,11 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(Motion.TableName).PrimaryColumn(nameof(Motion.Id))
             .OnDelete(Rule.Cascade);
 
-        Create.ForeignKey("FK_MotionVotes_UserId_Users_Id")
-            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.UserId))
+        Create.ForeignKey("FK_MotionVotes_CastByUserId_Users_Id")
+            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.CastByUserId))
             .ToTable(User.TableName).PrimaryColumn(nameof(User.Id));
+
+        // FK_MotionVotes_MemberId_Members_Id is created after the Members table below.
 
         Create.Table(OptionDefinition.TableName)
             .WithColumn(nameof(OptionDefinition.Id)).AsGuid().PrimaryKey()
@@ -347,6 +350,11 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.ForeignKey("FK_ChapterAssociates_MemberId_Members_Id")
             .FromTable(ChapterOfficer.TableName).ForeignColumn(nameof(ChapterOfficer.MemberId))
+            .ToTable(Member.TableName).PrimaryColumn(nameof(Member.Id));
+
+        // Created here (not with the MotionVotes table) because Members is defined after MotionVotes.
+        Create.ForeignKey("FK_MotionVotes_MemberId_Members_Id")
+            .FromTable(MotionVote.TableName).ForeignColumn(nameof(MotionVote.MemberId))
             .ToTable(Member.TableName).PrimaryColumn(nameof(Member.Id));
 
         Create.Table(MemberImportLog.TableName)

@@ -110,10 +110,9 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                     var motionVotes = allVotes.Where(v => v.MotionId == a.MotionId.Value).ToList();
                     officerVotes = officers.Select(o => {
                         var member = officerMembers.FirstOrDefault(m => m.Id == o.MemberId);
-                        var vote = member?.UserId != null
-                            ? motionVotes.FirstOrDefault(v => v.UserId == member.UserId.Value)
-                            : null;
+                        var vote = motionVotes.FirstOrDefault(v => v.MemberId == o.MemberId);
                         return new AgendaItemOfficerVoteDTO {
+                            MemberId = o.MemberId,
                             UserId = member?.UserId ?? Guid.Empty,
                             UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
                             OfficerRole = o.AssociateType.ToString(),

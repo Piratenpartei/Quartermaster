@@ -23,6 +23,7 @@ public partial class ChapterCreate {
     private string ShortCode = "";
     private string ExternalCode = "";
     private string ParentChapterId = "";
+    private string AdministrativeDivisionId = "";
     private bool Saving;
 
     [SupplyParameterFromQuery]
@@ -38,6 +39,10 @@ public partial class ChapterCreate {
         ParentChapterId = id;
     }
 
+    private void OnDivisionChanged(string id) {
+        AdministrativeDivisionId = id;
+    }
+
     private async Task Save() {
         Saving = true;
         StateHasChanged();
@@ -46,7 +51,8 @@ public partial class ChapterCreate {
                 Name = Name.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(ShortCode) ? null : ShortCode.Trim(),
                 ExternalCode = string.IsNullOrWhiteSpace(ExternalCode) ? null : ExternalCode.Trim(),
-                ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null
+                ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null,
+                AdministrativeDivisionId = Guid.TryParse(AdministrativeDivisionId, out var divParsed) ? divParsed : null
             };
             var resp = await Http.PostAsJsonAsync("/api/chapters", req);
             if (resp.IsSuccessStatusCode) {

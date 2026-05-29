@@ -66,24 +66,22 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
         var officerDtos = officers.Select(o => {
             var member = members.FirstOrDefault(m => m.Id == o.MemberId);
             return new MotionVoteDTO {
-                UserId = member?.UserId ?? Guid.Empty,
-                UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                MemberId = o.MemberId,
+                MemberName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
                 OfficerRole = o.AssociateType.ToString()
             };
         }).ToList();
 
         var voteDtos = votes.Select(v => {
-            // Find the member that has this UserId to get the officer role
-            var member = members.FirstOrDefault(m => m.UserId == v.UserId);
-            var officer = member != null
-                ? officers.FirstOrDefault(o => o.MemberId == member.Id)
-                : null;
+            var member = members.FirstOrDefault(m => m.Id == v.MemberId);
+            var officer = officers.FirstOrDefault(o => o.MemberId == v.MemberId);
             return new MotionVoteDTO {
-                UserId = v.UserId,
-                UserName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
+                MemberId = v.MemberId,
+                MemberName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
                 OfficerRole = officer != null ? officer.AssociateType.ToString() : "",
                 Vote = v.Vote,
-                VotedAt = v.VotedAt
+                VotedAt = v.VotedAt,
+                CastByUserId = v.CastByUserId
             };
         }).ToList();
 

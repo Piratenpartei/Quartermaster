@@ -7,4 +7,5 @@ public class ChapterCreateRequest {
     public string? ShortCode { get; set; }
     public string? ExternalCode { get; set; }
     public Guid? ParentChapterId { get; set; }
+    public Guid? AdministrativeDivisionId { get; set; }
 }

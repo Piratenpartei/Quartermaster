@@ -34,7 +34,7 @@
   "error.motion.body_required": "Antragstext darf nicht leer sein.",
   "error.motion.body_max_length": "Antragstext darf maximal 8192 Zeichen lang sein.",
   "error.motion.vote.motion_id_required": "Antrags-ID darf nicht leer sein.",
-  "error.motion.vote.user_id_required": "Benutzer-ID darf nicht leer sein.",
+  "error.motion.vote.member_id_required": "Mitglieds-ID darf nicht leer sein.",
   "error.motion.vote.invalid_vote": "Ungültige Abstimmung.",
   "error.motion.vote.target_not_officer": "Zielbenutzer ist kein Vorstandsmitglied der zugehörigen Gliederung.",
   "error.motion.vote.no_proxy_permission": "Keine Berechtigung zur stellvertretenden Abstimmung.",

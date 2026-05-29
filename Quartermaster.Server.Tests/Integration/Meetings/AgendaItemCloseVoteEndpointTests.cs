@@ -79,8 +79,9 @@ public class AgendaItemCloseVoteEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Closes_vote_and_records_resolution() {
         var (chapterId, meetingId, itemId, motionId) = SeedMotionAgendaItem();
-        var (voter, _) = Builder.SeedAuthenticatedUser();
-        Builder.SeedMotionVote(motionId, voter.Id, VoteType.Approve);
+        var voterMember = Builder.SeedMember(chapterId);
+        var caster = Builder.SeedUser();
+        Builder.SeedMotionVote(motionId, voterMember.Id, caster.Id, VoteType.Approve);
 
         var (_, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditMeetings } });

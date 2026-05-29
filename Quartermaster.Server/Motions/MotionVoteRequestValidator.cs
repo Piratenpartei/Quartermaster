@@ -11,9 +11,9 @@ public class MotionVoteRequestValidator : Validator<MotionVoteRequest> {
             .NotEqual(System.Guid.Empty)
             .WithMessage(I18nKey.Error.Motion.Vote.MotionIdRequired);
 
-        RuleFor(x => x.UserId)
+        RuleFor(x => x.MemberId)
             .NotEqual(System.Guid.Empty)
-            .WithMessage(I18nKey.Error.Motion.Vote.UserIdRequired);
+            .WithMessage(I18nKey.Error.Motion.Vote.MemberIdRequired);
 
         RuleFor(x => x.Vote)
             .IsInEnum()

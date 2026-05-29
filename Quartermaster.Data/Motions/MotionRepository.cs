@@ -90,19 +90,20 @@ public class MotionRepository {
     public List<MotionVote> GetVotes(Guid motionId)
         => _context.MotionVotes.Where(v => v.MotionId == motionId).ToList();
 
-    public MotionVote? GetVote(Guid motionId, Guid userId)
+    public MotionVote? GetVote(Guid motionId, Guid memberId)
         => _context.MotionVotes
-            .Where(v => v.MotionId == motionId && v.UserId == userId)
+            .Where(v => v.MotionId == motionId && v.MemberId == memberId)
             .FirstOrDefault();
 
     public void CastVote(MotionVote vote) {
-        var existing = GetVote(vote.MotionId, vote.UserId);
+        var existing = GetVote(vote.MotionId, vote.MemberId);
         if (existing != null) {
             _context.MotionVotes
                 .Where(v => v.Id == existing.Id)
                 .Set(v => v.Vote, vote.Vote)
                 .Set(v => v.VotedAt, vote.VotedAt)
                 .Set(v => v.MeetingId, vote.MeetingId)
+                .Set(v => v.CastByUserId, vote.CastByUserId)
                 .Update();
 
             _auditLog.LogFieldChange("MotionVote", existing.Id, "Vote", existing.Vote.ToString(), vote.Vote.ToString());

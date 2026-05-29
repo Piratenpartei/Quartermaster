@@ -22,19 +22,31 @@ public partial class AdminDivisionPicker {
     [Parameter]
     public string SizeClass { get; set; } = "";
 
+    /// <summary>Name to display for a pre-set <see cref="Value"/> (search can't resolve a raw id).</summary>
+    [Parameter]
+    public string InitialDisplayText { get; set; } = "";
+
+    /// <summary>When true, shows a clear button so the selection can be reset to empty.</summary>
+    [Parameter]
+    public bool AllowClear { get; set; }
+
     private string SearchText = "";
     private bool ShowDropdown;
     private List<AdministrativeDivisionDTO>? SearchResults;
     private CancellationTokenSource? _debounce;
 
-    protected override async Task OnInitializedAsync() {
-        if (!string.IsNullOrEmpty(Value) && Guid.TryParse(Value, out _)) {
-            // Try to load the name for the pre-set value
-            var response = await Http.GetFromJsonAsync<AdministrativeDivisionSearchResponse>(
-                $"/api/administrativedivisions/search?query={Uri.EscapeDataString(Value)}&page=1&pageSize=1");
-            if (response?.Items.Count > 0)
-                SearchText = response.Items[0].Name;
+    protected override void OnInitialized() {
+        if (!string.IsNullOrEmpty(Value) && !string.IsNullOrEmpty(InitialDisplayText)) {
+            SearchText = InitialDisplayText;
         }
+    }
+
+    private async Task Clear() {
+        Value = "";
+        SearchText = "";
+        SearchResults = null;
+        ShowDropdown = false;
+        await ValueChanged.InvokeAsync("");
     }
 
     private async Task OnSearchInput(ChangeEventArgs e) {

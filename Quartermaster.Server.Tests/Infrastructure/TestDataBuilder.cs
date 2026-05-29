@@ -307,11 +307,12 @@ public sealed class TestDataBuilder {
         return motion;
     }
 
-    public MotionVote SeedMotionVote(Guid motionId, Guid userId, VoteType vote) {
+    public MotionVote SeedMotionVote(Guid motionId, Guid memberId, Guid castByUserId, VoteType vote) {
         var v = new MotionVote {
             Id = Guid.NewGuid(),
             MotionId = motionId,
-            UserId = userId,
+            MemberId = memberId,
+            CastByUserId = castByUserId,
             Vote = vote,
             VotedAt = DateTime.UtcNow
         };

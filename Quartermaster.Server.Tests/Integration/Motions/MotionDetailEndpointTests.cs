@@ -32,9 +32,10 @@ public class MotionDetailEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Includes_votes_list() {
         var chapter = Builder.SeedChapter("Chapter");
-        var user = Builder.SeedUser(firstName: "Voter", lastName: "One");
+        var member = Builder.SeedMember(chapter.Id, firstName: "Voter", lastName: "One");
+        var caster = Builder.SeedUser();
         var motion = Builder.SeedMotion(chapter.Id);
-        Builder.SeedMotionVote(motion.Id, user.Id, VoteType.Approve);
+        Builder.SeedMotionVote(motion.Id, member.Id, caster.Id, VoteType.Approve);
         using var client = AnonymousClient();
         var response = await client.GetAsync($"/api/motions/{motion.Id}");
         var dto = await response.Content.ReadFromJsonAsync<MotionDetailDTO>();

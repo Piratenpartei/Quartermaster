@@ -31,7 +31,7 @@
   "error.motion.body_required": "Motion body must not be empty.",
   "error.motion.body_max_length": "Motion body must be at most 8192 characters long.",
   "error.motion.vote.motion_id_required": "Motion ID must not be empty.",
-  "error.motion.vote.user_id_required": "User ID must not be empty.",
+  "error.motion.vote.member_id_required": "Member ID must not be empty.",
   "error.motion.vote.invalid_vote": "Invalid vote.",
   "error.motion.vote.target_not_officer": "Target user is not a chapter officer of the relevant chapter.",
   "error.motion.vote.no_proxy_permission": "No permission to vote on behalf of another user.",

@@ -53,6 +53,14 @@
                                    AllowEmpty="true" EmptyLabel="Keine — Top-Level-Gliederung"
                                    ExcludeIds="@(new List<Guid> { Id })" />
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Verwaltungsgebiet</label>
+                    <div class="d-flex">
+                        <AdminDivisionPicker Value="@EditAdministrativeDivisionId" ValueChanged="OnDivisionChanged"
+                                             InitialDisplayText="@(Detail.AdministrativeDivisionName ?? "")" AllowClear="true" />
+                    </div>
+                    <div class="form-text">Optional. Bestimmt die Zuordnung von Mitgliedsanträgen aus diesem Gebiet.</div>
+                </div>
                 <div class="d-flex justify-content-end gap-2">
                     <button class="btn btn-outline-secondary" @onclick="CancelEdit">Abbrechen</button>
                     <button class="btn btn-primary btn-hover-scale1" @onclick="SaveEdit" disabled="@(Saving || string.IsNullOrWhiteSpace(EditName))">
@@ -80,6 +88,10 @@
                                     <span>—</span>
                                 }
                             </td>
+                        </tr>
+                        <tr>
+                            <th>Verwaltungsgebiet</th>
+                            <td>@(string.IsNullOrEmpty(Detail.AdministrativeDivisionName) ? "—" : Detail.AdministrativeDivisionName)</td>
                         </tr>
                     </tbody>
                 </table>

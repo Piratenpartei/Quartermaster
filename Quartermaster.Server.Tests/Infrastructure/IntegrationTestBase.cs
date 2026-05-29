@@ -9,6 +9,7 @@ using LinqToDB;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
@@ -33,10 +34,13 @@ public abstract class IntegrationTestBase : IDisposable {
         Database = TestDatabaseFixture.Acquire();
         Database.CleanAllTables();
         Factory = Database.Factory; // shared — not disposed per-test
-        // Re-seed reference data (permissions, system roles, option definitions) that
-        // SupplementDefaults provides — CleanAllTables wipes them, but the shared factory
-        // only runs SupplementDefaults once at startup.
+        // Re-seed reference data (permissions, system roles, option definitions, the
+        // Null Island admin division) that SupplementDefaults provides — CleanAllTables wipes
+        // them, but the shared factory only runs SupplementDefaults once at startup. Null Island
+        // (Id=Guid.Empty) is the FK target for user citizenship/address divisions, so app-side
+        // user creation (e.g. promoting a member to officer) needs it present.
         using (var scope = Factory.Services.CreateScope()) {
+            scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults();
             scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
             scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
             scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();

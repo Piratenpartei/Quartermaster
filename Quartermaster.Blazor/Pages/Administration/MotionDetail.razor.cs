@@ -40,13 +40,17 @@ public partial class MotionDetail {
         Loading = false;
     }
 
-    private async Task CastVote(Guid userId, VoteType vote) {
+    private async Task CastVote(Guid memberId, VoteType vote) {
         try {
-            await Http.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
+            var resp = await Http.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
                 MotionId = Id,
-                UserId = userId,
+                MemberId = memberId,
                 Vote = vote
             });
+            if (!resp.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(resp);
+                return;
+            }
 
             await LoadMotion();
             StateHasChanged();
@@ -110,8 +114,8 @@ public partial class MotionDetail {
         }
     }
 
-    private MotionVoteDTO? GetVoteForOfficer(Guid userId)
-        => Motion?.Votes.FirstOrDefault(v => v.UserId == userId);
+    private MotionVoteDTO? GetVoteForOfficer(Guid memberId)
+        => Motion?.Votes.FirstOrDefault(v => v.MemberId == memberId);
 
     private static string OfficerRoleLabel(string role) => role switch {
         "Captain" => "Vorsitzender",

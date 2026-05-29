@@ -7,6 +7,10 @@ public partial class MotionApprovalBadge {
     [Parameter, EditorRequired]
     public MotionApprovalStatus Status { get; set; }
 
+    /// <summary>Extra CSS classes appended to the badge (e.g. <c>fs-6</c> for a larger badge).</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
     private string CssClass => Status switch {
         MotionApprovalStatus.Pending => "border-warning text-warning-emphasis",
         MotionApprovalStatus.Approved => "border-success text-success-emphasis",
