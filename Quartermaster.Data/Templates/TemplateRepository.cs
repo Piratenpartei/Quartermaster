@@ -80,6 +80,7 @@ public class TemplateRepository {
             .Set(t => t.AllowsEventFields, template.AllowsEventFields)
             .Set(t => t.AllowsChapterFields, template.AllowsChapterFields)
             .Set(t => t.BaseTemplateId, template.BaseTemplateId)
+            .Set(t => t.RenderMode, template.RenderMode)
             .Update();
     }
 

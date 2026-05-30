@@ -81,6 +81,7 @@ public class TemplateDetailEndpoint : Endpoint<TemplateDetailRequest, TemplateDe
             AllowsMemberFields = template.AllowsMemberFields,
             AllowsEventFields = template.AllowsEventFields,
             AllowsChapterFields = template.AllowsChapterFields,
+            RenderMode = template.RenderMode,
             Overrides = overrides
         };
 

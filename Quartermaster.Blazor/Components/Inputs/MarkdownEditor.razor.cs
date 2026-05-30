@@ -1,7 +1,9 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Rendering;
 
 namespace Quartermaster.Blazor.Components.Inputs;
@@ -9,6 +11,9 @@ namespace Quartermaster.Blazor.Components.Inputs;
 public partial class MarkdownEditor {
     [Inject]
     public required IJSRuntime JS { get; set; }
+
+    [CascadingParameter]
+    public DirtyForm? Form { get; set; }
 
     [Parameter]
     public string Value { get; set; } = "";
@@ -22,6 +27,10 @@ public partial class MarkdownEditor {
     [Parameter]
     public SanitizationProfile Profile { get; set; } = SanitizationProfile.Standard;
 
+    /// <summary>Optional pre-processor applied to the markdown source before it is rendered for the preview pane.</summary>
+    [Parameter]
+    public Func<string, Task<string>>? PreviewTransform { get; set; }
+
     private string RenderedHtml = "";
     private CancellationTokenSource? _debounce;
     private ElementReference _textarea;
@@ -29,6 +38,7 @@ public partial class MarkdownEditor {
     private async Task OnInput(ChangeEventArgs e) {
         Value = e.Value?.ToString() ?? "";
         await ValueChanged.InvokeAsync(Value);
+        Form?.MarkDirty();
 
         _debounce?.Cancel();
         _debounce = new CancellationTokenSource();
@@ -36,17 +46,21 @@ public partial class MarkdownEditor {
 
         try {
             await Task.Delay(300, token);
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
+            await UpdatePreviewAsync();
             StateHasChanged();
         } catch (TaskCanceledException) { }
     }
 
-    protected override void OnParametersSet() {
+    protected override async Task OnParametersSetAsync() {
         if (!string.IsNullOrWhiteSpace(Value))
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
+            await UpdatePreviewAsync();
     }
 
-    /// <summary>Inserts text at the textarea's caret (replacing any selection) and fires an input event so the bound value updates.</summary>
+    private async Task UpdatePreviewAsync() {
+        var source = PreviewTransform != null ? await PreviewTransform(Value) : Value;
+        RenderedHtml = MarkdownService.ToHtml(source, Profile);
+    }
+
     public ValueTask InsertAtCursorAsync(string text)
         => JS.InvokeVoidAsync("MarkdownEditorInsertAtCursor", _textarea, text);
 }

@@ -8,12 +8,8 @@ using Quartermaster.Rendering;
 
 namespace Quartermaster.Server.Templates;
 
-public enum TemplatePdfMode {
-    Simple
-}
-
 public static class TemplatePdfRenderer {
-    public static async Task<(byte[]? Pdf, string? Error)> RenderAsync(Template template, TemplatePdfMode mode) {
+    public static async Task<(byte[]? Pdf, string? Error)> RenderAsync(Template template) {
         var models = TemplateModelLookup.BuildForTemplate(
             template.Identifier, template.AllowsChapterFields, template.AllowsMemberFields, template.AllowsEventFields);
         var mockData = TemplateMockDataProvider.GetMockData(models);
@@ -22,11 +18,13 @@ public static class TemplatePdfRenderer {
         if (subjectError != null)
             return (null, subjectError);
 
-        var (bodyText, bodyError) = await TemplateRenderer.RenderTextAsync(template.Body, mockData);
+        var (bodyText, bodyError, bodyContext) = await TemplateRenderer.RenderTextWithContextAsync(template.Body, mockData);
         if (bodyError != null)
             return (null, bodyError);
 
-        var pdf = mode switch {
+        var pdf = template.RenderMode switch {
+            TemplateRenderMode.Envelope => TemplateEnvelopePdfRenderer.Render(
+                EnvelopeTags.Extract(bodyContext!), bodyText ?? ""),
             _ => RenderSimple(subjectText ?? "", bodyText ?? "", template.DisplayName)
         };
         return (pdf, null);

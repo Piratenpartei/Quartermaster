@@ -9,6 +9,7 @@ using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Components.Inputs;
 using Quartermaster.Blazor.Services;
+using Quartermaster.Rendering;
 
 namespace Quartermaster.Blazor.Pages.Administration;
 
@@ -35,6 +36,10 @@ public partial class TemplateDetail {
     private TemplateOverrideDTO? EditingOverride;
     private string EditingOverrideChapterIdRaw { get; set; } = "";
 
+    private bool IsFormDirty => _form?.IsDirty ?? false;
+
+    private string RenderModeRaw => Template == null ? "0" : ((int)Template.RenderMode).ToString();
+
     private string PaletteModels => Template == null
         ? ""
         : TemplateModelLookup.BuildForTemplate(Template.Identifier, Template.AllowsChapterFields, Template.AllowsMemberFields, Template.AllowsEventFields);
@@ -44,6 +49,39 @@ public partial class TemplateDetail {
             return;
         await _bodyEditor.InsertAtCursorAsync(fluidExpression);
         _form?.MarkDirty();
+    }
+
+    private void OnRenderModeChanged(string raw) {
+        if (Template == null)
+            return;
+        if (int.TryParse(raw, out var parsed))
+            Template.RenderMode = (TemplateRenderMode)parsed;
+    }
+
+    private void OnSubjectChanged(string value) {
+        if (Template == null)
+            return;
+        Template.Subject = value;
+    }
+
+    private void SetFlag(Action<bool> setter, bool value) {
+        setter(value);
+        _form?.MarkDirty();
+    }
+
+    private void PrependEnvelopeTags() {
+        if (Template == null)
+            return;
+        Template.Body = EnvelopeTags.EmptyTagsSnippet + Template.Body;
+        _form?.MarkDirty();
+    }
+
+    private async Task<string> PreviewTransform(string source) {
+        if (string.IsNullOrEmpty(source) || Template == null)
+            return source;
+        var mockData = TemplateMockDataProvider.GetMockData(PaletteModels);
+        var (rendered, error) = await TemplateRenderer.RenderTextAsync(source, mockData);
+        return error != null ? source : rendered ?? source;
     }
 
     protected override async Task OnInitializedAsync() {
@@ -67,6 +105,7 @@ public partial class TemplateDetail {
 
         NoSubject = (bool)(e.Value ?? false);
         Template.Subject = NoSubject ? null : (Template.Subject ?? "");
+        _form?.MarkDirty();
     }
 
     private async Task Save() {
@@ -81,7 +120,8 @@ public partial class TemplateDetail {
                 Body = Template.Body,
                 AllowsMemberFields = Template.AllowsMemberFields,
                 AllowsEventFields = Template.AllowsEventFields,
-                AllowsChapterFields = Template.AllowsChapterFields
+                AllowsChapterFields = Template.AllowsChapterFields,
+                RenderMode = Template.RenderMode
             });
             response.EnsureSuccessStatusCode();
             _form.Reset();

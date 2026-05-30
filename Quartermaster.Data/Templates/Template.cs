@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Templates;
 
 namespace Quartermaster.Data.Templates;
 
@@ -20,6 +21,7 @@ public class Template {
     public bool AllowsMemberFields { get; set; }
     public bool AllowsEventFields { get; set; }
     public bool AllowsChapterFields { get; set; }
+    public TemplateRenderMode RenderMode { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 }

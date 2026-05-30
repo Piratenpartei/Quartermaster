@@ -11,7 +11,6 @@ namespace Quartermaster.Server.Templates;
 
 public class TemplatePdfRequest {
     public Guid Id { get; set; }
-    public string? Mode { get; set; }
 }
 
 public class TemplatePdfEndpoint : Endpoint<TemplatePdfRequest> {
@@ -42,8 +41,7 @@ public class TemplatePdfEndpoint : Endpoint<TemplatePdfRequest> {
             return;
         }
 
-        var mode = ParseMode(req.Mode);
-        var (pdf, error) = await TemplatePdfRenderer.RenderAsync(template, mode);
+        var (pdf, error) = await TemplatePdfRenderer.RenderAsync(template);
         if (error != null || pdf == null) {
             await SendStringAsync(error ?? "PDF render failed", 500, cancellation: ct);
             return;
@@ -57,11 +55,5 @@ public class TemplatePdfEndpoint : Endpoint<TemplatePdfRequest> {
         if (template.ChapterId == null)
             return _perms.HasGlobal(PermissionIdentifier.ViewTemplates);
         return _perms.Has(template.ChapterId.Value, PermissionIdentifier.ViewTemplates);
-    }
-
-    private static TemplatePdfMode ParseMode(string? raw) {
-        return raw?.ToLowerInvariant() switch {
-            _ => TemplatePdfMode.Simple
-        };
     }
 }

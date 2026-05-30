@@ -237,6 +237,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Template.AllowsMemberFields)).AsBoolean().WithDefaultValue(false)
             .WithColumn(nameof(Template.AllowsEventFields)).AsBoolean().WithDefaultValue(false)
             .WithColumn(nameof(Template.AllowsChapterFields)).AsBoolean().WithDefaultValue(false)
+            .WithColumn(nameof(Template.RenderMode)).AsInt32().WithDefaultValue(0)
             .WithColumn(nameof(Template.CreatedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(Template.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 

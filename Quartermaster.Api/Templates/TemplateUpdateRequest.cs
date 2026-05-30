@@ -10,4 +10,5 @@ public class TemplateUpdateRequest {
     public bool AllowsMemberFields { get; set; }
     public bool AllowsEventFields { get; set; }
     public bool AllowsChapterFields { get; set; }
+    public TemplateRenderMode RenderMode { get; set; }
 }

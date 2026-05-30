@@ -14,3 +14,7 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
 ## Notifications
 
 - [ ] **Email MDN (read-receipt) tracking + stats.** *(V2)* Request a Message Disposition Notification on outbound emails (RFC 8098: `Disposition-Notification-To` header), capture inbound MDN replies, and surface per-send / per-template / per-chapter delivery + read stats. Stats worth exposing: send count, MDN-opt-in rate (some clients suppress the receipt entirely), read rate, time-to-read distribution, and per-template / per-trigger breakdowns so officers can see which templates actually land. Storage probably extends `NotificationLog` with `MdnRequestedAt` / `MdnReceivedAt` / `MdnDisposition` columns. UI lives on a new tab inside the template detail page (per-template stats) plus a global view under Administration/Notifications.
+
+## Templates
+
+- [ ] **PDF / template i18n per recipient language.** *(Backlog)* Render PDF templates (and probably emails too) in the recipient's preferred language. Requires: (a) a `Language` attribute on `Member` (and probably `MembershipApplication` / `DueSelection`) with a sensible default per chapter; (b) a tag system inside templates to declare per-language variants of strings — sketch: `{% i18n "greeting" %}Sehr geehrte/r ...{% else "en" %}Dear ...{% endi18n %}` or per-language template overrides keyed by language code; (c) dispatcher picks the right variant based on recipient language. Out of scope for V1.

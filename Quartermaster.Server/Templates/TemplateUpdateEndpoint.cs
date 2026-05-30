@@ -46,6 +46,7 @@ public class TemplateUpdateEndpoint : Endpoint<TemplateUpdateRequest> {
         template.AllowsMemberFields = req.AllowsMemberFields;
         template.AllowsEventFields = req.AllowsEventFields;
         template.AllowsChapterFields = req.AllowsChapterFields;
+        template.RenderMode = req.RenderMode;
         _templateRepo.Update(template);
 
         await SendOkAsync(ct);
