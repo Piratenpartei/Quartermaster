@@ -26,6 +26,9 @@ public partial class MainNavBar : IDisposable {
     [Inject]
     public required NavigationManager Navigation { get; set; }
 
+    [Inject]
+    public required LanguageService LanguageService { get; set; }
+
     private void ToggleMenu() {
         Collapsed = !Collapsed;
     }
@@ -36,6 +39,7 @@ public partial class MainNavBar : IDisposable {
     }
 
     protected override async Task OnInitializedAsync() {
+        await LanguageService.InitializeAsync();
         await AuthService.InitializeAsync();
         await ConfigService.LoadAsync();
         await SetTheme();

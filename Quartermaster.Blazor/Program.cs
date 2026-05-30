@@ -40,6 +40,7 @@ public static class Program {
         builder.Services.AddScoped<ClientConfigService>();
         builder.Services.AddScoped<ToastService>();
         builder.Services.AddScoped<AuthService>();
+        builder.Services.AddScoped<LanguageService>();
         builder.Services.AddScoped<MeetingHubClient>();
         builder.Services.AddScoped<MeetingsApi>();
 
