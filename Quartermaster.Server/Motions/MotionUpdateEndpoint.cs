@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
@@ -53,20 +54,20 @@ public class MotionUpdateEndpoint : Endpoint<MotionUpdateRequest> {
             return;
         }
         if (motion.ApprovalStatus != MotionApprovalStatus.Pending) {
-            AddError("Antrag kann nach Beschluss nicht mehr bearbeitet werden.");
+            AddError(I18nKey.Error.Motion.Update.LockedAfterDecision);
             await SendErrorsAsync(409, ct);
             return;
         }
 
         if (req.LinkedMembershipApplicationId.HasValue
             && _applicationRepo.Get(req.LinkedMembershipApplicationId.Value) == null) {
-            AddError(r => r.LinkedMembershipApplicationId, "Verknüpfter Mitgliedsantrag existiert nicht.");
+            AddError(r => r.LinkedMembershipApplicationId, I18nKey.Error.Motion.Update.LinkedApplicationNotFound);
             await SendErrorsAsync(cancellation: ct);
             return;
         }
         if (req.LinkedDueSelectionId.HasValue
             && _dueSelectionRepo.Get(req.LinkedDueSelectionId.Value) == null) {
-            AddError(r => r.LinkedDueSelectionId, "Verknüpfte Beitragseinstufung existiert nicht.");
+            AddError(r => r.LinkedDueSelectionId, I18nKey.Error.Motion.Update.LinkedDueSelectionNotFound);
             await SendErrorsAsync(cancellation: ct);
             return;
         }

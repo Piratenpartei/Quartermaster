@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Server.Authentication;
 
@@ -48,19 +49,19 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
         }
         var name = req.Name?.Trim() ?? "";
         if (string.IsNullOrEmpty(name)) {
-            AddError(r => r.Name, "Name ist erforderlich.");
+            AddError(r => r.Name, I18nKey.Error.Chapter.NameRequired);
             await SendErrorsAsync(cancellation: ct);
             return;
         }
         if (req.ParentChapterId == req.Id) {
-            AddError(r => r.ParentChapterId, "Eine Gliederung kann nicht ihre eigene übergeordnete Gliederung sein.");
+            AddError(r => r.ParentChapterId, I18nKey.Error.Chapter.ParentSelfReference);
             await SendErrorsAsync(cancellation: ct);
             return;
         }
         if (req.ParentChapterId.HasValue) {
             var parent = _chapterRepo.Get(req.ParentChapterId.Value);
             if (parent == null) {
-                AddError(r => r.ParentChapterId, "Übergeordnete Gliederung existiert nicht.");
+                AddError(r => r.ParentChapterId, I18nKey.Error.Chapter.ParentNotFound);
                 await SendErrorsAsync(cancellation: ct);
                 return;
             }
@@ -69,7 +70,7 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
         if (externalCode != null) {
             var existing = _chapterRepo.GetByExternalCodeAndParent(externalCode, req.ParentChapterId);
             if (existing != null && existing.Id != req.Id) {
-                AddError(r => r.ExternalCode, "Externer Code ist unter dieser übergeordneten Gliederung bereits vergeben.");
+                AddError(r => r.ExternalCode, I18nKey.Error.Chapter.ExternalCodeNotUnique);
                 await SendErrorsAsync(cancellation: ct);
                 return;
             }

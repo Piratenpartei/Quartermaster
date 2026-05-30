@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Server.Authentication;
 
@@ -42,7 +43,7 @@ public class ChapterDeleteEndpoint : EndpointWithoutRequest {
             return;
         }
         if (_chapterRepo.HasNonDeletedChildren(id)) {
-            AddError("Gliederung kann nicht gelöscht werden, solange noch Untergliederungen bestehen.");
+            AddError(I18nKey.Error.Chapter.HasChildren);
             await SendErrorsAsync(cancellation: ct);
             return;
         }

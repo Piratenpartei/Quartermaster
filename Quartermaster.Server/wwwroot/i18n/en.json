@@ -16,11 +16,22 @@
   "error.user.role_assignment.chapter_not_found": "Chapter not found.",
   "error.user.role_assignment.global_no_chapter": "Global roles do not have a chapter.",
 
+  "error.chapter.name_required": "Name is required.",
+  "error.chapter.parent_not_found": "Parent chapter does not exist.",
+  "error.chapter.parent_self_reference": "A chapter cannot be its own parent.",
+  "error.chapter.external_code_not_unique": "External code is already in use under this parent chapter.",
+  "error.chapter.has_children": "Chapter cannot be deleted while it still has sub-chapters.",
+
   "error.chapter.officer.member_required": "Member must be selected.",
   "error.chapter.officer.chapter_required": "Chapter must be selected.",
   "error.chapter.officer.invalid_officer_type": "Invalid officer type.",
+  "error.chapter.officer.member_not_found": "The specified member does not exist.",
+  "error.chapter.officer.member_chapter_mismatch": "The member does not belong to the specified chapter.",
+
+  "error.email.test.recipient_invalid": "Please provide a valid email address.",
 
   "error.motion.chapter_required": "Chapter must be selected.",
+  "error.motion.chapter_not_found": "The selected chapter does not exist.",
   "error.motion.submitter_name_required": "Submitter name must not be empty.",
   "error.motion.submitter_name_max_length": "Submitter name must be at most 256 characters long.",
   "error.motion.email_required": "Email address must not be empty.",
@@ -30,6 +41,9 @@
   "error.motion.title_max_length": "Title must be at most 512 characters long.",
   "error.motion.body_required": "Motion body must not be empty.",
   "error.motion.body_max_length": "Motion body must be at most 8192 characters long.",
+  "error.motion.update.locked_after_decision": "Motion cannot be edited after a decision has been made.",
+  "error.motion.update.linked_application_not_found": "Linked membership application does not exist.",
+  "error.motion.update.linked_due_selection_not_found": "Linked due selection does not exist.",
   "error.motion.vote.motion_id_required": "Motion ID must not be empty.",
   "error.motion.vote.member_id_required": "Member ID must not be empty.",
   "error.motion.vote.invalid_vote": "Invalid vote.",

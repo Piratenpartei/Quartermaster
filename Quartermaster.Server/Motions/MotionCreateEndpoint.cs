@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Chapters;
@@ -54,7 +55,7 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcce
 
     public override async Task HandleAsync(MotionCreateRequest req, CancellationToken ct) {
         if (_chapterRepo.Get(req.ChapterId) == null) {
-            AddError(r => r.ChapterId, "Die gewählte Gliederung existiert nicht.");
+            AddError(r => r.ChapterId, I18nKey.Error.Motion.ChapterNotFound);
             await SendErrorsAsync(cancellation: ct);
             return;
         }

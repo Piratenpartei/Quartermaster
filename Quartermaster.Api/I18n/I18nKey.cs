@@ -45,6 +45,12 @@ public static class I18nKey {
         }
 
         public static class Chapter {
+            public const string NameRequired = "error.chapter.name_required";
+            public const string ParentNotFound = "error.chapter.parent_not_found";
+            public const string ParentSelfReference = "error.chapter.parent_self_reference";
+            public const string ExternalCodeNotUnique = "error.chapter.external_code_not_unique";
+            public const string HasChildren = "error.chapter.has_children";
+
             public static class Officer {
                 public const string MemberRequired = "error.chapter.officer.member_required";
                 public const string ChapterRequired = "error.chapter.officer.chapter_required";
@@ -54,8 +60,15 @@ public static class I18nKey {
             }
         }
 
+        public static class Email {
+            public static class Test {
+                public const string RecipientInvalid = "error.email.test.recipient_invalid";
+            }
+        }
+
         public static class Motion {
             public const string ChapterRequired = "error.motion.chapter_required";
+            public const string ChapterNotFound = "error.motion.chapter_not_found";
             public const string SubmitterNameRequired = "error.motion.submitter_name_required";
             public const string SubmitterNameMaxLength = "error.motion.submitter_name_max_length";
             public const string EmailRequired = "error.motion.email_required";
@@ -65,6 +78,12 @@ public static class I18nKey {
             public const string TitleMaxLength = "error.motion.title_max_length";
             public const string BodyRequired = "error.motion.body_required";
             public const string BodyMaxLength = "error.motion.body_max_length";
+
+            public static class Update {
+                public const string LockedAfterDecision = "error.motion.update.locked_after_decision";
+                public const string LinkedApplicationNotFound = "error.motion.update.linked_application_not_found";
+                public const string LinkedDueSelectionNotFound = "error.motion.update.linked_due_selection_not_found";
+            }
 
             public static class Vote {
                 public const string MotionIdRequired = "error.motion.vote.motion_id_required";

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Email;
+using Quartermaster.Api.I18n;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Email;
@@ -34,7 +35,7 @@ public class EmailTestEndpoint : Endpoint<EmailTestRequest, EmailTestResultDTO> 
             return;
         }
         if (string.IsNullOrWhiteSpace(req.Recipient) || !req.Recipient.Contains('@')) {
-            AddError(r => r.Recipient, "Bitte eine gültige E-Mail-Adresse angeben.");
+            AddError(r => r.Recipient, I18nKey.Error.Email.Test.RecipientInvalid);
             await SendErrorsAsync(cancellation: ct);
             return;
         }

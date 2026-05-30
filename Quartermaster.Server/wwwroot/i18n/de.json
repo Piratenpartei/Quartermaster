@@ -17,13 +17,22 @@
   "error.user.role_assignment.chapter_not_found": "Gliederung nicht gefunden.",
   "error.user.role_assignment.global_no_chapter": "Globale Rollen haben keine Gliederung.",
 
+  "error.chapter.name_required": "Name ist erforderlich.",
+  "error.chapter.parent_not_found": "Übergeordnete Gliederung existiert nicht.",
+  "error.chapter.parent_self_reference": "Eine Gliederung kann nicht ihre eigene übergeordnete Gliederung sein.",
+  "error.chapter.external_code_not_unique": "Externer Code ist unter dieser übergeordneten Gliederung bereits vergeben.",
+  "error.chapter.has_children": "Gliederung kann nicht gelöscht werden, solange noch Untergliederungen bestehen.",
+
   "error.chapter.officer.member_required": "Mitglied muss ausgewählt werden.",
   "error.chapter.officer.chapter_required": "Gliederung muss ausgewählt werden.",
   "error.chapter.officer.invalid_officer_type": "Ungültiger Vorstandstyp.",
   "error.chapter.officer.member_not_found": "Das angegebene Mitglied existiert nicht.",
   "error.chapter.officer.member_chapter_mismatch": "Das Mitglied gehört nicht zur angegebenen Gliederung.",
 
+  "error.email.test.recipient_invalid": "Bitte eine gültige E-Mail-Adresse angeben.",
+
   "error.motion.chapter_required": "Gliederung muss ausgewählt werden.",
+  "error.motion.chapter_not_found": "Die gewählte Gliederung existiert nicht.",
   "error.motion.submitter_name_required": "Name des Antragstellers darf nicht leer sein.",
   "error.motion.submitter_name_max_length": "Name des Antragstellers darf maximal 256 Zeichen lang sein.",
   "error.motion.email_required": "E-Mail-Adresse darf nicht leer sein.",
@@ -33,6 +42,9 @@
   "error.motion.title_max_length": "Titel darf maximal 512 Zeichen lang sein.",
   "error.motion.body_required": "Antragstext darf nicht leer sein.",
   "error.motion.body_max_length": "Antragstext darf maximal 8192 Zeichen lang sein.",
+  "error.motion.update.locked_after_decision": "Antrag kann nach Beschluss nicht mehr bearbeitet werden.",
+  "error.motion.update.linked_application_not_found": "Verknüpfter Mitgliedsantrag existiert nicht.",
+  "error.motion.update.linked_due_selection_not_found": "Verknüpfte Beitragseinstufung existiert nicht.",
   "error.motion.vote.motion_id_required": "Antrags-ID darf nicht leer sein.",
   "error.motion.vote.member_id_required": "Mitglieds-ID darf nicht leer sein.",
   "error.motion.vote.invalid_vote": "Ungültige Abstimmung.",
