@@ -93,114 +93,6 @@ public class OptionRepository {
     private static string? RedactedAuditValue(string? raw) => string.IsNullOrEmpty(raw) ? raw : SecretMask;
 
     public void SupplementDefaults() {
-        AddDefinitionIfNotExists("templates.membershipapplication.approved.email.subject",
-            "E-Mail: Mitgliedsantrag genehmigt (Betreff)",
-            OptionDataType.Template, true,
-            "MembershipApplicationDetailDTO,ChapterDTO",
-            "Dein Mitgliedsantrag wurde genehmigt");
-
-        AddDefinitionIfNotExists("templates.membershipapplication.approved.email.body",
-            "E-Mail: Mitgliedsantrag genehmigt (Inhalt)",
-            OptionDataType.Template, true,
-            "MembershipApplicationDetailDTO,ChapterDTO",
-            "Hallo **{{ application.FirstName }}**,\n\ndein Mitgliedsantrag bei der **{{ chapter.Name }}** wurde genehmigt.\n\nWillkommen an Bord!\n");
-
-        AddDefinitionIfNotExists("templates.membershipapplication.rejected.email.subject",
-            "E-Mail: Mitgliedsantrag abgelehnt (Betreff)",
-            OptionDataType.Template, true,
-            "MembershipApplicationDetailDTO,ChapterDTO",
-            "Dein Mitgliedsantrag wurde abgelehnt");
-
-        AddDefinitionIfNotExists("templates.membershipapplication.rejected.email.body",
-            "E-Mail: Mitgliedsantrag abgelehnt (Inhalt)",
-            OptionDataType.Template, true,
-            "MembershipApplicationDetailDTO,ChapterDTO",
-            "Hallo **{{ application.FirstName }}**,\n\nleider wurde dein Mitgliedsantrag bei der **{{ chapter.Name }}** abgelehnt.\n");
-
-        AddDefinitionIfNotExists("templates.dueselection.approved.email.subject",
-            "E-Mail: Beitragsminderung genehmigt (Betreff)",
-            OptionDataType.Template, true,
-            "DueSelectionDetailDTO,ChapterDTO",
-            "Deine Beitragsminderung wurde genehmigt");
-
-        AddDefinitionIfNotExists("templates.dueselection.approved.email.body",
-            "E-Mail: Beitragsminderung genehmigt (Inhalt)",
-            OptionDataType.Template, true,
-            "DueSelectionDetailDTO,ChapterDTO",
-            "Hallo **{{ selection.FirstName }}**,\n\ndein Antrag auf Beitragsminderung wurde genehmigt.\n");
-
-        AddDefinitionIfNotExists("templates.dueselection.rejected.email.subject",
-            "E-Mail: Beitragsminderung abgelehnt (Betreff)",
-            OptionDataType.Template, true,
-            "DueSelectionDetailDTO,ChapterDTO",
-            "Deine Beitragsminderung wurde abgelehnt");
-
-        AddDefinitionIfNotExists("templates.dueselection.rejected.email.body",
-            "E-Mail: Beitragsminderung abgelehnt (Inhalt)",
-            OptionDataType.Template, true,
-            "DueSelectionDetailDTO,ChapterDTO",
-            "Hallo **{{ selection.FirstName }}**,\n\ndein Antrag auf Beitragsminderung wurde leider abgelehnt.\n");
-
-        AddDefinitionIfNotExists("templates.submission.motion.confirmation.email.subject",
-            "E-Mail: Antrag bestätigen (Betreff)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,MotionSubmittedPayload",
-            "Bitte bestätige deinen Antrag");
-
-        AddDefinitionIfNotExists("templates.submission.motion.confirmation.email.body",
-            "E-Mail: Antrag bestätigen (Inhalt)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,MotionSubmittedPayload",
-            "Hallo {{ motion.AuthorName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Antrag bearbeitet wird:\n\n**[Antrag jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gliederung:** {{ chapter.Name }}\n- **Titel:** {{ motion.Title }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
-
-        AddDefinitionIfNotExists("templates.submission.dueselection.confirmation.email.subject",
-            "E-Mail: Beitragseinstufung bestätigen (Betreff)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,DueSelectionSubmittedPayload",
-            "Bitte bestätige deine Beitragseinstufung");
-
-        AddDefinitionIfNotExists("templates.submission.dueselection.confirmation.email.body",
-            "E-Mail: Beitragseinstufung bestätigen (Inhalt)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,DueSelectionSubmittedPayload",
-            "Hallo {{ selection.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit deine Beitragseinstufung bearbeitet wird:\n\n**[Einstufung jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gewählter Beitrag:** {{ selection.SelectedDue }}€\n\nWenn du das nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
-
-        AddDefinitionIfNotExists("templates.submission.membershipapplication.confirmation.email.subject",
-            "E-Mail: Mitgliedsantrag bestätigen (Betreff)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,ApplicationSubmittedPayload",
-            "Bitte bestätige deinen Mitgliedsantrag");
-
-        AddDefinitionIfNotExists("templates.submission.membershipapplication.confirmation.email.body",
-            "E-Mail: Mitgliedsantrag bestätigen (Inhalt)",
-            OptionDataType.Template, true,
-            "SubmissionConfirmation,ApplicationSubmittedPayload",
-            "Hallo {{ application.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Mitgliedsantrag bearbeitet wird:\n\n**[Mitgliedsantrag jetzt bestätigen]({{ confirm.url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Name:** {{ application.FirstName }} {{ application.LastName }}\n- **Gliederung:** {{ chapter.Name }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n");
-
-        AddDefinitionIfNotExists("templates.membershipapplication.received.email.subject",
-            "E-Mail: Mitgliedsantrag eingegangen (Betreff)",
-            OptionDataType.Template, true,
-            "ApplicationSubmittedPayload",
-            "Dein Mitgliedsantrag ist eingegangen");
-
-        AddDefinitionIfNotExists("templates.membershipapplication.received.email.body",
-            "E-Mail: Mitgliedsantrag eingegangen (Inhalt)",
-            OptionDataType.Template, true,
-            "ApplicationSubmittedPayload",
-            "Hallo {{ application.FirstName }},\n\nvielen Dank für deinen Mitgliedsantrag bei der **{{ chapter.Name }}**. Dein Antrag ist bei uns eingegangen und wird vom Vorstand geprüft.\n\nWir melden uns, sobald über deinen Antrag entschieden wurde.\n\nViele Grüße\n{{ globals.app_name }}\n");
-
-        AddDefinitionIfNotExists("templates.member.welcome.email.subject",
-            "E-Mail: Willkommen als Mitglied (Betreff)",
-            OptionDataType.Template, true,
-            "MemberWelcome",
-            "Willkommen als Mitglied");
-
-        AddDefinitionIfNotExists("templates.member.welcome.email.body",
-            "E-Mail: Willkommen als Mitglied (Inhalt)",
-            OptionDataType.Template, true,
-            "MemberWelcome",
-            "Hallo {{ member.FirstName }},\n\nherzlich willkommen! Dein Mitgliedsantrag wurde angenommen und du bist nun Mitglied bei der **{{ chapter.Name }}**.\n\nDeine Mitgliedsnummer lautet: **{{ member.MemberNumber }}**\n\nViele Grüße\n{{ globals.app_name }}\n");
-
         AddDefinitionIfNotExists("general.chaptername.display",
             "Anzeigename der Gliederung",
             OptionDataType.String, true, "", "");
@@ -353,60 +245,6 @@ public class OptionRepository {
             OptionDataType.String, false, "", "",
             description: "Absoluter Pfad zum Ordner, in dem generierte PDF-Briefe abgelegt werden. Leer ⇒ Standard 'data/printouts' relativ zum Anwendungsverzeichnis.");
 
-        AddDefinitionIfNotExists("notifications.motion_submitted.email.subject",
-            "Benachrichtigung: Neuer Antrag (Betreff)",
-            OptionDataType.Template, true,
-            "MotionSubmittedPayload",
-            "Neuer Antrag: {{ motion.Title }}");
-
-        AddDefinitionIfNotExists("notifications.motion_submitted.email.body",
-            "Benachrichtigung: Neuer Antrag (Inhalt)",
-            OptionDataType.Template, true,
-            "MotionSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** wurde ein neuer Antrag eingereicht:\n\n*{{ motion.Title }}*\n\nEingereicht von: {{ motion.AuthorName }}\n\n[Antrag öffnen]({{ globals.base_url }}/Administration/Motions/{{ motion.Id }})\n");
-
-        AddDefinitionIfNotExists("notifications.application_submitted.email.subject",
-            "Benachrichtigung: Neuer Mitgliedsantrag (Betreff)",
-            OptionDataType.Template, true,
-            "ApplicationSubmittedPayload",
-            "Neuer Mitgliedsantrag: {{ application.FirstName }} {{ application.LastName }}");
-
-        AddDefinitionIfNotExists("notifications.application_submitted.email.body",
-            "Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
-            OptionDataType.Template, true,
-            "ApplicationSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist ein neuer Mitgliedsantrag eingegangen:\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n{% if application.HasReducedDueSelection %}\nDer Antrag enthält einen Antrag auf Beitragsminderung.\n{% endif %}\n[Mitgliedsantrag öffnen]({{ globals.base_url }}/Administration/MembershipApplications/{{ application.Id }})\n");
-
-        AddDefinitionIfNotExists("notifications.due_selection_submitted.email.subject",
-            "Benachrichtigung: Neue Beitragseinstufung (Betreff)",
-            OptionDataType.Template, true,
-            "DueSelectionSubmittedPayload",
-            "Neue Beitragsminderung: {{ selection.FirstName }} {{ selection.LastName }}");
-
-        AddDefinitionIfNotExists("notifications.due_selection_submitted.email.body",
-            "Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
-            OptionDataType.Template, true,
-            "DueSelectionSubmittedPayload",
-            "Hallo,\n\nfür die Gliederung **{{ chapter.Name }}** ist eine neue Beitragsminderung eingegangen:\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\n\nGewünschter Betrag: {{ selection.ReducedAmount }}€\nBegründung: {{ selection.ReducedJustification }}\n\n[Beitragseinstufung öffnen]({{ globals.base_url }}/Administration/DueSelections/{{ selection.Id }})\n");
-
-        AddDefinitionIfNotExists("notifications.motion_submitted.telegram.body",
-            "Telegram-Benachrichtigung: Neuer Antrag (Inhalt)",
-            OptionDataType.Template, true,
-            "MotionSubmittedPayload",
-            "Neuer Antrag in *{{ chapter.Name }}*\n\n*{{ motion.Title }}*\nEingereicht von {{ motion.AuthorName }}\n\n[Antrag öffnen]({{ globals.base_url }}/Administration/Motions/{{ motion.Id }})");
-
-        AddDefinitionIfNotExists("notifications.application_submitted.telegram.body",
-            "Telegram-Benachrichtigung: Neuer Mitgliedsantrag (Inhalt)",
-            OptionDataType.Template, true,
-            "ApplicationSubmittedPayload",
-            "Neuer Mitgliedsantrag in *{{ chapter.Name }}*\n\n*{{ application.FirstName }} {{ application.LastName }}* ({{ application.Email }})\n\n[Mitgliedsantrag öffnen]({{ globals.base_url }}/Administration/MembershipApplications/{{ application.Id }})");
-
-        AddDefinitionIfNotExists("notifications.due_selection_submitted.telegram.body",
-            "Telegram-Benachrichtigung: Neue Beitragseinstufung (Inhalt)",
-            OptionDataType.Template, true,
-            "DueSelectionSubmittedPayload",
-            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}*\nGewünscht: {{ selection.ReducedAmount }}€\n\n[Beitragseinstufung öffnen]({{ globals.base_url }}/Administration/DueSelections/{{ selection.Id }})");
-
         AddDefinitionIfNotExists("auth.token.lifetime_days",
             "Login-Token: Gültigkeitsdauer (Tage)",
             OptionDataType.Number, false, "", "7",
@@ -439,7 +277,7 @@ public class OptionRepository {
 
         AddDefinitionIfNotExists("meetings.motion_notes_template",
             "Sitzungen: Antragsnotiz-Vorlage",
-            OptionDataType.Template, true,
+            OptionDataType.String, true,
             "MotionDTO",
             "**Antrag:** {{ motion.Title }}\n\n**Antragsteller:** {{ motion.AuthorName }}\n\n{{ motion.Text }}\n\n---\n\n**Diskussion:**\n",
             description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEmail, motion.Text");

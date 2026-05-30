@@ -76,7 +76,10 @@
                             <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.System]</ButtonContent>
                             <DropdownContent>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ViewOptions">
-                                    <li><a class="dropdown-item" href="/Administration/Options">@I18n[I18nKey.Ui.MainNavBar.SystemOptions]</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Settings">@I18n[I18nKey.Ui.MainNavBar.SystemSettings]</a></li>
+                                </RequirePermission>
+                                <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewTemplates">
+                                    <li><a class="dropdown-item" href="/Administration/Templates">@I18n[I18nKey.Ui.MainNavBar.SystemTemplates]</a></li>
                                 </RequirePermission>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ViewUsers">
                                     <li><a class="dropdown-item" href="/Administration/Users">@I18n[I18nKey.Ui.MainNavBar.SystemUsers]</a></li>

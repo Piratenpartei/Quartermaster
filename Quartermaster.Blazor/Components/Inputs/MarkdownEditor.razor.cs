@@ -1,11 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Quartermaster.Rendering;
 
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class MarkdownEditor {
+    [Inject]
+    public required IJSRuntime JS { get; set; }
+
     [Parameter]
     public string Value { get; set; } = "";
 
@@ -20,6 +24,7 @@ public partial class MarkdownEditor {
 
     private string RenderedHtml = "";
     private CancellationTokenSource? _debounce;
+    private ElementReference _textarea;
 
     private async Task OnInput(ChangeEventArgs e) {
         Value = e.Value?.ToString() ?? "";
@@ -40,4 +45,8 @@ public partial class MarkdownEditor {
         if (!string.IsNullOrWhiteSpace(Value))
             RenderedHtml = MarkdownService.ToHtml(Value, Profile);
     }
+
+    /// <summary>Inserts text at the textarea's caret (replacing any selection) and fires an input event so the bound value updates.</summary>
+    public ValueTask InsertAtCursorAsync(string text)
+        => JS.InvokeVoidAsync("MarkdownEditorInsertAtCursor", _textarea, text);
 }

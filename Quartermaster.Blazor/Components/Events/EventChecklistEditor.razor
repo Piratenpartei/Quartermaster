@@ -25,7 +25,7 @@
                                 <input type="text" class="form-control"
                                        @bind="EditingItemLabel" @bind:event="oninput" />
                                 @if (item.ItemType == ChecklistItemType.SendEmail) {
-                                    <TemplatePicker @bind-Value="EditingTemplateIdentifier" SizeClass="form-control-sm"
+                                    <TemplatePicker @bind-Value="EditingTemplateId" SizeClass="form-control-sm"
                                                     Disabled="EditingUseDescription" />
                                     <span class="input-group-text">
                                         <input type="checkbox" class="form-check-input mt-0 me-1" checked="@EditingUseDescription"

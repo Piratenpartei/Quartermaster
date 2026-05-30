@@ -61,9 +61,10 @@ public class ChecklistItemExecutor {
         }
 
         var (_, error) = await _emailService.SendEmailAsync(
-            config.TargetType, config.TargetId ?? Guid.Empty, config.TemplateIdentifier ?? "",
+            config.TargetType, config.TargetId ?? Guid.Empty, config.TemplateId,
             descriptionOverride, config.ManualAddresses,
-            "EventChecklistItem", item.Id);
+            "EventChecklistItem", item.Id,
+            resolutionChapterId: parentEvent?.ChapterId);
         if (error != null)
             return (null, error);
 

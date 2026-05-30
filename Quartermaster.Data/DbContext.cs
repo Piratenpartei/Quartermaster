@@ -19,6 +19,7 @@ using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.Saml;
 using Quartermaster.Data.Submissions;
+using Quartermaster.Data.Templates;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -41,6 +42,7 @@ public class DbContext : DataConnection {
     public ITable<MotionVote> MotionVotes => this.GetTable<MotionVote>();
     public ITable<SystemOption> SystemOptions => this.GetTable<SystemOption>();
     public ITable<OptionDefinition> OptionDefinitions => this.GetTable<OptionDefinition>();
+    public ITable<Template> Templates => this.GetTable<Template>();
     public ITable<Member> Members => this.GetTable<Member>();
     public ITable<MemberImportLog> MemberImportLogs => this.GetTable<MemberImportLog>();
     public ITable<AdminDivisionImportLog> AdminDivisionImportLogs => this.GetTable<AdminDivisionImportLog>();
@@ -76,6 +78,7 @@ public class DbContext : DataConnection {
         services.AddScoped<ChapterOfficerRepository>();
         services.AddScoped<MotionRepository>();
         services.AddScoped<OptionRepository>();
+        services.AddScoped<Templates.TemplateRepository>();
         services.AddScoped<MemberRepository>();
         services.AddScoped<EventRepository>();
         services.AddScoped<NotificationLogRepository>();
@@ -98,6 +101,7 @@ public class DbContext : DataConnection {
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
+        scope.ServiceProvider.GetRequiredService<TemplateRepository>().SupplementDefaults();
 #if DEBUG
         var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;
         if (!string.IsNullOrEmpty(rootSettings.Username) && !string.IsNullOrEmpty(rootSettings.Password)) {

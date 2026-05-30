@@ -1,0 +1,184 @@
+@page "/Administration/Templates/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.Templates
+@using Quartermaster.Rendering
+
+<PageBackLink Href="/Administration/Templates" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Template == null) {
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.TemplateDetail.NotFound]</div>
+} else {
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h3 class="mb-1">@Template.DisplayName</h3>
+            @if (!string.IsNullOrEmpty(Template.Identifier)) {
+                <code class="text-secondary small">@Template.Identifier</code>
+            }
+            @if (Template.IsSystem && Template.ChapterId == null) {
+                <span class="badge border border-info text-info-emphasis ms-2">@I18n[I18nKey.Ui.TemplateDetail.SystemBadge]</span>
+            } else if (!string.IsNullOrEmpty(Template.ChapterName)) {
+                <span class="badge bg-secondary ms-2">@Template.ChapterName</span>
+            }
+        </div>
+        @if (!Template.IsSystem || Template.ChapterId != null) {
+            <button class="btn btn-outline-danger" @onclick="DeleteTemplate">
+                <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.DeleteButton]
+            </button>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <DirtyForm @ref="_form">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-9">
+                                <div class="mb-3">
+                                    <label class="form-label">@I18n[I18nKey.Ui.TemplateDetail.DisplayNameLabel]</label>
+                                    <FormInput @bind-Value="Template.DisplayName" />
+                                </div>
+
+                                <div class="mb-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="form-label">@I18n[I18nKey.Ui.TemplateDetail.SubjectLabel]</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="noSubjectToggle"
+                                                   checked="@NoSubject"
+                                                   @onchange="ToggleNoSubject" />
+                                            <label class="form-check-label small" for="noSubjectToggle">
+                                                @I18n[I18nKey.Ui.TemplateDetail.NoSubjectLabel]
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control" value="@(Template.Subject ?? "")"
+                                           disabled="@NoSubject"
+                                           @onchange="(e) => Template.Subject = e.Value?.ToString() ?? string.Empty" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">@I18n[I18nKey.Ui.TemplateDetail.AllowedFieldsHeading]</label>
+                                <div class="form-check form-switch mb-1">
+                                    <input class="form-check-input" type="checkbox" id="allowsChapter"
+                                           checked="@Template.AllowsChapterFields"
+                                           @onchange="(e) => Template.AllowsChapterFields = (bool)(e.Value ?? false)" />
+                                    <label class="form-check-label small" for="allowsChapter">
+                                        @I18n[I18nKey.Ui.TemplateDetail.AllowsChapterFieldsLabel]
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-1">
+                                    <input class="form-check-input" type="checkbox" id="allowsMembers"
+                                           checked="@Template.AllowsMemberFields"
+                                           @onchange="(e) => Template.AllowsMemberFields = (bool)(e.Value ?? false)" />
+                                    <label class="form-check-label small" for="allowsMembers">
+                                        @I18n[I18nKey.Ui.TemplateDetail.AllowsMemberFieldsLabel]
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch mb-1">
+                                    <input class="form-check-input" type="checkbox" id="allowsEvents"
+                                           checked="@Template.AllowsEventFields"
+                                           @onchange="(e) => Template.AllowsEventFields = (bool)(e.Value ?? false)" />
+                                    <label class="form-check-label small" for="allowsEvents">
+                                        @I18n[I18nKey.Ui.TemplateDetail.AllowsEventFieldsLabel]
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label">@I18n[I18nKey.Ui.TemplateDetail.BodyLabel]</label>
+                            <MarkdownEditor @ref="_bodyEditor" @bind-Value="Template.Body" Rows="14" Profile="SanitizationProfile.Strict" />
+                        </div>
+
+                        <FormSaveButton OnClick="Save" Text="@I18n[I18nKey.Ui.TemplateDetail.SaveButton]" />
+                    </div>
+                </div>
+            </DirtyForm>
+
+            @if (Template.BaseTemplateId == null) {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5>@I18n[I18nKey.Ui.TemplateDetail.OverridesHeading]</h5>
+
+                        @if (Template.Overrides.Count > 0) {
+                            <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-3">
+                                <thead>
+                                    <tr>
+                                        <th>@I18n[I18nKey.Ui.TemplateDetail.ChapterColumn]</th>
+                                        <th>@I18n[I18nKey.Ui.TemplateDetail.SubjectColumn]</th>
+                                        <th style="width: 60%;">@I18n[I18nKey.Ui.TemplateDetail.BodyLabel]</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ov in Template.Overrides) {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-secondary me-1">@ov.ChapterShortCode</span>
+                                                @ov.ChapterName
+                                            </td>
+                                            <td><small class="text-secondary">@(ov.Subject ?? "")</small></td>
+                                            <td><small class="text-secondary">@TruncateBody(ov.Body)</small></td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditOverride(ov)">
+                                                    <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.TemplateDetail.EditButton]
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            </div>
+                        } else {
+                            <EmptyState Message="@I18n[I18nKey.Ui.TemplateDetail.NoOverrides]" />
+                        }
+
+                        <hr />
+
+                        @if (EditingOverride != null) {
+                            <h6>@(EditingOverride.Id == Guid.Empty
+                                ? I18n[I18nKey.Ui.TemplateDetail.AddOverrideHeading]
+                                : EditingOverride.ChapterName)</h6>
+                            @if (EditingOverride.Id == Guid.Empty) {
+                                <div class="mb-2">
+                                    <ChapterPicker @bind-Value="EditingOverrideChapterIdRaw" Inline="true" />
+                                </div>
+                            }
+                            <div class="mb-2">
+                                <label class="form-label small">@I18n[I18nKey.Ui.TemplateDetail.SubjectLabel]</label>
+                                <input type="text" class="form-control" value="@EditingOverride.Subject"
+                                       @onchange="(e) => EditingOverride.Subject = e.Value?.ToString() ?? string.Empty" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">@I18n[I18nKey.Ui.TemplateDetail.BodyLabel]</label>
+                                <MarkdownEditor @bind-Value="EditingOverride.Body" Rows="8" Profile="SanitizationProfile.Strict" />
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm" @onclick="SaveOverride">
+                                    @I18n[I18nKey.Ui.TemplateDetail.SaveButton]
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelEditOverride">
+                                    @I18n[I18nKey.Ui.TemplateList.Cancel]
+                                </button>
+                            </div>
+                        } else {
+                            <button class="btn btn-outline-success btn-sm" @onclick="StartAddOverride">
+                                <i class="bi bi-plus-lg me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.AddOverrideButton]
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-3">
+            <TemplateFieldPalette Models="@PaletteModels" OnInsertField="InsertField" />
+        </div>
+    </div>
+}
+
+<ConfirmDialog @ref="ConfirmDialog" />

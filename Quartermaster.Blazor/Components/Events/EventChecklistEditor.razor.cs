@@ -45,7 +45,7 @@ public partial class EventChecklistEditor {
     private Guid? EditingItemId;
     private string EditingItemLabel { get; set; } = "";
     private bool EditingUseDescription;
-    private string EditingTemplateIdentifier { get; set; } = "";
+    private Guid? EditingTemplateId { get; set; }
     private string EditingEmailTargetType { get; set; } = "Chapter";
     private string EditingEmailTargetId { get; set; } = "";
     private string EditingManualAddresses { get; set; } = "";
@@ -135,7 +135,7 @@ public partial class EventChecklistEditor {
         EditingItemLabel = item.Label;
         var cfg = item.Configuration;
         EditingUseDescription = cfg?.UseDescription ?? false;
-        EditingTemplateIdentifier = cfg?.TemplateIdentifier ?? "";
+        EditingTemplateId = cfg?.TemplateId;
         EditingEmailTargetType = cfg?.TargetType ?? "Chapter";
         EditingEmailTargetId = cfg?.TargetId?.ToString() ?? "";
         EditingManualAddresses = cfg?.ManualAddresses ?? "";
@@ -161,9 +161,7 @@ public partial class EventChecklistEditor {
             config = new EventChecklistItemConfigDTO {
                 UseDescription = EditingUseDescription,
                 TargetType = EditingEmailTargetType,
-                TemplateIdentifier = !EditingUseDescription && !string.IsNullOrWhiteSpace(EditingTemplateIdentifier)
-                    ? EditingTemplateIdentifier
-                    : null,
+                TemplateId = !EditingUseDescription ? EditingTemplateId : null,
                 ManualAddresses = EditingEmailTargetType == "ManualAddresses" ? EditingManualAddresses : null,
                 TargetId = EditingEmailTargetType != "ManualAddresses" && Guid.TryParse(EditingEmailTargetId, out var tid)
                     ? tid
@@ -240,10 +238,10 @@ public partial class EventChecklistEditor {
                 if (configuration?.UseDescription == true) {
                     templateContent = Event.Description ?? I18n[I18nKey.Ui.EventChecklistEditor.NoDescriptionFallback];
                     templateContent = ReplaceEventDateVariables(templateContent);
-                } else if (!string.IsNullOrEmpty(configuration?.TemplateIdentifier)) {
+                } else if (configuration?.TemplateId != null) {
                     var templatePrefix = I18n[I18nKey.Ui.EventChecklistEditor.PreviewTemplatePrefix];
                     var sampleNote = I18n[I18nKey.Ui.EventChecklistEditor.PreviewSampleData];
-                    templateContent = $"*{templatePrefix}* `{configuration.TemplateIdentifier}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n{sampleNote}";
+                    templateContent = $"*{templatePrefix}* `{configuration.TemplateId}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n{sampleNote}";
                 } else {
                     PreviewCache[itemId] = $"<p class=\"text-secondary\">{I18n[I18nKey.Ui.EventChecklistEditor.PreviewNoTemplateConfigured]}</p>";
                     StateHasChanged();

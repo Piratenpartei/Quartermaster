@@ -1,5 +1,5 @@
 @using Quartermaster.Api.I18n
-@using Quartermaster.Api.Options
+@using Quartermaster.Api.Templates
 
 <div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
     <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.TemplatePicker.Placeholder]"
@@ -10,8 +10,10 @@
             @foreach (var tmpl in FilteredTemplates.Take(20)) {
                 <button type="button" class="list-group-item list-group-item-action py-1 small"
                         @onclick="() => SelectTemplate(tmpl)">
-                    <span>@tmpl.FriendlyName</span>
-                    <code class="small text-secondary ms-1">@tmpl.Identifier</code>
+                    <span>@tmpl.DisplayName</span>
+                    @if (!string.IsNullOrEmpty(tmpl.Identifier)) {
+                        <code class="small text-secondary ms-1">@tmpl.Identifier</code>
+                    }
                 </button>
             }
         </div>

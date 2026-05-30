@@ -18,9 +18,7 @@ The 5 pre-implementation questions were all resolved (recorded in the plan): ven
 
 ---
 
-## Active Sessions UI (per-user session management)
-
-**Status: shipped (2026-05-26).**
+## Active Sessions UI (per-user session management) — DONE (2026-05-26)
 
 A "Meine Sitzungen" page at `/Sessions` where a logged-in user sees all their currently valid login tokens with audit metadata and can revoke individually or in bulk.
 
@@ -37,7 +35,7 @@ Deferred to v2: user-agent prettifying (raw UA shown for now); a "since" or "ago
 
 ---
 
-## Notification system (consumer-side wiring of `IMessageChannel`)
+## Notification system (consumer-side wiring of `IMessageChannel`) — DONE (2026-05-27, Phase 4)
 
 **Phase 1: shipped (2026-05-27).** Dispatch foundation + one trigger end-to-end.
 - `Quartermaster.Server/Notifications/`: `NotificationTriggers` const catalog, `NotificationRecipient`, `IRecipientResolver`, `NotificationDispatcher`. Dispatcher resolves recipients, renders per-(trigger × channel) Fluid templates from `Options` (`notifications.{trigger}.email.subject` / `.body`), hands off to `EmailMessageChannel`.

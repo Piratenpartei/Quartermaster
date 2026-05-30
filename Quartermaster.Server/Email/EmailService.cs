@@ -7,13 +7,13 @@ using Quartermaster.Rendering;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
-using Quartermaster.Data.Options;
+using Quartermaster.Data.Templates;
 using Quartermaster.Server.Messaging;
 
 namespace Quartermaster.Server.Email;
 
 public class EmailService {
-    private readonly OptionRepository _optionRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly MemberRepository _memberRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
@@ -21,13 +21,13 @@ public class EmailService {
     private readonly ILogger<EmailService> _logger;
 
     public EmailService(
-        OptionRepository optionRepo,
+        TemplateRepository templateRepo,
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
         AdministrativeDivisionRepository adminDivRepo,
         EmailMessageChannel emailChannel,
         ILogger<EmailService> logger) {
-        _optionRepo = optionRepo;
+        _templateRepo = templateRepo;
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
@@ -36,21 +36,22 @@ public class EmailService {
     }
 
     public async Task<(int Count, string? Error)> SendEmailAsync(
-        string targetType, Guid targetId, string templateIdentifier,
+        string targetType, Guid targetId, Guid? templateId,
         string? descriptionOverride, string? manualAddresses,
-        string? sourceEntityType = null, Guid? sourceEntityId = null) {
+        string? sourceEntityType = null, Guid? sourceEntityId = null,
+        Guid? resolutionChapterId = null) {
 
-        string? templateContent = descriptionOverride;
-        if (string.IsNullOrEmpty(templateContent) && !string.IsNullOrEmpty(templateIdentifier))
-            templateContent = _optionRepo.ResolveValue(templateIdentifier, null, _chapterRepo);
+        var effectiveResolutionChapter = resolutionChapterId
+            ?? (targetType == "Chapter" && targetId != Guid.Empty ? targetId : (Guid?)null);
+        Template? template = templateId.HasValue
+            ? _templateRepo.ResolveById(templateId.Value, effectiveResolutionChapter, _chapterRepo)
+            : null;
 
-        if (string.IsNullOrEmpty(templateContent))
+        string? bodyContent = descriptionOverride ?? template?.Body;
+        if (string.IsNullOrEmpty(bodyContent))
             return (0, "Kein Template-Inhalt verfügbar.");
 
-        var subject = !string.IsNullOrEmpty(templateIdentifier)
-            ? _optionRepo.GetDefinition(templateIdentifier)?.FriendlyName ?? "Nachricht"
-            : "Nachricht";
-
+        var subject = template?.Subject ?? template?.DisplayName ?? "Nachricht";
         var count = 0;
 
         if (targetType == "ManualAddresses" && !string.IsNullOrEmpty(manualAddresses)) {
@@ -61,7 +62,7 @@ public class EmailService {
                 .ToList();
 
             foreach (var addr in addresses) {
-                await EnqueueEmailAsync(addr, subject, templateContent, templateIdentifier,
+                await EnqueueEmailAsync(addr, subject, bodyContent, templateId,
                     null, sourceEntityType, sourceEntityId);
                 count++;
             }
@@ -70,7 +71,7 @@ public class EmailService {
             foreach (var member in members) {
                 if (string.IsNullOrEmpty(member.Email))
                     continue;
-                await EnqueueEmailAsync(member.Email, subject, templateContent, templateIdentifier,
+                await EnqueueEmailAsync(member.Email, subject, bodyContent, templateId,
                     member, sourceEntityType, sourceEntityId);
                 count++;
             }
@@ -82,7 +83,7 @@ public class EmailService {
     }
 
     private async Task EnqueueEmailAsync(string recipient, string subject, string templateContent,
-        string? templateIdentifier, Member? member,
+        Guid? templateId, Member? member,
         string? sourceEntityType, Guid? sourceEntityId) {
 
         var model = new Dictionary<string, object>();
@@ -102,8 +103,8 @@ public class EmailService {
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;
 
-        var metadata = templateIdentifier != null
-            ? new Dictionary<string, string> { [NotificationLogMetadataKeys.TemplateIdentifier] = templateIdentifier }
+        var metadata = templateId.HasValue
+            ? new Dictionary<string, string> { [NotificationLogMetadataKeys.TemplateIdentifier] = templateId.Value.ToString() }
             : null;
         await _emailChannel.SendAsync(new ChannelMessage(
             ChannelAddress: recipient,

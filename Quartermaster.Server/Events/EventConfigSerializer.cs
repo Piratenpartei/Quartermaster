@@ -43,7 +43,7 @@ internal static class EventConfigSerializer {
         return new EventChecklistItemConfigDTO {
             UseDescription = config.UseDescription,
             TargetType = Replace(config.TargetType, values),
-            TemplateIdentifier = Replace(config.TemplateIdentifier, values),
+            TemplateId = config.TemplateId,
             ManualAddresses = Replace(config.ManualAddresses, values),
             TargetId = config.TargetId,
             ChapterId = config.ChapterId,

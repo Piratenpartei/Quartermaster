@@ -1,14 +1,12 @@
 using System.Threading.Channels;
 using LinqToDB;
 using Microsoft.Extensions.Logging.Abstractions;
-using Quartermaster.Api.Options;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
-using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Notifications;
-using Quartermaster.Data.Options;
+using Quartermaster.Data.Templates;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -19,16 +17,18 @@ public class EmailServiceTests : RepositoryTestBase {
     private DbContext _context = default!;
     private EmailService _service = default!;
     private Channel<EmailMessage> _channel = default!;
-    private OptionRepository _optionRepo = default!;
+    private TemplateRepository _templateRepo = default!;
     private ChapterRepository _chapterRepo = default!;
 
     private Guid _chapterId;
+    private Guid _templateId;
+    private Guid _emptyBodyTemplateId;
 
     [Before(Test)]
     public void Setup() {
         _context = Db;
         var logRepo = new NotificationLogRepository(_context);
-        _optionRepo = new OptionRepository(_context, AuditLog);
+        _templateRepo = new TemplateRepository(_context);
         var memberRepo = new MemberRepository(_context, AuditLog);
         _chapterRepo = new ChapterRepository(_context, AuditLog);
         var adminDivRepo = new AdministrativeDivisionRepository(_context);
@@ -36,10 +36,9 @@ public class EmailServiceTests : RepositoryTestBase {
         var emailMessageChannel = new EmailMessageChannel(logRepo, _channel);
 
         _service = new EmailService(
-            _optionRepo, memberRepo, _chapterRepo, adminDivRepo,
+            _templateRepo, memberRepo, _chapterRepo, adminDivRepo,
             emailMessageChannel, NullLogger<EmailService>.Instance);
 
-        // Seed chapter
         _chapterId = Guid.NewGuid();
         _context.Insert(new Chapter {
             Id = _chapterId,
@@ -48,19 +47,27 @@ public class EmailServiceTests : RepositoryTestBase {
             ExternalCode = "TST"
         });
 
-        // Seed option definition for template
-        _context.Insert(new OptionDefinition {
-            Identifier = "test.template",
-            FriendlyName = "Test Template Subject",
-            DataType = OptionDataType.Template,
-            IsOverridable = true
+        _templateId = Guid.NewGuid();
+        _templateRepo.Create(new Template {
+            Id = _templateId,
+            DisplayName = "Test Template",
+            Subject = "Test Subject",
+            Body = "Default body"
+        });
+
+        _emptyBodyTemplateId = Guid.NewGuid();
+        _templateRepo.Create(new Template {
+            Id = _emptyBodyTemplateId,
+            DisplayName = "Empty Body Template",
+            Subject = "Subject only",
+            Body = ""
         });
     }
 
     [Test]
     public async Task SendEmail_TemplateOverrideUsed() {
         var (count, error) = await _service.SendEmailAsync(
-            "ManualAddresses", Guid.Empty, "test.template",
+            "ManualAddresses", Guid.Empty, _templateId,
             "Override content here", "recipient@example.com");
 
         await Assert.That(count).IsEqualTo(1);
@@ -77,7 +84,7 @@ public class EmailServiceTests : RepositoryTestBase {
     [Test]
     public async Task SendEmail_NoTemplateContent_ReturnsError() {
         var (count, error) = await _service.SendEmailAsync(
-            "ManualAddresses", Guid.Empty, "nonexistent.template",
+            "ManualAddresses", Guid.Empty, _emptyBodyTemplateId,
             null, "recipient@example.com");
 
         await Assert.That(count).IsEqualTo(0);
@@ -87,7 +94,7 @@ public class EmailServiceTests : RepositoryTestBase {
     [Test]
     public async Task SendEmail_ManualAddresses_SplitValidatedDeduplicated() {
         var (count, error) = await _service.SendEmailAsync(
-            "ManualAddresses", Guid.Empty, "",
+            "ManualAddresses", Guid.Empty, null,
             "Test content", "a@test.com, b@test.com, a@test.com");
 
         await Assert.That(count).IsEqualTo(2);
@@ -97,7 +104,7 @@ public class EmailServiceTests : RepositoryTestBase {
     [Test]
     public async Task SendEmail_ManualAddresses_InvalidEmailsSkipped() {
         var (count, error) = await _service.SendEmailAsync(
-            "ManualAddresses", Guid.Empty, "",
+            "ManualAddresses", Guid.Empty, null,
             "Test content", "valid@test.com, not-an-email, also-invalid");
 
         await Assert.That(count).IsEqualTo(1);
@@ -106,7 +113,6 @@ public class EmailServiceTests : RepositoryTestBase {
 
     [Test]
     public async Task SendEmail_ChapterTarget_EnqueuesEmailsForMembers() {
-        // Seed members in chapter
         _context.Insert(new Member {
             MemberNumber = 5001,
             FirstName = "Alice",
@@ -124,10 +130,8 @@ public class EmailServiceTests : RepositoryTestBase {
             LastImportedAt = DateTime.UtcNow
         });
 
-        _optionRepo.SetValue("test.template", null, "Hello **{{ member.FirstName }}**");
-
         var (count, error) = await _service.SendEmailAsync(
-            "Chapter", _chapterId, "test.template",
+            "Chapter", _chapterId, _templateId,
             null, null);
 
         await Assert.That(count).IsEqualTo(2);
@@ -160,10 +164,8 @@ public class EmailServiceTests : RepositoryTestBase {
             LastImportedAt = DateTime.UtcNow
         });
 
-        _optionRepo.SetValue("test.template", null, "Content");
-
         var (count, error) = await _service.SendEmailAsync(
-            "Chapter", _chapterId, "test.template",
+            "Chapter", _chapterId, _templateId,
             null, null);
 
         await Assert.That(count).IsEqualTo(1);
@@ -196,10 +198,8 @@ public class EmailServiceTests : RepositoryTestBase {
             LastImportedAt = DateTime.UtcNow
         });
 
-        _optionRepo.SetValue("test.template", null, "Content");
-
         var (count, error) = await _service.SendEmailAsync(
-            "Chapter", _chapterId, "test.template",
+            "Chapter", _chapterId, _templateId,
             null, null);
 
         await Assert.That(count).IsEqualTo(3);
@@ -208,7 +208,6 @@ public class EmailServiceTests : RepositoryTestBase {
 
     [Test]
     public async Task SendEmail_AdminDivisionTarget_IncludesDescendants() {
-        // Seed 3-level hierarchy: State → County → City
         var stateId = Guid.NewGuid();
         var countyId = Guid.NewGuid();
         var cityId = Guid.NewGuid();
@@ -223,7 +222,6 @@ public class EmailServiceTests : RepositoryTestBase {
             Id = cityId, Name = "City", Depth = 6, AdminCode = "CITY", ParentId = countyId
         });
 
-        // Seed members at different levels
         _context.Insert(new Member {
             MemberNumber = 9001, FirstName = "StateResident", LastName = "S",
             Email = "state@test.com",
@@ -243,11 +241,8 @@ public class EmailServiceTests : RepositoryTestBase {
             LastImportedAt = DateTime.UtcNow
         });
 
-        _optionRepo.SetValue("test.template", null, "Hello");
-
-        // Targeting the state should reach all 3 (state + descendants)
         var (count, error) = await _service.SendEmailAsync(
-            "AdministrativeDivision", stateId, "test.template",
+            "AdministrativeDivision", stateId, _templateId,
             null, null);
 
         await Assert.That(count).IsEqualTo(3);
@@ -256,7 +251,6 @@ public class EmailServiceTests : RepositoryTestBase {
 
     [Test]
     public async Task SendEmail_AdminDivisionTarget_LeafReachesOnlyLeafMembers() {
-        // Same hierarchy but target the leaf (city)
         var stateId = Guid.NewGuid();
         var cityId = Guid.NewGuid();
 
@@ -280,11 +274,8 @@ public class EmailServiceTests : RepositoryTestBase {
             LastImportedAt = DateTime.UtcNow
         });
 
-        _optionRepo.SetValue("test.template", null, "Hello");
-
-        // Targeting the city should only reach the city resident (no ancestors)
         var (count, error) = await _service.SendEmailAsync(
-            "AdministrativeDivision", cityId, "test.template",
+            "AdministrativeDivision", cityId, _templateId,
             null, null);
 
         await Assert.That(count).IsEqualTo(1);

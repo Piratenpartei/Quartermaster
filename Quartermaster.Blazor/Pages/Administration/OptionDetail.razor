@@ -1,10 +1,10 @@
-@page "/Administration/Options/{Id:guid}"
+@page "/Administration/Settings/{Id:guid}"
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Options
 @using Quartermaster.Api.Chapters
 
-<PageBackLink Href="/Administration/Options" />
+<PageBackLink Href="/Administration/Settings" />
 
 @if (Loading) {
     <LoadingSpinner />
@@ -14,7 +14,7 @@
     <h3 class="mb-3">@Option.FriendlyName</h3>
 
     <div class="row">
-        <div class="@(Option.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels) ? "col-lg-8" : "col-12")">
+        <div class="col-12">
             <DirtyForm @ref="_globalForm">
                 <div class="card mb-3">
                     <div class="card-body">
@@ -28,27 +28,10 @@
                         @if (!string.IsNullOrEmpty(Option.Description)) {
                             <p class="text-secondary small mb-3">@Option.Description</p>
                         }
-                        @if (Option.DataType == OptionDataType.Template) {
-                            <FormTextarea Value="@Option.GlobalValue" ValueChanged="OnTemplateValueChanged" Rows="10" CssClass="font-monospace mb-2" />
-                            <div class="d-flex gap-2 mb-2">
-                                <FormSaveButton OnClick="SaveGlobal" ButtonClass="btn-sm btn-primary" />
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePreview">
-                                    <i class="bi bi-eye"></i> @I18n[I18nKey.Ui.OptionDetail.PreviewButton]
-                                </button>
-                            </div>
-                            @if (ShowPreview && PreviewHtml != null) {
-                                <div class="card bg-body-secondary">
-                                    <div class="card-body">
-                                        @((MarkupString)PreviewHtml)
-                                    </div>
-                                </div>
-                            }
-                        } else {
-                            <div class="input-group mb-2">
-                                <FormInput @bind-Value="Option.GlobalValue" Type="@(Option.DataType == OptionDataType.Number ? "number" : "text")" />
-                                <FormSaveButton OnClick="SaveGlobal" />
-                            </div>
-                        }
+                        <div class="input-group mb-2">
+                            <FormInput @bind-Value="Option.GlobalValue" Type="@(Option.DataType == OptionDataType.Number ? "number" : "text")" />
+                            <FormSaveButton OnClick="SaveGlobal" />
+                        </div>
                     </div>
                 </div>
             </DirtyForm>
@@ -74,20 +57,14 @@
                                             <td><span class="badge bg-secondary">@ov.ChapterShortCode</span></td>
                                             <td>@ov.ChapterName</td>
                                             <td>
-                                                @if (Option.DataType == OptionDataType.Template) {
-                                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => LoadOverrideForEditing(ov)">
-                                                        <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.Common.Edit]
+                                                <div class="input-group input-group-sm" style="max-width: 300px;">
+                                                    <input type="@(Option.DataType == OptionDataType.Number ? "number" : "text")"
+                                                           class="form-control" value="@ov.Value"
+                                                           @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
+                                                    <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.OptionDetail.SaveAriaLabel]" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
+                                                        <i class="bi bi-save"></i>
                                                     </button>
-                                                } else {
-                                                    <div class="input-group input-group-sm" style="max-width: 300px;">
-                                                        <input type="@(Option.DataType == OptionDataType.Number ? "number" : "text")"
-                                                               class="form-control" value="@ov.Value"
-                                                               @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
-                                                        <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.OptionDetail.SaveAriaLabel]" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
-                                                            <i class="bi bi-save"></i>
-                                                        </button>
-                                                    </div>
-                                                }
+                                                </div>
                                             </td>
                                         </tr>
                                     }
@@ -96,21 +73,6 @@
                             </div>
                         } else {
                             <EmptyState Message="@I18n[I18nKey.Ui.OptionDetail.NoOverrides]" />
-                        }
-
-                        @if (EditingOverride != null) {
-                            <hr />
-                            <h6>@I18n[$"{I18nKey.Ui.OptionDetail.EditOverrideHeader}?chapter={EditingOverride.ChapterName}"]</h6>
-                            <textarea class="form-control font-monospace mb-2" rows="8"
-                                      @bind="EditingOverrideValue" @bind:event="oninput"></textarea>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-primary" @onclick="SaveEditingOverride">
-                                    <i class="bi bi-save"></i> @I18n[I18nKey.Ui.Common.Save]
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="CancelEditingOverride">
-                                    @I18n[I18nKey.Ui.Common.Cancel]
-                                </button>
-                            </div>
                         }
 
                         <hr />
@@ -139,11 +101,5 @@
                 </div>
             }
         </div>
-
-        @if (Option.DataType == OptionDataType.Template && !string.IsNullOrEmpty(Option.TemplateModels)) {
-            <div class="col-lg-4">
-                <TemplateFieldPalette Models="@Option.TemplateModels" OnInsertField="InsertField" />
-            </div>
-        }
     </div>
 }

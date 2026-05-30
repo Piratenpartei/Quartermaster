@@ -5,46 +5,36 @@ using Microsoft.Extensions.Logging;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
-using Quartermaster.Data.Options;
+using Quartermaster.Data.Templates;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Notifications;
 
 namespace Quartermaster.Server.MembershipApplications;
 
-/// <summary>
-/// Directly-addressed transactional mails to a membership applicant (not chapter-perm
-/// broadcasts): the "Antrag eingegangen" acknowledgement sent once the applicant confirms
-/// their email, and the welcome mail an officer triggers manually after assigning a member
-/// number. Both render an admin-configurable template and hand off to the email channel.
-/// </summary>
 public class MembershipApplicationMailService {
     public const string ReceivedTriggerId = "application_received";
     public const string WelcomeTriggerId = "member_welcome";
     public const string ApprovedTriggerId = "application_approved";
     public const string RejectedTriggerId = "application_rejected";
-    private const string ReceivedSubjectKey = "templates.membershipapplication.received.email.subject";
-    private const string ReceivedBodyKey = "templates.membershipapplication.received.email.body";
-    private const string WelcomeSubjectKey = "templates.member.welcome.email.subject";
-    private const string WelcomeBodyKey = "templates.member.welcome.email.body";
-    private const string ApprovedSubjectKey = "templates.membershipapplication.approved.email.subject";
-    private const string ApprovedBodyKey = "templates.membershipapplication.approved.email.body";
-    private const string RejectedSubjectKey = "templates.membershipapplication.rejected.email.subject";
-    private const string RejectedBodyKey = "templates.membershipapplication.rejected.email.body";
+    private const string ReceivedTemplateId = "templates.membershipapplication.received.email";
+    private const string WelcomeTemplateId = "templates.member.welcome.email";
+    private const string ApprovedTemplateId = "templates.membershipapplication.approved.email";
+    private const string RejectedTemplateId = "templates.membershipapplication.rejected.email";
 
-    private readonly OptionRepository _optionRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly EmailMessageChannel _emailChannel;
     private readonly NotificationTemplateGlobals _globals;
     private readonly ILogger<MembershipApplicationMailService> _logger;
 
     public MembershipApplicationMailService(
-        OptionRepository optionRepo,
+        TemplateRepository templateRepo,
         ChapterRepository chapterRepo,
         EmailMessageChannel emailChannel,
         NotificationTemplateGlobals globals,
         ILogger<MembershipApplicationMailService> logger) {
-        _optionRepo = optionRepo;
+        _templateRepo = templateRepo;
         _chapterRepo = chapterRepo;
         _emailChannel = emailChannel;
         _globals = globals;
@@ -64,7 +54,7 @@ public class MembershipApplicationMailService {
             },
             ["chapter"] = new { Name = ChapterName(application) }
         };
-        await SendAsync(ReceivedTriggerId, ReceivedSubjectKey, ReceivedBodyKey, application, application.Email, model, ct);
+        await SendAsync(ReceivedTriggerId, ReceivedTemplateId, application, application.Email, model, ct);
     }
 
     public async Task SendWelcomeAsync(MembershipApplication application, int memberNumber, CancellationToken ct) {
@@ -78,7 +68,7 @@ public class MembershipApplicationMailService {
             },
             ["chapter"] = new { Name = ChapterName(application) }
         };
-        await SendAsync(WelcomeTriggerId, WelcomeSubjectKey, WelcomeBodyKey, application, application.Email, model, ct);
+        await SendAsync(WelcomeTriggerId, WelcomeTemplateId, application, application.Email, model, ct);
     }
 
     public async Task SendApplicationDecisionAsync(MembershipApplication application, CancellationToken ct) {
@@ -100,8 +90,7 @@ public class MembershipApplicationMailService {
         };
         await SendAsync(
             approved ? ApprovedTriggerId : RejectedTriggerId,
-            approved ? ApprovedSubjectKey : RejectedSubjectKey,
-            approved ? ApprovedBodyKey : RejectedBodyKey,
+            approved ? ApprovedTemplateId : RejectedTemplateId,
             application, application.Email, model, ct);
     }
 
@@ -111,31 +100,30 @@ public class MembershipApplicationMailService {
         return _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
     }
 
-    private async Task SendAsync(string triggerId, string subjectKey, string bodyKey,
+    private async Task SendAsync(string triggerId, string templateIdentifier,
         MembershipApplication application, string email, Dictionary<string, object> model, CancellationToken ct) {
         if (string.IsNullOrWhiteSpace(email)) {
             _logger.LogWarning("Applicant mail '{TriggerId}' skipped: empty email for application {Id}", triggerId, application.Id);
             return;
         }
 
-        var subjectTpl = _optionRepo.ResolveValue(subjectKey, null, _chapterRepo);
-        var bodyTpl = _optionRepo.ResolveValue(bodyKey, null, _chapterRepo);
-        if (string.IsNullOrEmpty(subjectTpl) || string.IsNullOrEmpty(bodyTpl)) {
-            _logger.LogWarning("Applicant mail '{TriggerId}' templates missing ({SubjectKey}/{BodyKey})", triggerId, subjectKey, bodyKey);
+        var template = _templateRepo.Resolve(templateIdentifier, application.ChapterId, _chapterRepo);
+        if (template == null || string.IsNullOrEmpty(template.Body)) {
+            _logger.LogWarning("Applicant mail '{TriggerId}' template missing ({Identifier})", triggerId, templateIdentifier);
             return;
         }
 
-        var (subject, _) = await TemplateRenderer.RenderTextAsync(subjectTpl, model);
-        var (body, _) = await TemplateRenderer.RenderHtmlAsync(bodyTpl, model);
+        var (subject, _) = await TemplateRenderer.RenderTextAsync(template.Subject ?? "", model);
+        var (body, _) = await TemplateRenderer.RenderHtmlAsync(template.Body, model);
 
         var metadata = new Dictionary<string, string> {
             [NotificationLogMetadataKeys.TriggerId] = triggerId,
-            [NotificationLogMetadataKeys.TemplateIdentifier] = bodyKey
+            [NotificationLogMetadataKeys.TemplateIdentifier] = templateIdentifier
         };
         await _emailChannel.SendAsync(new ChannelMessage(
             ChannelAddress: email,
-            Subject: subject ?? subjectTpl,
-            Body: body ?? bodyTpl,
+            Subject: subject ?? template.Subject ?? "",
+            Body: body ?? template.Body,
             SourceEntityType: "MembershipApplication",
             SourceEntityId: application.Id,
             Metadata: metadata), ct);

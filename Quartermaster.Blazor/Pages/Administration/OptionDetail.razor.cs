@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Options;
-using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 
@@ -30,12 +28,7 @@ public partial class OptionDetail {
     private List<ChapterDTO>? Chapters;
     private bool Loading = true;
     private string NewOverrideChapterId { get; set; } = "";
-    private string? PreviewHtml;
-    private bool ShowPreview;
-    private OptionOverrideDTO? EditingOverride;
-    private string EditingOverrideValue { get; set; } = "";
     private DirtyForm _globalForm = default!;
-    private CancellationTokenSource? _previewDebounce;
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -48,25 +41,6 @@ public partial class OptionDetail {
         }
 
         Loading = false;
-    }
-
-    private async Task OnTemplateValueChanged(string value) {
-        if (Option == null)
-            return;
-
-        Option.GlobalValue = value;
-
-        if (!ShowPreview)
-            return;
-
-        _previewDebounce?.Cancel();
-        _previewDebounce = new CancellationTokenSource();
-        var token = _previewDebounce.Token;
-
-        try {
-            await Task.Delay(500, token);
-            await UpdatePreview();
-        } catch (TaskCanceledException) { }
     }
 
     private async Task SaveGlobal() {
@@ -120,67 +94,6 @@ public partial class OptionDetail {
         }
     }
 
-    private void LoadOverrideForEditing(OptionOverrideDTO ov) {
-        EditingOverride = ov;
-        EditingOverrideValue = ov.Value;
-        StateHasChanged();
-    }
-
-    private async Task SaveEditingOverride() {
-        if (EditingOverride == null || Option == null)
-            return;
-
-        await SaveOverride(EditingOverride.ChapterId, EditingOverrideValue);
-        EditingOverride = null;
-        await ReloadOption();
-    }
-
-    private void CancelEditingOverride() {
-        EditingOverride = null;
-        StateHasChanged();
-    }
-
-    private async Task TogglePreview() {
-        if (Option == null)
-            return;
-
-        ShowPreview = !ShowPreview;
-
-        if (ShowPreview) {
-            await UpdatePreview();
-        } else {
-            StateHasChanged();
-        }
-    }
-
-    private async Task UpdatePreview() {
-        if (Option == null)
-            return;
-
-        var mockData = TemplateMockDataProvider.GetMockData(Option.TemplateModels);
-        var (html, error) = await TemplateRenderer.RenderHtmlAsync(Option.GlobalValue, mockData);
-
-        if (error != null)
-            PreviewHtml = $"<p class=\"text-danger\">{error}</p>";
-        else
-            PreviewHtml = html ?? "";
-
-        StateHasChanged();
-    }
-
-    private async Task InsertField(string fluidExpression) {
-        if (Option == null)
-            return;
-
-        Option.GlobalValue += fluidExpression;
-
-        if (ShowPreview) {
-            await UpdatePreview();
-        } else {
-            StateHasChanged();
-        }
-    }
-
     private async Task ReloadOption() {
         try {
             var options = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options");
@@ -194,14 +107,12 @@ public partial class OptionDetail {
     private string DataTypeLabel(OptionDataType dt) => dt switch {
         OptionDataType.String => I18n[I18nKey.Ui.OptionList.DataTypeString],
         OptionDataType.Number => I18n[I18nKey.Ui.OptionList.DataTypeNumber],
-        OptionDataType.Template => I18n[I18nKey.Ui.OptionList.DataTypeTemplate],
         _ => I18n[I18nKey.Ui.OptionList.DataTypeUnknown]
     };
 
     private static string DataTypeBadge(OptionDataType dt) => dt switch {
         OptionDataType.String => "border-info text-info-emphasis",
         OptionDataType.Number => "border-primary text-primary-emphasis",
-        OptionDataType.Template => "border-warning text-warning-emphasis",
         _ => "border-secondary text-secondary-emphasis"
     };
 }

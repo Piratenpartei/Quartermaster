@@ -5,7 +5,7 @@ namespace Quartermaster.Api.Events;
 /// <summary>
 /// Flat union covering the per-<see cref="ChecklistItemType"/> configuration variants:
 /// <list type="bullet">
-/// <item><c>SendEmail</c>: <see cref="UseDescription"/>, <see cref="TargetType"/>, <see cref="TemplateIdentifier"/>, <see cref="ManualAddresses"/>, <see cref="TargetId"/>.</item>
+/// <item><c>SendEmail</c>: <see cref="UseDescription"/>, <see cref="TargetType"/>, <see cref="TemplateId"/>, <see cref="ManualAddresses"/>, <see cref="TargetId"/>.</item>
 /// <item><c>CreateMotion</c>: <see cref="ChapterId"/>, <see cref="MotionTitle"/>, <see cref="MotionText"/>.</item>
 /// <item><c>Text</c>: empty.</item>
 /// </list>
@@ -14,7 +14,7 @@ namespace Quartermaster.Api.Events;
 public class EventChecklistItemConfigDTO {
     public bool UseDescription { get; set; }
     public string? TargetType { get; set; }
-    public string? TemplateIdentifier { get; set; }
+    public Guid? TemplateId { get; set; }
     public string? ManualAddresses { get; set; }
     public Guid? TargetId { get; set; }
 

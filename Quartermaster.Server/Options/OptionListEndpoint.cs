@@ -65,7 +65,6 @@ public class OptionListEndpoint : EndpointWithoutRequest<List<OptionDefinitionDT
                 Description = def.Description,
                 DataType = def.DataType,
                 IsOverridable = def.IsOverridable,
-                TemplateModels = def.TemplateModels,
                 GlobalValue = MaskIfNeeded(globalRaw, maskValue),
                 Overrides = overrides,
                 IsSecret = def.IsSecret,

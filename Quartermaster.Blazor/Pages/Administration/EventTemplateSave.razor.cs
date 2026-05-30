@@ -54,8 +54,6 @@ public partial class EventTemplateSave {
         foreach (var item in Event.ChecklistItems) {
             allText.Add(item.Label);
             if (item.Configuration != null) {
-                if (item.Configuration.TemplateIdentifier != null)
-                    allText.Add(item.Configuration.TemplateIdentifier);
                 if (item.Configuration.ManualAddresses != null)
                     allText.Add(item.Configuration.ManualAddresses);
                 if (item.Configuration.MotionTitle != null)

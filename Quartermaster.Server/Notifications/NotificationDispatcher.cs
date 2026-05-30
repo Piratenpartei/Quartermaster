@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Notifications;
-using Quartermaster.Data.Options;
+using Quartermaster.Data.Templates;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Messaging;
 
@@ -16,16 +16,17 @@ namespace Quartermaster.Server.Notifications;
 
 /// <summary>
 /// Resolves recipients for a trigger and fans out to every configured channel,
-/// gated by each user's (trigger × channel) preference. Per-channel template
-/// keys are <c>notifications.{trigger}.{channel}.subject|body</c>; a channel
-/// with no body template is skipped for that trigger.
+/// gated by each user's (trigger × channel) preference. Per-channel templates
+/// are looked up via <c>TemplateRepository.Resolve</c> with identifier
+/// <c>notifications.{trigger}.{channel}</c> (chapter-override-aware); a channel
+/// with no template is skipped for that trigger.
 /// </summary>
 public class NotificationDispatcher {
     private readonly Dictionary<string, IRecipientResolver> _resolvers;
     private readonly EmailMessageChannel _emailChannel;
     private readonly TelegramMessageChannel _telegramChannel;
     private readonly DbContext _db;
-    private readonly OptionRepository _optionRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly UserNotificationPreferenceRepository _prefRepo;
     private readonly NotificationTemplateGlobals _globals;
@@ -36,7 +37,7 @@ public class NotificationDispatcher {
         EmailMessageChannel emailChannel,
         TelegramMessageChannel telegramChannel,
         DbContext db,
-        OptionRepository optionRepo,
+        TemplateRepository templateRepo,
         ChapterRepository chapterRepo,
         UserNotificationPreferenceRepository prefRepo,
         NotificationTemplateGlobals globals,
@@ -45,7 +46,7 @@ public class NotificationDispatcher {
         _emailChannel = emailChannel;
         _telegramChannel = telegramChannel;
         _db = db;
-        _optionRepo = optionRepo;
+        _templateRepo = templateRepo;
         _chapterRepo = chapterRepo;
         _prefRepo = prefRepo;
         _globals = globals;
@@ -102,7 +103,7 @@ public class NotificationDispatcher {
 
                 var metadata = new Dictionary<string, string> {
                     [NotificationLogMetadataKeys.TriggerId] = triggerId,
-                    [NotificationLogMetadataKeys.TemplateIdentifier] = $"notifications.{triggerId}.{channel.Id}.body"
+                    [NotificationLogMetadataKeys.TemplateIdentifier] = $"notifications.{triggerId}.{channel.Id}"
                 };
                 if (recipient.UserId.HasValue) {
                     metadata[NotificationLogMetadataKeys.RecipientUserId] = recipient.UserId.Value.ToString();
@@ -133,12 +134,11 @@ public class NotificationDispatcher {
     private Dictionary<string, (string? Subject, string? Body)> LoadTemplates(string triggerId, List<IMessageChannel> channels) {
         var result = new Dictionary<string, (string?, string?)>();
         foreach (var channel in channels) {
-            var subject = _optionRepo.ResolveValue($"notifications.{triggerId}.{channel.Id}.subject", null, _chapterRepo);
-            var body = _optionRepo.ResolveValue($"notifications.{triggerId}.{channel.Id}.body", null, _chapterRepo);
-            result[channel.Id] = (subject, body);
-            if (string.IsNullOrEmpty(body)) {
+            var template = _templateRepo.Resolve($"notifications.{triggerId}.{channel.Id}", null, _chapterRepo);
+            result[channel.Id] = (template?.Subject, template?.Body);
+            if (template == null || string.IsNullOrEmpty(template.Body)) {
                 _logger.LogWarning(
-                    "Notification body template missing for {Trigger} on {Channel} (key: notifications.{Trigger}.{Channel}.body)",
+                    "Notification template missing for {Trigger} on {Channel} (identifier: notifications.{Trigger}.{Channel})",
                     triggerId, channel.Id, triggerId, channel.Id);
             }
         }

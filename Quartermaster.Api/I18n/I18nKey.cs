@@ -482,7 +482,8 @@ public static class I18nKey {
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
             public const string System = "ui.main_nav_bar.system";
-            public const string SystemOptions = "ui.main_nav_bar.system.options";
+            public const string SystemSettings = "ui.main_nav_bar.system.settings";
+            public const string SystemTemplates = "ui.main_nav_bar.system.templates";
             public const string SystemUsers = "ui.main_nav_bar.system.users";
             public const string SystemLoginLockouts = "ui.main_nav_bar.system.login_lockouts";
             public const string SystemRoles = "ui.main_nav_bar.system.roles";
@@ -1459,6 +1460,66 @@ public static class I18nKey {
             public const string SettingsTitle = "ui.oidc_setup.settings_title";
         }
 
+        public static class TemplateFieldPalette {
+            public const string Heading = "ui.template_field_palette.heading";
+            public const string InsertTooltip = "ui.template_field_palette.insert_tooltip";
+            public const string ModelGlobals = "ui.template_field_palette.model_globals";
+            public const string ModelConfirmation = "ui.template_field_palette.model_confirmation";
+            public const string ModelChapter = "ui.template_field_palette.model_chapter";
+            public const string ModelApplication = "ui.template_field_palette.model_application";
+            public const string ModelSelection = "ui.template_field_palette.model_selection";
+            public const string ModelMotion = "ui.template_field_palette.model_motion";
+            public const string ModelMember = "ui.template_field_palette.model_member";
+            public const string ModelEvent = "ui.template_field_palette.model_event";
+        }
+
+        public static class TemplateList {
+            public const string PageTitle = "ui.template_list.page_title";
+            public const string TypeColumn = "ui.template_list.type_column";
+            public const string IdentifierColumn = "ui.template_list.identifier_column";
+            public const string TypeSystem = "ui.template_list.type_system";
+            public const string TypeChapter = "ui.template_list.type_chapter";
+            public const string TypeSystemWide = "ui.template_list.type_system_wide";
+            public const string CreateButton = "ui.template_list.create_button";
+            public const string Cancel = "ui.template_list.cancel";
+        }
+
+        public static class TemplateCreate {
+            public const string PageTitle = "ui.template_create.page_title";
+            public const string DisplayNameLabel = "ui.template_create.display_name_label";
+            public const string TypeLabel = "ui.template_create.type_label";
+            public const string TypeSystemWide = "ui.template_create.type_system_wide";
+            public const string TypeSystemWideHint = "ui.template_create.type_system_wide_hint";
+            public const string TypeChapter = "ui.template_create.type_chapter";
+            public const string ChapterPickerLabel = "ui.template_create.chapter_picker_label";
+            public const string CreateConfirm = "ui.template_create.create_confirm";
+            public const string Cancel = "ui.template_create.cancel";
+        }
+
+        public static class TemplateDetail {
+            public const string NotFound = "ui.template_detail.not_found";
+            public const string SystemBadge = "ui.template_detail.system_badge";
+            public const string CustomBadge = "ui.template_detail.custom_badge";
+            public const string DisplayNameLabel = "ui.template_detail.display_name_label";
+            public const string SubjectLabel = "ui.template_detail.subject_label";
+            public const string NoSubjectLabel = "ui.template_detail.no_subject_label";
+            public const string BodyLabel = "ui.template_detail.body_label";
+            public const string AllowsMemberFieldsLabel = "ui.template_detail.allows_member_fields_label";
+            public const string AllowsEventFieldsLabel = "ui.template_detail.allows_event_fields_label";
+            public const string AllowsChapterFieldsLabel = "ui.template_detail.allows_chapter_fields_label";
+            public const string AllowedFieldsHeading = "ui.template_detail.allowed_fields_heading";
+            public const string SaveButton = "ui.template_detail.save_button";
+            public const string DeleteButton = "ui.template_detail.delete_button";
+            public const string DeleteConfirm = "ui.template_detail.delete_confirm";
+            public const string OverridesHeading = "ui.template_detail.overrides_heading";
+            public const string NoOverrides = "ui.template_detail.no_overrides";
+            public const string AddOverrideHeading = "ui.template_detail.add_override_heading";
+            public const string AddOverrideButton = "ui.template_detail.add_override_button";
+            public const string ChapterColumn = "ui.template_detail.chapter_column";
+            public const string SubjectColumn = "ui.template_detail.subject_column";
+            public const string EditButton = "ui.template_detail.edit_button";
+        }
+
         public static class OptionList {
             public const string PageTitle = "ui.option_list.page_title";
             public const string SetupSmtp = "ui.option_list.setup_smtp";
@@ -1470,7 +1531,6 @@ public static class I18nKey {
             public const string OverridesColumn = "ui.option_list.overrides_column";
             public const string DataTypeString = "ui.option_list.data_type.string";
             public const string DataTypeNumber = "ui.option_list.data_type.number";
-            public const string DataTypeTemplate = "ui.option_list.data_type.template";
             public const string DataTypeUnknown = "ui.option_list.data_type.unknown";
         }
 
@@ -1570,17 +1630,6 @@ public static class I18nKey {
             public const string Heading = "ui.submission_confirmation_notice.heading";
             public const string Line1 = "ui.submission_confirmation_notice.line1";
             public const string Line2 = "ui.submission_confirmation_notice.line2";
-        }
-
-        public static class TemplateFieldPalette {
-            public const string AvailableFieldsTitle = "ui.template_field_palette.available_fields_title";
-            public const string InsertFieldTooltip = "ui.template_field_palette.insert_field_tooltip";
-            public const string ModelConfirmation = "ui.template_field_palette.model_confirmation";
-            public const string ModelMotion = "ui.template_field_palette.model_motion";
-            public const string ModelApplication = "ui.template_field_palette.model_application";
-            public const string ModelDueSelection = "ui.template_field_palette.model_due_selection";
-            public const string ModelMember = "ui.template_field_palette.model_member";
-            public const string ModelChapter = "ui.template_field_palette.model_chapter";
         }
 
         public static class Toaster {

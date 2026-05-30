@@ -10,7 +10,6 @@ public class OptionDefinitionDTO {
     public string Description { get; set; } = "";
     public OptionDataType DataType { get; set; }
     public bool IsOverridable { get; set; }
-    public string TemplateModels { get; set; } = "";
     public string GlobalValue { get; set; } = "";
     public List<OptionOverrideDTO> Overrides { get; set; } = [];
 

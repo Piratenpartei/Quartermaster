@@ -4,11 +4,6 @@ using Quartermaster.Data.Options;
 
 namespace Quartermaster.Server.Notifications;
 
-/// <summary>
-/// Builds the <c>globals</c> sub-model that the dispatcher injects into every notification
-/// template alongside the per-trigger model. Templates can reference <c>{{ globals.base_url }}</c>,
-/// <c>{{ globals.app_name }}</c>, <c>{{ globals.now }}</c> regardless of which trigger fired.
-/// </summary>
 public class NotificationTemplateGlobals {
     public const string BaseUrlOptionKey = "system.public_base_url";
     public const string AppNameOptionKey = "system.app_name";
@@ -26,9 +21,9 @@ public class NotificationTemplateGlobals {
             appName = "Quartermaster";
         }
         return new Dictionary<string, object?> {
-            ["base_url"] = baseUrl,
-            ["app_name"] = appName,
-            ["now"] = DateTime.UtcNow
+            ["BaseUrl"] = baseUrl,
+            ["AppName"] = appName,
+            ["Now"] = DateTime.UtcNow
         };
     }
 }

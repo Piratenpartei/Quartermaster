@@ -1,0 +1,56 @@
+@page "/Administration/Templates/New"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.Templates
+
+<PageBackLink Href="/Administration/Templates" />
+
+<h3 class="mb-3">@I18n[I18nKey.Ui.TemplateCreate.PageTitle]</h3>
+
+<RequirePermission AnyChapterPermission="@PermissionIdentifier.EditTemplates">
+    <div class="card">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">@I18n[I18nKey.Ui.TemplateCreate.DisplayNameLabel]</label>
+                <input type="text" class="form-control" @bind="DisplayName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">@I18n[I18nKey.Ui.TemplateCreate.TypeLabel]</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="typeChapter" name="type"
+                           checked="@(!SystemWide)" @onchange="() => SystemWide = false" />
+                    <label class="form-check-label" for="typeChapter">
+                        @I18n[I18nKey.Ui.TemplateCreate.TypeChapter]
+                    </label>
+                </div>
+                @if (CanCreateSystemWide) {
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="typeSystem" name="type"
+                               checked="@SystemWide" @onchange="() => SystemWide = true" />
+                        <label class="form-check-label" for="typeSystem">
+                            @I18n[I18nKey.Ui.TemplateCreate.TypeSystemWide]
+                            <small class="text-secondary d-block">@I18n[I18nKey.Ui.TemplateCreate.TypeSystemWideHint]</small>
+                        </label>
+                    </div>
+                }
+            </div>
+
+            @if (!SystemWide) {
+                <div class="mb-3">
+                    <label class="form-label">@I18n[I18nKey.Ui.TemplateCreate.ChapterPickerLabel]</label>
+                    <ChapterPicker @bind-Value="ChapterIdRaw" Inline="true" />
+                </div>
+            }
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" @onclick="Create" disabled="@(!CanCreate || Saving)">
+                    @I18n[I18nKey.Ui.TemplateCreate.CreateConfirm]
+                </button>
+                <a class="btn btn-outline-secondary" href="/Administration/Templates">
+                    @I18n[I18nKey.Ui.TemplateCreate.Cancel]
+                </a>
+            </div>
+        </div>
+    </div>
+</RequirePermission>

@@ -32,14 +32,12 @@ public partial class OptionList {
     private string DataTypeLabel(OptionDataType dt) => dt switch {
         OptionDataType.String => I18n[I18nKey.Ui.OptionList.DataTypeString],
         OptionDataType.Number => I18n[I18nKey.Ui.OptionList.DataTypeNumber],
-        OptionDataType.Template => I18n[I18nKey.Ui.OptionList.DataTypeTemplate],
         _ => I18n[I18nKey.Ui.OptionList.DataTypeUnknown]
     };
 
     private static string DataTypeBadge(OptionDataType dt) => dt switch {
         OptionDataType.String => "border-info text-info-emphasis",
         OptionDataType.Number => "border-primary text-primary-emphasis",
-        OptionDataType.Template => "border-warning text-warning-emphasis",
         _ => "border-secondary text-secondary-emphasis"
     };
 }

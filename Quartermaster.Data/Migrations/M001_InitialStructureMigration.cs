@@ -17,6 +17,7 @@ using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.Saml;
 using Quartermaster.Data.Submissions;
+using Quartermaster.Data.Templates;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
@@ -223,6 +224,30 @@ public class M001_InitialStructureMigration : MigrationBase {
             .FromTable(SystemOption.TableName).ForeignColumn(nameof(SystemOption.ChapterId))
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
             .OnDelete(Rule.Cascade);
+
+        Create.Table(Template.TableName)
+            .WithColumn(nameof(Template.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(Template.Identifier)).AsString(256).Nullable()
+            .WithColumn(nameof(Template.DisplayName)).AsString(256)
+            .WithColumn(nameof(Template.IsSystem)).AsBoolean().WithDefaultValue(false)
+            .WithColumn(nameof(Template.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(Template.BaseTemplateId)).AsGuid().Nullable()
+            .WithColumn(nameof(Template.Subject)).AsString(512).Nullable()
+            .WithColumn(nameof(Template.Body)).AsString(8192)
+            .WithColumn(nameof(Template.AllowsMemberFields)).AsBoolean().WithDefaultValue(false)
+            .WithColumn(nameof(Template.AllowsEventFields)).AsBoolean().WithDefaultValue(false)
+            .WithColumn(nameof(Template.AllowsChapterFields)).AsBoolean().WithDefaultValue(false)
+            .WithColumn(nameof(Template.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(Template.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
+
+        Create.ForeignKey("FK_Templates_ChapterId_Chapters_Id")
+            .FromTable(Template.TableName).ForeignColumn(nameof(Template.ChapterId))
+            .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id))
+            .OnDelete(Rule.Cascade);
+
+        Create.Index("IX_Templates_Identifier_Chapter").OnTable(Template.TableName)
+            .OnColumn(nameof(Template.Identifier)).Ascending()
+            .OnColumn(nameof(Template.ChapterId)).Ascending();
 
         Create.Table(DueSelection.TableName)
             .WithColumn(nameof(DueSelection.Id)).AsGuid().PrimaryKey()
