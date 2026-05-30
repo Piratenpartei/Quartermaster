@@ -7,6 +7,6 @@ public class EventUpdateRequest {
     public string InternalName { get; set; } = "";
     public string PublicName { get; set; } = "";
     public string? Description { get; set; }
-    public DateTime? EventDate { get; set; }
+    public DateOnly? EventDate { get; set; }
     public EventVisibility Visibility { get; set; } = EventVisibility.Private;
 }

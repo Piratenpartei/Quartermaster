@@ -20,7 +20,7 @@
     <div class="text-secondary mb-3">
         @Meeting.ChapterName
         @if (Meeting.MeetingDate != null) {
-            <span> &mdash; @Meeting.MeetingDate.Value.ToString("dd.MM.yyyy HH:mm")</span>
+            <span> &mdash; <LocalTime DateValue="Meeting.MeetingDate" /></span>
         }
         @if (!string.IsNullOrEmpty(Meeting.Location)) {
             <span> &mdash; @Meeting.Location</span>
@@ -142,7 +142,7 @@
                             <tbody>
                                 @foreach (var log in AuditLogs) {
                                     <tr>
-                                        <td class="text-nowrap">@log.Timestamp.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
                                         <td>@log.Action</td>
                                         <td>@(log.FieldName ?? "-")</td>
                                         <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>

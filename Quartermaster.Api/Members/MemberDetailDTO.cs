@@ -14,15 +14,15 @@ public class MemberDetailDTO {
     public string? City { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public string? Citizenship { get; set; }
     public decimal MembershipFee { get; set; }
     public decimal ReducedFee { get; set; }
     public decimal? FirstFee { get; set; }
     public decimal? OpenFeeTotal { get; set; }
-    public DateTime? ReducedFeeEnd { get; set; }
-    public DateTime? EntryDate { get; set; }
-    public DateTime? ExitDate { get; set; }
+    public DateOnly? ReducedFeeEnd { get; set; }
+    public DateOnly? EntryDate { get; set; }
+    public DateOnly? ExitDate { get; set; }
     public string? FederalState { get; set; }
     public string? County { get; set; }
     public string? Municipality { get; set; }
@@ -38,5 +38,5 @@ public class MemberDetailDTO {
     public string ResidenceAdministrativeDivisionName { get; set; } = "";
     public bool IsAdminDivisionOrphaned { get; set; }
     public Guid? UserId { get; set; }
-    public DateTime LastImportedAt { get; set; }
+    public DateTimeOffset LastImportedAt { get; set; }
 }

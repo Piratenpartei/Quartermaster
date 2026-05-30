@@ -7,7 +7,7 @@ public class MeetingDTO {
     public Guid ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
     public string Title { get; set; } = "";
-    public DateTime? MeetingDate { get; set; }
+    public DateOnly? MeetingDate { get; set; }
     public MeetingStatus Status { get; set; }
     public MeetingVisibility Visibility { get; set; }
     public string? Location { get; set; }

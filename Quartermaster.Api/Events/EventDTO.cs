@@ -7,10 +7,10 @@ public class EventDTO {
     public Guid ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
     public string PublicName { get; set; } = "";
-    public DateTime? EventDate { get; set; }
+    public DateOnly? EventDate { get; set; }
     public EventStatus Status { get; set; }
     public EventVisibility Visibility { get; set; }
     public int ChecklistTotal { get; set; }
     public int ChecklistCompleted { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

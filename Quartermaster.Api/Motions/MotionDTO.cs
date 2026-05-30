@@ -11,6 +11,6 @@ public class MotionDTO {
     public bool IsPublic { get; set; }
     public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ResolvedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
 }

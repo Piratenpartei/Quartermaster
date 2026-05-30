@@ -42,7 +42,7 @@ public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
             InternalName = req.InternalName,
             PublicName = req.PublicName,
             Description = req.Description,
-            EventDate = req.EventDate,
+            EventDate = req.EventDate.ToStorage(),
             Visibility = req.Visibility
         };
 

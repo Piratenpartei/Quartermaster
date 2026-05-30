@@ -87,15 +87,15 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             City = member.City,
             Phone = member.Phone,
             Email = member.Email,
-            DateOfBirth = member.DateOfBirth,
+            DateOfBirth = member.DateOfBirth.ToDtoDate(),
             Citizenship = member.Citizenship,
             MembershipFee = member.MembershipFee,
             ReducedFee = member.ReducedFee,
             FirstFee = member.FirstFee,
             OpenFeeTotal = member.OpenFeeTotal,
-            ReducedFeeEnd = member.ReducedFeeEnd,
-            EntryDate = member.EntryDate,
-            ExitDate = member.ExitDate,
+            ReducedFeeEnd = member.ReducedFeeEnd.ToDtoDate(),
+            EntryDate = member.EntryDate.ToDtoDate(),
+            ExitDate = member.ExitDate.ToDtoDate(),
             FederalState = member.FederalState,
             County = member.County,
             Municipality = member.Municipality,
@@ -111,7 +111,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             ResidenceAdministrativeDivisionName = adminDivName,
             IsAdminDivisionOrphaned = isAdminDivOrphaned,
             UserId = member.UserId,
-            LastImportedAt = member.LastImportedAt
+            LastImportedAt = member.LastImportedAt.ToDtoUtc()
         }, cancellation: ct);
     }
 }

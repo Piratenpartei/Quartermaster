@@ -56,7 +56,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             InternalName = publicName,
             PublicName = publicName,
             Description = description,
-            EventDate = req.EventDate,
+            EventDate = req.EventDate.ToStorage(),
             EventTemplateId = template.Id,
             CreatedAt = DateTime.UtcNow
         };
@@ -99,11 +99,11 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             InternalName = ev.InternalName,
             PublicName = ev.PublicName,
             Description = ev.Description,
-            EventDate = ev.EventDate,
+            EventDate = ev.EventDate.ToDtoDate(),
             Status = ev.Status,
             Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt,
+            CreatedAt = ev.CreatedAt.ToDtoUtc(),
             ChecklistItems = checklistItemDtos
         }, cancellation: ct);
     }

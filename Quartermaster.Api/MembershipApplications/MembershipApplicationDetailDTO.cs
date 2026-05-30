@@ -7,7 +7,7 @@ public class MembershipApplicationDetailDTO {
     public Guid Id { get; set; }
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
-    public DateTime DateOfBirth { get; set; }
+    public DateOnly DateOfBirth { get; set; }
     public string Citizenship { get; set; } = "";
     public string Email { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
@@ -22,11 +22,11 @@ public class MembershipApplicationDetailDTO {
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
     public string ApplicationText { get; set; } = "";
-    public DateTime EntryDate { get; set; }
-    public DateTime SubmittedAt { get; set; }
+    public DateOnly EntryDate { get; set; }
+    public DateTimeOffset SubmittedAt { get; set; }
     public ApplicationStatus Status { get; set; }
-    public DateTime? ProcessedAt { get; set; }
+    public DateTimeOffset? ProcessedAt { get; set; }
     public Guid? LinkedMotionId { get; set; }
     public int? MemberNumber { get; set; }
-    public DateTime? WelcomeSentAt { get; set; }
+    public DateTimeOffset? WelcomeSentAt { get; set; }
 }

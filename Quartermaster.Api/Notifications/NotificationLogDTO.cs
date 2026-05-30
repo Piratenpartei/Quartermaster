@@ -15,6 +15,6 @@ public class NotificationLogDTO {
     public string Status { get; set; } = "";
     public string? Error { get; set; }
     public int AttemptCount { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? SentAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? SentAt { get; set; }
 }

@@ -44,7 +44,7 @@ public partial class PublicEventDetail {
         Loading = false;
     }
 
-    private static string ReplaceVariables(string html, DateTime? eventDate) {
+    private static string ReplaceVariables(string html, DateOnly? eventDate) {
         var dateStr = eventDate?.ToString("dd.MM.yyyy") ?? "";
         return html
             .Replace("{{date}}", dateStr)

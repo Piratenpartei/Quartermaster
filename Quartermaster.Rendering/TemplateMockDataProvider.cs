@@ -25,7 +25,7 @@ public static class TemplateMockDataProvider {
                         Id = Guid.NewGuid(),
                         FirstName = "Max",
                         LastName = "Mustermann",
-                        DateOfBirth = new DateTime(1990, 1, 15),
+                        DateOfBirth = new DateOnly(1990, 1, 15),
                         Citizenship = "Deutsch",
                         Email = "max.mustermann@example.com",
                         PhoneNumber = "0170 1234567",
@@ -35,8 +35,8 @@ public static class TemplateMockDataProvider {
                         AddressCity = "Berlin",
                         ChapterName = "Piratenpartei Berlin",
                         Status = ApplicationStatus.Approved,
-                        SubmittedAt = DateTime.UtcNow.AddDays(-3),
-                        EntryDate = DateTime.UtcNow
+                        SubmittedAt = DateTimeOffset.UtcNow.AddDays(-3),
+                        EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
                     };
                     break;
 
@@ -72,13 +72,13 @@ public static class TemplateMockDataProvider {
                         City = "Berlin",
                         Street = "Musterstraße 42",
                         Country = "DE",
-                        DateOfBirth = new DateTime(1990, 1, 15),
+                        DateOfBirth = new DateOnly(1990, 1, 15),
                         Citizenship = "DE",
                         ChapterName = "Piratenpartei Berlin",
                         MembershipFee = 72m,
-                        EntryDate = new DateTime(2020, 3, 1),
+                        EntryDate = new DateOnly(2020, 3, 1),
                         HasVotingRights = true,
-                        LastImportedAt = DateTime.UtcNow
+                        LastImportedAt = DateTimeOffset.UtcNow
                     };
                     break;
 

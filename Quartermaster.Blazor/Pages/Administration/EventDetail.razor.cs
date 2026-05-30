@@ -60,7 +60,7 @@ public partial class EventDetail {
 
     private void OnDateChanged(string value) {
         if (Event != null) {
-            Event.EventDate = DateTime.TryParse(value, out var d) ? d : null;
+            Event.EventDate = DateOnly.TryParse(value, out var d) ? d : null;
         }
     }
 

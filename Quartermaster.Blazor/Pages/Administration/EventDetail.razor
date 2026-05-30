@@ -48,9 +48,9 @@
     <div class="text-secondary mb-3">
         @Event.ChapterName
         @if (Event.EventDate != null) {
-            <span> &mdash; @Event.EventDate.Value.ToString("dd.MM.yyyy")</span>
+            <span> &mdash; <LocalTime DateValue="Event.EventDate" /></span>
         }
-        <span> &mdash; Erstellt @Event.CreatedAt.ToString("dd.MM.yyyy")</span>
+        <span> &mdash; Erstellt <LocalTime Value="Event.CreatedAt" Format="dd.MM.yyyy" /></span>
     </div>
 
     <DirtyForm @ref="_detailsForm">
@@ -120,7 +120,7 @@
                         <tbody>
                             @foreach (var log in AuditLogs) {
                                 <tr>
-                                    <td class="text-nowrap">@log.Timestamp.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
                                     <td>@log.Action</td>
                                     <td>@(log.FieldName ?? "-")</td>
                                     <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Notifications;
 using Quartermaster.Data.Notifications;
 using Quartermaster.Server.Authentication;
@@ -45,7 +46,7 @@ public class TelegramLinkStartEndpoint : EndpointWithoutRequest<TelegramLinkStar
             : $"https://t.me/{botUsername}";
         await SendAsync(new TelegramLinkStartDTO {
             Token = token.Token,
-            ExpiresAt = token.ExpiresAt,
+            ExpiresAt = token.ExpiresAt.ToDtoUtc(),
             Deeplink = deeplink,
             BotUsername = botUsername
         }, cancellation: ct);

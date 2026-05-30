@@ -12,7 +12,7 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
         new() {
             FirstName = "Alice",
             LastName = "Applicant",
-            DateOfBirth = new DateTime(1990, 1, 1),
+            DateOfBirth = new DateOnly(1990, 1, 1),
             Citizenship = "DE",
             Email = "applicant@test.local",
             PhoneNumber = "0123456789",
@@ -23,7 +23,7 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
             ChapterId = chapterId,
             ConformityDeclarationAccepted = true,
             ApplicationText = "I want to join.",
-            EntryDate = DateTime.UtcNow.Date
+            EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
     private async Task Submit(MembershipApplicationDTO dto) {

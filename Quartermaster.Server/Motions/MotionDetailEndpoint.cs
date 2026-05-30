@@ -80,7 +80,7 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
                 MemberName = member != null ? $"{member.FirstName} {member.LastName}" : "Unbekannt",
                 OfficerRole = officer != null ? officer.AssociateType.ToString() : "",
                 Vote = v.Vote,
-                VotedAt = v.VotedAt,
+                VotedAt = v.VotedAt.ToDtoUtc(),
                 CastByUserId = v.CastByUserId
             };
         }).ToList();
@@ -101,8 +101,8 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
             LinkedDueSelectionId = motion.LinkedDueSelectionId,
             ApprovalStatus = motion.ApprovalStatus,
             IsRealized = motion.IsRealized,
-            CreatedAt = motion.CreatedAt,
-            ResolvedAt = motion.ResolvedAt,
+            CreatedAt = motion.CreatedAt.ToDtoUtc(),
+            ResolvedAt = motion.ResolvedAt.ToDtoUtc(),
             Votes = voteDtos,
             Officers = officerDtos,
             TotalOfficers = officers.Count

@@ -29,7 +29,7 @@
                     <td>@template.Name</td>
                     <td>@template.VariableCount</td>
                     <td>@template.ChecklistItemCount</td>
-                    <td>@template.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td><LocalTime Value="template.CreatedAt" Format="dd.MM.yyyy" /></td>
                     <td class="text-end">
                         <a href="/Administration/Events/CreateFromTemplate/@template.Id"
                            class="btn btn-sm btn-primary me-1">

@@ -51,7 +51,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
             // Anonymous: only Public meetings.
             var (items, total) = _meetingRepo.List(
                 req.ChapterId, req.Status, MeetingVisibility.Public,
-                req.DateFrom, req.DateTo, null, req.Page, req.PageSize);
+                req.DateFrom.ToStorage(), req.DateTo.ToStorage(), null, req.Page, req.PageSize);
             await SendOkResponse(items, total, req, ct);
             return;
         }
@@ -65,7 +65,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
         if (hasGlobalView) {
             var (items, total) = _meetingRepo.List(
                 req.ChapterId, req.Status, req.Visibility,
-                req.DateFrom, req.DateTo, null, req.Page, req.PageSize);
+                req.DateFrom.ToStorage(), req.DateTo.ToStorage(), null, req.Page, req.PageSize);
             await SendOkResponse(items, total, req, ct);
             return;
         }
@@ -77,7 +77,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
             // No perms at all → only public meetings visible.
             var (publicItems, publicTotal) = _meetingRepo.List(
                 req.ChapterId, req.Status, MeetingVisibility.Public,
-                req.DateFrom, req.DateTo, null, req.Page, req.PageSize);
+                req.DateFrom.ToStorage(), req.DateTo.ToStorage(), null, req.Page, req.PageSize);
             await SendOkResponse(publicItems, publicTotal, req, ct);
             return;
         }
@@ -139,10 +139,14 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
             q = q.Where(m => m.Status == req.Status.Value);
         if (req.Visibility.HasValue)
             q = q.Where(m => m.Visibility == req.Visibility.Value);
-        if (req.DateFrom.HasValue)
-            q = q.Where(m => m.MeetingDate >= req.DateFrom.Value);
-        if (req.DateTo.HasValue)
-            q = q.Where(m => m.MeetingDate <= req.DateTo.Value);
+        if (req.DateFrom.HasValue) {
+            var from = req.DateFrom.Value.ToStorage();
+            q = q.Where(m => m.MeetingDate >= from);
+        }
+        if (req.DateTo.HasValue) {
+            var to = req.DateTo.Value.ToStorage();
+            q = q.Where(m => m.MeetingDate <= to);
+        }
 
         var viewList = viewMeetingChapters.ToList();
         var directList = directRoleChapters.ToList();
@@ -184,7 +188,7 @@ public class MeetingListEndpoint : Endpoint<MeetingListRequest, MeetingListRespo
             ChapterId = m.ChapterId,
             ChapterName = chapterNames.TryGetValue(m.ChapterId, out var n) ? n : "",
             Title = m.Title,
-            MeetingDate = m.MeetingDate,
+            MeetingDate = m.MeetingDate.ToDtoDate(),
             Status = m.Status,
             Visibility = m.Visibility,
             Location = m.Location,

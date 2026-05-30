@@ -61,8 +61,8 @@ public class NotificationLogEndpoint : Endpoint<NotificationLogRequest, List<Not
             Status = l.Status,
             Error = l.Error,
             AttemptCount = l.AttemptCount,
-            CreatedAt = l.CreatedAt,
-            SentAt = l.SentAt
+            CreatedAt = l.CreatedAt.ToDtoUtc(),
+            SentAt = l.SentAt.ToDtoUtc()
         }).ToList();
 
         await SendAsync(dtos, cancellation: ct);

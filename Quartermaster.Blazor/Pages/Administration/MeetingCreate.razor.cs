@@ -43,7 +43,7 @@ public partial class MeetingCreate {
                 ChapterId = chapterId,
                 Title = Title,
                 Visibility = Visibility,
-                MeetingDate = MeetingDate,
+                MeetingDate = MeetingDate.HasValue ? DateOnly.FromDateTime(MeetingDate.Value) : null,
                 Location = Location,
                 Description = Description
             });

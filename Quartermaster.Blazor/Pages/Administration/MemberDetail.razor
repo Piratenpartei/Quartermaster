@@ -31,7 +31,7 @@
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@Member.FirstName</td></tr>
                     <tr><th>Nachname</th><td>@Member.LastName</td></tr>
-                    <tr><th>Geburtsdatum</th><td>@(Member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
+                    <tr><th>Geburtsdatum</th><td><LocalTime DateValue="Member.DateOfBirth" /></td></tr>
                     <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "—")</td></tr>
                     <tr><th>E-Mail</th><td>@(Member.Email ?? "—")</td></tr>
                     <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
@@ -105,8 +105,8 @@
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Eintrittsdatum</th><td>@(Member.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
-                    <tr><th>Austrittsdatum</th><td>@(Member.ExitDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
+                    <tr><th style="width:200px">Eintrittsdatum</th><td><LocalTime DateValue="Member.EntryDate" /></td></tr>
+                    <tr><th>Austrittsdatum</th><td><LocalTime DateValue="Member.ExitDate" /></td></tr>
                     <tr><th>Aufnahmereferenz</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
                     <tr><th>Beitrag</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     <tr><th>Geminderter Beitrag</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
@@ -114,7 +114,7 @@
                         <tr><th>Erstbeitrag</th><td>@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     }
                     @if (Member.ReducedFeeEnd.HasValue) {
-                        <tr><th>Minderung bis</th><td>@Member.ReducedFeeEnd.Value.ToString("dd.MM.yyyy")</td></tr>
+                        <tr><th>Minderung bis</th><td><LocalTime DateValue="Member.ReducedFeeEnd" /></td></tr>
                     }
                     @if (Member.OpenFeeTotal.HasValue) {
                         <tr><th>Offene Beiträge</th><td>@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
@@ -194,7 +194,7 @@
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr><th style="width:200px">Verknüpfter Benutzer</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : "Nicht verknüpft")</td></tr>
-                    <tr><th>Letzter Import</th><td>@Member.LastImportedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    <tr><th>Letzter Import</th><td><LocalTime Value="Member.LastImportedAt" /></td></tr>
                 </tbody>
             </table>
             </div>
@@ -224,7 +224,7 @@
                         <tbody>
                             @foreach (var log in AuditLogs) {
                                 <tr>
-                                    <td class="text-nowrap">@log.Timestamp.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
                                     <td>@log.Action</td>
                                     <td>@(log.FieldName ?? "-")</td>
                                     <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>

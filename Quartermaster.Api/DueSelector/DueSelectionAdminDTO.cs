@@ -12,5 +12,5 @@ public class DueSelectionAdminDTO {
     public string ReducedJustification { get; set; } = "";
     public SelectedValuation SelectedValuation { get; set; }
     public DueSelectionStatus Status { get; set; }
-    public DateTime? ProcessedAt { get; set; }
+    public DateTimeOffset? ProcessedAt { get; set; }
 }

@@ -50,7 +50,7 @@
                     <td>@e.ChapterName</td>
                     <td><EventStatusBadge Status="@e.Status" /></td>
                     <td><EventVisibilityBadge Visibility="@e.Visibility" /></td>
-                    <td>@(e.EventDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                    <td><LocalTime DateValue="e.EventDate" /></td>
                     <td>
                         @if (e.ChecklistTotal > 0) {
                             <span>@e.ChecklistCompleted/@e.ChecklistTotal</span>
@@ -58,7 +58,7 @@
                             <span>—</span>
                         }
                     </td>
-                    <td>@e.CreatedAt.ToString("dd.MM.yyyy")</td>
+                    <td><LocalTime Value="e.CreatedAt" Format="dd.MM.yyyy" /></td>
                 </tr>
             }
         </tbody>

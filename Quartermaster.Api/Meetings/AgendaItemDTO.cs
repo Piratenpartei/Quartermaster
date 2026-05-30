@@ -18,8 +18,8 @@ public class AgendaItemDTO {
     public int MotionVoteAbstainCount { get; set; }
     public string? Notes { get; set; }
     public string? Resolution { get; set; }
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
+    public DateTimeOffset? StartedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
     /// <summary>
     /// For Motion-type items: per-officer vote breakdown. For Presence-type items: officer attendance list.
     /// </summary>

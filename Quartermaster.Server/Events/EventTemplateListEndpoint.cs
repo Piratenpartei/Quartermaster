@@ -61,7 +61,7 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
                 VariableCount = variableCount,
                 ChecklistItemCount = checklistItemCount,
                 ChapterId = t.ChapterId,
-                CreatedAt = t.CreatedAt
+                CreatedAt = t.CreatedAt.ToDtoUtc()
             };
         }).ToList();
 

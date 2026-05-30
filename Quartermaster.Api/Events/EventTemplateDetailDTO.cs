@@ -11,5 +11,5 @@ public class EventTemplateDetailDTO {
     public List<EventTemplateVariableDTO> Variables { get; set; } = [];
     public List<EventChecklistItemTemplateDTO> ChecklistItemTemplates { get; set; } = [];
     public Guid? ChapterId { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

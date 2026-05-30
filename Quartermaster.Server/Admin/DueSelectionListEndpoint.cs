@@ -54,7 +54,7 @@ public class DueSelectionListEndpoint
             ReducedJustification = d.ReducedJustification,
             SelectedValuation = d.SelectedValuation,
             Status = d.Status,
-            ProcessedAt = d.ProcessedAt
+            ProcessedAt = d.ProcessedAt.ToDtoUtc()
         }).ToList();
 
         await SendAsync(new DueSelectionListResponse {

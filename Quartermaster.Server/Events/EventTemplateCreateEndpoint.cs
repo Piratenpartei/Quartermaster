@@ -77,7 +77,7 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
             Variables = req.Variables,
             ChecklistItemTemplates = checklistTemplates,
             ChapterId = template.ChapterId,
-            CreatedAt = template.CreatedAt
+            CreatedAt = template.CreatedAt.ToDtoUtc()
         }, cancellation: ct);
     }
 }

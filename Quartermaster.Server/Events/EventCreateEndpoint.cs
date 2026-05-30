@@ -40,7 +40,7 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             InternalName = req.InternalName,
             PublicName = req.PublicName,
             Description = req.Description,
-            EventDate = req.EventDate,
+            EventDate = req.EventDate.ToStorage(),
             Visibility = req.Visibility,
             CreatedAt = DateTime.UtcNow
         };
@@ -56,11 +56,11 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             InternalName = ev.InternalName,
             PublicName = ev.PublicName,
             Description = ev.Description,
-            EventDate = ev.EventDate,
+            EventDate = ev.EventDate.ToDtoDate(),
             Status = ev.Status,
             Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt
+            CreatedAt = ev.CreatedAt.ToDtoUtc()
         }, cancellation: ct);
     }
 }

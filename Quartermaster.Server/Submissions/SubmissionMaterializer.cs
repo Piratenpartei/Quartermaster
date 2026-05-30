@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
@@ -149,7 +150,8 @@ public class SubmissionMaterializer {
 
         if (req.MemberNumber > 0) {
             var member = _memberRepo.GetByMemberNumber(req.MemberNumber);
-            if (member?.ChapterId is { } chapterId) {
+            if (member?.ChapterId != null) {
+                var chapterId = member.ChapterId.Value;
                 var chapterName = _chapterRepo.Get(chapterId)?.Name ?? "";
                 var payload = new DueSelectionSubmittedPayload(
                     dueSelection.Id, chapterId, chapterName,
@@ -208,7 +210,7 @@ public class SubmissionMaterializer {
         var application = new MembershipApplication {
             FirstName = req.FirstName,
             LastName = req.LastName,
-            DateOfBirth = req.DateOfBirth,
+            DateOfBirth = req.DateOfBirth.ToStorage(),
             Citizenship = req.Citizenship,
             Email = req.Email,
             PhoneNumber = req.PhoneNumber,
@@ -222,7 +224,7 @@ public class SubmissionMaterializer {
             HasPriorDeclinedApplication = req.HasPriorDeclinedApplication,
             IsMemberOfAnotherParty = req.IsMemberOfAnotherParty,
             ApplicationText = req.ApplicationText,
-            EntryDate = req.EntryDate,
+            EntryDate = req.EntryDate.ToStorage(),
             DueSelectionId = dueSelectionId,
             SubmittedAt = DateTime.UtcNow,
             // No chapter (manual/foreign address) → held for division linking instead of normal review.

@@ -20,7 +20,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-auto">
                     <span class="text-secondary small">Letzter Import</span><br />
-                    @latest.ImportedAt.ToString("dd.MM.yyyy HH:mm")
+                    <LocalTime Value="latest.ImportedAt" />
                 </div>
                 <div class="col-auto">
                     <span class="text-secondary small">Datei</span><br />
@@ -76,7 +76,7 @@
                     <tbody>
                         @foreach (var log in MemberHistory.Items) {
                             <tr>
-                                <td>@log.ImportedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td><LocalTime Value="log.ImportedAt" /></td>
                                 <td>@log.FileName</td>
                                 <td>@FormatDuration(log.DurationMs)</td>
                                 <td>@log.TotalRecords</td>
@@ -114,7 +114,7 @@
             <div class="row g-3 mb-3">
                 <div class="col-auto">
                     <span class="text-secondary small">Letzter Import</span><br />
-                    @latest.ImportedAt.ToString("dd.MM.yyyy HH:mm")
+                    <LocalTime Value="latest.ImportedAt" />
                 </div>
                 <div class="col-auto">
                     <span class="text-secondary small">Dauer</span><br />
@@ -183,7 +183,7 @@
                     <tbody>
                         @foreach (var log in AdminDivHistory.Items) {
                             <tr>
-                                <td>@log.ImportedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td><LocalTime Value="log.ImportedAt" /></td>
                                 <td>@FormatDuration(log.DurationMs)</td>
                                 <td>@log.TotalRecords</td>
                                 <td>@log.AddedRecords</td>

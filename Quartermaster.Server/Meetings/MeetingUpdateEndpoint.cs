@@ -43,7 +43,7 @@ public class MeetingUpdateEndpoint : Endpoint<MeetingUpdateRequest> {
             Id = req.Id,
             Title = req.Title,
             Visibility = req.Visibility,
-            MeetingDate = req.MeetingDate,
+            MeetingDate = req.MeetingDate.ToStorage(),
             Location = req.Location,
             Description = req.Description
         };

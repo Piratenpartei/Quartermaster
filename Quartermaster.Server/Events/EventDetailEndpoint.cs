@@ -63,7 +63,7 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
             ItemType = i.ItemType,
             Label = i.Label,
             IsCompleted = i.IsCompleted,
-            CompletedAt = i.CompletedAt,
+            CompletedAt = i.CompletedAt.ToDtoUtc(),
             Configuration = EventConfigSerializer.ParseConfig(i.Configuration),
             ResultId = i.ResultId
         }).ToList();
@@ -75,11 +75,11 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
             InternalName = ev.InternalName,
             PublicName = ev.PublicName,
             Description = ev.Description,
-            EventDate = ev.EventDate,
+            EventDate = ev.EventDate.ToDtoDate(),
             Status = ev.Status,
             Visibility = ev.Visibility,
             EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt,
+            CreatedAt = ev.CreatedAt.ToDtoUtc(),
             ChecklistItems = itemDtos
         }, cancellation: ct);
     }

@@ -7,8 +7,8 @@ public class LoginLockoutDTO {
     public string IpAddress { get; set; } = "";
     public string UsernameOrEmail { get; set; } = "";
     public int FailedAttempts { get; set; }
-    public DateTime LastAttemptAt { get; set; }
-    public DateTime LockedUntil { get; set; }
+    public DateTimeOffset LastAttemptAt { get; set; }
+    public DateTimeOffset LockedUntil { get; set; }
 }
 
 public class LoginLockoutListResponse {

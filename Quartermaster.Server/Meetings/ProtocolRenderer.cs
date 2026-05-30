@@ -18,7 +18,7 @@ public static class ProtocolRenderer {
         sb.AppendLine();
         sb.Append("**Gliederung:** ").AppendLine(meeting.ChapterName);
         if (meeting.MeetingDate.HasValue) {
-            sb.Append("**Datum:** ").AppendLine(meeting.MeetingDate.Value.ToString("dd.MM.yyyy HH:mm"));
+            sb.Append("**Datum:** ").AppendLine(meeting.MeetingDate.Value.ToString("dd.MM.yyyy"));
         }
         if (!string.IsNullOrWhiteSpace(meeting.Location)) {
             sb.Append("**Ort:** ").AppendLine(meeting.Location);

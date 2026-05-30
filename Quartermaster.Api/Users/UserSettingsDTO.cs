@@ -13,7 +13,7 @@ public class UserSettingsDTO {
 public class UserSettingsMemberInfo {
     public int MemberNumber { get; set; }
     public string ChapterName { get; set; } = "";
-    public DateTime? EntryDate { get; set; }
+    public DateOnly? EntryDate { get; set; }
     public decimal MembershipFee { get; set; }
     public decimal ReducedFee { get; set; }
     public bool HasVotingRights { get; set; }

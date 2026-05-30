@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Chapters;
@@ -133,7 +134,9 @@ public class MeetingLifecycleService {
         if (string.IsNullOrWhiteSpace(archiveDir))
             archiveDir = Path.Combine(AppContext.BaseDirectory, "data", "protocols");
 
-        var year = (detail.MeetingDate ?? detail.StartedAt ?? DateTime.UtcNow).Year;
+        var year = detail.MeetingDate?.Year
+            ?? detail.StartedAt?.Year
+            ?? DateTime.UtcNow.Year;
         var dir = Path.Combine(archiveDir, year.ToString());
         Directory.CreateDirectory(dir);
 
@@ -201,8 +204,8 @@ public class MeetingLifecycleService {
                     MotionVoteAbstainCount = abstainCount,
                     Notes = a.Notes,
                     Resolution = a.Resolution,
-                    StartedAt = a.StartedAt,
-                    CompletedAt = a.CompletedAt
+                    StartedAt = a.StartedAt.ToDtoUtc(),
+                    CompletedAt = a.CompletedAt.ToDtoUtc()
                 };
             })
             .ToList();
@@ -212,13 +215,13 @@ public class MeetingLifecycleService {
             ChapterId = meeting.ChapterId,
             ChapterName = chapterName,
             Title = meeting.Title,
-            MeetingDate = meeting.MeetingDate,
+            MeetingDate = meeting.MeetingDate.ToDtoDate(),
             Status = meeting.Status,
             Visibility = meeting.Visibility,
             Location = meeting.Location,
             Description = meeting.Description,
-            StartedAt = meeting.StartedAt,
-            CompletedAt = meeting.CompletedAt,
+            StartedAt = meeting.StartedAt.ToDtoUtc(),
+            CompletedAt = meeting.CompletedAt.ToDtoUtc(),
             ArchivedPdfPath = meeting.ArchivedPdfPath,
             AgendaItems = itemDtos
         };

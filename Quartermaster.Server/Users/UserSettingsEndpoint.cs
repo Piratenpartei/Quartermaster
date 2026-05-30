@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
@@ -88,7 +89,7 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
             memberInfo = new UserSettingsMemberInfo {
                 MemberNumber = member.MemberNumber,
                 ChapterName = member.ChapterId.HasValue && chapters.TryGetValue(member.ChapterId.Value, out var cn) ? cn : "",
-                EntryDate = member.EntryDate,
+                EntryDate = member.EntryDate.ToDtoDate(),
                 MembershipFee = member.MembershipFee,
                 ReducedFee = member.ReducedFee,
                 HasVotingRights = member.HasVotingRights,

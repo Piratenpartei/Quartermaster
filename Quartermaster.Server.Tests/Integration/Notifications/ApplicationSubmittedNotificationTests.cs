@@ -15,7 +15,7 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
         new() {
             FirstName = first,
             LastName = last,
-            DateOfBirth = new DateTime(1990, 1, 1),
+            DateOfBirth = new DateOnly(1990, 1, 1),
             Citizenship = "DE",
             Email = "applicant@test.local",
             PhoneNumber = "0123456789",
@@ -26,7 +26,7 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
             ChapterId = chapterId,
             ConformityDeclarationAccepted = true,
             ApplicationText = "I want to join.",
-            EntryDate = DateTime.UtcNow.Date
+            EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
         };
 
     private async Task<HttpResponseMessage> Submit(MembershipApplicationDTO dto) {

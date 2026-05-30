@@ -53,8 +53,8 @@ public class MemberListEndpoint : Endpoint<MemberSearchRequest, MemberSearchResp
             City = m.City,
             ChapterId = m.ChapterId,
             ChapterName = m.ChapterId.HasValue && chapters.TryGetValue(m.ChapterId.Value, out var name) ? name : "",
-            EntryDate = m.EntryDate,
-            ExitDate = m.ExitDate,
+            EntryDate = m.EntryDate.ToDtoDate(),
+            ExitDate = m.ExitDate.ToDtoDate(),
             IsPending = m.IsPending,
             HasVotingRights = m.HasVotingRights
         }).ToList();

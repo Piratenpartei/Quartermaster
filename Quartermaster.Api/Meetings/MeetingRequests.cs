@@ -8,7 +8,7 @@ public class MeetingCreateRequest {
     public Guid ChapterId { get; set; }
     public string Title { get; set; } = "";
     public MeetingVisibility Visibility { get; set; } = MeetingVisibility.Private;
-    public DateTime? MeetingDate { get; set; }
+    public DateOnly? MeetingDate { get; set; }
     public string? Location { get; set; }
     public string? Description { get; set; }
 }
@@ -17,7 +17,7 @@ public class MeetingUpdateRequest {
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public MeetingVisibility Visibility { get; set; } = MeetingVisibility.Private;
-    public DateTime? MeetingDate { get; set; }
+    public DateOnly? MeetingDate { get; set; }
     public string? Location { get; set; }
     public string? Description { get; set; }
 }
@@ -33,8 +33,8 @@ public class MeetingListRequest : IPaginatedRequest {
     public Guid? ChapterId { get; set; }
     public MeetingStatus? Status { get; set; }
     public MeetingVisibility? Visibility { get; set; }
-    public DateTime? DateFrom { get; set; }
-    public DateTime? DateTo { get; set; }
+    public DateOnly? DateFrom { get; set; }
+    public DateOnly? DateTo { get; set; }
 }
 
 public class MeetingListResponse : IPaginatedResponse<MeetingDTO> {

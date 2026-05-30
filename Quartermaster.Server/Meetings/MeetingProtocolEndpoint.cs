@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
@@ -174,8 +175,8 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
                     MotionVoteAbstainCount = abstainCount,
                     Notes = a.Notes,
                     Resolution = a.Resolution,
-                    StartedAt = a.StartedAt,
-                    CompletedAt = a.CompletedAt
+                    StartedAt = a.StartedAt.ToDtoUtc(),
+                    CompletedAt = a.CompletedAt.ToDtoUtc()
                 };
             })
             .ToList();
@@ -185,13 +186,13 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
             ChapterId = meeting.ChapterId,
             ChapterName = chapterName,
             Title = meeting.Title,
-            MeetingDate = meeting.MeetingDate,
+            MeetingDate = meeting.MeetingDate.ToDtoDate(),
             Status = meeting.Status,
             Visibility = meeting.Visibility,
             Location = meeting.Location,
             Description = meeting.Description,
-            StartedAt = meeting.StartedAt,
-            CompletedAt = meeting.CompletedAt,
+            StartedAt = meeting.StartedAt.ToDtoUtc(),
+            CompletedAt = meeting.CompletedAt.ToDtoUtc(),
             ArchivedPdfPath = meeting.ArchivedPdfPath,
             AgendaItems = itemDtos
         };

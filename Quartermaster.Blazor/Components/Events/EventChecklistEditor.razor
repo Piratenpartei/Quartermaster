@@ -98,7 +98,7 @@
                                 }
                             }
                             @if (item.IsCompleted && item.CompletedAt != null) {
-                                <small class="text-secondary ms-2">@item.CompletedAt.Value.ToString("dd.MM.yyyy HH:mm")</small>
+                                <small class="text-secondary ms-2"><LocalTime Value="item.CompletedAt" /></small>
                             }
                         </div>
 

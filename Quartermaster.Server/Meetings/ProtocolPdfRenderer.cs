@@ -44,7 +44,7 @@ public static class ProtocolPdfRenderer {
                 if (meeting.MeetingDate.HasValue) {
                     t.Span("  •  ");
                     t.Span("Datum: ").SemiBold();
-                    t.Span(meeting.MeetingDate.Value.ToString("dd.MM.yyyy HH:mm"));
+                    t.Span(meeting.MeetingDate.Value.ToString("dd.MM.yyyy"));
                 }
                 if (!string.IsNullOrWhiteSpace(meeting.Location)) {
                     t.Span("  •  ");

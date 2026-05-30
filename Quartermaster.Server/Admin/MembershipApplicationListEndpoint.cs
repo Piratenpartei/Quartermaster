@@ -91,8 +91,8 @@ public class MembershipApplicationListEndpoint
             ChapterName = a.ChapterId.HasValue && chapters.ContainsKey(a.ChapterId.Value)
                 ? chapters[a.ChapterId.Value] : "",
             Status = a.Status,
-            SubmittedAt = a.SubmittedAt,
-            ProcessedAt = a.ProcessedAt
+            SubmittedAt = a.SubmittedAt.ToDtoUtc(),
+            ProcessedAt = a.ProcessedAt.ToDtoUtc()
         }).ToList();
 
         await SendAsync(new MembershipApplicationListResponse {

@@ -47,7 +47,7 @@
                             <tbody>
                                 <tr><th style="width:180px">Mitgliedsnummer</th><td>@Settings.Member.MemberNumber</td></tr>
                                 <tr><th>Gliederung</th><td>@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</td></tr>
-                                <tr><th>Eintrittsdatum</th><td>@(Settings.Member.EntryDate?.ToString("dd.MM.yyyy") ?? "---")</td></tr>
+                                <tr><th>Eintrittsdatum</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
                                 <tr><th>Mitgliedsbeitrag</th><td>@Settings.Member.MembershipFee.ToString("0.00") &euro;/Jahr</td></tr>
                                 @if (Settings.Member.ReducedFee > 0) {
                                     <tr><th>Ermäßigter Beitrag</th><td>@Settings.Member.ReducedFee.ToString("0.00") &euro;/Jahr</td></tr>

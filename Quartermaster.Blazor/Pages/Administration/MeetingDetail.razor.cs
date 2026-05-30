@@ -111,7 +111,7 @@ public partial class MeetingDetail {
     private void OnDateChanged(string value) {
         if (Meeting == null)
             return;
-        Meeting.MeetingDate = DateTime.TryParse(value, out var d) ? d : null;
+        Meeting.MeetingDate = DateOnly.TryParse(value, out var d) ? d : null;
     }
 
     private void OnLocationChanged(string value) {

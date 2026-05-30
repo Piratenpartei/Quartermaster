@@ -34,17 +34,17 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(User.PasswordHash)).AsString(512).Nullable()
             .WithColumn(nameof(User.FirstName)).AsString(256)
             .WithColumn(nameof(User.LastName)).AsString(256)
-            .WithColumn(nameof(User.DateOfBirth)).AsDateTime()
+            .WithColumn(nameof(User.DateOfBirth)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(User.CitizenshipAdministrativeDivisionId)).AsGuid()
             .WithColumn(nameof(User.PhoneNumber)).AsString(64).Nullable()
             .WithColumn(nameof(User.MembershipFee)).AsDecimal()
-            .WithColumn(nameof(User.MemberSince)).AsDateTime()
+            .WithColumn(nameof(User.MemberSince)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(User.MemberNumber)).AsInt32()
             .WithColumn(nameof(User.AddressStreet)).AsString(256)
             .WithColumn(nameof(User.AddressHouseNbr)).AsString(32)
             .WithColumn(nameof(User.AddressAdministrativeDivisionId)).AsGuid()
             .WithColumn(nameof(User.ChapterId)).AsGuid().Nullable()
-            .WithColumn(nameof(User.DeletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(User.DeletedAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(User.TelegramChatId)).AsString(64).Nullable();
 
         Create.Table(AdministrativeDivision.TableName)
@@ -74,7 +74,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable()
             .WithColumn(nameof(Chapter.ShortCode)).AsString(32).Nullable()
             .WithColumn(nameof(Chapter.ExternalCode)).AsString(128).Nullable()
-            .WithColumn(nameof(Chapter.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Chapter.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_Users_ChapterId_Chapters_Id")
             .FromTable(User.TableName).ForeignColumn(nameof(User.ChapterId))
@@ -93,9 +93,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Token.UserId)).AsGuid().Nullable()
             .WithColumn(nameof(Token.Content)).AsString(64).Unique() // SHA256
             .WithColumn(nameof(Token.Type)).AsInt32()
-            .WithColumn(nameof(Token.Expires)).AsDateTime().Nullable()
+            .WithColumn(nameof(Token.Expires)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Token.ExtendType)).AsInt32()
-            .WithColumn(nameof(Token.IssuedAt)).AsDateTime()
+            .WithColumn(nameof(Token.IssuedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(Token.IssuedIp)).AsString(45).Nullable() // IPv6 max length
             .WithColumn(nameof(Token.IssuedUserAgent)).AsString(512).Nullable();
 
@@ -175,9 +175,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Motion.LinkedDueSelectionId)).AsGuid().Nullable()
             .WithColumn(nameof(Motion.ApprovalStatus)).AsInt32()
             .WithColumn(nameof(Motion.IsRealized)).AsBoolean()
-            .WithColumn(nameof(Motion.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(Motion.ResolvedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(Motion.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Motion.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(Motion.ResolvedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(Motion.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_Motions_ChapterId_Chapters_Id")
             .FromTable(Motion.TableName).ForeignColumn(nameof(Motion.ChapterId))
@@ -189,7 +189,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MotionVote.MemberId)).AsGuid()
             .WithColumn(nameof(MotionVote.CastByUserId)).AsGuid()
             .WithColumn(nameof(MotionVote.Vote)).AsInt32()
-            .WithColumn(nameof(MotionVote.VotedAt)).AsDateTime()
+            .WithColumn(nameof(MotionVote.VotedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(MotionVote.MeetingId)).AsGuid().Nullable();
 
         Create.ForeignKey("FK_MotionVotes_MotionId_Motions_Id")
@@ -244,9 +244,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(DueSelection.PaymentSchedule)).AsInt32()
             .WithColumn(nameof(DueSelection.Status)).AsInt32()
             .WithColumn(nameof(DueSelection.ProcessedByUserId)).AsGuid().Nullable()
-            .WithColumn(nameof(DueSelection.ProcessedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(DueSelection.DeletedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(DueSelection.AnonymizedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(DueSelection.ProcessedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(DueSelection.DeletedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(DueSelection.AnonymizedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_DueSelections_UserId_User_Id")
             .FromTable(DueSelection.TableName).ForeignColumn(nameof(DueSelection.UserId))
@@ -260,7 +260,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MembershipApplication.Id)).AsGuid().PrimaryKey().Indexed()
             .WithColumn(nameof(MembershipApplication.FirstName)).AsString(256)
             .WithColumn(nameof(MembershipApplication.LastName)).AsString(256)
-            .WithColumn(nameof(MembershipApplication.DateOfBirth)).AsDateTime()
+            .WithColumn(nameof(MembershipApplication.DateOfBirth)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(MembershipApplication.Citizenship)).AsString(256)
             .WithColumn(nameof(MembershipApplication.Email)).AsString(256)
             .WithColumn(nameof(MembershipApplication.PhoneNumber)).AsString(64)
@@ -275,15 +275,15 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(MembershipApplication.HasPriorDeclinedApplication)).AsBoolean()
             .WithColumn(nameof(MembershipApplication.IsMemberOfAnotherParty)).AsBoolean()
             .WithColumn(nameof(MembershipApplication.ApplicationText)).AsString(2048)
-            .WithColumn(nameof(MembershipApplication.EntryDate)).AsDateTime()
-            .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsDateTime()
+            .WithColumn(nameof(MembershipApplication.EntryDate)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(MembershipApplication.SubmittedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(MembershipApplication.Status)).AsInt32()
             .WithColumn(nameof(MembershipApplication.ProcessedByUserId)).AsGuid().Nullable()
-            .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(MembershipApplication.DeletedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(MembershipApplication.AnonymizedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(MembershipApplication.ProcessedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(MembershipApplication.DeletedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(MembershipApplication.AnonymizedAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(MembershipApplication.MemberNumber)).AsInt32().Nullable()
-            .WithColumn(nameof(MembershipApplication.WelcomeSentAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(MembershipApplication.WelcomeSentAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_MemberApps_AddressAdminDivId_AdminDivs_Id")
             .FromTable(MembershipApplication.TableName).ForeignColumn(nameof(MembershipApplication.AddressAdministrativeDivisionId))
@@ -313,15 +313,15 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Member.City)).AsString(256).Nullable()
             .WithColumn(nameof(Member.Phone)).AsString(64).Nullable()
             .WithColumn(nameof(Member.Email)).AsString(256).Nullable()
-            .WithColumn(nameof(Member.DateOfBirth)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.DateOfBirth)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Member.Citizenship)).AsString(64).Nullable()
             .WithColumn(nameof(Member.MembershipFee)).AsDecimal()
             .WithColumn(nameof(Member.ReducedFee)).AsDecimal()
             .WithColumn(nameof(Member.FirstFee)).AsDecimal().Nullable()
             .WithColumn(nameof(Member.OpenFeeTotal)).AsDecimal().Nullable()
-            .WithColumn(nameof(Member.ReducedFeeEnd)).AsDateTime().Nullable()
-            .WithColumn(nameof(Member.EntryDate)).AsDateTime().Nullable()
-            .WithColumn(nameof(Member.ExitDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Member.ReducedFeeEnd)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(Member.EntryDate)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(Member.ExitDate)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Member.FederalState)).AsString(16).Nullable()
             .WithColumn(nameof(Member.County)).AsString(256).Nullable()
             .WithColumn(nameof(Member.Municipality)).AsString(256).Nullable()
@@ -334,8 +334,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Member.ChapterId)).AsGuid().Nullable()
             .WithColumn(nameof(Member.ResidenceAdministrativeDivisionId)).AsGuid().Nullable()
             .WithColumn(nameof(Member.UserId)).AsGuid().Nullable()
-            .WithColumn(nameof(Member.LastImportedAt)).AsDateTime()
-            .WithColumn(nameof(Member.AnonymizedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Member.LastImportedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(Member.AnonymizedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_Members_ChapterId_Chapters_Id")
             .FromTable(Member.TableName).ForeignColumn(nameof(Member.ChapterId))
@@ -360,7 +360,7 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.Table(MemberImportLog.TableName)
             .WithColumn(nameof(MemberImportLog.Id)).AsGuid().PrimaryKey()
-            .WithColumn(nameof(MemberImportLog.ImportedAt)).AsDateTime()
+            .WithColumn(nameof(MemberImportLog.ImportedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(MemberImportLog.FileName)).AsString(512)
             .WithColumn(nameof(MemberImportLog.FileHash)).AsString(128)
             .WithColumn(nameof(MemberImportLog.TotalRecords)).AsInt32()
@@ -372,7 +372,7 @@ public class M001_InitialStructureMigration : MigrationBase {
 
         Create.Table(AdminDivisionImportLog.TableName)
             .WithColumn(nameof(AdminDivisionImportLog.Id)).AsGuid().PrimaryKey()
-            .WithColumn(nameof(AdminDivisionImportLog.ImportedAt)).AsDateTime()
+            .WithColumn(nameof(AdminDivisionImportLog.ImportedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(AdminDivisionImportLog.FileHash)).AsString(128)
             .WithColumn(nameof(AdminDivisionImportLog.TotalRecords)).AsInt32()
             .WithColumn(nameof(AdminDivisionImportLog.AddedRecords)).AsInt32()
@@ -392,8 +392,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(EventTemplate.Variables)).AsCustom("TEXT")
             .WithColumn(nameof(EventTemplate.ChecklistItemTemplates)).AsCustom("TEXT")
             .WithColumn(nameof(EventTemplate.ChapterId)).AsGuid().Nullable()
-            .WithColumn(nameof(EventTemplate.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(EventTemplate.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(EventTemplate.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(EventTemplate.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_EventTemplates_ChapterId_Chapters_Id")
             .FromTable(EventTemplate.TableName).ForeignColumn(nameof(EventTemplate.ChapterId))
@@ -405,12 +405,12 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Event.InternalName)).AsString(512)
             .WithColumn(nameof(Event.PublicName)).AsString(512)
             .WithColumn(nameof(Event.Description)).AsCustom("TEXT").Nullable()
-            .WithColumn(nameof(Event.EventDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Event.EventDate)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Event.Status)).AsInt32().WithDefaultValue(0)
             .WithColumn(nameof(Event.Visibility)).AsInt32().WithDefaultValue(2)
             .WithColumn(nameof(Event.EventTemplateId)).AsGuid().Nullable()
-            .WithColumn(nameof(Event.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(Event.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Event.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(Event.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_Events_ChapterId_Chapters_Id")
             .FromTable(Event.TableName).ForeignColumn(nameof(Event.ChapterId))
@@ -427,7 +427,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(EventChecklistItem.ItemType)).AsInt32()
             .WithColumn(nameof(EventChecklistItem.Label)).AsString(1024)
             .WithColumn(nameof(EventChecklistItem.IsCompleted)).AsBoolean()
-            .WithColumn(nameof(EventChecklistItem.CompletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(EventChecklistItem.CompletedAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(EventChecklistItem.Configuration)).AsCustom("TEXT").Nullable()
             .WithColumn(nameof(EventChecklistItem.ResultId)).AsGuid().Nullable();
 
@@ -449,8 +449,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(NotificationLog.Status)).AsString(32)
             .WithColumn(nameof(NotificationLog.Error)).AsCustom("TEXT").Nullable()
             .WithColumn(nameof(NotificationLog.AttemptCount)).AsInt32()
-            .WithColumn(nameof(NotificationLog.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(NotificationLog.SentAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(NotificationLog.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(NotificationLog.SentAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(NotificationLog.Body)).AsCustom("TEXT").Nullable();
 
         Create.Table(UserNotificationPreference.TableName)
@@ -474,9 +474,9 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Table(TelegramLinkToken.TableName)
             .WithColumn(nameof(TelegramLinkToken.Token)).AsString(64).PrimaryKey()
             .WithColumn(nameof(TelegramLinkToken.UserId)).AsGuid()
-            .WithColumn(nameof(TelegramLinkToken.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(TelegramLinkToken.ExpiresAt)).AsDateTime()
-            .WithColumn(nameof(TelegramLinkToken.ConsumedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(TelegramLinkToken.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(TelegramLinkToken.ExpiresAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(TelegramLinkToken.ConsumedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_TelegramLinkTokens_UserId_User_Id")
             .FromTable(TelegramLinkToken.TableName).ForeignColumn(nameof(TelegramLinkToken.UserId))
@@ -488,9 +488,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(PendingSubmission.Kind)).AsInt32()
             .WithColumn(nameof(PendingSubmission.PayloadJson)).AsCustom("TEXT")
             .WithColumn(nameof(PendingSubmission.Email)).AsString(256)
-            .WithColumn(nameof(PendingSubmission.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(PendingSubmission.ExpiresAt)).AsDateTime()
-            .WithColumn(nameof(PendingSubmission.ConfirmedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(PendingSubmission.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(PendingSubmission.ExpiresAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(PendingSubmission.ConfirmedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.Table(AuditEntry.TableName)
             .WithColumn("Id").AsGuid().PrimaryKey()
@@ -502,7 +502,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn("NewValue").AsCustom("TEXT").Nullable()
             .WithColumn("UserId").AsGuid().Nullable()
             .WithColumn("UserDisplayName").AsString(256).Nullable()
-            .WithColumn("Timestamp").AsDateTime();
+            .WithColumn("Timestamp").AsCustom("DATETIME(6)");
 
         // Secondary indexes
         Create.Index("IX_Members_LastName_FirstName").OnTable(Member.TableName)
@@ -527,7 +527,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(LoginAttempt.IpAddress)).AsString(64)
             .WithColumn(nameof(LoginAttempt.UsernameOrEmail)).AsString(256)
             .WithColumn(nameof(LoginAttempt.Success)).AsBoolean()
-            .WithColumn(nameof(LoginAttempt.AttemptedAt)).AsDateTime();
+            .WithColumn(nameof(LoginAttempt.AttemptedAt)).AsCustom("DATETIME(6)");
 
         Create.Index("IX_LoginAttempts_Ip_User_AttemptedAt").OnTable(LoginAttempt.TableName)
             .OnColumn(nameof(LoginAttempt.IpAddress)).Ascending()
@@ -542,7 +542,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Role.Scope)).AsInt32()
             .WithColumn(nameof(Role.IsSystem)).AsBoolean()
             .WithColumn(nameof(Role.InheritsToChildren)).AsBoolean().WithDefaultValue(true)
-            .WithColumn(nameof(Role.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Role.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.Table(RolePermission.TableName)
             .WithColumn(nameof(RolePermission.RoleId)).AsGuid()
@@ -587,16 +587,16 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(Meeting.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(Meeting.ChapterId)).AsGuid()
             .WithColumn(nameof(Meeting.Title)).AsString(200)
-            .WithColumn(nameof(Meeting.MeetingDate)).AsDateTime().Nullable()
+            .WithColumn(nameof(Meeting.MeetingDate)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Meeting.Location)).AsString(500).Nullable()
             .WithColumn(nameof(Meeting.Description)).AsString(10000).Nullable()
             .WithColumn(nameof(Meeting.Status)).AsInt32()
             .WithColumn(nameof(Meeting.Visibility)).AsInt32()
-            .WithColumn(nameof(Meeting.StartedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(Meeting.CompletedAt)).AsDateTime().Nullable()
+            .WithColumn(nameof(Meeting.StartedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(Meeting.CompletedAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(Meeting.ArchivedPdfPath)).AsString(500).Nullable()
-            .WithColumn(nameof(Meeting.CreatedAt)).AsDateTime()
-            .WithColumn(nameof(Meeting.DeletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(Meeting.CreatedAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(Meeting.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.Index("IX_Meetings_ChapterId").OnTable(Meeting.TableName)
             .OnColumn(nameof(Meeting.ChapterId)).Ascending();
@@ -620,8 +620,8 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(AgendaItem.MotionId)).AsGuid().Nullable()
             .WithColumn(nameof(AgendaItem.Notes)).AsString(20000).Nullable()
             .WithColumn(nameof(AgendaItem.Resolution)).AsString(5000).Nullable()
-            .WithColumn(nameof(AgendaItem.StartedAt)).AsDateTime().Nullable()
-            .WithColumn(nameof(AgendaItem.CompletedAt)).AsDateTime().Nullable();
+            .WithColumn(nameof(AgendaItem.StartedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(AgendaItem.CompletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.Index("IX_AgendaItems_MeetingId_ParentId_SortOrder").OnTable(AgendaItem.TableName)
             .OnColumn(nameof(AgendaItem.MeetingId)).Ascending()
@@ -658,9 +658,9 @@ public class M001_InitialStructureMigration : MigrationBase {
             .WithColumn(nameof(CollabDocument.DocumentState)).AsCustom("LONGTEXT")
             .WithColumn(nameof(CollabDocument.PlainText)).AsCustom("LONGTEXT")
             .WithColumn(nameof(CollabDocument.ClientUserMap)).AsCustom("LONGTEXT")
-            .WithColumn(nameof(CollabDocument.LastUpdatedAt)).AsDateTime()
+            .WithColumn(nameof(CollabDocument.LastUpdatedAt)).AsCustom("DATETIME(6)")
             .WithColumn(nameof(CollabDocument.LastUpdatedByUserId)).AsGuid().Nullable()
-            .WithColumn(nameof(CollabDocument.CreatedAt)).AsDateTime();
+            .WithColumn(nameof(CollabDocument.CreatedAt)).AsCustom("DATETIME(6)");
 
         Create.Index("UX_CollabDocuments_EntityType_EntityId").OnTable(CollabDocument.TableName)
             .OnColumn(nameof(CollabDocument.EntityType)).Ascending()
@@ -673,8 +673,8 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Table(UsedSamlAssertion.TableName)
             .WithColumn(nameof(UsedSamlAssertion.Id)).AsGuid().PrimaryKey()
             .WithColumn(nameof(UsedSamlAssertion.AssertionId)).AsString(255).Unique()
-            .WithColumn(nameof(UsedSamlAssertion.ExpiresAt)).AsDateTime()
-            .WithColumn(nameof(UsedSamlAssertion.UsedAt)).AsDateTime();
+            .WithColumn(nameof(UsedSamlAssertion.ExpiresAt)).AsCustom("DATETIME(6)")
+            .WithColumn(nameof(UsedSamlAssertion.UsedAt)).AsCustom("DATETIME(6)");
 
         Create.Index("IX_UsedSamlAssertions_ExpiresAt").OnTable(UsedSamlAssertion.TableName)
             .OnColumn(nameof(UsedSamlAssertion.ExpiresAt)).Ascending();

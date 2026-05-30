@@ -132,22 +132,21 @@ The generic options list (`/Administration/Options`) works but is a poor first-r
 - **OIDC page** — groups `auth.oidc.authority`, `auth.oidc.client_id`, `auth.oidc.client_secret`, `auth.oidc.button_text`, plus `auth.sso.support_contact`.
 - These are just nicer views over the same `SystemOption` rows — no new persistence. The generic options page stays as the fallback/advanced editor.
 
-## Authenticated submissions skip email confirmation
+## Authenticated submissions skip email confirmation — DONE (2026-05-29)
 
-Context: as of 2026-05-28 every public submission (motion / due selection / membership application) is held in `PendingSubmission` until the submitter clicks an emailed confirm link — the spam barrier. This applies to *everyone*, including logged-in officers/admins, because the three create endpoints (`MotionCreateEndpoint`, `DueSelectionCreateEndpoint`, `MembershipApplicationCreateEndpoint`) are `AllowAnonymous` and treat all callers identically. An authenticated user creating a motion from the admin UI currently has to email-confirm it too, which is wrong.
+Shipped: `SubmissionAcceptedResponse` extended with `RequiresConfirmation` (default `true`) + optional `CreatedEntityId`. `SubmissionMaterializer` promoted per-kind methods (`MaterializeMotionDirect` / `MaterializeDueSelectionDirect` / `MaterializeApplicationDirectAsync`) returning the new entity id. Each create endpoint branches on `PermissionContext.UserId`: authed → materialize directly with `RequiresConfirmation=false` + entity id; anonymous → unchanged intake/confirm flow.
 
-Goal: authenticated users create directly (no confirmation), anonymous users keep the confirm flow.
+`LoginUserInfo` extended with `FirstName` + `LastName` (populated by login/session/user-settings endpoints) so the due-selector frontend can prefill them.
 
-**Backend**
-- In each create endpoint, branch on `_perms.UserId != null` (possibly gate on a permission): authed → call `SubmissionMaterializer` directly (entity created + notifications fire immediately); anonymous → keep `SubmissionIntakeService.AcceptAsync` (stash + confirm email). The materializer is already factored out and callable.
-- Response shape differs per branch (materialized entity vs `SubmissionAcceptedResponse`) — pick a response the frontend can disambiguate, or return a flag like `{ requiresConfirmation: bool }`.
+Frontend:
+- Motion create (admin + public): prefill + disable AuthorName/AuthorEmail from `AuthService.CurrentUser` when authed; success branches on `RequiresConfirmation`. Admin path: side-effect fix — page was already broken before this work, navigating to `Guid.Empty` since it expected `MotionDTO` from a `SubmissionAcceptedResponse`-shaped endpoint.
+- Due selector `UserDataInput` + `Summary`: prefill + disable FirstName/LastName/Email; success branches.
+- Membership application: yellow "Du bist eingeloggt — Antrag im Namen einer anderen Person" warning on the wizard's first page when authed (no prefill, since it's an officer entering a paper application). ApplicationSummary success branches.
+- All four pages await `AuthService.WaitForInitializationAsync()` in their initializers — a second `AuthStateProvider` TCS that completes after `/api/users/session` returns (not at the start of the call, which `WaitForInitialization` does for the CSRF handler). This fixes a hard-reload race where prefill/warning logic ran before auth state arrived.
 
-**Frontend** (the reason this isn't a trivial backend change)
-- **Membership application wizard:** if the user is authenticated, warn up front that they are logged in and may therefore only submit an application *on behalf of another person* (an officer entering a paper application). Don't pre-fill from their account — it's explicitly for someone else.
-- **Motion + due selection:** if authenticated, auto-fill the author/submitter fields (name, email) from the logged-in user's account and disable those inputs — no need to ask. On submit, the entity is created immediately (no "check your email" step; go straight to the success/redirect path).
-- Keep the current anonymous flow (manual fields + confirmation notice) unchanged when not logged in.
+DEBUG-only no-SMTP convenience: anonymous create endpoints also materialize directly under `#if DEBUG` when `SmtpConfig.ReadFrom(_optionRepo) == null`, so a dev box with no SMTP set up doesn't get a dead "check your email" notice. Inlined in each endpoint, the field/parameter/check are all `#if DEBUG`-gated. Tests seed dummy SMTP host/sender via `OptionRepository.SetValue` so the confirm-flow tests still exercise the real intake path.
 
-**Tests:** authed create → entity exists immediately + notifications fire, no `PendingSubmission` row; anonymous create → unchanged (pending + confirm).
+Tests: 1 authed-create test per endpoint (entity in live table immediately, no `PendingSubmission`, linked motion present for application). 9 + 6 + 8 endpoint suites green.
 
 ## Async notification dispatch (off the request thread) — DONE (2026-05-28)
 
@@ -168,15 +167,24 @@ Shipped:
 - **Frontend**: `MotionDetail` page gained a "Bearbeiten" button (visible when `EditMotions` + Pending) toggling an inline edit form with `MarkdownEditor`. New "Änderungsverlauf" card at the bottom lists audit entries with German field labels.
 - **Tests**: 6 `MotionUpdateEndpointTests` (auth/perm gates, lock when not Pending, per-field diff produces correct rows, no-op when unchanged, linked-id validation), 2 new `AuditLogEndpointTests` for the chapter-perm path.
 
-## Frontend timezone sweep — show local time, not UTC
+## Frontend timezone sweep — show local time, not UTC — DONE (2026-05-30)
 
-Today the server stores everything as `DateTime` (UTC by convention, but the type doesn't carry the offset) and the Blazor frontend renders those raw via `.ToString("dd.MM.yyyy HH:mm")` — which displays the UTC clock instead of the user's local clock. Surfaces affected so far (non-exhaustive — there will be more): MotionDetail (Erstellt / Beschlossen / Änderungsverlauf timestamps), MeetingLive, ApplicationDecisionMail times, NotificationLog, etc.
+Shipped:
+- **`Quartermaster.Api.DateTimeExtensions`**: `ToDtoUtc()` (DateTime→UTC-anchored DateTimeOffset), `ToDtoDate()` (DateTime→DateOnly), `ToStorage()` (DateOnly→midnight-UTC DateTime). Nullable companions for each.
+- **Storage stays `DateTime` UTC** (date-only fields with time component zeroed). M001 timestamp columns bumped to `DATETIME(6)` for microsecond precision so the audit log sorts deterministically under rapid edits; applied via `ALTER TABLE … MODIFY COLUMN … DATETIME(6)` on the dev DB.
+- **DTOs split by intent**: timestamps → `DateTimeOffset` (CreatedAt, ResolvedAt, SubmittedAt, ProcessedAt, VotedAt, StartedAt, CompletedAt, IssuedAt, ExpiresAt, SentAt, WelcomeSentAt, ImportedAt, LastImportedAt, Timestamp); calendar dates → `DateOnly` (DateOfBirth, EntryDate, ExitDate, ReducedFeeEnd, MeetingDate, EventDate, DateFrom/DateTo).
+- **Endpoint mappings updated** in every site that emits one of these (26 files: motion/meeting/event/application/due-selection/member/dashboard/audit/notification/session/lockout endpoints, plus `MeetingLifecycleService`/`MeetingProtocolEndpoint`/`SubmissionMaterializer`).
+- **`<LocalTime>`** Blazor component: `Value` (DateTimeOffset?) renders browser-local with default `dd.MM.yyyy HH:mm`; `DateValue` (DateOnly?) renders `dd.MM.yyyy`; both customizable via `Format`/`DateFormat`. Null renders nothing.
+- **Frontend sweep**: every `.ToString("dd.MM.yyyy[ HH:mm]")` in razor pages → `<LocalTime ...>` (25 files: Home, UserSessions, UserSettings, all admin detail/list pages, public event pages, membership-application summary, EventChecklistEditor component).
+- **Tests**: all `new DateTime(yyyy, mm, dd)` for date-only fields → `new DateOnly(yyyy, mm, dd)`; `DateTime.UtcNow.Date` → `DateOnly.FromDateTime(DateTime.UtcNow)`. 1269/1270 green (the one failing is a pre-existing E2E flake — passes in isolation).
+- **`Quartermaster.Rendering.TemplateMockDataProvider`** updated for the type changes so template-preview mock data stays representative.
 
-Plan:
-- **Backend**: switch persisted timestamps from `DateTime` to `DateTimeOffset` everywhere the value is wall-clock-meaningful (created/resolved/sent/etc.). Stored values should still be UTC; the offset = `+00:00` for canonical UTC. Audit-log entries inherit the change.
-- **DTOs**: emit `DateTimeOffset` over the wire so the browser side gets timezone-aware values.
-- **Frontend**: a single helper (e.g. `TimeService.Local(DateTimeOffset)`) that converts to the browser's local time and formats — replace every `.ToString("dd.MM.yyyy HH:mm")` with it. Probably a small `<LocalTime Value="..." />` component so the call sites stay readable.
-- **Tests**: existing date assertions need to use `DateTimeOffset`. Test data builder helpers updated.
-- **Migration**: in pre-prod, fold the column type change into M001 and apply via ALTER on the dev DB (MySQL `MODIFY COLUMN ... DATETIME(6)` → keep MySQL-side, but adjust the C# binding). Verify LinqToDB roundtripping with `DateTimeKind.Utc` / offset zero.
+## Pre-production i18n sweep + language switcher
 
-User pain point: dates currently show in UTC, which is ~2h off in CEST and obviously wrong.
+We've drifted on i18n during feature work — lots of newer pages and components carry hardcoded German strings instead of going through `I18nKey` / `I18nService`. Needs a wide cleanup pass before production:
+
+- **Audit pass**: grep frontend for German strings that aren't going through `@I18n["…"]` / `I18nService.T(...)`. Hot spots so far (non-exhaustive): the recent MotionDetail edit form + Änderungsverlauf card, MembershipApplication wizard warning + success notices, MunicipalityPicker, ChapterOfficerAdd, Setup pages (SMTP/SAML/OIDC), DueSelector summary, badges/labels added in this session.
+- **Audit backend** for outbound German embedded in `AddError("…")` calls — these should use `I18nKey.Error.*` like the validators do, so the frontend can translate. Several of the new endpoints (MotionUpdateEndpoint, ChapterOfficerAddEndpoint, etc.) bypass the key catalog.
+- **English coverage**: every `I18nKey.*` constant needs an English translation alongside the German one. Spot-check the i18n JSON files for missing keys.
+- **Language switcher in MainNavBar**: a dropdown / toggle next to the dark-mode switch in the top right, persisted to the user's account when authenticated and to `localStorage` for anonymous visitors. Initial language set defined by `Quartermaster.Api/I18n/Languages` (de, en at minimum).
+- **Date/number formatting** should follow the active culture too (ties into the timezone todo above — both routes share the same locale infrastructure).

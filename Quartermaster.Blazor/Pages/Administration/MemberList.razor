@@ -56,7 +56,7 @@
                     <td><a href="/Administration/Members/@m.Id">@m.FirstName @m.LastName</a></td>
                     <td>@m.PostCode @m.City</td>
                     <td>@m.ChapterName</td>
-                    <td>@(m.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                    <td><LocalTime DateValue="m.EntryDate" /></td>
                     <td>
                         @if (m.ExitDate != null) {
                             <span class="badge border border-danger text-danger-emphasis">Ausgetreten</span>

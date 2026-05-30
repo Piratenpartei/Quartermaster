@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.Users;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Server.Authentication;
@@ -35,8 +36,8 @@ public class SessionListEndpoint : EndpointWithoutRequest<List<SessionDTO>> {
         var tokens = _tokenRepo.GetActiveLoginTokensForUser(userId.Value);
         var dtos = tokens.Select(t => new SessionDTO {
             TokenId = t.Id,
-            IssuedAt = t.IssuedAt,
-            ExpiresAt = t.Expires,
+            IssuedAt = t.IssuedAt.ToDtoUtc(),
+            ExpiresAt = t.Expires.ToDtoUtc(),
             IssuedIp = t.IssuedIp,
             IssuedUserAgent = t.IssuedUserAgent,
             IsCurrent = currentTokenId.HasValue && t.Id == currentTokenId.Value

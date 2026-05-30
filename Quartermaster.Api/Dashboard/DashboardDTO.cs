@@ -20,7 +20,7 @@ public class DashboardApplicationDTO {
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string ChapterName { get; set; } = "";
-    public DateTime SubmittedAt { get; set; }
+    public DateTimeOffset SubmittedAt { get; set; }
 }
 
 public class DashboardDueSelectionDTO {
@@ -34,12 +34,12 @@ public class DashboardMotionDTO {
     public Guid Id { get; set; }
     public string Title { get; set; } = "";
     public string ChapterName { get; set; } = "";
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }
 
 public class DashboardEventDTO {
     public Guid Id { get; set; }
     public string PublicName { get; set; } = "";
     public string ChapterName { get; set; } = "";
-    public DateTime? EventDate { get; set; }
+    public DateOnly? EventDate { get; set; }
 }

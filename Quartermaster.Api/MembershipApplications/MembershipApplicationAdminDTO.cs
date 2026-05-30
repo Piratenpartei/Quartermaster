@@ -11,6 +11,6 @@ public class MembershipApplicationAdminDTO {
     public Guid? ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
     public ApplicationStatus Status { get; set; }
-    public DateTime SubmittedAt { get; set; }
-    public DateTime? ProcessedAt { get; set; }
+    public DateTimeOffset SubmittedAt { get; set; }
+    public DateTimeOffset? ProcessedAt { get; set; }
 }

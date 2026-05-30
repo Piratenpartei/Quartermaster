@@ -30,7 +30,7 @@
                         <tr>
                             <td><a href="/Administration/MembershipApplications/@app.Id">@app.FirstName @app.LastName</a></td>
                             <td>@app.ChapterName</td>
-                            <td>@app.SubmittedAt.ToString("dd.MM.yyyy")</td>
+                            <td><LocalTime Value="app.SubmittedAt" Format="dd.MM.yyyy" /></td>
                         </tr>
                     }
                 </tbody>
@@ -88,7 +88,7 @@
                         <tr>
                             <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
                             <td>@m.ChapterName</td>
-                            <td>@m.CreatedAt.ToString("dd.MM.yyyy")</td>
+                            <td><LocalTime Value="m.CreatedAt" Format="dd.MM.yyyy" /></td>
                         </tr>
                     }
                 </tbody>
@@ -116,7 +116,7 @@
                         <tr>
                             <td><a href="/Administration/Events/@ev.Id">@ev.PublicName</a></td>
                             <td>@ev.ChapterName</td>
-                            <td>@(ev.EventDate?.ToString("dd.MM.yyyy") ?? "")</td>
+                            <td><LocalTime DateValue="ev.EventDate" /></td>
                         </tr>
                     }
                 </tbody>

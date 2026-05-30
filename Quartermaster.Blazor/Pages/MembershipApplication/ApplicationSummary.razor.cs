@@ -38,7 +38,7 @@ public partial class ApplicationSummary {
         var dto = new MembershipApplicationDTO {
             FirstName = EntryState.FirstName,
             LastName = EntryState.LastName,
-            DateOfBirth = EntryState.DateOfBirth ?? DateTime.MinValue,
+            DateOfBirth = DateOnly.FromDateTime(EntryState.DateOfBirth ?? DateTime.MinValue),
             Citizenship = EntryState.Citizenship,
             Email = EntryState.Email,
             PhoneNumber = EntryState.PhoneNumber,
@@ -53,7 +53,7 @@ public partial class ApplicationSummary {
             HasPriorDeclinedApplication = EntryState.HasPriorDeclinedApplication,
             IsMemberOfAnotherParty = EntryState.IsMemberOfAnotherParty,
             ApplicationText = EntryState.ApplicationText,
-            EntryDate = EntryState.EntryDate
+            EntryDate = DateOnly.FromDateTime(EntryState.EntryDate)
         };
 
         try {

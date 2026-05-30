@@ -79,7 +79,7 @@ public partial class EventCreateFromTemplate {
             var response = await Http.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
                 TemplateId = TemplateId,
                 ChapterId = chapterId,
-                EventDate = EventDate,
+                EventDate = EventDate.HasValue ? DateOnly.FromDateTime(EventDate.Value) : null,
                 VariableValues = variableValues
             });
 

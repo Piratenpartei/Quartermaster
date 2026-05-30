@@ -11,5 +11,5 @@ public class AuditLogDTO {
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
     public string? UserDisplayName { get; set; }
-    public DateTime Timestamp { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
 }

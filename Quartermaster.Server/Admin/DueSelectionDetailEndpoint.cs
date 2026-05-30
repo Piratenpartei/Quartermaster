@@ -78,7 +78,7 @@ public class DueSelectionDetailEndpoint
             IBAN = ds.IBAN,
             PaymentSchedule = ds.PaymentSchedule,
             Status = ds.Status,
-            ProcessedAt = ds.ProcessedAt,
+            ProcessedAt = ds.ProcessedAt.ToDtoUtc(),
             LinkedMotionId = _motionRepo.GetByLinkedDueSelectionId(ds.Id)?.Id
         }, cancellation: ct);
     }

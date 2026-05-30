@@ -13,7 +13,7 @@ public class MembershipApplicationDTOValidatorTests {
     private static MembershipApplicationDTO ValidApplication() => new() {
         FirstName = "Max",
         LastName = "Mustermann",
-        DateOfBirth = new DateTime(1990, 1, 1),
+        DateOfBirth = new DateOnly(1990, 1, 1),
         Citizenship = "deutsch",
         Email = "max@example.com",
         PhoneNumber = "0123456789",
@@ -27,7 +27,7 @@ public class MembershipApplicationDTOValidatorTests {
         HasPriorDeclinedApplication = false,
         IsMemberOfAnotherParty = false,
         ApplicationText = "",
-        EntryDate = new DateTime(2026, 1, 1)
+        EntryDate = new DateOnly(2026, 1, 1)
     };
 
     [Test]

@@ -43,7 +43,7 @@ public class MemberImportHistoryEndpoint
 
         var dtos = items.Select(l => new MemberImportLogDTO {
             Id = l.Id,
-            ImportedAt = l.ImportedAt,
+            ImportedAt = l.ImportedAt.ToDtoUtc(),
             FileName = l.FileName,
             FileHash = l.FileHash,
             TotalRecords = l.TotalRecords,

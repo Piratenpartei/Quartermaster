@@ -45,8 +45,8 @@
                             <span class="text-secondary">@(string.IsNullOrEmpty(session.IssuedUserAgent) ? "—" : session.IssuedUserAgent)</span>
                         </td>
                         <td><code>@(string.IsNullOrEmpty(session.IssuedIp) ? "—" : session.IssuedIp)</code></td>
-                        <td>@session.IssuedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                        <td>@(session.ExpiresAt.HasValue ? session.ExpiresAt.Value.ToString("dd.MM.yyyy HH:mm") : "—")</td>
+                        <td><LocalTime Value="session.IssuedAt" /></td>
+                        <td><LocalTime Value="session.ExpiresAt" /></td>
                         <td class="text-end">
                             <button class="btn btn-outline-secondary btn-sm" @onclick="@(() => RevokeSession(session))" disabled="@(_revokingId == session.TokenId)">
                                 @if (_revokingId == session.TokenId) {

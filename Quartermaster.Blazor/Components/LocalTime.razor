@@ -1,0 +1,5 @@
+@if (Value != null) {
+    <span>@Value.Value.LocalDateTime.ToString(Format)</span>
+} else if (DateValue != null) {
+    <span>@DateValue.Value.ToString(DateFormat)</span>
+}

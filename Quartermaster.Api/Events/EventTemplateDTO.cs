@@ -8,5 +8,5 @@ public class EventTemplateDTO {
     public int VariableCount { get; set; }
     public int ChecklistItemCount { get; set; }
     public Guid? ChapterId { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

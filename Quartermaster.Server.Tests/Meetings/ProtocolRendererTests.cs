@@ -12,7 +12,7 @@ public class ProtocolRendererTests {
             Id = Guid.NewGuid(),
             Title = "Vorstandssitzung März",
             ChapterName = "LV Niedersachsen",
-            MeetingDate = new DateTime(2026, 3, 15, 19, 0, 0),
+            MeetingDate = new DateOnly(2026, 3, 15),
             Location = "Bürgerhaus Hannover"
         };
         var md = ProtocolRenderer.RenderMarkdown(meeting);
@@ -106,7 +106,7 @@ public class ProtocolPdfRendererTests {
             Id = Guid.NewGuid(),
             Title = "PDF Test",
             ChapterName = "C",
-            MeetingDate = DateTime.UtcNow,
+            MeetingDate = DateOnly.FromDateTime(DateTime.UtcNow),
             AgendaItems = [
                 new AgendaItemDTO { Id = Guid.NewGuid(), SortOrder = 0, Title = "Item 1", ItemType = AgendaItemType.Discussion }
             ]

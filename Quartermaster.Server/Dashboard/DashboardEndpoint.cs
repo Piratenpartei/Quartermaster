@@ -84,7 +84,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
                 FirstName = a.FirstName,
                 LastName = a.LastName,
                 ChapterName = a.ChapterId.HasValue && chapters.TryGetValue(a.ChapterId.Value, out var n) ? n : "",
-                SubmittedAt = a.SubmittedAt
+                SubmittedAt = a.SubmittedAt.ToDtoUtc()
             }).ToList()
         };
     }
@@ -122,7 +122,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
                 Id = m.Id,
                 Title = m.Title,
                 ChapterName = chapters.TryGetValue(m.ChapterId, out var n) ? n : "",
-                CreatedAt = m.CreatedAt
+                CreatedAt = m.CreatedAt.ToDtoUtc()
             }).ToList()
         };
     }
@@ -135,7 +135,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
             Id = e.Id,
             PublicName = e.PublicName,
             ChapterName = chapters.TryGetValue(e.ChapterId, out var name) ? name : "",
-            EventDate = e.EventDate
+            EventDate = e.EventDate.ToDtoDate()
         }).ToList();
     }
 

@@ -53,8 +53,8 @@ public class LoginLockoutListEndpoint : EndpointWithoutRequest<LoginLockoutListR
             IpAddress = l.IpAddress,
             UsernameOrEmail = l.UsernameOrEmail,
             FailedAttempts = l.FailedAttempts,
-            LastAttemptAt = l.LastAttemptAt,
-            LockedUntil = l.LastAttemptAt.AddMinutes(durationMinutes)
+            LastAttemptAt = l.LastAttemptAt.ToDtoUtc(),
+            LockedUntil = l.LastAttemptAt.AddMinutes(durationMinutes).ToDtoUtc()
         }).ToList();
 
         await SendAsync(new LoginLockoutListResponse { Items = items }, cancellation: ct);

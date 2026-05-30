@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using LinqToDB;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data;
@@ -169,8 +170,8 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
                     MotionVoteAbstainCount = abstainCount,
                     Notes = a.Notes,
                     Resolution = a.Resolution,
-                    StartedAt = a.StartedAt,
-                    CompletedAt = a.CompletedAt,
+                    StartedAt = a.StartedAt.ToDtoUtc(),
+                    CompletedAt = a.CompletedAt.ToDtoUtc(),
                     OfficerVotes = officerVotes
                 };
             })
@@ -181,13 +182,13 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
             ChapterId = meeting.ChapterId,
             ChapterName = chapter?.Name ?? "",
             Title = meeting.Title,
-            MeetingDate = meeting.MeetingDate,
+            MeetingDate = meeting.MeetingDate.ToDtoDate(),
             Status = meeting.Status,
             Visibility = meeting.Visibility,
             Location = meeting.Location,
             Description = meeting.Description,
-            StartedAt = meeting.StartedAt,
-            CompletedAt = meeting.CompletedAt,
+            StartedAt = meeting.StartedAt.ToDtoUtc(),
+            CompletedAt = meeting.CompletedAt.ToDtoUtc(),
             ArchivedPdfPath = meeting.ArchivedPdfPath,
             AgendaItems = itemDtos
         };

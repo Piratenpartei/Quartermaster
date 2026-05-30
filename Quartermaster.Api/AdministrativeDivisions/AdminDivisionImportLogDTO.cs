@@ -5,7 +5,7 @@ namespace Quartermaster.Api.AdministrativeDivisions;
 
 public class AdminDivisionImportLogDTO {
     public Guid Id { get; set; }
-    public DateTime ImportedAt { get; set; }
+    public DateTimeOffset ImportedAt { get; set; }
     public string FileHash { get; set; } = "";
     public int TotalRecords { get; set; }
     public int AddedRecords { get; set; }

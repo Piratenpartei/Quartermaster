@@ -15,7 +15,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         return new MembershipApplicationDTO {
             FirstName = "Alice",
             LastName = "Applicant",
-            DateOfBirth = new DateTime(1990, 1, 1),
+            DateOfBirth = new DateOnly(1990, 1, 1),
             Citizenship = "DE",
             Email = "alice@test.local",
             PhoneNumber = "0123456789",
@@ -26,7 +26,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
             ChapterId = chapterId,
             ConformityDeclarationAccepted = true,
             ApplicationText = "I want to join.",
-            EntryDate = DateTime.UtcNow.Date
+            EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
         };
     }
 

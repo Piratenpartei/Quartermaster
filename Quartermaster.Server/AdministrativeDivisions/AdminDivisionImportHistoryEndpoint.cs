@@ -45,7 +45,7 @@ public class AdminDivisionImportHistoryEndpoint
 
         var dtos = items.Select(l => new AdminDivisionImportLogDTO {
             Id = l.Id,
-            ImportedAt = l.ImportedAt,
+            ImportedAt = l.ImportedAt.ToDtoUtc(),
             FileHash = l.FileHash,
             TotalRecords = l.TotalRecords,
             AddedRecords = l.AddedRecords,

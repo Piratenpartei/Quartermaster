@@ -52,7 +52,7 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
 
         await SendAsync(new MemberImportLogDTO {
             Id = log.Id,
-            ImportedAt = log.ImportedAt,
+            ImportedAt = log.ImportedAt.ToDtoUtc(),
             FileName = log.FileName,
             FileHash = log.FileHash,
             TotalRecords = log.TotalRecords,

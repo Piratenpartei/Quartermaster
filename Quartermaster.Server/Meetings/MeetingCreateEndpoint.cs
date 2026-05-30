@@ -47,7 +47,7 @@ public class MeetingCreateEndpoint : Endpoint<MeetingCreateRequest, MeetingDTO> 
             ChapterId = req.ChapterId,
             Title = req.Title,
             Visibility = req.Visibility,
-            MeetingDate = req.MeetingDate,
+            MeetingDate = req.MeetingDate.ToStorage(),
             Location = req.Location,
             Description = req.Description,
             Status = MeetingStatus.Draft
@@ -60,7 +60,7 @@ public class MeetingCreateEndpoint : Endpoint<MeetingCreateRequest, MeetingDTO> 
             ChapterId = meeting.ChapterId,
             ChapterName = chapter.Name,
             Title = meeting.Title,
-            MeetingDate = meeting.MeetingDate,
+            MeetingDate = meeting.MeetingDate.ToDtoDate(),
             Status = meeting.Status,
             Visibility = meeting.Visibility,
             Location = meeting.Location,

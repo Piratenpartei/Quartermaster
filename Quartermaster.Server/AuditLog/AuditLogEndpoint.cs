@@ -54,7 +54,7 @@ public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
             OldValue = l.OldValue,
             NewValue = l.NewValue,
             UserDisplayName = l.UserDisplayName,
-            Timestamp = l.Timestamp
+            Timestamp = l.Timestamp.ToDtoUtc()
         }).ToList();
         await SendAsync(dtos, cancellation: ct);
     }

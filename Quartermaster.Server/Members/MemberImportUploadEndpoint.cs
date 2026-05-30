@@ -61,7 +61,7 @@ public class MemberImportUploadEndpoint : Endpoint<MemberImportUploadRequest, Me
 
             await SendAsync(new MemberImportLogDTO {
                 Id = log.Id,
-                ImportedAt = log.ImportedAt,
+                ImportedAt = log.ImportedAt.ToDtoUtc(),
                 FileName = log.FileName,
                 FileHash = log.FileHash,
                 TotalRecords = log.TotalRecords,

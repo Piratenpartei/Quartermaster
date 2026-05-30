@@ -74,7 +74,7 @@
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@App.FirstName</td></tr>
                     <tr><th>Nachname</th><td>@App.LastName</td></tr>
-                    <tr><th>Geburtsdatum</th><td>@App.DateOfBirth.ToString("dd.MM.yyyy")</td></tr>
+                    <tr><th>Geburtsdatum</th><td><LocalTime DateValue="App.DateOfBirth" /></td></tr>
                     <tr><th>Staatsangehörigkeit</th><td>@App.Citizenship</td></tr>
                     <tr><th>E-Mail</th><td>@App.Email</td></tr>
                     <tr>
@@ -192,10 +192,10 @@
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Eintritt zum</th><td>@App.EntryDate.ToString("dd.MM.yyyy")</td></tr>
-                    <tr><th>Eingereicht am</th><td>@App.SubmittedAt.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                    <tr><th style="width:200px">Eintritt zum</th><td><LocalTime DateValue="App.EntryDate" /></td></tr>
+                    <tr><th>Eingereicht am</th><td><LocalTime Value="App.SubmittedAt" /></td></tr>
                     @if (App.ProcessedAt != null) {
-                        <tr><th>Bearbeitet am</th><td>@App.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")</td></tr>
+                        <tr><th>Bearbeitet am</th><td><LocalTime Value="App.ProcessedAt" /></td></tr>
                     }
                 </tbody>
             </table>
@@ -211,7 +211,7 @@
                     @if (App.WelcomeSentAt != null) {
                         <p class="mb-0">
                             <i class="bi bi-check-circle-fill text-success"></i>
-                            Willkommens-Mail gesendet am @App.WelcomeSentAt.Value.ToString("dd.MM.yyyy HH:mm")
+                            Willkommens-Mail gesendet am <LocalTime Value="App.WelcomeSentAt" />
                             — Mitgliedsnummer <strong>@App.MemberNumber</strong>
                         </p>
                     } else {

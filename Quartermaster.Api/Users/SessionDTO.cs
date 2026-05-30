@@ -8,8 +8,8 @@ namespace Quartermaster.Api.Users;
 /// </summary>
 public class SessionDTO {
     public Guid TokenId { get; set; }
-    public DateTime IssuedAt { get; set; }
-    public DateTime? ExpiresAt { get; set; }
+    public DateTimeOffset IssuedAt { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
     public string? IssuedIp { get; set; }
     public string? IssuedUserAgent { get; set; }
 

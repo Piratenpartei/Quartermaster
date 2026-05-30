@@ -27,7 +27,7 @@
         <h5>Persönliche Daten</h5>
         <ul class="list-group list-group-flush">
             <li class="list-group-item"><strong>Name:</strong> @EntryState.FirstName @EntryState.LastName</li>
-            <li class="list-group-item"><strong>Geburtsdatum:</strong> @EntryState.DateOfBirth?.ToString("dd.MM.yyyy")</li>
+            <li class="list-group-item"><strong>Geburtsdatum:</strong> <LocalTime DateValue="EntryState.DateOfBirth.HasValue ? DateOnly.FromDateTime(EntryState.DateOfBirth.Value) : null" /></li>
             <li class="list-group-item"><strong>Staatsangehörigkeit:</strong> @EntryState.Citizenship</li>
             <li class="list-group-item"><strong>E-Mail:</strong> @EntryState.Email</li>
             <li class="list-group-item"><strong>Telefon:</strong> @EntryState.PhoneNumber</li>

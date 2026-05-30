@@ -126,11 +126,13 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 - Avoid expression-bodied properties (`=>`) when the value involves allocation or `GetType()`/`typeof().Name` — use an auto-property with initializer (`{ get; } = ...`) so it's computed once
 - **One statement per line** — never combine declarations or statements with `;` on the same line
 - **Method calls:** no space between the method name and `(` — write `Method()`, not `Method ()`
+- **Extension members:** prefer the C# 14 `extension(...) { … }` block syntax over the legacy `this`-parameter form when a class holds more than one extension on the same receiver — the receiver is named once, the members are grouped, and the shape mirrors a regular type. A single extension on a one-off receiver can stay on the legacy `static Foo(this T x)` form; there's no real readability gain from a one-member block.
 
 ## Switch, Boolean, and Pattern Matching
 
 - Never put curly braces on `case` blocks. If local variable names collide between cases, rename them
 - Use `&&` and `||`, never the `and`/`or` pattern-matching keywords — they're harder to scan. Applies to pattern-matching expressions too: write `x == A || x == B`, not `x is A or B`
+- Null checks use `== null` / `!= null`, never the "is empty pattern" form: write `if (x != null)`, not `if (x is { } y)` or `if (x is not null)`. Pattern-matching syntax for what's conceptually a null check is unreadable. If you need to capture the unwrapped value, use a `var` after the check (or `.Value` on the nullable)
 
 ## Exceptions
 

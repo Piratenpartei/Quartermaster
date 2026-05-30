@@ -38,8 +38,8 @@
                         <td class="font-monospace">@lockout.IpAddress</td>
                         <td>@lockout.UsernameOrEmail</td>
                         <td><span class="badge bg-danger">@lockout.FailedAttempts</span></td>
-                        <td>@lockout.LastAttemptAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</td>
-                        <td>@lockout.LockedUntil.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</td>
+                        <td><LocalTime Value="lockout.LastAttemptAt" Format="dd.MM.yyyy HH:mm:ss" /></td>
+                        <td><LocalTime Value="lockout.LockedUntil" Format="dd.MM.yyyy HH:mm:ss" /></td>
                         <td>
                             <button class="btn btn-sm btn-outline-success"
                                     @onclick="() => Unlock(lockout)"

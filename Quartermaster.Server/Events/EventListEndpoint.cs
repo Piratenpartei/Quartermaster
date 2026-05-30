@@ -47,12 +47,12 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
                 ChapterId = e.ChapterId,
                 ChapterName = chapters.TryGetValue(e.ChapterId, out var name) ? name : "",
                 PublicName = e.PublicName,
-                EventDate = e.EventDate,
+                EventDate = e.EventDate.ToDtoDate(),
                 Status = e.Status,
                 Visibility = e.Visibility,
                 ChecklistTotal = counts.Total,
                 ChecklistCompleted = counts.Completed,
-                CreatedAt = e.CreatedAt
+                CreatedAt = e.CreatedAt.ToDtoUtc()
             };
         }).ToList();
 

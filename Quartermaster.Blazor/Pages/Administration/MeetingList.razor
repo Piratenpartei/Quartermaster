@@ -70,7 +70,7 @@
                         <tr>
                             <td><a href="/Administration/Meetings/@m.Id">@m.Title</a></td>
                             <td>@m.ChapterName</td>
-                            <td>@(m.MeetingDate?.ToString("dd.MM.yyyy HH:mm") ?? "—")</td>
+                            <td><LocalTime DateValue="m.MeetingDate" /></td>
                             <td><MeetingStatusBadge Status="@m.Status" /></td>
                             <td><MeetingVisibilityBadge Visibility="@m.Visibility" /></td>
                             <td>@m.AgendaItemCount</td>

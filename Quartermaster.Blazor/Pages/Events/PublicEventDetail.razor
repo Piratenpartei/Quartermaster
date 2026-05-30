@@ -16,7 +16,7 @@
     <div class="text-secondary mb-4">
         @Event.ChapterName
         @if (Event.EventDate.HasValue) {
-            <span> &mdash; @Event.EventDate.Value.ToString("dd.MM.yyyy")</span>
+            <span> &mdash; <LocalTime DateValue="Event.EventDate" /></span>
         }
     </div>
 

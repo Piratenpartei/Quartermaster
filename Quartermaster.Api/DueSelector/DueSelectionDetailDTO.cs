@@ -20,6 +20,6 @@ public class DueSelectionDetailDTO {
     public string IBAN { get; set; } = "";
     public PaymentSchedule PaymentSchedule { get; set; }
     public DueSelectionStatus Status { get; set; }
-    public DateTime? ProcessedAt { get; set; }
+    public DateTimeOffset? ProcessedAt { get; set; }
     public Guid? LinkedMotionId { get; set; }
 }

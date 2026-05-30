@@ -13,7 +13,7 @@ public class MembershipApplicationLinkDivisionEndpointTests : IntegrationTestBas
     private MembershipApplicationDTO ValidDto(Guid? chapterId) => new() {
         FirstName = "Mara",
         LastName = "Manual",
-        DateOfBirth = new DateTime(1990, 1, 1),
+        DateOfBirth = new DateOnly(1990, 1, 1),
         Citizenship = "DE",
         Email = "mara@test.local",
         PhoneNumber = "0123456789",
@@ -24,7 +24,7 @@ public class MembershipApplicationLinkDivisionEndpointTests : IntegrationTestBas
         ChapterId = chapterId,
         ConformityDeclarationAccepted = true,
         ApplicationText = "Join.",
-        EntryDate = DateTime.UtcNow.Date
+        EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
     [Test]

@@ -59,9 +59,9 @@ public partial class MotionCreate {
 
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<SubmissionAcceptedResponse>();
-                if (result?.CreatedEntityId is { } motionId) {
+                if (result?.CreatedEntityId != null) {
                     ToastService.ToastKey(I18nKey.Ui.Toast.MotionCreated);
-                    Navigation.NavigateTo($"/Administration/Motions/{motionId}");
+                    Navigation.NavigateTo($"/Administration/Motions/{result.CreatedEntityId.Value}");
                 }
             } else {
                 await ToastService.ErrorAsync(response);

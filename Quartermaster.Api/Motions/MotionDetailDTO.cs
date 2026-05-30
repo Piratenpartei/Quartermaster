@@ -22,8 +22,8 @@ public class MotionDetailDTO {
     public Guid? LinkedDueSelectionId { get; set; }
     public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ResolvedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
     public List<MotionVoteDTO> Votes { get; set; } = [];
     public List<MotionVoteDTO> Officers { get; set; } = [];
     public int TotalOfficers { get; set; }

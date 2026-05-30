@@ -88,7 +88,7 @@ public class MembershipApplicationDetailEndpoint
                     ReducedJustification = ds.ReducedJustification,
                     SelectedValuation = ds.SelectedValuation,
                     Status = ds.Status,
-                    ProcessedAt = ds.ProcessedAt
+                    ProcessedAt = ds.ProcessedAt.ToDtoUtc()
                 };
             }
         }
@@ -97,7 +97,7 @@ public class MembershipApplicationDetailEndpoint
             Id = app.Id,
             FirstName = app.FirstName,
             LastName = app.LastName,
-            DateOfBirth = app.DateOfBirth,
+            DateOfBirth = app.DateOfBirth.ToDtoDate(),
             Citizenship = app.Citizenship,
             Email = app.Email,
             PhoneNumber = app.PhoneNumber,
@@ -112,13 +112,13 @@ public class MembershipApplicationDetailEndpoint
             HasPriorDeclinedApplication = app.HasPriorDeclinedApplication,
             IsMemberOfAnotherParty = app.IsMemberOfAnotherParty,
             ApplicationText = app.ApplicationText,
-            EntryDate = app.EntryDate,
-            SubmittedAt = app.SubmittedAt,
+            EntryDate = app.EntryDate.ToDtoDate(),
+            SubmittedAt = app.SubmittedAt.ToDtoUtc(),
             Status = app.Status,
-            ProcessedAt = app.ProcessedAt,
+            ProcessedAt = app.ProcessedAt.ToDtoUtc(),
             LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id,
             MemberNumber = app.MemberNumber,
-            WelcomeSentAt = app.WelcomeSentAt
+            WelcomeSentAt = app.WelcomeSentAt.ToDtoUtc()
         }, cancellation: ct);
     }
 }

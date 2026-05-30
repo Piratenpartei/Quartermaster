@@ -21,7 +21,7 @@
                     @if (ev.EventDate.HasValue) {
                         <span class="text-secondary">
                             <i class="bi bi-calendar-event"></i>
-                            @ev.EventDate.Value.ToString("dd.MM.yyyy")
+                            <LocalTime DateValue="ev.EventDate" />
                         </span>
                     }
                 </div>
