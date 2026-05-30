@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
@@ -16,6 +18,9 @@ using Quartermaster.Api.Templates;
 namespace Quartermaster.Blazor.Components;
 
 public partial class TemplateFieldPalette {
+    [Inject]
+    public required IJSRuntime JS { get; set; }
+
     [Parameter]
     public string Models { get; set; } = "";
 
@@ -26,9 +31,18 @@ public partial class TemplateFieldPalette {
     public bool IncludeGlobals { get; set; } = true;
 
     private List<TemplateModelSchemaDTO> Schemas = new();
+    private ElementReference _card;
+    private bool _fitInstalled;
 
     protected override void OnParametersSet() {
         Schemas = BuildSchemas(Models, IncludeGlobals);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (_fitInstalled || Schemas.Count == 0)
+            return;
+        _fitInstalled = true;
+        await JS.InvokeVoidAsync("StickyFitToViewport", _card, 16);
     }
 
     private static readonly Dictionary<string, (string Prefix, string LabelKey, Type Type)> ReflectedModels = new() {
