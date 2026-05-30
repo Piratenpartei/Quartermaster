@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Components;
-using Quartermaster.Blazor.Services;
 using System.Diagnostics;
-
+using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class SelectReduced {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private DueSelectorEntryState? EntryState;
 
@@ -18,10 +20,10 @@ public partial class SelectReduced {
         EntryState = AppState.GetEntryState<DueSelectorEntryState>();
     }
 
-    private static string TextForReducedTimeSpan(ReducedTimeSpan reducedTimeSpan) {
+    private string TextForReducedTimeSpan(ReducedTimeSpan reducedTimeSpan) {
         return reducedTimeSpan switch {
-            ReducedTimeSpan.OneYear => "Ich beantrage den geminderten Beitrag für ein Jahr.",
-            ReducedTimeSpan.Permanent => "Ich beantrage einen dauerhaft geminderten Beitrag.",
+            ReducedTimeSpan.OneYear => I18n[I18nKey.Ui.SelectReduced.TimeSpanOneYear],
+            ReducedTimeSpan.Permanent => I18n[I18nKey.Ui.SelectReduced.TimeSpanPermanent],
             _ => throw new UnreachableException($"{reducedTimeSpan} is not a valid ReducedTimeSpan")
         };
     }

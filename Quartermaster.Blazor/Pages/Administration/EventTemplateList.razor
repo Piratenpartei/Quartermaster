@@ -1,10 +1,12 @@
 @page "/Administration/EventTemplates"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
-<PageHeader Title="Event-Vorlagen">
+<PageHeader Title="@I18n[I18nKey.Ui.EventTemplateList.PageTitle]">
     <Actions>
         <a href="/Administration/Events" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Zurück zu Events
+            <i class="bi bi-arrow-left"></i> @I18n[I18nKey.Ui.EventTemplateList.BackToEvents]
         </a>
     </Actions>
 </PageHeader>
@@ -16,10 +18,10 @@
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Variablen</th>
-                <th>Checkliste</th>
-                <th>Erstellt</th>
+                <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                <th>@I18n[I18nKey.Ui.EventTemplateList.VariablesColumn]</th>
+                <th>@I18n[I18nKey.Ui.EventTemplateList.ChecklistColumn]</th>
+                <th>@I18n[I18nKey.Ui.Common.Created]</th>
                 <th></th>
             </tr>
         </thead>
@@ -33,7 +35,7 @@
                     <td class="text-end">
                         <a href="/Administration/Events/CreateFromTemplate/@template.Id"
                            class="btn btn-sm btn-primary me-1">
-                            <i class="bi bi-plus-circle"></i> Aus Vorlage erstellen
+                            <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.EventTemplateList.CreateFromTemplate]
                         </a>
                         <DeleteButton OnClick="() => Delete(template.Id)" Disabled="@Deleting" />
                     </td>
@@ -43,7 +45,7 @@
     </table>
     </div>
 } else {
-    <EmptyState Message="Keine Vorlagen vorhanden. Erstellen Sie eine Vorlage aus einem bestehenden Event." />
+    <EmptyState Message="@I18n[I18nKey.Ui.EventTemplateList.EmptyMessage]" />
 }
 
 <ConfirmDialog @ref="ConfirmDialog" />

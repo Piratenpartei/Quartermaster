@@ -1,27 +1,29 @@
 @page "/Administration/Events/Create"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
 <PageBackLink Href="/Administration/Events" />
 
-<h3 class="mb-3">Neues Event erstellen</h3>
+<h3 class="mb-3">@I18n[I18nKey.Ui.EventCreate.PageTitle]</h3>
 
 <div class="card">
     <div class="card-body">
         <div class="mb-3">
-            <label class="form-label">Gliederung</label>
+            <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
             <ChapterPicker @bind-Value="ChapterId" />
         </div>
         <div class="mb-3">
-            <label for="internalName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="internalName" @bind="InternalName" placeholder="Interner Name des Events" />
+            <label for="internalName" class="form-label">@I18n[I18nKey.Ui.Common.Name]</label>
+            <input type="text" class="form-control" id="internalName" @bind="InternalName" placeholder="@I18n[I18nKey.Ui.EventCreate.InternalNamePlaceholder]" />
         </div>
         <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
             @if (Submitting) {
                 <span class="spinner-border spinner-border-sm" role="status"></span>
-                <span> Wird erstellt...</span>
+                <span> @I18n[I18nKey.Ui.EventCreate.Creating]</span>
             } else {
                 <i class="bi bi-plus-circle"></i>
-                <span> Event erstellen</span>
+                <span> @I18n[I18nKey.Ui.EventCreate.SubmitButton]</span>
             }
         </button>
     </div>

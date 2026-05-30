@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -14,6 +15,8 @@ public partial class ChapterOfficerList {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private ChapterOfficerSearchResponse? Response;
     private bool Loading;
@@ -67,14 +70,14 @@ public partial class ChapterOfficerList {
         StateHasChanged();
     }
 
-    private static string RoleLabel(ChapterOfficerType role) => role switch {
-        ChapterOfficerType.Captain => "Vorsitzender",
-        ChapterOfficerType.FirstOfficer => "Stellv. Vorsitzender",
-        ChapterOfficerType.Quartermaster => "Quartiermeister",
-        ChapterOfficerType.Treasurer => "Schatzmeister",
-        ChapterOfficerType.ViceTreasurer => "Stellv. Schatzmeister",
-        ChapterOfficerType.PoliticalDirector => "Pol. Geschäftsführer",
-        ChapterOfficerType.Member => "Beisitzer",
-        _ => "Unbekannt"
+    private string RoleLabel(ChapterOfficerType role) => role switch {
+        ChapterOfficerType.Captain => I18n[I18nKey.Ui.OfficerRole.Captain],
+        ChapterOfficerType.FirstOfficer => I18n[I18nKey.Ui.OfficerRole.FirstOfficer],
+        ChapterOfficerType.Quartermaster => I18n[I18nKey.Ui.OfficerRole.Quartermaster],
+        ChapterOfficerType.Treasurer => I18n[I18nKey.Ui.OfficerRole.Treasurer],
+        ChapterOfficerType.ViceTreasurer => I18n[I18nKey.Ui.OfficerRole.ViceTreasurer],
+        ChapterOfficerType.PoliticalDirector => I18n[I18nKey.Ui.OfficerRole.PoliticalDirector],
+        ChapterOfficerType.Member => I18n[I18nKey.Ui.OfficerRole.Member],
+        _ => role.ToString()
     };
 }

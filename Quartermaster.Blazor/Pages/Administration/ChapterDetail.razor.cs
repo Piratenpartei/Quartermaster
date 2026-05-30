@@ -28,6 +28,8 @@ public partial class ChapterDetail {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required NavigationManager Navigation { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -117,7 +119,7 @@ public partial class ChapterDetail {
         if (Detail == null) {
             return;
         }
-        var ok = await DeleteConfirm.ShowAsync($"Möchtest du die Gliederung „{Detail.Chapter.Name}\" wirklich löschen?");
+        var ok = await DeleteConfirm.ShowAsync(I18n[$"{I18nKey.Ui.ChapterDetail.DeleteDialogMessage}?name={Detail.Chapter.Name}"]);
         if (!ok) {
             return;
         }
@@ -142,14 +144,14 @@ public partial class ChapterDetail {
         }
     }
 
-    private static string RoleLabel(ChapterOfficerType role) => role switch {
-        ChapterOfficerType.Captain => "Vorsitzender",
-        ChapterOfficerType.FirstOfficer => "Stellv. Vorsitzender",
-        ChapterOfficerType.Quartermaster => "Quartiermeister",
-        ChapterOfficerType.Treasurer => "Schatzmeister",
-        ChapterOfficerType.ViceTreasurer => "Stellv. Schatzmeister",
-        ChapterOfficerType.PoliticalDirector => "Pol. Geschäftsführer",
-        ChapterOfficerType.Member => "Beisitzer",
-        _ => "Unbekannt"
+    private string RoleLabel(ChapterOfficerType role) => role switch {
+        ChapterOfficerType.Captain => I18n[I18nKey.Ui.OfficerRole.Captain],
+        ChapterOfficerType.FirstOfficer => I18n[I18nKey.Ui.OfficerRole.FirstOfficer],
+        ChapterOfficerType.Quartermaster => I18n[I18nKey.Ui.OfficerRole.Quartermaster],
+        ChapterOfficerType.Treasurer => I18n[I18nKey.Ui.OfficerRole.Treasurer],
+        ChapterOfficerType.ViceTreasurer => I18n[I18nKey.Ui.OfficerRole.ViceTreasurer],
+        ChapterOfficerType.PoliticalDirector => I18n[I18nKey.Ui.OfficerRole.PoliticalDirector],
+        ChapterOfficerType.Member => I18n[I18nKey.Ui.OfficerRole.Member],
+        _ => role.ToString()
     };
 }

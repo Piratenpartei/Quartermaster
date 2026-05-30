@@ -1,4 +1,6 @@
 @page "/Administration/Options/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Options
 @using Quartermaster.Api.Chapters
 
@@ -7,7 +9,7 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Option == null) {
-    <div class="alert alert-danger">Einstellung nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.OptionDetail.NotFound]</div>
 } else {
     <h3 class="mb-3">@Option.FriendlyName</h3>
 
@@ -18,7 +20,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="mb-1">Globaler Wert</h5>
+                                <h5 class="mb-1">@I18n[I18nKey.Ui.OptionDetail.GlobalValueTitle]</h5>
                                 <code class="text-secondary small">@Option.Identifier</code>
                                 <span class="badge border ms-2 @DataTypeBadge(Option.DataType)">@DataTypeLabel(Option.DataType)</span>
                             </div>
@@ -31,7 +33,7 @@
                             <div class="d-flex gap-2 mb-2">
                                 <FormSaveButton OnClick="SaveGlobal" ButtonClass="btn-sm btn-primary" />
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePreview">
-                                    <i class="bi bi-eye"></i> Vorschau
+                                    <i class="bi bi-eye"></i> @I18n[I18nKey.Ui.OptionDetail.PreviewButton]
                                 </button>
                             </div>
                             @if (ShowPreview && PreviewHtml != null) {
@@ -54,16 +56,16 @@
             @if (Option.IsOverridable) {
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h5>Gliederungs-Überschreibungen</h5>
+                        <h5>@I18n[I18nKey.Ui.OptionDetail.ChapterOverridesTitle]</h5>
 
                         @if (Option.Overrides.Count > 0) {
                             <div class="table-responsive">
                             <table class="table table-sm mb-3">
                                 <thead>
                                     <tr>
-                                        <th>Kürzel</th>
-                                        <th>Gliederung</th>
-                                        <th>Wert</th>
+                                        <th>@I18n[I18nKey.Ui.OptionDetail.ShortCodeColumn]</th>
+                                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                                        <th>@I18n[I18nKey.Ui.OptionDetail.ValueColumn]</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -74,14 +76,14 @@
                                             <td>
                                                 @if (Option.DataType == OptionDataType.Template) {
                                                     <button class="btn btn-sm btn-outline-secondary" @onclick="() => LoadOverrideForEditing(ov)">
-                                                        <i class="bi bi-pencil"></i> Bearbeiten
+                                                        <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.Common.Edit]
                                                     </button>
                                                 } else {
                                                     <div class="input-group input-group-sm" style="max-width: 300px;">
                                                         <input type="@(Option.DataType == OptionDataType.Number ? "number" : "text")"
                                                                class="form-control" value="@ov.Value"
                                                                @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
-                                                        <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
+                                                        <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.OptionDetail.SaveAriaLabel]" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
                                                             <i class="bi bi-save"></i>
                                                         </button>
                                                     </div>
@@ -93,20 +95,20 @@
                             </table>
                             </div>
                         } else {
-                            <EmptyState Message="Keine Überschreibungen vorhanden." />
+                            <EmptyState Message="@I18n[I18nKey.Ui.OptionDetail.NoOverrides]" />
                         }
 
                         @if (EditingOverride != null) {
                             <hr />
-                            <h6>Überschreibung bearbeiten: @EditingOverride.ChapterName</h6>
+                            <h6>@I18n[$"{I18nKey.Ui.OptionDetail.EditOverrideHeader}?chapter={EditingOverride.ChapterName}"]</h6>
                             <textarea class="form-control font-monospace mb-2" rows="8"
                                       @bind="EditingOverrideValue" @bind:event="oninput"></textarea>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-primary" @onclick="SaveEditingOverride">
-                                    <i class="bi bi-save"></i> Speichern
+                                    <i class="bi bi-save"></i> @I18n[I18nKey.Ui.Common.Save]
                                 </button>
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="CancelEditingOverride">
-                                    Abbrechen
+                                    @I18n[I18nKey.Ui.Common.Cancel]
                                 </button>
                             </div>
                         }
@@ -114,7 +116,7 @@
                         <hr />
                         <div class="d-flex gap-2 align-items-center">
                             <select class="form-select form-select-sm" style="width: auto;" @bind="NewOverrideChapterId">
-                                <option value="">Gliederung hinzufügen...</option>
+                                <option value="">@I18n[I18nKey.Ui.OptionDetail.AddChapterOption]</option>
                                 @if (Chapters != null) {
                                     @foreach (var ch in Chapters.Where(c => !string.IsNullOrEmpty(c.ShortCode))) {
                                         @if (!Option.Overrides.Any(o => o.ChapterId == ch.Id)) {
@@ -124,7 +126,7 @@
                                 }
                             </select>
                             <button class="btn btn-sm btn-outline-success" @onclick="AddOverride">
-                                <i class="bi bi-plus"></i> Hinzufügen
+                                <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.OptionDetail.AddButton]
                             </button>
                         </div>
                     </div>
@@ -132,7 +134,7 @@
             } else {
                 <div class="card mb-3">
                     <div class="card-body text-secondary">
-                        <i class="bi bi-info-circle me-1"></i> Diese Einstellung kann nicht pro Gliederung überschrieben werden.
+                        <i class="bi bi-info-circle me-1"></i> @I18n[I18nKey.Ui.OptionDetail.NotOverridableNotice]
                     </div>
                 </div>
             }

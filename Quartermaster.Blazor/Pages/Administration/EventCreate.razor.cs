@@ -19,6 +19,9 @@ public partial class EventCreate {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private string ChapterId { get; set; } = "";
     private string InternalName { get; set; } = "";
     private bool Submitting;

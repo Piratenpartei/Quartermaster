@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AdministrativeDivisions;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Components.Inputs;
@@ -19,6 +20,8 @@ public partial class MunicipalityPicker {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     /// <summary>Raised when the user picks a municipality from the results.</summary>
     [Parameter]

@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Blazor.Pages.MembershipApplication;
 using Quartermaster.Blazor.Services;
-
-using Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
@@ -18,6 +18,8 @@ public partial class Summary {
     public required NavigationManager NavigationManager { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public required string ReturnUrl { get; set; }

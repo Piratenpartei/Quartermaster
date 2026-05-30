@@ -1,13 +1,15 @@
 @page "/Administration/Meetings/{Id:guid}/Edit"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Meetings
 
 <div class="mb-3 d-flex gap-2">
     <a href="/Administration/Meetings/@Id" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Sitzung
+        <i class="bi bi-arrow-left"></i> @I18n[I18nKey.Ui.MeetingAgendaEdit.BackToMeeting]
     </a>
     @if (Meeting != null && Meeting.Status == MeetingStatus.InProgress) {
         <a href="/Administration/Meetings/@Id/Live" class="btn btn-sm btn-outline-warning">
-            <i class="bi bi-broadcast"></i> Zur laufenden Sitzung
+            <i class="bi bi-broadcast"></i> @I18n[I18nKey.Ui.MeetingAgendaEdit.GoToLiveMeeting]
         </a>
     }
 </div>
@@ -15,16 +17,16 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Meeting == null) {
-    <div class="alert alert-danger">Sitzung nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.MeetingAgendaEdit.NotFound]</div>
 } else {
-    <h3 class="mb-3">Agenda bearbeiten: @Meeting.Title</h3>
+    <h3 class="mb-3">@I18n[$"{I18nKey.Ui.MeetingAgendaEdit.PageTitle}?title={Meeting.Title}"]</h3>
 
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">Tagesordnung</h5>
+                <h5 class="mb-0">@I18n[I18nKey.Ui.MeetingAgendaEdit.AgendaHeading]</h5>
                 <button class="btn btn-sm btn-primary" @onclick="@(() => AddAgendaItem(null))">
-                    <i class="bi bi-plus-circle"></i> Neuer TOP
+                    <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.MeetingAgendaEdit.NewItem]
                 </button>
             </div>
             <AgendaItemTree Items="@Meeting.AgendaItems"

@@ -1,16 +1,17 @@
 @page "/Administration/ChapterTree"
 @using Quartermaster.Api
 @using Quartermaster.Api.Chapters
+@using Quartermaster.Api.I18n
 
-<PageHeader Title="Gliederungen - Struktur">
+<PageHeader Title="@I18n[I18nKey.Ui.ChapterTree.PageTitle]">
     <Actions>
         <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
             <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary btn-hover-scale1">
-                <i class="bi bi-plus-lg"></i> Neue Gliederung
+                <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.ChapterTree.NewChapter]
             </a>
         </RequirePermission>
         <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-list-ul"></i> Liste
+            <i class="bi bi-list-ul"></i> @I18n[I18nKey.Ui.ChapterTree.ListViewLink]
         </a>
     </Actions>
 </PageHeader>

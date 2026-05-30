@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.MembershipApplication;
@@ -6,6 +7,8 @@ namespace Quartermaster.Blazor.Pages.MembershipApplication;
 public partial class AddressDetails {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
 

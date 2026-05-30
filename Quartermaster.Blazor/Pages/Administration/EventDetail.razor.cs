@@ -23,6 +23,9 @@ public partial class EventDetail {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public Guid Id { get; set; }
 
@@ -158,17 +161,17 @@ public partial class EventDetail {
         }
     }
 
-    private List<(EventStatus Target, string Label, string Icon)> AllowedTransitions => Event?.Status switch {
-        EventStatus.Draft => [(EventStatus.Active, "Aktivieren", "bi-play-circle")],
+    private List<(EventStatus Target, string LabelKey, string Icon)> AllowedTransitions => Event?.Status switch {
+        EventStatus.Draft => [(EventStatus.Active, I18nKey.Ui.EventDetail.TransitionActivate, "bi-play-circle")],
         EventStatus.Active => [
-            (EventStatus.Draft, "Zurück zu Entwurf", "bi-arrow-counterclockwise"),
-            (EventStatus.Completed, "Als abgeschlossen markieren", "bi-check-circle")
+            (EventStatus.Draft, I18nKey.Ui.EventDetail.TransitionBackToDraft, "bi-arrow-counterclockwise"),
+            (EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionMarkCompleted, "bi-check-circle")
         ],
         EventStatus.Completed => [
-            (EventStatus.Active, "Zurück zu Aktiv", "bi-arrow-counterclockwise"),
-            (EventStatus.Archived, "Archivieren", "bi-archive")
+            (EventStatus.Active, I18nKey.Ui.EventDetail.TransitionBackToActive, "bi-arrow-counterclockwise"),
+            (EventStatus.Archived, I18nKey.Ui.EventDetail.TransitionArchive, "bi-archive")
         ],
-        EventStatus.Archived => [(EventStatus.Completed, "Dearchivieren", "bi-box-arrow-up")],
+        EventStatus.Archived => [(EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionUnarchive, "bi-box-arrow-up")],
         _ => []
     };
 }

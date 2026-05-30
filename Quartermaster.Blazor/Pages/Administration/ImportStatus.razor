@@ -1,15 +1,16 @@
 @page "/Administration/ImportStatus"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Members
 @using Quartermaster.Api.AdministrativeDivisions
 
-<PageHeader Title="Importstatus" />
+<PageHeader Title="@I18n[I18nKey.Ui.ImportStatus.PageTitle]" />
 
-@* --- Member Import --- *@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Mitgliederimport</h5>
+        <h5 class="mb-0">@I18n[I18nKey.Ui.ImportStatus.MemberImportSection]</h5>
         <a href="/Administration/Members/Import" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-upload"></i> CSV hochladen
+            <i class="bi bi-upload"></i> @I18n[I18nKey.Ui.ImportStatus.UploadCsvButton]
         </a>
     </div>
     <div class="card-body">
@@ -19,31 +20,31 @@
             var latest = MemberHistory.Items[0];
             <div class="row g-3 mb-3">
                 <div class="col-auto">
-                    <span class="text-secondary small">Letzter Import</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.LastImport]</span><br />
                     <LocalTime Value="latest.ImportedAt" />
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Datei</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.FileLabel]</span><br />
                     @latest.FileName
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Dauer</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.DurationLabel]</span><br />
                     @FormatDuration(latest.DurationMs)
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Gesamt</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.TotalLabel]</span><br />
                     @latest.TotalRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Neu</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.NewLabel]</span><br />
                     @latest.NewRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Aktualisiert</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.UpdatedLabel]</span><br />
                     @latest.UpdatedRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Fehler</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.ErrorsLabel]</span><br />
                     @if (latest.ErrorCount > 0) {
                         <span class="badge bg-danger">@latest.ErrorCount</span>
                     } else {
@@ -59,18 +60,18 @@
                 </div>
             }
             <details>
-                <summary class="text-secondary small" style="cursor: pointer;">Verlauf (@MemberHistory.TotalCount Einträge)</summary>
+                <summary class="text-secondary small" style="cursor: pointer;">@I18n[$"{I18nKey.Ui.ImportStatus.HistorySummary}?count={MemberHistory.TotalCount}"]</summary>
                 <div class="table-responsive">
                 <table class="table table-striped table-sm mt-2">
                     <thead>
                         <tr>
-                            <th>Zeitpunkt</th>
-                            <th>Datei</th>
-                            <th>Dauer</th>
-                            <th>Gesamt</th>
-                            <th>Neu</th>
-                            <th>Aktualisiert</th>
-                            <th>Fehler</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.TimestampColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.FileColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.DurationColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.TotalColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.NewColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.ErrorsColumn]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,15 +97,14 @@
                 </div>
             </details>
         } else {
-            <p class="text-secondary mb-0">Noch keine Importe durchgeführt.</p>
+            <p class="text-secondary mb-0">@I18n[I18nKey.Ui.ImportStatus.NoImportsYet]</p>
         }
     </div>
 </div>
 
-@* --- Admin Division Import --- *@
 <div class="card mb-4">
     <div class="card-header">
-        <h5 class="mb-0">Verwaltungsgebiete-Import</h5>
+        <h5 class="mb-0">@I18n[I18nKey.Ui.ImportStatus.AdminDivImportSection]</h5>
     </div>
     <div class="card-body">
         @if (AdminDivLoading) {
@@ -113,35 +113,35 @@
             var latest = AdminDivHistory.Items[0];
             <div class="row g-3 mb-3">
                 <div class="col-auto">
-                    <span class="text-secondary small">Letzter Import</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.LastImport]</span><br />
                     <LocalTime Value="latest.ImportedAt" />
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Dauer</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.DurationLabel]</span><br />
                     @FormatDuration(latest.DurationMs)
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Gesamt</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.TotalLabel]</span><br />
                     @latest.TotalRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Hinzugefügt</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.AddedLabel]</span><br />
                     @latest.AddedRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Aktualisiert</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.UpdatedLabel]</span><br />
                     @latest.UpdatedRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Entfernt</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.RemovedLabel]</span><br />
                     @latest.RemovedRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Umgemappt</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.RemappedLabel]</span><br />
                     @latest.RemappedRecords
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Verwaist</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.OrphanedLabel]</span><br />
                     @if (latest.OrphanedRecords > 0) {
                         <span class="badge bg-warning text-dark">@latest.OrphanedRecords</span>
                     } else {
@@ -149,7 +149,7 @@
                     }
                 </div>
                 <div class="col-auto">
-                    <span class="text-secondary small">Fehler</span><br />
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.ErrorsLabel]</span><br />
                     @if (latest.ErrorCount > 0) {
                         <span class="badge bg-danger">@latest.ErrorCount</span>
                     } else {
@@ -165,19 +165,19 @@
                 </div>
             }
             <details>
-                <summary class="text-secondary small" style="cursor: pointer;">Verlauf (@AdminDivHistory.TotalCount Einträge)</summary>
+                <summary class="text-secondary small" style="cursor: pointer;">@I18n[$"{I18nKey.Ui.ImportStatus.HistorySummary}?count={AdminDivHistory.TotalCount}"]</summary>
                 <div class="table-responsive">
                 <table class="table table-striped table-sm mt-2">
                     <thead>
                         <tr>
-                            <th>Zeitpunkt</th>
-                            <th>Dauer</th>
-                            <th>Gesamt</th>
-                            <th>Neu</th>
-                            <th>Aktualisiert</th>
-                            <th>Entfernt</th>
-                            <th>Verwaist</th>
-                            <th>Fehler</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.TimestampColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.DurationColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.TotalColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.NewColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedColumn]</th>
+                            <th>@I18n[I18nKey.Ui.ImportStatus.RemovedLabel]</th>
+                            <th>@I18n[I18nKey.Ui.ImportStatus.OrphanedLabel]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.ErrorsColumn]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,7 +210,7 @@
                 </div>
             </details>
         } else {
-            <p class="text-secondary mb-0">Noch keine Importe durchgeführt.</p>
+            <p class="text-secondary mb-0">@I18n[I18nKey.Ui.ImportStatus.NoImportsYet]</p>
         }
     </div>
 </div>

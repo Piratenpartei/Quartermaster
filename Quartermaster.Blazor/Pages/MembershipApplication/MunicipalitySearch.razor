@@ -1,9 +1,11 @@
 @page "/MembershipApplication/Address"
+@using Quartermaster.Api
 @using Quartermaster.Api.AdministrativeDivisions
+@using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.Inputs
 
 <div class="mb-3">
-    <h3>Gemeinde Suchen</h3>
+    <h3>@I18n[I18nKey.Ui.MunicipalitySearch.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -12,8 +14,8 @@
 <MunicipalityPicker @ref="_picker" OnSelect="SelectDivision" />
 
 <div class="d-flex justify-content-between align-items-center mt-4">
-    <a href="/MembershipApplication/CountrySelection" class="btn btn-primary">Zurück</a>
+    <a href="/MembershipApplication/CountrySelection" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
     <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="EnterManually">
-        Adresse manuell eingeben
+        @I18n[I18nKey.Ui.MunicipalitySearch.EnterManuallyLink]
     </a>
 </div>

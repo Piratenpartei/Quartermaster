@@ -1,7 +1,9 @@
 @page "/MembershipApplication/AddressDetails"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Mitgliedsantrag - Adresse</h3>
+    <h3>@I18n[I18nKey.Ui.AddressDetails.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -9,34 +11,34 @@
 
 @if (!EntryState.IsGermany) {
     <div class="mb-3">
-        <label for="addressCountry" class="form-label">Land <RequiredStar /></label>
+        <label for="addressCountry" class="form-label">@I18n[I18nKey.Ui.AddressDetails.CountryLabel] <RequiredStar /></label>
         <input type="text" class="form-control" id="addressCountry" @bind=EntryState.AddressCountry @bind:event="oninput" />
     </div>
 }
 
 <div class="row g-3 mb-3">
     <div class="col-sm-auto">
-        <label for="addressPostCode" class="form-label">Postleitzahl <RequiredStar /></label>
+        <label for="addressPostCode" class="form-label">@I18n[I18nKey.Ui.AddressDetails.PostCodeLabel] <RequiredStar /></label>
         <input type="text" class="form-control" style="max-width: 10em;" id="addressPostCode"
                disabled="@FromMunicipality" @bind=EntryState.AddressPostCode @bind:event="oninput" />
     </div>
     <div class="col-sm">
-        <label for="addressCity" class="form-label">Ort <RequiredStar /></label>
+        <label for="addressCity" class="form-label">@I18n[I18nKey.Ui.AddressDetails.CityLabel] <RequiredStar /></label>
         <input type="text" class="form-control" id="addressCity"
                disabled="@FromMunicipality" @bind=EntryState.AddressCity @bind:event="oninput" />
     </div>
 </div>
 @if (FromMunicipality) {
-    <p class="text-secondary small mb-3">Postleitzahl und Ort stammen aus der gewählten Gemeinde.</p>
+    <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.AddressDetails.FromMunicipalityHint]</p>
 }
 
 <div class="mb-3 d-flex flex-row">
     <div class="flex-grow-1 pe-3">
-        <label for="addressStreet" class="form-label">Straße <RequiredStar /></label>
+        <label for="addressStreet" class="form-label">@I18n[I18nKey.Ui.AddressDetails.StreetLabel] <RequiredStar /></label>
         <input type="text" class="form-control" id="addressStreet" @bind=EntryState.AddressStreet @bind:event="oninput" />
     </div>
     <div style="width: 8em;">
-        <label for="addressHouseNbr" class="form-label">Hausnr. <RequiredStar /></label>
+        <label for="addressHouseNbr" class="form-label">@I18n[I18nKey.Ui.AddressDetails.HouseNumberLabel] <RequiredStar /></label>
         <input type="text" class="form-control" id="addressHouseNbr" @bind=EntryState.AddressHouseNbr @bind:event="oninput" />
     </div>
 </div>
@@ -45,7 +47,7 @@
     <div class="mb-3">
         <div class="card border-success">
             <div class="card-body">
-                <h5>Zugeordnete Gliederung</h5>
+                <h5>@I18n[I18nKey.Ui.AddressDetails.AssignedChapterTitle]</h5>
                 <p class="card-text mb-0">@EntryState.ChapterName</p>
             </div>
         </div>
@@ -53,7 +55,7 @@
 }
 
 <div class="d-flex justify-content-between">
-    <a href="@BackHref" class="btn btn-primary">Zurück</a>
+    <a href="@BackHref" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
     <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
-       href="/MembershipApplication/DuesTypeSelection">Weiter</a>
+       href="/MembershipApplication/DuesTypeSelection">@I18n[I18nKey.Ui.Common.Next]</a>
 </div>

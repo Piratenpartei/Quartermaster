@@ -1,7 +1,9 @@
-﻿@page "/DueSelector/SelectReduced"
+@page "/DueSelector/SelectReduced"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Geminderter Beitrag</h3>
+    <h3>@I18n[I18nKey.Ui.SelectReduced.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -13,7 +15,7 @@
             || !NextStepButtonHovered;
     }
 
-    <label for="reducedJustification" class="form-label">Begründung <RequiredStar /></label>
+    <label for="reducedJustification" class="form-label">@I18n[I18nKey.Ui.SelectReduced.JustificationLabel] <RequiredStar /></label>
     <textarea class="form-control @(isTxtValid ? "" : "is-invalid")" id="reducedJustification" @bind=EntryState.ReducedJustification
               @bind:event="oninput" maxlength="2048"></textarea>
 </div>
@@ -23,7 +25,7 @@
         var isInvalid = EntryState.ReducedAmount < 1;
     }
 
-    <label for="reducedAmount" class="form-label">Jahreswunschbeitrag <RequiredStar /></label>
+    <label for="reducedAmount" class="form-label">@I18n[I18nKey.Ui.SelectReduced.YearlyAmountLabel] <RequiredStar /></label>
     <div class="input-group @(isInvalid ? "has-validation" : "")">
         <span class="input-group-text">€</span>
         <input type="number" class="form-control @(isInvalid ? "is-invalid" : "")" min="1" id="reducedAmount"
@@ -31,7 +33,7 @@
 
         @if (isInvalid) {
             <div class="invalid-feedback">
-                Der Jahresbeitrag darf nicht kleiner als 1€ sein.
+                @I18n[I18nKey.Ui.SelectReduced.AmountTooLowFeedback]
             </div>
         }
     </div>
@@ -42,18 +44,17 @@
 </div>
 
 <div class="mb-3">
-    <h3>Beitragseinstufung</h3>
+    <h3>@I18n[I18nKey.Ui.SelectReduced.ClassificationHeader]</h3>
     <p>
-        Im Fall einer Ablehnung des geminderten Beitrags benötigen wir dennoch deine Einstufung nach Monatseinkommen.
-        Falls keine Einstufung vorgenommen wird, wirst du automatisch eingestuft.
+        @I18n[I18nKey.Ui.SelectReduced.ClassificationNotice]
     </p>
 </div>
 
 <div class="mb-2">
     <CardLink HRef="/DueSelector/SelectByMonthlyPay" EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered>
-        <span>Einstufung nach Monatseinkommen</span><br />
+        <span>@I18n[I18nKey.Ui.SelectReduced.MonthlyClassificationOption]</span><br />
         @if (string.IsNullOrEmpty(EntryState.ReducedJustification)) {
-            <span>Begründung ist ein Pflichtfeld.</span>
+            <span>@I18n[I18nKey.Ui.SelectReduced.JustificationRequired]</span>
         }
     </CardLink>
 </div>
@@ -61,13 +62,13 @@
 <div class="mb-3">
     <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/SelectReduced")}")"
               EnabledFunc=@CanContinue @bind-Hovered=NextStepButtonHovered CardBorderType="warning">
-        <span>Überspringen</span><br />
+        <span>@I18n[I18nKey.Ui.SelectReduced.SkipOption]</span><br />
         @if (string.IsNullOrEmpty(EntryState.ReducedJustification)) {
-            <span>Begründung ist ein Pflichtfeld.</span>
+            <span>@I18n[I18nKey.Ui.SelectReduced.JustificationRequired]</span>
         }
     </CardLink>
 </div>
 
 <div>
-    <a href="/DueSelector/DueTypeSelector" class="btn btn-primary">Zurück</a>
+    <a href="/DueSelector/DueTypeSelector" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
 </div>

@@ -1,7 +1,9 @@
 @page "/MembershipApplication/Declarations"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Mitgliedsantrag - Erklärungen</h3>
+    <h3>@I18n[I18nKey.Ui.Declarations.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -9,46 +11,44 @@
 
 <div class="mb-3">
     <Checkbox @bind-Value=EntryState.ConformityDeclarationAccepted>
-        <strong>Konformitätserklärung</strong> <RequiredStar />
+        <strong>@I18n[I18nKey.Ui.Declarations.ConformityHeader]</strong> <RequiredStar />
     </Checkbox>
     <p class="text-secondary small ms-4">
-        Ich erkenne die Grundsätze, politischen Ziele und die Satzung der Piratenpartei Deutschland an.
+        @I18n[I18nKey.Ui.Declarations.ConformityBody]
     </p>
 </div>
 
 <div class="mb-3">
     <Checkbox @bind-Value=NoPriorDeclinedApplication>
-        Es wurde in der Vergangenheit noch kein Mitgliedsantrag bei einer Gliederung der Piratenpartei Deutschland abgelehnt.
+        @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedLabel]
     </Checkbox>
     <p class="text-secondary small ms-4">
-        Wenn du dies nicht bestätigen kannst, gib uns in der Textbox weiter unten bitte die ablehnende Gliederung und das Datum der Ablehnung an.
+        @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedHint]
     </p>
 </div>
 
 <div class="mb-3">
     <Checkbox @bind-Value=EntryState.IsMemberOfAnotherParty>
-        Ich bin bereits Mitglied in einer anderen Partei
+        @I18n[I18nKey.Ui.Declarations.OtherPartyLabel]
     </Checkbox>
     <p class="text-secondary small ms-4">
-        Die gleichzeitige Mitgliedschaft in der Piratenpartei Deutschland und bei einer anderen Partei oder
-        Wählergruppe ist nicht ausgeschlossen. Die Mitgliedschaft in einer Organisation oder Vereinigung,
-        deren Zielsetzung den Zielen der Piratenpartei Deutschland widerspricht, ist nicht zulässig.
+        @I18n[I18nKey.Ui.Declarations.OtherPartyHint]
     </p>
 </div>
 
 <div class="mb-3">
-    <label for="entryDate" class="form-label">Eintritt zum</label>
+    <label for="entryDate" class="form-label">@I18n[I18nKey.Ui.Declarations.EntryDateLabel]</label>
     <input type="date" class="form-control" id="entryDate" @bind=EntryState.EntryDate />
 </div>
 
 <div class="mb-3">
-    <label for="applicationText" class="form-label">...was Du uns noch sagen möchtest:</label>
+    <label for="applicationText" class="form-label">@I18n[I18nKey.Ui.Declarations.AdditionalMessageLabel]</label>
     <textarea class="form-control" rows="4" id="applicationText" @bind=EntryState.ApplicationText @bind:event="oninput"
               maxlength="2048"></textarea>
 </div>
 
 <div class="d-flex justify-content-between">
-    <a href="/MembershipApplication/DuesTypeSelection" class="btn btn-primary">Zurück</a>
+    <a href="/MembershipApplication/DuesTypeSelection" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
     <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
-       href="/MembershipApplication/Summary">Weiter</a>
+       href="/MembershipApplication/Summary">@I18n[I18nKey.Ui.Common.Next]</a>
 </div>

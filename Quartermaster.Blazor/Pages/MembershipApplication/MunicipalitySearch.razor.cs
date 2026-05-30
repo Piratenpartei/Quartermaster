@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AdministrativeDivisions;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components.Inputs;
 using Quartermaster.Blazor.Services;
 
@@ -20,6 +21,8 @@ public partial class MunicipalitySearch {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required NavigationManager Navigation { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
     private MunicipalityPicker? _picker;

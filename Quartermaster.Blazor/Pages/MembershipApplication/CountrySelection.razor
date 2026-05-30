@@ -1,7 +1,9 @@
 @page "/MembershipApplication/CountrySelection"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Mitgliedsantrag - Wo wohnst du?</h3>
+    <h3>@I18n[I18nKey.Ui.CountrySelection.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -9,16 +11,16 @@
 
 <div class="mb-2">
     <CardLink HRef="/MembershipApplication/Address" OnNavigate=@(() => SelectCountry(true))>
-        <span>Ich wohne in Deutschland</span>
+        <span>@I18n[I18nKey.Ui.CountrySelection.LivesInGermany]</span>
     </CardLink>
 </div>
 
 <div class="mb-3">
     <CardLink HRef="/MembershipApplication/AddressDetails" OnNavigate=@(() => SelectCountry(false))>
-        <span>Ich wohne in einem anderen Land</span>
+        <span>@I18n[I18nKey.Ui.CountrySelection.LivesElsewhere]</span>
     </CardLink>
 </div>
 
 <div>
-    <a href="/MembershipApplication/PersonalData" class="btn btn-primary">Zurück</a>
+    <a href="/MembershipApplication/PersonalData" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
 </div>

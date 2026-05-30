@@ -4,7 +4,7 @@ namespace Quartermaster.Blazor.Components;
 
 public partial class EmptyState {
     /// <summary>
-    /// The German empty-state text to display, e.g. "Keine Einträge vorhanden."
+    /// The empty-state text to display, e.g. <c>I18n[I18nKey.Ui.Common.NoEntries]</c>.
     /// </summary>
     [Parameter, EditorRequired]
     public string Message { get; set; } = "";

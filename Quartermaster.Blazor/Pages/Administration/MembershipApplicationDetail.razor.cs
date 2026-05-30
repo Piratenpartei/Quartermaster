@@ -20,6 +20,8 @@ public partial class MembershipApplicationDetail {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -131,19 +133,19 @@ public partial class MembershipApplicationDetail {
         }
     }
 
-    private static string ValuationLabel(SelectedValuation valuation) => valuation switch {
-        SelectedValuation.MonthlyPayGroup => "Monatseinkommen",
-        SelectedValuation.OnePercentYearlyPay => "1% Jahreseinkommen",
-        SelectedValuation.Underage => "Minderjährig (12€)",
-        SelectedValuation.Reduced => "Geminderter Beitrag",
-        _ => "Unbekannt"
+    private string ValuationLabel(SelectedValuation valuation) => valuation switch {
+        SelectedValuation.MonthlyPayGroup => I18n[I18nKey.Ui.ApplicationDetail.ValuationMonthlyPay],
+        SelectedValuation.OnePercentYearlyPay => I18n[I18nKey.Ui.ApplicationDetail.ValuationOnePercent],
+        SelectedValuation.Underage => I18n[I18nKey.Ui.ApplicationDetail.ValuationUnderage],
+        SelectedValuation.Reduced => I18n[I18nKey.Ui.ApplicationDetail.ValuationReduced],
+        _ => I18n[I18nKey.Ui.ApplicationDetail.ValuationUnknown]
     };
 
-    private static string DueStatusLabel(DueSelectionStatus status) => status switch {
-        DueSelectionStatus.Pending => "Ausstehend",
-        DueSelectionStatus.Approved => "Genehmigt",
-        DueSelectionStatus.Rejected => "Abgelehnt",
-        DueSelectionStatus.AutoApproved => "Automatisch genehmigt",
-        _ => "Unbekannt"
+    private string DueStatusLabel(DueSelectionStatus status) => status switch {
+        DueSelectionStatus.Pending => I18n[I18nKey.Ui.ApplicationDetail.DueStatusPending],
+        DueSelectionStatus.Approved => I18n[I18nKey.Ui.ApplicationDetail.DueStatusApproved],
+        DueSelectionStatus.Rejected => I18n[I18nKey.Ui.ApplicationDetail.DueStatusRejected],
+        DueSelectionStatus.AutoApproved => I18n[I18nKey.Ui.ApplicationDetail.DueStatusAutoApproved],
+        _ => I18n[I18nKey.Ui.ApplicationDetail.DueStatusUnknown]
     };
 }

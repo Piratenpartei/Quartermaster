@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.MembershipApplication;
@@ -6,6 +7,8 @@ namespace Quartermaster.Blazor.Pages.MembershipApplication;
 public partial class CountrySelection {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MembershipApplicationEntryState? EntryState;
 
@@ -18,9 +21,8 @@ public partial class CountrySelection {
             return;
 
         EntryState.IsGermany = isGermany;
-        EntryState.AddressCountry = isGermany ? "Deutschland" : "";
+        EntryState.AddressCountry = isGermany ? I18n[I18nKey.Ui.CountrySelection.GermanyCountryName] : "";
 
-        // Reset address fields when changing country
         EntryState.AddressPostCode = "";
         EntryState.AddressCity = "";
         EntryState.AddressStreet = "";

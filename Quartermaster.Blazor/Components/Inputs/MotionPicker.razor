@@ -1,12 +1,13 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
 
 <div style="position: relative;" tabindex="-1" @onfocusout="ScheduleClose">
     <div class="input-group input-group-sm">
         <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control" placeholder="Antrag suchen..."
+        <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.MotionPicker.Placeholder]"
                value="@SearchText" @oninput="OnSearchInput" @onfocus="OnFocus" disabled="@Disabled" />
         @if (!string.IsNullOrEmpty(Value)) {
-            <button class="btn btn-outline-secondary" type="button" aria-label="Auswahl löschen" @onclick="Clear">
+            <button class="btn btn-outline-secondary" type="button" aria-label="@I18n[I18nKey.Ui.MotionPicker.ClearAriaLabel]" @onclick="Clear">
                 <i class="bi bi-x"></i>
             </button>
         }
@@ -15,10 +16,10 @@
         <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
             @if (Loading) {
                 <div class="list-group-item py-1 small text-secondary">
-                    <span class="spinner-border spinner-border-sm" role="status"></span> Lade...
+                    <span class="spinner-border spinner-border-sm" role="status"></span> @I18n[I18nKey.Ui.MotionPicker.LoadingHint]
                 </div>
             } else if (FilteredMotions.Count == 0) {
-                <div class="list-group-item py-1 small text-secondary">Keine offenen Anträge</div>
+                <div class="list-group-item py-1 small text-secondary">@I18n[I18nKey.Ui.MotionPicker.NoOpenMotions]</div>
             } else {
                 @foreach (var motion in FilteredMotions.Take(20)) {
                     <button type="button" class="list-group-item list-group-item-action py-1 small"
@@ -31,7 +32,7 @@
             @if (!string.IsNullOrEmpty(ChapterId)) {
                 <a class="list-group-item list-group-item-action py-1 small text-primary"
                    href="/Motions/Create?chapterId=@ChapterId" target="_blank">
-                    <i class="bi bi-plus-circle"></i> Neuen Antrag anlegen
+                    <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.MotionPicker.CreateNewMotion]
                 </a>
             }
         </div>

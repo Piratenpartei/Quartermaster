@@ -1,11 +1,13 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.AdministrativeDivisions
+@inject I18nService I18n
 
 <div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
-    <input type="text" class="form-control @SizeClass" placeholder="PLZ, Name oder Code..."
+    <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.AdminDivisionPicker.Placeholder]"
            value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
            style="border-radius: 0;" />
     @if (AllowClear && !string.IsNullOrEmpty(SearchText)) {
-        <button type="button" class="btn-close" aria-label="Leeren" @onclick="Clear"
+        <button type="button" class="btn-close" aria-label="@I18n[I18nKey.Ui.AdminDivisionPicker.ClearAriaLabel]" @onclick="Clear"
                 style="position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); z-index: 5;"></button>
     }
     @if (ShowDropdown && SearchResults != null && SearchResults.Count > 0) {

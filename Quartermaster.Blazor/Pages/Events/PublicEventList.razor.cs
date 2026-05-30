@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Events;
@@ -12,6 +13,8 @@ public partial class PublicEventList {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private EventSearchResponse? Response;
     private bool Loading = true;

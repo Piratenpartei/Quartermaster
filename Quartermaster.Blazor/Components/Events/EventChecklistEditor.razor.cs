@@ -22,6 +22,9 @@ public partial class EventChecklistEditor {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public required Guid EventId { get; set; }
 
@@ -235,12 +238,14 @@ public partial class EventChecklistEditor {
             try {
                 string templateContent;
                 if (configuration?.UseDescription == true) {
-                    templateContent = Event.Description ?? "(Keine Beschreibung)";
+                    templateContent = Event.Description ?? I18n[I18nKey.Ui.EventChecklistEditor.NoDescriptionFallback];
                     templateContent = ReplaceEventDateVariables(templateContent);
                 } else if (!string.IsNullOrEmpty(configuration?.TemplateIdentifier)) {
-                    templateContent = $"*Vorlage:* `{configuration.TemplateIdentifier}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n(Vorschau mit Beispieldaten)";
+                    var templatePrefix = I18n[I18nKey.Ui.EventChecklistEditor.PreviewTemplatePrefix];
+                    var sampleNote = I18n[I18nKey.Ui.EventChecklistEditor.PreviewSampleData];
+                    templateContent = $"*{templatePrefix}* `{configuration.TemplateIdentifier}`\n\nHallo **{{{{ member.FirstName }}}}**,\n\n{sampleNote}";
                 } else {
-                    PreviewCache[itemId] = "<p class=\"text-secondary\">Kein Template konfiguriert. Bearbeiten Sie den Eintrag, um ein Template oder die Beschreibung als Inhalt auszuwählen.</p>";
+                    PreviewCache[itemId] = $"<p class=\"text-secondary\">{I18n[I18nKey.Ui.EventChecklistEditor.PreviewNoTemplateConfigured]}</p>";
                     StateHasChanged();
                     return;
                 }
@@ -249,7 +254,7 @@ public partial class EventChecklistEditor {
                 var (html, error) = await TemplateRenderer.RenderHtmlAsync(templateContent, mockData);
                 PreviewCache[itemId] = html ?? $"<p class=\"text-danger\">{error}</p>";
             } catch (Exception ex) {
-                PreviewCache[itemId] = $"<p class=\"text-secondary\">Vorschau nicht verfügbar: {ex.Message}</p>";
+                PreviewCache[itemId] = $"<p class=\"text-secondary\">{I18n[I18nParams.With(I18nKey.Ui.EventChecklistEditor.PreviewUnavailable, ("error", ex.Message))]}</p>";
             }
         }
 
@@ -257,7 +262,7 @@ public partial class EventChecklistEditor {
     }
 
     private string ReplaceEventDateVariables(string text) {
-        var dateStr = Event.EventDate?.ToString("dd.MM.yyyy") ?? "(kein Datum)";
+        var dateStr = Event.EventDate?.ToString("dd.MM.yyyy") ?? I18n[I18nKey.Ui.EventChecklistEditor.NoDateFallback];
         text = text.Replace("{{date}}", dateStr);
         text = text.Replace("{{datum}}", dateStr);
         return text;

@@ -1,34 +1,36 @@
 @page "/Confirm/{Token}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Submissions
 
-<PageTitle>Bestätigung</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.ConfirmSubmission.PageTitle]</PageTitle>
 
 <div class="d-flex justify-content-center mt-5">
     <div style="max-width: 640px; width: 100%;">
         @if (Loading) {
             <div class="text-center">
                 <div class="spinner-border" role="status"></div>
-                <p class="mt-3 text-secondary">Bestätigung wird verarbeitet…</p>
+                <p class="mt-3 text-secondary">@I18n[I18nKey.Ui.ConfirmSubmission.Processing]</p>
             </div>
         } else if (Result == SubmissionConfirmStatus.Confirmed) {
             <div class="alert alert-success">
-                <h4 class="alert-heading"><i class="bi bi-check-circle me-2"></i>Bestätigt!</h4>
-                <p class="mb-0">Vielen Dank. Deine Einreichung wurde bestätigt und wird nun bearbeitet.</p>
+                <h4 class="alert-heading"><i class="bi bi-check-circle me-2"></i>@I18n[I18nKey.Ui.ConfirmSubmission.ConfirmedHeading]</h4>
+                <p class="mb-0">@I18n[I18nKey.Ui.ConfirmSubmission.ConfirmedBody]</p>
             </div>
         } else if (Result == SubmissionConfirmStatus.AlreadyConfirmed) {
             <div class="alert alert-success">
-                <h4 class="alert-heading"><i class="bi bi-check-circle me-2"></i>Bereits bestätigt</h4>
-                <p class="mb-0">Diese Einreichung wurde bereits bestätigt. Es ist nichts weiter zu tun.</p>
+                <h4 class="alert-heading"><i class="bi bi-check-circle me-2"></i>@I18n[I18nKey.Ui.ConfirmSubmission.AlreadyConfirmedHeading]</h4>
+                <p class="mb-0">@I18n[I18nKey.Ui.ConfirmSubmission.AlreadyConfirmedBody]</p>
             </div>
         } else if (Result == SubmissionConfirmStatus.Expired) {
             <div class="alert alert-warning">
-                <h4 class="alert-heading"><i class="bi bi-clock-history me-2"></i>Link abgelaufen</h4>
-                <p class="mb-0">Dieser Bestätigungslink ist abgelaufen (gültig für 48 Stunden). Bitte reiche deine Einreichung erneut ein.</p>
+                <h4 class="alert-heading"><i class="bi bi-clock-history me-2"></i>@I18n[I18nKey.Ui.ConfirmSubmission.ExpiredHeading]</h4>
+                <p class="mb-0">@I18n[I18nKey.Ui.ConfirmSubmission.ExpiredBody]</p>
             </div>
         } else {
             <div class="alert alert-danger">
-                <h4 class="alert-heading"><i class="bi bi-x-circle me-2"></i>Ungültiger Link</h4>
-                <p class="mb-0">Dieser Bestätigungslink ist ungültig. Bitte reiche deine Einreichung erneut ein.</p>
+                <h4 class="alert-heading"><i class="bi bi-x-circle me-2"></i>@I18n[I18nKey.Ui.ConfirmSubmission.InvalidHeading]</h4>
+                <p class="mb-0">@I18n[I18nKey.Ui.ConfirmSubmission.InvalidBody]</p>
             </div>
         }
     </div>

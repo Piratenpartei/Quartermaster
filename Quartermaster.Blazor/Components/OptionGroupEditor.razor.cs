@@ -18,6 +18,9 @@ public partial class OptionGroupEditor {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     /// <summary>Option identifiers to edit, in display order.</summary>
     [Parameter]
     public required string[] Keys { get; set; }

@@ -30,6 +30,9 @@ public partial class MeetingDetail {
     [Inject]
     public required AuthService AuthService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public Guid Id { get; set; }
 
@@ -151,16 +154,14 @@ public partial class MeetingDetail {
         if (Meeting == null)
             return;
 
-        // Finalisieren: confirm dialog for Public meetings
         if (target == MeetingStatus.Scheduled && Meeting.Visibility == MeetingVisibility.Public) {
-            if (!await ConfirmDialog.ShowAsync(
-                "Diese Sitzung ist als öffentlich markiert. Nach der Finalisierung wird sie für alle sichtbar. Fortfahren?"))
+            if (!await ConfirmDialog.ShowAsync(I18n[I18nKey.Ui.MeetingDetail.PublicFinalizeConfirm]))
                 return;
         }
 
         var confirm = target switch {
-            MeetingStatus.Archived => "Diese Sitzung wirklich archivieren? Ein PDF-Snapshot wird erstellt.",
-            MeetingStatus.Completed => "Sitzung wirklich abschließen?",
+            MeetingStatus.Archived => I18n[I18nKey.Ui.MeetingDetail.ArchiveConfirm],
+            MeetingStatus.Completed => I18n[I18nKey.Ui.MeetingDetail.CompleteConfirm],
             _ => null
         };
         if (confirm != null && !await ConfirmDialog.ShowAsync(confirm))
@@ -172,15 +173,8 @@ public partial class MeetingDetail {
                 Status = target
             });
             if (resp.IsSuccessStatusCode) {
-                var targetLabel = target switch {
-                    MeetingStatus.Draft => "Entwurf",
-                    MeetingStatus.Scheduled => "Geplant",
-                    MeetingStatus.InProgress => "Laufend",
-                    MeetingStatus.Completed => "Abgeschlossen",
-                    MeetingStatus.Archived => "Archiviert",
-                    _ => target.ToString()
-                };
-                ToastService.Toast($"Status geändert: {targetLabel}.", "success");
+                var targetLabel = MeetingStatusLabel(target);
+                ToastService.Toast(I18n[$"{I18nKey.Ui.MeetingDetail.StatusChangedToast}?status={targetLabel}"], "success");
                 await LoadMeeting();
             } else {
                 await ToastService.ErrorAsync(resp);
@@ -189,6 +183,15 @@ public partial class MeetingDetail {
             ToastService.Error(ex);
         }
     }
+
+    private string MeetingStatusLabel(MeetingStatus status) => status switch {
+        MeetingStatus.Draft => I18n[I18nKey.Ui.MeetingStatus.Draft],
+        MeetingStatus.Scheduled => I18n[I18nKey.Ui.MeetingStatus.Scheduled],
+        MeetingStatus.InProgress => I18n[I18nKey.Ui.MeetingStatus.InProgress],
+        MeetingStatus.Completed => I18n[I18nKey.Ui.MeetingStatus.Completed],
+        MeetingStatus.Archived => I18n[I18nKey.Ui.MeetingStatus.Archived],
+        _ => status.ToString()
+    };
 
     private async Task DeleteMeeting() {
         if (!await ConfirmDialog.ShowAsync(ToastService.Translate(I18nKey.Ui.Confirm.MeetingDelete)))
@@ -203,17 +206,23 @@ public partial class MeetingDetail {
     }
 
     private List<(MeetingStatus Target, string Label, string Icon)> AllowedTransitions => Meeting?.Status switch {
-        MeetingStatus.Draft => [(MeetingStatus.Scheduled, "Finalisieren", "bi-calendar-check")],
+        MeetingStatus.Draft => [
+            (MeetingStatus.Scheduled, I18n[I18nKey.Ui.MeetingDetail.TransitionFinalize], "bi-calendar-check")
+        ],
         MeetingStatus.Scheduled => [
-            (MeetingStatus.Draft, "Zurück zu Entwurf", "bi-arrow-counterclockwise"),
-            (MeetingStatus.InProgress, "Sitzung starten", "bi-play-circle")
+            (MeetingStatus.Draft, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToDraft], "bi-arrow-counterclockwise"),
+            (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionStart], "bi-play-circle")
         ],
-        MeetingStatus.InProgress => [(MeetingStatus.Completed, "Sitzung abschließen", "bi-check-circle")],
+        MeetingStatus.InProgress => [
+            (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionComplete], "bi-check-circle")
+        ],
         MeetingStatus.Completed => [
-            (MeetingStatus.InProgress, "Zurück zu Laufend", "bi-arrow-counterclockwise"),
-            (MeetingStatus.Archived, "Archivieren", "bi-archive")
+            (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToInProgress], "bi-arrow-counterclockwise"),
+            (MeetingStatus.Archived, I18n[I18nKey.Ui.MeetingDetail.TransitionArchive], "bi-archive")
         ],
-        MeetingStatus.Archived => [(MeetingStatus.Completed, "Dearchivieren", "bi-box-arrow-up")],
+        MeetingStatus.Archived => [
+            (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionUnarchive], "bi-box-arrow-up")
+        ],
         _ => new List<(MeetingStatus, string, string)>()
     };
 

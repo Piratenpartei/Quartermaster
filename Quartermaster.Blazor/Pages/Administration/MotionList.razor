@@ -1,28 +1,31 @@
 @page "/Administration/Motions"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
+@inject I18nService I18n
 
-<PageHeader Title="Vorstandsarbeit - Anträge">
+<PageHeader Title="@I18n[I18nKey.Ui.MotionList.PageTitle]">
     <Actions>
         <a href="/Administration/Motions/Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Neuer Antrag
+            <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.MotionList.NewMotion]
         </a>
     </Actions>
 </PageHeader>
 
 <div class="mb-3 d-flex gap-3">
     <div>
-        <label class="form-label">Gliederung</label>
+        <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
         <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
-        <label for="status" class="form-label">Status</label>
+        <label for="status" class="form-label">@I18n[I18nKey.Ui.Common.Status]</label>
         <select id="status" class="form-select" @onchange="OnStatusChanged">
-            <option value="">Alle</option>
-            <option value="0" selected>Ausstehend</option>
-            <option value="1">Genehmigt</option>
-            <option value="2">Abgelehnt</option>
-            <option value="3">Formal abgelehnt</option>
-            <option value="4">Ohne Beschluss geschlossen</option>
+            <option value="">@I18n[I18nKey.Ui.MotionStatus.All]</option>
+            <option value="0" selected>@I18n[I18nKey.Ui.MotionStatus.Pending]</option>
+            <option value="1">@I18n[I18nKey.Ui.MotionStatus.Approved]</option>
+            <option value="2">@I18n[I18nKey.Ui.MotionStatus.Rejected]</option>
+            <option value="3">@I18n[I18nKey.Ui.MotionStatus.FormallyRejected]</option>
+            <option value="4">@I18n[I18nKey.Ui.MotionStatus.ClosedWithoutAction]</option>
         </select>
     </div>
 </div>
@@ -31,20 +34,20 @@
     <LoadingSpinner />
 } else if (Response != null) {
     <div class="mb-2 text-secondary">
-        @Response.TotalCount Anträge
+        @I18n[$"{I18nKey.Ui.MotionList.TotalCount}?count={Response.TotalCount}"]
     </div>
 
     <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>Titel</th>
-                <th>Antragsteller</th>
-                <th>Gliederung</th>
-                <th>Sichtbarkeit</th>
-                <th>Status</th>
-                <th>Umgesetzt</th>
-                <th>Erstellt</th>
+                <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                <th>@I18n[I18nKey.Ui.MotionList.AuthorColumn]</th>
+                <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                <th>@I18n[I18nKey.Ui.Common.Visibility]</th>
+                <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                <th>@I18n[I18nKey.Ui.MotionList.RealizedColumn]</th>
+                <th>@I18n[I18nKey.Ui.Common.Created]</th>
             </tr>
         </thead>
         <tbody>
@@ -55,9 +58,9 @@
                     <td>@motion.ChapterName</td>
                     <td>
                         @if (motion.IsPublic) {
-                            <span class="badge border border-info text-info-emphasis">Öffentlich</span>
+                            <span class="badge border border-info text-info-emphasis">@I18n[I18nKey.Ui.Common.Public]</span>
                         } else {
-                            <span class="badge border border-secondary text-secondary-emphasis">Nicht öffentlich</span>
+                            <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.Common.NotPublic]</span>
                         }
                     </td>
                     <td>

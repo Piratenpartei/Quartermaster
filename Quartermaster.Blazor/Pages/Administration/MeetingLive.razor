@@ -1,28 +1,31 @@
 @page "/Administration/Meetings/{Id:guid}/Live"
 @using System.Linq
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Meetings
 @using Quartermaster.Api.Motions
+@inject I18nService I18n
 
 <div class="mb-3 d-flex gap-2">
     <a href="/Administration/Meetings/@Id" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zur Sitzung
+        <i class="bi bi-arrow-left"></i> @I18n[I18nKey.Ui.MeetingLive.BackToMeeting]
     </a>
     <a href="/Administration/Meetings/@Id/Edit" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-pencil-square"></i> Agenda bearbeiten
+        <i class="bi bi-pencil-square"></i> @I18n[I18nKey.Ui.MeetingLive.EditAgenda]
     </a>
 </div>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Meeting == null) {
-    <div class="alert alert-danger">Sitzung nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.MeetingLive.NotFound]</div>
 } else if (Meeting.Status != MeetingStatus.InProgress) {
-    <div class="alert alert-warning">Diese Sitzung ist nicht aktiv.</div>
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.MeetingLive.NotInProgress]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">@Meeting.Title <span class="badge border border-warning text-warning-emphasis fs-6">Laufend</span></h3>
+        <h3 class="mb-0">@Meeting.Title <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.MeetingLive.InProgressBadge]</span></h3>
         <button class="btn btn-outline-success" @onclick="FinishMeeting">
-            <i class="bi bi-check2-all"></i> Sitzung beenden
+            <i class="bi bi-check2-all"></i> @I18n[I18nKey.Ui.MeetingLive.FinishMeeting]
         </button>
     </div>
 
@@ -30,7 +33,7 @@
         <div style="width: 20rem; min-width: 20rem;">
             <div class="card">
                 <div class="card-body p-2">
-                    <h6 class="px-2 pt-1">Fortschritt</h6>
+                    <h6 class="px-2 pt-1">@I18n[I18nKey.Ui.MeetingLive.ProgressHeading]</h6>
                     @foreach (var entry in FlatItems) {
                         var item = entry.Item;
                         var isActive = SelectedActiveItemId == item.Id;
@@ -58,7 +61,7 @@
         </div>
         <div class="flex-grow-1" style="min-width: 0;">
             @if (SelectedActiveItem == null) {
-                <div class="alert alert-secondary">Einen Tagesordnungspunkt links auswählen.</div>
+                <div class="alert alert-secondary">@I18n[I18nKey.Ui.MeetingLive.SelectItemHint]</div>
             } else {
                 var active = SelectedActiveItem;
                 var activeEntry = FlatItems.FirstOrDefault(e => e.Item.Id == active.Id);
@@ -74,16 +77,16 @@
                             <div class="d-flex gap-2 align-items-center">
                                 @if (active.StartedAt == null) {
                                     <button class="btn btn-warning btn-sm" @onclick="() => StartAgendaItem(active.Id)">
-                                        <i class="bi bi-play-circle"></i> Jetzt starten
+                                        <i class="bi bi-play-circle"></i> @I18n[I18nKey.Ui.MeetingLive.StartNow]
                                     </button>
                                 } else if (active.CompletedAt == null) {
                                     <button class="btn btn-success btn-sm" @onclick="() => CompleteAgendaItem(active.Id)">
-                                        <i class="bi bi-check-circle"></i> TOP abschließen
+                                        <i class="bi bi-check-circle"></i> @I18n[I18nKey.Ui.MeetingLive.CompleteItem]
                                     </button>
                                 } else {
-                                    <span class="badge bg-success d-flex align-items-center">Abgeschlossen</span>
+                                    <span class="badge bg-success d-flex align-items-center">@I18n[I18nKey.Ui.MeetingLive.CompletedBadge]</span>
                                     <button class="btn btn-outline-warning btn-sm" @onclick="() => ReopenAgendaItem(active.Id)">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Neu öffnen
+                                        <i class="bi bi-arrow-counterclockwise"></i> @I18n[I18nKey.Ui.MeetingLive.ReopenItem]
                                     </button>
                                 }
                             </div>
@@ -91,7 +94,7 @@
 
                         @if (active.ItemType == AgendaItemType.Motion && active.MotionId.HasValue) {
                             <div class="alert alert-primary py-2">
-                                <strong>Antrag:</strong> @active.MotionTitle
+                                <strong>@I18n[I18nKey.Ui.MeetingLive.MotionLabel]</strong> @active.MotionTitle
                                 <a href="/Administration/Motions/@active.MotionId" target="_blank" class="ms-2">
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
@@ -103,15 +106,15 @@
                             </div>
 
                             <div class="mb-3">
-                                <h6>Abstimmung</h6>
+                                <h6>@I18n[I18nKey.Ui.MeetingLive.VotingHeading]</h6>
                                 @if (active.OfficerVotes != null && active.OfficerVotes.Count > 0) {
                                     <div class="table-responsive">
                                     <table class="table table-sm table-striped table-hover table-bordered mb-1">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
-                                                <th>Amt</th>
-                                                <th>Stimme</th>
+                                                <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                                                <th>@I18n[I18nKey.Ui.MeetingLive.OfficerRoleColumn]</th>
+                                                <th>@I18n[I18nKey.Ui.MeetingLive.VoteColumn]</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -122,11 +125,11 @@
                                                     <td>
                                                         <div class="d-flex gap-1">
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Approve ? "btn-success" : "btn-outline-success")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Approve)">Ja</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Approve)">@I18n[I18nKey.Ui.MeetingLive.VoteYes]</button>
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Deny ? "btn-danger" : "btn-outline-danger")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Deny)">Nein</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Deny)">@I18n[I18nKey.Ui.MeetingLive.VoteNo]</button>
                                                             <button class="btn btn-sm @(officer.Vote == VoteType.Abstain ? "btn-secondary" : "btn-outline-secondary")"
-                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Abstain)">Enthaltung</button>
+                                                                    @onclick="() => CastVoteFor(active.Id, officer.MemberId, VoteType.Abstain)">@I18n[I18nKey.Ui.MeetingLive.VoteAbstain]</button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -136,26 +139,26 @@
                                     </div>
                                 }
                                 <div class="d-flex gap-3 small text-secondary">
-                                    <span class="text-success">Ja: @active.MotionVoteApproveCount</span>
-                                    <span class="text-danger">Nein: @active.MotionVoteDenyCount</span>
-                                    <span>Enthaltung: @active.MotionVoteAbstainCount</span>
+                                    <span class="text-success">@I18n[$"{I18nKey.Ui.MeetingLive.VoteYesCount}?count={active.MotionVoteApproveCount}"]</span>
+                                    <span class="text-danger">@I18n[$"{I18nKey.Ui.MeetingLive.VoteNoCount}?count={active.MotionVoteDenyCount}"]</span>
+                                    <span>@I18n[$"{I18nKey.Ui.MeetingLive.VoteAbstainCount}?count={active.MotionVoteAbstainCount}"]</span>
                                 </div>
                                 <button class="btn btn-outline-primary btn-sm mt-1" @onclick="() => CloseVote(active.Id)">
-                                    Abstimmung beenden
+                                    @I18n[I18nKey.Ui.MeetingLive.CloseVote]
                                 </button>
                             </div>
                         }
 
                         @if (active.ItemType == AgendaItemType.Presence && active.OfficerVotes != null) {
                             <div class="mb-3">
-                                <h6>Anwesenheit</h6>
+                                <h6>@I18n[I18nKey.Ui.MeetingLive.PresenceHeading]</h6>
                                 <div class="table-responsive">
                                 <table class="table table-sm table-striped table-hover table-bordered mb-0">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Amt</th>
-                                            <th>Anwesend</th>
+                                            <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                                            <th>@I18n[I18nKey.Ui.MeetingLive.OfficerRoleColumn]</th>
+                                            <th>@I18n[I18nKey.Ui.MeetingLive.PresentColumn]</th>
                                         </tr>
                                     </thead>
                                     <tbody>

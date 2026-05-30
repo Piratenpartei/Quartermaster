@@ -1,36 +1,38 @@
 @page "/Administration/Events/{EventId:guid}/SaveAsTemplate"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
-<PageBackLink Href="@($"/Administration/Events/{EventId}")" Text="Zurück zum Event" />
+<PageBackLink Href="@($"/Administration/Events/{EventId}")" Text="@I18n[I18nKey.Ui.EventTemplateSave.BackToEvent]" />
 
-<h3 class="mb-3">Als Vorlage speichern</h3>
+<h3 class="mb-3">@I18n[I18nKey.Ui.EventTemplateSave.PageTitle]</h3>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Event == null) {
-    <div class="alert alert-danger">Event nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.EventTemplateSave.EventNotFound]</div>
 } else {
     <div class="card">
         <div class="card-body">
             <div class="mb-3">
-                <label for="templateName" class="form-label">Vorlagenname</label>
+                <label for="templateName" class="form-label">@I18n[I18nKey.Ui.EventTemplateSave.TemplateNameLabel]</label>
                 <input type="text" class="form-control" id="templateName" @bind="TemplateName" />
             </div>
 
-            <h5 class="mb-3">Variablen</h5>
+            <h5 class="mb-3">@I18n[I18nKey.Ui.EventTemplateSave.VariablesHeading]</h5>
 
             @if (Variables.Count == 0) {
                 <div class="alert alert-info">
-                    Keine Variablen gefunden. Verwenden Sie <code>@("{{variableName}}")</code> in Texten, um Variablen zu definieren.
+                    @I18n[$"{I18nKey.Ui.EventTemplateSave.NoVariablesHint}?syntax=%7B%7BvariableName%7D%7D"]
                 </div>
             } else {
                 <div class="table-responsive">
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>Variable</th>
-                            <th>Bezeichnung</th>
-                            <th>Typ</th>
+                            <th>@I18n[I18nKey.Ui.EventTemplateSave.VariableColumn]</th>
+                            <th>@I18n[I18nKey.Ui.EventTemplateSave.LabelColumn]</th>
+                            <th>@I18n[I18nKey.Ui.EventTemplateSave.TypeColumn]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,12 +45,12 @@
                                 </td>
                                 <td>
                                     <select class="form-select form-select-sm" @bind="variable.Type">
-                                        <option value="Text">Text</option>
-                                        <option value="Date">Datum</option>
-                                        <option value="Time">Uhrzeit</option>
-                                        <option value="Number">Zahl</option>
-                                        <option value="OptionTemplate">Einstellungsvorlage</option>
-                                        <option value="Chapter">Gliederung</option>
+                                        <option value="Text">@I18n[I18nKey.Ui.EventTemplateSave.TypeText]</option>
+                                        <option value="Date">@I18n[I18nKey.Ui.EventTemplateSave.TypeDate]</option>
+                                        <option value="Time">@I18n[I18nKey.Ui.EventTemplateSave.TypeTime]</option>
+                                        <option value="Number">@I18n[I18nKey.Ui.EventTemplateSave.TypeNumber]</option>
+                                        <option value="OptionTemplate">@I18n[I18nKey.Ui.EventTemplateSave.TypeOptionTemplate]</option>
+                                        <option value="Chapter">@I18n[I18nKey.Ui.EventTemplateSave.TypeChapter]</option>
                                     </select>
                                 </td>
                             </tr>
@@ -61,10 +63,10 @@
             <button class="btn btn-primary" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(TemplateName))">
                 @if (Saving) {
                     <span class="spinner-border spinner-border-sm" role="status"></span>
-                    <span> Wird gespeichert...</span>
+                    <span> @I18n[I18nKey.Ui.EventTemplateSave.Saving]</span>
                 } else {
                     <i class="bi bi-save"></i>
-                    <span> Vorlage speichern</span>
+                    <span> @I18n[I18nKey.Ui.EventTemplateSave.SubmitButton]</span>
                 }
             </button>
         </div>

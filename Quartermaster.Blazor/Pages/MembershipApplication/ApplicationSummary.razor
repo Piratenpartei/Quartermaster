@@ -1,15 +1,17 @@
 @page "/MembershipApplication/Summary"
 @using System.Globalization
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Pages.DueSelector
 
 <div class="mb-3">
-    <h3>Mitgliedsantrag - Zusammenfassung</h3>
+    <h3>@I18n[I18nKey.Ui.ApplicationSummary.PageTitle]</h3>
 </div>
 
 @if (SubmittedDirect) {
     <div class="alert alert-success">
         <i class="bi bi-check-circle me-2"></i>
-        Der Mitgliedsantrag wurde übermittelt und zur Prüfung an die Officer der Gliederung weitergeleitet.
+        @I18n[I18nKey.Ui.ApplicationSummary.DirectSubmittedNotice]
     </div>
     return;
 }
@@ -24,55 +26,55 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Persönliche Daten</h5>
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.PersonalDataSection]</h5>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Name:</strong> @EntryState.FirstName @EntryState.LastName</li>
-            <li class="list-group-item"><strong>Geburtsdatum:</strong> <LocalTime DateValue="EntryState.DateOfBirth.HasValue ? DateOnly.FromDateTime(EntryState.DateOfBirth.Value) : null" /></li>
-            <li class="list-group-item"><strong>Staatsangehörigkeit:</strong> @EntryState.Citizenship</li>
-            <li class="list-group-item"><strong>E-Mail:</strong> @EntryState.Email</li>
-            <li class="list-group-item"><strong>Telefon:</strong> @EntryState.PhoneNumber</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.NameLabel]:</strong> @EntryState.FirstName @EntryState.LastName</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.DateOfBirthLabel]:</strong> <LocalTime DateValue="EntryState.DateOfBirth.HasValue ? DateOnly.FromDateTime(EntryState.DateOfBirth.Value) : null" /></li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.CitizenshipLabel]:</strong> @EntryState.Citizenship</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.EmailLabel]:</strong> @EntryState.Email</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.PhoneLabel]:</strong> @EntryState.PhoneNumber</li>
         </ul>
     </div>
 </div>
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Adresse</h5>
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.AddressSection]</h5>
         <p class="card-text">
             @EntryState.AddressStreet @EntryState.AddressHouseNbr<br />
             @EntryState.AddressPostCode @EntryState.AddressCity
         </p>
         @if (EntryState.ChapterName != null) {
-            <p class="card-text"><strong>Gliederung:</strong> @EntryState.ChapterName</p>
+            <p class="card-text"><strong>@I18n[I18nKey.Ui.ApplicationSummary.ChapterLabel]:</strong> @EntryState.ChapterName</p>
         }
     </div>
 </div>
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Beitrag</h5>
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.DuesSection]</h5>
         @if (DuesState != null && DuesState.SelectedDue > 0) {
             <p class="card-text">
-                Jahresbeitrag: <strong>@DuesState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>
+                @I18n[I18nKey.Ui.ApplicationSummary.YearlyDue]: <strong>@DuesState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>
             </p>
         } else {
-            <p class="card-text text-warning">Beitrag noch nicht eingestuft.</p>
+            <p class="card-text text-warning">@I18n[I18nKey.Ui.ApplicationSummary.DueNotSet]</p>
         }
     </div>
 </div>
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Erklärungen</h5>
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.DeclarationsSection]</h5>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
-                Konformitätserklärung: @(EntryState.ConformityDeclarationAccepted ? "Akzeptiert" : "Nicht akzeptiert")
+                @I18n[$"{I18nKey.Ui.ApplicationSummary.ConformityLine}?status={(EntryState.ConformityDeclarationAccepted ? I18n[I18nKey.Ui.ApplicationSummary.ConformityAccepted] : I18n[I18nKey.Ui.ApplicationSummary.ConformityNotAccepted])}"]
             </li>
             @if (EntryState.HasPriorDeclinedApplication) {
-                <li class="list-group-item text-warning">Früherer Antrag wurde abgelehnt</li>
+                <li class="list-group-item text-warning">@I18n[I18nKey.Ui.ApplicationSummary.PriorDeclined]</li>
             }
             @if (EntryState.IsMemberOfAnotherParty) {
-                <li class="list-group-item">Mitglied einer anderen Partei</li>
+                <li class="list-group-item">@I18n[I18nKey.Ui.ApplicationSummary.MemberOfAnotherParty]</li>
             }
         </ul>
         @if (!string.IsNullOrEmpty(EntryState.ApplicationText)) {
@@ -84,23 +86,21 @@
 <div class="card mb-3">
     <div class="card-body">
         <p class="card-text small text-secondary">
-            Die Piratenpartei Deutschland verarbeitet die in diesem Aufnahmeantrag enthaltenen Angaben zur Person
-            für ausschließlich interne Zwecke der Partei. Mit diesem Antrag auf Mitgliedschaft in der Partei
-            erteilst du die nach Art. 6 abs. 1 lit. b) der Datenschutz-Grundverordnung (DSGVO) notwendige Einwilligung.
+            @I18n[I18nKey.Ui.ApplicationSummary.PrivacyNotice]
         </p>
     </div>
 </div>
 
 <div class="mb-3">
-    <h3>Sind alle Daten korrekt?</h3>
+    <h3>@I18n[I18nKey.Ui.ApplicationSummary.ConfirmCorrectHeading]</h3>
 </div>
 
 <div class="mb-2">
     <CardButton OnClick=@Submit>
-        <span>Mitgliedsantrag absenden</span>
+        <span>@I18n[I18nKey.Ui.ApplicationSummary.SubmitButton]</span>
     </CardButton>
 </div>
 
 <div>
-    <a href="/MembershipApplication/Declarations" class="btn btn-primary">Zurück</a>
+    <a href="/MembershipApplication/Declarations" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
 </div>

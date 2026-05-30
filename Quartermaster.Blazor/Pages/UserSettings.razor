@@ -1,33 +1,35 @@
 @page "/Settings"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Users
 
-<PageTitle>Einstellungen</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.UserSettings.PageTitle]</PageTitle>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Settings == null) {
-    <div class="alert alert-warning">Du bist nicht angemeldet.</div>
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.UserSettings.NotLoggedIn]</div>
 } else {
-    <h3>Mein Konto</h3>
+    <h3>@I18n[I18nKey.Ui.UserSettings.MyAccount]</h3>
 
     <div class="row mb-3">
         <div class="@(Settings.Member != null ? "col-12 col-lg-6 mb-3 mb-lg-0" : "col-12")">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5>Benutzerdaten</h5>
+                    <h5>@I18n[I18nKey.Ui.UserSettings.UserDataTitle]</h5>
                     <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
-                            <tr><th style="width:180px">Anzeigename</th><td>@Settings.User.DisplayName</td></tr>
-                            <tr><th>Benutzername</th><td>@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</td></tr>
-                            <tr><th>E-Mail</th><td>@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</td></tr>
+                            <tr><th style="width:180px">@I18n[I18nKey.Ui.UserSettings.DisplayName]</th><td>@Settings.User.DisplayName</td></tr>
+                            <tr><th>@I18n[I18nKey.Ui.UserSettings.Username]</th><td>@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</td></tr>
+                            <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</td></tr>
                             <tr>
-                                <th>Anmeldemethode</th>
+                                <th>@I18n[I18nKey.Ui.UserSettings.LoginMethod]</th>
                                 <td>
                                     @if (Settings.User.Username == Settings.User.Email) {
-                                        <span class="badge bg-primary"><i class="bi bi-shield-lock me-1"></i>SSO</span>
+                                        <span class="badge bg-primary"><i class="bi bi-shield-lock me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodSso]</span>
                                     } else {
-                                        <span class="badge bg-secondary"><i class="bi bi-person-fill me-1"></i>Manuell</span>
+                                        <span class="badge bg-secondary"><i class="bi bi-person-fill me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodManual]</span>
                                     }
                                 </td>
                             </tr>
@@ -41,33 +43,33 @@
             <div class="col-12 col-lg-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5>Mitgliedschaft</h5>
+                        <h5>@I18n[I18nKey.Ui.UserSettings.MembershipTitle]</h5>
                         <div class="table-responsive">
                         <table class="table table-borderless mb-0">
                             <tbody>
-                                <tr><th style="width:180px">Mitgliedsnummer</th><td>@Settings.Member.MemberNumber</td></tr>
-                                <tr><th>Gliederung</th><td>@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</td></tr>
-                                <tr><th>Eintrittsdatum</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
-                                <tr><th>Mitgliedsbeitrag</th><td>@Settings.Member.MembershipFee.ToString("0.00") &euro;/Jahr</td></tr>
+                                <tr><th style="width:180px">@I18n[I18nKey.Ui.UserSettings.MemberNumber]</th><td>@Settings.Member.MemberNumber</td></tr>
+                                <tr><th>@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</td></tr>
+                                <tr><th>@I18n[I18nKey.Ui.UserSettings.EntryDate]</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
+                                <tr><th>@I18n[I18nKey.Ui.UserSettings.MembershipFee]</th><td>@Settings.Member.MembershipFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
                                 @if (Settings.Member.ReducedFee > 0) {
-                                    <tr><th>Ermäßigter Beitrag</th><td>@Settings.Member.ReducedFee.ToString("0.00") &euro;/Jahr</td></tr>
+                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.ReducedFee]</th><td>@Settings.Member.ReducedFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
                                 }
                                 <tr>
-                                    <th>Stimmberechtigung</th>
+                                    <th>@I18n[I18nKey.Ui.UserSettings.VotingRights]</th>
                                     <td>
                                         @if (Settings.Member.HasVotingRights) {
-                                            <span class="badge bg-success">Ja</span>
+                                            <span class="badge bg-success">@I18n[I18nKey.Ui.Common.Yes]</span>
                                         } else if (Settings.Member.OpenFeeTotal.HasValue && Settings.Member.OpenFeeTotal.Value > 0) {
-                                            <span class="badge bg-danger">Nein, @Settings.Member.OpenFeeTotal.Value.ToString("0.00") &euro; offen</span>
+                                            <span class="badge bg-danger">@I18n[$"{I18nKey.Ui.UserSettings.VotingRightsNoOpenFee}?amount={Settings.Member.OpenFeeTotal.Value.ToString("0.00")}"]</span>
                                         } else {
-                                            <span class="badge bg-secondary">Nein</span>
+                                            <span class="badge bg-secondary">@I18n[I18nKey.Ui.Common.No]</span>
                                         }
                                     </td>
                                 </tr>
                                 @if (Settings.Member.IsPending) {
                                     <tr>
-                                        <th>Status</th>
-                                        <td><span class="badge bg-warning text-dark">Schwebend</span></td>
+                                        <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                                        <td><span class="badge bg-warning text-dark">@I18n[I18nKey.Ui.UserSettings.PendingBadge]</span></td>
                                     </tr>
                                 }
                             </tbody>
@@ -83,7 +85,7 @@
         <div class="col-12 col-lg-6 mb-3 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5>Globale Berechtigungen</h5>
+                    <h5>@I18n[I18nKey.Ui.UserSettings.GlobalPermissionsTitle]</h5>
                     @if (Settings.GlobalPermissions.Count > 0) {
                         <div class="d-flex flex-wrap gap-1">
                             @foreach (var perm in Settings.GlobalPermissions) {
@@ -91,7 +93,7 @@
                             }
                         </div>
                     } else {
-                        <p class="text-secondary mb-0">Keine globalen Berechtigungen.</p>
+                        <p class="text-secondary mb-0">@I18n[I18nKey.Ui.UserSettings.NoGlobalPermissions]</p>
                     }
                 </div>
             </div>
@@ -99,7 +101,7 @@
         <div class="col-12 col-lg-6">
             <div class="card h-100">
                 <div class="card-body">
-                    <h5>Gliederungs-Berechtigungen</h5>
+                    <h5>@I18n[I18nKey.Ui.UserSettings.ChapterPermissionsTitle]</h5>
                     @if (Settings.ChapterPermissions.Count > 0) {
                         @foreach (var chapter in Settings.ChapterPermissions) {
                             <div class="mb-2">
@@ -112,7 +114,7 @@
                             </div>
                         }
                     } else {
-                        <p class="text-secondary mb-0">Keine Gliederungs-Berechtigungen.</p>
+                        <p class="text-secondary mb-0">@I18n[I18nKey.Ui.UserSettings.NoChapterPermissions]</p>
                     }
                 </div>
             </div>
@@ -122,13 +124,13 @@
     @if (IsDebug) {
         <div class="card mt-3">
             <div class="card-body">
-                <h5>Entwicklung</h5>
-                <p class="text-secondary small mb-2">Diese Optionen sind nur im Entwicklungsmodus sichtbar.</p>
+                <h5>@I18n[I18nKey.Ui.UserSettings.DevelopmentTitle]</h5>
+                <p class="text-secondary small mb-2">@I18n[I18nKey.Ui.UserSettings.DevelopmentNotice]</p>
                 <button class="btn btn-sm btn-outline-secondary" @onclick="SeedTestData" disabled="@Seeding">
                     @if (Seeding) {
                         <span class="spinner-border spinner-border-sm"></span>
                     }
-                    <i class="bi bi-database-add"></i> Testdaten erstellen
+                    <i class="bi bi-database-add"></i> @I18n[I18nKey.Ui.UserSettings.CreateTestData]
                 </button>
             </div>
         </div>

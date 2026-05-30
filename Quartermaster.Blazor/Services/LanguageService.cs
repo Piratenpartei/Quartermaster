@@ -25,6 +25,8 @@ public class LanguageService {
 
     public string CurrentLanguage { get; private set; } = DefaultLanguage;
 
+    public event Action? OnLanguageChanged;
+
     public async Task InitializeAsync() {
         var stored = await _js.InvokeAsync<string?>("languageStorage.getLanguage");
         var lang = !string.IsNullOrEmpty(stored) && IsSupported(stored)
@@ -55,6 +57,7 @@ public class LanguageService {
             var json = await _http.GetStringAsync($"i18n/{lang}.json");
             _i18n.Reload(json);
             CurrentLanguage = lang;
+            OnLanguageChanged?.Invoke();
         } catch (Exception ex) {
             Console.Error.WriteLine($"LanguageService: load of {lang} failed, keeping current. {ex}");
         }

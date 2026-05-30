@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Blazor.Components;
@@ -7,9 +9,11 @@ public partial class MotionApprovalBadge {
     [Parameter, EditorRequired]
     public MotionApprovalStatus Status { get; set; }
 
-    /// <summary>Extra CSS classes appended to the badge (e.g. <c>fs-6</c> for a larger badge).</summary>
     [Parameter]
     public string? Class { get; set; }
+
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private string CssClass => Status switch {
         MotionApprovalStatus.Pending => "border-warning text-warning-emphasis",
@@ -21,11 +25,11 @@ public partial class MotionApprovalBadge {
     };
 
     private string Label => Status switch {
-        MotionApprovalStatus.Pending => "Ausstehend",
-        MotionApprovalStatus.Approved => "Genehmigt",
-        MotionApprovalStatus.Rejected => "Abgelehnt",
-        MotionApprovalStatus.FormallyRejected => "Formal abgelehnt",
-        MotionApprovalStatus.ClosedWithoutAction => "Ohne Beschluss",
-        _ => "Unbekannt"
+        MotionApprovalStatus.Pending => I18n[I18nKey.Ui.MotionStatus.Pending],
+        MotionApprovalStatus.Approved => I18n[I18nKey.Ui.MotionStatus.Approved],
+        MotionApprovalStatus.Rejected => I18n[I18nKey.Ui.MotionStatus.Rejected],
+        MotionApprovalStatus.FormallyRejected => I18n[I18nKey.Ui.MotionStatus.FormallyRejected],
+        MotionApprovalStatus.ClosedWithoutAction => I18n[I18nKey.Ui.MotionStatus.ClosedWithoutAction],
+        _ => I18n[I18nKey.Ui.MotionStatus.Unknown]
     };
 }

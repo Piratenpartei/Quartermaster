@@ -1,4 +1,6 @@
 @page "/Administration/Members/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Members
 @using System.Globalization
 
@@ -7,34 +9,34 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Member == null) {
-    <div class="alert alert-danger">Mitglied nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.MemberDetail.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h3>@Member.FirstName @Member.LastName</h3>
-            <span class="text-secondary">Mitgliedsnummer: @Member.MemberNumber</span>
+            <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
         </div>
         @if (Member.ExitDate != null) {
-            <span class="badge border border-danger text-danger-emphasis fs-6">Ausgetreten</span>
+            <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusExited]</span>
         } else if (Member.IsPending) {
-            <span class="badge border border-warning text-warning-emphasis fs-6">Schwebend</span>
+            <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusPending]</span>
         } else {
-            <span class="badge border border-success text-success-emphasis fs-6">Aktiv</span>
+            <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusActive]</span>
         }
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Persönliche Daten</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.PersonalDataSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Vorname</th><td>@Member.FirstName</td></tr>
-                    <tr><th>Nachname</th><td>@Member.LastName</td></tr>
-                    <tr><th>Geburtsdatum</th><td><LocalTime DateValue="Member.DateOfBirth" /></td></tr>
-                    <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "—")</td></tr>
-                    <tr><th>E-Mail</th><td>@(Member.Email ?? "—")</td></tr>
-                    <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.FirstName]</th><td>@Member.FirstName</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@Member.LastName</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.DateOfBirthLabel]</th><td><LocalTime DateValue="Member.DateOfBirth" /></td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CitizenshipLabel]</th><td>@(Member.Citizenship ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Member.Email ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Phone]</th><td>@(Member.Phone ?? "—")</td></tr>
                 </tbody>
             </table>
             </div>
@@ -43,21 +45,21 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Adresse</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.AddressSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "—")</td></tr>
-                    <tr><th>PLZ / Ort</th><td>@Member.PostCode @Member.City</td></tr>
-                    <tr><th>Land</th><td>@(Member.Country ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.StreetLabel]</th><td>@(Member.Street ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.PostCodeCityLabel]</th><td>@Member.PostCode @Member.City</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountryLabel]</th><td>@(Member.Country ?? "—")</td></tr>
                     <tr>
-                        <th>Verwaltungsbezirk</th>
+                        <th>@I18n[I18nKey.Ui.MemberDetail.AdminDivisionLabel]</th>
                         <td>
                             @if (Member.IsAdminDivisionOrphaned) {
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <span>@Member.ResidenceAdministrativeDivisionName</span>
                                     <span class="badge bg-warning text-dark">
-                                        <i class="bi bi-exclamation-triangle"></i> Verwaist
+                                        <i class="bi bi-exclamation-triangle"></i> @I18n[I18nKey.Ui.MemberDetail.OrphanedBadge]
                                     </span>
                                 </div>
                                 <div class="d-flex align-items-end gap-2">
@@ -68,7 +70,7 @@
                                         @if (SavingAdminDiv) {
                                             <span class="spinner-border spinner-border-sm" role="status"></span>
                                         } else {
-                                            <span>Zuweisen</span>
+                                            <span>@I18n[I18nKey.Ui.MemberDetail.AssignButton]</span>
                                         }
                                     </button>
                                 </div>
@@ -85,14 +87,14 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Gliederung</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.ChapterSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Gliederung</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
-                    <tr><th>Bundesland (CSV)</th><td>@(Member.FederalState ?? "—")</td></tr>
-                    <tr><th>Landkreis (CSV)</th><td>@(Member.County ?? "—")</td></tr>
-                    <tr><th>Gemeinde (CSV)</th><td>@(Member.Municipality ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FederalStateLabel]</th><td>@(Member.FederalState ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountyLabel]</th><td>@(Member.County ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.MunicipalityLabel]</th><td>@(Member.Municipality ?? "—")</td></tr>
                 </tbody>
             </table>
             </div>
@@ -101,23 +103,23 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Mitgliedschaft</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.MembershipSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Eintrittsdatum</th><td><LocalTime DateValue="Member.EntryDate" /></td></tr>
-                    <tr><th>Austrittsdatum</th><td><LocalTime DateValue="Member.ExitDate" /></td></tr>
-                    <tr><th>Aufnahmereferenz</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
-                    <tr><th>Beitrag</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
-                    <tr><th>Geminderter Beitrag</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.EntryDateLabel]</th><td><LocalTime DateValue="Member.EntryDate" /></td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.ExitDateLabel]</th><td><LocalTime DateValue="Member.ExitDate" /></td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.AdmissionReferenceLabel]</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FeeLabel]</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.ReducedFeeLabel]</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     @if (Member.FirstFee.HasValue) {
-                        <tr><th>Erstbeitrag</th><td>@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.FirstFeeLabel]</th><td>@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     }
                     @if (Member.ReducedFeeEnd.HasValue) {
-                        <tr><th>Minderung bis</th><td><LocalTime DateValue="Member.ReducedFeeEnd" /></td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.ReducedFeeEndLabel]</th><td><LocalTime DateValue="Member.ReducedFeeEnd" /></td></tr>
                     }
                     @if (Member.OpenFeeTotal.HasValue) {
-                        <tr><th>Offene Beiträge</th><td>@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.OpenFeesLabel]</th><td>@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     }
                 </tbody>
             </table>
@@ -127,12 +129,12 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Präferenzen</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.PreferencesSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr>
-                        <th style="width:200px">Stimmrecht</th>
+                        <th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.VotingRightsLabel]</th>
                         <td>
                             @if (Member.HasVotingRights) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
@@ -142,7 +144,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Umfragen</th>
+                        <th>@I18n[I18nKey.Ui.MemberDetail.SurveysLabel]</th>
                         <td>
                             @if (Member.ReceivesSurveys) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
@@ -152,7 +154,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Aktionen</th>
+                        <th>@I18n[I18nKey.Ui.MemberDetail.ActionsLabel]</th>
                         <td>
                             @if (Member.ReceivesActions) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
@@ -162,7 +164,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Newsletter</th>
+                        <th>@I18n[I18nKey.Ui.MemberDetail.NewsletterLabel]</th>
                         <td>
                             @if (Member.ReceivesNewsletter) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
@@ -172,7 +174,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <th>Post-Rückläufer</th>
+                        <th>@I18n[I18nKey.Ui.MemberDetail.PostBounceLabel]</th>
                         <td>
                             @if (Member.PostBounce) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
@@ -189,12 +191,12 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>System</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.SystemSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Verknüpfter Benutzer</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : "Nicht verknüpft")</td></tr>
-                    <tr><th>Letzter Import</th><td><LocalTime Value="Member.LastImportedAt" /></td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.LinkedUserLabel]</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : I18n[I18nKey.Ui.MemberDetail.NotLinked])</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.LastImportLabel]</th><td><LocalTime Value="Member.LastImportedAt" /></td></tr>
                 </tbody>
             </table>
             </div>
@@ -203,22 +205,22 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Audit Log</h5>
+            <h5>@I18n[I18nKey.Ui.MemberDetail.AuditLogSection]</h5>
             @if (AuditLogs == null) {
                 <div class="spinner-border spinner-border-sm" role="status"></div>
             } else if (AuditLogs.Count == 0) {
-                <EmptyState Message="Keine Einträge vorhanden." />
+                <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
             } else {
                 <div class="table-responsive">
                     <table class="table table-sm table-striped mb-0">
                         <thead>
                             <tr>
-                                <th>Zeitpunkt</th>
-                                <th>Aktion</th>
-                                <th>Feld</th>
-                                <th>Alter Wert</th>
-                                <th>Neuer Wert</th>
-                                <th>Benutzer</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditTimestampColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditActionColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditFieldColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditOldValueColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditNewValueColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditUserColumn]</th>
                             </tr>
                         </thead>
                         <tbody>

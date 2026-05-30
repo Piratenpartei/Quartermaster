@@ -1,5 +1,6 @@
 @page "/Administration/Motions/{Id:guid}"
 @using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
 @using Quartermaster.Rendering
 
@@ -8,18 +9,18 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Motion == null) {
-    <div class="alert alert-danger">Antrag nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.MotionDetail.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>@Motion.Title</h3>
         <div class="d-flex gap-2 align-items-center">
             @if (Motion.IsRealized) {
-                <span class="badge border border-success text-success-emphasis fs-6">Umgesetzt</span>
+                <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.MotionDetail.RealizedBadge]</span>
             }
             <MotionApprovalBadge Status="@Motion.ApprovalStatus" Class="fs-6" />
             @if (CanEdit && !EditMode) {
                 <button class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="BeginEdit">
-                    <i class="bi bi-pencil me-1"></i> Bearbeiten
+                    <i class="bi bi-pencil me-1"></i> @I18n[I18nKey.Ui.Common.Edit]
                 </button>
             }
         </div>
@@ -28,23 +29,23 @@
     @if (EditMode) {
         <div class="card mb-3 border-primary">
             <div class="card-body">
-                <h5>Antrag bearbeiten</h5>
+                <h5>@I18n[I18nKey.Ui.MotionDetail.EditCardTitle]</h5>
                 <div class="mb-3">
-                    <label for="editTitle" class="form-label">Titel</label>
+                    <label for="editTitle" class="form-label">@I18n[I18nKey.Ui.Common.Title]</label>
                     <input type="text" class="form-control" id="editTitle" @bind="EditTitle" />
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label for="editAuthorName" class="form-label">Antragsteller (Name)</label>
+                        <label for="editAuthorName" class="form-label">@I18n[I18nKey.Ui.MotionDetail.AuthorNameLabel]</label>
                         <input type="text" class="form-control" id="editAuthorName" @bind="EditAuthorName" />
                     </div>
                     <div class="col-md-6">
-                        <label for="editAuthorEmail" class="form-label">Antragsteller (E-Mail)</label>
+                        <label for="editAuthorEmail" class="form-label">@I18n[I18nKey.Ui.MotionDetail.AuthorEmailLabel]</label>
                         <input type="email" class="form-control" id="editAuthorEmail" @bind="EditAuthorEmail" />
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Antragstext (Markdown)</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.MotionDetail.BodyMarkdownLabel]</label>
                     <MarkdownEditor @bind-Value="EditTextMarkdown" Rows="8" Profile="SanitizationProfile.Strict" />
                 </div>
                 <div class="d-flex gap-2">
@@ -54,10 +55,10 @@
                         } else {
                             <i class="bi bi-check-circle me-1"></i>
                         }
-                        Speichern
+                        @I18n[I18nKey.Ui.Common.Save]
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="CancelEdit" disabled="@Saving">
-                        Abbrechen
+                        @I18n[I18nKey.Ui.Common.Cancel]
                     </button>
                 </div>
             </div>
@@ -65,47 +66,47 @@
     } else {
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Details</h5>
+            <h5>@I18n[I18nKey.Ui.Common.Details]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Antragsteller</th><td>@Motion.AuthorName</td></tr>
-                    <tr><th>E-Mail</th><td>@Motion.AuthorEmail</td></tr>
-                    <tr><th>Gliederung</th><td>@Motion.ChapterName</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MotionDetail.AuthorLabel]</th><td>@Motion.AuthorName</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@Motion.AuthorEmail</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Chapter]</th><td>@Motion.ChapterName</td></tr>
                     <tr>
-                        <th>Sichtbarkeit</th>
+                        <th>@I18n[I18nKey.Ui.Common.Visibility]</th>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <span>@(Motion.IsPublic ? "Öffentlich" : "Nicht öffentlich (enthält personenbezogene Daten)")</span>
+                                <span>@(Motion.IsPublic ? I18n[I18nKey.Ui.Common.Public] : I18n[I18nKey.Ui.MotionDetail.PiiWarning])</span>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditMotions">
                                     <button class="btn btn-sm btn-outline-secondary btn-hover-scale1" @onclick="TogglePublic" disabled="@TogglingPublic"
-                                            title="@(Motion.IsPublic ? "Auf nicht öffentlich setzen" : "Öffentlich machen")">
+                                            title="@(Motion.IsPublic ? I18n[I18nKey.Ui.MotionDetail.MakePrivate] : I18n[I18nKey.Ui.MotionDetail.MakePublic])">
                                         @if (TogglingPublic) {
                                             <span class="spinner-border spinner-border-sm" role="status"></span>
                                         } else if (Motion.IsPublic) {
-                                            <i class="bi bi-eye-slash me-1"></i> @("Auf nicht öffentlich setzen")
+                                            <i class="bi bi-eye-slash me-1"></i> @I18n[I18nKey.Ui.MotionDetail.MakePrivate]
                                         } else {
-                                            <i class="bi bi-eye me-1"></i> @("Öffentlich machen")
+                                            <i class="bi bi-eye me-1"></i> @I18n[I18nKey.Ui.MotionDetail.MakePublic]
                                         }
                                     </button>
                                 </RequirePermission>
                             </div>
                         </td>
                     </tr>
-                    <tr><th>Erstellt</th><td><LocalTime Value="Motion.CreatedAt" /></td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Created]</th><td><LocalTime Value="Motion.CreatedAt" /></td></tr>
                     @if (Motion.ResolvedAt != null) {
-                        <tr><th>Beschlossen</th><td><LocalTime Value="Motion.ResolvedAt" /></td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.MotionDetail.ResolvedLabel]</th><td><LocalTime Value="Motion.ResolvedAt" /></td></tr>
                     }
                     @if (Motion.LinkedMembershipApplicationId != null) {
                         <tr>
-                            <th>Verknüpfung</th>
-                            <td><a href="/Administration/MembershipApplications/@Motion.LinkedMembershipApplicationId">Mitgliedsantrag ansehen</a></td>
+                            <th>@I18n[I18nKey.Ui.MotionDetail.LinkLabel]</th>
+                            <td><a href="/Administration/MembershipApplications/@Motion.LinkedMembershipApplicationId">@I18n[I18nKey.Ui.MotionDetail.ViewApplication]</a></td>
                         </tr>
                     }
                     @if (Motion.LinkedDueSelectionId != null) {
                         <tr>
-                            <th>Verknüpfung</th>
-                            <td><a href="/Administration/DueSelections/@Motion.LinkedDueSelectionId">Beitragseinstufung ansehen</a></td>
+                            <th>@I18n[I18nKey.Ui.MotionDetail.LinkLabel]</th>
+                            <td><a href="/Administration/DueSelections/@Motion.LinkedDueSelectionId">@I18n[I18nKey.Ui.MotionDetail.ViewDueSelection]</a></td>
                         </tr>
                     }
                 </tbody>
@@ -116,7 +117,7 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Antragstext</h5>
+            <h5>@I18n[I18nKey.Ui.MotionDetail.BodyLabel]</h5>
             <div>@((MarkupString)Motion.Text)</div>
         </div>
     </div>
@@ -124,17 +125,17 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Abstimmung (@Motion.Votes.Count / @Motion.TotalOfficers Stimmen)</h5>
+            <h5>@I18n[$"{I18nKey.Ui.MotionDetail.VotesTitle}?cast={Motion.Votes.Count}&total={Motion.TotalOfficers}"]</h5>
 
             <div class="table-responsive">
             <table class="table table-sm mb-0">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Rolle</th>
-                        <th>Stimme</th>
-                        <th>Datum</th>
-                        <th>Abstimmen</th>
+                        <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Role]</th>
+                        <th>@I18n[I18nKey.Ui.MotionDetail.VoteColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Date]</th>
+                        <th>@I18n[I18nKey.Ui.MotionDetail.CastVoteColumn]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -146,11 +147,11 @@
                             <td>
                                 @if (existingVote != null) {
                                     @if (existingVote.Vote == VoteType.Approve) {
-                                        <span class="text-success"><i class="bi bi-hand-thumbs-up-fill"></i> Dafür</span>
+                                        <span class="text-success"><i class="bi bi-hand-thumbs-up-fill"></i> @I18n[I18nKey.Ui.MotionDetail.VoteApprove]</span>
                                     } else if (existingVote.Vote == VoteType.Deny) {
-                                        <span class="text-danger"><i class="bi bi-hand-thumbs-down-fill"></i> Dagegen</span>
+                                        <span class="text-danger"><i class="bi bi-hand-thumbs-down-fill"></i> @I18n[I18nKey.Ui.MotionDetail.VoteDeny]</span>
                                     } else {
-                                        <span class="text-secondary"><i class="bi bi-dash-circle"></i> Enthaltung</span>
+                                        <span class="text-secondary"><i class="bi bi-dash-circle"></i> @I18n[I18nKey.Ui.MotionDetail.VoteAbstain]</span>
                                     }
                                 } else {
                                     <span class="text-secondary">—</span>
@@ -160,15 +161,15 @@
                             <td>
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
-                                            aria-label="Ja-Stimme" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
+                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaApprove]" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
                                         <i class="bi bi-hand-thumbs-up-fill"></i>
                                     </button>
                                     <button class="btn btn-danger btn-sm @(existingVote?.Vote == VoteType.Deny ? "active" : "")"
-                                            aria-label="Nein-Stimme" @onclick="() => CastVote(officer.MemberId, VoteType.Deny)">
+                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaDeny]" @onclick="() => CastVote(officer.MemberId, VoteType.Deny)">
                                         <i class="bi bi-hand-thumbs-down-fill"></i>
                                     </button>
                                     <button class="btn btn-secondary btn-sm @(existingVote?.Vote == VoteType.Abstain ? "active" : "")"
-                                            aria-label="Enthaltung" @onclick="() => CastVote(officer.MemberId, VoteType.Abstain)">
+                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaAbstain]" @onclick="() => CastVote(officer.MemberId, VoteType.Abstain)">
                                         <i class="bi bi-dash-circle"></i>
                                     </button>
                                 </div>
@@ -184,13 +185,13 @@
     @if (Motion.ApprovalStatus == MotionApprovalStatus.Pending) {
         <div class="card mb-3">
             <div class="card-body">
-                <h5>Verwaltung</h5>
+                <h5>@I18n[I18nKey.Ui.Common.Management]</h5>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-warning btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.FormallyRejected)">
-                        <span>Formal ablehnen</span>
+                        <span>@I18n[I18nKey.Ui.MotionDetail.FormallyReject]</span>
                     </button>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.ClosedWithoutAction)">
-                        <span>Ohne Beschluss schließen</span>
+                        <span>@I18n[I18nKey.Ui.MotionDetail.CloseNoDecision]</span>
                     </button>
                 </div>
             </div>
@@ -200,7 +201,7 @@
     @if (Motion.ApprovalStatus == MotionApprovalStatus.Approved && !Motion.IsRealized) {
         <div class="d-flex">
             <button class="btn btn-success" @onclick="MarkRealized">
-                <i class="bi bi-check-circle"></i> Als umgesetzt markieren
+                <i class="bi bi-check-circle"></i> @I18n[I18nKey.Ui.MotionDetail.MarkRealized]
             </button>
         </div>
     }
@@ -208,29 +209,29 @@
     @if (!AuditUnavailable) {
         <div class="card mt-3">
             <div class="card-body">
-                <h5>Änderungsverlauf</h5>
+                <h5>@I18n[I18nKey.Ui.MotionDetail.AuditHistory]</h5>
                 @if (AuditLoading) {
                     <LoadingSpinner />
                 } else if (AuditEntries == null || AuditEntries.Count == 0) {
-                    <p class="text-secondary mb-0">Keine Einträge.</p>
+                    <p class="text-secondary mb-0">@I18n[I18nKey.Ui.Common.NoEntries]</p>
                 } else {
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
                             <thead>
                                 <tr>
-                                    <th style="width:160px">Zeitpunkt</th>
-                                    <th style="width:160px">Akteur</th>
-                                    <th style="width:160px">Aktion</th>
-                                    <th>Feld</th>
-                                    <th>Vorher</th>
-                                    <th>Nachher</th>
+                                    <th style="width:160px">@I18n[I18nKey.Ui.MotionDetail.AuditTimestamp]</th>
+                                    <th style="width:160px">@I18n[I18nKey.Ui.MotionDetail.AuditActor]</th>
+                                    <th style="width:160px">@I18n[I18nKey.Ui.MotionDetail.AuditAction]</th>
+                                    <th>@I18n[I18nKey.Ui.MotionDetail.AuditField]</th>
+                                    <th>@I18n[I18nKey.Ui.MotionDetail.AuditBefore]</th>
+                                    <th>@I18n[I18nKey.Ui.MotionDetail.AuditAfter]</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var entry in AuditEntries) {
                                     <tr>
                                         <td><LocalTime Value="entry.Timestamp" /></td>
-                                        <td>@(entry.UserDisplayName ?? "System")</td>
+                                        <td>@(entry.UserDisplayName ?? I18n[I18nKey.Ui.Common.System])</td>
                                         <td>@ActionLabel(entry.Action)</td>
                                         <td>@FieldLabel(entry.FieldName)</td>
                                         <td><span class="text-secondary small">@entry.OldValue</span></td>

@@ -1,7 +1,9 @@
-﻿@page "/DueSelector/PaymentOptionSelection/{ReturnUrl}"
+@page "/DueSelector/PaymentOptionSelection/{ReturnUrl}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Kontoangaben und Zahlungsweise</h3>
+    <h3>@I18n[I18nKey.Ui.PaymentOptionSelection.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -9,27 +11,27 @@
 
 <div class="mb-3">
     <p>
-        Wenn du deinen Beitrag via Lastschrift bezahlen möchtest, gib bitte deine Kontodaten ein.
+        @I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositInstruction]
     </p>
 
-    <Checkbox @bind-Value=EntryState.IsDirectDeposit>Lastschriftmandat erteilen</Checkbox>
+    <Checkbox @bind-Value=EntryState.IsDirectDeposit>@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositMandate]</Checkbox>
 </div>
 
 <Collapsable Collapsed=!EntryState.IsDirectDeposit>
     <div class="mb-2">
-        <label for="accountHolder" class="form-label">Kontoinhaber</label>
+        <label for="accountHolder" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.AccountHolderLabel]</label>
         @{ var fullName = EntryState.FirstName + " " + EntryState.LastName; }
         @if (fullName != EntryState.AccountHolder) {
             <span> - </span>
             <a href="#" class="btn-link" @onclick=UseNameAsAccountHolder @onclick:preventDefault>
-                @fullName übernehmen
+                @I18n[$"{I18nKey.Ui.PaymentOptionSelection.UseFullNameLink}?name={fullName}"]
             </a>
         }
         <input type="email" class="form-control" id="accountHolder" @bind=EntryState.AccountHolder @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label for="iban" class="form-label">IBAN</label>
+        <label for="iban" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.IbanLabel]</label>
         <input type="email" class="form-control" id="iban" @bind=EntryState.IBAN @bind:event="oninput" />
     </div>
 
@@ -37,19 +39,12 @@
 </Collapsable>
 
 <div class="mb-3">
-    <h2>Zahlungsweise</h2>
+    <h2>@I18n[I18nKey.Ui.PaymentOptionSelection.PaymentScheduleHeader]</h2>
     <RadioGroup E="PaymentSchedule" @bind-Value=EntryState.PaymentSchedule ToStringFunc="TextForPaymentSchedule"
                 DisabledValueFunc="DisabledPaymentSchedule" ExcludeValueFunc="ExcludedPaymentSchedule" />
-
-    @* <select class="form-select" @bind=EntryState.PaymentSchedule>
-        <option value="@PaymentSchedule.None">Bitte wähle deine Zahlungsweise aus</option>
-        <option value="@PaymentSchedule.Annual">Jährlich (fällig zum 01.01 eines Jahres)</option>
-        <option value="@PaymentSchedule.Quarterly">Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)</option>
-        <option value="@PaymentSchedule.Monthly">Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)</option>
-    </select> *@
 </div>
 
 <div class="d-flex justify-content-between">
-    <a href="@ReturnUrl" class="btn btn-primary">Zurück</a>
-    <a href="/DueSelector/Summary/@System.Net.WebUtility.UrlEncode(ReturnUrl)" class="btn btn-primary">Weiter</a>
+    <a href="@ReturnUrl" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
+    <a href="/DueSelector/Summary/@System.Net.WebUtility.UrlEncode(ReturnUrl)" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Next]</a>
 </div>

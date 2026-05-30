@@ -1,10 +1,11 @@
 @page "/Administration/LoginLockouts"
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Users
 
-<PageHeader Title="Gesperrte Logins">
+<PageHeader Title="@I18n[I18nKey.Ui.LoginLockouts.PageTitle]">
     <Actions>
         <button class="btn btn-sm btn-outline-secondary" @onclick="Load" disabled="@Loading">
-            <i class="bi bi-arrow-clockwise"></i> Aktualisieren
+            <i class="bi bi-arrow-clockwise"></i> @I18n[I18nKey.Ui.LoginLockouts.RefreshButton]
         </button>
     </Actions>
 </PageHeader>
@@ -15,20 +16,20 @@
     </div>
 } else if (Response != null) {
     @if (Response.Items.Count == 0) {
-        <p class="text-secondary">Aktuell sind keine Logins gesperrt.</p>
+        <p class="text-secondary">@I18n[I18nKey.Ui.LoginLockouts.NoneLocked]</p>
     } else {
         <div class="mb-2 text-secondary">
-            @Response.Items.Count gesperrte Kombination(en) (IP + Benutzer)
+            @I18n[$"{I18nKey.Ui.LoginLockouts.TotalCount}?count={Response.Items.Count}"]
         </div>
         <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th>IP-Adresse</th>
-                    <th>Benutzer</th>
-                    <th>Fehlversuche</th>
-                    <th>Letzter Versuch</th>
-                    <th>Gesperrt bis</th>
+                    <th>@I18n[I18nKey.Ui.LoginLockouts.IpAddressColumn]</th>
+                    <th>@I18n[I18nKey.Ui.LoginLockouts.UserColumn]</th>
+                    <th>@I18n[I18nKey.Ui.LoginLockouts.FailedAttemptsColumn]</th>
+                    <th>@I18n[I18nKey.Ui.LoginLockouts.LastAttemptColumn]</th>
+                    <th>@I18n[I18nKey.Ui.LoginLockouts.LockedUntilColumn]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -48,7 +49,7 @@
                                     <span class="spinner-border spinner-border-sm" role="status"></span>
                                 } else {
                                     <i class="bi bi-unlock"></i>
-                                    <span> Entsperren</span>
+                                    <span> @I18n[I18nKey.Ui.LoginLockouts.UnlockButton]</span>
                                 }
                             </button>
                         </td>

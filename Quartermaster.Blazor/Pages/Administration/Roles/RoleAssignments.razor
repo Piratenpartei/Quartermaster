@@ -1,16 +1,18 @@
 @page "/Administration/Roles/Assignments"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Roles
 
 <div class="mb-3">
     <a href="/Administration/Roles" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Zurück zu den Rollen
+        <i class="bi bi-arrow-left"></i> @I18n[I18nKey.Ui.RoleAssignments.BackToRoles]
     </a>
 </div>
 
-<PageHeader Title="Rollenzuweisungen">
+<PageHeader Title="@I18n[I18nKey.Ui.RoleAssignments.PageTitle]">
     <Actions>
         <button class="btn btn-sm btn-primary" @onclick="() => ShowingCreateForm = !ShowingCreateForm">
-            <i class="bi bi-plus-circle"></i> Neue Zuweisung
+            <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.RoleAssignments.NewAssignment]
         </button>
     </Actions>
 </PageHeader>
@@ -18,12 +20,12 @@
 @if (ShowingCreateForm) {
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Neue Zuweisung</h5>
+            <h5>@I18n[I18nKey.Ui.RoleAssignments.NewAssignmentTitle]</h5>
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label for="newUserId" class="form-label">Benutzer</label>
+                    <label for="newUserId" class="form-label">@I18n[I18nKey.Ui.RoleAssignments.UserLabel]</label>
                     <select class="form-select" id="newUserId" @bind="NewUserId">
-                        <option value="">— Benutzer wählen —</option>
+                        <option value="">@I18n[I18nKey.Ui.RoleAssignments.UserEmptyOption]</option>
                         @if (Users != null) {
                             @foreach (var u in Users) {
                                 <option value="@u.Id">@($"{u.FirstName} {u.LastName}") (@u.Username)</option>
@@ -32,19 +34,19 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="newRoleId" class="form-label">Rolle</label>
+                    <label for="newRoleId" class="form-label">@I18n[I18nKey.Ui.RoleAssignments.RoleLabel]</label>
                     <select class="form-select" id="newRoleId" @bind="NewRoleId" @bind:after="OnRoleChanged">
-                        <option value="">— Rolle wählen —</option>
+                        <option value="">@I18n[I18nKey.Ui.RoleAssignments.RoleEmptyOption]</option>
                         @if (Roles != null) {
                             @foreach (var r in Roles) {
-                                <option value="@r.Id">@r.Name (@(r.Scope == 0 ? "Global" : "Chapter"))</option>
+                                <option value="@r.Id">@r.Name (@(r.Scope == 0 ? I18n[I18nKey.Ui.RoleAssignments.ScopeGlobal] : I18n[I18nKey.Ui.RoleAssignments.ScopeChapter]))</option>
                             }
                         }
                     </select>
                 </div>
                 @if (SelectedRoleScope == RoleScope.ChapterScoped) {
                     <div class="col-md-4">
-                        <label class="form-label">Gliederung</label>
+                        <label class="form-label">@I18n[I18nKey.Ui.RoleAssignments.ChapterLabel]</label>
                         <ChapterPicker @bind-Value="NewChapterIdString" AllowEmpty="true" />
                     </div>
                 }
@@ -53,7 +55,7 @@
                         @if (Creating) {
                             <span class="spinner-border spinner-border-sm"></span>
                         }
-                        <span> Zuweisen</span>
+                        <span> @I18n[I18nKey.Ui.RoleAssignments.AssignButton]</span>
                     </button>
                 </div>
             </div>
@@ -65,15 +67,15 @@
     <LoadingSpinner />
 } else if (Assignments != null) {
     @if (Assignments.Count == 0) {
-        <EmptyState Message="Keine Zuweisungen vorhanden." />
+        <EmptyState Message="@I18n[I18nKey.Ui.RoleAssignments.EmptyMessage]" />
     } else {
         <div class="table-responsive">
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th>Benutzer</th>
-                    <th>Rolle</th>
-                    <th>Gliederung</th>
+                    <th>@I18n[I18nKey.Ui.RoleAssignments.UserColumn]</th>
+                    <th>@I18n[I18nKey.Ui.RoleAssignments.RoleColumn]</th>
+                    <th>@I18n[I18nKey.Ui.RoleAssignments.ChapterColumn]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -84,13 +86,13 @@
                         <td>
                             @a.RoleName
                             @if (a.RoleScope == RoleScope.Global) {
-                                <span class="badge border border-info text-info-emphasis ms-2">Global</span>
+                                <span class="badge border border-info text-info-emphasis ms-2">@I18n[I18nKey.Ui.RoleAssignments.GlobalBadge]</span>
                             }
                         </td>
                         <td>@(a.ChapterName ?? "—")</td>
                         <td class="text-end">
                             <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveAssignment(a)">
-                                <i class="bi bi-x-circle"></i> Entfernen
+                                <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.RoleAssignments.RemoveButton]
                             </button>
                         </td>
                     </tr>

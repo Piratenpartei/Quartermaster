@@ -16,6 +16,8 @@ public partial class EventTemplateList {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private ConfirmDialog ConfirmDialog = default!;
     private List<EventTemplateDTO>? Templates;

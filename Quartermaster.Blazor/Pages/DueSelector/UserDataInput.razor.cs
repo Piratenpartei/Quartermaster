@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Blazor.Services;
-
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
@@ -11,6 +11,8 @@ public partial class UserDataInput {
     public required AppStateService AppState { get; set; }
     [Inject]
     public required AuthService AuthService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private DueSelectorEntryState? EntryState;
 

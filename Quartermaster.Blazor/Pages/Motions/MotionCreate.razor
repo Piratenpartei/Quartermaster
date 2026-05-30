@@ -1,14 +1,17 @@
 @page "/Motions/Create"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
+@inject I18nService I18n
 
 <div class="mb-3">
-    <h3>Antrag einreichen</h3>
+    <h3>@I18n[I18nKey.Ui.MotionCreate.PublicPageTitle]</h3>
 </div>
 
 @if (SubmittedDirect) {
     <div class="alert alert-success">
         <i class="bi bi-check-circle me-2"></i>
-        Dein Antrag wurde eingereicht und an die Officer weitergeleitet.
+        @I18n[I18nKey.Ui.MotionCreate.SubmittedDirectSuccess]
     </div>
     return;
 }
@@ -19,31 +22,31 @@
 }
 
 <div class="mb-3">
-    <label class="form-label">Gliederung <RequiredStar /></label>
+    <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter] <RequiredStar /></label>
     <ChapterPicker @bind-Value="SelectedChapterId" />
 </div>
 
 <div class="mb-3">
-    <label for="authorName" class="form-label">Dein Name <RequiredStar /></label>
+    <label for="authorName" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourName] <RequiredStar /></label>
     <input type="text" class="form-control" id="authorName" @bind="AuthorName" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
 </div>
 
 <div class="mb-3">
-    <label for="authorEmail" class="form-label">Deine E-Mail Adresse <RequiredStar /></label>
+    <label for="authorEmail" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourEmail] <RequiredStar /></label>
     <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
 </div>
 
 @if (AuthService.IsAuthenticated) {
-    <p class="text-secondary small mb-3">Name und E-Mail sind mit deinem Konto vorausgefüllt.</p>
+    <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.MotionCreate.AuthedPrefillShort]</p>
 }
 
 <div class="mb-3">
-    <label for="title" class="form-label">Titel des Antrags <RequiredStar /></label>
+    <label for="title" class="form-label">@I18n[I18nKey.Ui.MotionCreate.MotionTitleLabel] <RequiredStar /></label>
     <input type="text" class="form-control" id="title" @bind="Title" @bind:event="oninput" />
 </div>
 
 <div class="mb-3">
-    <label for="text" class="form-label">Antragstext <RequiredStar /></label>
+    <label for="text" class="form-label">@I18n[I18nKey.Ui.MotionCreate.BodyLabel] <RequiredStar /></label>
     <textarea class="form-control" rows="6" id="text" @bind="Text" @bind:event="oninput" maxlength="8192"></textarea>
 </div>
 
@@ -52,6 +55,6 @@
         @if (Submitting) {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         }
-        Antrag einreichen
+        @I18n[I18nKey.Ui.MotionCreate.SubmitPublic]
     </button>
 </div>

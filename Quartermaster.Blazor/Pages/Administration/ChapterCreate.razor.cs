@@ -19,6 +19,9 @@ public partial class ChapterCreate {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private string Name = "";
     private string ShortCode = "";
     private string ExternalCode = "";

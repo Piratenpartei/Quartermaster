@@ -1,8 +1,11 @@
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
+
 <button class="btn @ButtonClass" @onclick="OnClick" disabled="@IsDisabled">
     @if (Saving) {
         <span class="spinner-border spinner-border-sm me-1" role="status"></span>
     } else {
         <i class="bi bi-save me-1"></i>
     }
-    @(Saving ? SavingText : Text)
+    @(Saving ? ResolvedSavingText : ResolvedText)
 </button>

@@ -1,14 +1,16 @@
 @page "/Events"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
-<PageTitle>Events</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.PublicEventList.PageTitle]</PageTitle>
 
-<h1 class="mb-4">Events</h1>
+<h1 class="mb-4">@I18n[I18nKey.Ui.PublicEventList.PageTitle]</h1>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Response == null || Response.Items.Count == 0) {
-    <p class="text-secondary">Aktuell sind keine öffentlichen Events angekündigt.</p>
+    <p class="text-secondary">@I18n[I18nKey.Ui.PublicEventList.EmptyMessage]</p>
 } else {
     <div class="list-group">
         @foreach (var ev in Response.Items) {

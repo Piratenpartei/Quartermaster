@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Components;
-using Quartermaster.Blazor.Services;
 using System.Diagnostics;
-
+using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class PaymentOptionSelection {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public required string ReturnUrl { get; set; }
@@ -30,11 +32,9 @@ public partial class PaymentOptionSelection {
         if (EntryState == null)
             return false;
 
-        // All enabled except for Monthly in some cases
         if (paymentScedule != PaymentSchedule.Monthly)
             return false;
 
-        // Always 12€ => Cannot pay monthly
         if (EntryState.SelectedValuation == SelectedValuation.Underage)
             return true;
         if (EntryState.SelectedValuation == SelectedValuation.Reduced && EntryState.ReducedAmount < 36)
@@ -43,12 +43,12 @@ public partial class PaymentOptionSelection {
         return false;
     }
 
-    private static string TextForPaymentSchedule(PaymentSchedule paymentScedule) {
+    private string TextForPaymentSchedule(PaymentSchedule paymentScedule) {
         return paymentScedule switch {
             PaymentSchedule.None => "",
-            PaymentSchedule.Annual => "Jährlich (fällig zum 01.01 eines Jahres)",
-            PaymentSchedule.Quarterly => "Quartalsweise (fällig zum 01.01, 01.04, 01.07 und 01.10)",
-            PaymentSchedule.Monthly => "Monatlich - ab 36€ Jahresbeitrag (fällig zum ersten eines Monats)",
+            PaymentSchedule.Annual => I18n[I18nKey.Ui.PaymentOptionSelection.ScheduleAnnual],
+            PaymentSchedule.Quarterly => I18n[I18nKey.Ui.PaymentOptionSelection.ScheduleQuarterly],
+            PaymentSchedule.Monthly => I18n[I18nKey.Ui.PaymentOptionSelection.ScheduleMonthly],
             _ => throw new UnreachableException()
         };
     }

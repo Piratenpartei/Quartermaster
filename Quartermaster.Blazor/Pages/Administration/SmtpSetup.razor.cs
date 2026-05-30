@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Email;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -13,6 +14,9 @@ public partial class SmtpSetup {
 
     [Inject]
     public required ToastService ToastService { get; set; }
+
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private static readonly string[] SmtpKeys = [
         "email.smtp.host",

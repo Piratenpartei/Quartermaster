@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 
 namespace Quartermaster.Blazor.Components;
@@ -27,6 +28,9 @@ public class AgendaTreeEntry {
 }
 
 public partial class AgendaItemTree {
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public List<AgendaItemDTO> Items { get; set; } = new();
 
@@ -131,14 +135,14 @@ public partial class AgendaItemTree {
         EditingItemId = null;
     }
 
-    private static string TypeLabel(AgendaItemType t) => t switch {
-        AgendaItemType.Discussion => "Diskussion",
-        AgendaItemType.Motion => "Antrag",
-        AgendaItemType.Protocol => "Protokoll",
-        AgendaItemType.Break => "Pause",
-        AgendaItemType.Information => "Information",
-        AgendaItemType.Section => "Abschnitt",
-        AgendaItemType.Presence => "Anwesenheit",
+    private string TypeLabel(AgendaItemType t) => t switch {
+        AgendaItemType.Discussion => I18n[I18nKey.Ui.AgendaItemType.Discussion],
+        AgendaItemType.Motion => I18n[I18nKey.Ui.AgendaItemType.Motion],
+        AgendaItemType.Protocol => I18n[I18nKey.Ui.AgendaItemType.Protocol],
+        AgendaItemType.Break => I18n[I18nKey.Ui.AgendaItemType.Break],
+        AgendaItemType.Information => I18n[I18nKey.Ui.AgendaItemType.Information],
+        AgendaItemType.Section => I18n[I18nKey.Ui.AgendaItemType.Section],
+        AgendaItemType.Presence => I18n[I18nKey.Ui.AgendaItemType.Presence],
         _ => t.ToString()
     };
 

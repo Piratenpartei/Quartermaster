@@ -18,6 +18,9 @@ public partial class MeetingAgendaEdit {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public Guid Id { get; set; }
 
@@ -54,7 +57,7 @@ public partial class MeetingAgendaEdit {
             await MeetingsApi.AddAgendaItemAsync(new AgendaItemCreateRequest {
                 MeetingId = Id,
                 ParentId = parentId,
-                Title = "Neuer TOP",
+                Title = I18n[I18nKey.Ui.MeetingAgendaEdit.NewItemDefaultTitle],
                 ItemType = AgendaItemType.Discussion
             });
             await LoadMeeting();

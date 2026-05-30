@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
@@ -29,6 +30,9 @@ public partial class MainNavBar : IDisposable {
     [Inject]
     public required LanguageService LanguageService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private void ToggleMenu() {
         Collapsed = !Collapsed;
     }
@@ -38,12 +42,7 @@ public partial class MainNavBar : IDisposable {
         await SetTheme();
     }
 
-    protected override async Task OnInitializedAsync() {
-        await LanguageService.InitializeAsync();
-        await AuthService.InitializeAsync();
-        await ConfigService.LoadAsync();
-        await SetTheme();
-
+    protected override void OnInitialized() {
         AuthState.OnTokenExpired += OnTokenExpired;
         AuthState.OnStateChanged += OnAuthStateChanged;
     }

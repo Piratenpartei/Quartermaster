@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AdministrativeDivisions;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
 
@@ -16,6 +17,8 @@ public partial class ImportStatus {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MemberImportLogListResponse? MemberHistory;
     private AdminDivisionImportLogListResponse? AdminDivHistory;
@@ -52,7 +55,6 @@ public partial class ImportStatus {
         try {
             return JsonSerializer.Deserialize<List<string>>(errorsJson) ?? new();
         } catch (JsonException) {
-            // Older import logs stored a plain string instead of a JSON array; surface it as-is.
             return new List<string> { errorsJson };
         }
     }

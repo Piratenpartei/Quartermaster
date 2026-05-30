@@ -1,7 +1,9 @@
 @page "/Events/{Id:guid}"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
-<PageTitle>Event</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.PublicEventDetail.PageTitle]</PageTitle>
 
 <PageBackLink Href="/Events" />
 
@@ -9,7 +11,7 @@
     <LoadingSpinner />
 } else if (NotFound) {
     <div class="alert alert-warning">
-        Dieses Event ist nicht öffentlich verfügbar.
+        @I18n[I18nKey.Ui.PublicEventDetail.NotPubliclyAvailable]
     </div>
 } else if (Event != null) {
     <h1>@Event.PublicName</h1>

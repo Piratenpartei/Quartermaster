@@ -3,6 +3,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.Chapters
 @using Quartermaster.Api.ChapterAssociates
+@using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.Inputs
 
 <PageBackLink Href="/Administration/Chapters" />
@@ -10,7 +11,7 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Detail == null) {
-    <div class="alert alert-danger">Gliederung nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.ChapterDetail.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">@Detail.Chapter.Name</h3>
@@ -18,13 +19,13 @@
             @if (!Editing) {
                 <RequirePermission GlobalPermission="@PermissionIdentifier.EditChapter">
                     <button class="btn btn-sm btn-outline-primary btn-hover-scale1" @onclick="BeginEdit">
-                        <i class="bi bi-pencil me-1"></i> Bearbeiten
+                        <i class="bi bi-pencil me-1"></i> @I18n[I18nKey.Ui.Common.Edit]
                     </button>
                 </RequirePermission>
                 <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteChapter">
                     <button class="btn btn-sm btn-outline-danger btn-hover-scale1" @onclick="ConfirmDelete" disabled="@Detail.Children.Any()"
-                            title="@(Detail.Children.Any() ? "Untergliederungen müssen zuerst gelöscht werden" : "Gliederung löschen")">
-                        <i class="bi bi-trash me-1"></i> Löschen
+                            title="@(Detail.Children.Any() ? I18n[I18nKey.Ui.ChapterDetail.DeleteDisabledHasChildren] : I18n[I18nKey.Ui.ChapterDetail.DeleteTooltip])">
+                        <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.Common.Delete]
                     </button>
                 </RequirePermission>
             }
@@ -33,54 +34,54 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Details</h5>
+            <h5>@I18n[I18nKey.Ui.Common.Details]</h5>
             @if (Editing) {
                 <div class="mb-3">
-                    <label class="form-label">Name <RequiredStar /></label>
+                    <label class="form-label">@I18n[I18nKey.Ui.Common.Name] <RequiredStar /></label>
                     <input type="text" class="form-control" @bind="EditName" @bind:event="oninput" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Kürzel</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</label>
                     <input type="text" class="form-control" @bind="EditShortCode" @bind:event="oninput" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Externer Code</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</label>
                     <input type="text" class="form-control" @bind="EditExternalCode" @bind:event="oninput" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Übergeordnete Gliederung</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</label>
                     <ChapterPicker Value="@EditParentChapterId" ValueChanged="OnParentChanged"
-                                   AllowEmpty="true" EmptyLabel="Keine — Top-Level-Gliederung"
+                                   AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterDetail.ParentEmptyLabel]"
                                    ExcludeIds="@(new List<Guid> { Id })" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Verwaltungsgebiet</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</label>
                     <div class="d-flex">
                         <AdminDivisionPicker Value="@EditAdministrativeDivisionId" ValueChanged="OnDivisionChanged"
                                              InitialDisplayText="@(Detail.AdministrativeDivisionName ?? "")" AllowClear="true" />
                     </div>
-                    <div class="form-text">Optional. Bestimmt die Zuordnung von Mitgliedsanträgen aus diesem Gebiet.</div>
+                    <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionHint]</div>
                 </div>
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-outline-secondary" @onclick="CancelEdit">Abbrechen</button>
+                    <button class="btn btn-outline-secondary" @onclick="CancelEdit">@I18n[I18nKey.Ui.Common.Cancel]</button>
                     <button class="btn btn-primary btn-hover-scale1" @onclick="SaveEdit" disabled="@(Saving || string.IsNullOrWhiteSpace(EditName))">
                         @if (Saving) {
                             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                         } else {
                             <i class="bi bi-check-circle me-1"></i>
                         }
-                        Speichern
+                        @I18n[I18nKey.Ui.Common.Save]
                     </button>
                 </div>
             } else {
                 <div class="table-responsive">
                 <table class="table table-borderless mb-0">
                     <tbody>
-                        <tr><th style="width:200px">Name</th><td>@Detail.Chapter.Name</td></tr>
-                        <tr><th>Kürzel</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
-                        <tr><th>Externer Code</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
+                        <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Name]</th><td>@Detail.Chapter.Name</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
                         <tr>
-                            <th>Übergeordnete Gliederung</th>
+                            <th>@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</th>
                             <td>
                                 @if (Detail.ParentChapterId.HasValue) {
                                     <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
@@ -90,7 +91,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>Verwaltungsgebiet</th>
+                            <th>@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</th>
                             <td>@(string.IsNullOrEmpty(Detail.AdministrativeDivisionName) ? "—" : Detail.AdministrativeDivisionName)</td>
                         </tr>
                     </tbody>
@@ -103,9 +104,9 @@
     <div class="card mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="mb-0">Vorstand</h5>
+                <h5 class="mb-0">@I18n[I18nKey.Ui.ChapterDetail.BoardSection]</h5>
                 <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-success">
-                    <i class="bi bi-plus"></i> Hinzufügen
+                    <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.Common.Add]
                 </a>
             </div>
             @if (Detail.Officers.Count > 0) {
@@ -113,8 +114,8 @@
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Rolle</th>
+                            <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                            <th>@I18n[I18nKey.Ui.Common.Role]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,7 +129,7 @@
                 </table>
                 </div>
             } else {
-                <p class="text-secondary mb-0">Keine Vorstandsmitglieder eingetragen.</p>
+                <p class="text-secondary mb-0">@I18n[I18nKey.Ui.ChapterDetail.NoBoardMembers]</p>
             }
         </div>
     </div>
@@ -136,7 +137,7 @@
     @if (Detail.Children.Count > 0) {
         <div class="card mb-3">
             <div class="card-body">
-                <h5>Untergliederungen</h5>
+                <h5>@I18n[I18nKey.Ui.ChapterDetail.ChildrenSection]</h5>
                 <div class="list-group list-group-flush">
                     @foreach (var child in Detail.Children) {
                         <a href="/Administration/Chapters/@child.Id" class="list-group-item list-group-item-action">
@@ -152,4 +153,4 @@
     }
 }
 
-<ConfirmDialog @ref="DeleteConfirm" Title="Gliederung löschen" ConfirmText="Löschen" />
+<ConfirmDialog @ref="DeleteConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogConfirm]" />

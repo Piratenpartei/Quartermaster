@@ -22,7 +22,7 @@ public partial class DashboardCard {
     public int? TotalCount { get; set; }
 
     /// <summary>
-    /// URL for the "Alle anzeigen" link in the header.
+    /// URL for the "show all" link in the header.
     /// </summary>
     [Parameter, EditorRequired]
     public string AllUrl { get; set; } = "";
@@ -34,7 +34,7 @@ public partial class DashboardCard {
     public bool IsEmpty { get; set; }
 
     /// <summary>
-    /// German empty-state message shown when <see cref="IsEmpty"/> is true.
+    /// Empty-state message shown when <see cref="IsEmpty"/> is true.
     /// </summary>
     [Parameter]
     public string EmptyMessage { get; set; } = "";

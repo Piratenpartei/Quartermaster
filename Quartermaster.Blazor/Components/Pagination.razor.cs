@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Blazor.Components;
 
 public partial class Pagination {
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public int CurrentPage { get; set; } = 1;
 

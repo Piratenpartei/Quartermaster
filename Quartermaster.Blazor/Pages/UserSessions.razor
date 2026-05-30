@@ -1,10 +1,12 @@
 @page "/Sessions"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Users
 
-<PageTitle>Meine Sitzungen</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.UserSessions.PageTitle]</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Meine Sitzungen</h3>
+    <h3 class="mb-0">@I18n[I18nKey.Ui.UserSessions.PageTitle]</h3>
     @if (Sessions != null && Sessions.Count > 1) {
         <button class="btn btn-outline-danger btn-sm" @onclick="RevokeOthers" disabled="@RevokingOthers">
             @if (RevokingOthers) {
@@ -12,27 +14,27 @@
             } else {
                 <i class="bi bi-box-arrow-right me-1"></i>
             }
-            Alle anderen abmelden
+            @I18n[I18nKey.Ui.UserSessions.LogOutAllOthers]
         </button>
     }
 </div>
 
-<p class="text-secondary">Hier siehst du alle Geräte, auf denen du derzeit angemeldet bist. Du kannst einzelne Sitzungen beenden oder alle anderen außer dieser abmelden.</p>
+<p class="text-secondary">@I18n[I18nKey.Ui.UserSessions.Description]</p>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Sessions == null || Sessions.Count == 0) {
-    <EmptyState>Keine aktiven Sitzungen.</EmptyState>
+    <EmptyState>@I18n[I18nKey.Ui.UserSessions.NoSessions]</EmptyState>
 } else {
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>Gerät / Browser</th>
-                    <th>IP-Adresse</th>
-                    <th>Angemeldet seit</th>
-                    <th>Läuft ab</th>
-                    <th class="text-end">Aktion</th>
+                    <th>@I18n[I18nKey.Ui.UserSessions.DeviceBrowserColumn]</th>
+                    <th>@I18n[I18nKey.Ui.UserSessions.IpAddressColumn]</th>
+                    <th>@I18n[I18nKey.Ui.UserSessions.SignedInSinceColumn]</th>
+                    <th>@I18n[I18nKey.Ui.UserSessions.ExpiresColumn]</th>
+                    <th class="text-end">@I18n[I18nKey.Ui.UserSessions.ActionColumn]</th>
                 </tr>
             </thead>
             <tbody>
@@ -40,7 +42,7 @@
                     <tr>
                         <td>
                             @if (session.IsCurrent) {
-                                <span class="badge bg-primary me-2">Diese Sitzung</span>
+                                <span class="badge bg-primary me-2">@I18n[I18nKey.Ui.UserSessions.ThisSessionBadge]</span>
                             }
                             <span class="text-secondary">@(string.IsNullOrEmpty(session.IssuedUserAgent) ? "—" : session.IssuedUserAgent)</span>
                         </td>
@@ -54,7 +56,7 @@
                                 } else {
                                     <i class="bi bi-box-arrow-right me-1"></i>
                                 }
-                                Abmelden
+                                @I18n[I18nKey.Ui.UserSessions.SignOutButton]
                             </button>
                         </td>
                     </tr>

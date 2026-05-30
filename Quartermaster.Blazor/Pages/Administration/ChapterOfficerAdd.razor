@@ -1,17 +1,19 @@
 @page "/Administration/Chapters/{ChapterId:guid}/AddOfficer"
+@using Quartermaster.Api
 @using Quartermaster.Api.ChapterAssociates
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Members
 
-<PageBackLink Href="@($"/Administration/Chapters/{ChapterId}")" Text="Zurück zur Gliederung" />
+<PageBackLink Href="@($"/Administration/Chapters/{ChapterId}")" Text="@I18n[I18nKey.Ui.ChapterOfficerAdd.BackToChapter]" />
 
-<h3 class="mb-3">Vorstandsmitglied hinzufügen</h3>
+<h3 class="mb-3">@I18n[I18nKey.Ui.ChapterOfficerAdd.PageTitle]</h3>
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Mitglied suchen</h5>
+        <h5>@I18n[I18nKey.Ui.ChapterOfficerAdd.SearchSection]</h5>
         <div class="input-group mb-3">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" placeholder="Name oder Mitgliedsnummer..."
+            <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.ChapterOfficerAdd.SearchPlaceholder]"
                    @bind="SearchQuery" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
         </div>
 
@@ -19,15 +21,15 @@
             <LoadingSpinner Small="true" CssClass="my-3" />
         } else if (SearchResults != null) {
             @if (SearchResults.Items.Count == 0) {
-                <EmptyState Message="Keine Mitglieder gefunden." />
+                <EmptyState Message="@I18n[I18nKey.Ui.ChapterOfficerAdd.NoMembersFound]" />
             } else {
                 <div class="table-responsive">
                 <table class="table table-sm table-hover">
                     <thead>
                         <tr>
-                            <th>Nr.</th>
-                            <th>Name</th>
-                            <th>Ort</th>
+                            <th>@I18n[I18nKey.Ui.ChapterOfficerAdd.MemberNumberColumn]</th>
+                            <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                            <th>@I18n[I18nKey.Ui.ChapterOfficerAdd.CityColumn]</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -39,7 +41,7 @@
                                 <td>@m.PostCode @m.City</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" @onclick="() => SelectMember(m)">
-                                        <i class="bi bi-check"></i> Auswählen
+                                        <i class="bi bi-check"></i> @I18n[I18nKey.Ui.ChapterOfficerAdd.SelectButton]
                                     </button>
                                 </td>
                             </tr>
@@ -55,33 +57,33 @@
 @if (SelectedMember != null) {
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Ausgewähltes Mitglied</h5>
+            <h5>@I18n[I18nKey.Ui.ChapterOfficerAdd.SelectedMemberSection]</h5>
             <p class="mb-2">
                 <strong>@SelectedMember.FirstName @SelectedMember.LastName</strong>
-                <span class="text-secondary">(Nr. @SelectedMember.MemberNumber)</span>
+                <span class="text-secondary">@I18n[$"{I18nKey.Ui.ChapterOfficerAdd.MemberNumberPrefix}?number={SelectedMember.MemberNumber}"]</span>
             </p>
 
             <div class="row g-3 align-items-end">
                 <div class="col-md-6">
-                    <label for="selectedRole" class="form-label">Rolle</label>
+                    <label for="selectedRole" class="form-label">@I18n[I18nKey.Ui.ChapterOfficerAdd.RoleLabel]</label>
                     <select id="selectedRole" class="form-select" @bind="SelectedRole">
-                        <option value="@ChapterOfficerType.Captain">Vorsitzender</option>
-                        <option value="@ChapterOfficerType.FirstOfficer">Stellv. Vorsitzender</option>
-                        <option value="@ChapterOfficerType.Quartermaster">Quartiermeister</option>
-                        <option value="@ChapterOfficerType.Treasurer">Schatzmeister</option>
-                        <option value="@ChapterOfficerType.ViceTreasurer">Stellv. Schatzmeister</option>
-                        <option value="@ChapterOfficerType.PoliticalDirector">Pol. Geschäftsführer</option>
-                        <option value="@ChapterOfficerType.Member">Beisitzer</option>
+                        <option value="@ChapterOfficerType.Captain">@I18n[I18nKey.Ui.OfficerRole.Captain]</option>
+                        <option value="@ChapterOfficerType.FirstOfficer">@I18n[I18nKey.Ui.OfficerRole.FirstOfficer]</option>
+                        <option value="@ChapterOfficerType.Quartermaster">@I18n[I18nKey.Ui.OfficerRole.Quartermaster]</option>
+                        <option value="@ChapterOfficerType.Treasurer">@I18n[I18nKey.Ui.OfficerRole.Treasurer]</option>
+                        <option value="@ChapterOfficerType.ViceTreasurer">@I18n[I18nKey.Ui.OfficerRole.ViceTreasurer]</option>
+                        <option value="@ChapterOfficerType.PoliticalDirector">@I18n[I18nKey.Ui.OfficerRole.PoliticalDirector]</option>
+                        <option value="@ChapterOfficerType.Member">@I18n[I18nKey.Ui.OfficerRole.Member]</option>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <button class="btn btn-success" @onclick="AddOfficer" disabled="@Submitting">
                         @if (Submitting) {
                             <span class="spinner-border spinner-border-sm" role="status"></span>
-                            <span> Wird hinzugefügt...</span>
+                            <span> @I18n[I18nKey.Ui.ChapterOfficerAdd.Adding]</span>
                         } else {
                             <i class="bi bi-plus-circle"></i>
-                            <span> Hinzufügen</span>
+                            <span> @I18n[I18nKey.Ui.Common.Add]</span>
                         }
                     </button>
                 </div>

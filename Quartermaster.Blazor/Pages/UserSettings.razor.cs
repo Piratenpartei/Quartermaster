@@ -22,6 +22,9 @@ public partial class UserSettings {
     [Inject]
     public required ClientConfigService ConfigService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private UserSettingsDTO? Settings;
     private bool Loading = true;
     private bool Seeding;

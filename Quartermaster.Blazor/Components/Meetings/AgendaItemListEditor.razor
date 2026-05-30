@@ -1,15 +1,17 @@
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Meetings
 
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">Tagesordnung</h5>
+            <h5 class="mb-0">@I18n[I18nKey.Ui.MeetingAgendaEdit.AgendaHeading]</h5>
             <div class="d-flex gap-2">
                 <a href="/Administration/Meetings/@MeetingId/Edit" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-pencil-square"></i> Agenda bearbeiten
+                    <i class="bi bi-pencil-square"></i> @I18n[I18nKey.Ui.MeetingLive.EditAgenda]
                 </a>
                 <button class="btn btn-sm btn-primary" @onclick="@(() => AddAgendaItem(null))">
-                    <i class="bi bi-plus-circle"></i> Neuer TOP
+                    <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.MeetingAgendaEdit.NewItem]
                 </button>
             </div>
         </div>

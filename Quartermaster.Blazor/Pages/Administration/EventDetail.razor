@@ -1,6 +1,8 @@
 @page "/Administration/Events/{Id:guid}"
+@using Quartermaster.Api
 @using Quartermaster.Api.AuditLog
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.Events
 
 <PageBackLink Href="/Administration/Events" />
@@ -8,7 +10,7 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Event == null) {
-    <div class="alert alert-danger">Event nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.EventDetail.NotFound]</div>
 } else {
     var completedCount = Event.ChecklistItems.Count(i => i.IsCompleted);
     var totalCount = Event.ChecklistItems.Count;
@@ -20,24 +22,24 @@
                 <div class="input-group flex-grow-1">
                     <input type="text" class="form-control form-control-lg fw-bold"
                            @bind="Event.InternalName" @bind:event="oninput" />
-                    <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="SaveTitleEdit">
+                    <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.EventDetail.SaveAria]" @onclick="SaveTitleEdit">
                         <i class="bi bi-check-lg"></i>
                     </button>
-                    <button class="btn btn-outline-secondary" aria-label="Abbrechen" @onclick="() => EditingTitle = false">
+                    <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.EventDetail.CancelAria]" @onclick="() => EditingTitle = false">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
             } else {
                 <h3 class="mb-0">@Event.InternalName</h3>
                 <button class="btn btn-sm btn-outline-secondary border-0" @onclick="() => EditingTitle = true"
-                        title="Bearbeiten" aria-label="Bearbeiten">
+                        title="@I18n[I18nKey.Ui.EventDetail.EditAria]" aria-label="@I18n[I18nKey.Ui.EventDetail.EditAria]">
                     <i class="bi bi-pencil"></i>
                 </button>
             }
         </div>
         <div class="d-flex gap-2">
             @if (allDone) {
-                <span class="badge border border-success text-success-emphasis fs-6">Erledigt</span>
+                <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.EventDetail.DoneBadge]</span>
             } else if (totalCount > 0) {
                 <span class="badge border border-secondary text-secondary-emphasis fs-6">@completedCount/@totalCount</span>
             }
@@ -50,7 +52,7 @@
         @if (Event.EventDate != null) {
             <span> &mdash; <LocalTime DateValue="Event.EventDate" /></span>
         }
-        <span> &mdash; Erstellt <LocalTime Value="Event.CreatedAt" Format="dd.MM.yyyy" /></span>
+        <span> &mdash; @I18n[I18nKey.Ui.EventDetail.CreatedPrefix] <LocalTime Value="Event.CreatedAt" Format="dd.MM.yyyy" /></span>
     </div>
 
     <DirtyForm @ref="_detailsForm">
@@ -58,20 +60,20 @@
             <div class="card-body">
                 <div class="row g-3 mb-3">
                     <div class="col">
-                        <label class="form-label small text-secondary">Öffentlicher Name / Betreff</label>
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.PublicNameLabel]</label>
                         <FormInput @bind-Value="Event.PublicName" />
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-secondary">Datum</label>
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.Common.Date]</label>
                         <FormInput Type="date" Value="@(Event.EventDate?.ToString("yyyy-MM-dd") ?? "")"
                                    ValueChanged="OnDateChanged" CssClass="w-auto" />
                     </div>
                     <div class="col-auto">
-                        <label class="form-label small text-secondary">Sichtbarkeit</label>
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.Common.Visibility]</label>
                         <FormSelect Value="@(((int)Event.Visibility).ToString())" ValueChanged="OnVisibilityChanged" CssClass="w-auto">
-                            <option value="0">Öffentlich</option>
-                            <option value="1">Mitglieder</option>
-                            <option value="2">Intern</option>
+                            <option value="0">@I18n[I18nKey.Ui.EventVisibility.Public]</option>
+                            <option value="1">@I18n[I18nKey.Ui.EventVisibility.MembersOnly]</option>
+                            <option value="2">@I18n[I18nKey.Ui.EventVisibility.Private]</option>
                         </FormSelect>
                     </div>
                     <div class="col-auto d-flex align-items-end">
@@ -81,15 +83,15 @@
                 </div>
                 <div class="row mb-1">
                     <div class="col-md-6">
-                        <label class="form-label small text-secondary mb-0">Beschreibung (Markdown)</label>
+                        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.EventDetail.DescriptionMarkdownLabel]</label>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small text-secondary mb-0">Vorschau</label>
+                        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.EventDetail.PreviewLabel]</label>
                     </div>
                 </div>
                 <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
                 <small class="text-secondary mt-1 d-block">
-                    Verfügbare Variablen: <code>@("{{date}}")</code> / <code>@("{{datum}}")</code> (Eventdatum)
+                    @I18n[$"{I18nKey.Ui.EventDetail.AvailableVariablesHint}?vars=%3Ccode%3E%7B%7Bdate%7D%7D%3C%2Fcode%3E+%2F+%3Ccode%3E%7B%7Bdatum%7D%7D%3C%2Fcode%3E"]
                 </small>
             </div>
         </div>
@@ -99,22 +101,22 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Audit Log</h5>
+            <h5>@I18n[I18nKey.Ui.EventDetail.AuditLogTitle]</h5>
             @if (AuditLogs == null) {
                 <div class="spinner-border spinner-border-sm" role="status"></div>
             } else if (AuditLogs.Count == 0) {
-                <EmptyState Message="Keine Einträge vorhanden." />
+                <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
             } else {
                 <div class="table-responsive">
                     <table class="table table-sm table-striped mb-0">
                         <thead>
                             <tr>
-                                <th>Zeitpunkt</th>
-                                <th>Aktion</th>
-                                <th>Feld</th>
-                                <th>Alter Wert</th>
-                                <th>Neuer Wert</th>
-                                <th>Benutzer</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditTimestampColumn]</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditActionColumn]</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditFieldColumn]</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditOldValueColumn]</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditNewValueColumn]</th>
+                                <th>@I18n[I18nKey.Ui.EventDetail.AuditUserColumn]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -138,12 +140,12 @@
     <div class="d-flex gap-2 flex-wrap">
         @if (Event.Status == EventStatus.Draft) {
             <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
-                <i class="bi bi-clipboard"></i> Als Vorlage speichern
+                <i class="bi bi-clipboard"></i> @I18n[I18nKey.Ui.EventDetail.SaveAsTemplate]
             </a>
         }
         @foreach (var transition in AllowedTransitions) {
             <button class="btn btn-outline-primary" @onclick="() => ChangeStatus(transition.Target)">
-                <i class="bi @transition.Icon"></i> @transition.Label
+                <i class="bi @transition.Icon"></i> @I18n[transition.LabelKey]
             </button>
         }
     </div>

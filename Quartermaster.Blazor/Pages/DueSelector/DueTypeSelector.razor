@@ -1,7 +1,9 @@
-﻿@page "/DueSelector/DueTypeSelector"
+@page "/DueSelector/DueTypeSelector"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Beitragseinstufung - Wie möchtest du dich einstufen?</h3>
+    <h3>@I18n[I18nKey.Ui.DueTypeSelector.PageTitle]</h3>
 </div>
 
 @if (EntryState == null)
@@ -9,31 +11,31 @@
 
 <div class="mb-2">
     <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.OnePercentYearlyPay))>
-        <span>Einstufung auf 1% des Jahreseinkommens</span>
-        <span class="fw-bold">Empfohlen</span>
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.OnePercentLabel]</span>
+        <span class="fw-bold">@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]</span>
     </CardLink>
 </div>
 
 <div class="mb-2">
     <CardLink HRef="/DueSelector/SelectByMonthlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.MonthlyPayGroup))>
-        <span>Einstufung nach Monatseinkommen</span>
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.MonthlyPayLabel]</span>
     </CardLink>
 </div>
 
 <div class="mb-2">
     <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/DueSelector/DueTypeSelector")}")"
               OnNavigate=@(() => HandleUnderage(SelectedValuation.Underage))>
-        <span>Ich bin noch nicht 18 Jahre alt</span><br />
-        <span>Unter 18 zahlst du automatisch nur 12€ im Jahr</span>
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageLabel]</span><br />
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageHint]</span>
     </CardLink>
 </div>
 
 <div class="mb-3">
     <CardLink HRef="/DueSelector/SelectReduced" OnNavigate=@(() => SelectDueType(SelectedValuation.Reduced))>
-        <span>Ich möchte den geminderten Beitrag beantragen</span>
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.ReducedLabel]</span>
     </CardLink>
 </div>
 
 <div>
-    <a href="/DueSelector/UserDataInput" class="btn btn-primary">Zurück</a>
+    <a href="/DueSelector/UserDataInput" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
 </div>

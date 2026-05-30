@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AdministrativeDivisions;
+using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
@@ -15,6 +16,8 @@ public partial class AdministrativeDivisionTree {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private List<LazyTreeNodeModel<AdministrativeDivisionDTO>>? RootNodes;
 
@@ -34,14 +37,14 @@ public partial class AdministrativeDivisionTree {
         return children ?? new List<AdministrativeDivisionDTO>();
     }
 
-    private static string DepthLabel(int depth) => depth switch {
-        1 => "Welt",
-        3 => "Land",
-        4 => "Bundesland",
-        5 => "Regierungsbezirk",
-        6 => "Kreis",
-        7 => "Gemeinde",
-        8 => "Ort",
+    private string DepthLabel(int depth) => depth switch {
+        1 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthWorld],
+        3 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthCountry],
+        4 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthFederalState],
+        5 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthGovernmentRegion],
+        6 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthDistrict],
+        7 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthMunicipality],
+        8 => I18n[I18nKey.Ui.AdminDivisionSearch.DepthLocality],
         _ => depth.ToString()
     };
 }

@@ -28,6 +28,8 @@ public partial class UserDetail {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required NavigationManager Navigation { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -89,7 +91,6 @@ public partial class UserDetail {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
-            // Reload to get correct state
             UserPermissions = await Http.GetFromJsonAsync<UserPermissionsDTO>($"/api/users/{Id}/permissions");
         }
     }
@@ -111,7 +112,6 @@ public partial class UserDetail {
                 });
             response.EnsureSuccessStatusCode();
 
-            // Reload permissions
             UserPermissions = await Http.GetFromJsonAsync<UserPermissionsDTO>($"/api/users/{Id}/permissions");
             NewPermissionIdentifier = "";
         } catch (HttpRequestException ex) {
@@ -134,7 +134,6 @@ public partial class UserDetail {
             var response = await Http.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            // Reload permissions
             UserPermissions = await Http.GetFromJsonAsync<UserPermissionsDTO>($"/api/users/{Id}/permissions");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

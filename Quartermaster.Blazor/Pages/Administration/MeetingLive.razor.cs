@@ -271,13 +271,6 @@ public partial class MeetingLive : IAsyncDisposable {
         return "";
     }
 
-    private static string VoteLabel(int? vote) => vote switch {
-        0 => "Ja",
-        1 => "Nein",
-        2 => "Enthaltung",
-        _ => "\u2014"
-    };
-
     private static List<AgendaTreeEntry> BuildFlatList(List<AgendaItemDTO> items) {
         var result = new List<AgendaTreeEntry>();
         var byParent = items

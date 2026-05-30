@@ -25,6 +25,9 @@ public partial class UserNotificationPreferences : IDisposable {
     [Inject]
     public required IJSRuntime JS { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private NotificationPreferencesDTO? Data;
     private Dictionary<(string TriggerId, string ChannelId), bool> _state = new();
     private bool Loading = true;

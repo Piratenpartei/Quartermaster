@@ -1,3 +1,6 @@
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
+
 <div class="toast-container">
     @foreach (var toast in ToastService.Toasts) {
         <div class="toast show qm-toast @(toast.Type != "" ? "border-" + toast.Type : "")"
@@ -8,7 +11,7 @@
                     @toast.Content
                     @if (!string.IsNullOrEmpty(toast.Details)) {
                         <details class="mt-1">
-                            <summary class="small text-secondary">Details</summary>
+                            <summary class="small text-secondary">@I18n[I18nKey.Ui.Toaster.DetailsSummary]</summary>
                             <pre class="small mb-0 mt-1" style="white-space: pre-wrap; max-height: 200px; overflow: auto;">@toast.Details</pre>
                         </details>
                     }

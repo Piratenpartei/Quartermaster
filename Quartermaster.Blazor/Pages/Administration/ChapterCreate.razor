@@ -1,56 +1,57 @@
 @page "/Administration/Chapters/Create"
 @using Quartermaster.Api
 @using Quartermaster.Api.Chapters
+@using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.Inputs
 
-<PageHeader Title="Neue Gliederung">
+<PageHeader Title="@I18n[I18nKey.Ui.ChapterCreate.PageTitle]">
     <Actions>
         <a href="/Administration/Chapters" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-x-lg me-1"></i> Abbrechen
+            <i class="bi bi-x-lg me-1"></i> @I18n[I18nKey.Ui.Common.Cancel]
         </a>
     </Actions>
 </PageHeader>
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
     <div class="mb-3">
-        <label for="name" class="form-label">Name <RequiredStar /></label>
+        <label for="name" class="form-label">@I18n[I18nKey.Ui.Common.Name] <RequiredStar /></label>
         <input type="text" class="form-control" id="name" @bind="Name" @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label for="shortCode" class="form-label">Kürzel</label>
+        <label for="shortCode" class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ShortCodeLabel]</label>
         <input type="text" class="form-control" id="shortCode" @bind="ShortCode" @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label for="externalCode" class="form-label">Externer Code</label>
+        <label for="externalCode" class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ExternalCodeLabel]</label>
         <input type="text" class="form-control" id="externalCode" @bind="ExternalCode" @bind:event="oninput" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Übergeordnete Gliederung</label>
+        <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ParentLabel]</label>
         <ChapterPicker Value="@ParentChapterId" ValueChanged="OnParentChanged"
-                       AllowEmpty="true" EmptyLabel="Keine — Top-Level-Gliederung" />
-        <div class="form-text">Leer lassen für eine Gliederung auf oberster Ebene (z. B. Bundesverband).</div>
+                       AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterCreate.ParentEmptyLabel]" />
+        <div class="form-text">@I18n[I18nKey.Ui.ChapterCreate.ParentHint]</div>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Verwaltungsgebiet</label>
+        <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.AdminDivisionLabel]</label>
         <div class="d-flex">
             <AdminDivisionPicker Value="@AdministrativeDivisionId" ValueChanged="OnDivisionChanged" AllowClear="true" />
         </div>
-        <div class="form-text">Optional. Bestimmt, welche Mitgliedsanträge dieser Gliederung zugeordnet werden (z. B. Niedersachsen).</div>
+        <div class="form-text">@I18n[I18nKey.Ui.ChapterCreate.AdminDivisionHint]</div>
     </div>
 
     <div class="d-flex justify-content-end gap-2">
-        <a href="/Administration/Chapters" class="btn btn-outline-secondary">Abbrechen</a>
+        <a href="/Administration/Chapters" class="btn btn-outline-secondary">@I18n[I18nKey.Ui.Common.Cancel]</a>
         <button class="btn btn-primary btn-hover-scale1" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(Name))">
             @if (Saving) {
                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
             } else {
                 <i class="bi bi-check-circle me-1"></i>
             }
-            Anlegen
+            @I18n[I18nKey.Ui.ChapterCreate.SubmitButton]
         </button>
     </div>
 </RequirePermission>

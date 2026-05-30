@@ -1,14 +1,16 @@
-﻿@page "/DueSelector/Summary/{ReturnUrl}"
+@page "/DueSelector/Summary/{ReturnUrl}"
 @using System.Globalization
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Zusammenfassung</h3>
+    <h3>@I18n[I18nKey.Ui.DueSelectorSummary.PageTitle]</h3>
 </div>
 
 @if (SubmittedDirect) {
     <div class="alert alert-success">
         <i class="bi bi-check-circle me-2"></i>
-        Deine Einstufung wurde übermittelt.
+        @I18n[I18nKey.Ui.DueSelectorSummary.SubmittedDirect]
     </div>
     return;
 }
@@ -23,58 +25,45 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Dein gewählter Jahresbeitrag</h5>
-        @if (EntryState.SelectedValuation == SelectedValuation.MonthlyPayGroup)
-        {
+        <h5>@I18n[I18nKey.Ui.DueSelectorSummary.YourChosenDueHeader]</h5>
+        @if (EntryState.SelectedValuation == SelectedValuation.MonthlyPayGroup) {
             <p class="card-text">
-                Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.MonthlyPayAmountLine}?amount={EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
             <p class="card-text">
-                Dieser Betrag wurde auf Grundlage deines Nettomonatseinkommens von
-                <strong>@EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong> berechnet.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.MonthlyPayBasisLine}?income={EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
-        }
-        else if (EntryState.SelectedValuation == SelectedValuation.OnePercentYearlyPay)
-        {
+        } else if (EntryState.SelectedValuation == SelectedValuation.OnePercentYearlyPay) {
             <p class="card-text">
-                Dein Jahresbeitrag beträgt: <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.OnePercentAmountLine}?amount={EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
             <p class="card-text">
-                Dieser Betrag entspricht einem Prozent deines Jahreseinkommens von
-                <strong>@EntryState.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.OnePercentBasisLine}?income={EntryState.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
-        }
-        else if (EntryState.SelectedValuation == SelectedValuation.Reduced)
-        {
+        } else if (EntryState.SelectedValuation == SelectedValuation.Reduced) {
             <p class="card-text">
-                Du beantragst einen ermäßigten Jahresbeitrag in Höhe von
-                <strong>@EntryState.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.ReducedAmountLine}?amount={EntryState.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
             <p class="card-text">
-                Deine Begründung für die Ermäßigung lautet: <i>@EntryState.ReducedJustification</i>
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.ReducedJustificationLine}?justification={EntryState.ReducedJustification}"])
             </p>
-            @if(EntryState.ReducedTimeSpan == ReducedTimeSpan.Permanent){
-                <p class ="card-text">
-                    Du beantragst diesen geminderten Beitrag dauerhaft. Bei Genehmigung der Minderung ist im nächsten Jahr ist kein erneuter Antrag nötig.
+            @if (EntryState.ReducedTimeSpan == ReducedTimeSpan.Permanent) {
+                <p class="card-text">
+                    @I18n[I18nKey.Ui.DueSelectorSummary.ReducedPermanentLine]
                 </p>
             } else {
                 <p class="card-text">
-                    Du beantragst diesen geminderten Beitrag für ein Jahr.
+                    @I18n[I18nKey.Ui.DueSelectorSummary.ReducedOneYearLine]
                 </p>
             }
-            @if (EntryState.MonthlyIncomeGroup != 0)
-            {
+            @if (EntryState.MonthlyIncomeGroup != 0) {
                 <p class="card-text">
-                    Falls der Antrag auf Ermäßigung abgelehnt wird, wirst du nach deinem Nettomonatseinkommen in Höhe von
-                    <strong>@EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong> eingestuft.
-                    In diesem Fall wäre dein Jahresbeitrag <strong>@EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong>.
+                    @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.ReducedFallbackLine}?income={EntryState.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}&amount={EntryState.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
                 </p>
             }
-        }
-        else if (EntryState.SelectedValuation == SelectedValuation.Underage)
-        {
+        } else if (EntryState.SelectedValuation == SelectedValuation.Underage) {
             <p class="card-text">
-                Da du minderjährig bist, beträgt dein Jahresbeitrag <strong>@(12.ToString("C2", CultureInfo.GetCultureInfo("de-de")))</strong>.
+                @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.UnderageLine}?amount={12.ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
             </p>
         }
     </div>
@@ -83,21 +72,18 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Zahlungsart</h5>
-        @if (EntryState.IsDirectDeposit)
-        {
+        <h5>@I18n[I18nKey.Ui.DueSelectorSummary.PaymentMethodHeader]</h5>
+        @if (EntryState.IsDirectDeposit) {
             <p class="card-text">
-                Du zahlst mit Lastschrift. Deine Kontodaten sind:
+                @I18n[I18nKey.Ui.DueSelectorSummary.DirectDepositLine]
             </p>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>Kontoinhaber:</strong> @EntryState.AccountHolder</li>
-                <li class="list-group-item"><strong>IBAN:</strong> @EntryState.IBAN</li>
+                <li class="list-group-item"><strong>@I18n[I18nKey.Ui.DueSelectorSummary.AccountHolderLabel]</strong> @EntryState.AccountHolder</li>
+                <li class="list-group-item"><strong>@I18n[I18nKey.Ui.DueSelectorSummary.IbanLabel]</strong> @EntryState.IBAN</li>
             </ul>
-        }
-        else
-        {
+        } else {
             <p class="card-text">
-                Du überweist den Beitrag selbst.
+                @I18n[I18nKey.Ui.DueSelectorSummary.ManualTransferLine]
             </p>
         }
     </div>
@@ -105,50 +91,41 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <h5>Zahlungsplan</h5>
-        @if (EntryState.PaymentSchedule == PaymentSchedule.Annual)
-        {
+        <h5>@I18n[I18nKey.Ui.DueSelectorSummary.PaymentScheduleHeader]</h5>
+        @if (EntryState.PaymentSchedule == PaymentSchedule.Annual) {
             <p class="card-text">
-                Du zahlst deinen Beitrag jährlich. Er ist einmal im Jahr zum <strong>1. Januar</strong> fällig.
+                @((MarkupString)I18n[I18nKey.Ui.DueSelectorSummary.AnnualLine])
             </p>
-        }
-        else if (EntryState.PaymentSchedule == PaymentSchedule.Quarterly)
-        {
+        } else if (EntryState.PaymentSchedule == PaymentSchedule.Quarterly) {
             <p class="card-text">
-                Du zahlst deinen Beitrag quartalsweise.
-                @if (!EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)){
-                    <span>Jeweils @((EntryState.SelectedDue / 4).ToString("C2", CultureInfo.GetCultureInfo("de-de"))) sind </span>
+                @if (!EntryState.SelectedValuation.Equals(SelectedValuation.Reduced)) {
+                    @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.QuarterlyLineWithAmount}?amount={(EntryState.SelectedDue / 4).ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
                 } else {
-                    <span>Jeweils 1/4 deines Beitrags ist </span>
+                    @((MarkupString)I18n[I18nKey.Ui.DueSelectorSummary.QuarterlyLineReduced])
                 }
-                fällig am <strong>1. Januar, 1. März, 1. Juli und 1. Oktober</strong>.
             </p>
-        }
-        else if (EntryState.PaymentSchedule == PaymentSchedule.Monthly)
-        {
+        } else if (EntryState.PaymentSchedule == PaymentSchedule.Monthly) {
             <p class="card-text">
-                Du zahlst deinen Beitrag monatlich.
                 @if (EntryState.SelectedValuation != SelectedValuation.Reduced) {
-                    <span>Jeweils @((EntryState.SelectedDue / 12).ToString("C2", CultureInfo.GetCultureInfo("de-de"))) werden </span>
+                    @((MarkupString)I18n[$"{I18nKey.Ui.DueSelectorSummary.MonthlyLineWithAmount}?amount={(EntryState.SelectedDue / 12).ToString("C2", CultureInfo.GetCultureInfo("de-de"))}"])
                 } else {
-                    <span>Er wird jeweils </span>
+                    @((MarkupString)I18n[I18nKey.Ui.DueSelectorSummary.MonthlyLineReduced])
                 }
-                am <strong>1. eines jeden Monats</strong> von deinem Konto abgebucht.
             </p>
         }
     </div>
 </div>
 
 <div class="mb-3">
-    <h3>Sind alle Daten korrekt?</h3>
+    <h3>@I18n[I18nKey.Ui.DueSelectorSummary.AreAllDataCorrectHeader]</h3>
 </div>
 
 <div class="mb-2">
     <CardButton OnClick=@Submit>
-        <span>Formular absenden</span>
+        <span>@I18n[I18nKey.Ui.DueSelectorSummary.SubmitFormButton]</span>
     </CardButton>
 </div>
 
 <div>
-    <a href="/DueSelector/PaymentOptionSelection/@System.Net.WebUtility.UrlEncode(ReturnUrl)" class="btn btn-primary">Zurück</a>
+    <a href="/DueSelector/PaymentOptionSelection/@System.Net.WebUtility.UrlEncode(ReturnUrl)" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
 </div>

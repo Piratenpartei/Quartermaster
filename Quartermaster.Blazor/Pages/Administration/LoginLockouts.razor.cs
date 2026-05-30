@@ -13,6 +13,8 @@ public partial class LoginLockouts {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private LoginLockoutListResponse? Response;
     private bool Loading = true;

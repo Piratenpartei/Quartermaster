@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Blazor.Services;
-
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public partial class SelectByMonthlyPay {
     [Inject]
     public required AppStateService AppState { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private DueSelectorEntryState? EntryState;
     protected override void OnInitialized() {

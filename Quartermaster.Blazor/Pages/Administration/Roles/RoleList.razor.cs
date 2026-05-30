@@ -16,6 +16,8 @@ public partial class RoleList {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private List<RoleDTO>? Roles;
     private List<PermissionDTO>? AvailablePermissions;
@@ -57,7 +59,6 @@ public partial class RoleList {
     }
 
     private void OnScopeChanged() {
-        // Scope changed — filter permissions to match; drop ones no longer valid
         NewPermissions = new HashSet<string>(
             NewPermissions.Where(id => FilteredPermissions.Any(p => p.Identifier == id)));
     }

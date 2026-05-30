@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
@@ -46,7 +48,7 @@ public partial class TemplateFieldPalette {
     private static readonly Dictionary<string, List<TemplateModelSchemaDTO>> NotificationSchemas = new() {
         ["SubmissionConfirmation"] = new() {
             new() {
-                ModelName = "Bestätigung", VariablePrefix = "confirm",
+                ModelName = I18nKey.Ui.TemplateFieldPalette.ModelConfirmation, VariablePrefix = "confirm",
                 Fields = new() {
                     Field("url", "string", "confirm")
                 }
@@ -54,7 +56,7 @@ public partial class TemplateFieldPalette {
         },
         ["MotionSubmittedPayload"] = new() {
             new() {
-                ModelName = "Antrag", VariablePrefix = "motion",
+                ModelName = I18nKey.Ui.TemplateFieldPalette.ModelMotion, VariablePrefix = "motion",
                 Fields = new() {
                     Field("Id", "Guid", "motion"),
                     Field("Title", "string", "motion"),
@@ -66,7 +68,7 @@ public partial class TemplateFieldPalette {
         },
         ["ApplicationSubmittedPayload"] = new() {
             new() {
-                ModelName = "Mitgliedsantrag", VariablePrefix = "application",
+                ModelName = I18nKey.Ui.TemplateFieldPalette.ModelApplication, VariablePrefix = "application",
                 Fields = new() {
                     Field("Id", "Guid", "application"),
                     Field("FirstName", "string", "application"),
@@ -80,7 +82,7 @@ public partial class TemplateFieldPalette {
         },
         ["DueSelectionSubmittedPayload"] = new() {
             new() {
-                ModelName = "Beitragseinstufung", VariablePrefix = "selection",
+                ModelName = I18nKey.Ui.TemplateFieldPalette.ModelDueSelection, VariablePrefix = "selection",
                 Fields = new() {
                     Field("Id", "Guid", "selection"),
                     Field("FirstName", "string", "selection"),
@@ -95,7 +97,7 @@ public partial class TemplateFieldPalette {
         },
         ["MemberWelcome"] = new() {
             new() {
-                ModelName = "Mitglied", VariablePrefix = "member",
+                ModelName = I18nKey.Ui.TemplateFieldPalette.ModelMember, VariablePrefix = "member",
                 Fields = new() {
                     Field("FirstName", "string", "member"),
                     Field("LastName", "string", "member"),
@@ -118,7 +120,7 @@ public partial class TemplateFieldPalette {
     };
 
     private static TemplateModelSchemaDTO ChapterMiniSchema() => new() {
-        ModelName = "Gliederung", VariablePrefix = "chapter",
+        ModelName = I18nKey.Ui.TemplateFieldPalette.ModelChapter, VariablePrefix = "chapter",
         Fields = new() {
             Field("Id", "Guid", "chapter"),
             Field("Name", "string", "chapter")

@@ -179,12 +179,18 @@ Shipped:
 - **Tests**: all `new DateTime(yyyy, mm, dd)` for date-only fields → `new DateOnly(yyyy, mm, dd)`; `DateTime.UtcNow.Date` → `DateOnly.FromDateTime(DateTime.UtcNow)`. 1269/1270 green (the one failing is a pre-existing E2E flake — passes in isolation).
 - **`Quartermaster.Rendering.TemplateMockDataProvider`** updated for the type changes so template-preview mock data stays representative.
 
-## Pre-production i18n sweep + language switcher
+## Pre-production i18n sweep + language switcher — DONE (2026-05-30)
 
-We've drifted on i18n during feature work — lots of newer pages and components carry hardcoded German strings instead of going through `I18nKey` / `I18nService`. Needs a wide cleanup pass before production:
+Shipped in three phases.
 
-- **Audit pass**: grep frontend for German strings that aren't going through `@I18n["…"]` / `I18nService.T(...)`. Hot spots so far (non-exhaustive): the recent MotionDetail edit form + Änderungsverlauf card, MembershipApplication wizard warning + success notices, MunicipalityPicker, ChapterOfficerAdd, Setup pages (SMTP/SAML/OIDC), DueSelector summary, badges/labels added in this session.
-- **Audit backend** for outbound German embedded in `AddError("…")` calls — these should use `I18nKey.Error.*` like the validators do, so the frontend can translate. Several of the new endpoints (MotionUpdateEndpoint, ChapterOfficerAddEndpoint, etc.) bypass the key catalog.
-- **English coverage**: every `I18nKey.*` constant needs an English translation alongside the German one. Spot-check the i18n JSON files for missing keys.
-- **Language switcher in MainNavBar**: a dropdown / toggle next to the dark-mode switch in the top right, persisted to the user's account when authenticated and to `localStorage` for anonymous visitors. Initial language set defined by `Quartermaster.Api/I18n/Languages` (de, en at minimum).
-- **Date/number formatting** should follow the active culture too (ties into the timezone todo above — both routes share the same locale infrastructure).
+**Phase A — Infrastructure.** `I18nService` gained a `Reload(json)` for hot-swap + a razor-friendly indexer (`@I18n["motions.title"]`). New `LanguageService` resolves the initial language (localStorage → `navigator.language` → `"de"`), fetches `i18n/{lang}.json`, swaps it into the singleton, and force-reloads on switch so every page re-renders without per-component event wiring. `<LanguageSwitcher>` dropdown lives next to the dark-mode toggle in `MainNavBar`.
+
+**Phase B — Backend `AddError` audit.** 13 raw-German `AddError(...)` calls converted to `I18nKey.Error.*` constants across `ChapterCreate/Update/Delete`, `EmailTest`, `MotionCreate`, `MotionUpdate`. 10 new error keys + their de/en translations. Also backfilled two officer-error keys that were missing from `en.json`.
+
+**Phase C — Razor sweep.** Every `.razor` and `.razor.cs` under `Quartermaster.Blazor/Pages/`, `Layout/`, and `Components/` swept. Hardcoded German replaced with `@I18n[I18nKey.Ui.<Page>.<Key>]`. Page-specific keys live under `I18nKey.Ui.<PageName>.*`; cross-cutting labels (Save/Cancel/Edit, status enums, officer roles) under `I18nKey.Ui.Common.*`, `Ui.MotionStatus.*`, `Ui.OfficerRole.*`, etc. Static switch helpers (`FieldLabel`, `ValuationLabel`, `RoleLabel`, …) became instance methods using `I18n[…]`. Date format strings stay as-is on `<LocalTime>` since browser-local formatting is handled there.
+
+Totals: **~960 new keys** across ~80 razor files. `I18nKey.cs` grew to 1607 lines; `de.json` / `en.json` to ~1335 lines each.
+
+Coverage caveats: tests assert on status codes (not strings), so the sweep didn't break test suites. Some technical strings remain hardcoded by intent (CSS class names, enum value sentinels like `"AdministrativeDivision"`, Mustache template literals in `EventChecklistEditor` preview text). The notification-log page DTO exists server-side but no Blazor list page was found.
+
+Date/number culture-aware formatting is **not** wired into the language switch yet — `<LocalTime>` still uses the hardcoded `dd.MM.yyyy[ HH:mm]` format. Folding that into the locale toggle is a small follow-up; tracking under whichever sub-todo picks it up first.

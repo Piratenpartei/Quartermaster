@@ -1,5 +1,7 @@
 @page "/Administration/DueSelections/{Id:guid}"
+@using Quartermaster.Api
 @using Quartermaster.Api.DueSelector
+@using Quartermaster.Api.I18n
 @using System.Globalization
 
 <PageBackLink Href="/Administration/DueSelections" />
@@ -7,32 +9,32 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Selection == null) {
-    <div class="alert alert-danger">Einstufung nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.DueSelectionDetail.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Beitragseinstufung — @Selection.FirstName @Selection.LastName</h3>
+        <h3>@I18n[$"{I18nKey.Ui.DueSelectionDetail.Heading}?first={Selection.FirstName}&last={Selection.LastName}"]</h3>
         @if (Selection.Status == DueSelectionStatus.Pending) {
-            <span class="badge border border-warning text-warning-emphasis fs-6">Ausstehend</span>
+            <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusPending]</span>
         } else if (Selection.Status == DueSelectionStatus.Approved) {
-            <span class="badge border border-success text-success-emphasis fs-6">Genehmigt</span>
+            <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusApproved]</span>
         } else if (Selection.Status == DueSelectionStatus.Rejected) {
-            <span class="badge border border-danger text-danger-emphasis fs-6">Abgelehnt</span>
+            <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusRejected]</span>
         } else {
-            <span class="badge border border-info text-info-emphasis fs-6">Automatisch genehmigt</span>
+            <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusAutoApproved]</span>
         }
     </div>
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Person</h5>
+            <h5>@I18n[I18nKey.Ui.DueSelectionDetail.PersonSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Vorname</th><td>@Selection.FirstName</td></tr>
-                    <tr><th>Nachname</th><td>@Selection.LastName</td></tr>
-                    <tr><th>E-Mail</th><td>@(Selection.Email ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.FirstName]</th><td>@Selection.FirstName</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@Selection.LastName</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Selection.Email ?? "—")</td></tr>
                     <tr>
-                        <th>Mitgliedsnummer</th>
+                        <th>@I18n[I18nKey.Ui.DueSelectionDetail.MemberNumberLabel]</th>
                         <td>@(Selection.MemberNumber?.ToString() ?? "—")</td>
                     </tr>
                 </tbody>
@@ -43,42 +45,42 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Einstufung</h5>
+            <h5>@I18n[I18nKey.Ui.DueSelectionDetail.ClassificationSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr>
-                        <th style="width:200px">Einstufungsart</th>
+                        <th style="width:200px">@I18n[I18nKey.Ui.DueSelectionDetail.ValuationTypeLabel]</th>
                         <td>@ValuationLabel(Selection.SelectedValuation)</td>
                     </tr>
                     <tr>
-                        <th>Jahresbeitrag</th>
+                        <th>@I18n[I18nKey.Ui.DueSelectionDetail.YearlyDueLabel]</th>
                         <td><strong>@Selection.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></td>
                     </tr>
                     @if (Selection.SelectedValuation == SelectedValuation.OnePercentYearlyPay) {
                         <tr>
-                            <th>Jahreseinkommen</th>
+                            <th>@I18n[I18nKey.Ui.DueSelectionDetail.YearlyIncomeLabel]</th>
                             <td>@Selection.YearlyIncome.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                     }
                     @if (Selection.SelectedValuation == SelectedValuation.MonthlyPayGroup) {
                         <tr>
-                            <th>Monatseinkommen</th>
+                            <th>@I18n[I18nKey.Ui.DueSelectionDetail.MonthlyIncomeLabel]</th>
                             <td>@Selection.MonthlyIncomeGroup.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                     }
                     @if (Selection.SelectedValuation == SelectedValuation.Reduced) {
                         <tr>
-                            <th>Geminderter Betrag</th>
+                            <th>@I18n[I18nKey.Ui.DueSelectionDetail.ReducedAmountLabel]</th>
                             <td>@Selection.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                         <tr>
-                            <th>Begründung</th>
+                            <th>@I18n[I18nKey.Ui.DueSelectionDetail.JustificationLabel]</th>
                             <td>@Selection.ReducedJustification</td>
                         </tr>
                         <tr>
-                            <th>Minderungszeitraum</th>
-                            <td>@(Selection.ReducedTimeSpan == ReducedTimeSpan.OneYear ? "Ein Jahr" : "Dauerhaft")</td>
+                            <th>@I18n[I18nKey.Ui.DueSelectionDetail.ReducedTimeSpanLabel]</th>
+                            <td>@(Selection.ReducedTimeSpan == ReducedTimeSpan.OneYear ? I18n[I18nKey.Ui.DueSelectionDetail.ReducedTimeSpanOneYear] : I18n[I18nKey.Ui.DueSelectionDetail.ReducedTimeSpanPermanent])</td>
                         </tr>
                     }
                 </tbody>
@@ -89,20 +91,20 @@
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5>Zahlungsweise</h5>
+            <h5>@I18n[I18nKey.Ui.DueSelectionDetail.PaymentSection]</h5>
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
                     <tr>
-                        <th style="width:200px">Zahlungsart</th>
-                        <td>@(Selection.IsDirectDeposit ? "Lastschrift" : "Überweisung")</td>
+                        <th style="width:200px">@I18n[I18nKey.Ui.DueSelectionDetail.PaymentMethodLabel]</th>
+                        <td>@(Selection.IsDirectDeposit ? I18n[I18nKey.Ui.DueSelectionDetail.PaymentMethodDirectDeposit] : I18n[I18nKey.Ui.DueSelectionDetail.PaymentMethodTransfer])</td>
                     </tr>
                     @if (Selection.IsDirectDeposit) {
-                        <tr><th>Kontoinhaber</th><td>@Selection.AccountHolder</td></tr>
-                        <tr><th>IBAN</th><td>@Selection.IBAN</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.DueSelectionDetail.AccountHolderLabel]</th><td>@Selection.AccountHolder</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.DueSelectionDetail.IbanLabel]</th><td>@Selection.IBAN</td></tr>
                     }
                     <tr>
-                        <th>Zahlungsplan</th>
+                        <th>@I18n[I18nKey.Ui.DueSelectionDetail.PaymentScheduleLabel]</th>
                         <td>@PaymentLabel(Selection.PaymentSchedule)</td>
                     </tr>
                 </tbody>
@@ -114,8 +116,8 @@
     @if (Selection.ProcessedAt != null) {
         <div class="card mb-3">
             <div class="card-body">
-                <h5>Bearbeitung</h5>
-                <p class="mb-0">Bearbeitet am <LocalTime Value="Selection.ProcessedAt" /></p>
+                <h5>@I18n[I18nKey.Ui.DueSelectionDetail.ProcessingSection]</h5>
+                <p class="mb-0">@I18n[I18nKey.Ui.DueSelectionDetail.ProcessedAtPrefix] <LocalTime Value="Selection.ProcessedAt" /></p>
             </div>
         </div>
     }
@@ -123,7 +125,7 @@
     @if (Selection.LinkedMotionId != null) {
         <div class="mb-3">
             <a href="/Administration/Motions/@Selection.LinkedMotionId" class="btn btn-outline-primary">
-                <i class="bi bi-file-earmark-text"></i> Zum Antrag / Abstimmung
+                <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.DueSelectionDetail.LinkedMotionButton]
             </a>
         </div>
     }

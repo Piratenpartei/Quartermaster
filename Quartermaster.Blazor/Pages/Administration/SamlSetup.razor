@@ -1,14 +1,16 @@
 @page "/Administration/Setup/Saml"
 @using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
 
 <PageBackLink Href="/Administration/Options" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-3">SAML (SSO) einrichten</h3>
+    <h3 class="mb-3">@I18n[I18nKey.Ui.SamlSetup.PageTitle]</h3>
 
     <div class="card mb-3">
         <div class="card-body">
-            <h5 class="card-title mb-3">SAML-Einstellungen</h5>
+            <h5 class="card-title mb-3">@I18n[I18nKey.Ui.SamlSetup.SettingsTitle]</h5>
             <OptionGroupEditor Keys="@SamlKeys" FullWidthFields="true" OnSaved="RefreshClientConfig" />
         </div>
     </div>

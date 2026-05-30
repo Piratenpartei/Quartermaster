@@ -1,45 +1,47 @@
 @page "/Administration/Roles/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Roles
 
-<PageBackLink Href="/Administration/Roles" Text="Zurück zur Liste" />
+<PageBackLink Href="/Administration/Roles" Text="@I18n[I18nKey.Ui.RoleEdit.BackLink]" />
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Role == null) {
-    <div class="alert alert-warning">Rolle nicht gefunden.</div>
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.RoleEdit.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>@Role.Name</h3>
         <div class="d-flex gap-2">
             @if (Role.Scope == 0) {
-                <span class="badge border border-info text-info-emphasis fs-6">Global</span>
+                <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.RoleEdit.ScopeGlobal]</span>
             } else {
-                <span class="badge border border-primary text-primary-emphasis fs-6">Chapter-scoped</span>
+                <span class="badge border border-primary text-primary-emphasis fs-6">@I18n[I18nKey.Ui.RoleEdit.ScopeChapterFull]</span>
             }
             @if (Role.IsSystem) {
-                <span class="badge bg-secondary fs-6">System</span>
+                <span class="badge bg-secondary fs-6">@I18n[I18nKey.Ui.RoleEdit.SystemBadge]</span>
             }
         </div>
     </div>
 
     @if (Role.IsSystem) {
         <div class="alert alert-info">
-            Diese Systemrolle ist gesperrt und kann nicht bearbeitet werden. Änderungen an den Berechtigungen erfolgen über Code-Updates.
+            @I18n[I18nKey.Ui.RoleEdit.SystemNotice]
         </div>
     }
 
     <div class="card">
         <div class="card-body">
             <div class="mb-3">
-                <label for="roleName" class="form-label">Name</label>
+                <label for="roleName" class="form-label">@I18n[I18nKey.Ui.Common.Name]</label>
                 <input type="text" class="form-control" id="roleName" @bind="Role.Name" disabled="@Role.IsSystem" />
             </div>
             <div class="mb-3">
-                <label for="roleDescription" class="form-label">Beschreibung</label>
+                <label for="roleDescription" class="form-label">@I18n[I18nKey.Ui.RoleEdit.DescriptionLabel]</label>
                 <textarea class="form-control" id="roleDescription" @bind="Role.Description" rows="2" disabled="@Role.IsSystem"></textarea>
             </div>
             <div class="mb-3">
-                <label class="form-label">Berechtigungen</label>
+                <label class="form-label">@I18n[I18nKey.Ui.RoleEdit.PermissionsLabel]</label>
                 @if (AvailablePermissions != null) {
                     <div class="border rounded p-2" style="max-height: 400px; overflow-y: auto;">
                         @foreach (var perm in FilteredPermissions) {
@@ -61,7 +63,7 @@
                     @if (Saving) {
                         <span class="spinner-border spinner-border-sm"></span>
                     }
-                    <span> Speichern</span>
+                    <span> @I18n[I18nKey.Ui.Common.Save]</span>
                 </button>
             }
         </div>

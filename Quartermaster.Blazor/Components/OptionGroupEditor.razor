@@ -1,9 +1,10 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Options
 
 @if (Fields == null) {
     <LoadingSpinner />
 } else if (Fields.Count == 0) {
-    <div class="alert alert-warning mb-0">Keine passenden Einstellungen gefunden.</div>
+    <div class="alert alert-warning mb-0">@I18n[I18nKey.Ui.OptionGroupEditor.NoMatchingOptions]</div>
 } else {
     <div class="row g-3">
         @foreach (var field in Fields) {
@@ -14,11 +15,11 @@
                         <input type="checkbox" class="form-check-input" id="@field.Identifier"
                                checked="@BoolValue(field.Identifier)"
                                @onchange="e => SetBool(field.Identifier, (bool)e.Value!)" />
-                        <label class="form-check-label" for="@field.Identifier">Aktiviert</label>
+                        <label class="form-check-label" for="@field.Identifier">@I18n[I18nKey.Ui.OptionGroupEditor.ActivatedLabel]</label>
                     </div>
                 } else if (field.IsSecret) {
                     <input type="password" class="form-control" autocomplete="new-password"
-                           placeholder="@(HasStoredSecret(field) ? "(unverändert lassen)" : "")"
+                           placeholder="@(HasStoredSecret(field) ? I18n[I18nKey.Ui.OptionGroupEditor.SecretUnchangedPlaceholder] : "")"
                            value="@_values[field.Identifier]"
                            @oninput="e => OnInput(field.Identifier, e)" />
                 } else {
@@ -40,7 +41,7 @@
             } else {
                 <i class="bi bi-check-circle me-1"></i>
             }
-            Speichern
+            @I18n[I18nKey.Ui.Common.Save]
         </button>
     </div>
 }

@@ -1,5 +1,6 @@
 @using Quartermaster.Blazor.Components
 @using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @implements IDisposable
 
 <nav class="navbar navbar-expand-lg bg-body-tertiary mb-3">
@@ -14,45 +15,45 @@
         <div class="collapse navbar-collapse @(Collapsed ? "" : "show")">
             <ul class="navbar-nav me-auto mb-lg-0">
                 <li class="nav-item">
-                    <NavMenuButton HRef="/">Home</NavMenuButton>
+                    <NavMenuButton HRef="/">@I18n[I18nKey.Ui.MainNavBar.Home]</NavMenuButton>
                 </li>
                 <li class="nav-item">
                     <NavMenuDropdown>
-                        <ButtonContent>Mitgliedsportal</ButtonContent>
+                        <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.MemberPortal]</ButtonContent>
                         <DropdownContent>
-                            <li><a class="dropdown-item" href="/DueSelector/UserDataInput">Beitragseinstufung</a></li>
-                            <li><a class="dropdown-item" href="/MembershipApplication/PersonalData">Mitgliedsantrag</a></li>
-                            <li><a class="dropdown-item" href="/Motions/Create">Antrag einreichen</a></li>
+                            <li><a class="dropdown-item" href="/DueSelector/UserDataInput">@I18n[I18nKey.Ui.MainNavBar.MemberPortalDueSelector]</a></li>
+                            <li><a class="dropdown-item" href="/MembershipApplication/PersonalData">@I18n[I18nKey.Ui.MainNavBar.MemberPortalApplication]</a></li>
+                            <li><a class="dropdown-item" href="/Motions/Create">@I18n[I18nKey.Ui.MainNavBar.MemberPortalSubmitMotion]</a></li>
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
                 <RequirePermission AnyOfChapterPermissions="@PermissionIdentifier.BoardWorkPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>
-                            <ButtonContent>Vorstandsarbeit</ButtonContent>
+                            <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.BoardWork]</ButtonContent>
                             <DropdownContent>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewMotions">
-                                    <li><a class="dropdown-item" href="/Administration/Motions">Anträge</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Motions">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMotions]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewMeetings">
-                                    <li><a class="dropdown-item" href="/Administration/Meetings">Sitzungen</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Meetings">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMeetings]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewApplications">
-                                    <li><a class="dropdown-item" href="/Administration/MembershipApplications">Mitgliedsanträge</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/MembershipApplications">@I18n[I18nKey.Ui.MainNavBar.BoardWorkApplications]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewDueSelections">
-                                    <li><a class="dropdown-item" href="/Administration/DueSelections">Beitragseinstufungen</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/DueSelections">@I18n[I18nKey.Ui.MainNavBar.BoardWorkDueSelections]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewMembers">
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/Administration/Members">Mitglieder</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Members">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMembers]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewEvents">
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/Administration/Events">Events</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Events">@I18n[I18nKey.Ui.MainNavBar.BoardWorkEvents]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewTemplates">
-                                    <li><a class="dropdown-item" href="/Administration/EventTemplates">Event-Vorlagen</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/EventTemplates">@I18n[I18nKey.Ui.MainNavBar.BoardWorkEventTemplates]</a></li>
                                 </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
@@ -61,10 +62,10 @@
                 <RequirePermission RequireAuth="true">
                     <li class="nav-item">
                         <NavMenuDropdown>
-                            <ButtonContent>Verwaltung</ButtonContent>
+                            <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.Administration]</ButtonContent>
                             <DropdownContent>
-                                <li><a class="dropdown-item" href="/Administration/AdministrativeDivisions">Gemeindedatenbank - Suche</a></li>
-                                <li><a class="dropdown-item" href="/Administration/AdministrativeDivisionTree">Gemeindedatenbank - Struktur</a></li>
+                                <li><a class="dropdown-item" href="/Administration/AdministrativeDivisions">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsSearch]</a></li>
+                                <li><a class="dropdown-item" href="/Administration/AdministrativeDivisionTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsTree]</a></li>
                             </DropdownContent>
                         </NavMenuDropdown>
                     </li>
@@ -72,30 +73,30 @@
                 <RequirePermission AnyOfPermissions="@PermissionIdentifier.SystemPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>
-                            <ButtonContent>System</ButtonContent>
+                            <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.System]</ButtonContent>
                             <DropdownContent>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ViewOptions">
-                                    <li><a class="dropdown-item" href="/Administration/Options">Einstellungen</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Options">@I18n[I18nKey.Ui.MainNavBar.SystemOptions]</a></li>
                                 </RequirePermission>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ViewUsers">
-                                    <li><a class="dropdown-item" href="/Administration/Users">Benutzer</a></li>
-                                    <li><a class="dropdown-item" href="/Administration/LoginLockouts">Gesperrte Logins</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Users">@I18n[I18nKey.Ui.MainNavBar.SystemUsers]</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/LoginLockouts">@I18n[I18nKey.Ui.MainNavBar.SystemLoginLockouts]</a></li>
                                 </RequirePermission>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageRoles">
-                                    <li><a class="dropdown-item" href="/Administration/Roles">Rollen</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Roles">@I18n[I18nKey.Ui.MainNavBar.SystemRoles]</a></li>
                                 </RequirePermission>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/Administration/Chapters">Gliederungen - Liste</a></li>
-                                <li><a class="dropdown-item" href="/Administration/ChapterTree">Gliederungen - Struktur</a></li>
+                                <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.SystemChaptersList]</a></li>
+                                <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.SystemChaptersTree]</a></li>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewOfficers">
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/Administration/ChapterOfficers">Vorstandsmitglieder</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/ChapterOfficers">@I18n[I18nKey.Ui.MainNavBar.SystemChapterOfficers]</a></li>
                                 </RequirePermission>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ViewAllMembers">
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/Administration/Members">Mitglieder</a></li>
-                                    <li><a class="dropdown-item" href="/Administration/Members/Import">Mitgliederimport</a></li>
-                                    <li><a class="dropdown-item" href="/Administration/ImportStatus">Importstatus</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Members">@I18n[I18nKey.Ui.MainNavBar.SystemMembers]</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Members/Import">@I18n[I18nKey.Ui.MainNavBar.SystemMemberImport]</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/ImportStatus">@I18n[I18nKey.Ui.MainNavBar.SystemImportStatus]</a></li>
                                 </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
@@ -107,18 +108,18 @@
                     <a href="/Settings" class="btn btn-outline-secondary btn-sm btn-hover-scale1">
                         <i class="bi bi-person-fill"></i> @AuthService.CurrentUser?.DisplayName
                     </a>
-                    <a href="/Sessions" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="Meine Sitzungen">
+                    <a href="/Sessions" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.MySessionsTitle]">
                         <i class="bi bi-shield-lock"></i>
                     </a>
-                    <a href="/Account/Benachrichtigungen" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="Benachrichtigungen">
+                    <a href="/Account/Benachrichtigungen" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.NotificationsTitle]">
                         <i class="bi bi-bell"></i>
                     </a>
                     <button class="btn btn-outline-secondary btn-sm btn-hover-scale1" @onclick=HandleLogout>
-                        Abmelden
+                        @I18n[I18nKey.Ui.MainNavBar.Logout]
                     </button>
                 } else {
                     <a href="/Login" class="btn btn-outline-primary btn-sm btn-hover-scale1">
-                        Anmelden
+                        @I18n[I18nKey.Ui.MainNavBar.Login]
                     </a>
                 }
                 <LanguageSwitcher />

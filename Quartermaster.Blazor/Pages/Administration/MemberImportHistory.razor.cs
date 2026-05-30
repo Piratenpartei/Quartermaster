@@ -18,6 +18,8 @@ public partial class MemberImportHistory {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MemberImportLogListResponse? Response;
     private MemberImportLogDTO? ImportResult;
@@ -67,7 +69,7 @@ public partial class MemberImportHistory {
         }
 
         if (file.Size > MaxFileSize) {
-            ToastService.Error($"Datei zu groß. Maximum {MaxFileSize / 1024 / 1024} MB.");
+            ToastService.Error(I18n[$"{I18nKey.Ui.MemberImportHistory.FileTooLarge}?mb={MaxFileSize / 1024 / 1024}"]);
             SelectedFile = null;
             return;
         }
@@ -138,7 +140,6 @@ public partial class MemberImportHistory {
         try {
             return JsonSerializer.Deserialize<List<string>>(errorsJson) ?? new();
         } catch (JsonException) {
-            // Legacy logs stored a plain string instead of a JSON array; surface as-is.
             return new List<string> { errorsJson };
         }
     }

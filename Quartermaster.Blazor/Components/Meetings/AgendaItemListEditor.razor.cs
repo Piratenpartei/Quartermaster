@@ -17,6 +17,9 @@ public partial class AgendaItemListEditor {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public required Guid MeetingId { get; set; }
 

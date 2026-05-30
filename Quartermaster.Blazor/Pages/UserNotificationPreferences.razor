@@ -1,54 +1,56 @@
 @page "/Account/Benachrichtigungen"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Notifications
 
-<PageTitle>Benachrichtigungen</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.NotificationPreferences.PageTitle]</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Benachrichtigungen</h3>
+    <h3 class="mb-0">@I18n[I18nKey.Ui.NotificationPreferences.PageTitle]</h3>
     <button class="btn btn-primary btn-sm btn-hover-scale1" @onclick="Save" disabled="@(Saving || Loading || Data == null)">
         @if (Saving) {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         } else {
             <i class="bi bi-check-circle me-1"></i>
         }
-        Speichern
+        @I18n[I18nKey.Ui.Common.Save]
     </button>
 </div>
 
-<p class="text-secondary">Lege fest, über welchen Kanal du bei welchen Ereignissen benachrichtigt werden möchtest. Standardmäßig sind E-Mail-Benachrichtigungen aktiviert.</p>
+<p class="text-secondary">@I18n[I18nKey.Ui.NotificationPreferences.Description]</p>
 
 <div class="card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">
             <i class="bi bi-telegram me-1"></i>
-            Telegram
+            @I18n[I18nKey.Ui.NotificationPreferences.TelegramSectionTitle]
         </h5>
         @if (TelegramStatus == null) {
             <LoadingSpinner />
         } else if (TelegramStatus.Linked) {
-            <p class="mb-2">Verknüpft mit Chat-ID <code>@TelegramStatus.ChatId</code>.</p>
+            <p class="mb-2">@I18n[$"{I18nKey.Ui.NotificationPreferences.TelegramLinkedWithChatId}?chatId={TelegramStatus.ChatId}"]</p>
             <button class="btn btn-outline-danger btn-sm" @onclick="Unlink" disabled="@TelegramBusy">
                 <i class="bi bi-link-45deg me-1"></i>
-                Verknüpfung aufheben
+                @I18n[I18nKey.Ui.NotificationPreferences.TelegramUnlink]
             </button>
         } else if (TelegramLinkStart != null) {
             <ol class="mb-2 ps-3">
                 <li>
                     @if (!string.IsNullOrEmpty(TelegramLinkStart.Deeplink)) {
                         <span>
-                            Öffne den Bot in Telegram:
+                            @I18n[I18nKey.Ui.NotificationPreferences.TelegramOpenBot]
                             <a href="@TelegramLinkStart.Deeplink" target="_blank" rel="noopener">@@@TelegramLinkStart.BotUsername</a>
                         </span>
                     } else {
-                        <span>Öffne den Quartermaster-Bot in Telegram.</span>
+                        <span>@I18n[I18nKey.Ui.NotificationPreferences.TelegramOpenBotFallback]</span>
                     }
                 </li>
-                <li>Drücke im Bot-Chat den <strong>Start</strong>-Knopf.</li>
+                <li>@I18n[I18nKey.Ui.NotificationPreferences.TelegramPressStart]</li>
                 <li>
-                    Sende anschließend folgenden Befehl:
+                    @I18n[I18nKey.Ui.NotificationPreferences.TelegramSendCommand]
                     <div class="input-group input-group-sm mt-1" style="max-width: 420px;">
                         <input type="text" class="form-control font-monospace" readonly value="@LinkCommand" />
-                        <button class="btn btn-outline-secondary btn-hover-scale1" type="button" @onclick="CopyLinkCommand" title="In die Zwischenablage kopieren">
+                        <button class="btn btn-outline-secondary btn-hover-scale1" type="button" @onclick="CopyLinkCommand" title="@I18n[I18nKey.Ui.NotificationPreferences.TelegramCopyTooltip]">
                             @if (LinkCommandCopied) {
                                 <i class="bi bi-check2"></i>
                             } else {
@@ -59,18 +61,18 @@
                 </li>
             </ol>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="CheckLinkStatus" title="Verknüpfung prüfen">
+                <button class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="CheckLinkStatus" title="@I18n[I18nKey.Ui.NotificationPreferences.TelegramCheckLinkTooltip]">
                     <i class="bi bi-arrow-clockwise me-1"></i>
-                    Verknüpfung prüfen
+                    @I18n[I18nKey.Ui.NotificationPreferences.TelegramCheckLink]
                 </button>
-                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">Abbrechen</button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CancelLinkStart">@I18n[I18nKey.Ui.Common.Cancel]</button>
             </div>
-            <div class="text-secondary small mt-2">Gültig bis @TelegramLinkStart.ExpiresAt.ToLocalTime().ToString("HH:mm") — automatische Prüfung alle 5 Sekunden</div>
+            <div class="text-secondary small mt-2">@I18n[$"{I18nKey.Ui.NotificationPreferences.TelegramValidUntil}?time={TelegramLinkStart.ExpiresAt.ToLocalTime().ToString("HH:mm")}"]</div>
         } else {
-            <p class="text-secondary mb-2">Verknüpfe deinen Telegram-Account, um Benachrichtigungen dort zu erhalten.</p>
+            <p class="text-secondary mb-2">@I18n[I18nKey.Ui.NotificationPreferences.TelegramPrompt]</p>
             <button class="btn btn-primary btn-sm" @onclick="StartLink" disabled="@TelegramBusy">
                 <i class="bi bi-telegram me-1"></i>
-                Telegram verknüpfen
+                @I18n[I18nKey.Ui.NotificationPreferences.TelegramLinkButton]
             </button>
         }
     </div>
@@ -79,13 +81,13 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Data == null) {
-    <div class="alert alert-warning">Konnte Einstellungen nicht laden.</div>
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.NotificationPreferences.LoadFailed]</div>
 } else {
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>Ereignis</th>
+                    <th>@I18n[I18nKey.Ui.NotificationPreferences.TriggerColumn]</th>
                     @foreach (var ch in Data.Channels) {
                         <th class="text-center" style="width:120px">
                             @ch.DisplayName

@@ -20,6 +20,8 @@ public partial class OptionDetail {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -189,11 +191,11 @@ public partial class OptionDetail {
         }
     }
 
-    private static string DataTypeLabel(OptionDataType dt) => dt switch {
-        OptionDataType.String => "Text",
-        OptionDataType.Number => "Zahl",
-        OptionDataType.Template => "Template",
-        _ => "?"
+    private string DataTypeLabel(OptionDataType dt) => dt switch {
+        OptionDataType.String => I18n[I18nKey.Ui.OptionList.DataTypeString],
+        OptionDataType.Number => I18n[I18nKey.Ui.OptionList.DataTypeNumber],
+        OptionDataType.Template => I18n[I18nKey.Ui.OptionList.DataTypeTemplate],
+        _ => I18n[I18nKey.Ui.OptionList.DataTypeUnknown]
     };
 
     private static string DataTypeBadge(OptionDataType dt) => dt switch {

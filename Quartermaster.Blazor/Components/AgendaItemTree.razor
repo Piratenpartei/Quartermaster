@@ -1,8 +1,10 @@
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Meetings
 @using Quartermaster.Blazor.Components.Inputs
 
 @if (FlatItems.Count == 0) {
-    <p class="text-secondary">Keine Tagesordnungspunkte vorhanden.</p>
+    <p class="text-secondary">@I18n[I18nKey.Ui.AgendaItemEditor.EmptyMessage]</p>
 }
 
 @foreach (var entry in FlatItems) {
@@ -31,20 +33,20 @@
                 <div class="input-group input-group-sm mb-1">
                     <input type="text" class="form-control"
                            @bind="EditingTitle" @bind:event="oninput"
-                           placeholder="Titel des TOPs" />
+                           placeholder="@I18n[I18nKey.Ui.AgendaItemEditor.TitlePlaceholder]" />
                     <select class="form-select" style="max-width: 160px;" @bind="EditingItemType">
-                        <option value="0">Diskussion</option>
-                        <option value="1">Antrag</option>
-                        <option value="2">Protokoll</option>
-                        <option value="3">Pause</option>
-                        <option value="4">Information</option>
-                        <option value="5">Abschnitt</option>
-                        <option value="6">Anwesenheit</option>
+                        <option value="0">@I18n[I18nKey.Ui.AgendaItemType.Discussion]</option>
+                        <option value="1">@I18n[I18nKey.Ui.AgendaItemType.Motion]</option>
+                        <option value="2">@I18n[I18nKey.Ui.AgendaItemType.Protocol]</option>
+                        <option value="3">@I18n[I18nKey.Ui.AgendaItemType.Break]</option>
+                        <option value="4">@I18n[I18nKey.Ui.AgendaItemType.Information]</option>
+                        <option value="5">@I18n[I18nKey.Ui.AgendaItemType.Section]</option>
+                        <option value="6">@I18n[I18nKey.Ui.AgendaItemType.Presence]</option>
                     </select>
-                    <button class="btn btn-outline-primary" aria-label="Speichern" @onclick="() => SaveEdit(item)">
+                    <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.SaveAria]" @onclick="() => SaveEdit(item)">
                         <i class="bi bi-check-lg"></i>
                     </button>
-                    <button class="btn btn-outline-secondary" aria-label="Abbrechen" @onclick="CancelEdit">
+                    <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.CancelAria]" @onclick="CancelEdit">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -74,37 +76,37 @@
             <div class="d-flex gap-1 ms-2" style="flex-shrink: 0;">
                 @if (item.ItemType == AgendaItemType.Section) {
                     <button class="btn btn-sm btn-outline-primary" @onclick="() => OnImportMotions.InvokeAsync(item.Id)"
-                            title="Offene Anträge importieren" aria-label="Offene Anträge importieren">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.ImportMotionsTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.ImportMotionsTooltip]">
                         <i class="bi bi-download"></i>
                     </button>
                 }
                 <div class="input-group input-group-sm" style="width: auto;">
                     <button class="btn btn-outline-secondary" @onclick="() => OnAddChild.InvokeAsync(item.Id)"
-                            title="Unterpunkt hinzufügen" aria-label="Unterpunkt hinzufügen">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.AddChildTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.AddChildTooltip]">
                         <i class="bi bi-plus-lg"></i>
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="() => OnOutdent.InvokeAsync(item.Id)"
-                            title="Ausrücken" aria-label="Ausrücken">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.OutdentTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.OutdentTooltip]">
                         <i class="bi bi-chevron-bar-left"></i>
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="() => OnIndent.InvokeAsync(item.Id)"
-                            title="Einrücken" aria-label="Einrücken">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.IndentTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.IndentTooltip]">
                         <i class="bi bi-chevron-bar-right"></i>
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, -1))"
-                            title="Nach oben" aria-label="Nach oben">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.MoveUpTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.MoveUpTooltip]">
                         <i class="bi bi-chevron-up"></i>
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="() => OnReorder.InvokeAsync((item.Id, 1))"
-                            title="Nach unten" aria-label="Nach unten">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.MoveDownTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.MoveDownTooltip]">
                         <i class="bi bi-chevron-down"></i>
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="() => StartEdit(item)"
-                            title="Bearbeiten" aria-label="Bearbeiten">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.EditTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.EditTooltip]">
                         <i class="bi bi-pencil"></i>
                     </button>
                     <button class="btn btn-outline-danger" @onclick="() => OnDelete.InvokeAsync(item.Id)"
-                            title="Löschen" aria-label="Löschen">
+                            title="@I18n[I18nKey.Ui.AgendaItemEditor.DeleteTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.DeleteTooltip]">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>

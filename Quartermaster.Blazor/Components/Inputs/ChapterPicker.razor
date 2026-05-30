@@ -1,3 +1,4 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Chapters
 
 @if (Chapters == null) {
@@ -5,7 +6,7 @@
 } else if (VisibleChapters.Count <= 5) {
     <select class="form-select @SizeClass" value="@Value" @onchange="OnDropdownChanged">
         @if (AllowEmpty) {
-            <option value="">@EmptyLabel</option>
+            <option value="">@ResolvedEmptyLabel</option>
         }
         @foreach (var chapter in VisibleChapters) {
             <option value="@chapter.Id">@chapter.Name</option>
@@ -13,7 +14,7 @@
     </select>
 } else if (Inline) {
     <div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
-        <input type="text" class="form-control @SizeClass" placeholder="Gliederung..."
+        <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.ChapterPicker.InlinePlaceholder]"
                value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
                style="border-radius: 0;" />
         @if (ShowDropdown && FilteredChapters.Count > 0) {
@@ -34,10 +35,10 @@
     <div class="position-relative" tabindex="-1" @onfocusout="ScheduleClose">
         <div class="input-group">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" placeholder="Gliederung suchen..."
+            <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.ChapterPicker.SearchPlaceholder]"
                    value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true" />
             @if (!string.IsNullOrEmpty(Value)) {
-                <button class="btn btn-outline-secondary" type="button" aria-label="Auswahl löschen" @onclick="Clear">
+                <button class="btn btn-outline-secondary" type="button" aria-label="@I18n[I18nKey.Ui.ChapterPicker.ClearAriaLabel]" @onclick="Clear">
                     <i class="bi bi-x"></i>
                 </button>
             }
@@ -55,7 +56,7 @@
                 }
                 @if (FilteredChapters.Count > 20) {
                     <div class="list-group-item py-1 small text-secondary">
-                        ... @(FilteredChapters.Count - 20) weitere
+                        @I18n[$"{I18nKey.Ui.ChapterPicker.MoreResults}?count={FilteredChapters.Count - 20}"]
                     </div>
                 }
             </div>

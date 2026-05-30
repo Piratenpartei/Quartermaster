@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
 
 namespace Quartermaster.Blazor.Components.Inputs;
@@ -12,6 +13,8 @@ namespace Quartermaster.Blazor.Components.Inputs;
 public partial class TemplatePicker {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public string Value { get; set; } = "";

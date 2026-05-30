@@ -1,44 +1,47 @@
 @page "/Administration/Meetings"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Meetings
+@inject I18nService I18n
 
-<PageHeader Title="Sitzungen">
+<PageHeader Title="@I18n[I18nKey.Ui.MeetingList.PageTitle]">
     <Actions>
         <a href="/Administration/Meetings/Create" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-circle"></i> Neue Sitzung
+            <i class="bi bi-plus-circle"></i> @I18n[I18nKey.Ui.MeetingList.NewMeeting]
         </a>
     </Actions>
 </PageHeader>
 
 <div class="mb-3 d-flex gap-3 flex-wrap align-items-end">
     <div style="min-width: 220px;">
-        <label class="form-label small text-secondary mb-0">Gliederung</label>
+        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.Common.Chapter]</label>
         <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
     <div>
-        <label class="form-label small text-secondary mb-0">Status</label>
+        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.Common.Status]</label>
         <select class="form-select" value="@StatusFilter" @onchange="OnStatusFilterChanged">
-            <option value="">Alle</option>
-            <option value="0">Entwurf</option>
-            <option value="1">Geplant</option>
-            <option value="2">Laufend</option>
-            <option value="3">Abgeschlossen</option>
-            <option value="4">Archiviert</option>
+            <option value="">@I18n[I18nKey.Ui.MeetingStatus.All]</option>
+            <option value="0">@I18n[I18nKey.Ui.MeetingStatus.Draft]</option>
+            <option value="1">@I18n[I18nKey.Ui.MeetingStatus.Scheduled]</option>
+            <option value="2">@I18n[I18nKey.Ui.MeetingStatus.InProgress]</option>
+            <option value="3">@I18n[I18nKey.Ui.MeetingStatus.Completed]</option>
+            <option value="4">@I18n[I18nKey.Ui.MeetingStatus.Archived]</option>
         </select>
     </div>
     <div>
-        <label class="form-label small text-secondary mb-0">Sichtbarkeit</label>
+        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.Common.Visibility]</label>
         <select class="form-select" value="@VisibilityFilter" @onchange="OnVisibilityFilterChanged">
-            <option value="">Alle</option>
-            <option value="0">Öffentlich</option>
-            <option value="1">Privat</option>
+            <option value="">@I18n[I18nKey.Ui.MeetingVisibility.All]</option>
+            <option value="0">@I18n[I18nKey.Ui.MeetingVisibility.Public]</option>
+            <option value="1">@I18n[I18nKey.Ui.MeetingVisibility.Private]</option>
         </select>
     </div>
     <div>
-        <label class="form-label small text-secondary mb-0">Datum von</label>
+        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.MeetingList.DateFromLabel]</label>
         <input type="date" class="form-control" value="@DateFromFilter" @onchange="OnDateFromChanged" />
     </div>
     <div>
-        <label class="form-label small text-secondary mb-0">Datum bis</label>
+        <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.MeetingList.DateToLabel]</label>
         <input type="date" class="form-control" value="@DateToFilter" @onchange="OnDateToChanged" />
     </div>
 </div>
@@ -47,22 +50,22 @@
     <LoadingSpinner />
 } else if (Response != null) {
     <div class="mb-2 text-secondary">
-        @Response.TotalCount Sitzungen
+        @I18n[$"{I18nKey.Ui.MeetingList.TotalCount}?count={Response.TotalCount}"]
     </div>
 
     @if (Response.Items.Count == 0) {
-        <EmptyState Message="Keine Sitzungen vorhanden." />
+        <EmptyState Message="@I18n[I18nKey.Ui.MeetingList.EmptyMessage]" />
     } else {
         <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
-                        <th>Titel</th>
-                        <th>Gliederung</th>
-                        <th>Datum</th>
-                        <th>Status</th>
-                        <th>Sichtbarkeit</th>
-                        <th>TOPs</th>
+                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Date]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Visibility]</th>
+                        <th>@I18n[I18nKey.Ui.MeetingList.AgendaItemsColumn]</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -6,12 +6,15 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.Chapters;
+using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class ChapterPicker {
     [Inject]
     public required HttpClient Http { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public string Value { get; set; } = "";
@@ -23,7 +26,9 @@ public partial class ChapterPicker {
     public bool AllowEmpty { get; set; }
 
     [Parameter]
-    public string EmptyLabel { get; set; } = "Alle Gliederungen";
+    public string? EmptyLabel { get; set; }
+
+    private string ResolvedEmptyLabel => EmptyLabel ?? I18n[I18nKey.Ui.ChapterPicker.EmptyLabel];
 
     [Parameter]
     public bool Inline { get; set; }

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Blazor.Services;
 
@@ -14,6 +15,8 @@ public partial class MemberList {
     public required HttpClient Http { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     private MemberSearchResponse? Response;
     private bool Loading;

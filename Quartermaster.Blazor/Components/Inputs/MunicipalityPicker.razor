@@ -1,16 +1,17 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.AdministrativeDivisions
 
 <div class="row g-3 mb-3 align-items-end">
     <div class="col-md">
-        <label class="form-label">Gemeinde/Stadt/Ort</label>
-        <input type="text" class="form-control" placeholder="Gemeinde, Stadt oder Ort..."
+        <label class="form-label">@I18n[I18nKey.Ui.MunicipalityPicker.NameLabel]</label>
+        <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.MunicipalityPicker.NamePlaceholder]"
                value="@NameQuery" @oninput="OnNameInput" />
     </div>
     <div class="col-md-auto">
-        <label class="form-label">Postleitzahl</label>
+        <label class="form-label">@I18n[I18nKey.Ui.MunicipalityPicker.PostCodeLabel]</label>
         <div class="d-flex align-items-center">
             <input type="text" class="form-control" style="width: 10em;" maxlength="5"
-                   placeholder="z. B. 30159" value="@PostCodeQuery" @oninput="OnPostCodeInput" />
+                   placeholder="@I18n[I18nKey.Ui.MunicipalityPicker.PostCodePlaceholder]" value="@PostCodeQuery" @oninput="OnPostCodeInput" />
             @if (Searching) {
                 <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
             }
@@ -20,7 +21,7 @@
 
 @if (MatchingDivisions != null && MatchingDivisions.Count > 0) {
     <div class="mb-3">
-        <label class="form-label">Gemeinde</label>
+        <label class="form-label">@I18n[I18nKey.Ui.MunicipalityPicker.MunicipalityLabel]</label>
         <div style="max-height: 400px; overflow-y: auto;">
             @foreach (var div in MatchingDivisions) {
                 <div class="mb-1">
@@ -37,5 +38,5 @@
         </div>
     </div>
 } else if (HasSearched && !Searching) {
-    <p class="text-secondary">Keine Gemeinde gefunden.</p>
+    <p class="text-secondary">@I18n[I18nKey.Ui.MunicipalityPicker.NoResults]</p>
 }

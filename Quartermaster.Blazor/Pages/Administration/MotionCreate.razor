@@ -1,45 +1,48 @@
 @page "/Administration/Motions/Create"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
 @using Quartermaster.Rendering
+@inject I18nService I18n
 
 <PageBackLink Href="/Administration/Motions" />
 
-<h3 class="mb-3">Neuen Antrag erstellen</h3>
+<h3 class="mb-3">@I18n[I18nKey.Ui.MotionCreate.AdminPageTitle]</h3>
 
 <div class="card">
     <div class="card-body">
         <div class="mb-3">
-            <label class="form-label">Gliederung</label>
+            <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
             <ChapterPicker @bind-Value="ChapterId" />
         </div>
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="authorName" class="form-label">Antragsteller (Name)</label>
+                <label for="authorName" class="form-label">@I18n[I18nKey.Ui.MotionCreate.AuthorNameLabel]</label>
                 <input type="text" class="form-control" id="authorName" @bind="AuthorName" disabled="@AuthService.IsAuthenticated" />
             </div>
             <div class="col-md-6">
-                <label for="authorEmail" class="form-label">Antragsteller (E-Mail)</label>
+                <label for="authorEmail" class="form-label">@I18n[I18nKey.Ui.MotionCreate.AuthorEmailLabel]</label>
                 <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" disabled="@AuthService.IsAuthenticated" />
             </div>
         </div>
         @if (AuthService.IsAuthenticated) {
-            <p class="text-secondary small mb-3">Antragsteller-Felder sind mit deinem Konto vorausgefüllt.</p>
+            <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.MotionCreate.AuthedPrefillNotice]</p>
         }
         <div class="mb-3">
-            <label for="title" class="form-label">Titel</label>
+            <label for="title" class="form-label">@I18n[I18nKey.Ui.Common.Title]</label>
             <input type="text" class="form-control" id="title" @bind="Title" />
         </div>
         <div class="mb-3">
-            <label class="form-label">Antragstext (Markdown)</label>
+            <label class="form-label">@I18n[I18nKey.Ui.MotionCreate.BodyMarkdownLabel]</label>
             <MarkdownEditor @bind-Value="Text" Rows="8" Profile="SanitizationProfile.Strict" />
         </div>
         <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
             @if (Submitting) {
                 <span class="spinner-border spinner-border-sm" role="status"></span>
-                <span> Wird erstellt...</span>
+                <span> @I18n[I18nKey.Ui.MotionCreate.Creating]</span>
             } else {
                 <i class="bi bi-plus-circle"></i>
-                <span> Antrag erstellen</span>
+                <span> @I18n[I18nKey.Ui.MotionCreate.SubmitAdmin]</span>
             }
         </button>
     </div>

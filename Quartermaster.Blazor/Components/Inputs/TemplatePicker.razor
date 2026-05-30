@@ -1,7 +1,8 @@
+@using Quartermaster.Api.I18n
 @using Quartermaster.Api.Options
 
 <div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
-    <input type="text" class="form-control @SizeClass" placeholder="Template suchen..."
+    <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.TemplatePicker.Placeholder]"
            value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
            disabled="@Disabled" style="border-radius: 0;" />
     @if (ShowDropdown && FilteredTemplates.Count > 0) {

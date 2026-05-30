@@ -1,24 +1,26 @@
 @page "/Administration/Events/CreateFromTemplate/{TemplateId:guid}"
+@using Quartermaster.Api
 @using Quartermaster.Api.Events
+@using Quartermaster.Api.I18n
 
-<PageBackLink Href="/Administration/EventTemplates" Text="Zurück zu Vorlagen" />
+<PageBackLink Href="/Administration/EventTemplates" Text="@I18n[I18nKey.Ui.EventCreateFromTemplate.BackToTemplates]" />
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Template == null) {
-    <div class="alert alert-danger">Vorlage nicht gefunden.</div>
+    <div class="alert alert-danger">@I18n[I18nKey.Ui.EventCreateFromTemplate.TemplateNotFound]</div>
 } else {
-    <h3 class="mb-3">Event aus Vorlage: @Template.Name</h3>
+    <h3 class="mb-3">@I18n[$"{I18nKey.Ui.EventCreateFromTemplate.PageTitle}?name={Template.Name}"]</h3>
 
     <div class="card mb-3">
         <div class="card-body">
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">Gliederung</label>
+                    <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
                     <ChapterPicker @bind-Value="ChapterId" />
                 </div>
                 <div class="col-md-3">
-                    <label for="eventDate" class="form-label">Datum</label>
+                    <label for="eventDate" class="form-label">@I18n[I18nKey.Ui.Common.Date]</label>
                     <input type="date" class="form-control" id="eventDate"
                            value="@(EventDate?.ToString("yyyy-MM-dd"))"
                            @onchange="(e) => EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null" />
@@ -26,7 +28,7 @@
             </div>
 
             @if (Variables.Count > 0) {
-                <h5 class="mb-3">Variablen</h5>
+                <h5 class="mb-3">@I18n[I18nKey.Ui.EventCreateFromTemplate.VariablesHeading]</h5>
 
                 @foreach (var variable in Variables) {
                     <div class="mb-3">
@@ -54,7 +56,7 @@
 
             @if (!string.IsNullOrEmpty(ResolvedPublicName)) {
                 <div class="mb-3">
-                    <label class="form-label small text-secondary">Vorschau: Öffentlicher Name</label>
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventCreateFromTemplate.PreviewPublicNameLabel]</label>
                     <div class="form-control-plaintext border rounded px-2 py-1 bg-body-secondary">@ResolvedPublicName</div>
                 </div>
             }
@@ -62,10 +64,10 @@
             <button class="btn btn-primary" @onclick="Submit" disabled="@Submitting">
                 @if (Submitting) {
                     <span class="spinner-border spinner-border-sm" role="status"></span>
-                    <span> Wird erstellt...</span>
+                    <span> @I18n[I18nKey.Ui.EventCreateFromTemplate.Creating]</span>
                 } else {
                     <i class="bi bi-plus-circle"></i>
-                    <span> Event erstellen</span>
+                    <span> @I18n[I18nKey.Ui.EventCreateFromTemplate.SubmitButton]</span>
                 }
             </button>
         </div>

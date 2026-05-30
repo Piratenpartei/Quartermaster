@@ -1,16 +1,17 @@
 @page "/Administration/Chapters"
 @using Quartermaster.Api
 @using Quartermaster.Api.Chapters
+@using Quartermaster.Api.I18n
 
-<PageHeader Title="Gliederungen - Liste">
+<PageHeader Title="@I18n[I18nKey.Ui.ChapterList.PageTitle]">
     <Actions>
         <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
             <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary btn-hover-scale1">
-                <i class="bi bi-plus-lg"></i> Neue Gliederung
+                <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.ChapterList.NewChapter]
             </a>
         </RequirePermission>
         <a href="/Administration/ChapterTree" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-diagram-3"></i> Struktur
+            <i class="bi bi-diagram-3"></i> @I18n[I18nKey.Ui.ChapterList.TreeViewLink]
         </a>
     </Actions>
 </PageHeader>
@@ -18,7 +19,7 @@
 <div class="mb-3">
     <div class="input-group">
         <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control" placeholder="Name, Kürzel oder externer Code..."
+        <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.ChapterList.SearchPlaceholder]"
                @bind="SearchQuery" @bind:event="oninput" @onkeyup="OnSearchKeyUp" />
     </div>
 </div>
@@ -29,16 +30,16 @@
     </div>
 } else if (Response != null) {
     <div class="mb-2 text-secondary">
-        @Response.TotalCount Gliederungen
+        @I18n[$"{I18nKey.Ui.ChapterList.TotalCount}?count={Response.TotalCount}"]
     </div>
 
     <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Kürzel</th>
-                <th>Externer Code</th>
+                <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                <th>@I18n[I18nKey.Ui.ChapterList.ShortCodeColumn]</th>
+                <th>@I18n[I18nKey.Ui.ChapterList.ExternalCodeColumn]</th>
             </tr>
         </thead>
         <tbody>

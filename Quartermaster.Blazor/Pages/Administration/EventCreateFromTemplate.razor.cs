@@ -21,6 +21,9 @@ public partial class EventCreateFromTemplate {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     [Parameter]
     public Guid TemplateId { get; set; }
 

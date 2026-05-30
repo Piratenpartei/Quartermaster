@@ -1,10 +1,12 @@
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
+
 <div class="alert alert-info">
-    <h5 class="alert-heading"><i class="bi bi-envelope-check me-2"></i>Fast geschafft!</h5>
+    <h5 class="alert-heading"><i class="bi bi-envelope-check me-2"></i>@I18n[I18nKey.Ui.SubmissionConfirmationNotice.Heading]</h5>
     <p class="mb-1">
-        Wir haben eine Bestätigungs-E-Mail an <strong>@Email</strong> gesendet.
+        @((MarkupString)I18n[$"{I18nKey.Ui.SubmissionConfirmationNotice.Line1}?email={Email}"])
     </p>
     <p class="mb-0">
-        Bitte öffne die E-Mail und klicke auf den Bestätigungslink. Erst danach wird deine Einreichung
-        bearbeitet. Der Link ist 48 Stunden gültig — ohne Bestätigung wird nichts gespeichert.
+        @I18n[I18nKey.Ui.SubmissionConfirmationNotice.Line2]
     </p>
 </div>

@@ -1,6 +1,8 @@
 @page "/Login"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
 
-<PageTitle>Anmelden</PageTitle>
+<PageTitle>@I18n[I18nKey.Ui.Login.PageTitle]</PageTitle>
 
 @if (!string.IsNullOrEmpty(ErrorMessage)) {
     <div class="alert alert-danger mx-auto mt-4" style="max-width: 700px;">
@@ -16,7 +18,7 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
                         <i class="bi bi-shield-lock fs-1 mb-2"></i>
                         <h5 class="card-title">@ConfigService.SamlButtonText</h5>
-                        <p class="card-text text-body-secondary">Anmeldung via SSO</p>
+                        <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.SsoSubtitle]</p>
                     </div>
                 </a>
             </div>
@@ -27,18 +29,18 @@
                     <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
                         <i class="bi bi-key fs-1 mb-2"></i>
                         <h5 class="card-title">@ConfigService.OidcButtonText</h5>
-                        <p class="card-text text-body-secondary">Anmeldung via OpenID</p>
+                        <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.OpenIdSubtitle]</p>
                     </div>
                 </a>
             </div>
         }
         @if (!ConfigService.SamlEnabled && !ConfigService.OidcEnabled) {
             <div class="col-12 col-md-6">
-                <div class="card h-100 text-body-tertiary" title="SSO ist nicht konfiguriert">
+                <div class="card h-100 text-body-tertiary" title="@I18n[I18nKey.Ui.Login.SsoNotConfiguredTooltip]">
                     <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
                         <i class="bi bi-shield-lock fs-1 mb-2"></i>
-                        <h5 class="card-title">SSO Login</h5>
-                        <p class="card-text">Nicht verfügbar</p>
+                        <h5 class="card-title">@I18n[I18nKey.Ui.Login.SsoTitle]</h5>
+                        <p class="card-text">@I18n[I18nKey.Ui.Login.NotAvailable]</p>
                     </div>
                 </div>
             </div>
@@ -47,8 +49,8 @@
             <a href="/Login/Manual" class="card text-decoration-none h-100 btn-hover-scale1">
                 <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
                     <i class="bi bi-person-fill fs-1 mb-2"></i>
-                    <h5 class="card-title">Manuell anmelden</h5>
-                    <p class="card-text text-body-secondary">Mit Benutzername und Passwort</p>
+                    <h5 class="card-title">@I18n[I18nKey.Ui.Login.ManualTitle]</h5>
+                    <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.ManualSubtitle]</p>
                 </div>
             </a>
         </div>

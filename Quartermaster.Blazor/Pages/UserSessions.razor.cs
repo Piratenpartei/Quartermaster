@@ -21,6 +21,9 @@ public partial class UserSessions {
     [Inject]
     public required ToastService ToastService { get; set; }
 
+    [Inject]
+    public required I18nService I18n { get; set; }
+
     private List<SessionDTO>? Sessions;
     private bool Loading = true;
     private bool RevokingOthers;

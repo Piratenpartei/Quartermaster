@@ -1,8 +1,10 @@
 @page "/Administration/AdministrativeDivisionTree"
+@using Quartermaster.Api
 @using Quartermaster.Api.AdministrativeDivisions
+@using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>Gemeindedatenbank - Struktur</h3>
+    <h3>@I18n[I18nKey.Ui.AdminDivisionTree.PageTitle]</h3>
 </div>
 
 @if (RootNodes == null) {
@@ -17,7 +19,7 @@
                     @if (!string.IsNullOrEmpty(context.PostCodes)) {
                         <span class="ms-2 text-secondary small text-truncate" style="max-width: 200px;"
                               title="@context.PostCodes">
-                            PLZ: @context.PostCodes
+                            @I18n[$"{I18nKey.Ui.AdminDivisionTree.PostCodesPrefix}?codes={context.PostCodes}"]
                         </span>
                     }
                 </ItemContent>

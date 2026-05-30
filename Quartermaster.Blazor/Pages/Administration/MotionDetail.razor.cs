@@ -22,6 +22,8 @@ public partial class MotionDetail {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required AuthService AuthService { get; set; }
+    [Inject]
+    public required I18nService I18n { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -123,25 +125,25 @@ public partial class MotionDetail {
         }
     }
 
-    private static string FieldLabel(string? fieldName) => fieldName switch {
-        "Title" => "Titel",
-        "TextMarkdown" => "Antragstext",
-        "AuthorName" => "Antragsteller",
-        "AuthorEmail" => "E-Mail",
-        "LinkedMembershipApplicationId" => "Verknüpfter Mitgliedsantrag",
-        "LinkedDueSelectionId" => "Verknüpfte Beitragseinstufung",
-        "ApprovalStatus" => "Status",
-        "IsRealized" => "Umgesetzt",
-        "IsPublic" => "Sichtbarkeit",
+    private string FieldLabel(string? fieldName) => fieldName switch {
+        "Title" => I18n[I18nKey.Ui.MotionDetail.FieldTitle],
+        "TextMarkdown" => I18n[I18nKey.Ui.MotionDetail.FieldBody],
+        "AuthorName" => I18n[I18nKey.Ui.MotionDetail.FieldAuthorName],
+        "AuthorEmail" => I18n[I18nKey.Ui.MotionDetail.FieldAuthorEmail],
+        "LinkedMembershipApplicationId" => I18n[I18nKey.Ui.MotionDetail.FieldLinkedApplication],
+        "LinkedDueSelectionId" => I18n[I18nKey.Ui.MotionDetail.FieldLinkedDueSelection],
+        "ApprovalStatus" => I18n[I18nKey.Ui.MotionDetail.FieldStatus],
+        "IsRealized" => I18n[I18nKey.Ui.MotionDetail.FieldRealized],
+        "IsPublic" => I18n[I18nKey.Ui.MotionDetail.FieldVisibility],
         null => "",
         _ => fieldName
     };
 
-    private static string ActionLabel(string action) => action switch {
-        "Created" => "Erstellt",
-        "Updated" => "Geändert",
-        "SoftDeleted" => "Gelöscht",
-        "Deleted" => "Gelöscht",
+    private string ActionLabel(string action) => action switch {
+        "Created" => I18n[I18nKey.Ui.MotionDetail.ActionCreated],
+        "Updated" => I18n[I18nKey.Ui.MotionDetail.ActionUpdated],
+        "SoftDeleted" => I18n[I18nKey.Ui.MotionDetail.ActionDeleted],
+        "Deleted" => I18n[I18nKey.Ui.MotionDetail.ActionDeleted],
         _ => action
     };
 
@@ -222,14 +224,14 @@ public partial class MotionDetail {
     private MotionVoteDTO? GetVoteForOfficer(Guid memberId)
         => Motion?.Votes.FirstOrDefault(v => v.MemberId == memberId);
 
-    private static string OfficerRoleLabel(string role) => role switch {
-        "Captain" => "Vorsitzender",
-        "FirstOfficer" => "Stellv. Vorsitzender",
-        "Quartermaster" => "Quartiermeister",
-        "Treasurer" => "Schatzmeister",
-        "ViceTreasurer" => "Stellv. Schatzmeister",
-        "PoliticalDirector" => "Pol. Geschäftsführer",
-        "Member" => "Beisitzer",
+    private string OfficerRoleLabel(string role) => role switch {
+        "Captain" => I18n[I18nKey.Ui.OfficerRole.Captain],
+        "FirstOfficer" => I18n[I18nKey.Ui.OfficerRole.FirstOfficer],
+        "Quartermaster" => I18n[I18nKey.Ui.OfficerRole.Quartermaster],
+        "Treasurer" => I18n[I18nKey.Ui.OfficerRole.Treasurer],
+        "ViceTreasurer" => I18n[I18nKey.Ui.OfficerRole.ViceTreasurer],
+        "PoliticalDirector" => I18n[I18nKey.Ui.OfficerRole.PoliticalDirector],
+        "Member" => I18n[I18nKey.Ui.OfficerRole.Member],
         _ => role
     };
 }
