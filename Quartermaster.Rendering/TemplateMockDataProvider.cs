@@ -2,24 +2,40 @@ using System;
 using System.Collections.Generic;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.Events;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
+using Quartermaster.Api.Templates;
 
 namespace Quartermaster.Rendering;
 
 public static class TemplateMockDataProvider {
     public static Dictionary<string, object> GetMockData(string templateModels) {
         var data = new Dictionary<string, object> {
-            ["globals"] = new Dictionary<string, object?> {
-                ["base_url"] = "https://quartermaster.example.local",
-                ["app_name"] = "Quartermaster",
-                ["now"] = DateTime.UtcNow
+            ["globals"] = new TemplateGlobalsDTO {
+                BaseUrl = "https://quartermaster.example.local",
+                AppName = "Quartermaster",
+                Now = DateTime.UtcNow
             }
         };
         var models = templateModels.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         foreach (var model in models) {
             switch (model) {
+                case "TemplateConfirmationDTO":
+                    data["confirm"] = new TemplateConfirmationDTO {
+                        Url = "https://quartermaster.example.local/Confirm/abc123"
+                    };
+                    break;
+
+                case "ChapterDTO":
+                    data["chapter"] = new ChapterDTO {
+                        Id = Guid.NewGuid(),
+                        Name = "Piratenpartei Berlin"
+                    };
+                    break;
+
                 case "MembershipApplicationDetailDTO":
                     data["application"] = new MembershipApplicationDetailDTO {
                         Id = Guid.NewGuid(),
@@ -54,10 +70,19 @@ public static class TemplateMockDataProvider {
                     };
                     break;
 
-                case "ChapterDTO":
-                    data["chapter"] = new ChapterDTO {
+                case "MotionDetailDTO":
+                    data["motion"] = new MotionDetailDTO {
                         Id = Guid.NewGuid(),
-                        Name = "Piratenpartei Berlin"
+                        ChapterId = Guid.NewGuid(),
+                        ChapterName = "Piratenpartei Berlin",
+                        AuthorName = "Erika Musterfrau",
+                        AuthorEmail = "erika.musterfrau@example.com",
+                        Title = "Beispielantrag: Änderung der Geschäftsordnung",
+                        Text = "<p>Beispieltext für einen Antrag.</p>",
+                        TextMarkdown = "Beispieltext für einen Antrag.",
+                        IsPublic = true,
+                        ApprovalStatus = MotionApprovalStatus.Pending,
+                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-2)
                     };
                     break;
 
@@ -82,48 +107,16 @@ public static class TemplateMockDataProvider {
                     };
                     break;
 
-                case "MotionSubmittedPayload":
-                    data["motion"] = new {
+                case "EventDetailDTO":
+                    data["event"] = new EventDetailDTO {
                         Id = Guid.NewGuid(),
-                        Title = "Beispielantrag: Änderung der Geschäftsordnung",
-                        AuthorName = "Erika Musterfrau",
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    data["chapter"] = new {
-                        Id = Guid.NewGuid(),
-                        Name = "Piratenpartei Berlin"
-                    };
-                    break;
-
-                case "ApplicationSubmittedPayload":
-                    data["application"] = new {
-                        Id = Guid.NewGuid(),
-                        FirstName = "Max",
-                        LastName = "Mustermann",
-                        Email = "max.mustermann@example.com",
-                        SubmittedAt = DateTime.UtcNow,
-                        HasReducedDueSelection = true
-                    };
-                    data["chapter"] = new {
-                        Id = Guid.NewGuid(),
-                        Name = "Piratenpartei Berlin"
-                    };
-                    break;
-
-                case "DueSelectionSubmittedPayload":
-                    data["selection"] = new {
-                        Id = Guid.NewGuid(),
-                        FirstName = "Max",
-                        LastName = "Mustermann",
-                        Email = "max.mustermann@example.com",
-                        SelectedDue = 12m,
-                        ReducedAmount = 12m,
-                        ReducedJustification = "Studierender ohne Einkommen",
-                        SubmittedAt = DateTime.UtcNow
-                    };
-                    data["chapter"] = new {
-                        Id = Guid.NewGuid(),
-                        Name = "Piratenpartei Berlin"
+                        ChapterId = Guid.NewGuid(),
+                        ChapterName = "Piratenpartei Berlin",
+                        InternalName = "Mitgliederversammlung Q3",
+                        PublicName = "Mitgliederversammlung",
+                        Description = "Reguläre Mitgliederversammlung im dritten Quartal.",
+                        EventDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(14)),
+                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-7)
                     };
                     break;
             }

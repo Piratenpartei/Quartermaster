@@ -1294,6 +1294,7 @@
   "ui.template_detail.allows_event_fields_label": "Event",
   "ui.template_detail.allows_chapter_fields_label": "Gliederung",
   "ui.template_detail.allowed_fields_heading": "Erlaubte Felder",
+  "ui.template_detail.pdf_preview_button": "PDF Vorschau",
   "ui.template_detail.save_button": "Speichern",
   "ui.template_detail.delete_button": "Löschen",
   "ui.template_detail.delete_confirm": "Diese Vorlage wirklich löschen?",

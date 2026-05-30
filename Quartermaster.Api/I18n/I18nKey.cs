@@ -1508,6 +1508,7 @@ public static class I18nKey {
             public const string AllowsEventFieldsLabel = "ui.template_detail.allows_event_fields_label";
             public const string AllowsChapterFieldsLabel = "ui.template_detail.allows_chapter_fields_label";
             public const string AllowedFieldsHeading = "ui.template_detail.allowed_fields_heading";
+            public const string PdfPreviewButton = "ui.template_detail.pdf_preview_button";
             public const string SaveButton = "ui.template_detail.save_button";
             public const string DeleteButton = "ui.template_detail.delete_button";
             public const string DeleteConfirm = "ui.template_detail.delete_confirm";

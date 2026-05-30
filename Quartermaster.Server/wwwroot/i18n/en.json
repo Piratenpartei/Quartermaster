@@ -1293,6 +1293,7 @@
   "ui.template_detail.allows_event_fields_label": "Event",
   "ui.template_detail.allows_chapter_fields_label": "Chapter",
   "ui.template_detail.allowed_fields_heading": "Allowed Fields",
+  "ui.template_detail.pdf_preview_button": "PDF preview",
   "ui.template_detail.save_button": "Save",
   "ui.template_detail.delete_button": "Delete",
   "ui.template_detail.delete_confirm": "Really delete this template?",

@@ -23,11 +23,16 @@
                 <span class="badge bg-secondary ms-2">@Template.ChapterName</span>
             }
         </div>
-        @if (!Template.IsSystem || Template.ChapterId != null) {
-            <button class="btn btn-outline-danger" @onclick="DeleteTemplate">
-                <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.DeleteButton]
-            </button>
-        }
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="/api/templates/@Template.Id/pdf" target="_blank">
+                <i class="bi bi-file-earmark-pdf me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.PdfPreviewButton]
+            </a>
+            @if (!Template.IsSystem || Template.ChapterId != null) {
+                <button class="btn btn-outline-danger" @onclick="DeleteTemplate">
+                    <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.DeleteButton]
+                </button>
+            }
+        </div>
     </div>
 
     <div class="row">

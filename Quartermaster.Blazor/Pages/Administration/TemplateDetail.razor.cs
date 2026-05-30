@@ -35,45 +35,9 @@ public partial class TemplateDetail {
     private TemplateOverrideDTO? EditingOverride;
     private string EditingOverrideChapterIdRaw { get; set; } = "";
 
-    private string PaletteModels => BuildPaletteModels(Template);
-
-    private static string BuildPaletteModels(TemplateDetailDTO? t) {
-        if (t == null)
-            return "";
-        var models = new List<string>();
-        var id = t.Identifier ?? "";
-
-        if (id.StartsWith("notifications.application_submitted.") || id.StartsWith("templates.membershipapplication.")) {
-            models.Add("MembershipApplicationDetailDTO");
-            models.Add("ChapterDTO");
-        } else if (id.StartsWith("notifications.due_selection_submitted.") || id.StartsWith("templates.dueselection.")) {
-            models.Add("DueSelectionDetailDTO");
-            models.Add("ChapterDTO");
-        } else if (id.StartsWith("notifications.motion_submitted.") || id.StartsWith("templates.submission.motion.")) {
-            models.Add("MotionDetailDTO");
-            models.Add("ChapterDTO");
-        } else if (id.StartsWith("templates.member.welcome.")) {
-            models.Add("MemberDetailDTO");
-            models.Add("ChapterDTO");
-        } else if (id.StartsWith("templates.submission.dueselection.")) {
-            models.Add("DueSelectionDetailDTO");
-        } else if (id.StartsWith("templates.submission.membershipapplication.")) {
-            models.Add("MembershipApplicationDetailDTO");
-            models.Add("ChapterDTO");
-        }
-
-        if (id.StartsWith("templates.submission.") && id.EndsWith(".confirmation.email"))
-            models.Add("TemplateConfirmationDTO");
-
-        if (t.AllowsChapterFields && !models.Contains("ChapterDTO"))
-            models.Add("ChapterDTO");
-        if (t.AllowsMemberFields && !models.Contains("MemberDetailDTO"))
-            models.Add("MemberDetailDTO");
-        if (t.AllowsEventFields && !models.Contains("EventDetailDTO"))
-            models.Add("EventDetailDTO");
-
-        return string.Join(",", models);
-    }
+    private string PaletteModels => Template == null
+        ? ""
+        : TemplateModelLookup.BuildForTemplate(Template.Identifier, Template.AllowsChapterFields, Template.AllowsMemberFields, Template.AllowsEventFields);
 
     private async Task InsertField(string fluidExpression) {
         if (_bodyEditor == null)
