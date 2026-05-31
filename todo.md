@@ -11,8 +11,13 @@ Some unchecked items aren't simply "next up" — they've been actively pushed do
 
 Items without either tag are eligible for normal scheduling (ASAP). The current codebase is **V1**; everything below targets **V2** or later.
 
+## Authentication
+
+- [ ] **2FA via TOTP / authenticator apps.** *(Backlog)* Optional second factor for username+password logins, compatible with standard TOTP apps (Aegis, Google Authenticator, 1Password, Bitwarden, etc.). Per-user opt-in with QR-code provisioning, recovery codes for device loss, and an admin-enforceable policy flag (per-chapter or global — TBD) so officers can be required to enrol. Deferred to backlog because SSO (SAML / OIDC) already covers 2FA via the IdP for any deployment that cares — only relevant if local password logins become the primary auth path. Storage probably extends `User` with a `TotpSecret` (encrypted at rest) + `TotpEnabledAt`; recovery codes in a sibling table with single-use semantics. UI lives under user account settings + a new step in the login flow.
+
 ## Notifications
 
+- [ ] **Ad-hoc newsletter send to a chapter.** *(V2)* Officer-facing UI to compose and send a one-off newsletter to a chapter (and optionally its descendants) without needing to wire up an event or checklist item. Form fields: target chapter + recursion toggle, audience filter (all members / members with `ReceivesNewsletter=true` / officers only / custom permission filter — final shape TBD), template selector (reusing the existing template engine), and a free-form content block fed into the chosen template as a model variable. Dispatch reuses the same path `ChecklistItemExecutor` already takes for `SendEmail` items — same resolver/dispatcher/channel plumbing, just initiated from a button instead of an event step. Audit log entry per send. New page under Administration; new endpoint that wraps the existing dispatch machinery.
 - [ ] **Email MDN (read-receipt) tracking + stats.** *(V2)* Request a Message Disposition Notification on outbound emails (RFC 8098: `Disposition-Notification-To` header), capture inbound MDN replies, and surface per-send / per-template / per-chapter delivery + read stats. Stats worth exposing: send count, MDN-opt-in rate (some clients suppress the receipt entirely), read rate, time-to-read distribution, and per-template / per-trigger breakdowns so officers can see which templates actually land. Storage probably extends `NotificationLog` with `MdnRequestedAt` / `MdnReceivedAt` / `MdnDisposition` columns. UI lives on a new tab inside the template detail page (per-template stats) plus a global view under Administration/Notifications.
 
 ## Templates
