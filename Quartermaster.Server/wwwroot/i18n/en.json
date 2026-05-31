@@ -175,7 +175,7 @@
   "ui.toast.meeting.vote_ended": "Vote ended.",
   "ui.toast.template.saved": "Template saved.",
   "ui.toast.template.deleted": "Template deleted.",
-  "ui.toast.member_import.started": "Import started, running in the background.",
+  "ui.toast.member_import.started": "Import running in the background; the result will appear in the history once it finishes.",
   "ui.toast.member_import.completed": "Import complete.",
   "ui.toast.member.admin_division_assigned": "Administrative division assigned.",
   "ui.toast.officer.added": "Officer added.",

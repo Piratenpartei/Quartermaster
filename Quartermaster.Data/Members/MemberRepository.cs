@@ -151,10 +151,10 @@ public class MemberRepository {
         _auditLog.LogFieldChange("Member", updated.Id, "Email", old.Email, updated.Email);
         _auditLog.LogFieldChange("Member", updated.Id, "DateOfBirth", old.DateOfBirth?.ToString("o"), updated.DateOfBirth?.ToString("o"));
         _auditLog.LogFieldChange("Member", updated.Id, "Citizenship", old.Citizenship, updated.Citizenship);
-        _auditLog.LogFieldChange("Member", updated.Id, "MembershipFee", old.MembershipFee.ToString(), updated.MembershipFee.ToString());
-        _auditLog.LogFieldChange("Member", updated.Id, "ReducedFee", old.ReducedFee.ToString(), updated.ReducedFee.ToString());
-        _auditLog.LogFieldChange("Member", updated.Id, "FirstFee", old.FirstFee?.ToString(), updated.FirstFee?.ToString());
-        _auditLog.LogFieldChange("Member", updated.Id, "OpenFeeTotal", old.OpenFeeTotal?.ToString(), updated.OpenFeeTotal?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "MembershipFee", old.MembershipFee, updated.MembershipFee);
+        _auditLog.LogFieldChange("Member", updated.Id, "ReducedFee", old.ReducedFee, updated.ReducedFee);
+        _auditLog.LogFieldChange("Member", updated.Id, "FirstFee", old.FirstFee, updated.FirstFee);
+        _auditLog.LogFieldChange("Member", updated.Id, "OpenFeeTotal", old.OpenFeeTotal, updated.OpenFeeTotal);
         _auditLog.LogFieldChange("Member", updated.Id, "ReducedFeeEnd", old.ReducedFeeEnd?.ToString("o"), updated.ReducedFeeEnd?.ToString("o"));
         _auditLog.LogFieldChange("Member", updated.Id, "EntryDate", old.EntryDate?.ToString("o"), updated.EntryDate?.ToString("o"));
         _auditLog.LogFieldChange("Member", updated.Id, "ExitDate", old.ExitDate?.ToString("o"), updated.ExitDate?.ToString("o"));

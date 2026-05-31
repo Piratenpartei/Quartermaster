@@ -26,7 +26,7 @@
         <div class="d-flex align-items-end gap-3">
             <div class="flex-grow-1">
                 <label class="form-label small text-secondary">@I18n[I18nKey.Ui.MemberImportHistory.ChooseCsvFile]</label>
-                <InputFile class="form-control" OnChange="OnFileSelected" accept=".csv" disabled="@Uploading" />
+                <InputFile @key="FileInputKey" class="form-control" OnChange="OnFileSelected" accept=".csv" disabled="@Uploading" />
             </div>
             <button class="btn btn-primary" @onclick="UploadFile" disabled="@(SelectedFile == null || Uploading)">
                 @if (Uploading) {

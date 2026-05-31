@@ -32,6 +32,7 @@ public partial class MemberImportHistory {
     private const int PageSize = 25;
     private const long MaxFileSize = 20 * 1024 * 1024;
     private Guid? ExpandedLogId;
+    private int FileInputKey;
 
     private int TotalPages => Response == null ? 0
         : (int)Math.Ceiling((double)Response.TotalCount / PageSize);
@@ -96,6 +97,7 @@ public partial class MemberImportHistory {
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
                 SelectedFile = null;
+                FileInputKey++;
                 CurrentPage = 1;
                 await LoadHistory();
                 ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportStarted);

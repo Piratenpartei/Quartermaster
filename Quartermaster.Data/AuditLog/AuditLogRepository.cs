@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using LinqToDB;
 
@@ -41,6 +42,23 @@ public class AuditLogRepository {
         if (oldValue == newValue)
             return;
         Log(entityType, entityId, "Updated", fieldName, oldValue, newValue);
+    }
+
+    /// <summary>Decimal overload: compares by numeric equality so `120.00000m` vs `120.0000m` doesn't log a phantom change just because the source columns have different scales.</summary>
+    public void LogFieldChange(string entityType, Guid entityId, string fieldName, decimal oldValue, decimal newValue) {
+        if (oldValue == newValue)
+            return;
+        Log(entityType, entityId, "Updated", fieldName,
+            oldValue.ToString(CultureInfo.InvariantCulture),
+            newValue.ToString(CultureInfo.InvariantCulture));
+    }
+
+    public void LogFieldChange(string entityType, Guid entityId, string fieldName, decimal? oldValue, decimal? newValue) {
+        if (oldValue == newValue)
+            return;
+        Log(entityType, entityId, "Updated", fieldName,
+            oldValue?.ToString(CultureInfo.InvariantCulture),
+            newValue?.ToString(CultureInfo.InvariantCulture));
     }
 
     public void LogDeleted(string entityType, Guid entityId) {
