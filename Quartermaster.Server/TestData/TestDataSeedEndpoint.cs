@@ -15,9 +15,12 @@ public class TestDataSeedResponse {
 
 /// <summary>
 /// Dev-only seeder triggered from the Blazor user-settings page (button is also DEBUG-only).
-/// <c>DontRegister</c> elides the route entirely in Release builds; no test coverage is
-/// warranted because the endpoint cannot be reached in production.
+/// The class-level <see cref="DontRegisterAttribute"/> elides the route entirely in Release
+/// builds; no test coverage is warranted because the endpoint cannot be reached in production.
 /// </summary>
+#if !DEBUG
+[DontRegister]
+#endif
 public class TestDataSeedEndpoint : EndpointWithoutRequest<TestDataSeedResponse> {
     private readonly DbContext _context;
     private readonly ChapterRepository _chapterRepo;
@@ -32,9 +35,6 @@ public class TestDataSeedEndpoint : EndpointWithoutRequest<TestDataSeedResponse>
 
     public override void Configure() {
         Post("/api/testdata/seed");
-#if !DEBUG
-        DontRegister();
-#endif
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
