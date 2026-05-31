@@ -130,7 +130,16 @@ Quartermaster expects TLS to terminate at the proxy. The proxy must forward `X-F
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 80;
+    listen [::]:80;
+    server_name quartermaster.example.de;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
     server_name quartermaster.example.de;
 
     ssl_certificate     /etc/letsencrypt/live/quartermaster.example.de/fullchain.pem;

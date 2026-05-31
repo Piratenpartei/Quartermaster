@@ -29,4 +29,11 @@
     <ProjectReference Include="..\Quartermaster.Rendering\Quartermaster.Rendering.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="DE_Base.txt;DE_PostCodes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

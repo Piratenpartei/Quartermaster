@@ -2,7 +2,6 @@
 using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
@@ -94,19 +93,13 @@ public class DbContext : DataConnection {
         services.AddScoped<UsedSamlAssertionRepository>();
     }
 
+    /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>
     public static void SupplementDefaults(IServiceProvider services) {
         using var scope = services.CreateScope();
-        // AdminDivs loaded via background service (AdminDivisionImportHostedService)
         scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<TemplateRepository>().SupplementDefaults();
-#if DEBUG
-        var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;
-        if (!string.IsNullOrEmpty(rootSettings.Username) && !string.IsNullOrEmpty(rootSettings.Password)) {
-            scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(rootSettings);
-        }
-#endif
     }
 }

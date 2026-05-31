@@ -25,6 +25,7 @@ using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Migrations;
 using Quartermaster.Data.Options;
+using Quartermaster.Data.Users;
 using Quartermaster.Server.AdministrativeDivisions;
 using Quartermaster.Server.Antiforgery;
 using Quartermaster.Server.Authentication;
@@ -74,6 +75,9 @@ public partial class Program {
         }
 
         DbContext.SupplementDefaults(app.Services);
+#if DEBUG
+        SeedRootAccountFromConfig(app.Services);
+#endif
 
         app.UseHttpsRedirection();
         ConfigureMiddleware(app);
@@ -311,6 +315,16 @@ public partial class Program {
 
         app.UseForwardedHeaders(options);
     }
+
+#if DEBUG
+    private static void SeedRootAccountFromConfig(IServiceProvider services) {
+        var rootSettings = services.GetRequiredService<IOptions<RootAccountSettings>>().Value;
+        if (string.IsNullOrEmpty(rootSettings.Username) || string.IsNullOrEmpty(rootSettings.Password))
+            return;
+        using var scope = services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<UserRepository>().SupplementDefaults(rootSettings);
+    }
+#endif
 
     private static Microsoft.AspNetCore.HttpOverrides.IPNetwork? ParseNetwork(string cidr) {
         var parts = cidr.Split('/');

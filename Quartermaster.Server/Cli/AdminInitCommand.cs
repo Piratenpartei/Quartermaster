@@ -12,24 +12,24 @@ namespace Quartermaster.Server.Cli;
 
 public static class AdminInitCommand {
     public static int Execute(string[] args) {
-        Console.Write("Admin-Benutzername: ");
+        Console.Write("Admin username: ");
         var username = Console.ReadLine()?.Trim();
         if (string.IsNullOrEmpty(username)) {
-            Console.Error.WriteLine("Benutzername darf nicht leer sein.");
+            Console.Error.WriteLine("Username must not be empty.");
             return 1;
         }
 
-        Console.Write("Admin-Passwort: ");
+        Console.Write("Admin password: ");
         var password = ReadPassword();
         if (string.IsNullOrEmpty(password) || password.Length < 12) {
-            Console.Error.WriteLine("Passwort muss mindestens 12 Zeichen lang sein.");
+            Console.Error.WriteLine("Password must be at least 12 characters long.");
             return 1;
         }
 
-        Console.Write("Passwort wiederholen: ");
+        Console.Write("Repeat password: ");
         var confirm = ReadPassword();
         if (password != confirm) {
-            Console.Error.WriteLine("Passwörter stimmen nicht überein.");
+            Console.Error.WriteLine("Passwords do not match.");
             return 1;
         }
 
@@ -42,7 +42,7 @@ public static class AdminInitCommand {
 
         var connStr = config.GetValue<string>("DatabaseSettings:ConnectionString");
         if (string.IsNullOrEmpty(connStr)) {
-            Console.Error.WriteLine("DatabaseSettings:ConnectionString ist nicht konfiguriert.");
+            Console.Error.WriteLine("DatabaseSettings:ConnectionString is not configured.");
             return 1;
         }
 
@@ -63,17 +63,19 @@ public static class AdminInitCommand {
         var migrator = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
         migrator.MigrateUp();
 
+        DbContext.SupplementDefaults(provider);
+
         var userRepo = scope.ServiceProvider.GetRequiredService<UserRepository>();
         var existing = userRepo.GetByUsername(username);
         if (existing != null) {
-            Console.Error.WriteLine($"Benutzer '{username}' existiert bereits.");
+            Console.Error.WriteLine($"User '{username}' already exists.");
             return 1;
         }
 
         var settings = new RootAccountSettings { Username = username, Password = password };
         userRepo.SupplementDefaults(settings);
 
-        Console.WriteLine($"Admin-Benutzer '{username}' wurde erstellt.");
+        Console.WriteLine($"Admin user '{username}' created.");
         return 0;
     }
 
