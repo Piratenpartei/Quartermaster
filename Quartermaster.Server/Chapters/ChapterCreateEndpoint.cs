@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -12,8 +14,8 @@ namespace Quartermaster.Server.Chapters;
 
 /// <summary>
 /// Creates a new chapter, optionally under a parent. Requires the global
-/// <see cref="PermissionIdentifier.CreateChapter"/> permission. <c>ExternalCode</c>
-/// must be unique under the parent (or under the root null parent for top-level chapters).
+/// <see cref="PermissionIdentifier.CreateChapter"/> permission. External codes must not
+/// overlap with any sibling chapter's codes under the same parent.
 /// </summary>
 public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> {
     private readonly ChapterRepository _chapterRepo;
@@ -51,26 +53,33 @@ public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> 
                 return;
             }
         }
-        var externalCode = string.IsNullOrWhiteSpace(req.ExternalCode) ? null : req.ExternalCode.Trim();
-        if (externalCode != null) {
-            var existing = _chapterRepo.GetByExternalCodeAndParent(externalCode, req.ParentChapterId);
-            if (existing != null) {
-                AddError(r => r.ExternalCode, I18nKey.Error.Chapter.ExternalCodeNotUnique);
-                await SendErrorsAsync(cancellation: ct);
-                return;
-            }
+
+        var externalCodes = NormaliseCodes(req.ExternalCodes);
+        var conflict = _chapterRepo.FindCodeConflictUnderParent(externalCodes, req.ParentChapterId);
+        if (conflict != null) {
+            AddError(r => r.ExternalCodes, I18nKey.Error.Chapter.ExternalCodeNotUnique);
+            await SendErrorsAsync(cancellation: ct);
+            return;
         }
+
+        var divisionIds = req.AdministrativeDivisionIds.Distinct().ToList();
 
         var chapter = new Chapter {
             Id = Guid.NewGuid(),
             Name = name,
             ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim(),
-            ExternalCode = externalCode,
-            ParentChapterId = req.ParentChapterId,
-            AdministrativeDivisionId = req.AdministrativeDivisionId
+            ParentChapterId = req.ParentChapterId
         };
         _chapterRepo.Create(chapter);
+        _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);
+        _chapterRepo.ReplaceAdministrativeDivisions(chapter.Id, divisionIds);
 
-        await SendAsync(chapter.ToDto(), cancellation: ct);
+        await SendAsync(chapter.ToDto(externalCodes, divisionIds), cancellation: ct);
     }
+
+    private static List<string> NormaliseCodes(IEnumerable<string> raw)
+        => raw.Select(c => c?.Trim() ?? "")
+            .Where(c => c.Length > 0)
+            .Distinct()
+            .ToList();
 }

@@ -177,7 +177,7 @@ public class AdminDivisionImportService {
                     .Set(m => m.ResidenceAdministrativeDivisionId, replacement.Id)
                     .Update();
 
-                var chaptersUpdated = context.Chapters
+                var chaptersUpdated = context.ChapterAdministrativeDivisions
                     .Where(c => c.AdministrativeDivisionId == ex.Id)
                     .Set(c => c.AdministrativeDivisionId, replacement.Id)
                     .Update();
@@ -198,7 +198,7 @@ public class AdminDivisionImportService {
                 var memberCount = context.Members
                     .Where(m => m.ResidenceAdministrativeDivisionId == ex.Id)
                     .Count();
-                var chapterCount = context.Chapters
+                var chapterCount = context.ChapterAdministrativeDivisions
                     .Where(c => c.AdministrativeDivisionId == ex.Id)
                     .Count();
 

@@ -1343,6 +1343,8 @@
 
   "ui.admin_division_picker.placeholder": "PLZ, Name oder Code...",
   "ui.admin_division_picker.clear_aria_label": "Leeren",
+  "ui.chips_input.remove_aria_label": "Entfernen",
+  "ui.chips_input.external_code_placeholder": "Code eingeben und Enter drücken",
 
   "ui.chapter_picker.empty_label": "Alle Gliederungen",
   "ui.chapter_picker.inline_placeholder": "Gliederung...",

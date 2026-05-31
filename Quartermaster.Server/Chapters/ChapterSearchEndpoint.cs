@@ -23,7 +23,7 @@ public class ChapterSearchEndpoint : Endpoint<ChapterSearchRequest, ChapterSearc
         var (items, totalCount) = _chapterRepo.Search(req.Query, req.Page, req.PageSize);
 
         await SendAsync(new ChapterSearchResponse {
-            Items = items.Select(c => c.ToDto()).ToList(),
+            Items = _chapterRepo.ToDtos(items),
             TotalCount = totalCount,
             Page = req.Page,
             PageSize = req.PageSize

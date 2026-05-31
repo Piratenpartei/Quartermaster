@@ -16,7 +16,7 @@ public class ChapterDetailResponse {
     public ChapterDTO Chapter { get; set; } = new();
     public Guid? ParentChapterId { get; set; }
     public string? ParentChapterName { get; set; }
-    public string? AdministrativeDivisionName { get; set; }
+    public List<string> AdministrativeDivisionNames { get; set; } = [];
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
 }
@@ -41,9 +41,10 @@ public partial class ChapterDetail {
 
     private string EditName = "";
     private string EditShortCode = "";
-    private string EditExternalCode = "";
+    private List<string> EditExternalCodes = [];
+    private List<Guid> EditAdministrativeDivisionIds = [];
+    private List<string> EditAdministrativeDivisionNames = [];
     private string EditParentChapterId = "";
-    private string EditAdministrativeDivisionId = "";
 
     private ConfirmDialog DeleteConfirm = default!;
 
@@ -67,9 +68,10 @@ public partial class ChapterDetail {
         }
         EditName = Detail.Chapter.Name;
         EditShortCode = Detail.Chapter.ShortCode ?? "";
-        EditExternalCode = Detail.Chapter.ExternalCode ?? "";
+        EditExternalCodes = [.. Detail.Chapter.ExternalCodes];
+        EditAdministrativeDivisionIds = [.. Detail.Chapter.AdministrativeDivisionIds];
+        EditAdministrativeDivisionNames = [.. Detail.AdministrativeDivisionNames];
         EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
-        EditAdministrativeDivisionId = Detail.Chapter.AdministrativeDivisionId?.ToString() ?? "";
         Editing = true;
     }
 
@@ -81,8 +83,12 @@ public partial class ChapterDetail {
         EditParentChapterId = id;
     }
 
-    private void OnDivisionChanged(string id) {
-        EditAdministrativeDivisionId = id;
+    private void OnExternalCodesChanged(List<string> codes) {
+        EditExternalCodes = codes;
+    }
+
+    private void OnDivisionsChanged(List<Guid> ids) {
+        EditAdministrativeDivisionIds = ids;
     }
 
     private async Task SaveEdit() {
@@ -95,9 +101,9 @@ public partial class ChapterDetail {
             var req = new ChapterUpdateRequest {
                 Name = EditName.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
-                ExternalCode = string.IsNullOrWhiteSpace(EditExternalCode) ? null : EditExternalCode.Trim(),
-                ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null,
-                AdministrativeDivisionId = Guid.TryParse(EditAdministrativeDivisionId, out var divParsed) ? divParsed : null
+                ExternalCodes = EditExternalCodes,
+                AdministrativeDivisionIds = EditAdministrativeDivisionIds,
+                ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null
             };
             var resp = await Http.PutAsJsonAsync($"/api/chapters/{Id}", req);
             if (resp.IsSuccessStatusCode) {

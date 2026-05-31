@@ -99,11 +99,17 @@ public sealed class TestDataBuilder {
             Id = Guid.NewGuid(),
             Name = name,
             ParentChapterId = parentChapterId,
-            AdministrativeDivisionId = adminDivisionId,
-            ShortCode = shortCode,
-            ExternalCode = externalCode ?? "EC_" + Guid.NewGuid().ToString("N")[..6]
+            ShortCode = shortCode
         };
         _db.Insert(chapter);
+        var code = externalCode ?? "EC_" + Guid.NewGuid().ToString("N")[..6];
+        _db.Insert(new ChapterExternalCode { ChapterId = chapter.Id, Code = code });
+        if (adminDivisionId.HasValue) {
+            _db.Insert(new ChapterAdministrativeDivision {
+                ChapterId = chapter.Id,
+                AdministrativeDivisionId = adminDivisionId.Value
+            });
+        }
         return chapter;
     }
 

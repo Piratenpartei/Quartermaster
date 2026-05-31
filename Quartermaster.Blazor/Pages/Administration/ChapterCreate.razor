@@ -24,8 +24,9 @@
     </div>
 
     <div class="mb-3">
-        <label for="externalCode" class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ExternalCodeLabel]</label>
-        <input type="text" class="form-control" id="externalCode" @bind="ExternalCode" @bind:event="oninput" />
+        <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ExternalCodeLabel]</label>
+        <StringChipsInput Value="ExternalCodes" ValueChanged="OnExternalCodesChanged"
+                          Placeholder="@I18n[I18nKey.Ui.ChipsInput.ExternalCodePlaceholder]" />
     </div>
 
     <div class="mb-3">
@@ -37,9 +38,7 @@
 
     <div class="mb-3">
         <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.AdminDivisionLabel]</label>
-        <div class="d-flex">
-            <AdminDivisionPicker Value="@AdministrativeDivisionId" ValueChanged="OnDivisionChanged" AllowClear="true" />
-        </div>
+        <AdminDivisionChipsInput Value="AdministrativeDivisionIds" ValueChanged="OnDivisionsChanged" />
         <div class="form-text">@I18n[I18nKey.Ui.ChapterCreate.AdminDivisionHint]</div>
     </div>
 

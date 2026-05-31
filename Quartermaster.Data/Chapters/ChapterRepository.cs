@@ -28,10 +28,72 @@ public class ChapterRepository {
             .Where(c => c.Id == chapter.Id)
             .Set(c => c.Name, chapter.Name)
             .Set(c => c.ShortCode, chapter.ShortCode)
-            .Set(c => c.ExternalCode, chapter.ExternalCode)
             .Set(c => c.ParentChapterId, chapter.ParentChapterId)
-            .Set(c => c.AdministrativeDivisionId, chapter.AdministrativeDivisionId)
             .Update();
+    }
+
+    /// <summary>Replaces the chapter's external-code set with the supplied list (deduped); caller owns trim/empty-drop.</summary>
+    public void ReplaceExternalCodes(Guid chapterId, IEnumerable<string> codes) {
+        _context.ChapterExternalCodes.Where(c => c.ChapterId == chapterId).Delete();
+        foreach (var code in codes.Distinct()) {
+            _context.Insert(new ChapterExternalCode { ChapterId = chapterId, Code = code });
+        }
+    }
+
+    public void ReplaceAdministrativeDivisions(Guid chapterId, IEnumerable<Guid> divisionIds) {
+        _context.ChapterAdministrativeDivisions.Where(c => c.ChapterId == chapterId).Delete();
+        foreach (var divisionId in divisionIds.Distinct()) {
+            _context.Insert(new ChapterAdministrativeDivision {
+                ChapterId = chapterId,
+                AdministrativeDivisionId = divisionId
+            });
+        }
+    }
+
+    public List<string> GetExternalCodes(Guid chapterId)
+        => _context.ChapterExternalCodes
+            .Where(c => c.ChapterId == chapterId)
+            .OrderBy(c => c.Code)
+            .Select(c => c.Code)
+            .ToList();
+
+    public List<Guid> GetAdministrativeDivisions(Guid chapterId)
+        => _context.ChapterAdministrativeDivisions
+            .Where(c => c.ChapterId == chapterId)
+            .Select(c => c.AdministrativeDivisionId)
+            .ToList();
+
+    /// <summary>Batch-loads the external-code list for the given chapter ids, keyed by chapter id. Missing keys ⇒ no codes.</summary>
+    public Dictionary<Guid, List<string>> LoadExternalCodesFor(IReadOnlyCollection<Guid> chapterIds) {
+        if (chapterIds.Count == 0)
+            return [];
+        return _context.ChapterExternalCodes
+            .Where(c => chapterIds.Contains(c.ChapterId))
+            .ToList()
+            .GroupBy(c => c.ChapterId)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.Code).OrderBy(s => s).ToList());
+    }
+
+    /// <summary>Builds DTOs with codes + divisions batch-loaded — two extra queries total regardless of list size.</summary>
+    public List<Api.Chapters.ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters) {
+        if (chapters.Count == 0)
+            return [];
+        var ids = chapters.Select(c => c.Id).ToList();
+        var codesByChapter = LoadExternalCodesFor(ids);
+        var divisionsByChapter = LoadAdministrativeDivisionsFor(ids);
+        return chapters.Select(c => c.ToDto(
+            codesByChapter.GetValueOrDefault(c.Id, []),
+            divisionsByChapter.GetValueOrDefault(c.Id, []))).ToList();
+    }
+
+    public Dictionary<Guid, List<Guid>> LoadAdministrativeDivisionsFor(IReadOnlyCollection<Guid> chapterIds) {
+        if (chapterIds.Count == 0)
+            return [];
+        return _context.ChapterAdministrativeDivisions
+            .Where(c => chapterIds.Contains(c.ChapterId))
+            .ToList()
+            .GroupBy(c => c.ChapterId)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.AdministrativeDivisionId).ToList());
     }
 
     public bool HasNonDeletedChildren(Guid chapterId)
@@ -40,30 +102,61 @@ public class ChapterRepository {
     public void SoftDelete(Guid id)
         => _context.Chapters.Where(c => c.Id == id).Set(c => c.DeletedAt, DateTime.UtcNow).Update();
 
-    public List<Chapter> GetByExternalCode(string externalCode)
-        => _context.Chapters.Where(c => c.ExternalCode == externalCode && c.DeletedAt == null).ToList();
+    public List<Chapter> GetByExternalCode(string externalCode) {
+        var matchingIds = _context.ChapterExternalCodes
+            .Where(c => c.Code == externalCode)
+            .Select(c => c.ChapterId)
+            .ToList();
+        if (matchingIds.Count == 0)
+            return [];
+        return _context.Chapters
+            .Where(c => matchingIds.Contains(c.Id) && c.DeletedAt == null)
+            .ToList();
+    }
 
-    public Chapter? GetByExternalCodeAndParent(string externalCode, Guid? parentChapterId)
-        => _context.Chapters
-            .Where(c => c.ExternalCode == externalCode && c.ParentChapterId == parentChapterId && c.DeletedAt == null)
+    /// <summary>Returns any chapter under the given parent whose code set overlaps any of <paramref name="codes"/>.
+    /// Excludes <paramref name="excludeChapterId"/> from the check so a chapter editing its own codes doesn't conflict with itself.</summary>
+    public Chapter? FindCodeConflictUnderParent(IEnumerable<string> codes, Guid? parentChapterId, Guid? excludeChapterId = null) {
+        var codeList = codes.ToList();
+        if (codeList.Count == 0)
+            return null;
+
+        var conflictChapterIds = _context.ChapterExternalCodes
+            .Where(c => codeList.Contains(c.Code))
+            .Select(c => c.ChapterId)
+            .Distinct()
+            .ToList();
+        if (conflictChapterIds.Count == 0)
+            return null;
+
+        return _context.Chapters
+            .Where(c => conflictChapterIds.Contains(c.Id)
+                && c.ParentChapterId == parentChapterId
+                && c.DeletedAt == null
+                && (excludeChapterId == null || c.Id != excludeChapterId.Value))
             .FirstOrDefault();
+    }
 
     public Chapter? FindForDivision(Guid divisionId, AdministrativeDivisions.AdministrativeDivisionRepository adminDivRepo) {
         var ancestorIds = adminDivRepo.GetAncestorIds(divisionId);
+        if (ancestorIds.Count == 0)
+            return GetRootChapter();
 
-        var chapters = ancestorIds.Count == 0
-            ? new List<Chapter>()
-            : _context.Chapters
-                .Where(c => c.AdministrativeDivisionId != null
-                    && ancestorIds.Contains(c.AdministrativeDivisionId.Value)
-                    && c.DeletedAt == null)
-                .ToList();
+        var ancestorChapterIds = _context.ChapterAdministrativeDivisions
+            .Where(c => ancestorIds.Contains(c.AdministrativeDivisionId))
+            .ToList();
 
         // Most specific match wins: the chapter whose division appears earliest in the ancestor chain.
         foreach (var ancestorId in ancestorIds) {
-            var match = chapters.FirstOrDefault(c => c.AdministrativeDivisionId == ancestorId);
-            if (match != null)
-                return match;
+            var matchId = ancestorChapterIds
+                .FirstOrDefault(c => c.AdministrativeDivisionId == ancestorId)?.ChapterId;
+            if (matchId == null)
+                continue;
+            var chapter = _context.Chapters
+                .Where(c => c.Id == matchId.Value && c.DeletedAt == null)
+                .FirstOrDefault();
+            if (chapter != null)
+                return chapter;
         }
 
         // No region-specific chapter covers this division — fall back to the top-level
@@ -101,9 +194,14 @@ public class ChapterRepository {
         var q = _context.Chapters.Where(c => c.DeletedAt == null).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query)) {
+            var codeMatchedIds = _context.ChapterExternalCodes
+                .Where(c => c.Code.Contains(query))
+                .Select(c => c.ChapterId)
+                .Distinct()
+                .ToList();
             q = q.Where(c => c.Name.Contains(query)
                 || (c.ShortCode != null && c.ShortCode.Contains(query))
-                || (c.ExternalCode != null && c.ExternalCode.Contains(query)));
+                || codeMatchedIds.Contains(c.Id));
         }
 
         var totalCount = q.Count();

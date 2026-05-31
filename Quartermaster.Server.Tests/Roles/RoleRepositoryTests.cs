@@ -51,8 +51,10 @@ public class RoleRepositoryTests : RepositoryTestBase {
         // Seed two chapters
         _chapterId = Guid.NewGuid();
         _otherChapterId = Guid.NewGuid();
-        _context.Insert(new Chapter { Id = _chapterId, Name = "Chapter A", ShortCode = "A", ExternalCode = "A" });
-        _context.Insert(new Chapter { Id = _otherChapterId, Name = "Chapter B", ShortCode = "B", ExternalCode = "B" });
+        _context.Insert(new Chapter { Id = _chapterId, Name = "Chapter A", ShortCode = "A" });
+        _context.Insert(new Chapter { Id = _otherChapterId, Name = "Chapter B", ShortCode = "B" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _chapterId, Code = "A" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _otherChapterId, Code = "B" });
     }
 
     [Test]

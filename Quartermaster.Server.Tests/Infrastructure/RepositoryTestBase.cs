@@ -19,9 +19,16 @@ public abstract class RepositoryTestBase : IDisposable {
     protected DbContext Db { get; }
     protected AuditLogRepository AuditLog { get; }
 
+    /// <summary>The worker this test's <see cref="Db"/> is bound to. Use <see cref="WorkerDatabase.CreateServiceProvider"/>
+    /// (not the thread-local <c>TestDatabaseFixture.CreateServiceProvider</c>) when building service providers so
+    /// scoped DbContexts hit the same DB the test reads from. TUnit can hop test methods between threads, so
+    /// resolving via thread-local twice in one test produces split-brain writes.</summary>
+    protected WorkerDatabase Worker { get; }
+
     protected RepositoryTestBase() {
-        TestDatabaseFixture.CleanAllTables();
-        Db = TestDatabaseFixture.CreateDbContext();
+        Worker = TestDatabaseFixture.ForCurrentWorker();
+        Worker.CleanAllTables();
+        Db = Worker.CreateDbContext();
         AuditLog = new AuditLogRepository(Db);
     }
 

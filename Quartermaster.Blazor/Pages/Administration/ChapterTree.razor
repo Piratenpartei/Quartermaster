@@ -27,8 +27,8 @@
                     @if (!string.IsNullOrEmpty(context.ShortCode)) {
                         <span class="badge bg-secondary me-1">@context.ShortCode</span>
                     }
-                    @if (!string.IsNullOrEmpty(context.ExternalCode)) {
-                        <code class="small text-secondary">@context.ExternalCode</code>
+                    @if (context.ExternalCodes.Count > 0) {
+                        <code class="small text-secondary">@string.Join(", ", context.ExternalCodes)</code>
                     }
                 </ItemContent>
             </LazyTreeNode>

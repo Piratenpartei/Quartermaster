@@ -21,7 +21,7 @@ public class ChapterListEndpoint : EndpointWithoutRequest<List<ChapterDTO>> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var dtos = _chapterRepository.GetAll().Select(c => c.ToDto()).ToList();
+        var dtos = _chapterRepository.ToDtos(_chapterRepository.GetAll());
         await SendAsync(dtos, cancellation: ct);
     }
 }

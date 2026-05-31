@@ -1342,6 +1342,8 @@
 
   "ui.admin_division_picker.placeholder": "Post code, name or code...",
   "ui.admin_division_picker.clear_aria_label": "Clear",
+  "ui.chips_input.remove_aria_label": "Remove",
+  "ui.chips_input.external_code_placeholder": "Type a code and press Enter",
 
   "ui.chapter_picker.empty_label": "All chapters",
   "ui.chapter_picker.inline_placeholder": "Chapter...",

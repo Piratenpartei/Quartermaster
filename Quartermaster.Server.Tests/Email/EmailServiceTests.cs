@@ -43,9 +43,9 @@ public class EmailServiceTests : RepositoryTestBase {
         _context.Insert(new Chapter {
             Id = _chapterId,
             Name = "Test Chapter",
-            ShortCode = "tst",
-            ExternalCode = "TST"
+            ShortCode = "tst"
         });
+        _context.Insert(new ChapterExternalCode { ChapterId = _chapterId, Code = "TST" });
 
         _templateId = Guid.NewGuid();
         _templateRepo.Create(new Template {

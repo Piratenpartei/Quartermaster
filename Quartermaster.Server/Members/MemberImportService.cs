@@ -87,10 +87,20 @@ public class MemberImportService {
             var tokenRepo = scope.ServiceProvider.GetRequiredService<TokenRepository>();
 
             var allChapters = chapterRepo.GetAll();
-            var chaptersByExtCode = allChapters
-                .Where(c => c.ExternalCode != null)
-                .GroupBy(c => c.ExternalCode!)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            var allChapterIds = allChapters.Select(c => c.Id).ToList();
+            var codesByChapter = chapterRepo.LoadExternalCodesFor(allChapterIds);
+            var chaptersByExtCode = new Dictionary<string, List<Chapter>>();
+            foreach (var chapter in allChapters) {
+                if (!codesByChapter.TryGetValue(chapter.Id, out var codes))
+                    continue;
+                foreach (var code in codes) {
+                    if (!chaptersByExtCode.TryGetValue(code, out var list)) {
+                        list = [];
+                        chaptersByExtCode[code] = list;
+                    }
+                    list.Add(chapter);
+                }
+            }
 
             var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture) {
                 Delimiter = ";",
@@ -116,7 +126,7 @@ public class MemberImportService {
                     continue;
                 }
                 try {
-                    var member = MapRecordToMember(record, chaptersByExtCode, allChapters, adminDivRepo, now);
+                    var member = MapRecordToMember(record, chaptersByExtCode, codesByChapter, allChapters, adminDivRepo, now);
                     var existing = memberRepo.GetByMemberNumber(member.MemberNumber);
 
                     if (existing != null) {
@@ -210,6 +220,7 @@ public class MemberImportService {
     private static Member MapRecordToMember(
         MemberCsvRecord record,
         Dictionary<string, List<Chapter>> chaptersByExtCode,
+        Dictionary<Guid, List<string>> codesByChapter,
         List<Chapter> allChapters,
         AdministrativeDivisionRepository adminDivRepo,
         DateTime importedAt) {
@@ -247,7 +258,7 @@ public class MemberImportService {
         };
 
         // Resolve chapter from CSV hierarchy
-        member.ChapterId = ResolveChapter(
+        member.ChapterId = ResolveChapter(codesByChapter,
             NullIfEmpty(record.USER_LV),
             NullIfEmpty(record.USER_Bezirk),
             NullIfEmpty(record.USER_Kreis),
@@ -271,6 +282,7 @@ public class MemberImportService {
     }
 
     private static Guid? ResolveChapter(
+        Dictionary<Guid, List<string>> codesByChapter,
         string? lv, string? bezirk, string? kreis,
         Dictionary<string, List<Chapter>> chaptersByExtCode,
         List<Chapter> allChapters) {
@@ -283,15 +295,13 @@ public class MemberImportService {
                     continue;
 
                 if (bezirk != null) {
-                    // Kreis parent should be the Bezirk
-                    if (parent.ExternalCode == bezirk) {
+                    if (HasCode(codesByChapter, parent.Id, bezirk)) {
                         var grandparent = allChapters.FirstOrDefault(c => c.Id == parent.ParentChapterId);
-                        if (grandparent?.ExternalCode == lv)
+                        if (grandparent != null && HasCode(codesByChapter, grandparent.Id, lv))
                             return kreisChapter.Id;
                     }
                 } else {
-                    // No Bezirk - Kreis parent should be the LV
-                    if (parent.ExternalCode == lv)
+                    if (HasCode(codesByChapter, parent.Id, lv))
                         return kreisChapter.Id;
                 }
             }
@@ -301,12 +311,11 @@ public class MemberImportService {
         if (bezirk != null && chaptersByExtCode.TryGetValue(bezirk, out var bezirkChapters)) {
             foreach (var bezirkChapter in bezirkChapters) {
                 var parent = allChapters.FirstOrDefault(c => c.Id == bezirkChapter.ParentChapterId);
-                if (parent?.ExternalCode == lv)
+                if (parent != null && HasCode(codesByChapter, parent.Id, lv))
                     return bezirkChapter.Id;
             }
         }
 
-        // Try LV (state)
         if (lv != null && chaptersByExtCode.TryGetValue(lv, out var lvChapters))
             return lvChapters.FirstOrDefault()?.Id;
 
@@ -314,6 +323,11 @@ public class MemberImportService {
         // a state/district/county, attribute them to the federal root (Direktmitglied).
         return allChapters.FirstOrDefault(c => c.ParentChapterId == null)?.Id;
     }
+
+    private static bool HasCode(Dictionary<Guid, List<string>> codesByChapter, Guid chapterId, string? code)
+        => code != null
+            && codesByChapter.TryGetValue(chapterId, out var codes)
+            && codes.Contains(code);
 
     private static string? NullIfEmpty(string? value)
         => string.IsNullOrWhiteSpace(value) || value == "NULL" ? null : value.Trim();

@@ -54,8 +54,8 @@
                         }
                     </td>
                     <td>
-                        @if (!string.IsNullOrEmpty(ch.ExternalCode)) {
-                            <code>@ch.ExternalCode</code>
+                        @if (ch.ExternalCodes.Count > 0) {
+                            <code>@string.Join(", ", ch.ExternalCodes)</code>
                         } else {
                             <span class="text-secondary">—</span>
                         }

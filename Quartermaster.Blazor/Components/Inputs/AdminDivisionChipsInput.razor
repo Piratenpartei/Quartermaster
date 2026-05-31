@@ -1,0 +1,18 @@
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
+
+<div>
+    @if (Selected.Count > 0) {
+        <div class="d-flex flex-wrap gap-1 mb-2">
+            @foreach (var entry in Selected) {
+                <span class="badge text-bg-secondary d-inline-flex align-items-center">
+                    @entry.Name
+                    <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;"
+                            aria-label="@I18n[I18nKey.Ui.ChipsInput.RemoveAriaLabel]"
+                            @onclick="() => Remove(entry.Id)"></button>
+                </span>
+            }
+        </div>
+    }
+    <AdminDivisionPicker @ref="_picker" AutoClearAfterSelect="true" OnSelect="OnPicked" />
+</div>

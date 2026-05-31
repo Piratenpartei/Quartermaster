@@ -71,10 +71,10 @@ public class M001_InitialStructureMigration : MigrationBase {
         Create.Table(Chapter.TableName)
             .WithColumn(nameof(Chapter.Id)).AsGuid().PrimaryKey().Indexed()
             .WithColumn(nameof(Chapter.Name)).AsString(256)
-            .WithColumn(nameof(Chapter.AdministrativeDivisionId)).AsGuid().Nullable()
+            .WithColumn("AdministrativeDivisionId").AsGuid().Nullable()
             .WithColumn(nameof(Chapter.ParentChapterId)).AsGuid().Nullable()
             .WithColumn(nameof(Chapter.ShortCode)).AsString(32).Nullable()
-            .WithColumn(nameof(Chapter.ExternalCode)).AsString(128).Nullable()
+            .WithColumn("ExternalCode").AsString(128).Nullable()
             .WithColumn(nameof(Chapter.DeletedAt)).AsCustom("DATETIME(6)").Nullable();
 
         Create.ForeignKey("FK_Users_ChapterId_Chapters_Id")
@@ -82,7 +82,7 @@ public class M001_InitialStructureMigration : MigrationBase {
             .ToTable(Chapter.TableName).PrimaryColumn(nameof(Chapter.Id));
 
         Create.ForeignKey("FK_Chapters_AdministrativeDivisionId_AdministrativeDivisions_Id")
-            .FromTable(Chapter.TableName).ForeignColumn(nameof(Chapter.AdministrativeDivisionId))
+            .FromTable(Chapter.TableName).ForeignColumn("AdministrativeDivisionId")
             .ToTable(AdministrativeDivision.TableName).PrimaryColumn(nameof(AdministrativeDivision.Id));
 
         Create.ForeignKey("FK_Chapters_ParentChapterId_Chapters_Id")

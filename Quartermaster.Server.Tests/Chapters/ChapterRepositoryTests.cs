@@ -34,31 +34,14 @@ public class ChapterRepositoryTests : RepositoryTestBase {
         _bezirkId = Guid.NewGuid();
         _kreisId = Guid.NewGuid();
 
-        _context.Insert(new Chapter {
-            Id = _bundId,
-            Name = "Bundesverband",
-            ShortCode = "bund",
-            ExternalCode = "BV"
-        });
-        _context.Insert(new Chapter {
-            Id = _lvId,
-            Name = "LV Niedersachsen",
-            ShortCode = "nds",
-            ExternalCode = "NI",
-            ParentChapterId = _bundId
-        });
-        _context.Insert(new Chapter {
-            Id = _bezirkId,
-            Name = "Bezirk Hannover",
-            ExternalCode = "H",
-            ParentChapterId = _lvId
-        });
-        _context.Insert(new Chapter {
-            Id = _kreisId,
-            Name = "Kreis Hildesheim",
-            ExternalCode = "HI",
-            ParentChapterId = _bezirkId
-        });
+        _context.Insert(new Chapter { Id = _bundId, Name = "Bundesverband", ShortCode = "bund" });
+        _context.Insert(new Chapter { Id = _lvId, Name = "LV Niedersachsen", ShortCode = "nds", ParentChapterId = _bundId });
+        _context.Insert(new Chapter { Id = _bezirkId, Name = "Bezirk Hannover", ParentChapterId = _lvId });
+        _context.Insert(new Chapter { Id = _kreisId, Name = "Kreis Hildesheim", ParentChapterId = _bezirkId });
+        _context.Insert(new ChapterExternalCode { ChapterId = _bundId, Code = "BV" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _lvId, Code = "NI" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _bezirkId, Code = "H" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _kreisId, Code = "HI" });
     }
 
     [Test]
@@ -134,46 +117,61 @@ public class ChapterRepositoryTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_ExactMatch_ReturnsChapter() {
-        var result = _repo.GetByExternalCodeAndParent("NI", _bundId);
+    public async Task FindCodeConflictUnderParent_ExactMatch_ReturnsChapter() {
+        var result = _repo.FindCodeConflictUnderParent(["NI"], _bundId);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Id).IsEqualTo(_lvId);
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_CodeMatchWrongParent_ReturnsNull() {
-        var result = _repo.GetByExternalCodeAndParent("NI", _lvId);
+    public async Task FindCodeConflictUnderParent_CodeMatchWrongParent_ReturnsNull() {
+        var result = _repo.FindCodeConflictUnderParent(["NI"], _lvId);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_WrongCode_ReturnsNull() {
-        var result = _repo.GetByExternalCodeAndParent("XX", _bundId);
+    public async Task FindCodeConflictUnderParent_WrongCode_ReturnsNull() {
+        var result = _repo.FindCodeConflictUnderParent(["XX"], _bundId);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_NullParentForRoot_ReturnsRoot() {
-        var result = _repo.GetByExternalCodeAndParent("BV", null);
+    public async Task FindCodeConflictUnderParent_NullParentForRoot_ReturnsRoot() {
+        var result = _repo.FindCodeConflictUnderParent(["BV"], null);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Id).IsEqualTo(_bundId);
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_NonExistentCode_ReturnsNull() {
-        var result = _repo.GetByExternalCodeAndParent("NONEXISTENT", null);
+    public async Task FindCodeConflictUnderParent_NonExistentCode_ReturnsNull() {
+        var result = _repo.FindCodeConflictUnderParent(["NONEXISTENT"], null);
 
         await Assert.That(result).IsNull();
     }
 
     [Test]
-    public async Task GetByExternalCodeAndParent_NullParentButNotRoot_ReturnsNull() {
+    public async Task FindCodeConflictUnderParent_NullParentButNotRoot_ReturnsNull() {
         // "NI" exists but its parent is _bundId, not null
-        var result = _repo.GetByExternalCodeAndParent("NI", null);
+        var result = _repo.FindCodeConflictUnderParent(["NI"], null);
+
+        await Assert.That(result).IsNull();
+    }
+
+    [Test]
+    public async Task FindCodeConflictUnderParent_MatchesAnyCodeInList() {
+        var result = _repo.FindCodeConflictUnderParent(["DOES_NOT_EXIST", "NI"], _bundId);
+
+        await Assert.That(result).IsNotNull();
+        await Assert.That(result!.Id).IsEqualTo(_lvId);
+    }
+
+    [Test]
+    public async Task FindCodeConflictUnderParent_ExcludeSelf_ReturnsNull() {
+        var result = _repo.FindCodeConflictUnderParent(["NI"], _bundId, excludeChapterId: _lvId);
 
         await Assert.That(result).IsNull();
     }

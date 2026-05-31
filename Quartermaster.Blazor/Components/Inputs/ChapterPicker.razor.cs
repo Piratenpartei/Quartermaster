@@ -66,7 +66,7 @@ public partial class ChapterPicker {
             return source.Where(c =>
                 c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || (c.ShortCode != null && c.ShortCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
-                || (c.ExternalCode != null && c.ExternalCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                || c.ExternalCodes.Any(code => code.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             ).ToList();
         }
     }

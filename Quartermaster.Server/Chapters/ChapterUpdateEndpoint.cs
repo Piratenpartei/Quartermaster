@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -66,23 +68,30 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
                 return;
             }
         }
-        var externalCode = string.IsNullOrWhiteSpace(req.ExternalCode) ? null : req.ExternalCode.Trim();
-        if (externalCode != null) {
-            var existing = _chapterRepo.GetByExternalCodeAndParent(externalCode, req.ParentChapterId);
-            if (existing != null && existing.Id != req.Id) {
-                AddError(r => r.ExternalCode, I18nKey.Error.Chapter.ExternalCodeNotUnique);
-                await SendErrorsAsync(cancellation: ct);
-                return;
-            }
+
+        var externalCodes = NormaliseCodes(req.ExternalCodes);
+        var conflict = _chapterRepo.FindCodeConflictUnderParent(externalCodes, req.ParentChapterId, excludeChapterId: req.Id);
+        if (conflict != null) {
+            AddError(r => r.ExternalCodes, I18nKey.Error.Chapter.ExternalCodeNotUnique);
+            await SendErrorsAsync(cancellation: ct);
+            return;
         }
+
+        var divisionIds = req.AdministrativeDivisionIds.Distinct().ToList();
 
         chapter.Name = name;
         chapter.ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim();
-        chapter.ExternalCode = externalCode;
         chapter.ParentChapterId = req.ParentChapterId;
-        chapter.AdministrativeDivisionId = req.AdministrativeDivisionId;
         _chapterRepo.Update(chapter);
+        _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);
+        _chapterRepo.ReplaceAdministrativeDivisions(chapter.Id, divisionIds);
 
-        await SendAsync(chapter.ToDto(), cancellation: ct);
+        await SendAsync(chapter.ToDto(externalCodes, divisionIds), cancellation: ct);
     }
+
+    private static List<string> NormaliseCodes(IEnumerable<string> raw)
+        => raw.Select(c => c?.Trim() ?? "")
+            .Where(c => c.Length > 0)
+            .Distinct()
+            .ToList();
 }

@@ -23,7 +23,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
     [Before(Test)]
     public void Setup() {
         _context = Db;
-        _serviceProvider = TestDatabaseFixture.CreateServiceProvider();
+        _serviceProvider = Worker.CreateServiceProvider();
 
         var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
         _service = new MemberImportService(scopeFactory, NullLogger<MemberImportService>.Instance);
@@ -33,26 +33,12 @@ public class MemberImportServiceTests : RepositoryTestBase {
         _lvNdsId = Guid.NewGuid();
         _lvBeId = Guid.NewGuid();
 
-        _context.Insert(new Chapter {
-            Id = _bundId,
-            Name = "Bundesverband",
-            ShortCode = "bund",
-            ExternalCode = "BV"
-        });
-        _context.Insert(new Chapter {
-            Id = _lvNdsId,
-            Name = "LV Niedersachsen",
-            ShortCode = "nds",
-            ExternalCode = "NI",
-            ParentChapterId = _bundId
-        });
-        _context.Insert(new Chapter {
-            Id = _lvBeId,
-            Name = "LV Berlin",
-            ShortCode = "be",
-            ExternalCode = "BE",
-            ParentChapterId = _bundId
-        });
+        _context.Insert(new Chapter { Id = _bundId, Name = "Bundesverband", ShortCode = "bund" });
+        _context.Insert(new Chapter { Id = _lvNdsId, Name = "LV Niedersachsen", ShortCode = "nds", ParentChapterId = _bundId });
+        _context.Insert(new Chapter { Id = _lvBeId, Name = "LV Berlin", ShortCode = "be", ParentChapterId = _bundId });
+        _context.Insert(new ChapterExternalCode { ChapterId = _bundId, Code = "BV" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _lvNdsId, Code = "NI" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _lvBeId, Code = "BE" });
 
         _csvPath = Path.Combine(
             Path.GetDirectoryName(typeof(MemberImportServiceTests).Assembly.Location)!,
@@ -142,18 +128,10 @@ public class MemberImportServiceTests : RepositoryTestBase {
         // Add a Kreis under a Bezirk under NDS
         var bezirkId = Guid.NewGuid();
         var kreisId = Guid.NewGuid();
-        _context.Insert(new Chapter {
-            Id = bezirkId,
-            Name = "Bezirk Hannover",
-            ExternalCode = "H",
-            ParentChapterId = _lvNdsId
-        });
-        _context.Insert(new Chapter {
-            Id = kreisId,
-            Name = "Kreis Stadtverband",
-            ExternalCode = "SH",
-            ParentChapterId = bezirkId
-        });
+        _context.Insert(new Chapter { Id = bezirkId, Name = "Bezirk Hannover", ParentChapterId = _lvNdsId });
+        _context.Insert(new Chapter { Id = kreisId, Name = "Kreis Stadtverband", ParentChapterId = bezirkId });
+        _context.Insert(new ChapterExternalCode { ChapterId = bezirkId, Code = "H" });
+        _context.Insert(new ChapterExternalCode { ChapterId = kreisId, Code = "SH" });
 
         // Create a CSV with Kreis + Bezirk + LV
         var tempPath = Path.GetTempFileName();
@@ -191,12 +169,8 @@ public class MemberImportServiceTests : RepositoryTestBase {
     [Test]
     public async Task ImportFromFile_ResolvesChapter_BezirkWithoutKreis() {
         var bezirkId = Guid.NewGuid();
-        _context.Insert(new Chapter {
-            Id = bezirkId,
-            Name = "Bezirk Hannover",
-            ExternalCode = "H",
-            ParentChapterId = _lvNdsId
-        });
+        _context.Insert(new Chapter { Id = bezirkId, Name = "Bezirk Hannover", ParentChapterId = _lvNdsId });
+        _context.Insert(new ChapterExternalCode { ChapterId = bezirkId, Code = "H" });
 
         var tempPath = Path.GetTempFileName();
         try {

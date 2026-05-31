@@ -1,0 +1,19 @@
+@using Quartermaster.Api.I18n
+@inject I18nService I18n
+
+<div class="form-control d-flex flex-wrap align-items-center gap-1" style="min-height: calc(2.25rem + 2px);">
+    @foreach (var chip in Value) {
+        <span class="badge text-bg-secondary d-inline-flex align-items-center">
+            @chip
+            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;"
+                    aria-label="@I18n[I18nKey.Ui.ChipsInput.RemoveAriaLabel]"
+                    @onclick="() => Remove(chip)"></button>
+        </span>
+    }
+    <input type="text" class="border-0 flex-grow-1 px-1" style="outline: none; min-width: 100px;"
+           value="@CurrentInput"
+           placeholder="@(Value.Count == 0 ? Placeholder : "")"
+           @oninput="OnInput"
+           @onkeydown="OnKeyDown"
+           @onblur="CommitCurrent" />
+</div>

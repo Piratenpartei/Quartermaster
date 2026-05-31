@@ -21,7 +21,7 @@ public class ChapterDetailResponse {
     public ChapterDTO Chapter { get; set; } = new();
     public Guid? ParentChapterId { get; set; }
     public string? ParentChapterName { get; set; }
-    public string? AdministrativeDivisionName { get; set; }
+    public List<string> AdministrativeDivisionNames { get; set; } = [];
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
 }
@@ -59,12 +59,12 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
                 parentName = parent.Name;
         }
 
-        string? divisionName = null;
-        if (chapter.AdministrativeDivisionId.HasValue) {
-            var division = _adminDivRepo.Get(chapter.AdministrativeDivisionId.Value);
-            if (division != null)
-                divisionName = division.Name;
-        }
+        var divisionIds = _chapterRepo.GetAdministrativeDivisions(chapter.Id);
+        var divisionNames = divisionIds
+            .Select(id => _adminDivRepo.Get(id)?.Name)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Select(n => n!)
+            .ToList();
 
         var officers = _officerRepo.GetForChapter(chapter.Id);
         var officerMemberIds = officers.Select(o => o.MemberId).ToList();
@@ -83,15 +83,16 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
             };
         }).ToList();
 
+        var chapterCodes = _chapterRepo.GetExternalCodes(chapter.Id);
         var children = _chapterRepo.GetChildren(chapter.Id);
 
         await SendAsync(new ChapterDetailResponse {
-            Chapter = chapter.ToDto(),
+            Chapter = chapter.ToDto(chapterCodes, divisionIds),
             ParentChapterId = chapter.ParentChapterId,
             ParentChapterName = parentName,
-            AdministrativeDivisionName = divisionName,
+            AdministrativeDivisionNames = divisionNames,
             Officers = officerDtos,
-            Children = children.Select(c => c.ToDto()).ToList()
+            Children = _chapterRepo.ToDtos(children)
         }, cancellation: ct);
     }
 }

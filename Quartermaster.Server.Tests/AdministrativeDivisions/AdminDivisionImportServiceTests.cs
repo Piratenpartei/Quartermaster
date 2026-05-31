@@ -19,7 +19,7 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
     [Before(Test)]
     public void Setup() {
         _context = Db;
-        _serviceProvider = TestDatabaseFixture.CreateServiceProvider();
+        _serviceProvider = Worker.CreateServiceProvider();
 
         var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
         _service = new AdminDivisionImportService(scopeFactory, NullLogger<AdminDivisionImportService>.Instance);
@@ -275,19 +275,22 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         var wedemark = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3255").First();
         var chapterId = Guid.NewGuid();
-        _context.Insert(new Chapter {
-            Id = chapterId,
-            Name = "Test Chapter",
+        _context.Insert(new Chapter { Id = chapterId, Name = "Test Chapter" });
+        _context.Insert(new ChapterAdministrativeDivision {
+            ChapterId = chapterId,
             AdministrativeDivisionId = wedemark.Id
         });
 
         WriteChangedFiles();
         _service.Import(_tempDir);
 
-        var chapter = _context.Chapters.Where(c => c.Id == chapterId).First();
         var goslar = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3257").First();
-        await Assert.That(chapter.AdministrativeDivisionId).IsEqualTo(goslar.Id);
+        var divisions = _context.ChapterAdministrativeDivisions
+            .Where(c => c.ChapterId == chapterId)
+            .Select(c => c.AdministrativeDivisionId)
+            .ToList();
+        await Assert.That(divisions).Contains(goslar.Id);
     }
 
     [Test]

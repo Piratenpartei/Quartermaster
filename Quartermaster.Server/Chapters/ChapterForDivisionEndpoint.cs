@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -33,6 +34,6 @@ public class ChapterForDivisionEndpoint : Endpoint<ChapterForDivisionRequest, Ch
             await SendNotFoundAsync(ct);
             return;
         }
-        await SendAsync(chapter.ToDto(), cancellation: ct);
+        await SendAsync(_chapterRepository.ToDtos([chapter]).Single(), cancellation: ct);
     }
 }

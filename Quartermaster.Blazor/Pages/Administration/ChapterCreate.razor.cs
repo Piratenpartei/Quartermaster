@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -24,9 +25,9 @@ public partial class ChapterCreate {
 
     private string Name = "";
     private string ShortCode = "";
-    private string ExternalCode = "";
+    private List<string> ExternalCodes = [];
+    private List<Guid> AdministrativeDivisionIds = [];
     private string ParentChapterId = "";
-    private string AdministrativeDivisionId = "";
     private bool Saving;
 
     [SupplyParameterFromQuery]
@@ -42,8 +43,12 @@ public partial class ChapterCreate {
         ParentChapterId = id;
     }
 
-    private void OnDivisionChanged(string id) {
-        AdministrativeDivisionId = id;
+    private void OnExternalCodesChanged(List<string> codes) {
+        ExternalCodes = codes;
+    }
+
+    private void OnDivisionsChanged(List<Guid> ids) {
+        AdministrativeDivisionIds = ids;
     }
 
     private async Task Save() {
@@ -53,9 +58,9 @@ public partial class ChapterCreate {
             var req = new ChapterCreateRequest {
                 Name = Name.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(ShortCode) ? null : ShortCode.Trim(),
-                ExternalCode = string.IsNullOrWhiteSpace(ExternalCode) ? null : ExternalCode.Trim(),
-                ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null,
-                AdministrativeDivisionId = Guid.TryParse(AdministrativeDivisionId, out var divParsed) ? divParsed : null
+                ExternalCodes = ExternalCodes,
+                AdministrativeDivisionIds = AdministrativeDivisionIds,
+                ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null
             };
             var resp = await Http.PostAsJsonAsync("/api/chapters", req);
             if (resp.IsSuccessStatusCode) {

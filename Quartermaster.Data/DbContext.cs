@@ -35,6 +35,8 @@ public class DbContext : DataConnection {
     public ITable<User> Users => this.GetTable<User>();
     public ITable<DueSelection> DueSelections => this.GetTable<DueSelection>();
     public ITable<Chapter> Chapters => this.GetTable<Chapter>();
+    public ITable<ChapterExternalCode> ChapterExternalCodes => this.GetTable<ChapterExternalCode>();
+    public ITable<ChapterAdministrativeDivision> ChapterAdministrativeDivisions => this.GetTable<ChapterAdministrativeDivision>();
     public ITable<MembershipApplication> MembershipApplications => this.GetTable<MembershipApplication>();
     public ITable<ChapterOfficer> ChapterOfficers => this.GetTable<ChapterOfficer>();
     public ITable<Motion> Motions => this.GetTable<Motion>();

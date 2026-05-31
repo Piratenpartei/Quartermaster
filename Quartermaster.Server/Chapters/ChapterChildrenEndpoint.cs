@@ -26,7 +26,7 @@ public class ChapterChildrenEndpoint : Endpoint<ChapterChildrenRequest, List<Cha
     }
 
     public override async Task HandleAsync(ChapterChildrenRequest req, CancellationToken ct) {
-        var dtos = _chapterRepo.GetChildren(req.ParentId).Select(c => c.ToDto()).ToList();
+        var dtos = _chapterRepo.ToDtos(_chapterRepo.GetChildren(req.ParentId));
         await SendAsync(dtos, cancellation: ct);
     }
 }

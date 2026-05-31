@@ -31,7 +31,7 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
         var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
             Name = "New Name",
             ShortCode = "NEW",
-            ExternalCode = "EXT-NEW",
+            ExternalCodes = ["EXT-NEW", "EXT-LEGACY"],
             ParentChapterId = newParent.Id
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
@@ -39,25 +39,30 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
         var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
         await Assert.That(stored.Name).IsEqualTo("New Name");
         await Assert.That(stored.ShortCode).IsEqualTo("NEW");
-        await Assert.That(stored.ExternalCode).IsEqualTo("EXT-NEW");
         await Assert.That(stored.ParentChapterId).IsEqualTo(newParent.Id);
+        var codes = Db.ChapterExternalCodes.Where(c => c.ChapterId == chapter.Id).Select(c => c.Code).OrderBy(s => s).ToList();
+        await Assert.That(codes).IsEquivalentTo(new[] { "EXT-LEGACY", "EXT-NEW" });
     }
 
     [Test]
     public async Task Updates_administrative_division_link() {
-        var div = Builder.SeedAdminDivision("Niedersachsen");
+        var divA = Builder.SeedAdminDivision("Niedersachsen");
+        var divB = Builder.SeedAdminDivision("Hannover");
         var chapter = Builder.SeedChapter("LV");
         var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
         var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
             Name = "LV",
-            AdministrativeDivisionId = div.Id
+            AdministrativeDivisionIds = [divA.Id, divB.Id]
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
-        var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
-        await Assert.That(stored.AdministrativeDivisionId).IsEqualTo(div.Id);
+        var divisions = Db.ChapterAdministrativeDivisions
+            .Where(c => c.ChapterId == chapter.Id)
+            .Select(c => c.AdministrativeDivisionId)
+            .ToList();
+        await Assert.That(divisions.OrderBy(x => x).ToList()).IsEquivalentTo(new[] { divA.Id, divB.Id }.OrderBy(x => x).ToList());
     }
 
     [Test]
@@ -69,12 +74,12 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
 
         var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
             Name = "LV",
-            AdministrativeDivisionId = null
+            AdministrativeDivisionIds = []
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
-        var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
-        await Assert.That(stored.AdministrativeDivisionId).IsNull();
+        var divisions = Db.ChapterAdministrativeDivisions.Where(c => c.ChapterId == chapter.Id).Count();
+        await Assert.That(divisions).IsEqualTo(0);
     }
 
     [Test]
@@ -124,7 +129,7 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
 
         var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
             Name = "X renamed",
-            ExternalCode = "EXT-1"
+            ExternalCodes = ["EXT-1"]
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }
@@ -141,7 +146,7 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
         var response = await client.PutAsJsonAsync($"/api/chapters/{b.Id}", new ChapterUpdateRequest {
             Name = "B",
             ParentChapterId = parent.Id,
-            ExternalCode = "DUP"
+            ExternalCodes = ["DUP"]
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }

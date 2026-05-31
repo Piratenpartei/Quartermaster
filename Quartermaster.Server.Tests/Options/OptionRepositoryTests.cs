@@ -28,25 +28,12 @@ public class OptionRepositoryTests : RepositoryTestBase {
         _lvId = Guid.NewGuid();
         _kreisId = Guid.NewGuid();
 
-        _context.Insert(new Chapter {
-            Id = _bundId,
-            Name = "Bundesverband",
-            ShortCode = "bund",
-            ExternalCode = "BV"
-        });
-        _context.Insert(new Chapter {
-            Id = _lvId,
-            Name = "LV Niedersachsen",
-            ShortCode = "nds",
-            ExternalCode = "NI",
-            ParentChapterId = _bundId
-        });
-        _context.Insert(new Chapter {
-            Id = _kreisId,
-            Name = "Kreis Hildesheim",
-            ExternalCode = "HI",
-            ParentChapterId = _lvId
-        });
+        _context.Insert(new Chapter { Id = _bundId, Name = "Bundesverband", ShortCode = "bund" });
+        _context.Insert(new Chapter { Id = _lvId, Name = "LV Niedersachsen", ShortCode = "nds", ParentChapterId = _bundId });
+        _context.Insert(new Chapter { Id = _kreisId, Name = "Kreis Hildesheim", ParentChapterId = _lvId });
+        _context.Insert(new ChapterExternalCode { ChapterId = _bundId, Code = "BV" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _lvId, Code = "NI" });
+        _context.Insert(new ChapterExternalCode { ChapterId = _kreisId, Code = "HI" });
 
         // Seed an option definition
         _context.Insert(new OptionDefinition {

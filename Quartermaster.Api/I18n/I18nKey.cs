@@ -1602,6 +1602,11 @@ public static class I18nKey {
             public const string ClearAriaLabel = "ui.admin_division_picker.clear_aria_label";
         }
 
+        public static class ChipsInput {
+            public const string RemoveAriaLabel = "ui.chips_input.remove_aria_label";
+            public const string ExternalCodePlaceholder = "ui.chips_input.external_code_placeholder";
+        }
+
         public static class ChapterPicker {
             public const string EmptyLabel = "ui.chapter_picker.empty_label";
             public const string InlinePlaceholder = "ui.chapter_picker.inline_placeholder";

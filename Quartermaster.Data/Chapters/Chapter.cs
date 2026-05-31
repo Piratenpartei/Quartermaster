@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using LinqToDB.Mapping;
 using Quartermaster.Api.Chapters;
 
@@ -10,18 +11,19 @@ public class Chapter {
 
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
-    public Guid? AdministrativeDivisionId { get; set; }
     public Guid? ParentChapterId { get; set; }
     public string? ShortCode { get; set; }
-    public string? ExternalCode { get; set; }
     public DateTime? DeletedAt { get; set; }
 
-    public ChapterDTO ToDto() => new() {
+    public ChapterDTO ToDto(IReadOnlyList<string> externalCodes, IReadOnlyList<Guid> administrativeDivisionIds) => new() {
         Id = Id,
         Name = Name,
         ShortCode = ShortCode,
-        ExternalCode = ExternalCode,
         ParentChapterId = ParentChapterId,
-        AdministrativeDivisionId = AdministrativeDivisionId
+        ExternalCodes = [.. externalCodes],
+        AdministrativeDivisionIds = [.. administrativeDivisionIds]
     };
+
+    /// <summary>For callers that only need the scalar fields (notification template models etc.); codes/divisions come back empty.</summary>
+    public ChapterDTO ToDto() => ToDto([], []);
 }

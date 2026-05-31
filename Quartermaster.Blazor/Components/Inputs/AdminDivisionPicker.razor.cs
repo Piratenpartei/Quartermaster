@@ -19,6 +19,14 @@ public partial class AdminDivisionPicker {
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
+    /// <summary>Fires alongside <see cref="ValueChanged"/> but with the full selected DTO — needed by callers (multi-pickers) that have to remember the display name.</summary>
+    [Parameter]
+    public EventCallback<AdministrativeDivisionDTO> OnSelect { get; set; }
+
+    /// <summary>When true, the picker resets to empty after each selection so a wrapper can collect multiple picks.</summary>
+    [Parameter]
+    public bool AutoClearAfterSelect { get; set; }
+
     [Parameter]
     public string SizeClass { get; set; } = "";
 
@@ -78,6 +86,12 @@ public partial class AdminDivisionPicker {
         ShowDropdown = false;
         SearchResults = null;
         await ValueChanged.InvokeAsync(Value);
+        await OnSelect.InvokeAsync(division);
+        if (AutoClearAfterSelect) {
+            Value = "";
+            SearchText = "";
+            await ValueChanged.InvokeAsync("");
+        }
     }
 
     private async Task ScheduleClose() {

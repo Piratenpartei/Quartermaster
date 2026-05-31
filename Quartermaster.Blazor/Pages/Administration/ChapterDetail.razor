@@ -46,7 +46,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</label>
-                    <input type="text" class="form-control" @bind="EditExternalCode" @bind:event="oninput" />
+                    <StringChipsInput Value="EditExternalCodes" ValueChanged="OnExternalCodesChanged"
+                                      Placeholder="@I18n[I18nKey.Ui.ChipsInput.ExternalCodePlaceholder]" />
                 </div>
                 <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</label>
@@ -56,10 +57,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</label>
-                    <div class="d-flex">
-                        <AdminDivisionPicker Value="@EditAdministrativeDivisionId" ValueChanged="OnDivisionChanged"
-                                             InitialDisplayText="@(Detail.AdministrativeDivisionName ?? "")" AllowClear="true" />
-                    </div>
+                    <AdminDivisionChipsInput Value="EditAdministrativeDivisionIds" ValueChanged="OnDivisionsChanged"
+                                             InitialNames="EditAdministrativeDivisionNames" />
                     <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionHint]</div>
                 </div>
                 <div class="d-flex justify-content-end gap-2">
@@ -79,7 +78,7 @@
                     <tbody>
                         <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Name]</th><td>@Detail.Chapter.Name</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCode ?? "—")</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "—" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
                         <tr>
                             <th>@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</th>
                             <td>
@@ -92,7 +91,7 @@
                         </tr>
                         <tr>
                             <th>@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</th>
-                            <td>@(string.IsNullOrEmpty(Detail.AdministrativeDivisionName) ? "—" : Detail.AdministrativeDivisionName)</td>
+                            <td>@(Detail.AdministrativeDivisionNames.Count == 0 ? "—" : string.Join(", ", Detail.AdministrativeDivisionNames))</td>
                         </tr>
                     </tbody>
                 </table>
