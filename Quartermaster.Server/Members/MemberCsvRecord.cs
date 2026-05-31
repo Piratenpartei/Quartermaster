@@ -3,7 +3,8 @@ using CsvHelper.Configuration;
 namespace Quartermaster.Server.Members;
 
 public class MemberCsvRecord {
-    public int USER_Mitgliedsnummer { get; set; }
+    /// <summary>Nullable because Floating applicants (accepted by a chapter but first dues unpaid) have no member number yet. Empty cells are skipped during import.</summary>
+    public int? USER_Mitgliedsnummer { get; set; }
     public string? USER_refAufnahme { get; set; }
     public string Name1 { get; set; } = "";
     public string Name2 { get; set; } = "";

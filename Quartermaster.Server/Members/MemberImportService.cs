@@ -110,6 +110,11 @@ public class MemberImportService {
 
             foreach (var record in records) {
                 totalRecords++;
+                if (record.USER_Mitgliedsnummer == null) {
+                    // Floating applicant: accepted by a chapter but first dues unpaid, no member number assigned yet.
+                    _logger.LogInformation("Row {Row}: skipping Floating applicant (no member number)", totalRecords);
+                    continue;
+                }
                 try {
                     var member = MapRecordToMember(record, chaptersByExtCode, allChapters, adminDivRepo, now);
                     var existing = memberRepo.GetByMemberNumber(member.MemberNumber);
@@ -210,7 +215,7 @@ public class MemberImportService {
         DateTime importedAt) {
 
         var member = new Member {
-            MemberNumber = record.USER_Mitgliedsnummer,
+            MemberNumber = record.USER_Mitgliedsnummer!.Value,
             AdmissionReference = NullIfEmpty(record.USER_refAufnahme),
             FirstName = record.Name2,
             LastName = record.Name1,

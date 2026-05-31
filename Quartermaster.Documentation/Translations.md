@@ -100,6 +100,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Genehmigt | Approved | |
 | Abgelehnt | Rejected | |
 | Automatisch genehmigt | Auto-Approved | Non-reduced dues |
+| Schwebend | Floating | Applicant accepted by a chapter but first dues unpaid — no member number assigned yet. Distinct from `Ausstehend` (application status). |
 | Anträge | Applications | |
 | Einstufungen | Classifications / Selections | Due selections |
 | Aktionen | Actions | |
