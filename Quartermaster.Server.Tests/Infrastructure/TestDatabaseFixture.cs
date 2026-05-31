@@ -46,6 +46,13 @@ public static class TestDatabaseFixture {
         return GetOrCreate(id);
     }
 
+    /// <summary>Explicit worker selection for callers (e.g. E2E tests) that key off an external worker abstraction (TUnit.Playwright's <c>WorkerIndex</c>) rather than the thread-local id. The index is offset so E2E worker DBs are disjoint from <see cref="ForCurrentWorker"/>'s thread-local DBs.</summary>
+    public static WorkerDatabase ForWorker(int workerIndex) {
+        return GetOrCreate(ExternalWorkerOffset + workerIndex);
+    }
+
+    private const int ExternalWorkerOffset = 10_000;
+
     public static void EnsureInitialized() {
         _ = ForCurrentWorker();
     }

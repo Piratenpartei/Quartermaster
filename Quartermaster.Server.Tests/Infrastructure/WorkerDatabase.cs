@@ -75,10 +75,26 @@ public sealed class WorkerDatabase {
     }
 
     public void CleanAllTables() {
+        // Retries on MySQL lock-wait: TRUNCATE needs an exclusive metadata lock,
+        // and pooled connections from the Factory's DI scope can hold a stale shared
+        // MDL long enough to time us out. A brief retry clears it ~always.
+        const int maxAttempts = 4;
+        for (var attempt = 1; ; attempt++) {
+            try {
+                ExecuteTruncate();
+                return;
+            } catch (MySqlConnector.MySqlException ex) when (ex.ErrorCode == MySqlConnector.MySqlErrorCode.LockWaitTimeout && attempt < maxAttempts) {
+                Thread.Sleep(100 * attempt);
+            }
+        }
+    }
+
+    private void ExecuteTruncate() {
         using var conn = new MySqlConnector.MySqlConnection(ConnectionString);
         conn.Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = """
+            SET SESSION innodb_lock_wait_timeout = 5;
             SET FOREIGN_KEY_CHECKS = 0;
             TRUNCATE TABLE AgendaItems;
             TRUNCATE TABLE Meetings;
