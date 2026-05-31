@@ -39,7 +39,8 @@ public class EmailService {
         string targetType, Guid targetId, Guid? templateId,
         string? descriptionOverride, string? manualAddresses,
         string? sourceEntityType = null, Guid? sourceEntityId = null,
-        Guid? resolutionChapterId = null) {
+        Guid? resolutionChapterId = null,
+        Func<Member?, Dictionary<string, object>>? modelFactory = null) {
 
         var effectiveResolutionChapter = resolutionChapterId
             ?? (targetType == "Chapter" && targetId != Guid.Empty ? targetId : (Guid?)null);
@@ -53,6 +54,7 @@ public class EmailService {
 
         var subject = template?.Subject ?? template?.DisplayName ?? "Nachricht";
         var count = 0;
+        var factory = modelFactory ?? (_ => new Dictionary<string, object>());
 
         if (targetType == "ManualAddresses" && !string.IsNullOrEmpty(manualAddresses)) {
             var addresses = manualAddresses
@@ -63,7 +65,7 @@ public class EmailService {
 
             foreach (var addr in addresses) {
                 await EnqueueEmailAsync(addr, subject, bodyContent, templateId,
-                    null, sourceEntityType, sourceEntityId);
+                    factory(null), sourceEntityType, sourceEntityId);
                 count++;
             }
         } else {
@@ -72,7 +74,7 @@ public class EmailService {
                 if (string.IsNullOrEmpty(member.Email))
                     continue;
                 await EnqueueEmailAsync(member.Email, subject, bodyContent, templateId,
-                    member, sourceEntityType, sourceEntityId);
+                    factory(member), sourceEntityType, sourceEntityId);
                 count++;
             }
         }
@@ -83,20 +85,8 @@ public class EmailService {
     }
 
     private async Task EnqueueEmailAsync(string recipient, string subject, string templateContent,
-        Guid? templateId, Member? member,
+        Guid? templateId, Dictionary<string, object> model,
         string? sourceEntityType, Guid? sourceEntityId) {
-
-        var model = new Dictionary<string, object>();
-        if (member != null) {
-            model["member"] = new {
-                member.FirstName,
-                member.LastName,
-                member.Email,
-                member.MemberNumber,
-                member.City,
-                member.PostCode
-            };
-        }
 
         var (html, error) = await TemplateRenderer.RenderHtmlAsync(templateContent, model);
         if (error != null)

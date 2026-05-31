@@ -58,60 +58,14 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             return;
         }
 
-        var chapterName = "";
-        if (member.ChapterId.HasValue) {
-            var chapter = _chapterRepo.Get(member.ChapterId.Value);
-            if (chapter != null)
-                chapterName = chapter.Name;
-        }
+        var chapter = member.ChapterId.HasValue ? _chapterRepo.Get(member.ChapterId.Value) : null;
+        var div = member.ResidenceAdministrativeDivisionId.HasValue
+            ? _adminDivRepo.Get(member.ResidenceAdministrativeDivisionId.Value)
+            : null;
 
-        var adminDivName = "";
-        var isAdminDivOrphaned = false;
-        if (member.ResidenceAdministrativeDivisionId.HasValue) {
-            var div = _adminDivRepo.Get(member.ResidenceAdministrativeDivisionId.Value);
-            if (div != null) {
-                adminDivName = div.Name;
-                isAdminDivOrphaned = div.IsOrphaned;
-            }
-        }
-
-        await SendAsync(new MemberDetailDTO {
-            Id = member.Id,
-            MemberNumber = member.MemberNumber,
-            AdmissionReference = member.AdmissionReference,
-            FirstName = member.FirstName,
-            LastName = member.LastName,
-            Street = member.Street,
-            Country = member.Country,
-            PostCode = member.PostCode,
-            City = member.City,
-            Phone = member.Phone,
-            Email = member.Email,
-            DateOfBirth = member.DateOfBirth.ToDtoDate(),
-            Citizenship = member.Citizenship,
-            MembershipFee = member.MembershipFee,
-            ReducedFee = member.ReducedFee,
-            FirstFee = member.FirstFee,
-            OpenFeeTotal = member.OpenFeeTotal,
-            ReducedFeeEnd = member.ReducedFeeEnd.ToDtoDate(),
-            EntryDate = member.EntryDate.ToDtoDate(),
-            ExitDate = member.ExitDate.ToDtoDate(),
-            FederalState = member.FederalState,
-            County = member.County,
-            Municipality = member.Municipality,
-            IsPending = member.IsPending,
-            HasVotingRights = member.HasVotingRights,
-            ReceivesSurveys = member.ReceivesSurveys,
-            ReceivesActions = member.ReceivesActions,
-            ReceivesNewsletter = member.ReceivesNewsletter,
-            PostBounce = member.PostBounce,
-            ChapterId = member.ChapterId,
-            ChapterName = chapterName,
-            ResidenceAdministrativeDivisionId = member.ResidenceAdministrativeDivisionId,
-            ResidenceAdministrativeDivisionName = adminDivName,
-            IsAdminDivisionOrphaned = isAdminDivOrphaned,
-            UserId = member.UserId,
-            LastImportedAt = member.LastImportedAt.ToDtoUtc()
-        }, cancellation: ct);
+        var dto = member.ToDetailDto(chapter?.Name ?? "");
+        dto.ResidenceAdministrativeDivisionName = div?.Name ?? "";
+        dto.IsAdminDivisionOrphaned = div?.IsOrphaned ?? false;
+        await SendAsync(dto, cancellation: ct);
     }
 }

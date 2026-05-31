@@ -27,4 +27,25 @@ public class MembershipApplicationDTO {
     public string ApplicationText { get; set; } = "";
 
     public DateOnly EntryDate { get; set; }
+
+    public MembershipApplicationDetailDTO ToDetailDto(string chapterName) => new() {
+        FirstName = FirstName,
+        LastName = LastName,
+        DateOfBirth = DateOfBirth,
+        Citizenship = Citizenship,
+        Email = Email,
+        PhoneNumber = PhoneNumber,
+        AddressStreet = AddressStreet,
+        AddressHouseNbr = AddressHouseNbr,
+        AddressPostCode = AddressPostCode,
+        AddressCity = AddressCity,
+        ChapterId = ChapterId,
+        ChapterName = chapterName,
+        ConformityDeclarationAccepted = ConformityDeclarationAccepted,
+        HasPriorDeclinedApplication = HasPriorDeclinedApplication,
+        IsMemberOfAnotherParty = IsMemberOfAnotherParty,
+        ApplicationText = ApplicationText,
+        EntryDate = EntryDate,
+        HasReducedDueSelection = DueSelection != null
+    };
 }

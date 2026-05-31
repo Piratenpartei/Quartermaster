@@ -83,13 +83,6 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
         chapter.AdministrativeDivisionId = req.AdministrativeDivisionId;
         _chapterRepo.Update(chapter);
 
-        await SendAsync(new ChapterDTO {
-            Id = chapter.Id,
-            Name = chapter.Name,
-            ShortCode = chapter.ShortCode,
-            ExternalCode = chapter.ExternalCode,
-            ParentChapterId = chapter.ParentChapterId,
-            AdministrativeDivisionId = chapter.AdministrativeDivisionId
-        }, cancellation: ct);
+        await SendAsync(chapter.ToDto(), cancellation: ct);
     }
 }

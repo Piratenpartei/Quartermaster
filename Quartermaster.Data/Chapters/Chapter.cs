@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Chapters;
 
 namespace Quartermaster.Data.Chapters;
 
@@ -14,4 +15,13 @@ public class Chapter {
     public string? ShortCode { get; set; }
     public string? ExternalCode { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public ChapterDTO ToDto() => new() {
+        Id = Id,
+        Name = Name,
+        ShortCode = ShortCode,
+        ExternalCode = ExternalCode,
+        ParentChapterId = ParentChapterId,
+        AdministrativeDivisionId = AdministrativeDivisionId
+    };
 }

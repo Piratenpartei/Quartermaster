@@ -71,13 +71,6 @@ public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> 
         };
         _chapterRepo.Create(chapter);
 
-        await SendAsync(new ChapterDTO {
-            Id = chapter.Id,
-            Name = chapter.Name,
-            ShortCode = chapter.ShortCode,
-            ExternalCode = chapter.ExternalCode,
-            ParentChapterId = chapter.ParentChapterId,
-            AdministrativeDivisionId = chapter.AdministrativeDivisionId
-        }, cancellation: ct);
+        await SendAsync(chapter.ToDto(), cancellation: ct);
     }
 }

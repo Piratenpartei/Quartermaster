@@ -29,4 +29,5 @@ public class MembershipApplicationDetailDTO {
     public Guid? LinkedMotionId { get; set; }
     public int? MemberNumber { get; set; }
     public DateTimeOffset? WelcomeSentAt { get; set; }
+    public bool HasReducedDueSelection { get; set; }
 }

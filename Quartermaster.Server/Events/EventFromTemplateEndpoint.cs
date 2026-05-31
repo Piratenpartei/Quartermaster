@@ -60,7 +60,6 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             EventTemplateId = template.Id,
             CreatedAt = DateTime.UtcNow
         };
-
         _eventRepo.Create(ev);
 
         var checklistItemDtos = new List<EventChecklistItemDTO>();
@@ -77,35 +76,14 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
                 Label = label,
                 Configuration = configuration != null ? EventConfigSerializer.Serialize(configuration) : null
             };
-
             _eventRepo.CreateChecklistItem(checklistItem);
-
-            checklistItemDtos.Add(new EventChecklistItemDTO {
-                Id = checklistItem.Id,
-                SortOrder = checklistItem.SortOrder,
-                ItemType = checklistItem.ItemType,
-                Label = checklistItem.Label,
-                IsCompleted = false,
-                Configuration = configuration
-            });
+            checklistItemDtos.Add(checklistItem.ToDto(configuration));
         }
 
         var chapter = _chapterRepo.Get(req.ChapterId);
-
-        await SendAsync(new EventDetailDTO {
-            Id = ev.Id,
-            ChapterId = ev.ChapterId,
-            ChapterName = chapter?.Name ?? "",
-            InternalName = ev.InternalName,
-            PublicName = ev.PublicName,
-            Description = ev.Description,
-            EventDate = ev.EventDate.ToDtoDate(),
-            Status = ev.Status,
-            Visibility = ev.Visibility,
-            EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt.ToDtoUtc(),
-            ChecklistItems = checklistItemDtos
-        }, cancellation: ct);
+        var dto = ev.ToDetailDto(chapter?.Name ?? "");
+        dto.ChecklistItems = checklistItemDtos;
+        await SendAsync(dto, cancellation: ct);
     }
 
     private static string ReplaceVariables(string text, Dictionary<string, string> values) {

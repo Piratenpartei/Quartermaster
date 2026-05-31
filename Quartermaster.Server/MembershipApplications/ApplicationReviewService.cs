@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Quartermaster.Api;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
@@ -58,22 +61,20 @@ public class ApplicationReviewService {
             ? $"Mitgliedsantrag + Beitragsminderung: {application.FirstName} {application.LastName}"
             : $"Mitgliedsantrag: {application.FirstName} {application.LastName}";
 
-        var motion = new Motion {
-            ChapterId = application.ChapterId.Value,
-            AuthorName = $"{application.FirstName} {application.LastName}",
-            AuthorEmail = application.Email,
-            Title = title,
-            Text = MarkdownService.ToHtml(md, SanitizationProfile.Strict),
-            TextMarkdown = md,
-            IsPublic = false,
-            LinkedMembershipApplicationId = application.Id,
-            LinkedDueSelectionId = isReduced ? application.DueSelectionId : null,
-            ApprovalStatus = MotionApprovalStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
+        var motion = Motion.Create(
+            application.ChapterId.Value,
+            authorName: $"{application.FirstName} {application.LastName}",
+            authorEmail: application.Email,
+            title: title,
+            textMarkdown: md,
+            textHtml: MarkdownService.ToHtml(md, SanitizationProfile.Strict),
+            nowUtc: DateTime.UtcNow,
+            linkedApplicationId: application.Id,
+            linkedDueSelectionId: isReduced ? application.DueSelectionId : null);
         _motionRepo.Create(motion);
 
-        var chapterName = _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
+        var chapter = _chapterRepo.Get(application.ChapterId.Value);
+        var chapterName = chapter?.Name ?? "";
         var payload = new ApplicationSubmittedPayload(
             application.Id, application.ChapterId.Value, chapterName,
             application.FirstName, application.LastName, isReduced);
@@ -81,15 +82,8 @@ public class ApplicationReviewService {
             NotificationTriggers.ApplicationSubmitted,
             payload,
             _ => new Dictionary<string, object> {
-                ["application"] = new {
-                    application.Id,
-                    application.FirstName,
-                    application.LastName,
-                    application.Email,
-                    application.SubmittedAt,
-                    HasReducedDueSelection = isReduced
-                },
-                ["chapter"] = new { Id = application.ChapterId.Value, Name = chapterName }
+                ["application"] = application.ToDetailDto(chapterName, isReduced),
+                ["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = application.ChapterId.Value, Name = chapterName }
             },
             SourceEntityType: "MembershipApplication",
             SourceEntityId: application.Id));

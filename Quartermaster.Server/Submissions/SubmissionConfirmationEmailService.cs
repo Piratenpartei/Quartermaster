@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
+using Quartermaster.Api.Templates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Data.Templates;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Messaging;
 using Quartermaster.Server.Notifications;
+
 
 namespace Quartermaster.Server.Submissions;
 
@@ -42,10 +45,10 @@ public class SubmissionConfirmationEmailService {
         }
 
         var globals = _globals.Build();
-        var baseUrl = globals.TryGetValue("base_url", out var b) ? b as string ?? "" : "";
+        var baseUrl = globals.TryGetValue("BaseUrl", out var b) ? b as string ?? "" : "";
         var model = new Dictionary<string, object> {
             ["globals"] = globals,
-            ["confirm"] = new { Url = $"{baseUrl}/Confirm/{token}" }
+            ["confirm"] = new TemplateConfirmationDTO { Url = $"{baseUrl}/Confirm/{token}" }
         };
         var templateIdentifier = TemplateIdentifier(kind);
         var chapterId = AddSummaryModel(kind, request, model);
@@ -79,17 +82,22 @@ public class SubmissionConfirmationEmailService {
 
     private Guid? AddSummaryModel(PendingSubmissionKind kind, object request, Dictionary<string, object> model) {
         switch (kind) {
-            case PendingSubmissionKind.Motion when request is MotionCreateRequest m:
-                model["motion"] = new { m.Title, m.AuthorName };
-                model["chapter"] = new { Name = _chapterRepo.Get(m.ChapterId)?.Name ?? "" };
+            case PendingSubmissionKind.Motion when request is MotionCreateRequest m: {
+                var chapter = _chapterRepo.Get(m.ChapterId);
+                model["motion"] = m.ToDetailDto(chapter?.Name ?? "");
+                model["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = m.ChapterId };
                 return m.ChapterId;
-            case PendingSubmissionKind.DueSelection when request is DueSelectionDTO d:
-                model["selection"] = new { d.FirstName, d.LastName, d.SelectedDue, d.ReducedAmount };
+            }
+            case PendingSubmissionKind.DueSelection when request is DueSelectionDTO d: {
+                model["selection"] = d.ToDetailDto();
                 return null;
-            case PendingSubmissionKind.MembershipApplication when request is MembershipApplicationDTO a:
-                model["application"] = new { a.FirstName, a.LastName, a.Email };
-                model["chapter"] = new { Name = a.ChapterId.HasValue ? _chapterRepo.Get(a.ChapterId.Value)?.Name ?? "" : "" };
+            }
+            case PendingSubmissionKind.MembershipApplication when request is MembershipApplicationDTO a: {
+                var chapter = a.ChapterId.HasValue ? _chapterRepo.Get(a.ChapterId.Value) : null;
+                model["application"] = a.ToDetailDto(chapter?.Name ?? "");
+                model["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = a.ChapterId ?? Guid.Empty };
                 return a.ChapterId;
+            }
         }
         return null;
     }

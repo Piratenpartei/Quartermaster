@@ -56,31 +56,12 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
 
         var chapter = _chapterRepo.Get(ev.ChapterId);
         var checklistItems = _eventRepo.GetChecklistItems(ev.Id);
+        var itemDtos = checklistItems
+            .Select(i => i.ToDto(EventConfigSerializer.ParseConfig(i.Configuration)))
+            .ToList();
 
-        var itemDtos = checklistItems.Select(i => new EventChecklistItemDTO {
-            Id = i.Id,
-            SortOrder = i.SortOrder,
-            ItemType = i.ItemType,
-            Label = i.Label,
-            IsCompleted = i.IsCompleted,
-            CompletedAt = i.CompletedAt.ToDtoUtc(),
-            Configuration = EventConfigSerializer.ParseConfig(i.Configuration),
-            ResultId = i.ResultId
-        }).ToList();
-
-        await SendAsync(new EventDetailDTO {
-            Id = ev.Id,
-            ChapterId = ev.ChapterId,
-            ChapterName = chapter?.Name ?? "",
-            InternalName = ev.InternalName,
-            PublicName = ev.PublicName,
-            Description = ev.Description,
-            EventDate = ev.EventDate.ToDtoDate(),
-            Status = ev.Status,
-            Visibility = ev.Visibility,
-            EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt.ToDtoUtc(),
-            ChecklistItems = itemDtos
-        }, cancellation: ct);
+        var dto = ev.ToDetailDto(chapter?.Name ?? "");
+        dto.ChecklistItems = itemDtos;
+        await SendAsync(dto, cancellation: ct);
     }
 }

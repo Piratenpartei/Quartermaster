@@ -67,58 +67,13 @@ public class MembershipApplicationDetailEndpoint
             }
         }
 
-        var chapterName = "";
-        if (app.ChapterId.HasValue) {
-            var chapter = _chapterRepo.Get(app.ChapterId.Value);
-            if (chapter != null)
-                chapterName = chapter.Name;
-        }
+        var chapter = app.ChapterId.HasValue ? _chapterRepo.Get(app.ChapterId.Value) : null;
+        var dueSelection = app.DueSelectionId.HasValue ? _dueSelectionRepo.Get(app.DueSelectionId.Value) : null;
+        var isReduced = dueSelection != null && dueSelection.SelectedValuation == SelectedValuation.Reduced;
 
-        DueSelectionAdminDTO? dueDto = null;
-        if (app.DueSelectionId.HasValue) {
-            var ds = _dueSelectionRepo.Get(app.DueSelectionId.Value);
-            if (ds != null) {
-                dueDto = new DueSelectionAdminDTO {
-                    Id = ds.Id,
-                    FirstName = ds.FirstName,
-                    LastName = ds.LastName,
-                    Email = ds.Email,
-                    SelectedDue = ds.SelectedDue,
-                    ReducedAmount = ds.ReducedAmount,
-                    ReducedJustification = ds.ReducedJustification,
-                    SelectedValuation = ds.SelectedValuation,
-                    Status = ds.Status,
-                    ProcessedAt = ds.ProcessedAt.ToDtoUtc()
-                };
-            }
-        }
-
-        await SendAsync(new MembershipApplicationDetailDTO {
-            Id = app.Id,
-            FirstName = app.FirstName,
-            LastName = app.LastName,
-            DateOfBirth = app.DateOfBirth.ToDtoDate(),
-            Citizenship = app.Citizenship,
-            Email = app.Email,
-            PhoneNumber = app.PhoneNumber,
-            AddressStreet = app.AddressStreet,
-            AddressHouseNbr = app.AddressHouseNbr,
-            AddressPostCode = app.AddressPostCode,
-            AddressCity = app.AddressCity,
-            ChapterId = app.ChapterId,
-            ChapterName = chapterName,
-            DueSelection = dueDto,
-            ConformityDeclarationAccepted = app.ConformityDeclarationAccepted,
-            HasPriorDeclinedApplication = app.HasPriorDeclinedApplication,
-            IsMemberOfAnotherParty = app.IsMemberOfAnotherParty,
-            ApplicationText = app.ApplicationText,
-            EntryDate = app.EntryDate.ToDtoDate(),
-            SubmittedAt = app.SubmittedAt.ToDtoUtc(),
-            Status = app.Status,
-            ProcessedAt = app.ProcessedAt.ToDtoUtc(),
-            LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id,
-            MemberNumber = app.MemberNumber,
-            WelcomeSentAt = app.WelcomeSentAt.ToDtoUtc()
-        }, cancellation: ct);
+        var dto = app.ToDetailDto(chapter?.Name ?? "", isReduced);
+        dto.DueSelection = dueSelection?.ToAdminDto();
+        dto.LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id;
+        await SendAsync(dto, cancellation: ct);
     }
 }

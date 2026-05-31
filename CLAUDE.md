@@ -150,10 +150,11 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 
 ## DTO ↔ Entity Mapping
 
-- All entity-to-DTO and DTO-to-entity mapping is **hand-written and inline** at the call site
-- Do not introduce mapping libraries (Mapperly, AutoMapper, etc.)
-- Do not extract single-purpose `*Mapper` helper classes either — keep the mapping visible where the data is shaped
-- The visibility tradeoff is intentional: a few extra `new XxxDTO { ... }` blocks at the use site are easier to review than indirection through a mapper, and code review catches missing/wrong properties
+- All entity-to-DTO and DTO-to-entity mapping is **hand-written**. Do not introduce mapping libraries (Mapperly, AutoMapper, etc.)
+- Prefer mapping **methods on the type itself**: `ToDto()` / `ToDetailDto(...)` on the entity (when entity references the DTO), or `ToEntity()` on the DTO (when DTO references the entity). One side owns the mapping — pick the side that already has the dependency
+- Inline mapping (`new XxxDTO { ... }` at the call site) is acceptable **only when mapping a few fields**. Anything broader belongs on the type, so dispatchers and services don't repeat — and skip — field assignments
+- Explicit `*Mapper` types are acceptable when an on-type method genuinely doesn't fit (e.g., the mapping needs services neither type should reference) or when it materially improves readability. Default to on-type methods first
+- Never bury non-trivial mapping inside a service method (`private static Foo ToFoo(...)`). Move it to the type
 
 ## Documentation
 

@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
 using Quartermaster.Api.Events;
 
 namespace Quartermaster.Data.Events;
@@ -20,4 +21,28 @@ public class Event {
     public Guid? EventTemplateId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public static Event FromCreateRequest(EventCreateRequest req, DateTime nowUtc) => new() {
+        ChapterId = req.ChapterId,
+        InternalName = req.InternalName,
+        PublicName = req.PublicName,
+        Description = req.Description,
+        EventDate = req.EventDate.ToStorage(),
+        Visibility = req.Visibility,
+        CreatedAt = nowUtc
+    };
+
+    public EventDetailDTO ToDetailDto(string chapterName) => new() {
+        Id = Id,
+        ChapterId = ChapterId,
+        ChapterName = chapterName,
+        InternalName = InternalName,
+        PublicName = PublicName,
+        Description = Description,
+        EventDate = EventDate.ToDtoDate(),
+        Status = Status,
+        Visibility = Visibility,
+        EventTemplateId = EventTemplateId,
+        CreatedAt = CreatedAt.ToDtoUtc()
+    };
 }

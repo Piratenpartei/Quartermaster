@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
@@ -42,31 +43,21 @@ public class MembershipApplicationMailService {
     }
 
     public async Task SendApplicationReceivedAsync(MembershipApplication application, bool isReduced, CancellationToken ct) {
+        var chapter = ResolveChapter(application);
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
-            ["application"] = new {
-                application.Id,
-                application.FirstName,
-                application.LastName,
-                application.Email,
-                application.SubmittedAt,
-                HasReducedDueSelection = isReduced
-            },
-            ["chapter"] = new { Name = ChapterName(application) }
+            ["application"] = application.ToDetailDto(chapter?.Name ?? "", isReduced),
+            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
         };
         await SendAsync(ReceivedTriggerId, ReceivedTemplateId, application, application.Email, model, ct);
     }
 
     public async Task SendWelcomeAsync(MembershipApplication application, int memberNumber, CancellationToken ct) {
+        var chapter = ResolveChapter(application);
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
-            ["member"] = new {
-                application.FirstName,
-                application.LastName,
-                application.Email,
-                MemberNumber = memberNumber
-            },
-            ["chapter"] = new { Name = ChapterName(application) }
+            ["member"] = application.ToPendingMemberDto(memberNumber, chapter?.Name ?? ""),
+            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
         };
         await SendAsync(WelcomeTriggerId, WelcomeTemplateId, application, application.Email, model, ct);
     }
@@ -76,17 +67,11 @@ public class MembershipApplicationMailService {
             return;
         }
         var approved = application.Status == ApplicationStatus.Approved;
+        var chapter = ResolveChapter(application);
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
-            ["application"] = new {
-                application.Id,
-                application.FirstName,
-                application.LastName,
-                application.Email,
-                application.MemberNumber,
-                application.Status
-            },
-            ["chapter"] = new { Name = ChapterName(application) }
+            ["application"] = application.ToDetailDto(chapter?.Name ?? "", hasReducedDueSelection: false),
+            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
         };
         await SendAsync(
             approved ? ApprovedTriggerId : RejectedTriggerId,
@@ -94,11 +79,8 @@ public class MembershipApplicationMailService {
             application, application.Email, model, ct);
     }
 
-    private string ChapterName(MembershipApplication application) {
-        if (!application.ChapterId.HasValue)
-            return "";
-        return _chapterRepo.Get(application.ChapterId.Value)?.Name ?? "";
-    }
+    private Chapter? ResolveChapter(MembershipApplication application)
+        => application.ChapterId.HasValue ? _chapterRepo.Get(application.ChapterId.Value) : null;
 
     private async Task SendAsync(string triggerId, string templateIdentifier,
         MembershipApplication application, string email, Dictionary<string, object> model, CancellationToken ct) {

@@ -35,32 +35,10 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             return;
         }
 
-        var ev = new Event {
-            ChapterId = req.ChapterId,
-            InternalName = req.InternalName,
-            PublicName = req.PublicName,
-            Description = req.Description,
-            EventDate = req.EventDate.ToStorage(),
-            Visibility = req.Visibility,
-            CreatedAt = DateTime.UtcNow
-        };
-
+        var ev = Event.FromCreateRequest(req, DateTime.UtcNow);
         _eventRepo.Create(ev);
 
         var chapter = _chapterRepo.Get(ev.ChapterId);
-
-        await SendAsync(new EventDetailDTO {
-            Id = ev.Id,
-            ChapterId = ev.ChapterId,
-            ChapterName = chapter?.Name ?? "",
-            InternalName = ev.InternalName,
-            PublicName = ev.PublicName,
-            Description = ev.Description,
-            EventDate = ev.EventDate.ToDtoDate(),
-            Status = ev.Status,
-            Visibility = ev.Visibility,
-            EventTemplateId = ev.EventTemplateId,
-            CreatedAt = ev.CreatedAt.ToDtoUtc()
-        }, cancellation: ct);
+        await SendAsync(ev.ToDetailDto(chapter?.Name ?? ""), cancellation: ct);
     }
 }

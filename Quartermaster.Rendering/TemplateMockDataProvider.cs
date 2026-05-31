@@ -52,7 +52,8 @@ public static class TemplateMockDataProvider {
                         ChapterName = "Piratenpartei Berlin",
                         Status = ApplicationStatus.Approved,
                         SubmittedAt = DateTimeOffset.UtcNow.AddDays(-3),
-                        EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                        EntryDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                        HasReducedDueSelection = true
                     };
                     break;
 

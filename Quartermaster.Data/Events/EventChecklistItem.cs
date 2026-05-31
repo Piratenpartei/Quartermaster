@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
 using Quartermaster.Api.Events;
 
 namespace Quartermaster.Data.Events;
@@ -18,4 +19,15 @@ public class EventChecklistItem {
     public DateTime? CompletedAt { get; set; }
     public string? Configuration { get; set; }
     public Guid? ResultId { get; set; }
+
+    public EventChecklistItemDTO ToDto(EventChecklistItemConfigDTO? config) => new() {
+        Id = Id,
+        SortOrder = SortOrder,
+        ItemType = ItemType,
+        Label = Label,
+        IsCompleted = IsCompleted,
+        CompletedAt = CompletedAt.ToDtoUtc(),
+        Configuration = config,
+        ResultId = ResultId
+    };
 }

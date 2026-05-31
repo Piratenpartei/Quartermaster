@@ -86,26 +86,12 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
         var children = _chapterRepo.GetChildren(chapter.Id);
 
         await SendAsync(new ChapterDetailResponse {
-            Chapter = new ChapterDTO {
-                Id = chapter.Id,
-                Name = chapter.Name,
-                ShortCode = chapter.ShortCode,
-                AdministrativeDivisionId = chapter.AdministrativeDivisionId,
-                ExternalCode = chapter.ExternalCode,
-                ParentChapterId = chapter.ParentChapterId
-            },
+            Chapter = chapter.ToDto(),
             ParentChapterId = chapter.ParentChapterId,
             ParentChapterName = parentName,
             AdministrativeDivisionName = divisionName,
             Officers = officerDtos,
-            Children = children.Select(c => new ChapterDTO {
-                Id = c.Id,
-                Name = c.Name,
-                ShortCode = c.ShortCode,
-                AdministrativeDivisionId = c.AdministrativeDivisionId,
-                ExternalCode = c.ExternalCode,
-                ParentChapterId = c.ParentChapterId
-            }).ToList()
+            Children = children.Select(c => c.ToDto()).ToList()
         }, cancellation: ct);
     }
 }

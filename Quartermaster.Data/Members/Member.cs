@@ -1,5 +1,7 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
+using Quartermaster.Api.Members;
 
 namespace Quartermaster.Data.Members;
 
@@ -42,4 +44,41 @@ public class Member {
     public Guid? UserId { get; set; }
     public DateTime LastImportedAt { get; set; }
     public DateTime? AnonymizedAt { get; set; }
+
+    public MemberDetailDTO ToDetailDto(string chapterName = "") => new() {
+        Id = Id,
+        MemberNumber = MemberNumber,
+        AdmissionReference = AdmissionReference,
+        FirstName = FirstName,
+        LastName = LastName,
+        Street = Street,
+        Country = Country,
+        PostCode = PostCode,
+        City = City,
+        Phone = Phone,
+        Email = Email,
+        DateOfBirth = DateOfBirth.ToDtoDate(),
+        Citizenship = Citizenship,
+        MembershipFee = MembershipFee,
+        ReducedFee = ReducedFee,
+        FirstFee = FirstFee,
+        OpenFeeTotal = OpenFeeTotal,
+        ReducedFeeEnd = ReducedFeeEnd.ToDtoDate(),
+        EntryDate = EntryDate.ToDtoDate(),
+        ExitDate = ExitDate.ToDtoDate(),
+        FederalState = FederalState,
+        County = County,
+        Municipality = Municipality,
+        IsPending = IsPending,
+        HasVotingRights = HasVotingRights,
+        ReceivesSurveys = ReceivesSurveys,
+        ReceivesActions = ReceivesActions,
+        ReceivesNewsletter = ReceivesNewsletter,
+        PostBounce = PostBounce,
+        ChapterId = ChapterId,
+        ChapterName = chapterName,
+        ResidenceAdministrativeDivisionId = ResidenceAdministrativeDivisionId,
+        UserId = UserId,
+        LastImportedAt = new DateTimeOffset(LastImportedAt, TimeSpan.Zero)
+    };
 }

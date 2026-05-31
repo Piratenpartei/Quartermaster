@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
@@ -95,17 +96,8 @@ public class SubmissionMaterializer {
             return null;
         }
 
-        var motion = new Motion {
-            ChapterId = req.ChapterId,
-            AuthorName = req.AuthorName,
-            AuthorEmail = req.AuthorEmail,
-            Title = req.Title,
-            Text = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict),
-            TextMarkdown = req.Text,
-            IsPublic = false,
-            ApprovalStatus = MotionApprovalStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
+        var textHtml = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict);
+        var motion = Motion.FromCreateRequest(req, textHtml, DateTime.UtcNow);
         _motionRepo.Create(motion);
 
         var chapterName = chapter.Name;
@@ -115,13 +107,8 @@ public class SubmissionMaterializer {
             NotificationTriggers.MotionSubmitted,
             payload,
             _ => new Dictionary<string, object> {
-                ["motion"] = new {
-                    motion.Id,
-                    motion.Title,
-                    motion.AuthorName,
-                    motion.CreatedAt
-                },
-                ["chapter"] = new { Id = motion.ChapterId, Name = chapterName }
+                ["motion"] = motion.ToDetailDto(chapterName),
+                ["chapter"] = chapter.ToDto()
             },
             SourceEntityType: "Motion",
             SourceEntityId: motion.Id));
@@ -129,30 +116,15 @@ public class SubmissionMaterializer {
     }
 
     private Guid MaterializeDueSelection(DueSelectionDTO req) {
-        var dueSelection = new DueSelection {
-            FirstName = req.FirstName,
-            LastName = req.LastName,
-            Email = req.Email,
-            MemberNumber = req.MemberNumber,
-            SelectedValuation = req.SelectedValuation,
-            YearlyIncome = req.YearlyIncome,
-            MonthlyIncomeGroup = req.MonthlyIncomeGroup,
-            ReducedAmount = req.ReducedAmount,
-            SelectedDue = req.SelectedDue,
-            ReducedJustification = req.ReducedJustification,
-            ReducedTimeSpan = req.ReducedTimeSpan,
-            IsDirectDeposit = req.IsDirectDeposit,
-            AccountHolder = req.AccountHolder,
-            IBAN = req.IBAN,
-            PaymentSchedule = req.PaymentSchedule
-        };
+        var dueSelection = DueSelection.FromDto(req);
         _dueSelectionRepo.Create(dueSelection);
 
         if (req.MemberNumber > 0) {
             var member = _memberRepo.GetByMemberNumber(req.MemberNumber);
             if (member?.ChapterId != null) {
                 var chapterId = member.ChapterId.Value;
-                var chapterName = _chapterRepo.Get(chapterId)?.Name ?? "";
+                var chapter = _chapterRepo.Get(chapterId);
+                var chapterName = chapter?.Name ?? "";
                 var payload = new DueSelectionSubmittedPayload(
                     dueSelection.Id, chapterId, chapterName,
                     dueSelection.FirstName, dueSelection.LastName, dueSelection.SelectedDue);
@@ -160,16 +132,8 @@ public class SubmissionMaterializer {
                     NotificationTriggers.DueSelectionSubmitted,
                     payload,
                     _ => new Dictionary<string, object> {
-                        ["selection"] = new {
-                            dueSelection.Id,
-                            dueSelection.FirstName,
-                            dueSelection.LastName,
-                            dueSelection.Email,
-                            dueSelection.SelectedDue,
-                            dueSelection.ReducedAmount,
-                            dueSelection.ReducedJustification
-                        },
-                        ["chapter"] = new { Id = chapterId, Name = chapterName }
+                        ["selection"] = dueSelection.ToDetailDto(),
+                        ["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName }
                     },
                     SourceEntityType: "DueSelection",
                     SourceEntityId: dueSelection.Id));
@@ -182,23 +146,7 @@ public class SubmissionMaterializer {
         Guid? dueSelectionId = null;
         var isReduced = false;
         if (req.DueSelection != null) {
-            var dueSelection = new DueSelection {
-                FirstName = req.DueSelection.FirstName,
-                LastName = req.DueSelection.LastName,
-                Email = req.DueSelection.Email,
-                MemberNumber = req.DueSelection.MemberNumber,
-                SelectedValuation = req.DueSelection.SelectedValuation,
-                YearlyIncome = req.DueSelection.YearlyIncome,
-                MonthlyIncomeGroup = req.DueSelection.MonthlyIncomeGroup,
-                ReducedAmount = req.DueSelection.ReducedAmount,
-                SelectedDue = req.DueSelection.SelectedDue,
-                ReducedJustification = req.DueSelection.ReducedJustification,
-                ReducedTimeSpan = req.DueSelection.ReducedTimeSpan,
-                IsDirectDeposit = req.DueSelection.IsDirectDeposit,
-                AccountHolder = req.DueSelection.AccountHolder,
-                IBAN = req.DueSelection.IBAN,
-                PaymentSchedule = req.DueSelection.PaymentSchedule
-            };
+            var dueSelection = DueSelection.FromDto(req.DueSelection);
             isReduced = dueSelection.SelectedValuation == SelectedValuation.Reduced;
             dueSelection.Status = isReduced
                 ? DueSelectionStatus.Pending
@@ -207,29 +155,7 @@ public class SubmissionMaterializer {
             dueSelectionId = dueSelection.Id;
         }
 
-        var application = new MembershipApplication {
-            FirstName = req.FirstName,
-            LastName = req.LastName,
-            DateOfBirth = req.DateOfBirth.ToStorage(),
-            Citizenship = req.Citizenship,
-            Email = req.Email,
-            PhoneNumber = req.PhoneNumber,
-            AddressStreet = req.AddressStreet,
-            AddressHouseNbr = req.AddressHouseNbr,
-            AddressPostCode = req.AddressPostCode,
-            AddressCity = req.AddressCity,
-            AddressAdministrativeDivisionId = req.AddressAdministrativeDivisionId,
-            ChapterId = req.ChapterId,
-            ConformityDeclarationAccepted = req.ConformityDeclarationAccepted,
-            HasPriorDeclinedApplication = req.HasPriorDeclinedApplication,
-            IsMemberOfAnotherParty = req.IsMemberOfAnotherParty,
-            ApplicationText = req.ApplicationText,
-            EntryDate = req.EntryDate.ToStorage(),
-            DueSelectionId = dueSelectionId,
-            SubmittedAt = DateTime.UtcNow,
-            // No chapter (manual/foreign address) → held for division linking instead of normal review.
-            Status = req.ChapterId.HasValue ? ApplicationStatus.Pending : ApplicationStatus.PendingDivisionLinking
-        };
+        var application = MembershipApplication.FromDto(req, dueSelectionId, DateTime.UtcNow);
         _applicationRepo.Create(application);
 
         await _applicantMail.SendApplicationReceivedAsync(application, isReduced, ct);

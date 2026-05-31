@@ -1,5 +1,6 @@
 ﻿using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Data.DueSelector;
@@ -38,5 +39,57 @@ public class DueSelection {
     public DateTime? ProcessedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
     public DateTime? AnonymizedAt { get; set; }
+
+    public static DueSelection FromDto(DueSelectionDTO dto) => new() {
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        Email = dto.Email,
+        MemberNumber = dto.MemberNumber,
+        SelectedValuation = dto.SelectedValuation,
+        YearlyIncome = dto.YearlyIncome,
+        MonthlyIncomeGroup = dto.MonthlyIncomeGroup,
+        ReducedAmount = dto.ReducedAmount,
+        SelectedDue = dto.SelectedDue,
+        ReducedJustification = dto.ReducedJustification,
+        ReducedTimeSpan = dto.ReducedTimeSpan,
+        IsDirectDeposit = dto.IsDirectDeposit,
+        AccountHolder = dto.AccountHolder,
+        IBAN = dto.IBAN,
+        PaymentSchedule = dto.PaymentSchedule
+    };
+
+    public DueSelectionAdminDTO ToAdminDto() => new() {
+        Id = Id,
+        FirstName = FirstName,
+        LastName = LastName,
+        Email = Email,
+        SelectedDue = SelectedDue,
+        ReducedAmount = ReducedAmount,
+        ReducedJustification = ReducedJustification,
+        SelectedValuation = SelectedValuation,
+        Status = Status,
+        ProcessedAt = ProcessedAt.ToDtoUtc()
+    };
+
+    public DueSelectionDetailDTO ToDetailDto() => new() {
+        Id = Id,
+        FirstName = FirstName,
+        LastName = LastName,
+        Email = Email,
+        MemberNumber = MemberNumber,
+        SelectedValuation = SelectedValuation,
+        YearlyIncome = YearlyIncome,
+        MonthlyIncomeGroup = MonthlyIncomeGroup,
+        ReducedAmount = ReducedAmount,
+        SelectedDue = SelectedDue,
+        ReducedJustification = ReducedJustification,
+        ReducedTimeSpan = ReducedTimeSpan,
+        IsDirectDeposit = IsDirectDeposit,
+        AccountHolder = AccountHolder,
+        IBAN = IBAN,
+        PaymentSchedule = PaymentSchedule,
+        Status = Status,
+        ProcessedAt = ProcessedAt.ToDtoUtc()
+    };
 }
 

@@ -87,25 +87,12 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
 
         var canEdit = _perms.UserId != null && _perms.Has(motion.ChapterId, PermissionIdentifier.EditMotions);
 
-        await SendAsync(new MotionDetailDTO {
-            Id = motion.Id,
-            ChapterId = motion.ChapterId,
-            ChapterName = chapter?.Name ?? "",
-            AuthorName = motion.AuthorName,
-            AuthorEmail = motion.AuthorEmail,
-            Title = motion.Title,
-            Text = motion.Text,
-            TextMarkdown = canEdit ? motion.TextMarkdown : null,
-            IsPublic = motion.IsPublic,
-            LinkedMembershipApplicationId = motion.LinkedMembershipApplicationId,
-            LinkedDueSelectionId = motion.LinkedDueSelectionId,
-            ApprovalStatus = motion.ApprovalStatus,
-            IsRealized = motion.IsRealized,
-            CreatedAt = motion.CreatedAt.ToDtoUtc(),
-            ResolvedAt = motion.ResolvedAt.ToDtoUtc(),
-            Votes = voteDtos,
-            Officers = officerDtos,
-            TotalOfficers = officers.Count
-        }, cancellation: ct);
+        var dto = motion.ToDetailDto(chapter?.Name ?? "");
+        if (!canEdit)
+            dto.TextMarkdown = null;
+        dto.Votes = voteDtos;
+        dto.Officers = officerDtos;
+        dto.TotalOfficers = officers.Count;
+        await SendAsync(dto, cancellation: ct);
     }
 }

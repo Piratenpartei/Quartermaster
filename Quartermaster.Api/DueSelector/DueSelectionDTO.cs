@@ -20,6 +20,24 @@ public class DueSelectionDTO {
     public string AccountHolder { get; set; } = "";
     public string IBAN { get; set; } = "";
     public PaymentSchedule PaymentSchedule { get; set; } = PaymentSchedule.Annual;
+
+    public DueSelectionDetailDTO ToDetailDto() => new() {
+        FirstName = FirstName,
+        LastName = LastName,
+        Email = Email,
+        MemberNumber = MemberNumber,
+        SelectedValuation = SelectedValuation,
+        YearlyIncome = YearlyIncome,
+        MonthlyIncomeGroup = MonthlyIncomeGroup,
+        ReducedAmount = ReducedAmount,
+        SelectedDue = SelectedDue,
+        ReducedJustification = ReducedJustification,
+        ReducedTimeSpan = ReducedTimeSpan,
+        IsDirectDeposit = IsDirectDeposit,
+        AccountHolder = AccountHolder,
+        IBAN = IBAN,
+        PaymentSchedule = PaymentSchedule
+    };
 }
 
 public enum SelectedValuation {

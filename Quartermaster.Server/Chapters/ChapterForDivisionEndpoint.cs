@@ -33,13 +33,6 @@ public class ChapterForDivisionEndpoint : Endpoint<ChapterForDivisionRequest, Ch
             await SendNotFoundAsync(ct);
             return;
         }
-        await SendAsync(new ChapterDTO {
-            Id = chapter.Id,
-            Name = chapter.Name,
-            ShortCode = chapter.ShortCode,
-            AdministrativeDivisionId = chapter.AdministrativeDivisionId,
-            ExternalCode = chapter.ExternalCode,
-            ParentChapterId = chapter.ParentChapterId
-        }, cancellation: ct);
+        await SendAsync(chapter.ToDto(), cancellation: ct);
     }
 }

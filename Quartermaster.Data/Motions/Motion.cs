@@ -1,5 +1,6 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
 using Quartermaster.Api.Motions;
 
 namespace Quartermaster.Data.Motions;
@@ -35,4 +36,39 @@ public class Motion {
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public static Motion Create(Guid chapterId, string authorName, string authorEmail, string title, string textMarkdown, string textHtml, DateTime nowUtc, Guid? linkedApplicationId = null, Guid? linkedDueSelectionId = null) => new() {
+        ChapterId = chapterId,
+        AuthorName = authorName,
+        AuthorEmail = authorEmail,
+        Title = title,
+        Text = textHtml,
+        TextMarkdown = textMarkdown,
+        IsPublic = false,
+        LinkedMembershipApplicationId = linkedApplicationId,
+        LinkedDueSelectionId = linkedDueSelectionId,
+        ApprovalStatus = MotionApprovalStatus.Pending,
+        CreatedAt = nowUtc
+    };
+
+    public static Motion FromCreateRequest(MotionCreateRequest req, string textHtml, DateTime nowUtc)
+        => Create(req.ChapterId, req.AuthorName, req.AuthorEmail, req.Title, req.Text, textHtml, nowUtc);
+
+    public MotionDetailDTO ToDetailDto(string chapterName) => new() {
+        Id = Id,
+        ChapterId = ChapterId,
+        ChapterName = chapterName,
+        AuthorName = AuthorName,
+        AuthorEmail = AuthorEmail,
+        Title = Title,
+        Text = Text,
+        TextMarkdown = TextMarkdown,
+        IsPublic = IsPublic,
+        LinkedMembershipApplicationId = LinkedMembershipApplicationId,
+        LinkedDueSelectionId = LinkedDueSelectionId,
+        ApprovalStatus = ApprovalStatus,
+        IsRealized = IsRealized,
+        CreatedAt = CreatedAt.ToDtoUtc(),
+        ResolvedAt = ResolvedAt.ToDtoUtc()
+    };
 }

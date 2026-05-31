@@ -60,26 +60,8 @@ public class DueSelectionDetailEndpoint
             }
         }
 
-        await SendAsync(new DueSelectionDetailDTO {
-            Id = ds.Id,
-            FirstName = ds.FirstName,
-            LastName = ds.LastName,
-            Email = ds.Email,
-            MemberNumber = ds.MemberNumber,
-            SelectedValuation = ds.SelectedValuation,
-            YearlyIncome = ds.YearlyIncome,
-            MonthlyIncomeGroup = ds.MonthlyIncomeGroup,
-            ReducedAmount = ds.ReducedAmount,
-            SelectedDue = ds.SelectedDue,
-            ReducedJustification = ds.ReducedJustification,
-            ReducedTimeSpan = ds.ReducedTimeSpan,
-            IsDirectDeposit = ds.IsDirectDeposit,
-            AccountHolder = ds.AccountHolder,
-            IBAN = ds.IBAN,
-            PaymentSchedule = ds.PaymentSchedule,
-            Status = ds.Status,
-            ProcessedAt = ds.ProcessedAt.ToDtoUtc(),
-            LinkedMotionId = _motionRepo.GetByLinkedDueSelectionId(ds.Id)?.Id
-        }, cancellation: ct);
+        var dto = ds.ToDetailDto();
+        dto.LinkedMotionId = _motionRepo.GetByLinkedDueSelectionId(ds.Id)?.Id;
+        await SendAsync(dto, cancellation: ct);
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
@@ -56,6 +57,7 @@ public class DueSelectionMailService {
 
         var application = _applicationRepo.GetByDueSelectionId(selection.Id);
         var chapterId = application?.ChapterId;
+        var chapter = chapterId.HasValue ? _chapterRepo.Get(chapterId.Value) : null;
 
         var template = _templateRepo.Resolve(templateIdentifier, chapterId, _chapterRepo);
         if (template == null || string.IsNullOrEmpty(template.Body)) {
@@ -65,16 +67,8 @@ public class DueSelectionMailService {
 
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
-            ["selection"] = new {
-                selection.Id,
-                selection.FirstName,
-                selection.LastName,
-                selection.Email,
-                selection.SelectedDue,
-                selection.ReducedAmount,
-                selection.ReducedJustification
-            },
-            ["chapter"] = new { Name = chapterId.HasValue ? _chapterRepo.Get(chapterId.Value)?.Name ?? "" : "" }
+            ["selection"] = selection.ToDetailDto(),
+            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
         };
 
         var (subject, _) = await TemplateRenderer.RenderTextAsync(template.Subject ?? "", model);
