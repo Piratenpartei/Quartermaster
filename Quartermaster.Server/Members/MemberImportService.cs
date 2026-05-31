@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,94 +35,171 @@ public class MemberImportService {
         return Convert.ToHexStringLower(hash);
     }
 
+    /// <summary>
+    /// Inserts a pending log row, runs the import, updates the same row on completion. Returns
+    /// the pending log so a caller that doesn't want to block can hand the ID to a poller.
+    /// </summary>
+    public MemberImportLog StartBackgroundImport(string filePath, string? displayFileName, bool deleteAfter) {
+        var pending = CreatePendingLog(filePath, displayFileName);
+        SafeInsertImportLog(pending);
+        _ = Task.Run(() => {
+            try {
+                RunImport(pending, filePath);
+            } finally {
+                if (deleteAfter) {
+                    SafeDeleteTempFile(filePath);
+                }
+            }
+        });
+        return pending;
+    }
+
     public MemberImportLog ImportFromFile(string filePath, string? displayFileName = null) {
+        var pending = CreatePendingLog(filePath, displayFileName);
+        SafeInsertImportLog(pending);
+        RunImport(pending, filePath);
+        return pending;
+    }
+
+    private MemberImportLog CreatePendingLog(string filePath, string? displayFileName) => new() {
+        ImportedAt = DateTime.UtcNow,
+        FileName = displayFileName ?? Path.GetFileName(filePath),
+        FileHash = SafeComputeFileHash(filePath),
+        DurationMs = MemberImportLog.PendingDurationMs
+    };
+
+    private void RunImport(MemberImportLog log, string filePath) {
         var sw = Stopwatch.StartNew();
-        var fileName = displayFileName ?? Path.GetFileName(filePath);
-        var fileHash = ComputeFileHash(filePath);
         var errors = new List<string>();
         var totalRecords = 0;
         var newRecords = 0;
         var updatedRecords = 0;
+        var now = log.ImportedAt;
+        var committed = false;
 
-        using var scope = _scopeFactory.CreateScope();
-        var memberRepo = scope.ServiceProvider.GetRequiredService<MemberRepository>();
-        var chapterRepo = scope.ServiceProvider.GetRequiredService<ChapterRepository>();
-        var adminDivRepo = scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>();
-        var userRepo = scope.ServiceProvider.GetRequiredService<UserRepository>();
-        var tokenRepo = scope.ServiceProvider.GetRequiredService<TokenRepository>();
+        try {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DbContext>();
+            var memberRepo = scope.ServiceProvider.GetRequiredService<MemberRepository>();
+            var chapterRepo = scope.ServiceProvider.GetRequiredService<ChapterRepository>();
+            var adminDivRepo = scope.ServiceProvider.GetRequiredService<AdministrativeDivisionRepository>();
+            var userRepo = scope.ServiceProvider.GetRequiredService<UserRepository>();
+            var tokenRepo = scope.ServiceProvider.GetRequiredService<TokenRepository>();
 
-        // Pre-load chapter lookup: all chapters with ExternalCode
-        var allChapters = chapterRepo.GetAll();
-        var chaptersByExtCode = allChapters
-            .Where(c => c.ExternalCode != null)
-            .GroupBy(c => c.ExternalCode!)
-            .ToDictionary(g => g.Key, g => g.ToList());
+            var allChapters = chapterRepo.GetAll();
+            var chaptersByExtCode = allChapters
+                .Where(c => c.ExternalCode != null)
+                .GroupBy(c => c.ExternalCode!)
+                .ToDictionary(g => g.Key, g => g.ToList());
 
-        var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture) {
-            Delimiter = ";",
-            HasHeaderRecord = true,
-            MissingFieldFound = null,
-            BadDataFound = null,
-        };
+            var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture) {
+                Delimiter = ";",
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                BadDataFound = null,
+            };
 
-        using var reader = new StreamReader(filePath, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        using var csv = new CsvReader(reader, csvConfig);
-        csv.Context.RegisterClassMap<MemberCsvRecordMap>();
+            using var reader = new StreamReader(filePath, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            using var csv = new CsvReader(reader, csvConfig);
+            csv.Context.RegisterClassMap<MemberCsvRecordMap>();
 
-        var records = csv.GetRecords<MemberCsvRecord>();
-        var now = DateTime.UtcNow;
+            var records = csv.GetRecords<MemberCsvRecord>();
 
-        foreach (var record in records) {
-            totalRecords++;
-            try {
-                var member = MapRecordToMember(record, chaptersByExtCode, allChapters, adminDivRepo, now);
-                var existing = memberRepo.GetByMemberNumber(member.MemberNumber);
+            // Without this, a mid-import crash leaves partial member writes and no log to prove they came from a failed run.
+            using var tx = context.BeginTransaction();
 
-                if (existing != null) {
-                    member.Id = existing.Id;
-                    member.UserId = existing.UserId; // Preserve SSO link
+            foreach (var record in records) {
+                totalRecords++;
+                try {
+                    var member = MapRecordToMember(record, chaptersByExtCode, allChapters, adminDivRepo, now);
+                    var existing = memberRepo.GetByMemberNumber(member.MemberNumber);
 
-                    // Sync email to linked user if it changed
-                    if (existing.UserId.HasValue && existing.Email != member.Email && !string.IsNullOrEmpty(member.Email))
-                        userRepo.UpdateEmail(existing.UserId.Value, member.Email);
+                    if (existing != null) {
+                        member.Id = existing.Id;
+                        // Preserve SSO link — the CSV doesn't know about local user accounts.
+                        member.UserId = existing.UserId;
 
-                    // Invalidate all tokens when a member exits the party
-                    if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
-                        tokenRepo.DeleteAllForUser(existing.UserId.Value);
+                        if (existing.UserId.HasValue && existing.Email != member.Email && !string.IsNullOrEmpty(member.Email))
+                            userRepo.UpdateEmail(existing.UserId.Value, member.Email);
 
-                    memberRepo.Update(member);
-                    updatedRecords++;
-                } else {
-                    memberRepo.Insert(member);
-                    newRecords++;
+                        // Cut session access the moment a member is marked exited in the source system.
+                        if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
+                            tokenRepo.DeleteAllForUser(existing.UserId.Value);
+
+                        memberRepo.Update(member);
+                        updatedRecords++;
+                    } else {
+                        memberRepo.Insert(member);
+                        newRecords++;
+                    }
+                } catch (Exception ex) {
+                    errors.Add($"Row {totalRecords}: Member #{record.USER_Mitgliedsnummer} - {ex.Message}");
+                    _logger.LogWarning(ex, "Failed to import member #{MemberNumber}", record.USER_Mitgliedsnummer);
                 }
-            } catch (Exception ex) {
-                errors.Add($"Row {totalRecords}: Member #{record.USER_Mitgliedsnummer} - {ex.Message}");
-                _logger.LogWarning(ex, "Failed to import member #{MemberNumber}", record.USER_Mitgliedsnummer);
             }
+
+            tx.Commit();
+            committed = true;
+        } catch (Exception ex) {
+            errors.Add($"Import aborted at row {totalRecords}: {ex.GetType().Name}: {ex.Message}");
+            _logger.LogError(ex, "Member import aborted after {Processed} rows; transaction rolled back", totalRecords);
         }
 
         sw.Stop();
 
-        var log = new MemberImportLog {
-            ImportedAt = now,
-            FileName = fileName,
-            FileHash = fileHash,
-            TotalRecords = totalRecords,
-            NewRecords = newRecords,
-            UpdatedRecords = updatedRecords,
-            ErrorCount = errors.Count,
-            Errors = errors.Count > 0 ? JsonSerializer.Serialize(errors) : null,
-            DurationMs = sw.ElapsedMilliseconds
-        };
+        if (!committed) {
+            newRecords = 0;
+            updatedRecords = 0;
+        }
 
-        memberRepo.InsertImportLog(log);
+        log.TotalRecords = totalRecords;
+        log.NewRecords = newRecords;
+        log.UpdatedRecords = updatedRecords;
+        log.ErrorCount = errors.Count;
+        log.Errors = errors.Count > 0 ? JsonSerializer.Serialize(errors) : null;
+        log.DurationMs = sw.ElapsedMilliseconds;
+
+        SafeUpdateImportLog(log);
 
         _logger.LogInformation(
             "Import complete: {Total} records ({New} new, {Updated} updated, {Errors} errors) in {Duration}ms",
             totalRecords, newRecords, updatedRecords, errors.Count, sw.ElapsedMilliseconds);
+    }
 
-        return log;
+    private string SafeComputeFileHash(string filePath) {
+        try {
+            return ComputeFileHash(filePath);
+        } catch (Exception ex) {
+            _logger.LogWarning(ex, "Could not hash import file {Path}", filePath);
+            return "";
+        }
+    }
+
+    private void SafeDeleteTempFile(string filePath) {
+        try {
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+        } catch (Exception ex) {
+            _logger.LogWarning(ex, "Could not delete temp import file {Path}", filePath);
+        }
+    }
+
+    private void SafeUpdateImportLog(MemberImportLog log) {
+        try {
+            using var scope = _scopeFactory.CreateScope();
+            scope.ServiceProvider.GetRequiredService<MemberRepository>().UpdateImportLog(log);
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Could not update member import log {Id}; outcome only available in server logs", log.Id);
+        }
+    }
+
+    private void SafeInsertImportLog(MemberImportLog log) {
+        try {
+            using var scope = _scopeFactory.CreateScope();
+            scope.ServiceProvider.GetRequiredService<MemberRepository>().InsertImportLog(log);
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Could not persist member import log; outcome only available in server logs");
+        }
     }
 
     private static Member MapRecordToMember(

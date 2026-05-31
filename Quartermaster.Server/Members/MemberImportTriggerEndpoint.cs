@@ -48,19 +48,7 @@ public class MemberImportTriggerEndpoint : EndpointWithoutRequest<MemberImportLo
             return;
         }
 
-        var log = _importService.ImportFromFile(filePath);
-
-        await SendAsync(new MemberImportLogDTO {
-            Id = log.Id,
-            ImportedAt = log.ImportedAt.ToDtoUtc(),
-            FileName = log.FileName,
-            FileHash = log.FileHash,
-            TotalRecords = log.TotalRecords,
-            NewRecords = log.NewRecords,
-            UpdatedRecords = log.UpdatedRecords,
-            ErrorCount = log.ErrorCount,
-            Errors = log.Errors,
-            DurationMs = log.DurationMs
-        }, cancellation: ct);
+        var pending = _importService.StartBackgroundImport(filePath, displayFileName: null, deleteAfter: false);
+        await SendAsync(pending.ToDto(), 202, cancellation: ct);
     }
 }

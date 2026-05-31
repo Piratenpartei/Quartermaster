@@ -176,6 +176,7 @@
   "ui.toast.meeting.vote_ended": "Abstimmung beendet.",
   "ui.toast.template.saved": "Vorlage gespeichert.",
   "ui.toast.template.deleted": "Vorlage gelöscht.",
+  "ui.toast.member_import.started": "Import gestartet, läuft im Hintergrund.",
   "ui.toast.member_import.completed": "Import abgeschlossen.",
   "ui.toast.member.admin_division_assigned": "Verwaltungsbezirk zugewiesen.",
   "ui.toast.officer.added": "Vorstandsmitglied hinzugefügt.",

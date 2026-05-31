@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -94,10 +95,12 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import/upload", content);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
-                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportCompleted);
                 SelectedFile = null;
                 CurrentPage = 1;
                 await LoadHistory();
+                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportStarted);
+                if (ImportResult != null)
+                    _ = PollForCompletion(ImportResult.Id);
             } else {
                 await ToastService.ErrorAsync(response);
             }
@@ -117,9 +120,11 @@ public partial class MemberImportHistory {
             var response = await Http.PostAsync("/api/members/import", null);
             if (response.IsSuccessStatusCode) {
                 ImportResult = await response.Content.ReadFromJsonAsync<MemberImportLogDTO>();
-                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportCompleted);
                 CurrentPage = 1;
                 await LoadHistory();
+                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportStarted);
+                if (ImportResult != null)
+                    _ = PollForCompletion(ImportResult.Id);
             } else {
                 await ToastService.ErrorAsync(response);
             }
@@ -130,6 +135,32 @@ public partial class MemberImportHistory {
 
         Importing = false;
         StateHasChanged();
+    }
+
+    private async Task PollForCompletion(Guid importId) {
+        var deadline = DateTime.UtcNow.AddMinutes(30);
+        while (DateTime.UtcNow < deadline) {
+            await Task.Delay(3000);
+            try {
+                var page = await Http.GetFromJsonAsync<MemberImportLogListResponse>(
+                    $"/api/members/import/history?page=1&pageSize={PageSize}");
+                var match = page?.Items.FirstOrDefault(l => l.Id == importId);
+                if (match == null)
+                    continue;
+                if (match.IsPending) {
+                    Response = page;
+                    StateHasChanged();
+                    continue;
+                }
+                ImportResult = match;
+                Response = page;
+                ToastService.ToastKey(I18nKey.Ui.Toast.MemberImportCompleted);
+                StateHasChanged();
+                return;
+            } catch (HttpRequestException) {
+                // Transient network blip — next tick retries; the row is still pending server-side.
+            }
+        }
     }
 
     private void ToggleErrors(Guid logId) {

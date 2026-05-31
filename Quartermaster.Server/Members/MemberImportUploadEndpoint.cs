@@ -52,28 +52,12 @@ public class MemberImportUploadEndpoint : Endpoint<MemberImportUploadRequest, Me
         }
 
         var tempPath = Path.Combine(Path.GetTempPath(), $"qm_import_{System.Guid.NewGuid():N}.csv");
-        try {
-            await using (var stream = new FileStream(tempPath, FileMode.Create)) {
-                await req.File.CopyToAsync(stream, ct);
-            }
-
-            var log = _importService.ImportFromFile(tempPath, req.File.FileName);
-
-            await SendAsync(new MemberImportLogDTO {
-                Id = log.Id,
-                ImportedAt = log.ImportedAt.ToDtoUtc(),
-                FileName = log.FileName,
-                FileHash = log.FileHash,
-                TotalRecords = log.TotalRecords,
-                NewRecords = log.NewRecords,
-                UpdatedRecords = log.UpdatedRecords,
-                ErrorCount = log.ErrorCount,
-                Errors = log.Errors,
-                DurationMs = log.DurationMs
-            }, cancellation: ct);
-        } finally {
-            if (File.Exists(tempPath))
-                File.Delete(tempPath);
+        await using (var stream = new FileStream(tempPath, FileMode.Create)) {
+            await req.File.CopyToAsync(stream, ct);
         }
+
+        // Ownership of tempPath transfers to the background worker; it deletes the file when the import finishes.
+        var pending = _importService.StartBackgroundImport(tempPath, req.File.FileName, deleteAfter: true);
+        await SendAsync(pending.ToDto(), 202, cancellation: ct);
     }
 }

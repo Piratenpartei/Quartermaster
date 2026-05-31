@@ -174,6 +174,8 @@ public class MemberRepository {
 
     public void InsertImportLog(MemberImportLog log) => _context.Insert(log);
 
+    public void UpdateImportLog(MemberImportLog log) => _context.Update(log);
+
     public (List<MemberImportLog> Items, int TotalCount) GetImportHistory(int page, int pageSize) {
         var q = _context.MemberImportLogs.AsQueryable();
         var totalCount = q.Count();

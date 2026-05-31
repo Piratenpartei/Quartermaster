@@ -13,4 +13,7 @@ public class MemberImportLogDTO {
     public int ErrorCount { get; set; }
     public string? Errors { get; set; }
     public long DurationMs { get; set; }
+
+    /// <summary>True while the import is still running; the worker updates this row once the work finishes (sentinel: <see cref="DurationMs"/> = -1).</summary>
+    public bool IsPending => DurationMs < 0;
 }

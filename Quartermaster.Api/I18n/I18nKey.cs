@@ -260,6 +260,7 @@ public static class I18nKey {
             public const string VoteEnded = "ui.toast.meeting.vote_ended";
             public const string TemplateSaved = "ui.toast.template.saved";
             public const string TemplateDeleted = "ui.toast.template.deleted";
+            public const string MemberImportStarted = "ui.toast.member_import.started";
             public const string MemberImportCompleted = "ui.toast.member_import.completed";
             public const string AdminDivisionAssigned = "ui.toast.member.admin_division_assigned";
             public const string OfficerAdded = "ui.toast.officer.added";
