@@ -98,8 +98,14 @@ public class MemberRepository {
         _auditLog.LogCreated("Member", member.Id);
     }
 
-    public void Update(Member member) {
+    /// <summary>Returns true if a SQL write happened, false if all import fields matched the existing row and the update was skipped.
+    /// LastImportedAt alone is not considered a material change because the importer always bumps it; treating that as "changed"
+    /// would write a row + audit-log entry per member on every re-import even when the CSV content is identical.</summary>
+    public bool Update(Member member) {
         var existing = _context.Members.Where(m => m.Id == member.Id).FirstOrDefault();
+
+        if (existing != null && AreImportFieldsEqual(existing, member))
+            return false;
 
         _context.Members
             .Where(m => m.Id == member.Id)
@@ -137,7 +143,41 @@ public class MemberRepository {
 
         if (existing != null)
             LogMemberFieldChanges(existing, member);
+        return true;
     }
+
+    /// <summary>Mirrors the column list in <see cref="Update"/>, intentionally omitting <c>LastImportedAt</c>.
+    /// Keep these two in sync: a new column in Update belongs in this comparison as well.</summary>
+    private static bool AreImportFieldsEqual(Member a, Member b)
+        => a.AdmissionReference == b.AdmissionReference
+        && a.FirstName == b.FirstName
+        && a.LastName == b.LastName
+        && a.Street == b.Street
+        && a.Country == b.Country
+        && a.PostCode == b.PostCode
+        && a.City == b.City
+        && a.Phone == b.Phone
+        && a.Email == b.Email
+        && a.DateOfBirth == b.DateOfBirth
+        && a.Citizenship == b.Citizenship
+        && a.MembershipFee == b.MembershipFee
+        && a.ReducedFee == b.ReducedFee
+        && a.FirstFee == b.FirstFee
+        && a.OpenFeeTotal == b.OpenFeeTotal
+        && a.ReducedFeeEnd == b.ReducedFeeEnd
+        && a.EntryDate == b.EntryDate
+        && a.ExitDate == b.ExitDate
+        && a.FederalState == b.FederalState
+        && a.County == b.County
+        && a.Municipality == b.Municipality
+        && a.IsPending == b.IsPending
+        && a.HasVotingRights == b.HasVotingRights
+        && a.ReceivesSurveys == b.ReceivesSurveys
+        && a.ReceivesActions == b.ReceivesActions
+        && a.ReceivesNewsletter == b.ReceivesNewsletter
+        && a.PostBounce == b.PostBounce
+        && a.ChapterId == b.ChapterId
+        && a.ResidenceAdministrativeDivisionId == b.ResidenceAdministrativeDivisionId;
 
     private void LogMemberFieldChanges(Member old, Member updated) {
         _auditLog.LogFieldChange("Member", updated.Id, "AdmissionReference", old.AdmissionReference, updated.AdmissionReference);

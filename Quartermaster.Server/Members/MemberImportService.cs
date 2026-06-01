@@ -141,8 +141,8 @@ public class MemberImportService {
                         if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
                             tokenRepo.DeleteAllForUser(existing.UserId.Value);
 
-                        memberRepo.Update(member);
-                        updatedRecords++;
+                        if (memberRepo.Update(member))
+                            updatedRecords++;
                     } else {
                         memberRepo.Insert(member);
                         newRecords++;
