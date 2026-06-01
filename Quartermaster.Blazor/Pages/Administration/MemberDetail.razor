@@ -16,7 +16,7 @@
             <h3>@Member.FirstName @Member.LastName</h3>
             <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
         </div>
-        @if (Member.ExitDate != null) {
+        @if (Member.IsExited) {
             <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusExited]</span>
         } else if (Member.IsPending) {
             <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusPending]</span>

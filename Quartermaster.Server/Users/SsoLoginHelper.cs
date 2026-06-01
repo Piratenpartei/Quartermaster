@@ -27,7 +27,7 @@ public static class SsoLoginHelper {
         if (member == null)
             return (SsoLoginResult.NoMember, null);
 
-        if (member.ExitDate.HasValue)
+        if (member.IsExited(DateTime.UtcNow))
             return (SsoLoginResult.MemberExited, null);
 
         var user = member.UserId.HasValue ? userRepo.Get(member.UserId.Value) : null;

@@ -39,4 +39,7 @@ public class MemberDetailDTO {
     public bool IsAdminDivisionOrphaned { get; set; }
     public Guid? UserId { get; set; }
     public DateTimeOffset LastImportedAt { get; set; }
+
+    /// <summary>True if <see cref="ExitDate"/> has arrived or passed. Future exit dates leave the member active until the date hits.</summary>
+    public bool IsExited => ExitDate.HasValue && ExitDate.Value <= DateOnly.FromDateTime(DateTime.UtcNow);
 }

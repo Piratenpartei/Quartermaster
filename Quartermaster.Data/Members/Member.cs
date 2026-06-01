@@ -45,6 +45,10 @@ public class Member {
     public DateTime LastImportedAt { get; set; }
     public DateTime? AnonymizedAt { get; set; }
 
+    /// <summary>True when the member's exit date has arrived or passed; a future exit date does not yet count as exited.
+    /// Use this everywhere "is this member still active" matters (login gates, status badges, session-cut decisions).</summary>
+    public bool IsExited(DateTime now) => ExitDate.HasValue && ExitDate.Value.Date <= now.Date;
+
     public MemberDetailDTO ToDetailDto(string chapterName = "") => new() {
         Id = Id,
         MemberNumber = MemberNumber,

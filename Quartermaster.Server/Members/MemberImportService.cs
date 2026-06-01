@@ -137,8 +137,8 @@ public class MemberImportService {
                         if (existing.UserId.HasValue && existing.Email != member.Email && !string.IsNullOrEmpty(member.Email))
                             userRepo.UpdateEmail(existing.UserId.Value, member.Email);
 
-                        // Cut session access the moment a member is marked exited in the source system.
-                        if (existing.UserId.HasValue && !existing.ExitDate.HasValue && member.ExitDate.HasValue)
+                        // Cut session access the moment a member's exit date arrives (not when it's just scheduled for the future).
+                        if (existing.UserId.HasValue && !existing.IsExited(now) && member.IsExited(now))
                             tokenRepo.DeleteAllForUser(existing.UserId.Value);
 
                         if (memberRepo.Update(member))

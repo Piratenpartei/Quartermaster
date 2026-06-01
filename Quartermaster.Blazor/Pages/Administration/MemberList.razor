@@ -60,7 +60,7 @@
                     <td>@m.ChapterName</td>
                     <td><LocalTime DateValue="m.EntryDate" /></td>
                     <td>
-                        @if (m.ExitDate != null) {
+                        @if (m.IsExited) {
                             <span class="badge border border-danger text-danger-emphasis">@I18n[I18nKey.Ui.MemberList.StatusExited]</span>
                         } else if (m.IsPending) {
                             <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.MemberList.StatusPending]</span>
