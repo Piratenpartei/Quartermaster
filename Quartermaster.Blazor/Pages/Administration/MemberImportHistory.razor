@@ -46,7 +46,7 @@
     </div>
 </div>
 
-@if (ImportResult != null) {
+@if (ImportResult != null && !ImportResult.IsPending) {
     <div class="alert alert-info alert-dismissible mb-3">
         <button type="button" class="btn-close" @onclick="() => ImportResult = null"></button>
         @I18n[$"{I18nKey.Ui.MemberImportHistory.ImportFinished}?total={ImportResult.TotalRecords}&new={ImportResult.NewRecords}&updated={ImportResult.UpdatedRecords}&errors={ImportResult.ErrorCount}&duration={ImportResult.DurationMs}"]
