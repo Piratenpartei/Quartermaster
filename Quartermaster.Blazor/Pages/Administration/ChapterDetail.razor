@@ -131,6 +131,9 @@
                         <tr>
                             <th>@I18n[I18nKey.Ui.Common.Name]</th>
                             <th>@I18n[I18nKey.Ui.Common.Role]</th>
+                            <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditOfficers">
+                                <th class="text-end" style="width: 1%;">@I18n[I18nKey.Ui.ChapterDetail.OfficerActionColumn]</th>
+                            </RequirePermission>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,6 +141,15 @@
                             <tr>
                                 <td>@officer.MemberFirstName @officer.MemberLastName</td>
                                 <td>@RoleLabel(officer.AssociateType)</td>
+                                <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditOfficers">
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-danger" type="button"
+                                                aria-label="@I18n[I18nKey.Ui.ChapterDetail.RemoveOfficerAriaLabel]"
+                                                @onclick="() => ConfirmRemoveOfficer(officer)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </RequirePermission>
                             </tr>
                         }
                     </tbody>
@@ -171,3 +183,4 @@
 <ConfirmDialog @ref="DeleteConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogConfirm]" />
 <ConfirmDialog @ref="ArchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogConfirm]" />
 <ConfirmDialog @ref="UnarchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogConfirm]" />
+<ConfirmDialog @ref="RemoveOfficerConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.RemoveOfficerDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.RemoveOfficerDialogConfirm]" />

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.ChapterAssociates;
@@ -49,6 +52,7 @@ public partial class ChapterDetail {
     private ConfirmDialog DeleteConfirm = default!;
     private ConfirmDialog ArchiveConfirm = default!;
     private ConfirmDialog UnarchiveConfirm = default!;
+    private ConfirmDialog RemoveOfficerConfirm = default!;
 
     protected override async Task OnParametersSetAsync() {
         Loading = true;
@@ -169,6 +173,36 @@ public partial class ChapterDetail {
     private async Task ToggleArchive(bool archive) {
         try {
             var resp = await Http.PutAsync($"/api/chapters/{Id}/{(archive ? "archive" : "unarchive")}", null);
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                await ReloadDetail();
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+    }
+
+    private async Task ConfirmRemoveOfficer(ChapterOfficerDTO officer) {
+        if (Detail == null) {
+            return;
+        }
+        var name = $"{officer.MemberFirstName} {officer.MemberLastName}".Trim();
+        var ok = await RemoveOfficerConfirm.ShowAsync(
+            I18n[$"{I18nKey.Ui.ChapterDetail.RemoveOfficerDialogMessage}?name={name}&chapter={Detail.Chapter.Name}"]);
+        if (!ok) {
+            return;
+        }
+        try {
+            var req = new HttpRequestMessage(HttpMethod.Delete, "/api/chapterofficers") {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(new { MemberId = officer.MemberId, ChapterId = officer.ChapterId }),
+                    Encoding.UTF8) {
+                    Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
+                }
+            };
+            var resp = await Http.SendAsync(req);
             if (resp.IsSuccessStatusCode) {
                 ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
                 await ReloadDetail();

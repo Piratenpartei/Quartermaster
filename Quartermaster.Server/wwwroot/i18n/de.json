@@ -1114,6 +1114,11 @@
   "ui.chapter_detail.unarchive_dialog_message": "Möchtest du „{name}\" aus dem Archiv wiederherstellen?",
   "ui.chapter_detail.archive_dialog_confirm": "Archivieren",
   "ui.chapter_detail.unarchive_dialog_confirm": "Wiederherstellen",
+  "ui.chapter_detail.officer_action_column": "Aktion",
+  "ui.chapter_detail.remove_officer_aria_label": "Vorstandsmitglied entfernen",
+  "ui.chapter_detail.remove_officer_dialog_title": "Vorstandsmitglied entfernen",
+  "ui.chapter_detail.remove_officer_dialog_message": "Soll {name} aus dem Vorstand der Gliederung „{chapter}\" entfernt werden?",
+  "ui.chapter_detail.remove_officer_dialog_confirm": "Entfernen",
 
   "ui.chapter_create.page_title": "Neue Gliederung",
   "ui.chapter_create.short_code_label": "Kürzel",

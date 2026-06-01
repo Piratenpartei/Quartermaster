@@ -1318,6 +1318,11 @@ public static class I18nKey {
             public const string UnarchiveDialogMessage = "ui.chapter_detail.unarchive_dialog_message";
             public const string ArchiveDialogConfirm = "ui.chapter_detail.archive_dialog_confirm";
             public const string UnarchiveDialogConfirm = "ui.chapter_detail.unarchive_dialog_confirm";
+            public const string OfficerActionColumn = "ui.chapter_detail.officer_action_column";
+            public const string RemoveOfficerAriaLabel = "ui.chapter_detail.remove_officer_aria_label";
+            public const string RemoveOfficerDialogTitle = "ui.chapter_detail.remove_officer_dialog_title";
+            public const string RemoveOfficerDialogMessage = "ui.chapter_detail.remove_officer_dialog_message";
+            public const string RemoveOfficerDialogConfirm = "ui.chapter_detail.remove_officer_dialog_confirm";
         }
 
         public static class ChapterCreate {

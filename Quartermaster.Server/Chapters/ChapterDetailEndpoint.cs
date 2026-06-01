@@ -70,18 +70,23 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
         var officerMemberIds = officers.Select(o => o.MemberId).ToList();
         var members = _context.Members.Where(m => officerMemberIds.Contains(m.Id)).ToList();
 
-        var officerDtos = officers.Select(o => {
-            var member = members.FirstOrDefault(m => m.Id == o.MemberId);
-            return new ChapterOfficerDTO {
-                MemberId = o.MemberId,
-                MemberNumber = member?.MemberNumber ?? 0,
-                MemberFirstName = member?.FirstName ?? "",
-                MemberLastName = member?.LastName ?? "",
-                ChapterId = o.ChapterId,
-                ChapterName = chapter.Name,
-                AssociateType = o.AssociateType
-            };
-        }).ToList();
+        var officerDtos = officers
+            .Select(o => {
+                var member = members.FirstOrDefault(m => m.Id == o.MemberId);
+                return new ChapterOfficerDTO {
+                    MemberId = o.MemberId,
+                    MemberNumber = member?.MemberNumber ?? 0,
+                    MemberFirstName = member?.FirstName ?? "",
+                    MemberLastName = member?.LastName ?? "",
+                    ChapterId = o.ChapterId,
+                    ChapterName = chapter.Name,
+                    AssociateType = o.AssociateType
+                };
+            })
+            .OrderBy(d => d.AssociateType.SortRank())
+            .ThenBy(d => d.MemberLastName)
+            .ThenBy(d => d.MemberFirstName)
+            .ToList();
 
         var chapterCodes = _chapterRepo.GetExternalCodes(chapter.Id);
         var children = _chapterRepo.GetChildren(chapter.Id);

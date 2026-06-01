@@ -1113,6 +1113,11 @@
   "ui.chapter_detail.unarchive_dialog_message": "Restore \"{name}\" from the archive?",
   "ui.chapter_detail.archive_dialog_confirm": "Archive",
   "ui.chapter_detail.unarchive_dialog_confirm": "Unarchive",
+  "ui.chapter_detail.officer_action_column": "Action",
+  "ui.chapter_detail.remove_officer_aria_label": "Remove board member",
+  "ui.chapter_detail.remove_officer_dialog_title": "Remove board member",
+  "ui.chapter_detail.remove_officer_dialog_message": "Remove {name} from the board of chapter \"{chapter}\"?",
+  "ui.chapter_detail.remove_officer_dialog_confirm": "Remove",
 
   "ui.chapter_create.page_title": "New chapter",
   "ui.chapter_create.short_code_label": "Short code",
