@@ -57,7 +57,7 @@ public class AdminDivisionImportService {
         if (!File.Exists(baseFile) || !File.Exists(postcodeFile)) {
             _logger.LogWarning("Admin division files not found: {Base}, {PostCodes}", baseFile, postcodeFile);
             _initialLoadTcs.TrySetResult();
-            return CreateLog("", 0, new ChangeResult(), 1, "Admin division files not found", 0);
+            return PersistLog(context, CreateLog("", 0, new ChangeResult(), 1, "Admin division files not found", 0));
         }
 
         var fileHash = ComputeFileHash(baseFile, postcodeFile);
@@ -73,36 +73,49 @@ public class AdminDivisionImportService {
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
             _initialLoadTcs.TrySetResult();
-            return CreateLog(fileHash, 0, new ChangeResult(), 1, $"{ex}", sw.ElapsedMilliseconds);
+            return PersistLog(context, CreateLog(fileHash, 0, new ChangeResult(), 1, $"{ex}", sw.ElapsedMilliseconds));
         }
 
         var existingCount = context.AdministrativeDivisions.Count();
 
-        if (existingCount == 0) {
-            // Fresh load — just bulk insert
-            _logger.LogInformation("Loading {Count} admin divisions (initial load)", parsed.Count);
-            adminDivRepo.CreateBulk(parsed);
-            changes.Added = parsed.Count;
-        } else {
-            // Change detection — compare parsed data with existing DB records
-            changes = ApplyChanges(context, adminDivRepo, parsed, errors);
+        try {
+            if (existingCount == 0) {
+                _logger.LogInformation("Loading {Count} admin divisions (initial load)", parsed.Count);
+                adminDivRepo.CreateBulk(parsed);
+                changes.Added = parsed.Count;
+            } else {
+                changes = ApplyChanges(context, adminDivRepo, parsed, errors);
+            }
+        } catch (Exception ex) {
+            sw.Stop();
+            _logger.LogError(ex, "Admin division import write failed");
+            _initialLoadTcs.TrySetResult();
+            errors.Add($"{ex}");
+            return PersistLog(context, CreateLog(fileHash, parsed.Count, changes,
+                errors.Count, string.Join("\n", errors), sw.ElapsedMilliseconds));
         }
 
         sw.Stop();
         _lastFileHash = fileHash;
         _initialLoadTcs.TrySetResult();
 
-        var log = CreateLog(fileHash, parsed.Count, changes,
-            errors.Count, errors.Count > 0 ? string.Join("\n", errors) : null, sw.ElapsedMilliseconds);
-
-        // Persist log
-        context.Insert(log);
+        var log = PersistLog(context, CreateLog(fileHash, parsed.Count, changes,
+            errors.Count, errors.Count > 0 ? string.Join("\n", errors) : null, sw.ElapsedMilliseconds));
 
         _logger.LogInformation(
             "Admin division import complete: {Total} total, {Added} added, {Updated} updated, {Removed} removed, {Remapped} remapped, {Orphaned} orphaned, {Errors} errors in {Duration}ms",
             parsed.Count, changes.Added, changes.Updated, changes.Removed, changes.Remapped, changes.Orphaned,
             errors.Count, sw.ElapsedMilliseconds);
 
+        return log;
+    }
+
+    private AdminDivisionImportLog PersistLog(DbContext context, AdminDivisionImportLog log) {
+        try {
+            context.Insert(log);
+        } catch (Exception ex) {
+            _logger.LogError(ex, "Could not persist admin division import log");
+        }
         return log;
     }
 
