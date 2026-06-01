@@ -468,6 +468,7 @@
   "ui.home.open_motions_empty": "No open motions.",
   "ui.home.upcoming_events_title": "Upcoming events",
   "ui.home.welcome_text": "Welcome to Quartermaster.",
+  "ui.home.changelog_title": "Version history",
 
   "ui.confirm_submission.page_title": "Confirmation",
   "ui.confirm_submission.processing": "Processing confirmation…",

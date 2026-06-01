@@ -581,6 +581,7 @@ public static class I18nKey {
             public const string OpenMotionsEmpty = "ui.home.open_motions_empty";
             public const string UpcomingEventsTitle = "ui.home.upcoming_events_title";
             public const string WelcomeText = "ui.home.welcome_text";
+            public const string ChangelogTitle = "ui.home.changelog_title";
         }
 
         public static class ConfirmSubmission {

@@ -469,6 +469,7 @@
   "ui.home.open_motions_empty": "Keine offenen Anträge.",
   "ui.home.upcoming_events_title": "Kommende Events",
   "ui.home.welcome_text": "Willkommen im Quartermaster.",
+  "ui.home.changelog_title": "Versionshistorie",
 
   "ui.confirm_submission.page_title": "Bestätigung",
   "ui.confirm_submission.processing": "Bestätigung wird verarbeitet…",

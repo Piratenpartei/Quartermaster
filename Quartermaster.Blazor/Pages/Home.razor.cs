@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.Changelog;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
@@ -17,6 +19,7 @@ public partial class Home {
     public required I18nService I18n { get; set; }
 
     private DashboardDTO? Dashboard;
+    private List<ChangelogEntryDTO>? Changelog;
     private bool Loading = true;
 
     private bool HasAnyWidget => Dashboard != null
@@ -30,6 +33,11 @@ public partial class Home {
             Dashboard = await Http.GetFromJsonAsync<DashboardDTO>("/api/dashboard");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        }
+        try {
+            Changelog = await Http.GetFromJsonAsync<List<ChangelogEntryDTO>>("/api/changelog");
+        } catch (HttpRequestException) {
+            // Changelog is informational; a fetch failure shouldn't toast on every page load.
         }
         Loading = false;
     }

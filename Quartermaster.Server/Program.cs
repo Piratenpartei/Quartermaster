@@ -120,6 +120,8 @@ public partial class Program {
             return new I18nService(json);
         });
 
+        builder.Services.AddSingleton<Changelog.ChangelogService>();
+
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 
