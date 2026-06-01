@@ -58,6 +58,9 @@
                             @if (Member.IsAdminDivisionOrphaned) {
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <span>@Member.ResidenceAdministrativeDivisionName</span>
+                                    @if (!string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionAdminCode)) {
+                                        <span class="badge border text-secondary-emphasis">@Member.ResidenceAdministrativeDivisionAdminCode</span>
+                                    }
                                     <span class="badge bg-warning text-dark">
                                         <i class="bi bi-exclamation-triangle"></i> @I18n[I18nKey.Ui.MemberDetail.OrphanedBadge]
                                     </span>
@@ -74,8 +77,13 @@
                                         }
                                     </button>
                                 </div>
+                            } else if (string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName)) {
+                                <span>—</span>
                             } else {
-                                @(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "—" : Member.ResidenceAdministrativeDivisionName)
+                                <span>@Member.ResidenceAdministrativeDivisionName</span>
+                                @if (!string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionAdminCode)) {
+                                    <span class="badge border text-secondary-emphasis ms-2">@Member.ResidenceAdministrativeDivisionAdminCode</span>
+                                }
                             }
                         </td>
                     </tr>

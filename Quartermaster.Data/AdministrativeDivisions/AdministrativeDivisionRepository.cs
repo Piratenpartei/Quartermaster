@@ -48,8 +48,9 @@ public class AdministrativeDivisionRepository {
         var q = _context.AdministrativeDivisions.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query)) {
+            var bounded = "," + query + ",";
             q = q.Where(ad => ad.Name.Contains(query)
-                || (ad.PostCodes != null && ad.PostCodes.Contains(query)));
+                || (ad.PostCodes != null && ("," + ad.PostCodes + ",").Contains(bounded)));
         }
 
         var totalCount = q.Count();
@@ -59,6 +60,17 @@ public class AdministrativeDivisionRepository {
             .ToList();
 
         return (items, totalCount);
+    }
+
+    /// <summary>Returns every division whose comma-separated <see cref="AdministrativeDivision.PostCodes"/> contains the given code as a whole entry.</summary>
+    public List<AdministrativeDivision> FindByPostCode(string postCode) {
+        if (string.IsNullOrWhiteSpace(postCode))
+            return new List<AdministrativeDivision>();
+
+        var bounded = "," + postCode + ",";
+        return _context.AdministrativeDivisions
+            .Where(ad => ad.PostCodes != null && ("," + ad.PostCodes + ",").Contains(bounded))
+            .ToList();
     }
 
     public (List<AdminDivisionImportLog> Items, int TotalCount) GetImportHistory(int page, int pageSize) {

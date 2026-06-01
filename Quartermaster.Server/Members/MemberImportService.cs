@@ -264,21 +264,77 @@ public class MemberImportService {
             NullIfEmpty(record.USER_Kreis),
             chaptersByExtCode, allChapters);
 
-        // Resolve residence administrative division from PLZ
-        if (!string.IsNullOrEmpty(member.PostCode)) {
-            var (results, _) = adminDivRepo.Search(member.PostCode, 1, 10);
-            if (results.Count == 1) {
-                member.ResidenceAdministrativeDivisionId = results[0].Id;
-            } else if (results.Count > 1 && !string.IsNullOrEmpty(member.City)) {
-                var cityMatch = results.FirstOrDefault(r =>
-                    r.Name.Contains(member.City, StringComparison.OrdinalIgnoreCase));
-                member.ResidenceAdministrativeDivisionId = cityMatch?.Id ?? results[0].Id;
-            } else if (results.Count > 1) {
-                member.ResidenceAdministrativeDivisionId = results[0].Id;
-            }
-        }
+        member.ResidenceAdministrativeDivisionId = ResolveResidenceDivision(
+            member.PostCode, member.Municipality, member.City, adminDivRepo);
 
         return member;
+    }
+
+    /// <summary>
+    /// Picks the most appropriate administrative division for a member's residence.
+    /// For each name probe (Gemeinde, then City) prefers an Admin4 match, then walks up from a matching
+    /// PPL to its owning Gemeinde, then falls back to an Admin3 match. If no probe hits, prefers a single
+    /// Admin4 or single Other candidate, otherwise the first candidate (typically the Landkreis).
+    /// Returns null if the postcode is empty or unknown.
+    /// </summary>
+    private static Guid? ResolveResidenceDivision(string? postCode, string? municipality, string? city,
+        AdministrativeDivisionRepository adminDivRepo) {
+
+        if (string.IsNullOrEmpty(postCode))
+            return null;
+
+        var candidates = adminDivRepo.FindByPostCode(postCode);
+        if (candidates.Count == 0)
+            return null;
+
+        var probes = new[] { municipality, city }
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Select(p => p!.Trim())
+            .ToList();
+
+        foreach (var probe in probes) {
+            var hit = MatchByProbe(candidates, probe);
+            if (hit != null)
+                return hit.Id;
+        }
+
+        var admin4s = candidates.Where(c => c.Depth == (int)AdminDepth.Admin4).ToList();
+        if (admin4s.Count == 1)
+            return admin4s[0].Id;
+
+        var others = candidates.Where(c => c.Depth == (int)AdminDepth.Other).ToList();
+        if (admin4s.Count == 0 && others.Count == 1)
+            return others[0].Id;
+
+        return candidates[0].Id;
+    }
+
+    private static AdministrativeDivision? MatchByProbe(List<AdministrativeDivision> candidates, string probe) {
+        var admin4 = candidates.FirstOrDefault(c =>
+            c.Depth == (int)AdminDepth.Admin4 && string.Equals(c.Name, probe, StringComparison.OrdinalIgnoreCase));
+        if (admin4 != null)
+            return admin4;
+
+        var other = candidates.FirstOrDefault(c =>
+            c.Depth == (int)AdminDepth.Other && string.Equals(c.Name, probe, StringComparison.OrdinalIgnoreCase));
+        if (other != null) {
+            if (other.ParentId.HasValue) {
+                var parent = candidates.FirstOrDefault(c =>
+                    c.Id == other.ParentId.Value && c.Depth == (int)AdminDepth.Admin4);
+                if (parent != null)
+                    return parent;
+            }
+            return other;
+        }
+
+        return candidates.FirstOrDefault(c =>
+            c.Depth == (int)AdminDepth.Admin3 && string.Equals(c.Name, probe, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private enum AdminDepth {
+        Admin3 = 6,
+        Admin4 = 7,
+        Other = 8
     }
 
     private static Guid? ResolveChapter(

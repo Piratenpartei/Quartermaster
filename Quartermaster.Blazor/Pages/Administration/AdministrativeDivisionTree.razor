@@ -15,6 +15,9 @@
             <LazyTreeNode T="AdministrativeDivisionDTO" Node="node" LoadChildren="LoadDivisionChildren">
                 <ItemContent>
                     <span class="me-2">@context.Name</span>
+                    @if (!string.IsNullOrEmpty(context.AdminCode)) {
+                        <code class="small text-secondary me-2">@context.AdminCode</code>
+                    }
                     <span class="badge bg-secondary">@DepthLabel(context.Depth)</span>
                     @if (!string.IsNullOrEmpty(context.PostCodes)) {
                         <span class="ms-2 text-secondary small text-truncate" style="max-width: 200px;"

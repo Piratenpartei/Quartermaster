@@ -65,6 +65,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
 
         var dto = member.ToDetailDto(chapter?.Name ?? "");
         dto.ResidenceAdministrativeDivisionName = div?.Name ?? "";
+        dto.ResidenceAdministrativeDivisionAdminCode = div?.AdminCode;
         dto.IsAdminDivisionOrphaned = div?.IsOrphaned ?? false;
         await SendAsync(dto, cancellation: ct);
     }

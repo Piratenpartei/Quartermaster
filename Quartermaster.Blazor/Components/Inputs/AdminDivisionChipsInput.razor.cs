@@ -33,7 +33,8 @@ public partial class AdminDivisionChipsInput {
     private async Task OnPicked(AdministrativeDivisionDTO div) {
         if (Selected.Any(e => e.Id == div.Id))
             return;
-        Selected.Add(new DivisionEntry { Id = div.Id, Name = div.Name });
+        var label = string.IsNullOrEmpty(div.AdminCode) ? div.Name : $"{div.Name} ({div.AdminCode})";
+        Selected.Add(new DivisionEntry { Id = div.Id, Name = label });
         await ValueChanged.InvokeAsync(Selected.Select(e => e.Id).ToList());
     }
 

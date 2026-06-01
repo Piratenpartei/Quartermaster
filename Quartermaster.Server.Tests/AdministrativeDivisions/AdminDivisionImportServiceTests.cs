@@ -301,15 +301,10 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         WriteChangedFiles();
         var log = _service.Import(_tempDir);
 
-        // 1 new division (Goslar)
         await Assert.That(log.AddedRecords).IsEqualTo(1);
-        // 2 updated (3254 name+postcodes, 3254001 postcodes)
-        await Assert.That(log.UpdatedRecords).IsEqualTo(2);
-        // 6 removed (3254002, 3255, 3258, 9, 47, 9471)
+        await Assert.That(log.UpdatedRecords).IsEqualTo(1);
         await Assert.That(log.RemovedRecords).IsEqualTo(6);
-        // 4 remapped (3254002→3254, 3255→3257, 3258→254, 9→DE)
         await Assert.That(log.RemappedRecords).IsEqualTo(4);
-        // 2 orphaned (47, 9471)
         await Assert.That(log.OrphanedRecords).IsEqualTo(2);
         await Assert.That(log.TotalRecords).IsGreaterThan(0);
         await Assert.That(log.DurationMs).IsGreaterThanOrEqualTo(0);

@@ -61,9 +61,9 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
 
         var divisionIds = _chapterRepo.GetAdministrativeDivisions(chapter.Id);
         var divisionNames = divisionIds
-            .Select(id => _adminDivRepo.Get(id)?.Name)
-            .Where(n => !string.IsNullOrEmpty(n))
-            .Select(n => n!)
+            .Select(id => _adminDivRepo.Get(id))
+            .Where(d => d != null && !string.IsNullOrEmpty(d.Name))
+            .Select(d => string.IsNullOrEmpty(d!.AdminCode) ? d.Name : $"{d.Name} ({d.AdminCode})")
             .ToList();
 
         var officers = _officerRepo.GetForChapter(chapter.Id);

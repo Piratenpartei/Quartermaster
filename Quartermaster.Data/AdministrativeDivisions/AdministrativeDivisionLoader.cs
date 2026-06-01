@@ -81,8 +81,12 @@ public static class AdministrativeDivisionLoader {
 
             if (admin3Lookup.TryGetValue(admin3.ToString(), out var admin4s)) {
                 foreach (var admin4 in admin4s) {
-                    if (admin4.Names.Contains(name)
-                        && otherDivisionsLookup.TryGetValue(admin4.GetAdminCode(), out var list)) {
+                    if (!admin4.Names.Contains(name))
+                        continue;
+
+                    admin4.PostCodes.Add(postCode);
+
+                    if (otherDivisionsLookup.TryGetValue(admin4.GetAdminCode(), out var list)) {
                         foreach (var ad in list)
                             ad.PostCodes.Add(postCode);
                     }
@@ -90,26 +94,13 @@ public static class AdministrativeDivisionLoader {
             }
         }
 
-        // Pass 4: Pass PostCodes down
         foreach (var adminDiv in loadedDivisions.Values) {
-            if (adminDiv.PostCodes.Count > 0 || adminDiv.Level < AdminLevel.Admin4)
+            if (adminDiv.Level != AdminLevel.Other || adminDiv.PostCodes.Count > 0)
                 continue;
-
-            var parentCode = adminDiv.GetParentAdminCode();
-
-            if (adminDiv.Level == AdminLevel.Other) {
-                if (!loadedDivisions.TryGetValue(parentCode, out var a4))
-                    continue;
-
-                parentCode = a4.GetParentAdminCode();
-                foreach (var pc in a4.PostCodes)
-                    adminDiv.PostCodes.Add(pc);
-            }
-
-            if (adminDiv.PostCodes.Count == 0 && loadedDivisions.TryGetValue(parentCode, out var a3)) {
-                foreach (var pc in a3.PostCodes)
-                    adminDiv.PostCodes.Add(pc);
-            }
+            if (!loadedDivisions.TryGetValue(adminDiv.GetParentAdminCode(), out var a4))
+                continue;
+            foreach (var pc in a4.PostCodes)
+                adminDiv.PostCodes.Add(pc);
         }
 
         var bulkData = new List<AdministrativeDivision>();
