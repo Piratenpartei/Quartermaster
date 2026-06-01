@@ -27,6 +27,11 @@ public static class AdministrativeDivisionLoader {
             if (adminDiv == null)
                 continue;
 
+            // Skip PPLs whose source row carries no Admin4 code: they'd be parented straight under the
+            // state with an AdminCode like "-1+Name", and they have no postcode to be useful anywhere.
+            if (adminDiv.IsPPL && adminDiv.Admin4 == -1)
+                continue;
+
             if (!loadedDivisions.ContainsKey(adminDiv.CountryCode)) {
                 loadedDivisions.Add(adminDiv.CountryCode, new AdminDivision {
                     CountryCode = adminDiv.CountryCode,
