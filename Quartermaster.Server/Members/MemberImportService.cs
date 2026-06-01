@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -115,8 +116,8 @@ public class MemberImportService {
 
             var records = csv.GetRecords<MemberCsvRecord>();
 
-            // Without this, a mid-import crash leaves partial member writes and no log to prove they came from a failed run.
-            using var tx = context.BeginTransaction();
+            // ReadCommitted: MariaDB's innodb_snapshot_isolation aborts the long import on any concurrent Members write.
+            using var tx = context.BeginTransaction(IsolationLevel.ReadCommitted);
 
             foreach (var record in records) {
                 totalRecords++;
