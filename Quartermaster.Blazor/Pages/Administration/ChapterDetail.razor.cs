@@ -47,6 +47,8 @@ public partial class ChapterDetail {
     private string EditParentChapterId = "";
 
     private ConfirmDialog DeleteConfirm = default!;
+    private ConfirmDialog ArchiveConfirm = default!;
+    private ConfirmDialog UnarchiveConfirm = default!;
 
     protected override async Task OnParametersSetAsync() {
         Loading = true;
@@ -134,6 +136,42 @@ public partial class ChapterDetail {
             if (resp.IsSuccessStatusCode) {
                 ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
                 Navigation.NavigateTo("/Administration/Chapters");
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+    }
+
+    private async Task ConfirmArchive() {
+        if (Detail == null) {
+            return;
+        }
+        var ok = await ArchiveConfirm.ShowAsync(I18n[$"{I18nKey.Ui.ChapterDetail.ArchiveDialogMessage}?name={Detail.Chapter.Name}"]);
+        if (!ok) {
+            return;
+        }
+        await ToggleArchive(archive: true);
+    }
+
+    private async Task ConfirmUnarchive() {
+        if (Detail == null) {
+            return;
+        }
+        var ok = await UnarchiveConfirm.ShowAsync(I18n[$"{I18nKey.Ui.ChapterDetail.UnarchiveDialogMessage}?name={Detail.Chapter.Name}"]);
+        if (!ok) {
+            return;
+        }
+        await ToggleArchive(archive: false);
+    }
+
+    private async Task ToggleArchive(bool archive) {
+        try {
+            var resp = await Http.PutAsync($"/api/chapters/{Id}/{(archive ? "archive" : "unarchive")}", null);
+            if (resp.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                await ReloadDetail();
             } else {
                 await ToastService.ErrorAsync(resp);
             }

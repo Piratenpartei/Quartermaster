@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Server.Authentication;
@@ -34,11 +35,20 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             await SendForbiddenAsync(ct);
             return;
         }
+        var chapter = _chapterRepo.Get(req.ChapterId);
+        if (chapter == null) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+        if (chapter.ArchivedAt.HasValue) {
+            AddError(r => r.ChapterId, I18nKey.Error.Chapter.Archived);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
 
         var ev = Event.FromCreateRequest(req, DateTime.UtcNow);
         _eventRepo.Create(ev);
 
-        var chapter = _chapterRepo.Get(ev.ChapterId);
-        await SendAsync(ev.ToDetailDto(chapter?.Name ?? ""), cancellation: ct);
+        await SendAsync(ev.ToDetailDto(chapter.Name), cancellation: ct);
     }
 }

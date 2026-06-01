@@ -50,6 +50,7 @@ public static class I18nKey {
             public const string ParentSelfReference = "error.chapter.parent_self_reference";
             public const string ExternalCodeNotUnique = "error.chapter.external_code_not_unique";
             public const string HasChildren = "error.chapter.has_children";
+            public const string Archived = "error.chapter.archived";
 
             public static class Officer {
                 public const string MemberRequired = "error.chapter.officer.member_required";
@@ -1307,6 +1308,15 @@ public static class I18nKey {
             public const string DeleteDialogTitle = "ui.chapter_detail.delete_dialog_title";
             public const string DeleteDialogConfirm = "ui.chapter_detail.delete_dialog_confirm";
             public const string DeleteDialogMessage = "ui.chapter_detail.delete_dialog_message";
+            public const string ArchivedBadge = "ui.chapter_detail.archived_badge";
+            public const string ArchiveButton = "ui.chapter_detail.archive_button";
+            public const string UnarchiveButton = "ui.chapter_detail.unarchive_button";
+            public const string ArchiveDialogTitle = "ui.chapter_detail.archive_dialog_title";
+            public const string ArchiveDialogMessage = "ui.chapter_detail.archive_dialog_message";
+            public const string UnarchiveDialogTitle = "ui.chapter_detail.unarchive_dialog_title";
+            public const string UnarchiveDialogMessage = "ui.chapter_detail.unarchive_dialog_message";
+            public const string ArchiveDialogConfirm = "ui.chapter_detail.archive_dialog_confirm";
+            public const string UnarchiveDialogConfirm = "ui.chapter_detail.unarchive_dialog_confirm";
         }
 
         public static class ChapterCreate {

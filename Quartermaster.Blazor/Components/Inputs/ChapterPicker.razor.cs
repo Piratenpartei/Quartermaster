@@ -40,6 +40,10 @@ public partial class ChapterPicker {
     [Parameter]
     public List<Guid>? ExcludeIds { get; set; }
 
+    /// <summary>Opt-in: include archived chapters. Default is to hide them, which is correct for "assign new thing to chapter" surfaces; filter/browse surfaces can flip this.</summary>
+    [Parameter]
+    public bool IncludeArchived { get; set; }
+
     private List<ChapterDTO>? Chapters;
     private string SearchText = "";
     private bool ShowDropdown;
@@ -49,11 +53,12 @@ public partial class ChapterPicker {
             if (Chapters == null) {
                 return new();
             }
-            if (ExcludeIds == null || ExcludeIds.Count == 0) {
-                return Chapters;
+            var source = IncludeArchived ? Chapters : Chapters.Where(c => !c.IsArchived);
+            if (ExcludeIds != null && ExcludeIds.Count > 0) {
+                var excluded = new HashSet<Guid>(ExcludeIds);
+                source = source.Where(c => !excluded.Contains(c.Id));
             }
-            var excluded = new HashSet<Guid>(ExcludeIds);
-            return Chapters.Where(c => !excluded.Contains(c.Id)).ToList();
+            return source.ToList();
         }
     }
 

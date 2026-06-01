@@ -28,6 +28,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
         AddIfNotExists(PermissionIdentifier.EditChapter, "Verband bearbeiten", true);
         AddIfNotExists(PermissionIdentifier.DeleteChapter, "Verband löschen", true);
+        AddIfNotExists(PermissionIdentifier.ArchiveChapter, "Verband archivieren/wiederherstellen", true);
         AddIfNotExists(PermissionIdentifier.ViewOptions, "Einstellungen anzeigen", true);
         AddIfNotExists(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
         AddIfNotExists(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);

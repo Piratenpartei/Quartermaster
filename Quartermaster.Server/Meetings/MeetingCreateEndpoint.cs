@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
@@ -40,6 +41,11 @@ public class MeetingCreateEndpoint : Endpoint<MeetingCreateRequest, MeetingDTO> 
         var chapter = _chapterRepo.Get(req.ChapterId);
         if (chapter == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+        if (chapter.ArchivedAt.HasValue) {
+            AddError(r => r.ChapterId, I18nKey.Error.Chapter.Archived);
+            await SendErrorsAsync(cancellation: ct);
             return;
         }
 

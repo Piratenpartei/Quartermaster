@@ -30,6 +30,9 @@
                     @if (context.ExternalCodes.Count > 0) {
                         <code class="small text-secondary">@string.Join(", ", context.ExternalCodes)</code>
                     }
+                    @if (context.IsArchived) {
+                        <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
+                    }
                 </ItemContent>
             </LazyTreeNode>
         }

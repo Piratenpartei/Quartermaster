@@ -102,6 +102,16 @@ public class ChapterRepository {
     public void SoftDelete(Guid id)
         => _context.Chapters.Where(c => c.Id == id).Set(c => c.DeletedAt, DateTime.UtcNow).Update();
 
+    /// <summary>Archive ≠ delete: archived chapters stay visible so member-import CSVs can still resolve historical
+    /// assignments, but new motions / events / meetings are blocked and membership-application auto-assignment
+    /// skips them. Pass <paramref name="archived"/>=false to restore.</summary>
+    public void SetArchived(Guid id, bool archived) {
+        var now = archived ? DateTime.UtcNow : (DateTime?)null;
+        _context.Chapters.Where(c => c.Id == id).Set(c => c.ArchivedAt, now).Update();
+        _auditLog.LogFieldChange("Chapter", id, "ArchivedAt",
+            archived ? null : "set", archived ? "set" : null);
+    }
+
     public List<Chapter> GetByExternalCode(string externalCode) {
         var matchingIds = _context.ChapterExternalCodes
             .Where(c => c.Code == externalCode)
@@ -147,13 +157,14 @@ public class ChapterRepository {
             .ToList();
 
         // Most specific match wins: the chapter whose division appears earliest in the ancestor chain.
+        // Archived chapters skipped — historical reference only; new applications route to a live chapter.
         foreach (var ancestorId in ancestorIds) {
             var matchId = ancestorChapterIds
                 .FirstOrDefault(c => c.AdministrativeDivisionId == ancestorId)?.ChapterId;
             if (matchId == null)
                 continue;
             var chapter = _context.Chapters
-                .Where(c => c.Id == matchId.Value && c.DeletedAt == null)
+                .Where(c => c.Id == matchId.Value && c.DeletedAt == null && c.ArchivedAt == null)
                 .FirstOrDefault();
             if (chapter != null)
                 return chapter;

@@ -6,6 +6,9 @@ namespace Quartermaster.Data.Migrations;
 [Migration(002)]
 public class M001_1_ChapterMultiCodeAndDivisionMigration : MigrationBase {
     public override void Up() {
+        Alter.Table(Chapter.TableName)
+            .AddColumn(nameof(Chapter.ArchivedAt)).AsCustom("DATETIME(6)").Nullable();
+
         Create.Table(ChapterExternalCode.TableName)
             .WithColumn(nameof(ChapterExternalCode.ChapterId)).AsGuid().NotNullable()
             .WithColumn(nameof(ChapterExternalCode.Code)).AsString(128).NotNullable();

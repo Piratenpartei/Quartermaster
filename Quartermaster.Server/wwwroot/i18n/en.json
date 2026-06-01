@@ -21,6 +21,7 @@
   "error.chapter.parent_self_reference": "A chapter cannot be its own parent.",
   "error.chapter.external_code_not_unique": "External code is already in use under this parent chapter.",
   "error.chapter.has_children": "Chapter cannot be deleted while it still has sub-chapters.",
+  "error.chapter.archived": "This chapter is archived. New motions, meetings, and events are not allowed.",
 
   "error.chapter.officer.member_required": "Member must be selected.",
   "error.chapter.officer.chapter_required": "Chapter must be selected.",
@@ -1102,6 +1103,15 @@
   "ui.chapter_detail.delete_dialog_title": "Delete chapter",
   "ui.chapter_detail.delete_dialog_confirm": "Delete",
   "ui.chapter_detail.delete_dialog_message": "Do you really want to delete the chapter \"{name}\"?",
+  "ui.chapter_detail.archived_badge": "Archived",
+  "ui.chapter_detail.archive_button": "Archive",
+  "ui.chapter_detail.unarchive_button": "Unarchive",
+  "ui.chapter_detail.archive_dialog_title": "Archive chapter",
+  "ui.chapter_detail.archive_dialog_message": "Archived chapters stay visible for historical member assignments but block new motions, meetings, and events. Archive \"{name}\"?",
+  "ui.chapter_detail.unarchive_dialog_title": "Unarchive chapter",
+  "ui.chapter_detail.unarchive_dialog_message": "Restore \"{name}\" from the archive?",
+  "ui.chapter_detail.archive_dialog_confirm": "Archive",
+  "ui.chapter_detail.unarchive_dialog_confirm": "Unarchive",
 
   "ui.chapter_create.page_title": "New chapter",
   "ui.chapter_create.short_code_label": "Short code",

@@ -95,6 +95,11 @@ public class SubmissionMaterializer {
             _logger.LogWarning("Confirmed motion references a chapter that no longer exists: {ChapterId}", req.ChapterId);
             return null;
         }
+        if (chapter.ArchivedAt.HasValue) {
+            // Chapter was archived between submission and email confirmation; drop the motion silently.
+            _logger.LogInformation("Confirmed motion targets an archived chapter; skipping: {ChapterId}", req.ChapterId);
+            return null;
+        }
 
         var textHtml = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict);
         var motion = Motion.FromCreateRequest(req, textHtml, DateTime.UtcNow);

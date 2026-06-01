@@ -22,6 +22,7 @@
   "error.chapter.parent_self_reference": "Eine Gliederung kann nicht ihre eigene übergeordnete Gliederung sein.",
   "error.chapter.external_code_not_unique": "Externer Code ist unter dieser übergeordneten Gliederung bereits vergeben.",
   "error.chapter.has_children": "Gliederung kann nicht gelöscht werden, solange noch Untergliederungen bestehen.",
+  "error.chapter.archived": "Diese Gliederung ist archiviert. Neue Anträge, Sitzungen und Veranstaltungen sind nicht möglich.",
 
   "error.chapter.officer.member_required": "Mitglied muss ausgewählt werden.",
   "error.chapter.officer.chapter_required": "Gliederung muss ausgewählt werden.",
@@ -1103,6 +1104,15 @@
   "ui.chapter_detail.delete_dialog_title": "Gliederung löschen",
   "ui.chapter_detail.delete_dialog_confirm": "Löschen",
   "ui.chapter_detail.delete_dialog_message": "Möchtest du die Gliederung „{name}\" wirklich löschen?",
+  "ui.chapter_detail.archived_badge": "Archiviert",
+  "ui.chapter_detail.archive_button": "Archivieren",
+  "ui.chapter_detail.unarchive_button": "Wiederherstellen",
+  "ui.chapter_detail.archive_dialog_title": "Gliederung archivieren",
+  "ui.chapter_detail.archive_dialog_message": "Archivierte Gliederungen bleiben für historische Mitgliederzuordnungen sichtbar, blockieren aber neue Anträge, Sitzungen und Veranstaltungen. Möchtest du „{name}\" archivieren?",
+  "ui.chapter_detail.unarchive_dialog_title": "Gliederung wiederherstellen",
+  "ui.chapter_detail.unarchive_dialog_message": "Möchtest du „{name}\" aus dem Archiv wiederherstellen?",
+  "ui.chapter_detail.archive_dialog_confirm": "Archivieren",
+  "ui.chapter_detail.unarchive_dialog_confirm": "Wiederherstellen",
 
   "ui.chapter_create.page_title": "Neue Gliederung",
   "ui.chapter_create.short_code_label": "Kürzel",

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Server.Authentication;
@@ -33,6 +34,16 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
         }
         if (!_perms.Has(req.ChapterId, PermissionIdentifier.CreateEvents)) {
             await SendForbiddenAsync(ct);
+            return;
+        }
+        var chapter = _chapterRepo.Get(req.ChapterId);
+        if (chapter == null) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+        if (chapter.ArchivedAt.HasValue) {
+            AddError(r => r.ChapterId, I18nKey.Error.Chapter.Archived);
+            await SendErrorsAsync(cancellation: ct);
             return;
         }
 
@@ -80,8 +91,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             checklistItemDtos.Add(checklistItem.ToDto(configuration));
         }
 
-        var chapter = _chapterRepo.Get(req.ChapterId);
-        var dto = ev.ToDetailDto(chapter?.Name ?? "");
+        var dto = ev.ToDetailDto(chapter.Name);
         dto.ChecklistItems = checklistItemDtos;
         await SendAsync(dto, cancellation: ct);
     }

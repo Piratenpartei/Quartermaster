@@ -54,8 +54,14 @@ public class MotionCreateEndpoint : Endpoint<MotionCreateRequest, SubmissionAcce
     }
 
     public override async Task HandleAsync(MotionCreateRequest req, CancellationToken ct) {
-        if (_chapterRepo.Get(req.ChapterId) == null) {
+        var chapter = _chapterRepo.Get(req.ChapterId);
+        if (chapter == null) {
             AddError(r => r.ChapterId, I18nKey.Error.Motion.ChapterNotFound);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (chapter.ArchivedAt.HasValue) {
+            AddError(r => r.ChapterId, I18nKey.Error.Chapter.Archived);
             await SendErrorsAsync(cancellation: ct);
             return;
         }

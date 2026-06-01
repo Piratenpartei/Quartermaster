@@ -10,4 +10,7 @@ public class ChapterDTO {
     public Guid? ParentChapterId { get; set; }
     public List<string> ExternalCodes { get; set; } = [];
     public List<Guid> AdministrativeDivisionIds { get; set; } = [];
+    public DateTimeOffset? ArchivedAt { get; set; }
+
+    public bool IsArchived => ArchivedAt.HasValue;
 }

@@ -14,13 +14,29 @@
     <div class="alert alert-danger">@I18n[I18nKey.Ui.ChapterDetail.NotFound]</div>
 } else {
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">@Detail.Chapter.Name</h3>
+        <div class="d-flex align-items-center gap-2">
+            <h3 class="mb-0">@Detail.Chapter.Name</h3>
+            @if (Detail.Chapter.IsArchived) {
+                <span class="badge text-bg-warning">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
+            }
+        </div>
         <div class="d-flex gap-2">
             @if (!Editing) {
                 <RequirePermission GlobalPermission="@PermissionIdentifier.EditChapter">
                     <button class="btn btn-sm btn-outline-primary btn-hover-scale1" @onclick="BeginEdit">
                         <i class="bi bi-pencil me-1"></i> @I18n[I18nKey.Ui.Common.Edit]
                     </button>
+                </RequirePermission>
+                <RequirePermission GlobalPermission="@PermissionIdentifier.ArchiveChapter">
+                    @if (Detail.Chapter.IsArchived) {
+                        <button class="btn btn-sm btn-outline-success btn-hover-scale1" @onclick="ConfirmUnarchive">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> @I18n[I18nKey.Ui.ChapterDetail.UnarchiveButton]
+                        </button>
+                    } else {
+                        <button class="btn btn-sm btn-outline-warning btn-hover-scale1" @onclick="ConfirmArchive">
+                            <i class="bi bi-archive me-1"></i> @I18n[I18nKey.Ui.ChapterDetail.ArchiveButton]
+                        </button>
+                    }
                 </RequirePermission>
                 <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteChapter">
                     <button class="btn btn-sm btn-outline-danger btn-hover-scale1" @onclick="ConfirmDelete" disabled="@Detail.Children.Any()"
@@ -153,3 +169,5 @@
 }
 
 <ConfirmDialog @ref="DeleteConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogConfirm]" />
+<ConfirmDialog @ref="ArchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogConfirm]" />
+<ConfirmDialog @ref="UnarchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogConfirm]" />
