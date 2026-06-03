@@ -18,7 +18,7 @@ public class SecurityHeadersMiddleware {
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
         headers["Content-Security-Policy"] =
             "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; " +
+            "script-src 'self' 'wasm-unsafe-eval'; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data:; " +
             "font-src 'self'; " +
