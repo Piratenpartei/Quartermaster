@@ -56,6 +56,10 @@ public partial class EventChecklistEditor {
     private Guid? ExpandedPreviewItemId;
     private Dictionary<Guid, string?> PreviewCache = new();
 
+    private Guid? ExpandedRecipientItemId;
+    private Dictionary<Guid, List<RecipientPreviewItem>?> RecipientCache = new();
+    private HashSet<Guid> RecipientFailed = new();
+
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
@@ -254,6 +258,49 @@ public partial class EventChecklistEditor {
             } catch (Exception ex) {
                 PreviewCache[itemId] = $"<p class=\"text-secondary\">{I18n[I18nParams.With(I18nKey.Ui.EventChecklistEditor.PreviewUnavailable, ("error", ex.Message))]}</p>";
             }
+        }
+
+        StateHasChanged();
+    }
+
+    private bool HasNoEmailContent(EventChecklistItemConfigDTO? configuration) {
+        if (configuration == null)
+            return true;
+        if (configuration.UseDescription)
+            return string.IsNullOrWhiteSpace(Event.Description);
+        return configuration.TemplateId == null;
+    }
+
+    private async Task ToggleRecipientPreview(Guid itemId, EventChecklistItemConfigDTO? configuration) {
+        if (ExpandedRecipientItemId == itemId) {
+            ExpandedRecipientItemId = null;
+            StateHasChanged();
+            return;
+        }
+
+        ExpandedRecipientItemId = itemId;
+        RecipientFailed.Remove(itemId);
+
+        if (RecipientCache.ContainsKey(itemId)) {
+            StateHasChanged();
+            return;
+        }
+
+        try {
+            var response = await Http.PostAsJsonAsync(
+                $"/api/events/{EventId}/checklist/resolve-recipients",
+                new RecipientPreviewRequest {
+                    EventId = EventId,
+                    Configuration = configuration ?? new EventChecklistItemConfigDTO()
+                });
+            if (response.IsSuccessStatusCode) {
+                var body = await response.Content.ReadFromJsonAsync<RecipientPreviewResponse>();
+                RecipientCache[itemId] = body?.Recipients ?? new List<RecipientPreviewItem>();
+            } else {
+                RecipientFailed.Add(itemId);
+            }
+        } catch (HttpRequestException) {
+            RecipientFailed.Add(itemId);
         }
 
         StateHasChanged();

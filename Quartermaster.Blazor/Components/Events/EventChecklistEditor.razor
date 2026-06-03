@@ -119,14 +119,20 @@
                             }
 
                             @if (item.ItemType == ChecklistItemType.SendEmail && !item.IsCompleted) {
-                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
+                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)"
+                                        disabled="@HasNoEmailContent(item.Configuration)"
+                                        title="@(HasNoEmailContent(item.Configuration) ? I18n[I18nKey.Ui.EventChecklistEditor.SendDisabledNoContent] : null)"
+                                        style="@(HasNoEmailContent(item.Configuration) ? "pointer-events: auto; cursor: not-allowed;" : null)">
                                     @I18n[I18nKey.Ui.EventChecklistEditor.SendAndCheck]
                                 </button>
                                 <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
                                     @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
                                 </button>
-                                <button class="btn btn-outline-info" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
+                                <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
                                     <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" @onclick="() => ToggleRecipientPreview(item.Id, item.Configuration)">
+                                    <i class="bi bi-people"></i>
                                 </button>
                             }
 
@@ -152,6 +158,36 @@
                         <div class="card-body py-2">
                             @if (PreviewCache.TryGetValue(item.Id, out var preview) && preview != null) {
                                 @((MarkupString)preview)
+                            } else {
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (ExpandedRecipientItemId == item.Id) {
+                    <div class="card my-1 bg-body-secondary">
+                        <div class="card-body py-2">
+                            @if (RecipientFailed.Contains(item.Id)) {
+                                <p class="text-danger mb-0">@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewFailed]</p>
+                            } else if (RecipientCache.TryGetValue(item.Id, out var recipients) && recipients != null) {
+                                @if (recipients.Count == 0) {
+                                    <p class="text-secondary mb-0">@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewEmpty]</p>
+                                } else {
+                                    <h6 class="mb-2">@I18n[$"{I18nKey.Ui.EventChecklistEditor.RecipientPreviewHeader}?count={recipients.Count}"]</h6>
+                                    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                                        <table class="table table-sm table-borderless mb-0">
+                                            <tbody>
+                                                @foreach (var r in recipients) {
+                                                    <tr>
+                                                        <td class="text-nowrap">@($"{r.FirstName} {r.LastName}".Trim())</td>
+                                                        <td class="text-nowrap font-monospace small">@r.Email</td>
+                                                        <td class="text-secondary small">@r.Reason</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
                             } else {
                                 <div class="spinner-border spinner-border-sm" role="status"></div>
                             }

@@ -105,7 +105,7 @@ public class EmailService {
             Metadata: metadata));
     }
 
-    private List<Member> FetchTargetMembers(string targetType, Guid targetId) {
+    public List<Member> FetchTargetMembers(string targetType, Guid targetId) {
         if (targetType == "Chapter" && targetId != Guid.Empty) {
             var chapterIds = _chapterRepo.GetDescendantIds(targetId);
             return _memberRepo.GetByChapterIds(chapterIds);

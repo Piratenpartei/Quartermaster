@@ -1169,6 +1169,11 @@ public static class I18nKey {
             public const string PreviewSampleData = "ui.event_checklist_editor.preview_sample_data";
             public const string PreviewNoTemplateConfigured = "ui.event_checklist_editor.preview_no_template_configured";
             public const string PreviewUnavailable = "ui.event_checklist_editor.preview_unavailable";
+            public const string RecipientPreviewAria = "ui.event_checklist_editor.recipient_preview_aria";
+            public const string RecipientPreviewHeader = "ui.event_checklist_editor.recipient_preview_header";
+            public const string RecipientPreviewEmpty = "ui.event_checklist_editor.recipient_preview_empty";
+            public const string RecipientPreviewFailed = "ui.event_checklist_editor.recipient_preview_failed";
+            public const string SendDisabledNoContent = "ui.event_checklist_editor.send_disabled_no_content";
         }
 
         public static class PublicEventDetail {
