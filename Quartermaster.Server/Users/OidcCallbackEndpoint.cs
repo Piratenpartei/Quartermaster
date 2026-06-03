@@ -122,11 +122,32 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             return;
         }
 
-        var tokenData = await tokenResponse.Content.ReadFromJsonAsync<JsonElement>(ct);
-        var idToken = tokenData.GetProperty("id_token").GetString();
-        var accessToken = tokenData.TryGetProperty("access_token", out var atEl) ? atEl.GetString() : null;
+        string responseBody;
+        try {
+            responseBody = await tokenResponse.Content.ReadAsStringAsync(ct);
+        } catch (Exception ex) {
+            Logger.LogError(ex, "OIDC token response could not be read");
+            await SendRedirectAsync("/Login?error=oidc_no_id_token", allowRemoteRedirects: false);
+            return;
+        }
 
-        if (string.IsNullOrEmpty(idToken)) {
+        string? idToken;
+        string? accessToken;
+        try {
+            using var doc = JsonDocument.Parse(responseBody);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+                throw new InvalidOperationException($"expected JSON object, got {root.ValueKind}");
+            if (!root.TryGetProperty("id_token", out var idTokenEl) || idTokenEl.ValueKind != JsonValueKind.String)
+                throw new InvalidOperationException("missing or non-string 'id_token'");
+            idToken = idTokenEl.GetString();
+            if (string.IsNullOrEmpty(idToken))
+                throw new InvalidOperationException("'id_token' is empty");
+            accessToken = root.TryGetProperty("access_token", out var atEl) && atEl.ValueKind == JsonValueKind.String
+                ? atEl.GetString()
+                : null;
+        } catch (Exception ex) {
+            Logger.LogError(ex, "OIDC token response could not be parsed (shape: {Shape})", DescribePayloadShape(responseBody));
             await SendRedirectAsync("/Login?error=oidc_no_id_token", allowRemoteRedirects: false);
             return;
         }
@@ -232,6 +253,18 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         var discovery = await httpClient.GetFromJsonAsync<JsonElement>(url, ct);
         _cache.Set(key, discovery, DiscoveryCacheTtl);
         return discovery;
+    }
+
+    /// <summary>Returns a short description of the response body for diagnostic logging without leaking secrets (token values stay out of logs; only top-level key names go in).</summary>
+    private static string DescribePayloadShape(string body) {
+        try {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                return $"JSON {doc.RootElement.ValueKind}";
+            return $"keys=[{string.Join(",", doc.RootElement.EnumerateObject().Select(p => p.Name))}]";
+        } catch (JsonException) {
+            return $"non-JSON ({body.Length} chars)";
+        }
     }
 
     private static string ComputeAtHash(string accessToken) {
