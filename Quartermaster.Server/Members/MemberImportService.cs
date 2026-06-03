@@ -75,6 +75,10 @@ public class MemberImportService {
         var totalRecords = 0;
         var newRecords = 0;
         var updatedRecords = 0;
+        var skippedRecords = 0;
+        var newFloatingRecords = 0;
+        var updatedFloatingRecords = 0;
+        var promotedRecords = 0;
         var now = log.ImportedAt;
         var committed = false;
 
@@ -121,14 +125,30 @@ public class MemberImportService {
 
             foreach (var record in records) {
                 totalRecords++;
-                if (record.USER_Mitgliedsnummer == null) {
-                    // Floating applicant: accepted by a chapter but first dues unpaid, no member number assigned yet.
-                    _logger.LogInformation("Row {Row}: skipping Floating applicant (no member number)", totalRecords);
+                var memberNumber = record.USER_Mitgliedsnummer;
+                var admissionRef = NullIfEmpty(record.USER_refAufnahme);
+
+                if (memberNumber == null && admissionRef == null) {
+                    skippedRecords++;
+                    _logger.LogInformation("Row {Row}: skipped (no member number and no admission reference)", totalRecords);
                     continue;
                 }
+
                 try {
                     var member = MapRecordToMember(record, chaptersByExtCode, codesByChapter, allChapters, adminDivRepo, now);
-                    var existing = memberRepo.GetByMemberNumber(member.MemberNumber);
+
+                    Member? existing = null;
+                    var isPromotion = false;
+                    if (memberNumber != null) {
+                        existing = memberRepo.GetByMemberNumber(memberNumber.Value);
+                        if (existing == null && admissionRef != null) {
+                            existing = memberRepo.GetFloatingByAdmissionReference(admissionRef);
+                            if (existing != null)
+                                isPromotion = true;
+                        }
+                    } else {
+                        existing = memberRepo.GetFloatingByAdmissionReference(admissionRef!);
+                    }
 
                     if (existing != null) {
                         member.Id = existing.Id;
@@ -142,15 +162,24 @@ public class MemberImportService {
                         if (existing.UserId.HasValue && !existing.IsExited(now) && member.IsExited(now))
                             tokenRepo.DeleteAllForUser(existing.UserId.Value);
 
-                        if (memberRepo.Update(member))
+                        if (memberRepo.Update(member)) {
                             updatedRecords++;
+                            if (isPromotion) {
+                                promotedRecords++;
+                            } else if (member.MemberNumber == null) {
+                                updatedFloatingRecords++;
+                            }
+                        }
                     } else {
                         memberRepo.Insert(member);
                         newRecords++;
+                        if (member.MemberNumber == null)
+                            newFloatingRecords++;
                     }
                 } catch (Exception ex) {
-                    errors.Add($"Row {totalRecords}: Member #{record.USER_Mitgliedsnummer} - {ex.Message}");
-                    _logger.LogWarning(ex, "Failed to import member #{MemberNumber}", record.USER_Mitgliedsnummer);
+                    var idLabel = memberNumber != null ? $"#{memberNumber}" : $"ref={admissionRef}";
+                    errors.Add($"Row {totalRecords}: Member {idLabel} - {ex.Message}");
+                    _logger.LogWarning(ex, "Failed to import member {Identity}", idLabel);
                 }
             }
 
@@ -166,11 +195,18 @@ public class MemberImportService {
         if (!committed) {
             newRecords = 0;
             updatedRecords = 0;
+            newFloatingRecords = 0;
+            updatedFloatingRecords = 0;
+            promotedRecords = 0;
         }
 
         log.TotalRecords = totalRecords;
         log.NewRecords = newRecords;
         log.UpdatedRecords = updatedRecords;
+        log.SkippedRecords = skippedRecords;
+        log.NewFloatingRecords = newFloatingRecords;
+        log.UpdatedFloatingRecords = updatedFloatingRecords;
+        log.PromotedRecords = promotedRecords;
         log.ErrorCount = errors.Count;
         log.Errors = errors.Count > 0 ? JsonSerializer.Serialize(errors) : null;
         log.DurationMs = sw.ElapsedMilliseconds;
@@ -178,8 +214,8 @@ public class MemberImportService {
         SafeUpdateImportLog(log);
 
         _logger.LogInformation(
-            "Import complete: {Total} records ({New} new, {Updated} updated, {Errors} errors) in {Duration}ms",
-            totalRecords, newRecords, updatedRecords, errors.Count, sw.ElapsedMilliseconds);
+            "Import complete: {Total} records ({New} new, {Updated} updated, {Skipped} skipped, {Promoted} promoted, {Errors} errors) in {Duration}ms",
+            totalRecords, newRecords, updatedRecords, skippedRecords, promotedRecords, errors.Count, sw.ElapsedMilliseconds);
     }
 
     private string SafeComputeFileHash(string filePath) {
@@ -227,7 +263,7 @@ public class MemberImportService {
         DateTime importedAt) {
 
         var member = new Member {
-            MemberNumber = record.USER_Mitgliedsnummer!.Value,
+            MemberNumber = record.USER_Mitgliedsnummer,
             AdmissionReference = NullIfEmpty(record.USER_refAufnahme),
             FirstName = record.Name2,
             LastName = record.Name1,

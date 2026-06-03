@@ -1191,6 +1191,8 @@ public static class I18nKey {
             public const string ImportHistory = "ui.member_list.import_history";
             public const string SearchPlaceholder = "ui.member_list.search_placeholder";
             public const string OrphanedFilterLabel = "ui.member_list.orphaned_filter_label";
+            public const string FloatingFilterLabel = "ui.member_list.floating_filter_label";
+            public const string FloatingBadge = "ui.member_list.floating_badge";
             public const string TotalCount = "ui.member_list.total_count";
             public const string MemberNumberColumn = "ui.member_list.member_number_column";
             public const string CityColumn = "ui.member_list.city_column";
@@ -1203,6 +1205,7 @@ public static class I18nKey {
         public static class MemberDetail {
             public const string NotFound = "ui.member_detail.not_found";
             public const string MemberNumberPrefix = "ui.member_detail.member_number_prefix";
+            public const string FloatingBadge = "ui.member_detail.floating_badge";
             public const string StatusExited = "ui.member_detail.status_exited";
             public const string StatusPending = "ui.member_detail.status_pending";
             public const string StatusActive = "ui.member_detail.status_active";
@@ -1264,6 +1267,10 @@ public static class I18nKey {
             public const string TotalColumn = "ui.member_import_history.total_column";
             public const string NewColumn = "ui.member_import_history.new_column";
             public const string UpdatedColumn = "ui.member_import_history.updated_column";
+            public const string SkippedColumn = "ui.member_import_history.skipped_column";
+            public const string NewFloatingColumn = "ui.member_import_history.new_floating_column";
+            public const string UpdatedFloatingColumn = "ui.member_import_history.updated_floating_column";
+            public const string PromotedColumn = "ui.member_import_history.promoted_column";
             public const string ErrorsColumn = "ui.member_import_history.errors_column";
             public const string FileTooLarge = "ui.member_import_history.file_too_large";
         }
@@ -1278,6 +1285,10 @@ public static class I18nKey {
             public const string TotalLabel = "ui.import_status.total_label";
             public const string NewLabel = "ui.import_status.new_label";
             public const string UpdatedLabel = "ui.import_status.updated_label";
+            public const string SkippedLabel = "ui.import_status.skipped_label";
+            public const string NewFloatingLabel = "ui.import_status.new_floating_label";
+            public const string UpdatedFloatingLabel = "ui.import_status.updated_floating_label";
+            public const string PromotedLabel = "ui.import_status.promoted_label";
             public const string ErrorsLabel = "ui.import_status.errors_label";
             public const string HistorySummary = "ui.import_status.history_summary";
             public const string NoImportsYet = "ui.import_status.no_imports_yet";

@@ -21,11 +21,17 @@ public class MemberRepository {
     public Member? GetByMemberNumber(int memberNumber)
         => _context.Members.Where(m => m.MemberNumber == memberNumber).FirstOrDefault();
 
+    /// <summary>Lookup by AdmissionReference, scoped to floating members (those without a MemberNumber yet). Used by the import to upsert floating applicants and to detect a floating-to-active promotion.</summary>
+    public Member? GetFloatingByAdmissionReference(string admissionReference)
+        => _context.Members
+            .Where(m => m.MemberNumber == null && m.AdmissionReference == admissionReference)
+            .FirstOrDefault();
+
     public Member? GetByEmail(string email)
-        => _context.Members.Where(m => m.Email == email).FirstOrDefault();
+        => _context.Members.Where(m => m.MemberNumber != null && m.Email == email).FirstOrDefault();
 
     public Member? GetByUserId(Guid userId)
-        => _context.Members.Where(m => m.UserId == userId).FirstOrDefault();
+        => _context.Members.Where(m => m.MemberNumber != null && m.UserId == userId).FirstOrDefault();
 
     public void SetUserId(Guid memberId, Guid userId) {
         _context.Members
@@ -36,28 +42,31 @@ public class MemberRepository {
 
     public List<Member> GetByChapterIds(List<Guid> chapterIds) {
         return _context.Members
-            .Where(m => m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))
+            .Where(m => m.MemberNumber != null && m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))
             .ToList();
     }
 
     public List<Member> GetByAdministrativeDivisionId(Guid divisionId) {
         return _context.Members
-            .Where(m => m.ResidenceAdministrativeDivisionId == divisionId)
+            .Where(m => m.MemberNumber != null && m.ResidenceAdministrativeDivisionId == divisionId)
             .ToList();
     }
 
     public List<Member> GetByAdministrativeDivisionIds(List<Guid> divisionIds) {
         return _context.Members
-            .Where(m => m.ResidenceAdministrativeDivisionId != null
+            .Where(m => m.MemberNumber != null && m.ResidenceAdministrativeDivisionId != null
                 && divisionIds.Contains(m.ResidenceAdministrativeDivisionId.Value))
             .ToList();
     }
 
     public (List<Member> Items, int TotalCount) Search(
         string? query, Guid? chapterId, int page, int pageSize,
-        List<Guid>? allowedChapterIds = null, bool orphanedOnly = false) {
+        List<Guid>? allowedChapterIds = null, bool orphanedOnly = false, bool floatingOnly = false) {
 
         var q = _context.Members.AsQueryable();
+
+        if (floatingOnly)
+            q = q.Where(m => m.MemberNumber == null);
 
         if (!string.IsNullOrWhiteSpace(query)) {
             if (int.TryParse(query, out var memberNum)) {
@@ -109,6 +118,7 @@ public class MemberRepository {
 
         _context.Members
             .Where(m => m.Id == member.Id)
+            .Set(m => m.MemberNumber, member.MemberNumber)
             .Set(m => m.AdmissionReference, member.AdmissionReference)
             .Set(m => m.FirstName, member.FirstName)
             .Set(m => m.LastName, member.LastName)
@@ -149,7 +159,8 @@ public class MemberRepository {
     /// <summary>Mirrors the column list in <see cref="Update"/>, intentionally omitting <c>LastImportedAt</c>.
     /// Keep these two in sync: a new column in Update belongs in this comparison as well.</summary>
     private static bool AreImportFieldsEqual(Member a, Member b)
-        => a.AdmissionReference == b.AdmissionReference
+        => a.MemberNumber == b.MemberNumber
+        && a.AdmissionReference == b.AdmissionReference
         && a.FirstName == b.FirstName
         && a.LastName == b.LastName
         && a.Street == b.Street
@@ -180,6 +191,7 @@ public class MemberRepository {
         && a.ResidenceAdministrativeDivisionId == b.ResidenceAdministrativeDivisionId;
 
     private void LogMemberFieldChanges(Member old, Member updated) {
+        _auditLog.LogFieldChange("Member", updated.Id, "MemberNumber", old.MemberNumber?.ToString(), updated.MemberNumber?.ToString());
         _auditLog.LogFieldChange("Member", updated.Id, "AdmissionReference", old.AdmissionReference, updated.AdmissionReference);
         _auditLog.LogFieldChange("Member", updated.Id, "FirstName", old.FirstName, updated.FirstName);
         _auditLog.LogFieldChange("Member", updated.Id, "LastName", old.LastName, updated.LastName);

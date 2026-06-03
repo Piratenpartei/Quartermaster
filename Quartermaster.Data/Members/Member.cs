@@ -11,7 +11,10 @@ public class Member {
 
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
-    public int MemberNumber { get; set; }
+    public int? MemberNumber { get; set; }
+
+    [NotColumn]
+    public bool IsFloating => MemberNumber == null;
     public string? AdmissionReference { get; set; }
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";

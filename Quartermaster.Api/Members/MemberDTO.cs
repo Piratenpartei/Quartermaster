@@ -4,7 +4,9 @@ namespace Quartermaster.Api.Members;
 
 public class MemberDTO {
     public Guid Id { get; set; }
-    public int MemberNumber { get; set; }
+    public int? MemberNumber { get; set; }
+
+    public bool IsFloating => MemberNumber == null;
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string? PostCode { get; set; }

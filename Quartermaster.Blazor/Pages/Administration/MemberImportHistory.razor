@@ -69,6 +69,10 @@
                     <th>@I18n[I18nKey.Ui.MemberImportHistory.TotalColumn]</th>
                     <th>@I18n[I18nKey.Ui.MemberImportHistory.NewColumn]</th>
                     <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedColumn]</th>
+                    <th>@I18n[I18nKey.Ui.MemberImportHistory.SkippedColumn]</th>
+                    <th>@I18n[I18nKey.Ui.MemberImportHistory.NewFloatingColumn]</th>
+                    <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedFloatingColumn]</th>
+                    <th>@I18n[I18nKey.Ui.MemberImportHistory.PromotedColumn]</th>
                     <th>@I18n[I18nKey.Ui.MemberImportHistory.ErrorsColumn]</th>
                 </tr>
             </thead>
@@ -81,6 +85,10 @@
                         <td>@log.TotalRecords</td>
                         <td>@log.NewRecords</td>
                         <td>@log.UpdatedRecords</td>
+                        <td>@log.SkippedRecords</td>
+                        <td>@log.NewFloatingRecords</td>
+                        <td>@log.UpdatedFloatingRecords</td>
+                        <td>@log.PromotedRecords</td>
                         <td>
                             @if (log.ErrorCount > 0) {
                                 <button class="badge border border-danger text-danger-emphasis btn p-1"
@@ -94,7 +102,7 @@
                     </tr>
                     @if (ExpandedLogId == log.Id && log.Errors != null) {
                         <tr>
-                            <td colspan="7">
+                            <td colspan="11">
                                 <div class="bg-body-secondary p-2 rounded small font-monospace">
                                     @foreach (var error in ParseErrors(log.Errors)) {
                                         <div>@error</div>

@@ -44,6 +44,22 @@
                     @latest.UpdatedRecords
                 </div>
                 <div class="col-auto">
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.SkippedLabel]</span><br />
+                    @latest.SkippedRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.NewFloatingLabel]</span><br />
+                    @latest.NewFloatingRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.UpdatedFloatingLabel]</span><br />
+                    @latest.UpdatedFloatingRecords
+                </div>
+                <div class="col-auto">
+                    <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.PromotedLabel]</span><br />
+                    @latest.PromotedRecords
+                </div>
+                <div class="col-auto">
                     <span class="text-secondary small">@I18n[I18nKey.Ui.ImportStatus.ErrorsLabel]</span><br />
                     @if (latest.ErrorCount > 0) {
                         <span class="badge bg-danger">@latest.ErrorCount</span>
@@ -71,6 +87,10 @@
                             <th>@I18n[I18nKey.Ui.MemberImportHistory.TotalColumn]</th>
                             <th>@I18n[I18nKey.Ui.MemberImportHistory.NewColumn]</th>
                             <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.SkippedColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.NewFloatingColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.UpdatedFloatingColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MemberImportHistory.PromotedColumn]</th>
                             <th>@I18n[I18nKey.Ui.MemberImportHistory.ErrorsColumn]</th>
                         </tr>
                     </thead>
@@ -83,6 +103,10 @@
                                 <td>@log.TotalRecords</td>
                                 <td>@log.NewRecords</td>
                                 <td>@log.UpdatedRecords</td>
+                                <td>@log.SkippedRecords</td>
+                                <td>@log.NewFloatingRecords</td>
+                                <td>@log.UpdatedFloatingRecords</td>
+                                <td>@log.PromotedRecords</td>
                                 <td>
                                     @if (log.ErrorCount > 0) {
                                         <span class="badge bg-danger">@log.ErrorCount</span>

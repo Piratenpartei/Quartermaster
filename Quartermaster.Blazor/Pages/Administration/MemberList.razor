@@ -25,6 +25,12 @@
             <i class="bi bi-exclamation-triangle text-warning"></i> @I18n[I18nKey.Ui.MemberList.OrphanedFilterLabel]
         </label>
     </div>
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="floatingFilter" @bind="FloatingOnly" @bind:after="() => GoToPage(1)" />
+        <label class="form-check-label" for="floatingFilter">
+            <i class="bi bi-hourglass-split text-info"></i> @I18n[I18nKey.Ui.MemberList.FloatingFilterLabel]
+        </label>
+    </div>
     <div>
         <button class="btn btn-primary" @onclick="() => GoToPage(1)">
             <i class="bi bi-search"></i> @I18n[I18nKey.Ui.Common.Search]
@@ -54,7 +60,13 @@
         <tbody>
             @foreach (var m in Response.Items) {
                 <tr>
-                    <td>@m.MemberNumber</td>
+                    <td>
+                        @if (m.IsFloating) {
+                            <span class="badge border border-info text-info-emphasis">@I18n[I18nKey.Ui.MemberList.FloatingBadge]</span>
+                        } else {
+                            @m.MemberNumber
+                        }
+                    </td>
                     <td><a href="/Administration/Members/@m.Id">@m.FirstName @m.LastName</a></td>
                     <td>@m.PostCode @m.City</td>
                     <td>@m.ChapterName</td>

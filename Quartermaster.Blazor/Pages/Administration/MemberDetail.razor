@@ -14,9 +14,15 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h3>@Member.FirstName @Member.LastName</h3>
-            <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
+            @if (Member.IsFloating) {
+                <span class="text-secondary">@(Member.AdmissionReference ?? "—")</span>
+            } else {
+                <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
+            }
         </div>
-        @if (Member.IsExited) {
+        @if (Member.IsFloating) {
+            <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.FloatingBadge]</span>
+        } else if (Member.IsExited) {
             <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusExited]</span>
         } else if (Member.IsPending) {
             <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusPending]</span>

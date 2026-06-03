@@ -87,7 +87,7 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
         var member = _memberRepo.GetByUserId(user.Id);
         if (member != null) {
             memberInfo = new UserSettingsMemberInfo {
-                MemberNumber = member.MemberNumber,
+                MemberNumber = member.MemberNumber ?? 0,
                 ChapterName = member.ChapterId.HasValue && chapters.TryGetValue(member.ChapterId.Value, out var cn) ? cn : "",
                 EntryDate = member.EntryDate.ToDtoDate(),
                 MembershipFee = member.MembershipFee,

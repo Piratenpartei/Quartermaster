@@ -24,7 +24,7 @@ public class ChapterOfficerListEndpoint : Endpoint<ChapterOfficerSearchRequest, 
         await SendAsync(new ChapterOfficerSearchResponse {
             Items = items.Select(x => new ChapterOfficerDTO {
                 MemberId = x.Officer.MemberId,
-                MemberNumber = x.Member.MemberNumber,
+                MemberNumber = x.Member.MemberNumber ?? 0,
                 MemberFirstName = x.Member.FirstName,
                 MemberLastName = x.Member.LastName,
                 ChapterId = x.Officer.ChapterId,

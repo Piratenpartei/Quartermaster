@@ -20,6 +20,10 @@ public class MemberImportLog {
     public int TotalRecords { get; set; }
     public int NewRecords { get; set; }
     public int UpdatedRecords { get; set; }
+    public int SkippedRecords { get; set; }
+    public int NewFloatingRecords { get; set; }
+    public int UpdatedFloatingRecords { get; set; }
+    public int PromotedRecords { get; set; }
     public int ErrorCount { get; set; }
     public string? Errors { get; set; }
     public long DurationMs { get; set; }
@@ -32,6 +36,10 @@ public class MemberImportLog {
         TotalRecords = TotalRecords,
         NewRecords = NewRecords,
         UpdatedRecords = UpdatedRecords,
+        SkippedRecords = SkippedRecords,
+        NewFloatingRecords = NewFloatingRecords,
+        UpdatedFloatingRecords = UpdatedFloatingRecords,
+        PromotedRecords = PromotedRecords,
         ErrorCount = ErrorCount,
         Errors = Errors,
         DurationMs = DurationMs

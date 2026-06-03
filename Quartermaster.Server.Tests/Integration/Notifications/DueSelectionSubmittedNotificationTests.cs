@@ -46,7 +46,7 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
             email: "intake@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.ProcessDueSelections } });
 
-        var response = await Submit(Dto(memberNumber: member.MemberNumber));
+        var response = await Submit(Dto(memberNumber: member.MemberNumber!.Value));
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "due_selection_submitted").ToList();
@@ -76,7 +76,7 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
             globalPermissions: new[] { PermissionIdentifier.ProcessDueSelections });
         var member = Builder.SeedMember(chapterId: null, memberNumber: 42_002);
 
-        await Submit(Dto(memberNumber: member.MemberNumber));
+        await Submit(Dto(memberNumber: member.MemberNumber!.Value));
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "due_selection_submitted").ToList();
         await Assert.That(logs.Count).IsEqualTo(0);

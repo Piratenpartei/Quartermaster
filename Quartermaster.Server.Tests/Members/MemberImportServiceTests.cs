@@ -302,4 +302,103 @@ public class MemberImportServiceTests : RepositoryTestBase {
         await Assert.That(anna.ResidenceAdministrativeDivisionId).IsNull();
     }
 
+    private const string CsvHeader = "USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend";
+
+    private static string Row(string memberNumber, string refAufnahme, string firstName = "Test", string lastName = "Person")
+        => $"{memberNumber};{refAufnahme};{lastName};{firstName};NULL;NULL;NULL;NULL;NULL;NULL;;;;48.00;0.00;0;0;0;NULL;0;NULL;NULL;NULL;NULL;NULL;NULL;NULL;0;NULL;NULL;0";
+
+    private string WriteTempCsv(params string[] rows) {
+        var path = Path.GetTempFileName();
+        File.WriteAllText(path, $"{CsvHeader}\n{string.Join("\n", rows)}");
+        return path;
+    }
+
+    [Test]
+    public async Task ImportFromFile_FloatingRow_CreatesFloatingMember() {
+        var path = WriteTempCsv(Row(memberNumber: "", refAufnahme: "REF-FLOAT-1", firstName: "Floating", lastName: "Applicant"));
+        try {
+            var log = _service.ImportFromFile(path);
+
+            await Assert.That(log.TotalRecords).IsEqualTo(1);
+            await Assert.That(log.NewRecords).IsEqualTo(1);
+            await Assert.That(log.NewFloatingRecords).IsEqualTo(1);
+            await Assert.That(log.SkippedRecords).IsEqualTo(0);
+
+            var floating = _context.Members.Where(m => m.AdmissionReference == "REF-FLOAT-1").First();
+            await Assert.That(floating.MemberNumber).IsNull();
+            await Assert.That(floating.FirstName).IsEqualTo("Floating");
+        } finally {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task ImportFromFile_EmptyKeys_RowDropped() {
+        var path = WriteTempCsv(Row(memberNumber: "", refAufnahme: ""));
+        try {
+            var log = _service.ImportFromFile(path);
+
+            await Assert.That(log.TotalRecords).IsEqualTo(1);
+            await Assert.That(log.SkippedRecords).IsEqualTo(1);
+            await Assert.That(log.NewRecords).IsEqualTo(0);
+            await Assert.That(_context.Members.Count()).IsEqualTo(0);
+        } finally {
+            File.Delete(path);
+        }
+    }
+
+    [Test]
+    public async Task ImportFromFile_FloatingReImport_UpsertsByAdmissionReference() {
+        var first = WriteTempCsv(Row("", "REF-FLOAT-2", firstName: "Original"));
+        try {
+            _service.ImportFromFile(first);
+        } finally {
+            File.Delete(first);
+        }
+
+        var second = WriteTempCsv(Row("", "REF-FLOAT-2", firstName: "Renamed"));
+        try {
+            var log = _service.ImportFromFile(second);
+
+            await Assert.That(log.UpdatedRecords).IsEqualTo(1);
+            await Assert.That(log.UpdatedFloatingRecords).IsEqualTo(1);
+            await Assert.That(log.NewRecords).IsEqualTo(0);
+
+            var floating = _context.Members.Where(m => m.AdmissionReference == "REF-FLOAT-2").Single();
+            await Assert.That(floating.FirstName).IsEqualTo("Renamed");
+            await Assert.That(floating.MemberNumber).IsNull();
+        } finally {
+            File.Delete(second);
+        }
+    }
+
+    [Test]
+    public async Task ImportFromFile_FloatingPromotedToActive_UpdatesInPlaceAndCountsPromoted() {
+        var first = WriteTempCsv(Row("", "REF-PROMOTE-1", firstName: "WillBe"));
+        try {
+            _service.ImportFromFile(first);
+        } finally {
+            File.Delete(first);
+        }
+        var originalId = _context.Members.Where(m => m.AdmissionReference == "REF-PROMOTE-1").Single().Id;
+
+        var second = WriteTempCsv(Row("5500", "REF-PROMOTE-1", firstName: "WillBe"));
+        try {
+            var log = _service.ImportFromFile(second);
+
+            await Assert.That(log.PromotedRecords).IsEqualTo(1);
+            await Assert.That(log.UpdatedRecords).IsEqualTo(1);
+            await Assert.That(log.NewRecords).IsEqualTo(0);
+
+            var promoted = _context.Members.Where(m => m.Id == originalId).Single();
+            await Assert.That(promoted.MemberNumber).IsEqualTo(5500);
+            await Assert.That(promoted.AdmissionReference).IsEqualTo("REF-PROMOTE-1");
+
+            var byNumber = _context.Members.Where(m => m.MemberNumber == 5500).Count();
+            await Assert.That(byNumber).IsEqualTo(1);
+        } finally {
+            File.Delete(second);
+        }
+    }
+
 }
