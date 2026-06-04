@@ -480,6 +480,7 @@ public static class I18nKey {
             public const string BoardWorkMembers = "ui.main_nav_bar.board_work.members";
             public const string BoardWorkEvents = "ui.main_nav_bar.board_work.events";
             public const string BoardWorkEventTemplates = "ui.main_nav_bar.board_work.event_templates";
+            public const string BoardWorkMailings = "ui.main_nav_bar.board_work.mailings";
             public const string Administration = "ui.main_nav_bar.administration";
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
@@ -1297,6 +1298,55 @@ public static class I18nKey {
             public const string RemovedLabel = "ui.import_status.removed_label";
             public const string RemappedLabel = "ui.import_status.remapped_label";
             public const string OrphanedLabel = "ui.import_status.orphaned_label";
+        }
+
+        public static class Mailings {
+            public const string PageTitle = "ui.mailings.page_title";
+            public const string NewMailButton = "ui.mailings.new_mail_button";
+            public const string IncludeArchivedToggle = "ui.mailings.include_archived_toggle";
+            public const string TitleColumn = "ui.mailings.title_column";
+            public const string ChapterColumn = "ui.mailings.chapter_column";
+            public const string TargetColumn = "ui.mailings.target_column";
+            public const string StatusColumn = "ui.mailings.status_column";
+            public const string CreatedColumn = "ui.mailings.created_column";
+            public const string SentColumn = "ui.mailings.sent_column";
+            public const string RecipientsColumn = "ui.mailings.recipients_column";
+            public const string StatusDraft = "ui.mailings.status_draft";
+            public const string StatusSent = "ui.mailings.status_sent";
+            public const string StatusArchived = "ui.mailings.status_archived";
+            public const string TargetTypeChapter = "ui.mailings.target_type_chapter";
+            public const string TargetTypeAdminDivision = "ui.mailings.target_type_admin_division";
+            public const string NoMailings = "ui.mailings.no_mailings";
+            public const string NewMailDialogTitle = "ui.mailings.new_mail_dialog_title";
+            public const string NewMailChapterLabel = "ui.mailings.new_mail_chapter_label";
+            public const string NewMailTitleLabel = "ui.mailings.new_mail_title_label";
+            public const string CreateButton = "ui.mailings.create_button";
+            public const string EditTitleLabel = "ui.mailings.edit_title_label";
+            public const string TargetSection = "ui.mailings.target_section";
+            public const string TargetTypeLabel = "ui.mailings.target_type_label";
+            public const string TargetIdLabel = "ui.mailings.target_id_label";
+            public const string IncludeDescendantsLabel = "ui.mailings.include_descendants_label";
+            public const string SubjectLabel = "ui.mailings.subject_label";
+            public const string ModeLabel = "ui.mailings.mode_label";
+            public const string ModeTemplate = "ui.mailings.mode_template";
+            public const string ModeManual = "ui.mailings.mode_manual";
+            public const string TemplateLabel = "ui.mailings.template_label";
+            public const string ContentLabel = "ui.mailings.content_label";
+            public const string SaveButton = "ui.mailings.save_button";
+            public const string RecipientPreviewButton = "ui.mailings.recipient_preview_button";
+            public const string SendButton = "ui.mailings.send_button";
+            public const string DeleteButton = "ui.mailings.delete_button";
+            public const string BackToList = "ui.mailings.back_to_list";
+            public const string SentNoticePrefix = "ui.mailings.sent_notice_prefix";
+            public const string ArchivedNoticePrefix = "ui.mailings.archived_notice_prefix";
+            public const string SendConfirmTitle = "ui.mailings.send_confirm_title";
+            public const string SendConfirmBody = "ui.mailings.send_confirm_body";
+            public const string DeleteConfirmDraft = "ui.mailings.delete_confirm_draft";
+            public const string DeleteConfirmSent = "ui.mailings.delete_confirm_sent";
+            public const string RecipientCountHeader = "ui.mailings.recipient_count_header";
+            public const string RecipientsEmpty = "ui.mailings.recipients_empty";
+            public const string SendDisabledMissingTemplate = "ui.mailings.send_disabled_missing_template";
+            public const string SendDisabledMissingManualContent = "ui.mailings.send_disabled_missing_manual_content";
         }
 
         public static class ChapterList {

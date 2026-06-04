@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
+using Quartermaster.Data.ChapterMails;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
@@ -37,6 +38,7 @@ public class DbContext : DataConnection {
     public ITable<Chapter> Chapters => this.GetTable<Chapter>();
     public ITable<ChapterExternalCode> ChapterExternalCodes => this.GetTable<ChapterExternalCode>();
     public ITable<ChapterAdministrativeDivision> ChapterAdministrativeDivisions => this.GetTable<ChapterAdministrativeDivision>();
+    public ITable<ChapterMail> ChapterMails => this.GetTable<ChapterMail>();
     public ITable<MembershipApplication> MembershipApplications => this.GetTable<MembershipApplication>();
     public ITable<ChapterOfficer> ChapterOfficers => this.GetTable<ChapterOfficer>();
     public ITable<Motion> Motions => this.GetTable<Motion>();
@@ -93,6 +95,7 @@ public class DbContext : DataConnection {
         services.AddScoped<Meetings.AgendaItemRepository>();
         services.AddScoped<CollabDocumentRepository>();
         services.AddScoped<UsedSamlAssertionRepository>();
+        services.AddScoped<ChapterMails.ChapterMailRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>

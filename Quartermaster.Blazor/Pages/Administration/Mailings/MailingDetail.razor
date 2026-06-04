@@ -1,0 +1,185 @@
+@page "/Administration/Mailings/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.ChapterMails
+@using Quartermaster.Api.I18n
+
+<PageBackLink Href="/Administration/Mailings" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Mail == null) {
+    <div class="alert alert-danger">Mail not found.</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3>@Mail.Title</h3>
+            <span class="text-secondary">@Mail.ChapterName</span>
+        </div>
+        <div>
+            @if (Mail.IsArchived) {
+                <span class="badge border border-secondary text-secondary-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusArchived]</span>
+            } else if (Mail.IsSent) {
+                <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusSent]</span>
+            } else {
+                <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusDraft]</span>
+            }
+        </div>
+    </div>
+
+    @if (Mail.IsSent) {
+        <div class="alert alert-info">
+            @I18n[$"{I18nKey.Ui.Mailings.SentNoticePrefix}?date={Mail.SentAt?.ToString("u")}&user={Mail.SentByDisplayName}&count={Mail.RecipientCount}"]
+        </div>
+    }
+    @if (Mail.IsArchived) {
+        <div class="alert alert-secondary">
+            @I18n[$"{I18nKey.Ui.Mailings.ArchivedNoticePrefix}?date={Mail.DeletedAt?.ToString("u")}"]
+        </div>
+    }
+
+    <fieldset disabled="@ReadOnly">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">@I18n[I18nKey.Ui.Mailings.EditTitleLabel] <RequiredStar /></label>
+                    <input type="text" class="form-control" @bind="EditTitle" @bind:event="oninput" />
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.Mailings.TargetSection]</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.TargetTypeLabel]</label>
+                        <select class="form-select" @bind="EditTargetType" @bind:after="OnTargetTypeChanged">
+                            <option value="@ChapterMailTargetType.Chapter">@I18n[I18nKey.Ui.Mailings.TargetTypeChapter]</option>
+                            <option value="@ChapterMailTargetType.AdministrativeDivision">@I18n[I18nKey.Ui.Mailings.TargetTypeAdminDivision]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.TargetIdLabel]</label>
+                        @if (EditTargetType == ChapterMailTargetType.Chapter) {
+                            <ChapterPicker Value="@EditTargetId" ValueChanged="OnTargetIdChanged" />
+                        } else {
+                            <AdminDivisionPicker Value="@EditTargetId" ValueChanged="OnTargetIdChanged" />
+                        }
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="includeDescendants" @bind="EditIncludeDescendants" />
+                            <label class="form-check-label" for="includeDescendants">
+                                @I18n[I18nKey.Ui.Mailings.IncludeDescendantsLabel]
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label me-3">@I18n[I18nKey.Ui.Mailings.ModeLabel]</label>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" id="mode-template" name="mailing-mode"
+                               checked="@UseTemplateMode" @onchange="() => SwitchMode(true)" />
+                        <label class="btn btn-outline-primary" for="mode-template">@I18n[I18nKey.Ui.Mailings.ModeTemplate]</label>
+                        <input type="radio" class="btn-check" id="mode-manual" name="mailing-mode"
+                               checked="@(!UseTemplateMode)" @onchange="() => SwitchMode(false)" />
+                        <label class="btn btn-outline-primary" for="mode-manual">@I18n[I18nKey.Ui.Mailings.ModeManual]</label>
+                    </div>
+                </div>
+                @if (UseTemplateMode) {
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.TemplateLabel] <RequiredStar /></label>
+                        <TemplatePicker Value="EditTemplateId" ValueChanged="OnTemplateChanged" />
+                    </div>
+                    @if (EditTemplateId.HasValue && TemplateBody != null) {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label small text-secondary mb-1">@I18n[I18nKey.Ui.MarkdownEditorWithPreview.MarkdownLabel]</label>
+                                <textarea class="form-control font-monospace" rows="12" readonly disabled>@TemplateBody</textarea>
+                            </div>
+                            <div class="col-md-6 d-flex flex-column">
+                                <label class="form-label small text-secondary mb-1">@I18n[I18nKey.Ui.MarkdownEditorWithPreview.PreviewLabel]</label>
+                                <div class="card bg-body-secondary flex-grow-1">
+                                    <div class="card-body overflow-auto p-2">
+                                        @if (string.IsNullOrEmpty(TemplatePreviewHtml)) {
+                                            <span class="text-secondary">...</span>
+                                        } else {
+                                            @((MarkupString)TemplatePreviewHtml)
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                } else {
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.SubjectLabel] <RequiredStar /></label>
+                        <input type="text" class="form-control" @bind="EditSubject" @bind:event="oninput" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.ContentLabel] <RequiredStar /></label>
+                        <MarkdownEditorWithPreview Value="@EditContent" ValueChanged="OnContentChanged" />
+                    </div>
+                }
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="d-flex gap-2 flex-wrap mb-4">
+        @if (!ReadOnly) {
+            <button class="btn btn-primary" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(EditTitle))">
+                <i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Mailings.SaveButton]
+            </button>
+        }
+        <button class="btn btn-outline-info" @onclick="LoadRecipients">
+            <i class="bi bi-people"></i> @I18n[I18nKey.Ui.Mailings.RecipientPreviewButton]
+        </button>
+        @if (!Mail.IsSent && !Mail.IsArchived) {
+            <button class="btn btn-success" @onclick="ConfirmSend"
+                    disabled="@SendDisabled"
+                    title="@SendDisabledReason"
+                    style="@(SendDisabled ? "pointer-events: auto; cursor: not-allowed;" : null)">
+                <i class="bi bi-send"></i> @I18n[I18nKey.Ui.Mailings.SendButton]
+            </button>
+            <button class="btn btn-outline-danger ms-auto" @onclick="ConfirmDelete">
+                <i class="bi bi-trash"></i> @I18n[I18nKey.Ui.Mailings.DeleteButton]
+            </button>
+        } else if (Mail.IsSent && !Mail.IsArchived) {
+            <button class="btn btn-outline-secondary ms-auto" @onclick="ConfirmDelete">
+                <i class="bi bi-archive"></i> @I18n[I18nKey.Ui.Mailings.DeleteButton]
+            </button>
+        }
+    </div>
+
+    @if (Recipients != null) {
+        <div class="card mb-4 bg-body-secondary">
+            <div class="card-body">
+                @if (Recipients.Count == 0) {
+                    <p class="text-secondary mb-0">@I18n[I18nKey.Ui.Mailings.RecipientsEmpty]</p>
+                } else {
+                    <h6 class="mb-2">@I18n[$"{I18nKey.Ui.Mailings.RecipientCountHeader}?count={Recipients.Count}"]</h6>
+                    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tbody>
+                                @foreach (var r in Recipients) {
+                                    <tr>
+                                        <td class="text-nowrap">@($"{r.FirstName} {r.LastName}".Trim())</td>
+                                        <td class="text-nowrap font-monospace small">@r.Email</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <ConfirmDialog @ref="DeleteConfirm" />
+    <ConfirmDialog @ref="SendConfirm" />
+}

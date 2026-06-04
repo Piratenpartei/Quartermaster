@@ -55,6 +55,10 @@
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewTemplates">
                                     <li><a class="dropdown-item" href="/Administration/EventTemplates">@I18n[I18nKey.Ui.MainNavBar.BoardWorkEventTemplates]</a></li>
                                 </RequirePermission>
+                                <RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageChapterMail">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/Mailings">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMailings]</a></li>
+                                </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
                     </li>

@@ -62,6 +62,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.CreateMeetings, "Sitzungen erstellen", false);
         AddIfNotExists(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
         AddIfNotExists(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
+        AddIfNotExists(PermissionIdentifier.ManageChapterMail, "Mailings verwalten", false);
     }
 
     private void AddIfNotExists(string identifier, string displayName, bool global) {

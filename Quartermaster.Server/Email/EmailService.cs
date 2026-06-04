@@ -40,7 +40,9 @@ public class EmailService {
         string? descriptionOverride, string? manualAddresses,
         string? sourceEntityType = null, Guid? sourceEntityId = null,
         Guid? resolutionChapterId = null,
-        Func<Member?, Dictionary<string, object>>? modelFactory = null) {
+        Func<Member?, Dictionary<string, object>>? modelFactory = null,
+        bool descendChapterTree = true,
+        string? subjectOverride = null) {
 
         var effectiveResolutionChapter = resolutionChapterId
             ?? (targetType == "Chapter" && targetId != Guid.Empty ? targetId : (Guid?)null);
@@ -52,7 +54,10 @@ public class EmailService {
         if (string.IsNullOrEmpty(bodyContent))
             return (0, "Kein Template-Inhalt verfügbar.");
 
-        var subject = template?.Subject ?? template?.DisplayName ?? "Nachricht";
+        var subject = subjectOverride
+            ?? template?.Subject
+            ?? template?.DisplayName
+            ?? "Nachricht";
         var count = 0;
         var factory = modelFactory ?? (_ => new Dictionary<string, object>());
 
@@ -69,7 +74,7 @@ public class EmailService {
                 count++;
             }
         } else {
-            var members = FetchTargetMembers(targetType, targetId);
+            var members = FetchTargetMembers(targetType, targetId, descendChapterTree);
             foreach (var member in members) {
                 if (string.IsNullOrEmpty(member.Email))
                     continue;
@@ -105,9 +110,11 @@ public class EmailService {
             Metadata: metadata));
     }
 
-    public List<Member> FetchTargetMembers(string targetType, Guid targetId) {
+    public List<Member> FetchTargetMembers(string targetType, Guid targetId, bool descendChapterTree = true) {
         if (targetType == "Chapter" && targetId != Guid.Empty) {
-            var chapterIds = _chapterRepo.GetDescendantIds(targetId);
+            var chapterIds = descendChapterTree
+                ? _chapterRepo.GetDescendantIds(targetId)
+                : new List<Guid> { targetId };
             return _memberRepo.GetByChapterIds(chapterIds);
         }
 

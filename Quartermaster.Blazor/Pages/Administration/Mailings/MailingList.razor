@@ -1,0 +1,88 @@
+@page "/Administration/Mailings"
+@using Quartermaster.Api
+@using Quartermaster.Api.ChapterMails
+@using Quartermaster.Api.I18n
+
+<PageHeader Title="@I18n[I18nKey.Ui.Mailings.PageTitle]">
+    <Actions>
+        <button class="btn btn-sm btn-primary" @onclick="ShowNewMailDialog">
+            <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.Mailings.NewMailButton]
+        </button>
+    </Actions>
+</PageHeader>
+
+<div class="mb-3 d-flex gap-3 flex-wrap align-items-center">
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="includeArchivedToggle"
+               @bind="IncludeArchived" @bind:after="LoadList" />
+        <label class="form-check-label" for="includeArchivedToggle">
+            @I18n[I18nKey.Ui.Mailings.IncludeArchivedToggle]
+        </label>
+    </div>
+</div>
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Response != null) {
+    @if (Response.Items.Count == 0) {
+        <p class="text-secondary">@I18n[I18nKey.Ui.Mailings.NoMailings]</p>
+    } else {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.Mailings.TitleColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.ChapterColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.TargetColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.StatusColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.CreatedColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.SentColumn]</th>
+                        <th>@I18n[I18nKey.Ui.Mailings.RecipientsColumn]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Response.Items) {
+                        <tr>
+                            <td><a href="/Administration/Mailings/@m.Id">@m.Title</a></td>
+                            <td>@m.ChapterName</td>
+                            <td>@RenderTarget(m)</td>
+                            <td>@RenderStatus(m)</td>
+                            <td><LocalTime Value="m.CreatedAt" /></td>
+                            <td>@(m.SentAt.HasValue ? null : "")<LocalTime Value="m.SentAt" /></td>
+                            <td>@(m.RecipientCount?.ToString() ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@if (ShowNewDialog) {
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@I18n[I18nKey.Ui.Mailings.NewMailDialogTitle]</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.NewMailChapterLabel] <RequiredStar /></label>
+                        <ChapterPicker Value="@NewMailChapterId" ValueChanged="OnNewMailChapterChanged" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.Mailings.NewMailTitleLabel] <RequiredStar /></label>
+                        <input type="text" class="form-control" @bind="NewMailTitle" @bind:event="oninput" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelNewMail">@I18n[I18nKey.Ui.Confirm.DefaultCancel]</button>
+                    <button class="btn btn-primary" @onclick="CreateNewMail"
+                            disabled="@(string.IsNullOrWhiteSpace(NewMailChapterId) || string.IsNullOrWhiteSpace(NewMailTitle) || Creating)">
+                        @I18n[I18nKey.Ui.Mailings.CreateButton]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

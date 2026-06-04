@@ -63,6 +63,8 @@ public static class PermissionIdentifier {
     public static readonly string EditMeetings = "meetings_edit";
     public static readonly string DeleteMeetings = "meetings_delete";
 
+    public static readonly string ManageChapterMail = "chaptermail_manage";
+
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
         ViewMotions, ViewApplications, ViewDueSelections,
@@ -88,6 +90,7 @@ public static class PermissionIdentifier {
         ViewMembers,
         ViewOfficers,
         ViewTemplates, EditTemplates,
-        ViewMeetings, CreateMeetings, EditMeetings
+        ViewMeetings, CreateMeetings, EditMeetings,
+        ManageChapterMail
     ];
 }
