@@ -1,0 +1,169 @@
+@page "/Administration/Notifications/Stats"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.Notifications
+@using Quartermaster.Blazor.Components.Inputs
+
+<PageBackLink Href="/" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ViewNotificationLogs">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.NotificationStats.PageTitle]</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterFrom]</label>
+                    <input type="date" class="form-control" value="@FromIso" @oninput="OnFromChanged" />
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterTo]</label>
+                    <input type="date" class="form-control" value="@ToIso" @oninput="OnToChanged" />
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterChannel]</label>
+                    <select class="form-select" value="@ChannelId" @onchange="OnChannelSelected">
+                        <option value="">@I18n[I18nKey.Ui.NotificationStats.FilterAnyChannel]</option>
+                        @if (Catalog != null) {
+                            @foreach (var c in Catalog.Channels) {
+                                <option value="@c.Value">@c.DisplayName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterGroupBy]</label>
+                    <select class="form-select" @bind="GroupBy">
+                        <option value="@NotificationStatsGroupByDTO.None">@I18n[I18nKey.Ui.NotificationStats.GroupByNone]</option>
+                        <option value="@NotificationStatsGroupByDTO.Trigger">@I18n[I18nKey.Ui.NotificationStats.GroupByTrigger]</option>
+                        <option value="@NotificationStatsGroupByDTO.Template">@I18n[I18nKey.Ui.NotificationStats.GroupByTemplate]</option>
+                        <option value="@NotificationStatsGroupByDTO.SourceEntityType">@I18n[I18nKey.Ui.NotificationStats.GroupBySourceEntityType]</option>
+                        <option value="@NotificationStatsGroupByDTO.Channel">@I18n[I18nKey.Ui.NotificationStats.GroupByChannel]</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterTrigger]</label>
+                    <StringFilterCombo Items="@(Catalog?.Triggers ?? new())" Value="@TriggerId"
+                        ValueChanged="@(v => OnTriggerChanged(v))"
+                        AllOptionLabel="@I18n[I18nKey.Ui.NotificationStats.FilterAnyTrigger]" />
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterTemplate]</label>
+                    <StringFilterCombo Items="@(Catalog?.Templates ?? new())" Value="@TemplateIdentifier"
+                        ValueChanged="@(v => OnTemplateChanged(v))"
+                        AllOptionLabel="@I18n[I18nKey.Ui.NotificationStats.FilterAnyTemplate]" />
+                </div>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.NotificationStats.FilterSourceEntityType]</label>
+                    <StringFilterCombo Items="@(Catalog?.SourceEntityTypes ?? new())" Value="@SourceEntityType"
+                        ValueChanged="@(v => OnSourceChanged(v))"
+                        AllOptionLabel="@I18n[I18nKey.Ui.NotificationStats.FilterAnySourceEntity]" />
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-primary" @onclick="ApplyFilters" disabled="@Loading">
+                    <i class="bi bi-funnel me-1"></i> @I18n[I18nKey.Ui.NotificationStats.ApplyButton]
+                </button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="ResetFilters" disabled="@Loading">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> @I18n[I18nKey.Ui.NotificationStats.ResetButton]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (Stats != null) {
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummarySent]</div>
+                        <div class="fs-3 fw-semibold">@Stats.Sent</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryFailed]</div>
+                        <div class="fs-3 fw-semibold">@Stats.Failed</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryBounced]</div>
+                        <div class="fs-3 fw-semibold">@Stats.Bounced</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryMdnRequested]</div>
+                        <div class="fs-3 fw-semibold">@Stats.MdnRequested</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryMdnReceived]</div>
+                        <div class="fs-3 fw-semibold">@Stats.MdnReceived</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryReadRate]</div>
+                        <div class="fs-3 fw-semibold">@FormatReadRate(Stats.MdnReceived, Stats.MdnRequested)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small">@I18n[I18nKey.Ui.NotificationStats.SummaryAverageTimeToRead]</div>
+                        <div class="fs-3 fw-semibold">@FormatDuration(Stats.AverageTimeToReadSeconds)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (GroupBy != NotificationStatsGroupByDTO.None) {
+            @if (Stats.Buckets.Count == 0) {
+                <div class="alert alert-info">@I18n[I18nKey.Ui.NotificationStats.NoData]</div>
+            } else {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderKey]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderSent]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderMdnRequested]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderMdnReceived]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderBounced]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.NotificationStats.BreakdownTableHeaderReadRate]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bucket in Stats.Buckets) {
+                                <tr>
+                                    <td>@DisplayKey(bucket.Key)</td>
+                                    <td class="text-end">@bucket.Sent</td>
+                                    <td class="text-end">@bucket.MdnRequested</td>
+                                    <td class="text-end">@bucket.MdnReceived</td>
+                                    <td class="text-end">@bucket.Bounced</td>
+                                    <td class="text-end">@FormatReadRate(bucket.MdnReceived, bucket.MdnRequested)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    }
+</RequirePermission>

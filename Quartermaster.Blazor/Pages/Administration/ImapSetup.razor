@@ -1,0 +1,34 @@
+@page "/Administration/Setup/Imap"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+
+<PageBackLink Href="/Administration/Settings" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.ImapSetup.PageTitle]</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">@I18n[I18nKey.Ui.ImapSetup.ServerSettingsTitle]</h5>
+                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CopyFromSmtp" disabled="@(Copying)">
+                    <i class="bi bi-arrow-down-left-square me-1"></i> @I18n[I18nKey.Ui.ImapSetup.CopyFromSmtpButton]
+                </button>
+            </div>
+            <OptionGroupEditor @ref="ImapEditor" Keys="@ImapKeys" />
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">@I18n[I18nKey.Ui.ImapSetup.MdnSectionTitle]</h5>
+            @if (!string.IsNullOrEmpty(SmtpSenderFallback)) {
+                <p class="text-secondary small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @I18n[$"{I18nKey.Ui.ImapSetup.ReceiptFallbackHint}?sender={SmtpSenderFallback}"]
+                </p>
+            }
+            <OptionGroupEditor @ref="MdnEditor" Keys="@MdnKeys" />
+        </div>
+    </div>
+</RequirePermission>

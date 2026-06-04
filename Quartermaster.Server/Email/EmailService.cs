@@ -70,7 +70,7 @@ public class EmailService {
 
             foreach (var addr in addresses) {
                 await EnqueueEmailAsync(addr, subject, bodyContent, templateId,
-                    factory(null), sourceEntityType, sourceEntityId);
+                    factory(null), sourceEntityType, sourceEntityId, recipientMemberId: null);
                 count++;
             }
         } else {
@@ -79,7 +79,7 @@ public class EmailService {
                 if (string.IsNullOrEmpty(member.Email))
                     continue;
                 await EnqueueEmailAsync(member.Email, subject, bodyContent, templateId,
-                    factory(member), sourceEntityType, sourceEntityId);
+                    factory(member), sourceEntityType, sourceEntityId, recipientMemberId: member.Id);
                 count++;
             }
         }
@@ -91,16 +91,22 @@ public class EmailService {
 
     private async Task EnqueueEmailAsync(string recipient, string subject, string templateContent,
         Guid? templateId, Dictionary<string, object> model,
-        string? sourceEntityType, Guid? sourceEntityId) {
+        string? sourceEntityType, Guid? sourceEntityId, Guid? recipientMemberId) {
 
         var (html, error) = await TemplateRenderer.RenderHtmlAsync(templateContent, model);
         if (error != null)
             _logger.LogWarning("Template render error for {Recipient}: {Error}", recipient, error);
         var htmlBody = html ?? templateContent;
 
-        var metadata = templateId.HasValue
-            ? new Dictionary<string, string> { [NotificationLogMetadataKeys.TemplateIdentifier] = templateId.Value.ToString() }
-            : null;
+        Dictionary<string, string>? metadata = null;
+        if (templateId.HasValue) {
+            metadata ??= new();
+            metadata[NotificationLogMetadataKeys.TemplateIdentifier] = templateId.Value.ToString();
+        }
+        if (recipientMemberId.HasValue) {
+            metadata ??= new();
+            metadata[NotificationLogMetadataKeys.RecipientMemberId] = recipientMemberId.Value.ToString();
+        }
         await _emailChannel.SendAsync(new ChannelMessage(
             ChannelAddress: recipient,
             Subject: subject,

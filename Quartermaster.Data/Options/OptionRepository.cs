@@ -219,6 +219,52 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "50",
             description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl sofort verfügbarer weiterer Nachrichten mit, und sendet alle über eine einzige Verbindung. Standard: 50.");
 
+        AddDefinitionIfNotExists("email.imap.host",
+            "IMAP: Server",
+            OptionDataType.String, false, "", "",
+            description: "Hostname des IMAP-Servers für eingehende Lesebestätigungen.");
+
+        AddDefinitionIfNotExists("email.imap.port",
+            "IMAP: Port",
+            OptionDataType.Number, false, "", "993",
+            description: "Port des IMAP-Servers. Standard: 993 (SSL) oder 143 (STARTTLS).");
+
+        AddDefinitionIfNotExists("email.imap.use_ssl",
+            "IMAP: SSL verwenden",
+            OptionDataType.String, false, "", "true",
+            description: "Wenn 'true', wird SSL/TLS direkt beim Verbindungsaufbau verwendet (Port 993). Bei 'false' STARTTLS auf Port 143.");
+
+        AddDefinitionIfNotExists("email.imap.username",
+            "IMAP: Benutzername",
+            OptionDataType.String, false, "", "",
+            description: "Benutzername für die IMAP-Authentifizierung.");
+
+        AddDefinitionIfNotExists("email.imap.password",
+            "IMAP: Passwort",
+            OptionDataType.String, false, "", "",
+            description: "Passwort für die IMAP-Authentifizierung.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("email.imap.mailbox",
+            "IMAP: Postfach",
+            OptionDataType.String, false, "", "INBOX",
+            description: "Postfach, in dem nach eingehenden Lesebestätigungen gesucht wird. Standard: INBOX.");
+
+        AddDefinitionIfNotExists("email.imap.poll_interval_minutes",
+            "IMAP: Abrufintervall (Minuten)",
+            OptionDataType.Number, false, "", "15",
+            description: "Wie oft das Postfach nach neuen Lesebestätigungen geprüft wird. Standard: 15 Minuten.");
+
+        AddDefinitionIfNotExists("email.mdn.request_default",
+            "MDN: Lesebestätigung anfordern (Standard)",
+            OptionDataType.String, false, "", "true",
+            description: "Wenn 'true', wird für jede ausgehende E-Mail standardmäßig eine Lesebestätigung angefordert. Empfänger können diese Anforderung in ihrem Mailprogramm ablehnen.");
+
+        AddDefinitionIfNotExists("email.mdn.receipt_address",
+            "MDN: Empfangsadresse",
+            OptionDataType.String, false, "", "",
+            description: "E-Mail-Adresse, an die Lesebestätigungen geschickt werden. Bleibt das Feld leer, wird die SMTP-Absenderadresse verwendet.");
+
         AddDefinitionIfNotExists("messaging.telegram.bot_token",
             "Telegram: Bot-Token",
             OptionDataType.String, false, "", "",

@@ -37,7 +37,10 @@ public partial class OptionGroupEditor {
     private readonly Dictionary<string, string> _values = new();
     private bool Saving;
 
-    protected override async Task OnInitializedAsync() {
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    /// <summary>Re-fetches the field definitions + current values from the server. Call after a sibling component (e.g. a "copy from SMTP" button) has written option values directly so this editor shows the updated state.</summary>
+    public async Task ReloadAsync() {
         try {
             var all = await Http.GetFromJsonAsync<List<OptionDefinitionDTO>>("/api/options") ?? new();
             var byId = all.ToDictionary(o => o.Identifier);
@@ -45,10 +48,12 @@ public partial class OptionGroupEditor {
                 .Where(byId.ContainsKey)
                 .Select(k => byId[k])
                 .ToList();
+            _values.Clear();
             foreach (var field in Fields) {
                 // Secrets start blank so we never echo or re-save the stored value unless changed.
                 _values[field.Identifier] = field.IsSecret ? "" : field.GlobalValue;
             }
+            StateHasChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

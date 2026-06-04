@@ -72,7 +72,7 @@ public static class PermissionIdentifier {
     ];
 
     public static readonly List<string> SystemPermissions = [
-        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport, ManageRoles
+        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport, ManageRoles, ViewNotificationLogs
     ];
 
     // Well-known role identifiers (seeded as system roles)

@@ -496,6 +496,7 @@ public static class I18nKey {
             public const string SystemMembers = "ui.main_nav_bar.system.members";
             public const string SystemMemberImport = "ui.main_nav_bar.system.member_import";
             public const string SystemImportStatus = "ui.main_nav_bar.system.import_status";
+            public const string SystemNotificationStats = "ui.main_nav_bar.system.notification_stats";
             public const string MySessionsTitle = "ui.main_nav_bar.my_sessions_title";
             public const string NotificationsTitle = "ui.main_nav_bar.notifications_title";
             public const string Logout = "ui.main_nav_bar.logout";
@@ -1349,6 +1350,43 @@ public static class I18nKey {
             public const string SendDisabledMissingManualContent = "ui.mailings.send_disabled_missing_manual_content";
         }
 
+        public static class NotificationStats {
+            public const string PageTitle = "ui.notification_stats.page_title";
+            public const string FilterFrom = "ui.notification_stats.filter_from";
+            public const string FilterTo = "ui.notification_stats.filter_to";
+            public const string FilterChannel = "ui.notification_stats.filter_channel";
+            public const string FilterTrigger = "ui.notification_stats.filter_trigger";
+            public const string FilterTemplate = "ui.notification_stats.filter_template";
+            public const string FilterSourceEntityType = "ui.notification_stats.filter_source_entity_type";
+            public const string FilterGroupBy = "ui.notification_stats.filter_group_by";
+            public const string ApplyButton = "ui.notification_stats.apply_button";
+            public const string ResetButton = "ui.notification_stats.reset_button";
+            public const string SummarySent = "ui.notification_stats.summary_sent";
+            public const string SummaryFailed = "ui.notification_stats.summary_failed";
+            public const string SummaryMdnRequested = "ui.notification_stats.summary_mdn_requested";
+            public const string SummaryMdnReceived = "ui.notification_stats.summary_mdn_received";
+            public const string SummaryBounced = "ui.notification_stats.summary_bounced";
+            public const string SummaryReadRate = "ui.notification_stats.summary_read_rate";
+            public const string SummaryAverageTimeToRead = "ui.notification_stats.summary_average_time_to_read";
+            public const string GroupByNone = "ui.notification_stats.group_by_none";
+            public const string GroupByTrigger = "ui.notification_stats.group_by_trigger";
+            public const string GroupByTemplate = "ui.notification_stats.group_by_template";
+            public const string GroupBySourceEntityType = "ui.notification_stats.group_by_source_entity_type";
+            public const string GroupByChannel = "ui.notification_stats.group_by_channel";
+            public const string BreakdownTableHeaderKey = "ui.notification_stats.breakdown_table_header_key";
+            public const string BreakdownTableHeaderSent = "ui.notification_stats.breakdown_table_header_sent";
+            public const string BreakdownTableHeaderMdnRequested = "ui.notification_stats.breakdown_table_header_mdn_requested";
+            public const string BreakdownTableHeaderMdnReceived = "ui.notification_stats.breakdown_table_header_mdn_received";
+            public const string BreakdownTableHeaderBounced = "ui.notification_stats.breakdown_table_header_bounced";
+            public const string BreakdownTableHeaderReadRate = "ui.notification_stats.breakdown_table_header_read_rate";
+            public const string NoData = "ui.notification_stats.no_data";
+            public const string EmptyKey = "ui.notification_stats.empty_key";
+            public const string FilterAnyChannel = "ui.notification_stats.filter_any_channel";
+            public const string FilterAnyTrigger = "ui.notification_stats.filter_any_trigger";
+            public const string FilterAnyTemplate = "ui.notification_stats.filter_any_template";
+            public const string FilterAnySourceEntity = "ui.notification_stats.filter_any_source_entity";
+        }
+
         public static class ChapterList {
             public const string PageTitle = "ui.chapter_list.page_title";
             public const string NewChapter = "ui.chapter_list.new_chapter";
@@ -1533,6 +1571,14 @@ public static class I18nKey {
             public const string TestErrorPrefix = "ui.smtp_setup.test_error_prefix";
         }
 
+        public static class ImapSetup {
+            public const string PageTitle = "ui.imap_setup.page_title";
+            public const string ServerSettingsTitle = "ui.imap_setup.server_settings_title";
+            public const string MdnSectionTitle = "ui.imap_setup.mdn_section_title";
+            public const string CopyFromSmtpButton = "ui.imap_setup.copy_from_smtp_button";
+            public const string ReceiptFallbackHint = "ui.imap_setup.receipt_fallback_hint";
+        }
+
         public static class SamlSetup {
             public const string PageTitle = "ui.saml_setup.page_title";
             public const string SettingsTitle = "ui.saml_setup.settings_title";
@@ -1612,6 +1658,7 @@ public static class I18nKey {
         public static class OptionList {
             public const string PageTitle = "ui.option_list.page_title";
             public const string SetupSmtp = "ui.option_list.setup_smtp";
+            public const string SetupImap = "ui.option_list.setup_imap";
             public const string SetupSaml = "ui.option_list.setup_saml";
             public const string SetupOidc = "ui.option_list.setup_oidc";
             public const string IdentifierColumn = "ui.option_list.identifier_column";

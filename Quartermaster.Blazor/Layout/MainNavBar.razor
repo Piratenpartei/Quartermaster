@@ -105,6 +105,10 @@
                                     <li><a class="dropdown-item" href="/Administration/Members/Import">@I18n[I18nKey.Ui.MainNavBar.SystemMemberImport]</a></li>
                                     <li><a class="dropdown-item" href="/Administration/ImportStatus">@I18n[I18nKey.Ui.MainNavBar.SystemImportStatus]</a></li>
                                 </RequirePermission>
+                                <RequirePermission GlobalPermission="@PermissionIdentifier.ViewNotificationLogs">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/Notifications/Stats">@I18n[I18nKey.Ui.MainNavBar.SystemNotificationStats]</a></li>
+                                </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
                     </li>

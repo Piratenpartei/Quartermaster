@@ -9,4 +9,5 @@ public static class NotificationLogMetadataKeys {
     public const string TriggerId = "TriggerId";
     public const string TemplateIdentifier = "TemplateIdentifier";
     public const string RecipientUserId = "RecipientUserId";
+    public const string RecipientMemberId = "RecipientMemberId";
 }

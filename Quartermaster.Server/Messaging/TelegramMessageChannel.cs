@@ -74,13 +74,19 @@ public class TelegramMessageChannel : IMessageChannel {
         var triggerId = TryGet(meta, NotificationLogMetadataKeys.TriggerId);
         Guid? recipientUserId = null;
         var recipientUserIdStr = TryGet(meta, NotificationLogMetadataKeys.RecipientUserId);
-        if (recipientUserIdStr != null && Guid.TryParse(recipientUserIdStr, out var parsed)) {
-            recipientUserId = parsed;
+        if (recipientUserIdStr != null && Guid.TryParse(recipientUserIdStr, out var parsedUser)) {
+            recipientUserId = parsedUser;
+        }
+        Guid? recipientMemberId = null;
+        var recipientMemberIdStr = TryGet(meta, NotificationLogMetadataKeys.RecipientMemberId);
+        if (recipientMemberIdStr != null && Guid.TryParse(recipientMemberIdStr, out var parsedMember)) {
+            recipientMemberId = parsedMember;
         }
         var log = new NotificationLog {
             ChannelId = ChannelId,
             Recipient = message.ChannelAddress,
             RecipientUserId = recipientUserId,
+            RecipientMemberId = recipientMemberId,
             Subject = message.Subject,
             TriggerId = triggerId,
             TemplateIdentifier = templateIdentifier,

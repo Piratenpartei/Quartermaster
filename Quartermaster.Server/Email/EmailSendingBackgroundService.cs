@@ -83,6 +83,7 @@ public class EmailSendingBackgroundService : BackgroundService {
         var logRepo = scope.ServiceProvider.GetRequiredService<NotificationLogRepository>();
 
         var config = SmtpConfig.ReadFrom(optionRepo);
+        var mdnConfig = MdnConfig.ReadFrom(optionRepo, config);
         if (config == null) {
             foreach (var msg in batch) {
                 logRepo.IncrementAttempt(msg.NotificationLogId);
@@ -108,8 +109,14 @@ public class EmailSendingBackgroundService : BackgroundService {
                 var msg = batch[i];
                 try {
                     logRepo.IncrementAttempt(msg.NotificationLogId);
-                    await SendOneAsync(client, msg, config, ct);
-                    logRepo.UpdateStatus(msg.NotificationLogId, "Sent", null, DateTime.UtcNow);
+                    var sentAt = DateTime.UtcNow;
+                    var (messageId, mdnRequested) = await SendOneAsync(client, msg, config, mdnConfig, ct);
+                    logRepo.UpdateStatus(msg.NotificationLogId, "Sent", null, sentAt);
+                    if (mdnRequested) {
+                        logRepo.RecordMdnRequest(msg.NotificationLogId, messageId, sentAt);
+                    } else if (!string.IsNullOrEmpty(messageId)) {
+                        logRepo.RecordOutboundMessageId(msg.NotificationLogId, messageId);
+                    }
                     _logger.LogInformation("Email sent to {Recipient}", msg.To);
                 } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
                     throw;
@@ -141,14 +148,23 @@ public class EmailSendingBackgroundService : BackgroundService {
         }
     }
 
-    private async Task SendOneAsync(SmtpClient client, EmailMessage message, SmtpConfig config, CancellationToken ct) {
+    private async Task<(string MessageId, bool MdnRequested)> SendOneAsync(
+        SmtpClient client, EmailMessage message, SmtpConfig config, MdnConfig mdnConfig, CancellationToken ct) {
+
         var mimeMessage = new MimeMessage();
         mimeMessage.From.Add(new MailboxAddress(config.SenderName, config.SenderAddress));
         mimeMessage.To.Add(MailboxAddress.Parse(message.To));
         mimeMessage.Subject = message.Subject;
         mimeMessage.Body = new TextPart("html") { Text = message.Body };
 
+        var mdnRequested = mdnConfig.RequestDefault && !string.IsNullOrEmpty(mdnConfig.ReceiptAddress);
+        if (mdnRequested) {
+            mimeMessage.Headers.Add("Disposition-Notification-To", mdnConfig.ReceiptAddress);
+            mimeMessage.Headers.Add("Return-Receipt-To", mdnConfig.ReceiptAddress);
+        }
+
         await client.SendAsync(mimeMessage, ct);
+        return (mimeMessage.MessageId ?? "", mdnRequested);
     }
 
     private Task HandleFailure(EmailMessage message, string error, CancellationToken ct) {

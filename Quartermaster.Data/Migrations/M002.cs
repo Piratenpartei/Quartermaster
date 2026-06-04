@@ -2,6 +2,7 @@ using FluentMigrator;
 using Quartermaster.Data.ChapterMails;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Templates;
 using Quartermaster.Data.Users;
 
@@ -56,9 +57,36 @@ public class M002 : MigrationBase {
         Create.Index("IX_ChapterMails_ChapterId")
             .OnTable(ChapterMail.TableName)
             .OnColumn(nameof(ChapterMail.ChapterId));
+
+        Alter.Table(NotificationLog.TableName)
+            .AddColumn(nameof(NotificationLog.MessageId)).AsString(256).Nullable()
+            .AddColumn(nameof(NotificationLog.MdnRequestedAt)).AsCustom("DATETIME(6)").Nullable()
+            .AddColumn(nameof(NotificationLog.MdnReceivedAt)).AsCustom("DATETIME(6)").Nullable()
+            .AddColumn(nameof(NotificationLog.MdnDisposition)).AsString(64).Nullable()
+            .AddColumn(nameof(NotificationLog.BouncedAt)).AsCustom("DATETIME(6)").Nullable()
+            .AddColumn(nameof(NotificationLog.BounceDiagnostic)).AsString(1024).Nullable()
+            .AddColumn(nameof(NotificationLog.RecipientMemberId)).AsGuid().Nullable();
+
+        Create.Index("IX_NotificationLogs_RecipientMemberId")
+            .OnTable(NotificationLog.TableName)
+            .OnColumn(nameof(NotificationLog.RecipientMemberId));
+
+        Create.Index("IX_NotificationLogs_MessageId")
+            .OnTable(NotificationLog.TableName)
+            .OnColumn(nameof(NotificationLog.MessageId));
     }
 
     public override void Down() {
+        Delete.Index("IX_NotificationLogs_RecipientMemberId").OnTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.RecipientMemberId)).FromTable(NotificationLog.TableName);
+        Delete.Index("IX_NotificationLogs_MessageId").OnTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.BounceDiagnostic)).FromTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.BouncedAt)).FromTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.MdnDisposition)).FromTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.MdnReceivedAt)).FromTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.MdnRequestedAt)).FromTable(NotificationLog.TableName);
+        Delete.Column(nameof(NotificationLog.MessageId)).FromTable(NotificationLog.TableName);
+
         DropTableIfExists(ChapterMail.TableName);
 
         Delete.Column(nameof(MemberImportLog.PromotedRecords)).FromTable(MemberImportLog.TableName);

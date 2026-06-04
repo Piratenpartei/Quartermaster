@@ -135,6 +135,7 @@ public partial class Program {
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddScoped<SmtpTestService>();
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
+        builder.Services.AddHostedService<MdnPollerHostedService>();
         builder.Services.AddHostedService<MarkdownWarmupHostedService>();
 
         builder.Services.AddScoped<EmailMessageChannel>();
