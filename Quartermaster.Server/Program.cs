@@ -122,6 +122,9 @@ public partial class Program {
 
         builder.Services.AddSingleton<Changelog.ChangelogService>();
 
+        builder.Services.AddSingleton<Banking.BankCodeBicLookup>();
+        builder.Services.AddSingleton<Forms.FormAssets>();
+
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 

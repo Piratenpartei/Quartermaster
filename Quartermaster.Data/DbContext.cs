@@ -10,6 +10,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Events;
+using Quartermaster.Data.Forms.ExpenseReimbursements;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
@@ -65,6 +66,8 @@ public class DbContext : DataConnection {
     public ITable<Meetings.AgendaItem> AgendaItems => this.GetTable<Meetings.AgendaItem>();
     public ITable<CollabDocument> CollabDocuments => this.GetTable<CollabDocument>();
     public ITable<UsedSamlAssertion> UsedSamlAssertions => this.GetTable<UsedSamlAssertion>();
+    public ITable<ExpenseReimbursement> ExpenseReimbursements => this.GetTable<ExpenseReimbursement>();
+    public ITable<ExpenseReimbursementLineItem> ExpenseReimbursementLineItems => this.GetTable<ExpenseReimbursementLineItem>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -96,6 +99,7 @@ public class DbContext : DataConnection {
         services.AddScoped<CollabDocumentRepository>();
         services.AddScoped<UsedSamlAssertionRepository>();
         services.AddScoped<ChapterMails.ChapterMailRepository>();
+        services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>

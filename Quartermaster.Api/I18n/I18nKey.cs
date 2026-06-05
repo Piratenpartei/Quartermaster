@@ -497,6 +497,10 @@ public static class I18nKey {
             public const string SystemMemberImport = "ui.main_nav_bar.system.member_import";
             public const string SystemImportStatus = "ui.main_nav_bar.system.import_status";
             public const string SystemNotificationStats = "ui.main_nav_bar.system.notification_stats";
+            public const string Forms = "ui.main_nav_bar.forms";
+            public const string FormsCatalog = "ui.main_nav_bar.forms.catalog";
+            public const string FormsMine = "ui.main_nav_bar.forms.mine";
+            public const string FormsExpenseReimbursement = "ui.main_nav_bar.forms.expense_reimbursement";
             public const string MySessionsTitle = "ui.main_nav_bar.my_sessions_title";
             public const string NotificationsTitle = "ui.main_nav_bar.notifications_title";
             public const string Logout = "ui.main_nav_bar.logout";
@@ -1798,6 +1802,109 @@ public static class I18nKey {
 
         public static class LanguageSwitcher {
             public const string Tooltip = "ui.language_switcher.tooltip";
+        }
+
+        public static class FormWizard {
+            public const string BackButton = "ui.form_wizard.back_button";
+            public const string NextButton = "ui.form_wizard.next_button";
+            public const string SubmitButton = "ui.form_wizard.submit_button";
+            public const string SaveDraftButton = "ui.form_wizard.save_draft_button";
+        }
+
+        public static class FormCatalog {
+            public const string PageTitle = "ui.form_catalog.page_title";
+            public const string PageIntro = "ui.form_catalog.page_intro";
+            public const string StartButton = "ui.form_catalog.start_button";
+            public const string MyFormsLink = "ui.form_catalog.my_forms_link";
+            public const string ExpenseReimbursementDescription = "ui.form_catalog.expense_reimbursement_description";
+        }
+
+        public static class MyForms {
+            public const string PageTitle = "ui.my_forms.page_title";
+            public const string PageIntroAuth = "ui.my_forms.page_intro_auth";
+            public const string PageIntroAnonymous = "ui.my_forms.page_intro_anonymous";
+            public const string LocalDraftsSection = "ui.my_forms.local_drafts_section";
+            public const string ServerDraftsSection = "ui.my_forms.server_drafts_section";
+            public const string LocalDraftsHint = "ui.my_forms.local_drafts_hint";
+            public const string EmptyState = "ui.my_forms.empty_state";
+            public const string EmptyStateLocal = "ui.my_forms.empty_state_local";
+            public const string FormColumn = "ui.my_forms.form_column";
+            public const string StatusColumn = "ui.my_forms.status_column";
+            public const string ChapterColumn = "ui.my_forms.chapter_column";
+            public const string TotalColumn = "ui.my_forms.total_column";
+            public const string UpdatedColumn = "ui.my_forms.updated_column";
+            public const string SavedAtColumn = "ui.my_forms.saved_at_column";
+            public const string ActionsColumn = "ui.my_forms.actions_column";
+            public const string StatusDraft = "ui.my_forms.status_draft";
+            public const string StatusSubmitted = "ui.my_forms.status_submitted";
+            public const string StatusLocal = "ui.my_forms.status_local";
+            public const string OpenAction = "ui.my_forms.open_action";
+            public const string DownloadAction = "ui.my_forms.download_action";
+            public const string CopyAction = "ui.my_forms.copy_action";
+            public const string DeleteAction = "ui.my_forms.delete_action";
+        }
+
+        public static class AnonymousFormGate {
+            public const string Title = "ui.anonymous_form_gate.title";
+            public const string IntroParagraph = "ui.anonymous_form_gate.intro_paragraph";
+            public const string PointAnonymous = "ui.anonymous_form_gate.point_anonymous";
+            public const string PointLogin = "ui.anonymous_form_gate.point_login";
+            public const string PointLocalStorage = "ui.anonymous_form_gate.point_local_storage";
+            public const string CancelButton = "ui.anonymous_form_gate.cancel_button";
+            public const string AcceptInMemoryButton = "ui.anonymous_form_gate.accept_in_memory_button";
+            public const string AcceptWithStorageButton = "ui.anonymous_form_gate.accept_with_storage_button";
+        }
+
+        public static class ExpenseReimbursement {
+            public const string PageTitle = "ui.expense_reimbursement.page_title";
+            public const string Step1Title = "ui.expense_reimbursement.step1_title";
+            public const string Step2Title = "ui.expense_reimbursement.step2_title";
+            public const string Step3Title = "ui.expense_reimbursement.step3_title";
+            public const string Step4Title = "ui.expense_reimbursement.step4_title";
+            public const string Step5Title = "ui.expense_reimbursement.step5_title";
+
+            public const string FirstNameLabel = "ui.expense_reimbursement.first_name_label";
+            public const string LastNameLabel = "ui.expense_reimbursement.last_name_label";
+            public const string MemberNumberLabel = "ui.expense_reimbursement.member_number_label";
+            public const string StreetLabel = "ui.expense_reimbursement.street_label";
+            public const string PostCodeLabel = "ui.expense_reimbursement.post_code_label";
+            public const string CityLabel = "ui.expense_reimbursement.city_label";
+
+            public const string ChapterLabel = "ui.expense_reimbursement.chapter_label";
+            public const string FunctionLabel = "ui.expense_reimbursement.function_label";
+            public const string FunctionPlaceholder = "ui.expense_reimbursement.function_placeholder";
+            public const string MotionDateLabel = "ui.expense_reimbursement.motion_date_label";
+
+            public const string LineItemDescription = "ui.expense_reimbursement.line_item_description";
+            public const string LineItemValue = "ui.expense_reimbursement.line_item_value";
+            public const string LineItemAdd = "ui.expense_reimbursement.line_item_add";
+            public const string LineItemSum = "ui.expense_reimbursement.line_item_sum";
+
+            public const string DonatedAmountLabel = "ui.expense_reimbursement.donated_amount_label";
+            public const string PayoutAmountLabel = "ui.expense_reimbursement.payout_amount_label";
+            public const string SplitMismatch = "ui.expense_reimbursement.split_mismatch";
+            public const string SplitOk = "ui.expense_reimbursement.split_ok";
+            public const string RequestDonationReceipt = "ui.expense_reimbursement.request_donation_receipt";
+            public const string PayoutMethodSection = "ui.expense_reimbursement.payout_method_section";
+            public const string PayoutCash = "ui.expense_reimbursement.payout_cash";
+            public const string PayoutBankTransfer = "ui.expense_reimbursement.payout_bank_transfer";
+            public const string IbanLabel = "ui.expense_reimbursement.iban_label";
+            public const string BicHint = "ui.expense_reimbursement.bic_hint";
+            public const string SignatureLocationLabel = "ui.expense_reimbursement.signature_location_label";
+            public const string FormDateLabel = "ui.expense_reimbursement.form_date_label";
+
+            public const string OverviewIntro = "ui.expense_reimbursement.overview_intro";
+            public const string GeneratePdfButton = "ui.expense_reimbursement.generate_pdf_button";
+            public const string DownloadAgainButton = "ui.expense_reimbursement.download_again_button";
+            public const string CopyToDraftButton = "ui.expense_reimbursement.copy_to_draft_button";
+            public const string DeleteDraftButton = "ui.expense_reimbursement.delete_draft_button";
+            public const string SubmittedNotice = "ui.expense_reimbursement.submitted_notice";
+
+            public const string ValidationPersonalRequired = "ui.expense_reimbursement.validation_personal_required";
+            public const string ValidationChapterRequired = "ui.expense_reimbursement.validation_chapter_required";
+            public const string ValidationLineItemsRequired = "ui.expense_reimbursement.validation_line_items_required";
+            public const string ValidationSplitMismatch = "ui.expense_reimbursement.validation_split_mismatch";
+            public const string ValidationIbanRequired = "ui.expense_reimbursement.validation_iban_required";
         }
     }
 }

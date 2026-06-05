@@ -1,0 +1,144 @@
+@page "/Formulare/meine"
+@using System.Globalization
+@using Quartermaster.Api
+@using Quartermaster.Api.Forms
+@using Quartermaster.Api.Forms.ExpenseReimbursements
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.MyForms.PageTitle]</PageTitle>
+
+<h3 class="mb-2">@I18n[I18nKey.Ui.MyForms.PageTitle]</h3>
+<p class="text-secondary">
+    @if (AuthService.IsAuthenticated) {
+        @I18n[I18nKey.Ui.MyForms.PageIntroAuth]
+    } else {
+        @I18n[I18nKey.Ui.MyForms.PageIntroAnonymous]
+    }
+</p>
+
+<ConfirmDialog @ref="DeleteConfirm" />
+
+@if (AuthService.IsAuthenticated) {
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="bi bi-cloud-check me-1"></i> @I18n[I18nKey.Ui.MyForms.ServerDraftsSection]
+            </h5>
+
+            @if (ServerLoading) {
+                <LoadingSpinner />
+            } else if (ServerItems.Count == 0) {
+                <p class="text-secondary mb-0">@I18n[I18nKey.Ui.MyForms.EmptyState]</p>
+            } else {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
+                                <th>@I18n[I18nKey.Ui.MyForms.UpdatedColumn]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in ServerItems) {
+                                <tr>
+                                    <td>@I18n[FormCatalog.Entries[0].DisplayNameI18nKey]</td>
+                                    <td>
+                                        @if (item.Status == ExpenseReimbursementStatusDTO.Draft) {
+                                            <span class="badge text-bg-secondary">@I18n[I18nKey.Ui.MyForms.StatusDraft]</span>
+                                        } else {
+                                            <span class="badge text-bg-success">@I18n[I18nKey.Ui.MyForms.StatusSubmitted]</span>
+                                        }
+                                    </td>
+                                    <td>@item.ChapterName</td>
+                                    <td class="text-end">@item.Total.ToString("N2", De) €</td>
+                                    <td>@item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a class="btn btn-outline-primary" href="/Formulare/auslagenerstattung/@item.Id" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            @if (item.Status == ExpenseReimbursementStatusDTO.Submitted) {
+                                                <button class="btn btn-outline-secondary" @onclick="() => DownloadServer(item)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]">
+                                                    <i class="bi bi-download"></i>
+                                                </button>
+                                            }
+                                            <button class="btn btn-outline-secondary" @onclick="() => CopyServer(item)" title="@I18n[I18nKey.Ui.MyForms.CopyAction]">
+                                                <i class="bi bi-files"></i>
+                                            </button>
+                                            @if (item.Status == ExpenseReimbursementStatusDTO.Draft) {
+                                                <button class="btn btn-outline-danger" @onclick="() => DeleteServer(item)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">
+            <i class="bi bi-hdd me-1"></i> @I18n[I18nKey.Ui.MyForms.LocalDraftsSection]
+        </h5>
+        <p class="text-secondary small">@I18n[I18nKey.Ui.MyForms.LocalDraftsHint]</p>
+
+        @if (LocalLoading) {
+            <LoadingSpinner />
+        } else if (LocalDrafts.Count == 0) {
+            <p class="text-secondary mb-0">@I18n[I18nKey.Ui.MyForms.EmptyStateLocal]</p>
+        } else {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
+                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.SavedAtColumn]</th>
+                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var draft in LocalDrafts) {
+                            <tr>
+                                <td>@I18n[draft.Entry.DisplayNameI18nKey] <span class="badge border border-warning text-warning bg-transparent ms-1">@I18n[I18nKey.Ui.MyForms.StatusLocal]</span></td>
+                                <td>
+                                    @if (draft.Metadata.Status == LocalDraftStatus.Draft) {
+                                        <span class="badge text-bg-secondary">@I18n[I18nKey.Ui.MyForms.StatusDraft]</span>
+                                    } else {
+                                        <span class="badge text-bg-success">@I18n[I18nKey.Ui.MyForms.StatusSubmitted]</span>
+                                    }
+                                </td>
+                                <td>@draft.Metadata.Summary.Chapter</td>
+                                <td class="text-end">@draft.Metadata.Summary.Total.ToString("N2", De) €</td>
+                                <td>@draft.Metadata.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a class="btn btn-outline-primary" href="@($"{draft.Entry.Route}?localId={draft.Metadata.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" @onclick="() => DeleteLocal(draft)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

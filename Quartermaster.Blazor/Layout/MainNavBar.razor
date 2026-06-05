@@ -27,6 +27,17 @@
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
+                <li class="nav-item">
+                    <NavMenuDropdown>
+                        <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.Forms]</ButtonContent>
+                        <DropdownContent>
+                            <li><a class="dropdown-item" href="/Formulare">@I18n[I18nKey.Ui.MainNavBar.FormsCatalog]</a></li>
+                            <li><a class="dropdown-item" href="/Formulare/meine">@I18n[I18nKey.Ui.MainNavBar.FormsMine]</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/Formulare/auslagenerstattung">@I18n[I18nKey.Ui.MainNavBar.FormsExpenseReimbursement]</a></li>
+                        </DropdownContent>
+                    </NavMenuDropdown>
+                </li>
                 <RequirePermission AnyOfChapterPermissions="@PermissionIdentifier.BoardWorkPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>

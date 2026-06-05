@@ -1,0 +1,35 @@
+@using Quartermaster.Api.I18n
+
+@if (IsVisible) {
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.6);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-shield-exclamation me-2 text-warning"></i>
+                        @I18n[I18nKey.Ui.AnonymousFormGate.Title]
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p>@I18n[I18nKey.Ui.AnonymousFormGate.IntroParagraph]</p>
+                    <ul class="mb-3">
+                        <li>@I18n[I18nKey.Ui.AnonymousFormGate.PointAnonymous]</li>
+                        <li>@I18n[I18nKey.Ui.AnonymousFormGate.PointLogin]</li>
+                        <li>@I18n[I18nKey.Ui.AnonymousFormGate.PointLocalStorage]</li>
+                    </ul>
+                </div>
+                <div class="modal-footer d-flex flex-nowrap gap-2 justify-content-between">
+                    <button class="btn btn-outline-secondary" @onclick="() => Resolve(GateChoice.Cancel)">
+                        <i class="bi bi-x-lg me-1"></i> @I18n[I18nKey.Ui.AnonymousFormGate.CancelButton]
+                    </button>
+                    <button class="btn btn-warning" @onclick="() => Resolve(GateChoice.AcceptInMemory)">
+                        @I18n[I18nKey.Ui.AnonymousFormGate.AcceptInMemoryButton]
+                    </button>
+                    <button class="btn btn-primary" @onclick="() => Resolve(GateChoice.AcceptWithStorage)">
+                        @I18n[I18nKey.Ui.AnonymousFormGate.AcceptWithStorageButton]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

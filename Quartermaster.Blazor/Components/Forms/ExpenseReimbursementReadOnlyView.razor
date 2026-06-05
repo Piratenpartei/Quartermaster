@@ -1,0 +1,65 @@
+@using System.Globalization
+@using Quartermaster.Api.Forms.ExpenseReimbursements
+@using Quartermaster.Api.I18n
+
+<div class="card mt-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@I18n[I18nKey.Ui.ExpenseReimbursement.Step1Title]</dt>
+            <dd class="col-sm-8">@Input.FirstName @Input.LastName@(Input.MemberNumber.HasValue ? $" (Mitglieds-Nr. {Input.MemberNumber})" : "")<br />
+                @Input.Street<br />@Input.PostCode @Input.City</dd>
+
+            <dt class="col-sm-4">@I18n[I18nKey.Ui.ExpenseReimbursement.Step2Title]</dt>
+            <dd class="col-sm-8">
+                @Input.ChapterName<br />
+                @Input.Function
+                @if (Input.MotionDate != default) {
+                    <br /><span class="text-secondary small">@I18n[I18nKey.Ui.ExpenseReimbursement.MotionDateLabel]: @Input.MotionDate.ToString("dd.MM.yyyy", De)</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4">@I18n[I18nKey.Ui.ExpenseReimbursement.Step3Title]</dt>
+            <dd class="col-sm-8">
+                <ul class="mb-1 ps-3">
+                    @foreach (var item in Input.LineItems) {
+                        <li>@item.Description <span class="text-secondary">- @item.Value.ToString("N2", De) €</span></li>
+                    }
+                </ul>
+                <span class="fw-semibold">@I18n[I18nKey.Ui.ExpenseReimbursement.LineItemSum]: @Input.LineItems.Sum(i => i.Value).ToString("N2", De) €</span>
+            </dd>
+
+            <dt class="col-sm-4">@I18n[I18nKey.Ui.ExpenseReimbursement.Step4Title]</dt>
+            <dd class="col-sm-8">
+                @if (Input.DonatedAmount > 0m) {
+                    <span>@I18n[I18nKey.Ui.ExpenseReimbursement.DonatedAmountLabel]: @Input.DonatedAmount.ToString("N2", De) €</span>
+                    @if (Input.RequestsDonationReceipt) {
+                        <span class="badge text-bg-info ms-2">@I18n[I18nKey.Ui.ExpenseReimbursement.RequestDonationReceipt]</span>
+                    }
+                    <br />
+                }
+                @if (Input.PayoutAmount > 0m) {
+                    <span>@I18n[I18nKey.Ui.ExpenseReimbursement.PayoutAmountLabel]: @Input.PayoutAmount.ToString("N2", De) €</span>
+                    <span class="text-secondary"> (@(Input.PayoutMethod == ExpensePayoutMethodDTO.Cash ? I18n[I18nKey.Ui.ExpenseReimbursement.PayoutCash] : I18n[I18nKey.Ui.ExpenseReimbursement.PayoutBankTransfer]))</span>
+                    @if (Input.PayoutMethod == ExpensePayoutMethodDTO.BankTransfer && !string.IsNullOrEmpty(Input.Iban)) {
+                        <br /><span class="text-secondary small">@I18n[I18nKey.Ui.ExpenseReimbursement.IbanLabel]: @Input.Iban</span>
+                    }
+                }
+            </dd>
+
+            <dt class="col-sm-4">@I18n[I18nKey.Ui.ExpenseReimbursement.Step5Title]</dt>
+            <dd class="col-sm-8">
+                @Input.SignatureLocation@(Input.FormDate != default ? $", {Input.FormDate.ToString("dd.MM.yyyy", De)}" : "")
+            </dd>
+        </dl>
+    </div>
+</div>
+
+@code {
+    private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
+
+    [Parameter, EditorRequired]
+    public required ExpenseReimbursementInputDTO Input { get; set; }
+
+    [Inject]
+    public required I18nService I18n { get; set; }
+}

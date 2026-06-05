@@ -1,0 +1,83 @@
+@using Quartermaster.Api.I18n
+
+<div class="form-wizard">
+    @if (Steps != null && Steps.Count > 0) {
+        <ol class="form-wizard-stepper d-flex flex-wrap gap-2 list-unstyled mb-4">
+            @for (var i = 0; i < Steps.Count; i++) {
+                var idx = i;
+                var step = Steps[idx];
+                var isCurrent = idx == CurrentStep;
+                var stateClass = isCurrent
+                    ? "form-wizard-step active fw-semibold"
+                    : idx < CurrentStep
+                        ? "form-wizard-step completed text-success"
+                        : "form-wizard-step text-secondary";
+                var badgeClass = isCurrent ? "text-bg-primary" : idx < CurrentStep ? "text-bg-success" : "text-bg-light border";
+                var reachable = IsStepReachable(idx);
+                var clickable = reachable && !isCurrent;
+                <li class="@stateClass d-flex align-items-center gap-2">
+                    @if (clickable) {
+                        <button type="button" class="btn btn-link p-0 text-reset text-decoration-none d-flex align-items-center gap-2"
+                                @onclick="() => GoToStep(idx)" disabled="@Busy">
+                            <span class="badge rounded-pill @badgeClass">@(idx + 1)</span>
+                            <span>@step.Title</span>
+                        </button>
+                    } else {
+                        <span class="badge rounded-pill @badgeClass">@(idx + 1)</span>
+                        <span>@step.Title</span>
+                    }
+                    @if (idx < Steps.Count - 1) {
+                        <span class="text-secondary ms-1">›</span>
+                    }
+                </li>
+            }
+        </ol>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                @if (Steps[CurrentStep].Content != null) {
+                    @Steps[CurrentStep].Content
+                }
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between gap-2 mb-5">
+            <div>
+                <button type="button" class="btn btn-outline-secondary" @onclick="GoBack" disabled="@(CurrentStep == 0 || Busy)">
+                    <i class="bi bi-chevron-left me-1"></i> @I18n[I18nKey.Ui.FormWizard.BackButton]
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                @if (ShowSaveDraftButton) {
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HandleSaveDraft" disabled="@Busy">
+                        @if (Busy && BusyAction == BusyKind.SaveDraft) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        } else {
+                            <i class="bi bi-floppy me-1"></i>
+                        }
+                        @I18n[I18nKey.Ui.FormWizard.SaveDraftButton]
+                    </button>
+                }
+                @if (IsLastStep) {
+                    <button type="button" class="btn btn-primary" @onclick="HandleSubmit" disabled="@(Busy || !CanSubmit)">
+                        @if (Busy && BusyAction == BusyKind.Submit) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        } else {
+                            <i class="bi bi-check-circle me-1"></i>
+                        }
+                        @(SubmitLabel ?? I18n[I18nKey.Ui.FormWizard.SubmitButton])
+                    </button>
+                } else {
+                    <button type="button" class="btn btn-primary" @onclick="GoNext" disabled="@Busy">
+                        @if (Busy && BusyAction == BusyKind.Next) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        } else {
+                            <i class="bi bi-chevron-right ms-1"></i>
+                        }
+                        @I18n[I18nKey.Ui.FormWizard.NextButton]
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
