@@ -1311,6 +1311,8 @@
   "ui.user_detail.chapter_label": "Gliederung",
   "ui.user_detail.permission_label": "Berechtigung",
   "ui.user_detail.permission_empty_option": "-- Berechtigung auswählen --",
+  "ui.user_detail.scope_override_badge": "gliederungsbezogen",
+  "ui.user_detail.scope_override_tooltip": "Diese Berechtigung ist normalerweise pro Gliederung vergeben und kann nur global gesetzt werden, wenn der eigene Account die Berechtigung 'Berechtigungen global vergeben' besitzt.",
 
   "ui.admin_division_search.page_title": "Gemeindedatenbank - Suche",
   "ui.admin_division_search.search_placeholder": "Name oder Postleitzahl...",

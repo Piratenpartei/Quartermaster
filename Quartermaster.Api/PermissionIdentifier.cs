@@ -24,6 +24,9 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageRoles = "roles_manage";
 
+    /// <summary>Lets the holder grant any chapter-scoped permission as a global grant on any user (the standard <see cref="CreateUser"/> + global-perm flow only allows globally-flagged permissions to be granted globally). Intended for root/super-admin accounts that need access to chapter-only flows without joining every chapter as an officer.</summary>
+    public static readonly string AssignPermissionsGlobally = "permissions_assign_globally";
+
     // Global: assign an administrative division/chapter to applications that arrived without one
     // (manual or foreign address) so they can enter the normal review flow.
     public static readonly string LinkApplicationDivision = "applications_link_division";

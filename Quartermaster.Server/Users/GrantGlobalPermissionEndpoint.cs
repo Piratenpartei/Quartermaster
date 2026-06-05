@@ -42,6 +42,11 @@ public class GrantGlobalPermissionEndpoint : Endpoint<GrantGlobalPermissionReque
             return;
         }
 
+        if (!permission.Global && !_perms.HasGlobal(PermissionIdentifier.AssignPermissionsGlobally)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
         _globalPermRepo.AddForUser(req.UserId, permission);
         await SendOkAsync(ct);
     }

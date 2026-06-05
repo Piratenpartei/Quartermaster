@@ -1310,6 +1310,8 @@
   "ui.user_detail.chapter_label": "Chapter",
   "ui.user_detail.permission_label": "Permission",
   "ui.user_detail.permission_empty_option": "-- select permission --",
+  "ui.user_detail.scope_override_badge": "chapter-scoped",
+  "ui.user_detail.scope_override_tooltip": "This permission is normally granted per chapter, and can only be granted globally if the current account holds the 'Assign permissions globally' override.",
 
   "ui.admin_division_search.page_title": "Municipality database - search",
   "ui.admin_division_search.search_placeholder": "Name or post code...",

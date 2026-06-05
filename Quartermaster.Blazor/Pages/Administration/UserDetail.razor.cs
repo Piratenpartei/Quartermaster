@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Permissions;
@@ -30,6 +31,8 @@ public partial class UserDetail {
     public required NavigationManager Navigation { get; set; }
     [Inject]
     public required I18nService I18n { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -43,8 +46,16 @@ public partial class UserDetail {
     private string NewChapterId = "";
     private string NewPermissionIdentifier = "";
 
+    private bool CanAssignAnyGlobally
+        => AuthService.HasGlobalPermission(PermissionIdentifier.AssignPermissionsGlobally);
+
     private List<PermissionDTO>? GlobalPermissions
-        => AllPermissions?.Where(p => p.Global).ToList();
+        => CanAssignAnyGlobally
+            ? AllPermissions?
+                .OrderByDescending(p => p.Global)
+                .ThenBy(p => p.DisplayName)
+                .ToList()
+            : AllPermissions?.Where(p => p.Global).ToList();
 
     private List<PermissionDTO>? ChapterPermissions
         => AllPermissions?.Where(p => !p.Global).ToList();

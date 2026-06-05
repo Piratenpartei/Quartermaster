@@ -1537,6 +1537,8 @@ public static class I18nKey {
             public const string ChapterLabel = "ui.user_detail.chapter_label";
             public const string PermissionLabel = "ui.user_detail.permission_label";
             public const string PermissionEmptyOption = "ui.user_detail.permission_empty_option";
+            public const string ScopeOverrideBadge = "ui.user_detail.scope_override_badge";
+            public const string ScopeOverrideTooltip = "ui.user_detail.scope_override_tooltip";
         }
 
         public static class AdminDivisionSearch {

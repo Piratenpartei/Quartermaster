@@ -45,6 +45,11 @@
                                @onchange="e => ToggleGlobalPermission(perm.Identifier, (bool)(e.Value ?? false))" />
                         <label class="form-check-label cursor-pointer">
                             @perm.DisplayName <span class="text-secondary small">(@perm.Identifier)</span>
+                            @if (!perm.Global) {
+                                <span class="badge border border-warning text-warning bg-transparent ms-1" title="@I18n[I18nKey.Ui.UserDetail.ScopeOverrideTooltip]">
+                                    @I18n[I18nKey.Ui.UserDetail.ScopeOverrideBadge]
+                                </span>
+                            }
                         </label>
                     </div>
                 }

@@ -42,6 +42,11 @@ public class RevokeGlobalPermissionEndpoint : Endpoint<RevokeGlobalPermissionReq
             return;
         }
 
+        if (!permission.Global && !_perms.HasGlobal(PermissionIdentifier.AssignPermissionsGlobally)) {
+            await SendForbiddenAsync(ct);
+            return;
+        }
+
         _globalPermRepo.RemoveForUser(req.UserId, permission);
         await SendOkAsync(ct);
     }
