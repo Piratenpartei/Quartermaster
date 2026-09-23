@@ -1,6 +1,7 @@
 using FluentMigrator;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forms.ExpenseReimbursements;
+using Quartermaster.Data.Forms.PdfTemplates;
 using Quartermaster.Data.Users;
 
 namespace Quartermaster.Data.Migrations;
@@ -59,9 +60,21 @@ public class M003 : MigrationBase {
         Create.Index("IX_ExpenseReimbursementLineItems_FormId")
             .OnTable(ExpenseReimbursementLineItem.TableName)
             .OnColumn(nameof(ExpenseReimbursementLineItem.ExpenseReimbursementId));
+
+        Create.Table(PdfTemplate.TableName)
+            .WithColumn(nameof(PdfTemplate.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(PdfTemplate.Key)).AsString(128).NotNullable()
+            .WithColumn(nameof(PdfTemplate.Body)).AsCustom("LONGTEXT").NotNullable()
+            .WithColumn(nameof(PdfTemplate.UpdatedAt)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(PdfTemplate.UpdatedByUserId)).AsGuid().Nullable();
+
+        Create.Index("IX_PdfTemplates_Key")
+            .OnTable(PdfTemplate.TableName)
+            .OnColumn(nameof(PdfTemplate.Key)).Unique();
     }
 
     public override void Down() {
+        DropTableIfExists(PdfTemplate.TableName);
         DropTableIfExists(ExpenseReimbursementLineItem.TableName);
         DropTableIfExists(ExpenseReimbursement.TableName);
     }

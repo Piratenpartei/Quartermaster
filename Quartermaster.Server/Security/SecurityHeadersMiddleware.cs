@@ -22,7 +22,10 @@ public class SecurityHeadersMiddleware {
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data:; " +
             "font-src 'self'; " +
-            "connect-src 'self'; " +
+            "connect-src 'self' blob:; " +
+            // blob: needed so same-origin generated PDFs (e.g. the form-template preview) render in an iframe.
+            "frame-src 'self' blob:; " +
+            "object-src 'self' blob:; " +
             "frame-ancestors 'none'";
 
         if (context.Request.IsHttps) {

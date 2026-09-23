@@ -9,7 +9,9 @@ public record FormCatalogEntry(
     string DisplayNameI18nKey,
     string DescriptionI18nKey,
     string Icon,
-    string Route
+    string Route,
+    /// <summary>Comma-separated DTO type names this form's PDF template can bind to, for the editor's field palette (e.g. <c>ExpenseReimbursementInputDTO</c>). <c>globals</c> is always added.</summary>
+    string PaletteModels
 );
 
 /// <summary>
@@ -24,7 +26,8 @@ public static class FormCatalog {
             DisplayNameI18nKey: I18nKey.Ui.ExpenseReimbursement.PageTitle,
             DescriptionI18nKey: I18nKey.Ui.FormCatalog.ExpenseReimbursementDescription,
             Icon: "bi-receipt",
-            Route: "/Formulare/auslagenerstattung"
+            Route: "/Formulare/auslagenerstattung",
+            PaletteModels: "ExpenseReimbursementInputDTO"
         )
     };
 }

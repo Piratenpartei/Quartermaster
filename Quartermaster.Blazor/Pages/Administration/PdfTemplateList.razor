@@ -1,0 +1,45 @@
+@page "/Administration/PdfTemplates"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.PdfTemplates.PageTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditPdfTemplates">
+    <h3 class="mb-2">@I18n[I18nKey.Ui.PdfTemplates.PageTitle]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.PdfTemplates.PageIntro]</p>
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (Items != null) {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.PdfTemplates.FormColumn]</th>
+                        <th>@I18n[I18nKey.Ui.PdfTemplates.UpdatedColumn]</th>
+                        <th class="text-end"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Items) {
+                        <tr>
+                            <td>@I18n[item.DisplayNameI18nKey]</td>
+                            <td>
+                                @if (item.UpdatedAt == default) {
+                                    <span class="text-secondary">@I18n[I18nKey.Ui.PdfTemplates.NeverEdited]</span>
+                                } else {
+                                    @item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-outline-primary btn-sm" href="/Administration/PdfTemplates/@item.Key">
+                                    <i class="bi bi-pencil-square me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.EditAction]
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</RequirePermission>

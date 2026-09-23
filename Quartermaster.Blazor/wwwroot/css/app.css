@@ -162,3 +162,86 @@ code {
 .cm-host .remote-caret:not(.hide-name) > div {
     opacity: 1;
 }
+
+/* Fluid overlay token colours for the PDF template editor (fluid-xml mode). */
+.cm-fluid-output {
+    color: #1565c0;
+    font-weight: 600;
+}
+.cm-fluid-tag {
+    color: #ad1457;
+    font-weight: 600;
+}
+[data-bs-theme="dark"] .cm-fluid-output {
+    color: #64b5f6;
+}
+[data-bs-theme="dark"] .cm-fluid-tag {
+    color: #f48fb1;
+}
+
+/* PDF template editor: full-width split layout (wide code editor + narrow live preview).
+   When this page is active, turn the layout chain into a viewport-height flex column so
+   the workspace fills the area below the navbar exactly - no JS, no scrollbars. Scoped via
+   :has() so every other page is untouched. */
+#app:has(.pdf-tpl-workspace) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+#app:has(.pdf-tpl-workspace) > .container {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    width: 100%;
+    margin-bottom: 0;
+}
+.pdf-tpl-workspace {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pdf-tpl-split {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    gap: 1rem;
+}
+.pdf-tpl-code {
+    flex: 2 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pdf-tpl-preview {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pdf-tpl-cm {
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .375rem;
+    overflow: hidden;
+}
+.pdf-tpl-cm > .CodeMirror {
+    height: 100%;
+}
+.pdf-tpl-tabbody {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.pdf-tpl-preview-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .375rem;
+}

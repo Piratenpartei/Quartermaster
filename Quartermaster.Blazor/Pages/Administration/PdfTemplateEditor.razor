@@ -1,0 +1,77 @@
+@page "/Administration/PdfTemplates/{Key}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Inputs
+
+<PageTitle>@I18n[I18nKey.Ui.PdfTemplates.EditorTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditPdfTemplates">
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (Template != null) {
+        <div class="pdf-tpl-workspace">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="/Administration/PdfTemplates" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-chevron-left me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.PageTitle]
+                    </a>
+                    <h4 class="mb-0">@I18n[I18nKey.Ui.PdfTemplates.EditorTitle]: @I18n[Template.DisplayNameI18nKey]</h4>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger btn-sm" @onclick="ResetToDefault" disabled="@Busy">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.ResetButton]
+                    </button>
+                    <button class="btn btn-primary btn-sm" @onclick="Save" disabled="@Busy">
+                        <i class="bi bi-floppy me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.SaveButton]
+                    </button>
+                </div>
+            </div>
+
+            <ConfirmDialog @ref="ResetConfirm" />
+
+            <div class="pdf-tpl-split">
+                <div class="pdf-tpl-code">
+                    <CodeMirrorEditor @ref="Editor" @bind-Value="Body" Mode="fluid-xml" CssClass="pdf-tpl-cm" />
+                </div>
+                <div class="pdf-tpl-preview">
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                            <button class="nav-link @(ActiveTab == RightTab.Preview ? "active" : "")" @onclick="() => ActiveTab = RightTab.Preview">
+                                @I18n[I18nKey.Ui.PdfTemplates.PreviewTab]
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(ActiveTab == RightTab.Fields ? "active" : "")" @onclick="() => ActiveTab = RightTab.Fields">
+                                @I18n[I18nKey.Ui.PdfTemplates.FieldsTab]
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="pdf-tpl-tabbody @(ActiveTab == RightTab.Preview ? "" : "d-none")">
+                        <div class="d-flex justify-content-end align-items-center my-2 gap-2 flex-wrap">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="autoPreview" @bind="AutoPreview" />
+                                <label class="form-check-label small" for="autoPreview">@I18n[I18nKey.Ui.PdfTemplates.AutoPreviewLabel]</label>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshPreview" disabled="@Previewing">
+                                @if (Previewing) {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                } else {
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                }
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(PreviewError)) {
+                            <div class="alert alert-danger py-2 small">@PreviewError</div>
+                        }
+                        <iframe id="pdfPreviewFrame" @ref="PreviewFrame" class="pdf-tpl-preview-frame"></iframe>
+                    </div>
+                    @if (ActiveTab == RightTab.Fields) {
+                        <div class="pdf-tpl-tabbody overflow-auto pt-2">
+                            <TemplateFieldPalette Models="@Template.PaletteModels" OnInsertField="InsertField" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</RequirePermission>

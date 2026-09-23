@@ -44,6 +44,10 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
     [Parameter]
     public string CssClass { get; set; } = "";
 
+    /// <summary>CodeMirror mode name (e.g. <c>fluid-xml</c>). Defaults to markdown when unset.</summary>
+    [Parameter]
+    public string? Mode { get; set; }
+
     /// <summary>When set together with <see cref="HubClient"/>, switches to collaborative editing.</summary>
     [Parameter]
     public Guid? AgendaItemId { get; set; }
@@ -105,7 +109,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
                 await InitializeCollabAsync();
             } else {
                 _handle = await JS.InvokeAsync<string>(
-                    "cmEditor.createEditor", _hostElement, Value ?? "", ReadOnly, _selfRef);
+                    "cmEditor.createEditor", _hostElement, Value ?? "", ReadOnly, _selfRef, Mode);
                 _lastKnownValue = Value ?? "";
                 _readOnlyApplied = ReadOnly;
             }
@@ -187,6 +191,13 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
         HubConnected = connected;
         StateChanged?.Invoke();
         InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Inserts text at the current cursor position (plain mode only); the change echoes back through <see cref="ValueChanged"/>.</summary>
+    public async Task InsertAtCursorAsync(string text) {
+        if (_handle != null && !CollabMode) {
+            await JS.InvokeVoidAsync("cmEditor.insertAtCursor", _handle, text);
+        }
     }
 
     [JSInvokable]

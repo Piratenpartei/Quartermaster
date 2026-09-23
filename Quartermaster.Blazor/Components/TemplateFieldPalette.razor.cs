@@ -8,6 +8,7 @@ using Microsoft.JSInterop;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.Forms.ExpenseReimbursements;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
@@ -53,7 +54,8 @@ public partial class TemplateFieldPalette {
         ["DueSelectionDetailDTO"] = ("selection", I18nKey.Ui.TemplateFieldPalette.ModelSelection, typeof(DueSelectionDetailDTO)),
         ["MotionDetailDTO"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelMotion, typeof(MotionDetailDTO)),
         ["MemberDetailDTO"] = ("member", I18nKey.Ui.TemplateFieldPalette.ModelMember, typeof(MemberDetailDTO)),
-        ["EventDetailDTO"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEvent, typeof(EventDetailDTO))
+        ["EventDetailDTO"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEvent, typeof(EventDetailDTO)),
+        ["ExpenseReimbursementInputDTO"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelExpenseReimbursement, typeof(ExpenseReimbursementInputDTO))
     };
 
     private static List<TemplateModelSchemaDTO> BuildSchemas(string models, bool includeGlobals) {

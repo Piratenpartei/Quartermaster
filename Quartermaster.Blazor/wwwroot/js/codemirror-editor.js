@@ -79,17 +79,58 @@ function loadCm5Once() {
             document.head.appendChild(dark);
         }
 
-        // Load the CM5 UMD script, then the markdown mode addon (which
-        // depends on window.CodeMirror already being set).
+        // Load the CM5 UMD script, then the mode addons (which depend on
+        // window.CodeMirror already being set).
         await loadScript(COLLAB_EDITOR_BASE + "cm5.js", "cm5-core");
         await loadScript(COLLAB_EDITOR_BASE + "cm5-markdown.js", "cm5-markdown");
+        await loadScript(COLLAB_EDITOR_BASE + "cm5-xml.js", "cm5-xml");
+        await loadScript(COLLAB_EDITOR_BASE + "cm5-overlay.js", "cm5-overlay");
 
         if (typeof globalThis.CodeMirror !== "function") {
             throw new Error("codemirror-editor.js: window.CodeMirror was not set after loading cm5.js");
         }
+
+        defineFluidXmlMode();
     })();
 
     return loadPromise;
+}
+
+let fluidXmlDefined = false;
+
+// Combines the standard XML mode (tags/attributes/values) with a thin overlay
+// that colours Fluid delimiters: {{ output }} and {% tag %}. Used by the PDF
+// template editor so the XML structure and the Fluid logic are visually distinct.
+function defineFluidXmlMode() {
+    if (fluidXmlDefined) {
+        return;
+    }
+    const CM = globalThis.CodeMirror;
+    CM.defineMode("fluid-xml", function (config) {
+        const xmlMode = CM.getMode(config, "xml");
+        const fluidOverlay = {
+            token: function (stream) {
+                if (stream.match("{{")) {
+                    while (stream.next() != null && !stream.match("}}", false)) { /* consume */ }
+                    stream.match("}}");
+                    return "fluid-output";
+                }
+                if (stream.match("{%")) {
+                    while (stream.next() != null && !stream.match("%}", false)) { /* consume */ }
+                    stream.match("%}");
+                    return "fluid-tag";
+                }
+                while (stream.next() != null) {
+                    if (stream.match("{{", false) || stream.match("{%", false)) {
+                        break;
+                    }
+                }
+                return null;
+            }
+        };
+        return CM.overlayMode(xmlMode, fluidOverlay);
+    });
+    fluidXmlDefined = true;
 }
 
 function loadScript(src, id) {
@@ -111,7 +152,7 @@ function loadScript(src, id) {
 const editors = new Map();
 let nextHandleId = 1;
 
-async function createEditor(element, initialText, isReadOnly, dotnetRef) {
+async function createEditor(element, initialText, isReadOnly, dotnetRef, mode) {
     await loadCm5Once();
     ensureThemeObserver();
 
@@ -125,7 +166,7 @@ async function createEditor(element, initialText, isReadOnly, dotnetRef) {
 
     const cm = globalThis.CodeMirror(element, {
         value: initialText || "",
-        mode: "markdown",
+        mode: mode || "markdown",
         lineNumbers: true,
         lineWrapping: true,
         readOnly: isReadOnly ? "nocursor" : false,
@@ -171,6 +212,14 @@ function setText(handle, text) {
 function getText(handle) {
     const entry = editors.get(handle);
     return entry ? entry.cm.getValue() : "";
+}
+
+function insertAtCursor(handle, text) {
+    const entry = editors.get(handle);
+    if (!entry)
+        return;
+    entry.cm.replaceSelection(text);
+    entry.cm.focus();
 }
 
 function setReadOnly(handle, readOnly) {
@@ -719,6 +768,7 @@ window.cmEditor = {
     createEditor,
     setText,
     getText,
+    insertAtCursor,
     setReadOnly,
     dispose,
     createCollabEditor,

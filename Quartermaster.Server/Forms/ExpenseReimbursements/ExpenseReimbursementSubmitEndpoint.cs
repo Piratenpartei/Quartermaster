@@ -5,23 +5,19 @@ using FastEndpoints;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Forms.ExpenseReimbursements;
 using Quartermaster.Server.Authentication;
-using Quartermaster.Server.Banking;
-using Quartermaster.Server.Forms;
 
 namespace Quartermaster.Server.Forms.ExpenseReimbursements;
 
 public class ExpenseReimbursementSubmitEndpoint : Endpoint<ExpenseReimbursementIdRequest> {
     private readonly ExpenseReimbursementRepository _repo;
-    private readonly BankCodeBicLookup _bicLookup;
-    private readonly FormAssets _assets;
+    private readonly ExpenseReimbursementPdfService _pdfService;
     private readonly AuditLogRepository _audit;
     private readonly PermissionContext _perms;
 
     public ExpenseReimbursementSubmitEndpoint(ExpenseReimbursementRepository repo,
-        BankCodeBicLookup bicLookup, FormAssets assets, AuditLogRepository audit, PermissionContext perms) {
+        ExpenseReimbursementPdfService pdfService, AuditLogRepository audit, PermissionContext perms) {
         _repo = repo;
-        _bicLookup = bicLookup;
-        _assets = assets;
+        _pdfService = pdfService;
         _audit = audit;
         _perms = perms;
     }
@@ -54,8 +50,7 @@ public class ExpenseReimbursementSubmitEndpoint : Endpoint<ExpenseReimbursementI
         _repo.MarkSubmitted(entity.Id, now);
         var items = _repo.GetLineItems(entity.Id);
         var input = entity.ToInputDTO(items);
-        var bic = _bicLookup.LookupByIban(input.Iban);
-        var pdf = ExpenseReimbursementPdfRenderer.Render(input, bic, _assets.PirateLogoSvg);
+        var pdf = await _pdfService.RenderAsync(input);
 
         _audit.Log(nameof(ExpenseReimbursement), entity.Id, "Submit");
 

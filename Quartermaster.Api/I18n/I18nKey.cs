@@ -497,6 +497,7 @@ public static class I18nKey {
             public const string SystemMemberImport = "ui.main_nav_bar.system.member_import";
             public const string SystemImportStatus = "ui.main_nav_bar.system.import_status";
             public const string SystemNotificationStats = "ui.main_nav_bar.system.notification_stats";
+            public const string SystemPdfTemplates = "ui.main_nav_bar.system.pdf_templates";
             public const string Forms = "ui.main_nav_bar.forms";
             public const string FormsCatalog = "ui.main_nav_bar.forms.catalog";
             public const string FormsMine = "ui.main_nav_bar.forms.mine";
@@ -1354,6 +1355,26 @@ public static class I18nKey {
             public const string SendDisabledMissingManualContent = "ui.mailings.send_disabled_missing_manual_content";
         }
 
+        public static class PdfTemplates {
+            public const string PageTitle = "ui.pdf_templates.page_title";
+            public const string PageIntro = "ui.pdf_templates.page_intro";
+            public const string FormColumn = "ui.pdf_templates.form_column";
+            public const string UpdatedColumn = "ui.pdf_templates.updated_column";
+            public const string EditAction = "ui.pdf_templates.edit_action";
+            public const string NeverEdited = "ui.pdf_templates.never_edited";
+            public const string EditorTitle = "ui.pdf_templates.editor_title";
+            public const string EditorIntro = "ui.pdf_templates.editor_intro";
+            public const string SaveButton = "ui.pdf_templates.save_button";
+            public const string ResetButton = "ui.pdf_templates.reset_button";
+            public const string ResetConfirm = "ui.pdf_templates.reset_confirm";
+            public const string RefreshPreviewButton = "ui.pdf_templates.refresh_preview_button";
+            public const string AutoPreviewLabel = "ui.pdf_templates.auto_preview_label";
+            public const string PreviewHeading = "ui.pdf_templates.preview_heading";
+            public const string PreviewTab = "ui.pdf_templates.preview_tab";
+            public const string FieldsTab = "ui.pdf_templates.fields_tab";
+            public const string PreviewError = "ui.pdf_templates.preview_error";
+        }
+
         public static class NotificationStats {
             public const string PageTitle = "ui.notification_stats.page_title";
             public const string FilterFrom = "ui.notification_stats.filter_from";
@@ -1606,6 +1627,7 @@ public static class I18nKey {
             public const string ModelMotion = "ui.template_field_palette.model_motion";
             public const string ModelMember = "ui.template_field_palette.model_member";
             public const string ModelEvent = "ui.template_field_palette.model_event";
+            public const string ModelExpenseReimbursement = "ui.template_field_palette.model_expense_reimbursement";
         }
 
         public static class TemplateList {

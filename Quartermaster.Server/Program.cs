@@ -75,6 +75,7 @@ public partial class Program {
         }
 
         DbContext.SupplementDefaults(app.Services);
+        Forms.PdfTemplating.PdfTemplateSeeder.Seed(app.Services);
 #if DEBUG
         SeedRootAccountFromConfig(app.Services);
 #endif
@@ -124,6 +125,9 @@ public partial class Program {
 
         builder.Services.AddSingleton<Banking.BankCodeBicLookup>();
         builder.Services.AddSingleton<Forms.FormAssets>();
+        builder.Services.AddSingleton<Forms.PdfTemplating.PdfTemplateEngine>();
+        builder.Services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementPdfService>();
+        builder.Services.AddSingleton<Forms.PdfTemplating.IFormMockData, Forms.ExpenseReimbursements.ExpenseReimbursementMockData>();
 
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();

@@ -16,6 +16,8 @@ The loading strategy is:
 | `cm5.css` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.css | codemirror@5.65.16 |
 | `cm5-theme-dark.css` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css | codemirror@5.65.16 material-darker theme |
 | `cm5-markdown.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js | codemirror@5.65.16 markdown mode addon |
+| `cm5-xml.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js | codemirror@5.65.16 xml mode addon (base mode for the PDF template `fluid-xml` editor) |
+| `cm5-overlay.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/overlay.min.js | codemirror@5.65.16 overlay addon (layers the Fluid `{{ }}`/`{% %}` overlay onto xml mode) |
 | `cm5-esm.js` | hand-written 20-line ESM wrapper around `window.CodeMirror` | — |
 | `yjs.js` | https://esm.sh/yjs@13.6.27?target=es2022 (bundled) | yjs@13.6.27 |
 | `y-awareness.js` | https://esm.sh/y-protocols@1.0.6/awareness?target=es2022&bundle&external=yjs | y-protocols@1.0.6 |

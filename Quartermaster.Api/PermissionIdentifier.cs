@@ -24,6 +24,9 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageRoles = "roles_manage";
 
+    /// <summary>Lets the holder edit the PDF form templates (layout + Fluid markup) under Administration.</summary>
+    public static readonly string EditPdfTemplates = "pdf_templates_edit";
+
     /// <summary>Lets the holder grant any chapter-scoped permission as a global grant on any user (the standard <see cref="CreateUser"/> + global-perm flow only allows globally-flagged permissions to be granted globally). Intended for root/super-admin accounts that need access to chapter-only flows without joining every chapter as an officer.</summary>
     public static readonly string AssignPermissionsGlobally = "permissions_assign_globally";
 
@@ -75,7 +78,7 @@ public static class PermissionIdentifier {
     ];
 
     public static readonly List<string> SystemPermissions = [
-        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport, ManageRoles, ViewNotificationLogs
+        ViewOptions, ViewUsers, ViewOfficers, ViewAllMembers, TriggerMemberImport, ManageRoles, ViewNotificationLogs, EditPdfTemplates
     ];
 
     // Well-known role identifiers (seeded as system roles)
