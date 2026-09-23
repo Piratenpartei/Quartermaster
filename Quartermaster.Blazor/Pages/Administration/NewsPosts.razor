@@ -1,0 +1,169 @@
+@page "/Administration/NewsPosts"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.NewsPosts
+
+<PageTitle>@I18n[I18nKey.Ui.NewsPosts.PageTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ReviewNewsPosts">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.NewsPosts.PageTitle]</h3>
+        <RequirePermission GlobalPermission="@PermissionIdentifier.ManageNewsPosts">
+            <a class="btn btn-outline-secondary btn-sm" href="/Administration/NewsPosts/Settings">
+                <i class="bi bi-gear me-1"></i>@I18n[I18nKey.Ui.NewsPosts.SettingsLink]
+            </a>
+        </RequirePermission>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><button type="button" class="nav-link @(view == "suggestions" ? "active" : "")" @onclick='() => SwitchViewAsync("suggestions")'>@I18n[I18nKey.Ui.NewsPosts.TabSuggestions]</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @(view == "all" ? "active" : "")" @onclick='() => SwitchViewAsync("all")'>@I18n[I18nKey.Ui.NewsPosts.TabAll]</button></li>
+        <li class="nav-item"><button type="button" class="nav-link @(view == "posted" ? "active" : "")" @onclick='() => SwitchViewAsync("posted")'>@I18n[I18nKey.Ui.NewsPosts.TabPosted]</button></li>
+    </ul>
+
+    @if (loading) {
+        <LoadingSpinner />
+    } else if (view == "posted") {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.NewsPosts.PostedAt]</th>
+                        <th></th>
+                        <th>@I18n[I18nKey.Ui.NewsPosts.Channels]</th>
+                        <th>@I18n[I18nKey.Ui.NewsPosts.PostedBy]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var publication in publications) {
+                        <tr>
+                            <td><LocalTime Value="publication.ApprovedAt" Format="dd.MM.yyyy HH:mm" /></td>
+                            <td><div class="fw-semibold">@publication.NewsTitle</div><div class="small">@publication.FinalText</div></td>
+                            <td>@string.Join(", ", publication.ChannelIds.Select(ChannelName))</td>
+                            <td>@publication.ApprovedBy</td>
+                            <td>
+                                @if (!publication.Succeeded) {
+                                    <span class="badge text-bg-danger" title="@publication.Error">@I18n[I18nKey.Ui.NewsPosts.PostFailed]</span>
+                                    <button type="button" class="btn btn-link btn-sm" @onclick="() => RetryPublicationAsync(publication)">@I18n[I18nKey.Ui.NewsPosts.Retry]</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    } else {
+        @if (view == "all") {
+            <select class="form-select form-select-sm w-auto mb-3" value="@statusFilter" @onchange="OnStatusFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.NewsPosts.StatusFilterAll]</option>
+                @foreach (var status in Enum.GetValues<NewsItemStatusDTO>()) {
+                    <option value="@((int)status)">@StatusLabel(status)</option>
+                }
+            </select>
+        }
+
+        @if (items.Count == 0) {
+            <p class="text-secondary">@I18n[I18nKey.Ui.NewsPosts.EmptyQueue]</p>
+        }
+
+        @foreach (var item in items) {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between gap-2 flex-wrap">
+                        <div>
+                            <a class="h5 d-block mb-1" href="@item.Url" target="_blank" rel="noopener">@item.Title</a>
+                            <div class="small text-secondary">
+                                @item.FeedName &middot; <LocalTime Value="item.PublishedAt" Format="dd.MM.yyyy HH:mm" />
+                                @if (!item.HasFullText) {
+                                    <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.NewsPosts.TeaserOnly]</span>
+                                }
+                                <span class="badge text-bg-secondary ms-1">@StatusLabel(item.Status)</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(item.TriageReason)) {
+                                <div class="small mt-1">@item.TriageReason</div>
+                            }
+                            @if (!string.IsNullOrEmpty(item.LastError)) {
+                                <div class="small text-danger mt-1">@item.LastError</div>
+                            }
+                        </div>
+                        <div class="d-flex gap-2 align-items-start">
+                            @if (item.Status == NewsItemStatusDTO.Failed) {
+                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "retry")'>@I18n[I18nKey.Ui.NewsPosts.Retry]</button>
+                            } else if (CanGenerate(item)) {
+                                <button type="button" class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "generate")'>
+                                    @(item.Status == NewsItemStatusDTO.Generated ? I18n[I18nKey.Ui.NewsPosts.Regenerate] : I18n[I18nKey.Ui.NewsPosts.Generate])
+                                </button>
+                            }
+                            @if (CanDismiss(item)) {
+                                <button type="button" class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "dismiss")'>@I18n[I18nKey.Ui.NewsPosts.Dismiss]</button>
+                            }
+                        </div>
+                    </div>
+
+                    @if (item.Status == NewsItemStatusDTO.Generated && item.Candidates.Count == 0) {
+                        <p class="text-secondary mt-3 mb-0">@I18n[I18nKey.Ui.NewsPosts.NoCandidates]</p>
+                    }
+
+                    @foreach (var candidate in item.Candidates) {
+                        <div class="border rounded p-2 mt-3">
+                            <div>@candidate.Text</div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="small text-secondary">@PostText.Length(candidate.Text) / @PostText.MaxLength</span>
+                                <button type="button" class="btn btn-primary btn-sm" @onclick="() => OpenEditor(item, candidate)">@I18n[I18nKey.Ui.NewsPosts.UseCandidate]</button>
+                            </div>
+                            <details class="small mt-1">
+                                <summary>@I18n[I18nKey.Ui.NewsPosts.ProgrammePassage]: @candidate.SectionHeadingPath</summary>
+                                <p class="mb-1">@candidate.SectionBody</p>
+                                <a href="@candidate.SectionUrl" target="_blank" rel="noopener">@candidate.SectionUrl</a>
+                            </details>
+                        </div>
+                    }
+
+                    @if (editingItemId == item.Id) {
+                        <div class="border border-primary rounded p-3 mt-3">
+                            <textarea class="form-control" rows="4" @bind="editText" @bind:event="oninput"></textarea>
+                            <div class="small mt-1 @(PostText.IsValid(editText) ? "text-secondary" : "text-danger")">@PostText.Length(editText) / @PostText.MaxLength</div>
+
+                            <div class="mt-2">
+                                <div class="fw-semibold small">@I18n[I18nKey.Ui.NewsPosts.Channels]</div>
+                                @if (channels == null) {
+                                    <div class="text-danger small">@I18n[I18nKey.Ui.NewsPosts.ChannelsUnavailable]</div>
+                                } else {
+                                    @foreach (var channel in channels) {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="ch-@channel.Id" disabled="@channel.Disabled"
+                                                   checked="@_selectedChannels.Contains(channel.Id)" @onchange="e => ToggleChannel(channel.Id, (bool)e.Value!)" />
+                                            <label class="form-check-label @(channel.Disabled ? "text-secondary" : "")" for="ch-@channel.Id">@channel.Name (@channel.Platform)</label>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                            <div class="mt-2 d-flex gap-3 align-items-center flex-wrap">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="when-now" checked="@(!scheduled)" @onchange="() => scheduled = false" />
+                                    <label class="form-check-label" for="when-now">@I18n[I18nKey.Ui.NewsPosts.PublishNow]</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" id="when-at" checked="@scheduled" @onchange="() => scheduled = true" />
+                                    <label class="form-check-label" for="when-at">@I18n[I18nKey.Ui.NewsPosts.PublishAt]</label>
+                                </div>
+                                @if (scheduled) {
+                                    <input type="datetime-local" class="form-control form-control-sm w-auto" @bind="scheduledLocal" />
+                                }
+                            </div>
+
+                            <div class="mt-3 d-flex gap-2">
+                                <button type="button" class="btn btn-success" disabled="@(!CanPublish)" @onclick="PublishAsync">@I18n[I18nKey.Ui.NewsPosts.PublishButton]</button>
+                                <button type="button" class="btn btn-outline-secondary" @onclick="CloseEditor">@I18n[I18nKey.Ui.NewsPosts.Cancel]</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    <ConfirmDialog @ref="confirmDialog" Message="@I18n[I18nKey.Ui.NewsPosts.PublishConfirm]" ConfirmText="@I18n[I18nKey.Ui.NewsPosts.PublishButton]" />
+</RequirePermission>

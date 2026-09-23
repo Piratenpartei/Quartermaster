@@ -15,6 +15,7 @@ using Quartermaster.Data.Forms.PdfTemplates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.NewsPosts;
 using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
@@ -70,6 +71,12 @@ public class DbContext : DataConnection {
     public ITable<ExpenseReimbursement> ExpenseReimbursements => this.GetTable<ExpenseReimbursement>();
     public ITable<ExpenseReimbursementLineItem> ExpenseReimbursementLineItems => this.GetTable<ExpenseReimbursementLineItem>();
     public ITable<PdfTemplate> PdfTemplates => this.GetTable<PdfTemplate>();
+    public ITable<ProgrammeSource> ProgrammeSources => this.GetTable<ProgrammeSource>();
+    public ITable<ProgrammeSection> ProgrammeSections => this.GetTable<ProgrammeSection>();
+    public ITable<NewsFeed> NewsFeeds => this.GetTable<NewsFeed>();
+    public ITable<NewsItem> NewsItems => this.GetTable<NewsItem>();
+    public ITable<PostCandidate> PostCandidates => this.GetTable<PostCandidate>();
+    public ITable<PostPublication> PostPublications => this.GetTable<PostPublication>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -103,6 +110,10 @@ public class DbContext : DataConnection {
         services.AddScoped<ChapterMails.ChapterMailRepository>();
         services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementRepository>();
         services.AddScoped<Forms.PdfTemplates.PdfTemplateRepository>();
+        services.AddScoped<ProgrammeRepository>();
+        services.AddScoped<NewsFeedRepository>();
+        services.AddScoped<NewsItemRepository>();
+        services.AddScoped<PostPublicationRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>
@@ -113,5 +124,8 @@ public class DbContext : DataConnection {
         scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<TemplateRepository>().SupplementDefaults();
+        NewsPostsSeeder.Seed(
+            scope.ServiceProvider.GetRequiredService<NewsFeedRepository>(),
+            scope.ServiceProvider.GetRequiredService<ProgrammeRepository>());
     }
 }

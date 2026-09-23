@@ -38,6 +38,8 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
         AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
         AddIfNotExists(PermissionIdentifier.EditPdfTemplates, "PDF-Vorlagen bearbeiten", true);
+        AddIfNotExists(PermissionIdentifier.ReviewNewsPosts, "Social-Media-Vorschläge prüfen und freigeben", true);
+        AddIfNotExists(PermissionIdentifier.ManageNewsPosts, "Social-Media-Quellen verwalten", true);
         AddIfNotExists(PermissionIdentifier.AssignPermissionsGlobally, "Berechtigungen global vergeben", true);
         AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
         AddIfNotExists(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);

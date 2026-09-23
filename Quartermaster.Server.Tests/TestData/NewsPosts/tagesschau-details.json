@@ -1,0 +1,8 @@
+{
+  "content": [
+    { "value": "<strong>Einzelfahrschein 4 Euro.</strong>", "type": "text" },
+    { "value": "<h2>Zwischentitel</h2>", "type": "headline" },
+    { "type": "image_gallery" },
+    { "value": "Der Senat <a href=\"https://x\">verschiebt</a> die Reform.", "type": "text" }
+  ]
+}

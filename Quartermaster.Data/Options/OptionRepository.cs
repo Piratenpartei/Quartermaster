@@ -342,7 +342,83 @@ public class OptionRepository {
             "Sitzungen: Kollaborative Notizen – Speicherintervall (Sekunden)",
             OptionDataType.Number, false, "", "10",
             description: "Intervall in Sekunden, in dem der Server einen Snapshot der kollaborativ bearbeiteten Notizen persistiert. Niedrigere Werte reduzieren den Datenverlust bei Verbindungsabbrüchen, erhöhen aber die DB-Last. Standard: 10.");
+
+        AddDefinitionIfNotExists("newsposts.enabled",
+            "Social Media: Aktiviert",
+            OptionDataType.String, false, "", "false",
+            description: "Schaltet das Abrufen von Nachrichten und das Erzeugen von Vorschlägen ein (true/false).");
+
+        AddDefinitionIfNotExists("newsposts.poll_interval_minutes",
+            "Social Media: Abrufintervall",
+            OptionDataType.Number, false, "", "15",
+            description: "Intervall in Minuten, in dem die Nachrichtenquellen abgerufen und verarbeitet werden.");
+
+        AddDefinitionIfNotExists("newsposts.max_item_age_hours",
+            "Social Media: Maximales Meldungsalter",
+            OptionDataType.Number, false, "", "48",
+            description: "Ältere Meldungen werden beim Abruf ignoriert (Stunden).");
+
+        AddDefinitionIfNotExists("newsposts.retention_days",
+            "Social Media: Aufbewahrung",
+            OptionDataType.Number, false, "", "30",
+            description: "Meldungen ohne Veröffentlichung werden nach so vielen Tagen ohne Änderung gelöscht.");
+
+        AddDefinitionIfNotExists("newsposts.mistral.api_key",
+            "Social Media: Mistral API-Schlüssel",
+            OptionDataType.String, false, "", "",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("newsposts.mistral.base_url",
+            "Social Media: Mistral API-URL",
+            OptionDataType.String, false, "", "https://api.mistral.ai");
+
+        AddDefinitionIfNotExists("newsposts.mistral.triage_model",
+            "Social Media: Modell für Vorauswahl",
+            OptionDataType.String, false, "", "mistral-small-latest");
+
+        AddDefinitionIfNotExists("newsposts.mistral.generation_model",
+            "Social Media: Modell für Vorschläge",
+            OptionDataType.String, false, "", "mistral-medium-latest");
+
+        AddDefinitionIfNotExists("newsposts.mistral.embedding_model",
+            "Social Media: Embedding-Modell",
+            OptionDataType.String, false, "", "mistral-embed");
+
+        AddDefinitionIfNotExists("newsposts.triage.min_similarity",
+            "Social Media: Mindestähnlichkeit",
+            OptionDataType.String, false, "", "0.70",
+            description: "Unterhalb dieser Kosinus-Ähnlichkeit zum Programm gilt eine Meldung ohne KI-Aufruf als nicht relevant (0 bis 1).");
+
+        AddDefinitionIfNotExists("newsposts.generation.candidate_count",
+            "Social Media: Anzahl Vorschläge",
+            OptionDataType.Number, false, "", "5");
+
+        AddDefinitionIfNotExists("newsposts.generation.prompt",
+            "Social Media: Stilregeln",
+            OptionDataType.String, false, "", NewsPostsDefaultPrompt,
+            description: "Ton- und Stilregeln für die erzeugten Beiträge. Format- und Faktenregeln ergänzt die Anwendung selbst.");
+
+        AddDefinitionIfNotExists("newsposts.postiz.base_url",
+            "Social Media: Postiz API-URL",
+            OptionDataType.String, false, "", "",
+            description: "Basis-URL der Postiz-Instanz inklusive /api, z.B. https://postiz.example.org/api");
+
+        AddDefinitionIfNotExists("newsposts.postiz.api_key",
+            "Social Media: Postiz API-Schlüssel",
+            OptionDataType.String, false, "", "",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("newsposts.postiz.x_reply_setting",
+            "Social Media: Antworten auf X",
+            OptionDataType.String, false, "", "everyone",
+            description: "Wer auf X antworten darf: everyone, following, mentionedUsers, subscribers oder verified.");
     }
+
+    private const string NewsPostsDefaultPrompt =
+        "Du schreibst Beiträge für die Social-Media-Kanäle der Piratenpartei Deutschland. " +
+        "Klar, pointiert, sachlich im Kern, gern mit einer zugespitzten Pointe. " +
+        "Sprich als \"wir PIRATEN\", nicht als Einzelperson. Keine Beleidigungen, keine Unterstellungen. " +
+        "Höchstens zwei Hashtags, bevorzugt #Piraten plus ein Themen-Hashtag.";
 
     private void AddDefinitionIfNotExists(string identifier, string friendlyName,
         OptionDataType dataType, bool isOverridable, string templateModels, string defaultValue,

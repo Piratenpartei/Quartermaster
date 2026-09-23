@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>netzpolitik.org</title>
+    <item>
+      <title>Eckpunkte geleakt: EU-Kommission will Alterskontrollen</title>
+      <link>https://netzpolitik.org/2026/eckpunkte/</link>
+      <guid isPermaLink="false">https://netzpolitik.org/?p=1</guid>
+      <pubDate>Tue, 15 Sep 2026 10:00:00 +0200</pubDate>
+      <description><![CDATA[<p>Die Kommission plant eine Alterskontrolle.</p>]]></description>
+      <content:encoded><![CDATA[<p>Ein <strong>elfseitiges</strong> Papier.</p><p>Zweiter Absatz.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Ohne GUID und Datum</title>
+      <link>https://netzpolitik.org/2026/ohne/</link>
+      <description>Nur Teaser</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,127 @@
+@page "/Administration/NewsPosts/Settings"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.NewsPosts
+
+<PageTitle>@I18n[I18nKey.Ui.NewsPosts.SettingsTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ManageNewsPosts">
+    <PageBackLink Href="/Administration/NewsPosts" />
+    <h3 class="mb-3">@I18n[I18nKey.Ui.NewsPosts.SettingsTitle]</h3>
+
+    @if (status != null) {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.NewsPosts.StatusTitle]</h5>
+                <div>@I18n[I18nKey.Ui.NewsPosts.StatusEnabled]: @YesNo(status.Enabled)</div>
+                <div>@I18n[I18nKey.Ui.NewsPosts.StatusMistral]: @YesNo(status.MistralConfigured)</div>
+                <div>@I18n[I18nKey.Ui.NewsPosts.StatusPostiz]: @YesNo(status.PostizConfigured) / @I18n[I18nKey.Ui.NewsPosts.StatusPostizReachable]: @YesNo(status.PostizReachable)</div>
+                <div>@I18n[I18nKey.Ui.NewsPosts.StatusSections]: @status.IndexedSections</div>
+                <div>
+                    @I18n[I18nKey.Ui.NewsPosts.StatusLastRun]:
+                    @if (status.LastRunAt != null) {
+                        <LocalTime Value="status.LastRunAt.Value" Format="dd.MM.yyyy HH:mm" />
+                    } else {
+                        <span>-</span>
+                    }
+                    @if (!string.IsNullOrEmpty(status.LastRunError)) {
+                        <span class="text-danger ms-2">@status.LastRunError</span>
+                    }
+                </div>
+                <div class="small text-secondary mt-1">@string.Join(" · ", status.ItemsByStatus.Select(kv => $"{I18n[$"ui.news_posts.status.{kv.Key.ToLowerInvariant()}"]}: {kv.Value}"))</div>
+            </div>
+        </div>
+    }
+
+    <h5>@I18n[I18nKey.Ui.NewsPosts.FeedsTitle]</h5>
+    <div class="table-responsive mb-4">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.FeedName]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.FeedUrl]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.FeedKind]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.FeedEnabled]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.FeedLastPoll]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var feed in feeds) {
+                    <tr>
+                        <td><input class="form-control form-control-sm" @bind="feed.Name" /></td>
+                        <td><input class="form-control form-control-sm" @bind="feed.Url" /></td>
+                        <td>
+                            <select class="form-select form-select-sm" @bind="feed.Kind">
+                                <option value="0">@I18n[I18nKey.Ui.NewsPosts.FeedKindRss]</option>
+                                <option value="1">@I18n[I18nKey.Ui.NewsPosts.FeedKindTagesschau]</option>
+                            </select>
+                        </td>
+                        <td><input type="checkbox" class="form-check-input" @bind="feed.IsEnabled" /></td>
+                        <td class="small">
+                            @if (feed.LastPolledAt != null) {
+                                <LocalTime Value="feed.LastPolledAt.Value" Format="dd.MM. HH:mm" />
+                            }
+                            @if (!string.IsNullOrEmpty(feed.LastError)) {
+                                <div class="text-danger">@feed.LastError</div>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="() => SaveFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Save]</button>
+                            @if (feed.Id != Guid.Empty) {
+                                <button type="button" class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => DeleteFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Delete]</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="AddFeedRow">@I18n[I18nKey.Ui.NewsPosts.FeedAdd]</button>
+    </div>
+
+    <h5>@I18n[I18nKey.Ui.NewsPosts.SourcesTitle]</h5>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.SourceTitle]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.SourceSections]</th>
+                    <th>@I18n[I18nKey.Ui.NewsPosts.SourceLastSync]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var source in sources) {
+                    <tr>
+                        <td>@source.WikiPageTitle</td>
+                        <td>@source.SectionCount</td>
+                        <td class="small">
+                            @if (source.LastSyncedAt != null) {
+                                <LocalTime Value="source.LastSyncedAt.Value" Format="dd.MM.yyyy HH:mm" />
+                            }
+                            @if (!string.IsNullOrEmpty(source.LastError)) {
+                                <div class="text-danger">@source.LastError</div>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => DeleteSourceAsync(source)">@I18n[I18nKey.Ui.NewsPosts.Delete]</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex gap-2 align-items-start flex-wrap">
+        <div>
+            <input class="form-control form-control-sm" placeholder="Positionspapiere/" @bind="newSourceTitle" />
+            <div class="form-text">@I18n[I18nKey.Ui.NewsPosts.SourceHint]</div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick="AddSourceAsync">@I18n[I18nKey.Ui.NewsPosts.SourceAdd]</button>
+        <button type="button" class="btn btn-primary btn-sm" disabled="@syncing" @onclick="SyncAsync">
+            @if (syncing) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            @I18n[I18nKey.Ui.NewsPosts.SyncNow]
+        </button>
+    </div>
+</RequirePermission>

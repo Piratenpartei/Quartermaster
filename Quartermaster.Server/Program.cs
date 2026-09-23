@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Channels;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Users;
@@ -128,6 +130,28 @@ public partial class Program {
         builder.Services.AddSingleton<Forms.PdfTemplating.PdfTemplateEngine>();
         builder.Services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementPdfService>();
         builder.Services.AddSingleton<Forms.PdfTemplating.IFormMockData, Forms.ExpenseReimbursements.ExpenseReimbursementMockData>();
+
+        builder.Services.AddSingleton<NewsPosts.Programme.ProgrammeIndex>();
+        builder.Services.AddScoped(sp => NewsPosts.NewsPostsSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddScoped<NewsPosts.Mistral.IMistralClient>(sp => new NewsPosts.Mistral.HttpMistralClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient(),
+            sp.GetRequiredService<NewsPosts.NewsPostsSettings>(),
+            sp.GetRequiredService<ILogger<NewsPosts.Mistral.HttpMistralClient>>()));
+        builder.Services.AddScoped<NewsPosts.Programme.IWikiClient>(sp => new NewsPosts.Programme.HttpWikiClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient()));
+        builder.Services.AddScoped<NewsPosts.Programme.ProgrammeSyncService>();
+        builder.Services.AddHostedService<NewsPosts.Programme.ProgrammeSyncHostedService>();
+        builder.Services.AddScoped<NewsPosts.Feeds.IFeedFetcher>(sp => new NewsPosts.Feeds.HttpFeedFetcher(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient()));
+        builder.Services.AddScoped<NewsPosts.Feeds.NewsFeedPoller>();
+        builder.Services.AddScoped<NewsPosts.Generation.RelevanceTriage>();
+        builder.Services.AddScoped<NewsPosts.Generation.CandidateGenerator>();
+        builder.Services.AddScoped<NewsPosts.Pipeline.NewsPipeline>();
+        builder.Services.AddHostedService<NewsPosts.Pipeline.NewsPipelineHostedService>();
+        builder.Services.AddScoped<NewsPosts.Postiz.IPostizClient>(sp => new NewsPosts.Postiz.HttpPostizClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient(),
+            sp.GetRequiredService<NewsPosts.NewsPostsSettings>(),
+            sp.GetRequiredService<ILogger<NewsPosts.Postiz.HttpPostizClient>>()));
 
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();

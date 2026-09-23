@@ -127,6 +127,12 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE RolePermissions;
             TRUNCATE TABLE Roles;
             TRUNCATE TABLE Permissions;
+            TRUNCATE TABLE PostPublications;
+            TRUNCATE TABLE PostCandidates;
+            TRUNCATE TABLE NewsItems;
+            TRUNCATE TABLE NewsFeeds;
+            TRUNCATE TABLE ProgrammeSections;
+            TRUNCATE TABLE ProgrammeSources;
             SET FOREIGN_KEY_CHECKS = 1;
             """;
         cmd.ExecuteNonQuery();

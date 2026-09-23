@@ -116,6 +116,28 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.oidc.button_text` | Login button label (default: `OpenID Login`) |
 | `auth.oidc.member_number_claim` | ID-token claim carrying the member number (default: `member_number`). Linking and member creation work as for SAML; first and last name come from `given_name` / `family_name` |
 
+### News Posts (optional)
+
+Optional. When enabled, the app polls the configured news feeds, matches items against the party programme, and drafts social-media post candidates via Mistral for review before publishing them through Postiz.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `newsposts.enabled` | `false` | Turns feed polling and candidate generation on/off |
+| `newsposts.poll_interval_minutes` | `15` | How often feeds are polled and processed |
+| `newsposts.max_item_age_hours` | `48` | Items older than this are ignored on fetch |
+| `newsposts.retention_days` | `30` | Items with no publication are deleted after this many days without change |
+| `newsposts.mistral.api_key` | _empty_ | Mistral API key (stored masked) |
+| `newsposts.mistral.base_url` | `https://api.mistral.ai` | Mistral API base URL |
+| `newsposts.mistral.triage_model` | `mistral-small-latest` | Model used for relevance triage |
+| `newsposts.mistral.generation_model` | `mistral-medium-latest` | Model used for candidate generation |
+| `newsposts.mistral.embedding_model` | `mistral-embed` | Model used for programme-section embeddings |
+| `newsposts.triage.min_similarity` | `0.70` | Below this cosine similarity to the programme, an item is treated as irrelevant without a Mistral call (0 to 1) |
+| `newsposts.generation.candidate_count` | `5` | Number of post candidates generated per item |
+| `newsposts.generation.prompt` | _default prompt_ | Tone and style rules for generated posts; format and factual rules are added by the app itself |
+| `newsposts.postiz.base_url` | _empty_ | Postiz instance base URL including `/api`, e.g. `https://postiz.example.org/api` |
+| `newsposts.postiz.api_key` | _empty_ | Postiz API key (stored masked) |
+| `newsposts.postiz.x_reply_setting` | `everyone` | Who may reply on X: `everyone`, `following`, `mentionedUsers`, `subscribers`, or `verified` |
+
 ### SSO support contact
 
 | Identifier | Purpose |

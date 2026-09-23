@@ -481,6 +481,7 @@ public static class I18nKey {
             public const string BoardWorkEvents = "ui.main_nav_bar.board_work.events";
             public const string BoardWorkEventTemplates = "ui.main_nav_bar.board_work.event_templates";
             public const string BoardWorkMailings = "ui.main_nav_bar.board_work.mailings";
+            public const string BoardWorkNewsPosts = "ui.main_nav_bar.board_work.news_posts";
             public const string Administration = "ui.main_nav_bar.administration";
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
@@ -506,6 +507,64 @@ public static class I18nKey {
             public const string NotificationsTitle = "ui.main_nav_bar.notifications_title";
             public const string Logout = "ui.main_nav_bar.logout";
             public const string Login = "ui.main_nav_bar.login";
+        }
+
+        public static class NewsPosts {
+            public const string PageTitle = "ui.news_posts.page_title";
+            public const string TabSuggestions = "ui.news_posts.tab_suggestions";
+            public const string TabAll = "ui.news_posts.tab_all";
+            public const string TabPosted = "ui.news_posts.tab_posted";
+            public const string SettingsLink = "ui.news_posts.settings_link";
+            public const string TeaserOnly = "ui.news_posts.teaser_only";
+            public const string NoCandidates = "ui.news_posts.no_candidates";
+            public const string EmptyQueue = "ui.news_posts.empty_queue";
+            public const string ProgrammePassage = "ui.news_posts.programme_passage";
+            public const string UseCandidate = "ui.news_posts.use_candidate";
+            public const string Dismiss = "ui.news_posts.dismiss";
+            public const string Regenerate = "ui.news_posts.regenerate";
+            public const string Generate = "ui.news_posts.generate";
+            public const string Retry = "ui.news_posts.retry";
+            public const string Channels = "ui.news_posts.channels";
+            public const string ChannelsUnavailable = "ui.news_posts.channels_unavailable";
+            public const string PublishNow = "ui.news_posts.publish_now";
+            public const string PublishAt = "ui.news_posts.publish_at";
+            public const string PublishButton = "ui.news_posts.publish_button";
+            public const string PublishConfirm = "ui.news_posts.publish_confirm";
+            public const string Published = "ui.news_posts.published";
+            public const string Cancel = "ui.news_posts.cancel";
+            public const string StatusFilterAll = "ui.news_posts.status_filter_all";
+            public const string PostedAt = "ui.news_posts.posted_at";
+            public const string PostedBy = "ui.news_posts.posted_by";
+            public const string PostFailed = "ui.news_posts.post_failed";
+            public const string SettingsTitle = "ui.news_posts.settings_title";
+            public const string FeedsTitle = "ui.news_posts.feeds_title";
+            public const string FeedName = "ui.news_posts.feed_name";
+            public const string FeedUrl = "ui.news_posts.feed_url";
+            public const string FeedKind = "ui.news_posts.feed_kind";
+            public const string FeedKindRss = "ui.news_posts.feed_kind_rss";
+            public const string FeedKindTagesschau = "ui.news_posts.feed_kind_tagesschau";
+            public const string FeedEnabled = "ui.news_posts.feed_enabled";
+            public const string FeedLastPoll = "ui.news_posts.feed_last_poll";
+            public const string FeedAdd = "ui.news_posts.feed_add";
+            public const string Save = "ui.news_posts.save";
+            public const string Delete = "ui.news_posts.delete";
+            public const string SourcesTitle = "ui.news_posts.sources_title";
+            public const string SourceTitle = "ui.news_posts.source_title";
+            public const string SourceHint = "ui.news_posts.source_hint";
+            public const string SourceSections = "ui.news_posts.source_sections";
+            public const string SourceLastSync = "ui.news_posts.source_last_sync";
+            public const string SourceAdd = "ui.news_posts.source_add";
+            public const string SyncNow = "ui.news_posts.sync_now";
+            public const string SyncDone = "ui.news_posts.sync_done";
+            public const string StatusTitle = "ui.news_posts.status_title";
+            public const string StatusEnabled = "ui.news_posts.status_enabled";
+            public const string StatusMistral = "ui.news_posts.status_mistral";
+            public const string StatusPostiz = "ui.news_posts.status_postiz";
+            public const string StatusPostizReachable = "ui.news_posts.status_postiz_reachable";
+            public const string StatusLastRun = "ui.news_posts.status_last_run";
+            public const string StatusSections = "ui.news_posts.status_sections";
+            public const string Yes = "ui.news_posts.yes";
+            public const string No = "ui.news_posts.no";
         }
 
         public static class Login {

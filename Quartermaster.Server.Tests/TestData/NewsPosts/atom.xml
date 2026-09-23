@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>heise</title>
+  <entry>
+    <title>Atom Titel</title>
+    <link href="https://example.org/atom-1"/>
+    <id>tag:example.org,2026:1</id>
+    <updated>2026-09-16T08:00:00Z</updated>
+    <summary>Atom Teaser</summary>
+  </entry>
+</feed>

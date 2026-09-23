@@ -1,0 +1,11 @@
+{
+  "news": [
+    { "externalId": "ts-1", "title": "Tickets teurer", "firstSentence": "Bus und Bahn kosten mehr.", "date": "2026-09-16T10:00:00.000+02:00",
+      "details": "https://www.tagesschau.de/api2u/inland/tickets-100.json", "shareURL": "https://www.tagesschau.de/inland/tickets-100.html", "type": "story" },
+    { "externalId": "ts-2", "title": "Ohne Teaser", "date": "2026-09-16T11:00:00.000+02:00",
+      "details": "https://www.tagesschau.de/api2u/inland/ohne-100.json", "shareURL": "https://www.tagesschau.de/inland/ohne-100.html", "type": "story" },
+    { "externalId": "ts-3", "title": "Video", "date": "2026-09-16T12:00:00.000+02:00", "type": "video" }
+  ],
+  "regional": [],
+  "type": "newsPage"
+}

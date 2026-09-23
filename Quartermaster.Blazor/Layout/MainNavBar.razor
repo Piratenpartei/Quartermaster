@@ -38,7 +38,7 @@
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
-                <RequirePermission AnyOfChapterPermissions="@PermissionIdentifier.BoardWorkPermissions">
+                <RequirePermission AnyOfPermissions="@(new List<string>(PermissionIdentifier.BoardWorkPermissions) { PermissionIdentifier.ReviewNewsPosts })">
                     <li class="nav-item">
                         <NavMenuDropdown>
                             <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.BoardWork]</ButtonContent>
@@ -69,6 +69,10 @@
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageChapterMail">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/Mailings">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMailings]</a></li>
+                                </RequirePermission>
+                                <RequirePermission GlobalPermission="@PermissionIdentifier.ReviewNewsPosts">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/NewsPosts">@I18n[I18nKey.Ui.MainNavBar.BoardWorkNewsPosts]</a></li>
                                 </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>
