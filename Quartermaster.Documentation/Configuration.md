@@ -104,6 +104,7 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.saml.button_text` | Login button label (default: `SSO Login`) |
 | `auth.saml.expected_audience` | Required `<Audience>` value in the assertion. Empty = skip check (not recommended) |
 | `auth.saml.expected_destination` | Required `<Destination>` URL — usually `<public_base_url>/api/users/SamlConsume`. Empty = skip check |
+| `auth.saml.member_number_attribute` | SAML attribute carrying the member number (default: `member_number`). Users are linked to members by this number; when no member exists yet, one is created from first name, last name, email and member number, and the next member import fills in the rest |
 
 ### OpenID Connect (optional)
 
@@ -113,6 +114,7 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.oidc.client_id` | OIDC client ID |
 | `auth.oidc.client_secret` | OIDC client secret (stored masked) |
 | `auth.oidc.button_text` | Login button label (default: `OpenID Login`) |
+| `auth.oidc.member_number_claim` | ID-token claim carrying the member number (default: `member_number`). Linking and member creation work as for SAML; first and last name come from `given_name` / `family_name` |
 
 ### SSO support contact
 

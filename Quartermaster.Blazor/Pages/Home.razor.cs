@@ -20,6 +20,7 @@ public partial class Home {
 
     private DashboardDTO? Dashboard;
     private List<ChangelogEntryDTO>? Changelog;
+    private string? openChangelogVersion;
     private bool Loading = true;
 
     private bool HasAnyWidget => Dashboard != null
@@ -36,9 +37,15 @@ public partial class Home {
         }
         try {
             Changelog = await Http.GetFromJsonAsync<List<ChangelogEntryDTO>>("/api/changelog");
+            if (Changelog != null && Changelog.Count > 0)
+                openChangelogVersion = Changelog[0].Version;
         } catch (HttpRequestException) {
             // Changelog is informational; a fetch failure shouldn't toast on every page load.
         }
         Loading = false;
+    }
+
+    private void ToggleChangelogVersion(string version) {
+        openChangelogVersion = openChangelogVersion == version ? null : version;
     }
 }

@@ -142,6 +142,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "",
             description: "Die URL, an die der IdP die SAML-Antwort senden soll (z.B. https://quartermaster.example.de/api/users/SamlConsume). Muss mit dem <Destination>-Attribut der Antwort übereinstimmen. Wenn leer, wird die Destination-Prüfung übersprungen (nicht empfohlen für Produktion).");
 
+        AddDefinitionIfNotExists("auth.saml.member_number_attribute",
+            "SAML: Attribut für Mitgliedsnummer",
+            OptionDataType.String, false, "", "member_number",
+            description: "Name des SAML-Attributs, das die Mitgliedsnummer enthält. Benutzer werden über die Mitgliedsnummer mit Mitgliedern verknüpft; fehlt ein Mitglied, wird es mit Vorname, Nachname, E-Mail und Mitgliedsnummer angelegt.");
+
         AddDefinitionIfNotExists("auth.sso.support_contact",
             "SSO: Support-Kontakt",
             OptionDataType.String, false, "", "",
@@ -162,6 +167,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "",
             description: "Das Client-Secret des OIDC-Clients. Zu finden unter Clients > Credentials im Identity Provider.",
             isSecret: true);
+
+        AddDefinitionIfNotExists("auth.oidc.member_number_claim",
+            "OIDC: Claim für Mitgliedsnummer",
+            OptionDataType.String, false, "", "member_number",
+            description: "Name des Claims im ID-Token, der die Mitgliedsnummer enthält. Benutzer werden über die Mitgliedsnummer mit Mitgliedern verknüpft; fehlt ein Mitglied, wird es mit Vorname, Nachname, E-Mail und Mitgliedsnummer angelegt.");
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
             "OIDC: Login-Button Text",

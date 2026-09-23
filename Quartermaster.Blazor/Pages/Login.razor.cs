@@ -28,9 +28,9 @@ public partial class Login {
         if (!string.IsNullOrEmpty(error)) {
             var supportContact = ConfigService.SsoSupportContact;
             ErrorMessage = error switch {
-                "saml_no_member" => string.IsNullOrEmpty(supportContact)
-                    ? I18n[I18nKey.Ui.Login.ErrorSamlNoMemberNoSupport]
-                    : I18n[$"{I18nKey.Ui.Login.ErrorSamlNoMemberWithSupport}?support={supportContact}"],
+                "sso_no_member_number" => string.IsNullOrEmpty(supportContact)
+                    ? I18n[I18nKey.Ui.Login.ErrorSsoNoMemberNumberNoSupport]
+                    : I18n[$"{I18nKey.Ui.Login.ErrorSsoNoMemberNumberWithSupport}?support={supportContact}"],
                 "saml_member_exited" => I18n[I18nKey.Ui.Login.ErrorSamlMemberExited],
                 "saml_invalid" => I18n[I18nKey.Ui.Login.ErrorSamlInvalid],
                 "saml_signature" => I18n[I18nKey.Ui.Login.ErrorSamlSignature],

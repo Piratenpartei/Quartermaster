@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -152,28 +154,44 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             return;
         }
 
+        ClaimsPrincipal principal;
         string email;
         try {
-            email = await ValidateAndExtractEmail(idToken, accessToken, expectedNonce, authority, clientId, ct);
+            principal = await ValidateIdToken(idToken, accessToken, expectedNonce, authority, clientId, ct);
+            email = ExtractEmail(principal);
         } catch (Exception ex) {
             Logger.LogError(ex, "OIDC JWT validation failed");
             await SendRedirectAsync("/Login?error=oidc_invalid_token", allowRemoteRedirects: false);
             return;
         }
 
-        Logger.LogInformation("OIDC login attempt from domain: {Domain}", email.Split('@').LastOrDefault() ?? "(unknown)");
+        var memberNumberClaim = _optionRepo.GetGlobalValue("auth.oidc.member_number_claim")?.Value;
+        if (string.IsNullOrEmpty(memberNumberClaim))
+            memberNumberClaim = "member_number";
 
+        var rawMemberNumber = principal.FindFirst(memberNumberClaim)?.Value;
+        if (!int.TryParse(rawMemberNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var memberNumber)) {
+            Logger.LogWarning("OIDC login failed: claim {Claim} missing or not a member number. Value={Value}",
+                memberNumberClaim, rawMemberNumber);
+            await SendRedirectAsync("/Login?error=sso_no_member_number", allowRemoteRedirects: false);
+            return;
+        }
+
+        var identity = new SsoIdentity(email, memberNumber,
+            FindClaim(principal, "given_name", ClaimTypes.GivenName),
+            FindClaim(principal, "family_name", ClaimTypes.Surname));
+
+        Logger.LogInformation("OIDC login attempt for member number {MemberNumber}", memberNumber);
+
+        var member = SsoLoginHelper.ResolveOrCreateMember(identity, _memberRepo);
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        var (result, token) = SsoLoginHelper.ProcessSsoLogin(email,
+        var (result, token) = SsoLoginHelper.ProcessSsoLogin(member, email,
             issuedIp,
             string.IsNullOrEmpty(userAgent) ? null : userAgent,
             _memberRepo, _userRepo, _tokenRepo, _officerRepo);
 
         switch (result) {
-            case SsoLoginResult.NoMember:
-                await SendRedirectAsync("/Login?error=saml_no_member", allowRemoteRedirects: false);
-                return;
             case SsoLoginResult.MemberExited:
             case SsoLoginResult.UserDeleted:
                 await SendRedirectAsync("/Login?error=saml_member_exited", allowRemoteRedirects: false);
@@ -191,7 +209,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         HttpContext.Response.Cookies.Delete("oidc_nonce", opts);
     }
 
-    private async Task<string> ValidateAndExtractEmail(
+    private async Task<ClaimsPrincipal> ValidateIdToken(
         string idToken, string? accessToken, string expectedNonce,
         string authority, string expectedAudience, CancellationToken ct) {
 
@@ -234,13 +252,25 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
                 throw new SecurityTokenValidationException("ID token at_hash mismatch");
         }
 
+        return principal;
+    }
+
+    private static string ExtractEmail(ClaimsPrincipal principal) {
         var email = principal.FindFirst("email")?.Value
-            ?? principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            ?? principal.FindFirst(ClaimTypes.Email)?.Value;
 
         if (string.IsNullOrEmpty(email))
             throw new InvalidOperationException("ID token does not contain an email claim");
 
         return email;
+    }
+
+    /// <summary>JwtSecurityTokenHandler maps standard claim names to <see cref="ClaimTypes"/> URIs by default, so both spellings are checked.</summary>
+    private static string? FindClaim(ClaimsPrincipal principal, string jwtName, string mappedName) {
+        var value = principal.FindFirst(jwtName)?.Value ?? principal.FindFirst(mappedName)?.Value;
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+        return value.Trim();
     }
 
     private async Task<JsonElement> GetCachedDiscovery(string authority, CancellationToken ct) {

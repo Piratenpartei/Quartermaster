@@ -133,13 +133,23 @@
 
     @if (Changelog != null && Changelog.Count > 0) {
         <h2 class="mt-4 mb-3">@I18n[I18nKey.Ui.Home.ChangelogTitle]</h2>
-        @foreach (var entry in Changelog) {
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h3 class="h5 card-title">V@(entry.Version)</h3>
-                    @((MarkupString)entry.Html)
+        <div class="accordion">
+            @foreach (var entry in Changelog) {
+                var isOpen = openChangelogVersion == entry.Version;
+                <div class="accordion-item">
+                    <h3 class="accordion-header">
+                        <button type="button" class="accordion-button @(isOpen ? "" : "collapsed")" aria-expanded="@(isOpen ? "true" : "false")"
+                                @onclick="() => ToggleChangelogVersion(entry.Version)">
+                            V@(entry.Version)
+                        </button>
+                    </h3>
+                    <div class="accordion-collapse collapse @(isOpen ? "show" : "")">
+                        <div class="accordion-body">
+                            @((MarkupString)entry.Html)
+                        </div>
+                    </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     }
 }

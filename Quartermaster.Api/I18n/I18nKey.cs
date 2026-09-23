@@ -517,8 +517,8 @@ public static class I18nKey {
             public const string NotAvailable = "ui.login.not_available";
             public const string ManualTitle = "ui.login.manual_title";
             public const string ManualSubtitle = "ui.login.manual_subtitle";
-            public const string ErrorSamlNoMemberWithSupport = "ui.login.error.saml_no_member_with_support";
-            public const string ErrorSamlNoMemberNoSupport = "ui.login.error.saml_no_member_no_support";
+            public const string ErrorSsoNoMemberNumberWithSupport = "ui.login.error.sso_no_member_number_with_support";
+            public const string ErrorSsoNoMemberNumberNoSupport = "ui.login.error.sso_no_member_number_no_support";
             public const string ErrorSamlMemberExited = "ui.login.error.saml_member_exited";
             public const string ErrorSamlInvalid = "ui.login.error.saml_invalid";
             public const string ErrorSamlSignature = "ui.login.error.saml_signature";

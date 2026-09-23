@@ -27,8 +27,9 @@ public class UserRepository {
     public User? GetByUsername(string username)
         => _context.Users.Where(u => u.Username == username && u.DeletedAt == null).FirstOrDefault();
 
-    public User? GetByEmail(string email)
-        => _context.Users.Where(u => u.Email == email && u.DeletedAt == null).FirstOrDefault();
+    /// <summary>Includes soft-deleted users, because the unique username index still covers their rows.</summary>
+    public bool IsUsernameTaken(string username)
+        => _context.Users.Any(u => u.Username == username);
 
     /// <summary>
     /// Ensures the root admin account exists and holds every permission as a global grant.

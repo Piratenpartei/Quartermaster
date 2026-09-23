@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,21 @@ namespace Quartermaster.Server.Users;
 
 public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse> {
     private static readonly TimeSpan ClockSkewTolerance = TimeSpan.FromSeconds(60);
+
+    private static readonly string[] FirstNameAttributes = [
+        "firstName",
+        "givenName",
+        "urn:oid:2.5.4.42",
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+    ];
+
+    private static readonly string[] LastNameAttributes = [
+        "lastName",
+        "surname",
+        "sn",
+        "urn:oid:2.5.4.4",
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+    ];
 
     private readonly OptionRepository _optionRepo;
     private readonly UserRepository _userRepo;
@@ -132,19 +148,33 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
             return;
         }
 
-        Logger.LogInformation("SAML login attempt from domain: {Domain}", email.Split('@').LastOrDefault() ?? "(unknown)");
+        var memberNumberAttribute = _optionRepo.GetGlobalValue("auth.saml.member_number_attribute")?.Value;
+        if (string.IsNullOrEmpty(memberNumberAttribute))
+            memberNumberAttribute = "member_number";
 
+        var rawMemberNumber = samlResponse.GetCustomAttribute(memberNumberAttribute);
+        if (!int.TryParse(rawMemberNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var memberNumber)) {
+            Logger.LogWarning("SAML login failed: attribute {Attribute} missing or not a member number. Value={Value}",
+                memberNumberAttribute, rawMemberNumber);
+            await SendRedirectAsync("/Login?error=sso_no_member_number", allowRemoteRedirects: false);
+            return;
+        }
+
+        var identity = new SsoIdentity(email, memberNumber,
+            FirstAttribute(samlResponse, FirstNameAttributes),
+            FirstAttribute(samlResponse, LastNameAttributes));
+
+        Logger.LogInformation("SAML login attempt for member number {MemberNumber}", memberNumber);
+
+        var member = SsoLoginHelper.ResolveOrCreateMember(identity, _memberRepo);
         var issuedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
         var userAgent = HttpContext.Request.Headers.UserAgent.ToString();
-        var (result, token) = SsoLoginHelper.ProcessSsoLogin(email,
+        var (result, token) = SsoLoginHelper.ProcessSsoLogin(member, email,
             issuedIp,
             string.IsNullOrEmpty(userAgent) ? null : userAgent,
             _memberRepo, _userRepo, _tokenRepo, _officerRepo);
 
         switch (result) {
-            case SsoLoginResult.NoMember:
-                await SendRedirectAsync("/Login?error=saml_no_member", allowRemoteRedirects: false);
-                return;
             case SsoLoginResult.MemberExited:
             case SsoLoginResult.UserDeleted:
                 await SendRedirectAsync("/Login?error=saml_member_exited", allowRemoteRedirects: false);
@@ -153,6 +183,15 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
 
         AuthCookie.Set(HttpContext, token!.Content, token.Expires);
         await SendRedirectAsync("/", allowRemoteRedirects: false);
+    }
+
+    private static string? FirstAttribute(Saml.Response samlResponse, string[] names) {
+        foreach (var name in names) {
+            var value = samlResponse.GetCustomAttribute(name);
+            if (!string.IsNullOrWhiteSpace(value))
+                return value.Trim();
+        }
+        return null;
     }
 }
 

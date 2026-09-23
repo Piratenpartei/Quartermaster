@@ -27,9 +27,6 @@ public class MemberRepository {
             .Where(m => m.MemberNumber == null && m.AdmissionReference == admissionReference)
             .FirstOrDefault();
 
-    public Member? GetByEmail(string email)
-        => _context.Members.Where(m => m.MemberNumber != null && m.Email == email).FirstOrDefault();
-
     public Member? GetByUserId(Guid userId)
         => _context.Members.Where(m => m.MemberNumber != null && m.UserId == userId).FirstOrDefault();
 
