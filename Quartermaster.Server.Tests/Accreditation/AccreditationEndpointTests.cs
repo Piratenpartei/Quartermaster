@@ -177,7 +177,9 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     [Test]
     [Arguments("abc")]
     [Arguments("0")]
-    [Arguments("-1")]
+    [Arguments("--1")]
+    [Arguments("1-")]
+    [Arguments("1.5")]
     public async Task Set_eligible_with_invalid_member_number_returns_400(string memberNumber) {
         using var client = await ClientAsync();
 
@@ -589,13 +591,45 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     [Test]
     [Arguments("abc")]
     [Arguments("0")]
-    [Arguments("-1")]
+    [Arguments("--1")]
+    [Arguments("1-")]
+    [Arguments("1.5")]
     public async Task Search_with_invalid_member_number_returns_400(string memberNumber) {
         using var client = await ClientAsync();
 
         var response = await client.GetAsync($"/api/accreditation/members/{memberNumber}");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
+    public async Task Negative_member_number_works_for_search_and_set_eligible() {
+        var id = Guid.NewGuid().ToString();
+        FakeKeycloakAdminClient.AddUser(id, "neg.member", "-4711", eligible: "false");
+        using var client = await ClientAsync();
+
+        var search = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/members/-4711");
+        var setResponse = await client.PostAsync("/api/accreditation/members/-4711/eligible", null);
+
+        await Assert.That(search!.Single().MemberNumber).IsEqualTo("-4711");
+        await Assert.That(setResponse.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(FakeKeycloakAdminClient.Users.Single(u => u.Id == id).Attribute("ekklesia_eligible")).IsEqualTo("true");
+    }
+
+    [Test]
+    public async Task Negative_member_number_works_for_check_and_create() {
+        using var client = await ClientAsync();
+        var request = new TemporaryAccountRequest {
+            FirstName = "Erika", LastName = "Mustermann", MemberNumber = "-4711", Username = "Erika.Mustermann", Eligible = true
+        };
+
+        var check = await (await client.PostAsJsonAsync("/api/accreditation/temporary-accounts/check", request))
+            .Content.ReadFromJsonAsync<TemporaryAccountCheckDTO>();
+        var create = await client.PostAsJsonAsync("/api/accreditation/temporary-accounts", request);
+
+        await Assert.That(check!.Ok).IsTrue();
+        await Assert.That(create.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(FakeKeycloakAdminClient.Created.Single().Attributes["member_number"].Single()).IsEqualTo("-4711");
     }
 
     [Test]
@@ -611,7 +645,9 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     [Arguments("abc")]
     [Arguments("")]
     [Arguments("0")]
-    [Arguments("-1")]
+    [Arguments("--1")]
+    [Arguments("1-")]
+    [Arguments("1.5")]
     public async Task Create_with_invalid_member_number_returns_400(string memberNumber) {
         using var client = await ClientAsync();
 

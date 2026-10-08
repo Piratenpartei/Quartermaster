@@ -1,6 +1,6 @@
-using System.Globalization;
 using Quartermaster.Api;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server.Accreditation.Endpoints;
 
@@ -19,6 +19,6 @@ public static class AccreditationGuard {
     }
 
     public static bool IsValidMemberNumber(string? value) {
-        return int.TryParse(value?.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0;
+        return MemberNumberParser.TryParse(value, out _);
     }
 }

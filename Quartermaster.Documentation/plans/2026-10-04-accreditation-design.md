@@ -109,7 +109,7 @@ POST /api/accreditation/temporary-accounts               { FirstName, LastName, 
                                                         -> { Username, Password, KeycloakUserId } | 400 | 409 existing account
 ```
 
-Member numbers are validated as positive integers. Keycloak failures return 502 with the German message.
+Member numbers are validated as non-zero integers; negative member numbers are valid (party workflows rely on them). Keycloak failures return 502 with the German message.
 
 ## Configuration
 

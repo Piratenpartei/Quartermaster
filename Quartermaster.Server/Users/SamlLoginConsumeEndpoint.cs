@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Saml;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.Users;
+using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server.Users;
 
@@ -153,7 +153,7 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
             memberNumberAttribute = "member_number";
 
         var rawMemberNumber = samlResponse.GetCustomAttribute(memberNumberAttribute);
-        if (!int.TryParse(rawMemberNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var memberNumber)) {
+        if (!MemberNumberParser.TryParse(rawMemberNumber, out var memberNumber)) {
             Logger.LogWarning("SAML login failed: attribute {Attribute} missing or not a member number. Value={Value}",
                 memberNumberAttribute, rawMemberNumber);
             await SendRedirectAsync("/Login?error=sso_no_member_number", allowRemoteRedirects: false);

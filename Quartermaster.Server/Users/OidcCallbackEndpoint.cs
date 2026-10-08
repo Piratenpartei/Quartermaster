@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -21,6 +20,7 @@ using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.Users;
+using Quartermaster.Server.Members;
 
 namespace Quartermaster.Server.Users;
 
@@ -170,7 +170,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             memberNumberClaim = "member_number";
 
         var rawMemberNumber = principal.FindFirst(memberNumberClaim)?.Value;
-        if (!int.TryParse(rawMemberNumber, NumberStyles.None, CultureInfo.InvariantCulture, out var memberNumber)) {
+        if (!MemberNumberParser.TryParse(rawMemberNumber, out var memberNumber)) {
             Logger.LogWarning("OIDC login failed: claim {Claim} missing or not a member number. Value={Value}",
                 memberNumberClaim, rawMemberNumber);
             await SendRedirectAsync("/Login?error=sso_no_member_number", allowRemoteRedirects: false);
