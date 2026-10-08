@@ -23,6 +23,15 @@ public class StubHttpMessageHandler : HttpMessageHandler {
         _responses.Enqueue(() => new HttpResponseMessage(status) { Content = new FailingContent(exception) });
     }
 
+    /// <summary>Answers with <paramref name="status"/>, an empty body and a Location header, like Keycloak's create endpoints.</summary>
+    public void EnqueueWithLocation(HttpStatusCode status, string location) {
+        _responses.Enqueue(() => {
+            var response = new HttpResponseMessage(status) { Content = new StringContent("") };
+            response.Headers.Location = new Uri(location);
+            return response;
+        });
+    }
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
         Requests.Add(request);
         RequestBodies.Add(request.Content == null ? "" : await request.Content.ReadAsStringAsync(cancellationToken));

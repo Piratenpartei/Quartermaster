@@ -1,0 +1,179 @@
+@page "/Administration/Akkreditierung"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.Accreditation
+
+<PageTitle>@I18n[I18nKey.Ui.Accreditation.PageTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ManageAccreditation">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.Accreditation.PageTitle]</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.Accreditation.EligibilityTitle]</h5>
+            <p class="text-secondary">@I18n[I18nKey.Ui.Accreditation.EligibilityIntro]</p>
+
+            <div class="d-flex gap-2 align-items-end mb-3 flex-wrap">
+                <div>
+                    <label class="form-label" for="eligibility-member-number">@I18n[I18nKey.Ui.Accreditation.MemberNumber]</label>
+                    <input id="eligibility-member-number" class="form-control" @bind="memberNumberQuery" @bind:event="oninput"
+                           @onkeydown="OnMemberNumberKeyDown" />
+                </div>
+                <button type="button" class="btn btn-primary" disabled="@searchBusy" @onclick="SearchAsync">@I18n[I18nKey.Ui.Accreditation.Search]</button>
+            </div>
+
+            @if (notConfigured) {
+                <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.NotConfigured]</div>
+            } else if (searchResults != null) {
+                @if (searchResults.Count == 0) {
+                    <div class="alert alert-info">@I18n[I18nKey.Ui.Accreditation.NoAccount]</div>
+                } else if (searchResults.Count > 1) {
+                    <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.MultipleAccounts]</div>
+                    <ul class="list-group">
+                        @foreach (var account in searchResults) {
+                            <li class="list-group-item">
+                                <span class="fw-semibold">@account.Username</span> - @account.FirstName @account.LastName - @AccountStatusLabel(account)
+                            </li>
+                        }
+                    </ul>
+                } else {
+                    var account = searchResults[0];
+                    <div class="mb-2">
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Username]:</strong> @account.Username</div>
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Name]:</strong> @account.FirstName @account.LastName</div>
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Email]:</strong> @account.Email</div>
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Status]:</strong> @AccountStatusLabel(account)</div>
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Eligible]:</strong> @YesNo(account.Eligible)</div>
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.Verified]:</strong> @YesNo(account.Verified)</div>
+                    </div>
+
+                    @if (!account.Enabled) {
+                        <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.DisabledWarning]</div>
+                    }
+                    @if (account.Eligible) {
+                        <div class="text-secondary">@I18n[I18nKey.Ui.Accreditation.AlreadyEligible]</div>
+                    } else {
+                        <button type="button" class="btn btn-success" disabled="@setEligibleBusy" @onclick="() => SetEligibleAsync(account)">
+                            @I18n[I18nKey.Ui.Accreditation.SetEligible]
+                        </button>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.Accreditation.TemporaryTitle]</h5>
+            <p class="text-secondary">@I18n[I18nKey.Ui.Accreditation.TemporaryIntro]</p>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="temp-first-name">@I18n[I18nKey.Ui.Accreditation.FirstName]</label>
+                    <input id="temp-first-name" class="form-control @InvalidClass("firstName")" @bind="newFirstName" @bind:event="oninput"
+                           @bind:after="OnNameChanged" />
+                    @foreach (var message in ProblemsFor("firstName")) {
+                        <div class="invalid-feedback d-block">@message</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="temp-last-name">@I18n[I18nKey.Ui.Accreditation.LastName]</label>
+                    <input id="temp-last-name" class="form-control @InvalidClass("lastName")" @bind="newLastName" @bind:event="oninput"
+                           @bind:after="OnNameChanged" />
+                    @foreach (var message in ProblemsFor("lastName")) {
+                        <div class="invalid-feedback d-block">@message</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="temp-member-number">@I18n[I18nKey.Ui.Accreditation.MemberNumber]</label>
+                    <input id="temp-member-number" class="form-control @InvalidClass("memberNumber")" @bind="newMemberNumber" @bind:event="oninput"
+                           @bind:after="InvalidateCheck" />
+                    @foreach (var message in ProblemsFor("memberNumber")) {
+                        <div class="invalid-feedback d-block">@message</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="temp-username">@I18n[I18nKey.Ui.Accreditation.Username]</label>
+                    <input id="temp-username" class="form-control @InvalidClass("username")" @bind="newUsername" @bind:event="oninput"
+                           @bind:after="OnUsernameEdited" />
+                    @foreach (var message in ProblemsFor("username")) {
+                        <div class="invalid-feedback d-block">@message</div>
+                    }
+                    @if (!string.IsNullOrEmpty(checkResult?.SuggestedUsername)) {
+                        <div class="form-text">
+                            @I18n[I18nKey.Ui.Accreditation.Suggestion] <strong>@checkResult.SuggestedUsername</strong>
+                            <button type="button" class="btn btn-link btn-sm p-0 align-baseline ms-1" @onclick="AcceptSuggestion">@I18n[I18nKey.Ui.Accreditation.AcceptSuggestion]</button>
+                        </div>
+                    }
+                    <div class="form-text">@I18n[I18nKey.Ui.Accreditation.UsernameHint]</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="temp-email">@I18n[I18nKey.Ui.Accreditation.EmailOptional]</label>
+                    <input id="temp-email" type="email" class="form-control @InvalidClass("email")" @bind="newEmail" @bind:event="oninput"
+                           @bind:after="InvalidateCheck" />
+                    @foreach (var message in ProblemsFor("email")) {
+                        <div class="invalid-feedback d-block">@message</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <span class="form-label d-block invisible" aria-hidden="true">&nbsp;</span>
+                    <div class="form-check accreditation-check-row">
+                        <input id="temp-eligible" type="checkbox" class="form-check-input" @bind="newEligible" @bind:after="InvalidateCheck" />
+                        <label class="form-check-label" for="temp-eligible">@I18n[I18nKey.Ui.Accreditation.Eligible]</label>
+                    </div>
+                </div>
+            </div>
+
+            @if (checkResult?.Ok == true) {
+                <div class="alert alert-success py-2">@I18n[I18nKey.Ui.Accreditation.CheckPassed]</div>
+            }
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary" disabled="@(checkBusy || createBusy)" @onclick="CheckAsync">@I18n[I18nKey.Ui.Accreditation.Check]</button>
+                <button type="button" class="btn btn-primary" disabled="@(!CanCreate)" @onclick="CreateAsync">@I18n[I18nKey.Ui.Accreditation.Create]</button>
+            </div>
+
+            @if (conflictAccounts != null) {
+                <div class="alert alert-warning mt-3">
+                    @I18n[I18nKey.Ui.Accreditation.ExistingAccount]
+                    <ul class="list-group mt-2">
+                        @foreach (var account in conflictAccounts) {
+                            <li class="list-group-item">
+                                <span class="fw-semibold">@account.Username</span> - @account.FirstName @account.LastName - @AccountStatusLabel(account)
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (created != null) {
+                <div class="card border-success mt-3">
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(created.Warning)) {
+                            <div class="alert alert-warning">
+                                <strong>@I18n[I18nKey.Ui.Accreditation.CreatedWarningTitle]:</strong> @created.Warning
+                            </div>
+                        }
+                        <h6>@I18n[I18nKey.Ui.Accreditation.CreatedTitle]</h6>
+                        <div class="mb-2">
+                            <div><strong>@I18n[I18nKey.Ui.Accreditation.Username]:</strong> <span class="fs-4 font-monospace">@created.Username</span></div>
+                            <div><strong>@I18n[I18nKey.Ui.Accreditation.Password]:</strong> <span class="fs-4 font-monospace">@created.Password</span></div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CopyCredentialsAsync">@I18n[I18nKey.Ui.Accreditation.Copy]</button>
+                            @if (copied) {
+                                <span class="text-success small">@I18n[I18nKey.Ui.Accreditation.Copied]</span>
+                            }
+                            <button type="button" class="btn btn-link btn-sm" @onclick="DismissCreated">@I18n[I18nKey.Ui.Common.Close]</button>
+                        </div>
+                        @if (string.IsNullOrEmpty(created.Warning)) {
+                            <div class="small text-secondary mt-1">@I18n[I18nKey.Ui.Accreditation.CreatedNote]</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <ConfirmDialog @ref="setEligibleConfirm" ConfirmText="@I18n[I18nKey.Ui.Accreditation.SetEligible]" />
+</RequirePermission>

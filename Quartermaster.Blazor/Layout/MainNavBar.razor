@@ -38,7 +38,7 @@
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
-                <RequirePermission AnyOfPermissions="@(new List<string>(PermissionIdentifier.BoardWorkPermissions) { PermissionIdentifier.ReviewNewsPosts })">
+                <RequirePermission AnyOfPermissions="@(new List<string>(PermissionIdentifier.BoardWorkPermissions) { PermissionIdentifier.ReviewNewsPosts, PermissionIdentifier.ManageAccreditation })">
                     <li class="nav-item">
                         <NavMenuDropdown>
                             <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.BoardWork]</ButtonContent>
@@ -73,6 +73,10 @@
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ReviewNewsPosts">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/NewsPosts">@I18n[I18nKey.Ui.MainNavBar.BoardWorkNewsPosts]</a></li>
+                                </RequirePermission>
+                                <RequirePermission GlobalPermission="@PermissionIdentifier.ManageAccreditation">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/Akkreditierung">@I18n[I18nKey.Ui.MainNavBar.BoardWorkAccreditation]</a></li>
                                 </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>

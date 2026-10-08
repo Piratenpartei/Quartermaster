@@ -412,6 +412,35 @@ public class OptionRepository {
             "Social Media: Antworten auf X",
             OptionDataType.String, false, "", "everyone",
             description: "Wer auf X antworten darf: everyone, following, mentionedUsers, subscribers oder verified.");
+
+        AddDefinitionIfNotExists("keycloak.base_url",
+            "Keycloak: Basis-URL",
+            OptionDataType.String, false, "", "",
+            description: "Basis-URL des Keycloak-Servers, z.B. https://sso.piratenpartei.de (für die Akkreditierung).");
+
+        AddDefinitionIfNotExists("keycloak.auth_realm",
+            "Keycloak: Realm des Admin-Clients",
+            OptionDataType.String, false, "", "master");
+
+        AddDefinitionIfNotExists("keycloak.realm",
+            "Keycloak: Mitglieder-Realm",
+            OptionDataType.String, false, "", "",
+            description: "Realm, in dem die Mitgliederkonten liegen.");
+
+        AddDefinitionIfNotExists("keycloak.client_id",
+            "Keycloak: Client-ID",
+            OptionDataType.String, false, "", "",
+            description: "Client mit Client-Credentials und der Rolle manage-users im Mitglieder-Realm (derselbe Client wie beim Mitgliederdatenimport).");
+
+        AddDefinitionIfNotExists("keycloak.client_secret",
+            "Keycloak: Client-Secret",
+            OptionDataType.String, false, "", "",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("keycloak.username_separator",
+            "Keycloak: Trennzeichen im Benutzernamen",
+            OptionDataType.String, false, "", ".",
+            description: "Trennzeichen zwischen Vor- und Nachname, wie beim Mitgliederdatenimport.");
     }
 
     private const string NewsPostsDefaultPrompt =

@@ -153,6 +153,14 @@ public partial class Program {
             sp.GetRequiredService<NewsPosts.NewsPostsSettings>(),
             sp.GetRequiredService<ILogger<NewsPosts.Postiz.HttpPostizClient>>()));
 
+        builder.Services.AddSingleton<Accreditation.KeycloakTokenProvider>();
+        builder.Services.AddScoped(sp => Accreditation.KeycloakSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddScoped<Accreditation.IKeycloakAdminClient>(sp => new Accreditation.HttpKeycloakAdminClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient(),
+            sp.GetRequiredService<Accreditation.KeycloakSettings>(),
+            sp.GetRequiredService<Accreditation.KeycloakTokenProvider>()));
+        builder.Services.AddScoped<Accreditation.TemporaryAccountChecker>();
+
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 

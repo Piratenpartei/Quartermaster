@@ -482,6 +482,7 @@ public static class I18nKey {
             public const string BoardWorkEventTemplates = "ui.main_nav_bar.board_work.event_templates";
             public const string BoardWorkMailings = "ui.main_nav_bar.board_work.mailings";
             public const string BoardWorkNewsPosts = "ui.main_nav_bar.board_work.news_posts";
+            public const string BoardWorkAccreditation = "ui.main_nav_bar.board_work.accreditation";
             public const string Administration = "ui.main_nav_bar.administration";
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
@@ -1986,6 +1987,51 @@ public static class I18nKey {
             public const string ValidationLineItemsRequired = "ui.expense_reimbursement.validation_line_items_required";
             public const string ValidationSplitMismatch = "ui.expense_reimbursement.validation_split_mismatch";
             public const string ValidationIbanRequired = "ui.expense_reimbursement.validation_iban_required";
+        }
+
+        public static class Accreditation {
+            public const string Check = "ui.accreditation.check";
+            public const string CheckPassed = "ui.accreditation.check_passed";
+            public const string Suggestion = "ui.accreditation.suggestion";
+            public const string AcceptSuggestion = "ui.accreditation.accept_suggestion";
+            public const string PageTitle = "ui.accreditation.page_title";
+            public const string NotConfigured = "ui.accreditation.not_configured";
+            public const string EligibilityTitle = "ui.accreditation.eligibility_title";
+            public const string EligibilityIntro = "ui.accreditation.eligibility_intro";
+            public const string MemberNumber = "ui.accreditation.member_number";
+            public const string Search = "ui.accreditation.search";
+            public const string NoAccount = "ui.accreditation.no_account";
+            public const string MultipleAccounts = "ui.accreditation.multiple_accounts";
+            public const string Username = "ui.accreditation.username";
+            public const string Name = "ui.accreditation.name";
+            public const string Email = "ui.accreditation.email";
+            public const string Status = "ui.accreditation.status";
+            public const string StatusActive = "ui.accreditation.status_active";
+            public const string StatusDisabled = "ui.accreditation.status_disabled";
+            public const string StatusClosed = "ui.accreditation.status_closed";
+            public const string Eligible = "ui.accreditation.eligible";
+            public const string Verified = "ui.accreditation.verified";
+            public const string Yes = "ui.accreditation.yes";
+            public const string No = "ui.accreditation.no";
+            public const string AlreadyEligible = "ui.accreditation.already_eligible";
+            public const string DisabledWarning = "ui.accreditation.disabled_warning";
+            public const string SetEligible = "ui.accreditation.set_eligible";
+            public const string SetEligibleConfirm = "ui.accreditation.set_eligible_confirm";
+            public const string SetEligibleDone = "ui.accreditation.set_eligible_done";
+            public const string TemporaryTitle = "ui.accreditation.temporary_title";
+            public const string TemporaryIntro = "ui.accreditation.temporary_intro";
+            public const string FirstName = "ui.accreditation.first_name";
+            public const string LastName = "ui.accreditation.last_name";
+            public const string UsernameHint = "ui.accreditation.username_hint";
+            public const string EmailOptional = "ui.accreditation.email_optional";
+            public const string Create = "ui.accreditation.create";
+            public const string CreatedTitle = "ui.accreditation.created_title";
+            public const string CreatedWarningTitle = "ui.accreditation.created_warning_title";
+            public const string Password = "ui.accreditation.password";
+            public const string Copy = "ui.accreditation.copy";
+            public const string Copied = "ui.accreditation.copied";
+            public const string CreatedNote = "ui.accreditation.created_note";
+            public const string ExistingAccount = "ui.accreditation.existing_account";
         }
     }
 }

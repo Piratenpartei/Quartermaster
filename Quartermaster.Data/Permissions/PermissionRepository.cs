@@ -41,6 +41,7 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ReviewNewsPosts, "Social-Media-Vorschläge prüfen und freigeben", true);
         AddIfNotExists(PermissionIdentifier.ManageNewsPosts, "Social-Media-Quellen verwalten", true);
         AddIfNotExists(PermissionIdentifier.AssignPermissionsGlobally, "Berechtigungen global vergeben", true);
+        AddIfNotExists(PermissionIdentifier.ManageAccreditation, "Akkreditierung durchführen", true);
         AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
         AddIfNotExists(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);
 

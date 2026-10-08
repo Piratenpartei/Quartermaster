@@ -138,6 +138,22 @@ Optional. When enabled, the app polls the configured news feeds, matches items a
 | `newsposts.postiz.api_key` | _empty_ | Postiz API key (stored masked) |
 | `newsposts.postiz.x_reply_setting` | `everyone` | Who may reply on X: `everyone`, `following`, `mentionedUsers`, `subscribers`, or `verified` |
 
+### Keycloak (Akkreditierung)
+
+Optional. Lets delegates at Bundesparteitage look up member accounts in Keycloak by member number, set voting eligibility, and create temporary accounts for walk-in members.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `keycloak.base_url` | _empty_ | Base URL of the Keycloak server, e.g. `https://sso.piratenpartei.de` |
+| `keycloak.auth_realm` | `master` | Realm the admin client authenticates against |
+| `keycloak.realm` | _empty_ | Realm the member accounts live in |
+| `keycloak.client_id` | _empty_ | Client with client credentials and the `manage-users` role in the member realm (same client as MemberDataImport) |
+| `keycloak.client_secret` | _empty_ | Client secret (stored masked) |
+| `keycloak.username_separator` | `.` | Separator between first and last name, same as MemberDataImport |
+
+The client needs the `manage-users` client role of `<realm>-realm` (or of `realm-management` when the client lives in the member realm), same client as MemberDataImport.
+In the target realm, set Realm settings > General > Unmanaged attributes to Enabled, same as MemberDataImport's deployment notes; otherwise searches return users without `member_number` and every lookup reports "no account".
+
 ### SSO support contact
 
 | Identifier | Purpose |
