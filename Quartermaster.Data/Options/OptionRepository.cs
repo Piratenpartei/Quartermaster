@@ -441,6 +441,43 @@ public class OptionRepository {
             "Keycloak: Trennzeichen im Benutzernamen",
             OptionDataType.String, false, "", ".",
             description: "Trennzeichen zwischen Vor- und Nachname, wie beim Mitgliederdatenimport.");
+
+        AddDefinitionIfNotExists("wiki.api_url",
+            "Wiki: API-URL",
+            OptionDataType.String, false, "", "https://wiki.piratenpartei.de/api.php",
+            description: "URL der MediaWiki-API des Piratenwikis, über die Antragsseiten gespiegelt werden.");
+
+        AddDefinitionIfNotExists("wiki.bot_username",
+            "Wiki: Bot-Benutzername",
+            OptionDataType.String, false, "", "",
+            description: "Benutzername des Bot-Kontos für die Wiki-Synchronisation.");
+
+        AddDefinitionIfNotExists("wiki.bot_password",
+            "Wiki: Bot-Passwort",
+            OptionDataType.String, false, "", "",
+            description: "Passwort des Bot-Kontos für die Wiki-Synchronisation.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("wiki.protection_level",
+            "Wiki: Schutzstufe für Antragsseiten",
+            OptionDataType.String, false, "", "Antrag",
+            description: "Schutzstufe, mit der Antragsseiten im Wiki vor Bearbeitung geschützt werden.");
+
+        AddDefinitionIfNotExists("openslides.url",
+            "OpenSlides: Basis-URL",
+            OptionDataType.String, false, "", "",
+            description: "Basis-URL der OpenSlides-Instanz, an die Anträge übertragen werden.");
+
+        AddDefinitionIfNotExists("openslides.username",
+            "OpenSlides: Benutzername",
+            OptionDataType.String, false, "", "",
+            description: "Benutzername für die OpenSlides-API.");
+
+        AddDefinitionIfNotExists("openslides.password",
+            "OpenSlides: Passwort",
+            OptionDataType.String, false, "", "",
+            description: "Passwort für die OpenSlides-API.",
+            isSecret: true);
     }
 
     private const string NewsPostsDefaultPrompt =

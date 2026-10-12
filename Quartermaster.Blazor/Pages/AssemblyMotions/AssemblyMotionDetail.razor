@@ -1,0 +1,165 @@
+@page "/AssemblyMotions/{Id:guid}"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.DetailPageTitle]</PageTitle>
+
+<PageBackLink Href="@BackHref" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Motion == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.MotionNotFound]</div>
+} else {
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+            <div class="text-secondary">
+                @Motion.TypeName (@Motion.TypeCode)
+                @if (!string.IsNullOrEmpty(Motion.DisplayNumber)) {
+                    <span> - @Motion.DisplayNumber</span>
+                }
+            </div>
+            <h2 class="mb-0">@Motion.Title</h2>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <AssemblyMotionStatusBadge Status="@Motion.Status" IsInRevision="@Motion.IsInRevision" Class="fs-6" />
+            @if (Motion.Result != AssemblyMotionResult.None) {
+                <span class="badge border border-secondary text-secondary-emphasis fs-6">@AssemblyMotionDisplay.ResultLabel(I18n, Motion.Result)</span>
+            }
+        </div>
+    </div>
+
+    @if (Member != null) {
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            @if (Member.CanEdit) {
+                <a href="/AssemblyMotions/@Id/Edit" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.Common.Edit]
+                </a>
+            }
+            @if (Member.CanRelease) {
+                <button class="btn btn-primary" disabled="@Busy" @onclick="Release">
+                    <i class="bi bi-send"></i> @I18n[I18nKey.Ui.AssemblyMotion.Release]
+                </button>
+            }
+            @if (Member.CanJoin) {
+                <button class="btn btn-success" disabled="@Busy" @onclick="Join">
+                    <i class="bi bi-person-plus"></i> @I18n[I18nKey.Ui.AssemblyMotion.Join]
+                </button>
+            }
+            @if (Member.CanLeave) {
+                <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="Leave">
+                    <i class="bi bi-person-dash"></i> @I18n[I18nKey.Ui.AssemblyMotion.Leave]
+                </button>
+            }
+            @if (Member.CanWithdraw) {
+                <button class="btn btn-outline-danger" disabled="@Busy" @onclick="Withdraw">
+                    <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.Withdraw]
+                </button>
+            }
+            @if (Member.CanDelete) {
+                <button class="btn btn-outline-danger" disabled="@Busy" @onclick="DeleteDraft">
+                    <i class="bi bi-trash"></i> @I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]
+                </button>
+            }
+        </div>
+
+        @if (Motion.Status == AssemblyMotionStatus.CollectingCoSubmitters) {
+            <div class="alert alert-info">
+                <div>
+                    @CollectingProgressText
+                    @I18n[I18nKey.Ui.AssemblyMotion.CollectingDeadline] <strong>@AssemblyMotionDisplay.Berlin(Member.EffectiveDeadline)</strong>
+                </div>
+                <div class="mt-1">
+                    @I18n[I18nKey.Ui.AssemblyMotion.ShareHint] <code>@ShareLink</code>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <dl class="row mb-0">
+                @if (!string.IsNullOrWhiteSpace(Motion.Section)) {
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSection]</dt>
+                    <dd class="col-sm-9">@Motion.Section</dd>
+                }
+                @if (!string.IsNullOrWhiteSpace(Motion.Summary)) {
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSummary]</dt>
+                    <dd class="col-sm-9">@Motion.Summary</dd>
+                }
+                @if (!string.IsNullOrWhiteSpace(Motion.Keywords)) {
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldKeywords]</dt>
+                    <dd class="col-sm-9">@Motion.Keywords</dd>
+                }
+                @if (!string.IsNullOrWhiteSpace(Motion.PriorDiscussion)) {
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldPriorDiscussion]</dt>
+                    <dd class="col-sm-9">@Motion.PriorDiscussion</dd>
+                }
+                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldMajority]</dt>
+                <dd class="col-sm-9">@AssemblyMotionDisplay.MajorityLabel(I18n, Motion.RequiredMajority)</dd>
+            </dl>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Motion.CheckNote)) {
+        <div class="alert alert-warning">
+            <strong>@I18n[I18nKey.Ui.AssemblyMotion.CheckNote]</strong>
+            @Motion.CheckNote
+        </div>
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldText]</h5>
+            <div class="rendered-markdown">
+                @((MarkupString)Motion.TextHtml)
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldReason]</h5>
+            <div class="rendered-markdown">
+                @((MarkupString)Motion.ReasonHtml)
+            </div>
+        </div>
+    </div>
+
+    @if (Member != null && Member.Submitters.Count > 0) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</h5>
+                <ul class="mb-0">
+                    @foreach (var submitter in Member.Submitters) {
+                        <li>
+                            @submitter.DisplayName
+                            @if (submitter.IsAuthor) {
+                                <span class="text-secondary ms-1">@I18n[I18nKey.Ui.AssemblyMotion.AuthorMarker]</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+    @if (Motion.Competitions.Count > 0) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>
+                <ul class="mb-0">
+                    @foreach (var competition in Motion.Competitions) {
+                        <li><a href="/AssemblyMotions/@competition.Id">@competition.DisplayNumber @competition.Title</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+    <ConfirmDialog @ref="_joinDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.JoinConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Join]" />
+    <ConfirmDialog @ref="_leaveDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.LeaveConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Leave]" />
+    <ConfirmDialog @ref="_withdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WithdrawConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Withdraw]" />
+    <ConfirmDialog @ref="_deleteDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]" />
+}

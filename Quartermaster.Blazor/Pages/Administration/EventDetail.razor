@@ -3,6 +3,7 @@
 @using Quartermaster.Api.AuditLog
 @using Quartermaster.Api.Events
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
 @using Quartermaster.Blazor.Components.Events
 
 <PageBackLink Href="/Administration/Events" />
@@ -98,6 +99,8 @@
     </DirtyForm>
 
     <EventChecklistEditor EventId="@Id" Event="@Event" OnChanged="@LoadEvent" OnBeforeAction="@SaveIfDirty" />
+
+    <AssemblyMotionPortalSettings EventId="@Id" ChapterId="@Event.ChapterId" />
 
     <div class="card mb-3">
         <div class="card-body">

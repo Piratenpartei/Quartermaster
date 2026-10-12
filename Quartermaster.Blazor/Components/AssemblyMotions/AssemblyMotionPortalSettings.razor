@@ -1,0 +1,183 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Rendering
+
+@if (Loading) {
+    <LoadingSpinner Small="true" />
+} else if (!Forbidden) {
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">@I18n[I18nKey.Ui.AssemblyMotion.SettingsTitle]</h5>
+                @if (Settings != null) {
+                    <a href="/Events/@EventId/Motions" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.AssemblyMotion.OpenPortal]
+                    </a>
+                }
+            </div>
+
+            @if (Settings == null) {
+                <p class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.SettingsNotEnabled]</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.OpensAt]</label>
+                        <BerlinDateTimeInput @bind-Value="EnableOpensAt" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ClosesAt]</label>
+                        <BerlinDateTimeInput @bind-Value="EnableClosesAt" />
+                    </div>
+                </div>
+                <div class="form-text mb-3">@I18n[I18nKey.Ui.AssemblyMotion.BerlinTimeHint]</div>
+                <button class="btn btn-primary" disabled="@(Busy || !CanEdit)" @onclick="EnableAsync">
+                    <i class="bi bi-power"></i> @I18n[I18nKey.Ui.AssemblyMotion.EnablePortal]
+                </button>
+            } else {
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.OpensAt]</label>
+                        <BerlinDateTimeInput @bind-Value="OpensAt" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ClosesAt]</label>
+                        <BerlinDateTimeInput @bind-Value="ClosesAt" />
+                    </div>
+                    <div class="col-12 form-text">@I18n[I18nKey.Ui.AssemblyMotion.BerlinTimeHint]</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.Intro]</label>
+                    <MarkdownEditorWithPreview @bind-Value="IntroMarkdown" Rows="6" />
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="prioritizationEnabled" @bind="PrioritizationEnabled" />
+                    <label class="form-check-label" for="prioritizationEnabled">@I18n[I18nKey.Ui.AssemblyMotion.PrioritizationEnabled]</label>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.PrioritizationStartsAt]</label>
+                        <BerlinDateTimeInput @bind-Value="PrioritizationStartsAt" Disabled="@(!PrioritizationEnabled)" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.PrioritizationEndsAt]</label>
+                        <BerlinDateTimeInput @bind-Value="PrioritizationEndsAt" Disabled="@(!PrioritizationEnabled)" />
+                    </div>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="wikiMirrorEnabled" @bind="WikiMirrorEnabled" />
+                    <label class="form-check-label" for="wikiMirrorEnabled">@I18n[I18nKey.Ui.AssemblyMotion.WikiMirrorEnabled]</label>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiPagePrefix]</label>
+                        <input type="text" class="form-control" @bind="WikiPagePrefix" @bind:event="oninput"
+                               readonly="@(!WikiMirrorEnabled)" disabled="@(!WikiMirrorEnabled)" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiAssemblyLabel]</label>
+                        <input type="text" class="form-control" @bind="WikiAssemblyLabel" @bind:event="oninput"
+                               readonly="@(!WikiMirrorEnabled)" disabled="@(!WikiMirrorEnabled)" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingId]</label>
+                        <input type="number" class="form-control" @bind="OpenSlidesMeetingId" @bind:event="oninput" />
+                    </div>
+                </div>
+
+                <button class="btn btn-primary mb-4" disabled="@(Busy || !CanEdit)" @onclick="SavePortalAsync">
+                    <i class="bi bi-save"></i> @I18n[I18nKey.Ui.Common.Save]
+                </button>
+
+                <h6>@I18n[I18nKey.Ui.AssemblyMotion.TypesTitle]</h6>
+                RenderFragment editRows = @<text>
+                        <tr>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" @bind="EditModel.Code" @bind:event="oninput"
+                                       readonly="@EditModel.HasMotions" disabled="@EditModel.HasMotions"
+                                       title="@(EditModel.HasMotions ? I18n[I18nKey.Ui.AssemblyMotion.TypeHasMotions] : "")" />
+                            </td>
+                            <td><input type="text" class="form-control form-control-sm" @bind="EditModel.Name" @bind:event="oninput" /></td>
+                            <td><input type="number" class="form-control form-control-sm" style="width: 5rem;" @bind="EditModel.SortOrder" @bind:event="oninput" /></td>
+                            <td><input type="number" class="form-control form-control-sm" style="width: 5rem;" @bind="EditModel.MinSubmitters" @bind:event="oninput" /></td>
+                            <td><BerlinDateTimeInput @bind-Value="EditModel.Deadline" CssClass="form-control-sm" /></td>
+                            <td><BerlinDateTimeInput @bind-Value="EditModel.CompetingDeadline" CssClass="form-control-sm" /></td>
+                            <td>
+                                <select class="form-select form-select-sm" @bind="EditModel.Majority">
+                                    <option value="@((int)RequiredMajority.Simple)">@I18n[I18nKey.Ui.AssemblyMotion.MajoritySimple]</option>
+                                    <option value="@((int)RequiredMajority.TwoThirds)">@I18n[I18nKey.Ui.AssemblyMotion.MajorityTwoThirds]</option>
+                                </select>
+                            </td>
+                            <td class="text-nowrap">
+                                <button class="btn btn-sm btn-primary" disabled="@Busy" @onclick="SaveTypeAsync" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="CancelTypeEdit" title="@I18n[I18nKey.Ui.Common.Cancel]" aria-label="@I18n[I18nKey.Ui.Common.Cancel]">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiTemplate]</label>
+                                <textarea class="form-control form-control-sm font-monospace" rows="4" @bind="EditModel.WikiTemplate" @bind:event="oninput"></textarea>
+                            </td>
+                        </tr>
+                    </text>;
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCode]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnSortOrder]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnMinSubmitters]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCompetingDeadline]</th>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnMajority]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var type in Settings.Types) {
+                                if (Editing != null && Editing.Id == type.Id) {
+                                    @editRows
+                                } else {
+                                    <tr>
+                                        <td>@type.Code</td>
+                                        <td>@type.Name</td>
+                                        <td>@type.SortOrder</td>
+                                        <td>@type.MinSubmitters</td>
+                                        <td>@(type.Deadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.Deadline.Value))</td>
+                                        <td>@(type.CompetingDeadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.CompetingDeadline.Value))</td>
+                                        <td>@AssemblyMotionDisplay.MajorityLabel(I18n, type.RequiredMajority)</td>
+                                        <td class="text-nowrap">
+                                            <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || !CanEdit)" @onclick="() => BeginEditType(type)"
+                                                    title="@I18n[I18nKey.Ui.Common.Edit]" aria-label="@I18n[I18nKey.Ui.Common.Edit]">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" disabled="@(Busy || !CanEdit || type.HasMotions)" @onclick="() => DeleteTypeAsync(type)"
+                                                    title="@(type.HasMotions ? I18n[I18nKey.Ui.AssemblyMotion.TypeHasMotions] : I18n[I18nKey.Ui.Common.Delete])"
+                                                    aria-label="@I18n[I18nKey.Ui.Common.Delete]">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            @if (Editing != null && Editing.Id == null) {
+                                @editRows
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || !CanEdit || Editing != null)" @onclick="BeginAddType">
+                    <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.AddType]
+                </button>
+            }
+        </div>
+    </div>
+
+    <ConfirmDialog @ref="_deleteTypeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteTypeTitle]" ConfirmText="@I18n[I18nKey.Ui.Common.Delete]" />
+}

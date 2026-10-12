@@ -66,8 +66,23 @@ public class RoleRepository {
                 .Set(r => r.InheritsToChildren, false).Update();
         }
 
+        var motionCommission = GetByIdentifier(PermissionIdentifier.SystemRole.MotionCommission);
+        if (motionCommission == null) {
+            motionCommission = new Role {
+                Id = Guid.NewGuid(),
+                Identifier = PermissionIdentifier.SystemRole.MotionCommission,
+                Name = "Antragskommission",
+                Description = "Systemrolle: Mitglieder der Antragskommission für Versammlungsanträge.",
+                Scope = RoleScope.ChapterScoped,
+                IsSystem = true,
+                InheritsToChildren = false
+            };
+            Create(motionCommission);
+        }
+
         SetPermissions(officer.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(delegateRole.Id, PermissionIdentifier.DefaultOfficerPermissions);
+        SetPermissions(motionCommission.Id, [PermissionIdentifier.ManageAssemblyMotions]);
     }
 
     public void Update(Role role) {

@@ -161,6 +161,13 @@ public partial class Program {
             sp.GetRequiredService<Accreditation.KeycloakTokenProvider>()));
         builder.Services.AddScoped<Accreditation.TemporaryAccountChecker>();
 
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionAccess>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionDetailBuilder>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionMemberActions>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionPortalSettingsBuilder>();
+
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 
@@ -169,6 +176,7 @@ public partial class Program {
 
         builder.Services.AddScoped<RetentionAnonymizationService>();
         builder.Services.AddHostedService<RetentionAnonymizationHostedService>();
+        builder.Services.AddHostedService<AssemblyMotions.AssemblyMotionDeadlineHostedService>();
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();

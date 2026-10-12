@@ -1,0 +1,52 @@
+@page "/Events/{EventId:guid}/Motions/Mine"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.MinePageTitle]</PageTitle>
+
+<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
+
+<h2>@I18n[I18nKey.Ui.AssemblyMotion.MinePageTitle]</h2>
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (!AuthService.IsAuthenticated) {
+    <div class="alert alert-info">
+        @I18n[I18nKey.Ui.AssemblyMotion.SignInHint]
+        <a href="/Login">@I18n[I18nKey.Ui.AssemblyMotion.SignInLink]</a>
+    </div>
+} else if (Forbidden) {
+    <div class="alert alert-info">@I18n[I18nKey.Ui.AssemblyMotion.MembersOnly]</div>
+} else if (Items.Count == 0) {
+    <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoOwnMotions]" />
+} else {
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                    <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRole]</th>
+                    <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnInquiries]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Items) {
+                    <tr>
+                        <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                        <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
+                        <td>@(item.IsAuthor ? I18n[I18nKey.Ui.AssemblyMotion.RoleAuthor] : I18n[I18nKey.Ui.AssemblyMotion.RoleCoSubmitter])</td>
+                        <td><AssemblyMotionStatusBadge Status="@item.Status" /></td>
+                        <td>
+                            @if (item.OpenInquiryCount > 0) {
+                                <span class="badge border border-warning text-warning-emphasis">@item.OpenInquiryCount</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

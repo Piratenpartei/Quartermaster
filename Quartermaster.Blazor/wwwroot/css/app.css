@@ -258,3 +258,15 @@ code {
     float: none;
     margin: 0;
 }
+.rendered-markdown table {
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+.rendered-markdown th,
+.rendered-markdown td {
+    padding: .25rem .75rem;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+}
+.rendered-markdown > :last-child {
+    margin-bottom: 0;
+}

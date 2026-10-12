@@ -1,0 +1,47 @@
+@page "/Events/{EventId:guid}/Motions/Collecting"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.CollectingPageTitle]</PageTitle>
+
+<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
+
+<h2>@I18n[I18nKey.Ui.AssemblyMotion.CollectingPageTitle]</h2>
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (!AuthService.IsAuthenticated) {
+    <div class="alert alert-info">
+        @I18n[I18nKey.Ui.AssemblyMotion.SignInHint]
+        <a href="/Login">@I18n[I18nKey.Ui.AssemblyMotion.SignInLink]</a>
+    </div>
+} else if (Forbidden) {
+    <div class="alert alert-info">@I18n[I18nKey.Ui.AssemblyMotion.MembersOnly]</div>
+} else if (Items.Count == 0) {
+    <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoCollecting]" />
+} else {
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                    <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</th>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Items) {
+                    <tr>
+                        <td>@item.TypeName (@item.TypeCode)</td>
+                        <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
+                        <td>@item.SubmitterCount / @item.MinSubmitters</td>
+                        <td>@AssemblyMotionDisplay.Berlin(item.EffectiveDeadline)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />
+}

@@ -3,15 +3,16 @@ using Markdig;
 namespace Quartermaster.Rendering;
 
 public static class MarkdownService {
-    private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder()
+    private static readonly MarkdownPipeline FullPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
         .Build();
 
-    public static string ToHtml(string markdown, SanitizationProfile profile = SanitizationProfile.Standard) {
+    public static string ToHtml(string markdown, SanitizationProfile profile = SanitizationProfile.Standard, MarkdownFlavor flavor = MarkdownFlavor.Full) {
         if (string.IsNullOrEmpty(markdown))
             return "";
 
-        var raw = Markdown.ToHtml(markdown, Pipeline);
+        var pipeline = flavor == MarkdownFlavor.Motion ? MotionMarkdown.Pipeline : FullPipeline;
+        var raw = Markdown.ToHtml(markdown, pipeline);
         return HtmlSanitizationService.Sanitize(raw, profile);
     }
 

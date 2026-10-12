@@ -1,0 +1,151 @@
+@page "/Events/{EventId:guid}/Motions"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.PortalPageTitle]</PageTitle>
+
+<PageBackLink Href="@($"/Events/{EventId}")" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Portal == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.PortalNotFound]</div>
+} else {
+    <h1>@Portal.EventName</h1>
+    <div class="text-secondary mb-3">
+        @I18n[I18nKey.Ui.AssemblyMotion.PortalWindow]
+        <strong>@AssemblyMotionDisplay.Berlin(Portal.OpensAt)</strong>
+        @I18n[I18nKey.Ui.AssemblyMotion.PortalWindowTo]
+        <strong>@AssemblyMotionDisplay.Berlin(Portal.ClosesAt)</strong>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Portal.IntroHtml)) {
+        <div class="card mb-3">
+            <div class="card-body rendered-markdown">
+                @((MarkupString)Portal.IntroHtml)
+            </div>
+        </div>
+    }
+
+    @if (Context != null && Context.IsSignedIn && !Context.IsEligible) {
+        <div class="alert alert-info">
+            <strong>@I18n[I18nKey.Ui.AssemblyMotion.NotEligibleTitle]</strong>
+            @AssemblyMotionDisplay.ProblemLabel(I18n, Context.Problem)
+        </div>
+    } else if (Context != null && !Context.IsSignedIn) {
+        <div class="alert alert-info">
+            @I18n[I18nKey.Ui.AssemblyMotion.SignInHint]
+            <a href="/Login">@I18n[I18nKey.Ui.AssemblyMotion.SignInLink]</a>
+        </div>
+    }
+
+    @if (Context != null && Context.IsEligible) {
+        <div class="d-flex gap-2 flex-wrap mb-3">
+            <a href="/Events/@EventId/Motions/New" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.NewMotion]
+            </a>
+            <a href="/Events/@EventId/Motions/Collecting" class="btn btn-outline-primary">
+                <i class="bi bi-people"></i> @I18n[I18nKey.Ui.AssemblyMotion.CollectingButton]
+            </a>
+            <a href="/Events/@EventId/Motions/Mine" class="btn btn-outline-primary">
+                <i class="bi bi-person"></i> @I18n[I18nKey.Ui.AssemblyMotion.MineButton]
+            </a>
+        </div>
+    }
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.DeadlinesTitle]</h5>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCode]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnMinSubmitters]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCompetingDeadline]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var type in Portal.Types) {
+                            <tr>
+                                <td>@type.Name</td>
+                                <td>@type.Code</td>
+                                <td>@type.MinSubmitters</td>
+                                <td>@AssemblyMotionDisplay.Berlin(type.Deadline ?? Portal.ClosesAt)</td>
+                                <td>@(type.CompetingDeadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.CompetingDeadline.Value))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <FormSelect Value="@FilterTypeId" ValueChanged="OnTypeFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterAllTypes]</option>
+                @foreach (var type in Portal.Types) {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            </FormSelect>
+        </div>
+        <div class="col-md-3">
+            <FormSelect Value="@FilterStatus" ValueChanged="OnStatusFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterAllStatuses]</option>
+                @foreach (var status in _filterStatuses) {
+                    <option value="@((int)status)">@AssemblyMotionDisplay.StatusLabel(I18n, status, false)</option>
+                }
+            </FormSelect>
+        </div>
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="search" class="form-control" value="@Search" @oninput="OnSearchInput" @onkeydown="OnSearchKeyDown"
+                       placeholder="@I18n[I18nKey.Ui.AssemblyMotion.SearchPlaceholder]" />
+                <button class="btn btn-outline-secondary" @onclick="ApplySearch">
+                    <i class="bi bi-search"></i> @I18n[I18nKey.Ui.Common.Search]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (ListLoading) {
+        <LoadingSpinner />
+    } else if (Items.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoMotions]" />
+    } else {
+        @foreach (var group in GetGroups()) {
+            var first = group.First();
+            <h5 class="mt-3">@first.TypeName (@first.TypeCode)</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 8rem;">@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                            <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                            <th class="text-end">@I18n[I18nKey.Ui.Common.Status]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in group) {
+                            <tr>
+                                <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                                <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
+                                <td class="text-end">
+                                    <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
+                                    @if (item.Result != AssemblyMotionResult.None) {
+                                        <span class="badge border border-secondary text-secondary-emphasis">@AssemblyMotionDisplay.ResultLabel(I18n, item.Result)</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />
+    }
+}

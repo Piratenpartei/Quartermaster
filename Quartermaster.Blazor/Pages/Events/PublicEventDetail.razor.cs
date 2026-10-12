@@ -25,6 +25,7 @@ public partial class PublicEventDetail {
     private string? DescriptionHtml;
     private bool Loading = true;
     private bool NotFound;
+    private bool HasMotionPortal;
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -36,6 +37,8 @@ public partial class PublicEventDetail {
                         MarkdownService.ToHtml(Event.Description, SanitizationProfile.Standard),
                         Event.EventDate);
                 }
+                var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{Id}");
+                HasMotionPortal = portalResponse.IsSuccessStatusCode;
             } else {
                 // 401/403/404 all translate to "not publicly available" for the visitor
                 NotFound = true;

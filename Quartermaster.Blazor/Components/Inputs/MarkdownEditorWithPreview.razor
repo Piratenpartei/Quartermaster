@@ -11,7 +11,7 @@
     <div class="col-md-6 d-flex flex-column">
         <label class="form-label small text-secondary mb-1">@I18n[I18nKey.Ui.MarkdownEditorWithPreview.PreviewLabel]</label>
         <div class="card bg-body-secondary flex-grow-1">
-            <div class="card-body overflow-auto p-2">
+            <div class="card-body overflow-auto p-2 rendered-markdown">
                 @if (string.IsNullOrWhiteSpace(Value)) {
                     <span class="text-secondary">...</span>
                 } else {

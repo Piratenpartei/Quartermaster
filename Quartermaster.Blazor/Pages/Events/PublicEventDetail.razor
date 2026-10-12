@@ -22,6 +22,14 @@
         }
     </div>
 
+    @if (HasMotionPortal) {
+        <div class="mb-3">
+            <a href="/Events/@Id/Motions" class="btn btn-primary">
+                <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
+            </a>
+        </div>
+    }
+
     @if (!string.IsNullOrEmpty(DescriptionHtml)) {
         <div class="card">
             <div class="card-body">

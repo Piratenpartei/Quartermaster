@@ -22,6 +22,9 @@ public partial class MarkdownEditorWithPreview {
     [Parameter]
     public SanitizationProfile Profile { get; set; } = SanitizationProfile.Standard;
 
+    [Parameter]
+    public MarkdownFlavor Flavor { get; set; } = MarkdownFlavor.Full;
+
     private string RenderedHtml = "";
     private CancellationTokenSource? _debounce;
 
@@ -36,13 +39,13 @@ public partial class MarkdownEditorWithPreview {
 
         try {
             await Task.Delay(300, token);
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
+            RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
             StateHasChanged();
         } catch (TaskCanceledException) { }
     }
 
     protected override void OnParametersSet() {
         if (!string.IsNullOrWhiteSpace(Value))
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile);
+            RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
     }
 }

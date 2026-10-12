@@ -135,3 +135,19 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Stellv. Schatzmeister | Vice Treasurer | ViceTreasurer |
 | Pol. Geschäftsführer | Political Director | PoliticalDirector |
 | Beisitzer | Board Member | Member (generic officer) |
+
+## Antragsportal
+
+| German (UI) | English (code) | Meaning |
+|---|---|---|
+| Versammlung | assembly | An `Event` with the motion portal enabled |
+| Antragsportal | motion portal | The per-event feature described here |
+| Antrag | assembly motion | A motion addressed to an assembly. Not the existing board `Motion` |
+| Antragsart | motion type | GP, WP, SÄA, SBA, PP, SO or whatever the event configures |
+| Antragsteller | author | The member who created the motion |
+| Mitantragsteller | co-submitter | A member who joined the motion; counts toward the required number of submitters |
+| Antragskommission (AKO) | motion commission | Users holding `assemblymotions_manage` for the event's chapter |
+| Formprüfung | formal check | The commission's decision whether a motion is admitted |
+| Rückfrage | inquiry | A question from the commission to the submitters with a response deadline |
+| Konkurrenz | competition | Two motions that exclude each other |
+| Priorisierung | prioritization | The optional upvote phase that determines the order of motions |

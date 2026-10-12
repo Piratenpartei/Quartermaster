@@ -3,6 +3,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.ChapterMails;
@@ -77,6 +78,14 @@ public class DbContext : DataConnection {
     public ITable<NewsItem> NewsItems => this.GetTable<NewsItem>();
     public ITable<PostCandidate> PostCandidates => this.GetTable<PostCandidate>();
     public ITable<PostPublication> PostPublications => this.GetTable<PostPublication>();
+    public ITable<AssemblyMotionPortal> AssemblyMotionPortals => this.GetTable<AssemblyMotionPortal>();
+    public ITable<AssemblyMotionType> AssemblyMotionTypes => this.GetTable<AssemblyMotionType>();
+    public ITable<AssemblyMotion> AssemblyMotions => this.GetTable<AssemblyMotion>();
+    public ITable<AssemblyMotionSubmitter> AssemblyMotionSubmitters => this.GetTable<AssemblyMotionSubmitter>();
+    public ITable<AssemblyMotionRevision> AssemblyMotionRevisions => this.GetTable<AssemblyMotionRevision>();
+    public ITable<AssemblyMotionInquiry> AssemblyMotionInquiries => this.GetTable<AssemblyMotionInquiry>();
+    public ITable<AssemblyMotionCompetition> AssemblyMotionCompetitions => this.GetTable<AssemblyMotionCompetition>();
+    public ITable<AssemblyMotionUpvote> AssemblyMotionUpvotes => this.GetTable<AssemblyMotionUpvote>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -114,6 +123,8 @@ public class DbContext : DataConnection {
         services.AddScoped<NewsFeedRepository>();
         services.AddScoped<NewsItemRepository>();
         services.AddScoped<PostPublicationRepository>();
+        services.AddScoped<AssemblyMotionPortalRepository>();
+        services.AddScoped<AssemblyMotionRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>

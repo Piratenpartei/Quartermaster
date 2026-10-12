@@ -80,10 +80,12 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageChapterMail = "chaptermail_manage";
 
+    public static readonly string ManageAssemblyMotions = "assemblymotions_manage";
+
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
         ViewMotions, ViewApplications, ViewDueSelections,
-        ViewMembers, ViewEvents, ViewTemplates, ViewMeetings
+        ViewMembers, ViewEvents, ViewTemplates, ViewMeetings, ManageAssemblyMotions
     ];
 
     public static readonly List<string> SystemPermissions = [
@@ -95,6 +97,7 @@ public static class PermissionIdentifier {
     public static class SystemRole {
         public const string ChapterOfficer = "chapter_officer";
         public const string GeneralChapterDelegate = "general_chapter_delegate";
+        public const string MotionCommission = "motion_commission";
     }
 
     // Default permissions auto-granted to chapter officers

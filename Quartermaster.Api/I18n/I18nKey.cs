@@ -99,6 +99,54 @@ public static class I18nKey {
             }
         }
 
+        public static class AssemblyMotion {
+            public const string MarkdownHtmlNotAllowed = "error.assembly_motion.markdown_html_not_allowed";
+            public const string MarkdownImageNotAllowed = "error.assembly_motion.markdown_image_not_allowed";
+            public const string NotFound = "error.assembly_motion.not_found";
+            public const string NotAuthor = "error.assembly_motion.not_author";
+            public const string PortalNotOpen = "error.assembly_motion.portal_not_open";
+            public const string PortalClosed = "error.assembly_motion.portal_closed";
+            public const string DeadlinePassed = "error.assembly_motion.deadline_passed";
+            public const string InvalidState = "error.assembly_motion.invalid_state";
+            public const string RevisionConflict = "error.assembly_motion.revision_conflict";
+            public const string AlreadySubmitter = "error.assembly_motion.already_submitter";
+            public const string NotSubmitter = "error.assembly_motion.not_submitter";
+            public const string AuthorCannotLeave = "error.assembly_motion.author_cannot_leave";
+            public const string TypeNotInPortal = "error.assembly_motion.type_not_in_portal";
+            public const string NotEligible = "error.assembly_motion.not_eligible";
+            public const string TitleRequired = "error.assembly_motion.title_required";
+            public const string TitleMaxLength = "error.assembly_motion.title_max_length";
+            public const string SectionMaxLength = "error.assembly_motion.section_max_length";
+            public const string TextRequired = "error.assembly_motion.text_required";
+            public const string ReasonRequired = "error.assembly_motion.reason_required";
+            public const string SummaryMaxLength = "error.assembly_motion.summary_max_length";
+            public const string KeywordsMaxLength = "error.assembly_motion.keywords_max_length";
+            public const string PriorDiscussionMaxLength = "error.assembly_motion.prior_discussion_max_length";
+
+            public static class Portal {
+                public const string NotFound = "error.assembly_motion.portal.not_found";
+                public const string EventNotFound = "error.assembly_motion.portal.event_not_found";
+                public const string AlreadyExists = "error.assembly_motion.portal.already_exists";
+                public const string EventRequired = "error.assembly_motion.portal.event_required";
+                public const string ClosesBeforeOpens = "error.assembly_motion.portal.closes_before_opens";
+                public const string PrioritizationWindowRequired = "error.assembly_motion.portal.prioritization_window_required";
+                public const string PrioritizationWindowInvalid = "error.assembly_motion.portal.prioritization_window_invalid";
+                public const string PrioritizationEndAfterClose = "error.assembly_motion.portal.prioritization_end_after_close";
+                public const string WikiPagePrefixRequired = "error.assembly_motion.portal.wiki_page_prefix_required";
+                public const string WikiAssemblyLabelRequired = "error.assembly_motion.portal.wiki_assembly_label_required";
+            }
+
+            public static class Type {
+                public const string NotFound = "error.assembly_motion.type.not_found";
+                public const string CodeInvalid = "error.assembly_motion.type.code_invalid";
+                public const string CodeTaken = "error.assembly_motion.type.code_taken";
+                public const string NameRequired = "error.assembly_motion.type.name_required";
+                public const string MinSubmittersInvalid = "error.assembly_motion.type.min_submitters_invalid";
+                public const string CompetingDeadlineInvalid = "error.assembly_motion.type.competing_deadline_invalid";
+                public const string HasMotions = "error.assembly_motion.type.has_motions";
+            }
+        }
+
         public static class Meeting {
             public const string ChapterRequired = "error.meeting.chapter_required";
             public const string TitleRequired = "error.meeting.title_required";
@@ -2032,6 +2080,143 @@ public static class I18nKey {
             public const string Copied = "ui.accreditation.copied";
             public const string CreatedNote = "ui.accreditation.created_note";
             public const string ExistingAccount = "ui.accreditation.existing_account";
+        }
+
+        public static class AssemblyMotion {
+            public const string AddType = "ui.assembly_motion.add_type";
+            public const string AuthorMarker = "ui.assembly_motion.author_marker";
+            public const string BerlinTimeHint = "ui.assembly_motion.berlin_time_hint";
+            public const string CheckNote = "ui.assembly_motion.check_note";
+            public const string ClosesAt = "ui.assembly_motion.closes_at";
+            public const string CollectingButton = "ui.assembly_motion.collecting_button";
+            public const string CollectingDeadline = "ui.assembly_motion.collecting_deadline";
+            public const string CollectingPageTitle = "ui.assembly_motion.collecting_page_title";
+            public const string CollectingProgress = "ui.assembly_motion.collecting_progress";
+            public const string ColumnCode = "ui.assembly_motion.column_code";
+            public const string ColumnCompetingDeadline = "ui.assembly_motion.column_competing_deadline";
+            public const string ColumnDeadline = "ui.assembly_motion.column_deadline";
+            public const string ColumnInquiries = "ui.assembly_motion.column_inquiries";
+            public const string ColumnMajority = "ui.assembly_motion.column_majority";
+            public const string ColumnMinSubmitters = "ui.assembly_motion.column_min_submitters";
+            public const string ColumnNumber = "ui.assembly_motion.column_number";
+            public const string ColumnRole = "ui.assembly_motion.column_role";
+            public const string ColumnSortOrder = "ui.assembly_motion.column_sort_order";
+            public const string ColumnType = "ui.assembly_motion.column_type";
+            public const string Competitions = "ui.assembly_motion.competitions";
+            public const string DatesRequired = "ui.assembly_motion.dates_required";
+            public const string DeadlinesTitle = "ui.assembly_motion.deadlines_title";
+            public const string DeleteConfirmMessage = "ui.assembly_motion.delete_confirm_message";
+            public const string DeleteConfirmTitle = "ui.assembly_motion.delete_confirm_title";
+            public const string DeleteDraft = "ui.assembly_motion.delete_draft";
+            public const string DeleteTypeMessage = "ui.assembly_motion.delete_type_message";
+            public const string DeleteTypeTitle = "ui.assembly_motion.delete_type_title";
+            public const string DetailPageTitle = "ui.assembly_motion.detail_page_title";
+            public const string EditMotionTitle = "ui.assembly_motion.edit_motion_title";
+            public const string EditNotAllowed = "ui.assembly_motion.edit_not_allowed";
+            public const string EditorPageTitle = "ui.assembly_motion.editor_page_title";
+            public const string EnablePortal = "ui.assembly_motion.enable_portal";
+            public const string FieldKeywords = "ui.assembly_motion.field_keywords";
+            public const string FieldMajority = "ui.assembly_motion.field_majority";
+            public const string FieldPriorDiscussion = "ui.assembly_motion.field_prior_discussion";
+            public const string FieldReason = "ui.assembly_motion.field_reason";
+            public const string FieldSection = "ui.assembly_motion.field_section";
+            public const string FieldSummary = "ui.assembly_motion.field_summary";
+            public const string FieldText = "ui.assembly_motion.field_text";
+            public const string FieldType = "ui.assembly_motion.field_type";
+            public const string FilterAllStatuses = "ui.assembly_motion.filter_all_statuses";
+            public const string FilterAllTypes = "ui.assembly_motion.filter_all_types";
+            public const string FormattingHelp = "ui.assembly_motion.formatting_help";
+            public const string Intro = "ui.assembly_motion.intro";
+            public const string Join = "ui.assembly_motion.join";
+            public const string JoinConfirmMessage = "ui.assembly_motion.join_confirm_message";
+            public const string JoinConfirmTitle = "ui.assembly_motion.join_confirm_title";
+            public const string KeywordsHelp = "ui.assembly_motion.keywords_help";
+            public const string Leave = "ui.assembly_motion.leave";
+            public const string LeaveConfirmMessage = "ui.assembly_motion.leave_confirm_message";
+            public const string LeaveConfirmTitle = "ui.assembly_motion.leave_confirm_title";
+            public const string MajoritySimple = "ui.assembly_motion.majority_simple";
+            public const string MajorityTwoThirds = "ui.assembly_motion.majority_two_thirds";
+            public const string MembersOnly = "ui.assembly_motion.members_only";
+            public const string MineButton = "ui.assembly_motion.mine_button";
+            public const string MinePageTitle = "ui.assembly_motion.mine_page_title";
+            public const string MotionNotFound = "ui.assembly_motion.motion_not_found";
+            public const string NewMotion = "ui.assembly_motion.new_motion";
+            public const string NoCollecting = "ui.assembly_motion.no_collecting";
+            public const string NoMotions = "ui.assembly_motion.no_motions";
+            public const string NoOwnMotions = "ui.assembly_motion.no_own_motions";
+            public const string NotEligibleTitle = "ui.assembly_motion.not_eligible_title";
+            public const string OpenPortal = "ui.assembly_motion.open_portal";
+            public const string OpensAt = "ui.assembly_motion.opens_at";
+            public const string OpenSlidesMeetingId = "ui.assembly_motion.open_slides_meeting_id";
+            public const string PortalNotFound = "ui.assembly_motion.portal_not_found";
+            public const string PortalPageTitle = "ui.assembly_motion.portal_page_title";
+            public const string PortalWindow = "ui.assembly_motion.portal_window";
+            public const string PortalWindowTo = "ui.assembly_motion.portal_window_to";
+            public const string PrioritizationEnabled = "ui.assembly_motion.prioritization_enabled";
+            public const string PrioritizationEndsAt = "ui.assembly_motion.prioritization_ends_at";
+            public const string PrioritizationStartsAt = "ui.assembly_motion.prioritization_starts_at";
+            public const string ProblemAnonymized = "ui.assembly_motion.problem_anonymized";
+            public const string ProblemExited = "ui.assembly_motion.problem_exited";
+            public const string ProblemNoLinkedMember = "ui.assembly_motion.problem_no_linked_member";
+            public const string ProblemNoMemberNumber = "ui.assembly_motion.problem_no_member_number";
+            public const string ProblemNotSignedIn = "ui.assembly_motion.problem_not_signed_in";
+            public const string ProblemOutsideChapter = "ui.assembly_motion.problem_outside_chapter";
+            public const string ProblemPending = "ui.assembly_motion.problem_pending";
+            public const string Release = "ui.assembly_motion.release";
+            public const string Reload = "ui.assembly_motion.reload";
+            public const string ResultAccepted = "ui.assembly_motion.result_accepted";
+            public const string ResultAcceptedModified = "ui.assembly_motion.result_accepted_modified";
+            public const string ResultNotHandled = "ui.assembly_motion.result_not_handled";
+            public const string ResultRejected = "ui.assembly_motion.result_rejected";
+            public const string RevisionWarningMulti = "ui.assembly_motion.revision_warning_multi";
+            public const string RevisionWarningSingle = "ui.assembly_motion.revision_warning_single";
+            public const string RevisionWarningTitle = "ui.assembly_motion.revision_warning_title";
+            public const string RoleAuthor = "ui.assembly_motion.role_author";
+            public const string RoleCoSubmitter = "ui.assembly_motion.role_co_submitter";
+            public const string SaveChanges = "ui.assembly_motion.save_changes";
+            public const string SaveDraft = "ui.assembly_motion.save_draft";
+            public const string SearchPlaceholder = "ui.assembly_motion.search_placeholder";
+            public const string SectionHelp = "ui.assembly_motion.section_help";
+            public const string SettingsNotEnabled = "ui.assembly_motion.settings_not_enabled";
+            public const string SettingsTitle = "ui.assembly_motion.settings_title";
+            public const string ShareHint = "ui.assembly_motion.share_hint";
+            public const string SignInHint = "ui.assembly_motion.sign_in_hint";
+            public const string SignInLink = "ui.assembly_motion.sign_in_link";
+            public const string StatusAdmitted = "ui.assembly_motion.status_admitted";
+            public const string StatusCollecting = "ui.assembly_motion.status_collecting";
+            public const string StatusDraft = "ui.assembly_motion.status_draft";
+            public const string StatusFormallyInsufficient = "ui.assembly_motion.status_formally_insufficient";
+            public const string StatusInRevision = "ui.assembly_motion.status_in_revision";
+            public const string StatusLapsed = "ui.assembly_motion.status_lapsed";
+            public const string StatusSubmitted = "ui.assembly_motion.status_submitted";
+            public const string StatusWithdrawn = "ui.assembly_motion.status_withdrawn";
+            public const string Submitters = "ui.assembly_motion.submitters";
+            public const string ToastDeleted = "ui.assembly_motion.toast_deleted";
+            public const string ToastJoined = "ui.assembly_motion.toast_joined";
+            public const string ToastLeft = "ui.assembly_motion.toast_left";
+            public const string ToastPortalEnabled = "ui.assembly_motion.toast_portal_enabled";
+            public const string ToastPortalSaved = "ui.assembly_motion.toast_portal_saved";
+            public const string ToastReleased = "ui.assembly_motion.toast_released";
+            public const string ToastSaved = "ui.assembly_motion.toast_saved";
+            public const string ToastTypeDeleted = "ui.assembly_motion.toast_type_deleted";
+            public const string ToastTypeSaved = "ui.assembly_motion.toast_type_saved";
+            public const string ToastWithdrawn = "ui.assembly_motion.toast_withdrawn";
+            public const string TypeCompetingDeadline = "ui.assembly_motion.type_competing_deadline";
+            public const string TypeDeadline = "ui.assembly_motion.type_deadline";
+            public const string TypeHasMotions = "ui.assembly_motion.type_has_motions";
+            public const string TypeMinSubmitters = "ui.assembly_motion.type_min_submitters";
+            public const string TypesTitle = "ui.assembly_motion.types_title";
+            public const string WikiAssemblyLabel = "ui.assembly_motion.wiki_assembly_label";
+            public const string WikiMirrorEnabled = "ui.assembly_motion.wiki_mirror_enabled";
+            public const string WikiPagePrefix = "ui.assembly_motion.wiki_page_prefix";
+            public const string WikiTemplate = "ui.assembly_motion.wiki_template";
+            public const string Withdraw = "ui.assembly_motion.withdraw";
+            public const string WithdrawConfirmMessage = "ui.assembly_motion.withdraw_confirm_message";
+            public const string WithdrawConfirmTitle = "ui.assembly_motion.withdraw_confirm_title";
+            public const string PortalButton = "ui.assembly_motion.portal_button";
+            public const string ReloadConfirmMessage = "ui.assembly_motion.reload_confirm_message";
+            public const string ReloadConfirmTitle = "ui.assembly_motion.reload_confirm_title";
+            public const string SaveFailed = "ui.assembly_motion.save_failed";
         }
     }
 }

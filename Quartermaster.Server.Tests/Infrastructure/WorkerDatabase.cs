@@ -133,6 +133,14 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE NewsFeeds;
             TRUNCATE TABLE ProgrammeSections;
             TRUNCATE TABLE ProgrammeSources;
+            TRUNCATE TABLE AssemblyMotionUpvotes;
+            TRUNCATE TABLE AssemblyMotionCompetitions;
+            TRUNCATE TABLE AssemblyMotionInquiries;
+            TRUNCATE TABLE AssemblyMotionRevisions;
+            TRUNCATE TABLE AssemblyMotionSubmitters;
+            TRUNCATE TABLE AssemblyMotions;
+            TRUNCATE TABLE AssemblyMotionTypes;
+            TRUNCATE TABLE AssemblyMotionPortals;
             SET FOREIGN_KEY_CHECKS = 1;
             """;
         cmd.ExecuteNonQuery();
