@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
@@ -55,7 +56,8 @@ public partial class TemplateFieldPalette {
         ["MotionDetailDTO"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelMotion, typeof(MotionDetailDTO)),
         ["MemberDetailDTO"] = ("member", I18nKey.Ui.TemplateFieldPalette.ModelMember, typeof(MemberDetailDTO)),
         ["EventDetailDTO"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEvent, typeof(EventDetailDTO)),
-        ["ExpenseReimbursementInputDTO"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelExpenseReimbursement, typeof(ExpenseReimbursementInputDTO))
+        ["ExpenseReimbursementInputDTO"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelExpenseReimbursement, typeof(ExpenseReimbursementInputDTO)),
+        ["AssemblyMotionNotificationModel"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelAssemblyMotionNotification, typeof(AssemblyMotionNotificationModel))
     };
 
     private static List<TemplateModelSchemaDTO> BuildSchemas(string models, bool includeGlobals) {

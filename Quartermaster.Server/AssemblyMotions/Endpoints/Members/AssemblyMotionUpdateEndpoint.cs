@@ -21,7 +21,7 @@ public class AssemblyMotionUpdateEndpoint : AssemblyMotionMemberEndpoint<Assembl
         var draft = new AssemblyMotionDraft(req.TypeId, req.Title.Trim(), req.Section, req.TextMarkdown, req.ReasonMarkdown,
             req.Summary, req.Keywords, req.PriorDiscussion);
         var result = _actions.Run(req.Id, true, (motion, member, userId, nowUtc)
-            => _service.UpdateDraft(motion, member, userId, draft, req.BaseRevision, nowUtc));
+            => _service.UpdateByAuthor(motion, member, userId, draft, req.BaseRevision, nowUtc));
         await SendResultAsync(result, ct);
     }
 }

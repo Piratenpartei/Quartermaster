@@ -1,5 +1,7 @@
 using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
+using Quartermaster.Api.AssemblyMotions;
 
 namespace Quartermaster.Data.AssemblyMotions;
 
@@ -23,4 +25,18 @@ public class AssemblyMotionRevision {
     public DateTime EditedAt { get; set; }
     public bool EditedByCommission { get; set; }
     public string? ChangeNote { get; set; }
+
+    public AssemblyMotionRevisionDTO ToDto() => new() {
+        Revision = Revision,
+        Title = Title,
+        Section = Section,
+        TextMarkdown = TextMarkdown,
+        ReasonMarkdown = ReasonMarkdown,
+        Summary = Summary,
+        Keywords = Keywords,
+        PriorDiscussion = PriorDiscussion,
+        EditedAt = EditedAt.ToDtoUtc(),
+        EditedByCommission = EditedByCommission,
+        ChangeNote = ChangeNote
+    };
 }

@@ -64,6 +64,15 @@
             }
         </div>
 
+        @if (ShowEditLockedHint) {
+            <div class="alert alert-secondary">
+                @I18n[I18nKey.Ui.AssemblyMotion.EditLockedHint]
+                @if (OpenInquiry != null) {
+                    <a class="ms-1" href="/AssemblyMotions/@Id#inquiry-@OpenInquiry.Id">@I18n[I18nKey.Ui.AssemblyMotion.EditLockedInquiryLink]</a>
+                }
+            </div>
+        }
+
         @if (Motion.Status == AssemblyMotionStatus.CollectingCoSubmitters) {
             <div class="alert alert-info">
                 <div>
@@ -77,85 +86,14 @@
         }
     }
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <dl class="row mb-0">
-                @if (!string.IsNullOrWhiteSpace(Motion.Section)) {
-                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSection]</dt>
-                    <dd class="col-sm-9">@Motion.Section</dd>
-                }
-                @if (!string.IsNullOrWhiteSpace(Motion.Summary)) {
-                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSummary]</dt>
-                    <dd class="col-sm-9">@Motion.Summary</dd>
-                }
-                @if (!string.IsNullOrWhiteSpace(Motion.Keywords)) {
-                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldKeywords]</dt>
-                    <dd class="col-sm-9">@Motion.Keywords</dd>
-                }
-                @if (!string.IsNullOrWhiteSpace(Motion.PriorDiscussion)) {
-                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldPriorDiscussion]</dt>
-                    <dd class="col-sm-9">@Motion.PriorDiscussion</dd>
-                }
-                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldMajority]</dt>
-                <dd class="col-sm-9">@AssemblyMotionDisplay.MajorityLabel(I18n, Motion.RequiredMajority)</dd>
-            </dl>
-        </div>
-    </div>
+    <AssemblyMotionContentCard Motion="@Motion" />
 
-    @if (!string.IsNullOrWhiteSpace(Motion.CheckNote)) {
-        <div class="alert alert-warning">
-            <strong>@I18n[I18nKey.Ui.AssemblyMotion.CheckNote]</strong>
-            @Motion.CheckNote
-        </div>
-    }
+    @if (Member != null) {
+        <AssemblyMotionSubmitterList Submitters="@Member.Submitters" />
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldText]</h5>
-            <div class="rendered-markdown">
-                @((MarkupString)Motion.TextHtml)
-            </div>
-        </div>
-    </div>
+        <AssemblyMotionInquiries MotionId="@Id" Inquiries="@Member.Inquiries" CanAnswer="@Member.IsSubmitter" OnChanged="Apply" />
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldReason]</h5>
-            <div class="rendered-markdown">
-                @((MarkupString)Motion.ReasonHtml)
-            </div>
-        </div>
-    </div>
-
-    @if (Member != null && Member.Submitters.Count > 0) {
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</h5>
-                <ul class="mb-0">
-                    @foreach (var submitter in Member.Submitters) {
-                        <li>
-                            @submitter.DisplayName
-                            @if (submitter.IsAuthor) {
-                                <span class="text-secondary ms-1">@I18n[I18nKey.Ui.AssemblyMotion.AuthorMarker]</span>
-                            }
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
-    }
-
-    @if (Motion.Competitions.Count > 0) {
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>
-                <ul class="mb-0">
-                    @foreach (var competition in Motion.Competitions) {
-                        <li><a href="/AssemblyMotions/@competition.Id">@competition.DisplayNumber @competition.Title</a></li>
-                    }
-                </ul>
-            </div>
-        </div>
+        <AssemblyMotionRevisionHistory MotionId="@Id" CurrentRevision="@Member.Revision" />
     }
 
     <ConfirmDialog @ref="_joinDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.JoinConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Join]" />

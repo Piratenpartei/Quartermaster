@@ -270,3 +270,7 @@ code {
 .rendered-markdown > :last-child {
     margin-bottom: 0;
 }
+
+.diff-line {
+    white-space: pre-wrap;
+}

@@ -49,6 +49,9 @@ public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
     public bool CanLeave { get; set; }
     public bool CanWithdraw { get; set; }
     public bool CanDelete { get; set; }
+    public AssemblyMotionCommissionInfoDTO? Commission { get; set; }
+    public List<AssemblyMotionInquiryDTO> Inquiries { get; set; } = [];
+    public int OpenInquiryCount { get; set; }
 }
 
 public class AssemblyMotionMineItemDTO {

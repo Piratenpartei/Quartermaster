@@ -54,6 +54,22 @@ public static class AssemblyMotionDisplay {
         _ => ""
     };
 
+    public static string WikiSyncLabel(I18nService i18n, WikiSyncState state) => state switch {
+        WikiSyncState.Pending => i18n[I18nKey.Ui.AssemblyMotion.WikiStatePending],
+        WikiSyncState.Synced => i18n[I18nKey.Ui.AssemblyMotion.WikiStateSynced],
+        WikiSyncState.Failed => i18n[I18nKey.Ui.AssemblyMotion.WikiStateFailed],
+        WikiSyncState.ProtectionFailed => i18n[I18nKey.Ui.AssemblyMotion.WikiStateProtectionFailed],
+        _ => i18n[I18nKey.Ui.AssemblyMotion.WikiStateNotMirrored]
+    };
+
+    public static string WikiSyncBadgeClass(WikiSyncState state) => state switch {
+        WikiSyncState.Pending => "border-info text-info-emphasis",
+        WikiSyncState.Synced => "border-success text-success-emphasis",
+        WikiSyncState.Failed => "border-danger text-danger-emphasis",
+        WikiSyncState.ProtectionFailed => "border-warning text-warning-emphasis",
+        _ => "border-secondary text-secondary-emphasis"
+    };
+
     public static string Berlin(DateTimeOffset value)
         => BerlinTime.FromUtc(value.UtcDateTime).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
 

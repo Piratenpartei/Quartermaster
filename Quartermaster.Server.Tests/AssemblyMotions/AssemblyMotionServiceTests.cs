@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using LinqToDB;
+using Microsoft.Extensions.Logging.Abstractions;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data;
@@ -10,11 +12,13 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
 using Quartermaster.Server.AssemblyMotions;
+using Quartermaster.Server.AssemblyMotions.Notifications;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.AssemblyMotions;
 
 public class AssemblyMotionServiceTests : RepositoryTestBase {
+    private readonly CapturingNotificationQueue _queue = new();
     private DbContext _context = default!;
     private TestDataBuilder _builder = default!;
     private AssemblyMotionPortalRepository _portalRepo = default!;
@@ -29,7 +33,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         _builder = new TestDataBuilder(_context);
         _portalRepo = new AssemblyMotionPortalRepository(_context, AuditLog);
         _motionRepo = new AssemblyMotionRepository(_context, AuditLog);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context);
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance));
         _chapter = _builder.SeedChapter();
         _event = _builder.SeedEvent(_chapter.Id);
     }
@@ -48,7 +52,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
 
     private static AssemblyMotionService NewServiceOn(DbContext context) {
         var auditLog = new AuditLogRepository(context);
-        return new AssemblyMotionService(new AssemblyMotionRepository(context, auditLog), new AssemblyMotionPortalRepository(context, auditLog), auditLog, context);
+        return new AssemblyMotionService(new AssemblyMotionRepository(context, auditLog), new AssemblyMotionPortalRepository(context, auditLog), auditLog, context, new AssemblyMotionNotifier(new CapturingNotificationQueue(), context, NullLogger<AssemblyMotionNotifier>.Instance));
     }
 
     [Test]
@@ -239,17 +243,17 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task UpdateDraft_with_stale_revision_conflicts() {
+    public async Task Stale_base_revision_conflicts() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
         var type = TypeWithMinSubmitters(portal.Id, 1);
         var author = SeedEligibleMember();
         var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
 
-        var firstUpdate = _service.UpdateDraft(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Erste Überarbeitung" }, baseRevision: 1, now);
+        var firstUpdate = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Erste Überarbeitung" }, baseRevision: 1, now);
         await Assert.That(firstUpdate.Succeeded).IsTrue();
 
-        var staleUpdate = _service.UpdateDraft(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Zweite Überarbeitung" }, baseRevision: 1, now);
+        var staleUpdate = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Zweite Überarbeitung" }, baseRevision: 1, now);
 
         await Assert.That(staleUpdate.Succeeded).IsFalse();
         await Assert.That(staleUpdate.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.RevisionConflict);
@@ -362,7 +366,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task UpdateDraft_after_concurrent_release_is_refused() {
+    public async Task UpdateByAuthor_after_concurrent_withdraw_is_locked() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
         var type = TypeWithMinSubmitters(portal.Id, 1);
@@ -371,28 +375,27 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
 
         using var dbReleaser = Worker.CreateDbContext();
         using var dbEditor = Worker.CreateDbContext();
-        var releaseOutcome = NewServiceOn(dbReleaser).Release(staleMotion.Id, author, now);
-        var updateOutcome = NewServiceOn(dbEditor).UpdateDraft(staleMotion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Spät" }, baseRevision: 1, now);
+        var withdrawOutcome = NewServiceOn(dbReleaser).Withdraw(staleMotion.Id, author, now);
+        var updateOutcome = NewServiceOn(dbEditor).UpdateByAuthor(staleMotion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Spät" }, baseRevision: 1, now);
 
-        await Assert.That(releaseOutcome.Succeeded).IsTrue();
+        await Assert.That(withdrawOutcome.Succeeded).IsTrue();
         await Assert.That(updateOutcome.Succeeded).IsFalse();
-        await Assert.That(updateOutcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InvalidState);
+        await Assert.That(updateOutcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
 
         var reloaded = _motionRepo.Get(staleMotion.Id)!;
-        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
-        await Assert.That(reloaded.Number).IsEqualTo(1);
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Withdrawn);
         await Assert.That(reloaded.Title).IsEqualTo("Testantrag");
     }
 
     [Test]
-    public async Task UpdateDraft_writes_revision_2_and_updates_author_joined_revision() {
+    public async Task UpdateByAuthor_writes_revision_2_and_updates_author_joined_revision() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
         var type = TypeWithMinSubmitters(portal.Id, 1);
         var author = SeedEligibleMember();
         var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
 
-        var outcome = _service.UpdateDraft(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now);
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         var reloaded = _motionRepo.Get(motion.Id)!;
@@ -403,6 +406,261 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         await Assert.That(revisions.Last().Title).IsEqualTo("Neu");
         await Assert.That(_motionRepo.GetSubmitters(motion.Id).Single(x => x.IsAuthor).JoinedRevision).IsEqualTo(2);
         await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "Updated")).IsEqualTo(1);
+    }
+
+    private AssemblyMotion SeedReleased(AssemblyMotionPortal portal, AssemblyMotionType type, Member author, DateTime now) {
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+        return _service.Release(motion.Id, author, now).Motion!;
+    }
+
+    [Test]
+    public async Task Edit_while_collecting_removes_cosubmitters() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.CollectingCoSubmitters);
+        await Assert.That(reloaded.Revision).IsEqualTo(2);
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(1);
+        await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "CoSubmittersReset")).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Edit_submitted_five_type_returns_to_collecting_keeps_number() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        for (var i = 0; i < 4; i++)
+            _service.Join(motion.Id, SeedEligibleMember(), now);
+        var submitted = _motionRepo.Get(motion.Id)!;
+
+        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "Neuer Text" }, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(submitted.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.CollectingCoSubmitters);
+        await Assert.That(reloaded.Number).IsEqualTo(1);
+        await Assert.That(reloaded.SubmittedAt).IsNull();
+        await Assert.That(reloaded.IsInRevision).IsTrue();
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Edit_submitted_one_type_stays_submitted_and_queues_wiki() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+            .Update();
+        var editTime = now.AddMinutes(5);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, editTime);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
+        await Assert.That(reloaded.Number).IsEqualTo(1);
+        await Assert.That(reloaded.Revision).IsEqualTo(2);
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(reloaded.SubmittedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task Edit_after_deadline_locked() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Spät" }, baseRevision: 1, now.AddDays(8));
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+        await Assert.That(_motionRepo.Get(motion.Id)!.Revision).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Edit_between_type_deadline_and_close_locked() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _context.AssemblyMotionTypes
+            .Where(t => t.Id == type.Id)
+            .Set(t => t.Deadline, now.AddDays(1))
+            .Update();
+        var lockedType = _portalRepo.GetType(type.Id)!;
+        var editTime = now.AddDays(2);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Spät" }, baseRevision: 1, editTime);
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+        await Assert.That(_service.CanEditAsAuthor(motion, lockedType, portal, author.Id, editTime)).IsFalse();
+        await Assert.That(_service.CanEditAsAuthor(motion, lockedType, portal, author.Id, now.AddHours(1))).IsTrue();
+    }
+
+    [Test]
+    public async Task Edit_between_competing_deadline_and_type_deadline_locked() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _context.AssemblyMotionTypes
+            .Where(t => t.Id == type.Id)
+            .Set(t => t.Deadline, now.AddDays(5))
+            .Set(t => t.CompetingDeadline, now.AddDays(1))
+            .Update();
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.IsCompetingMotion, true)
+            .Update();
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Spät" }, baseRevision: 1, now.AddDays(2));
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+    }
+
+    [Test]
+    public async Task Type_change_to_single_submitter_type_while_collecting_submits() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var fiveType = TypeWithMinSubmitters(portal.Id, 5);
+        var oneType = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, fiveType, author, now);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(oneType.Id), baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.TypeId).IsEqualTo(oneType.Id);
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
+        await Assert.That(reloaded.Number).IsEqualTo(1);
+        await Assert.That(reloaded.SubmittedAt).IsNotNull();
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+    }
+
+    [Test]
+    public async Task Edit_numbered_collecting_motion_keeps_its_number() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        for (var i = 0; i < 4; i++)
+            _service.Join(motion.Id, SeedEligibleMember(), now);
+        var submitted = _motionRepo.Get(motion.Id)!;
+        _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Eins" }, baseRevision: 1, now);
+
+        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Zwei" }, baseRevision: 2, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.CollectingCoSubmitters);
+        await Assert.That(reloaded.Number).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Edit_admitted_locked() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.Status, AssemblyMotionStatus.Admitted)
+            .Update();
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+    }
+
+    [Test]
+    public async Task Type_change_refused_after_number() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var otherType = _portalRepo.GetTypes(portal.Id).First(t => t.Id != type.Id);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(otherType.Id), baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InvalidState);
+        await Assert.That(_motionRepo.Get(motion.Id)!.TypeId).IsEqualTo(type.Id);
+    }
+
+    [Test]
+    public async Task Noop_save_creates_no_revision() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id), baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.Get(motion.Id)!.Revision).IsEqualTo(1);
+        await Assert.That(_motionRepo.GetRevisions(motion.Id).Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Noop_save_with_empty_strings_for_null_fields_creates_no_revision() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+        var draft = NewDraft(type.Id) with { Section = "", Summary = "  ", Keywords = "", PriorDiscussion = " " };
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), draft, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.Get(motion.Id)!.Revision).IsEqualTo(1);
+        await Assert.That(_motionRepo.GetRevisions(motion.Id).Count).IsEqualTo(1);
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task Noop_save_with_crlf_text_creates_no_revision() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var created = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "a\r\nb\r\n" }, now).Motion!;
+
+        var outcome = _service.UpdateByAuthor(created, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "a\r\nb" }, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.Get(created.Id)!.TextMarkdown).IsEqualTo("a\nb");
+        await Assert.That(_motionRepo.GetRevisions(created.Id).Count).IsEqualTo(1);
     }
 
     [Test]

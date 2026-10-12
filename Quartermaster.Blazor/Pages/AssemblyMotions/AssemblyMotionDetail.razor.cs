@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AssemblyMotions;
@@ -40,6 +41,13 @@ public partial class AssemblyMotionDetail {
     private ConfirmDialog _deleteDialog = default!;
 
     private string BackHref => Motion == null ? "/Events" : $"/Events/{Motion.EventId}/Motions";
+
+    private AssemblyMotionInquiryDTO? OpenInquiry => Member?.Inquiries.FirstOrDefault(i => i.ClosedAt == null);
+
+    private bool ShowEditLockedHint => Member != null
+        && Member.IsAuthor
+        && !Member.CanEdit
+        && IsPastDraftAndActive(Member.Status);
 
     private string ShareLink => $"{Navigation.BaseUri}AssemblyMotions/{Id}";
 
@@ -80,6 +88,12 @@ public partial class AssemblyMotionDetail {
         Member = detail;
         Motion = detail;
     }
+
+    private static bool IsPastDraftAndActive(AssemblyMotionStatus status)
+        => status == AssemblyMotionStatus.CollectingCoSubmitters
+            || status == AssemblyMotionStatus.Submitted
+            || status == AssemblyMotionStatus.Admitted
+            || status == AssemblyMotionStatus.FormallyInsufficient;
 
     private Task Release() => RunActionAsync("release", I18nKey.Ui.AssemblyMotion.ToastReleased);
 

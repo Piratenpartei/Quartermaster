@@ -1,0 +1,89 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Rendering
+
+@if (Inquiries.Count > 0 || CanManage) {
+    <div class="card mb-3" id="inquiries">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.InquiriesTitle]</h5>
+
+            @if (Inquiries.Count == 0) {
+                <div class="text-secondary mb-3">@I18n[I18nKey.Ui.AssemblyMotion.NoInquiries]</div>
+            }
+
+            @foreach (var inquiry in Inquiries) {
+                var isOpen = inquiry.ClosedAt == null;
+                <div class="border rounded p-3 mb-3" id="inquiry-@inquiry.Id" @key="inquiry.Id">
+                    <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+                        <div class="text-secondary small">
+                            @I18n[I18nKey.Ui.AssemblyMotion.InquiryAskedAt] @AssemblyMotionDisplay.Berlin(inquiry.AskedAt),
+                            @I18n[I18nKey.Ui.AssemblyMotion.InquiryDueAt] <strong>@AssemblyMotionDisplay.Berlin(inquiry.ResponseDueAt)</strong>
+                        </div>
+                        @if (isOpen) {
+                            <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.InquiryOpen]</span>
+                        } else {
+                            <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.InquiryClosed]</span>
+                        }
+                    </div>
+                    <div class="rendered-markdown mb-2">
+                        @((MarkupString)inquiry.QuestionHtml)
+                    </div>
+
+                    <div class="fw-semibold">@I18n[I18nKey.Ui.AssemblyMotion.InquiryAnswer]</div>
+                    @if (string.IsNullOrEmpty(inquiry.AnswerHtml)) {
+                        <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.InquiryNoAnswer]</div>
+                    } else {
+                        <div class="rendered-markdown">
+                            @((MarkupString)inquiry.AnswerHtml)
+                        </div>
+                        @if (inquiry.AnsweredAt != null) {
+                            <div class="text-secondary small">
+                                @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.InquiryAnsweredBy,
+                                    ("name", inquiry.AnsweredByName ?? "-"),
+                                    ("date", AssemblyMotionDisplay.Berlin(inquiry.AnsweredAt.Value)))]
+                            </div>
+                        }
+                    }
+
+                    @if (isOpen && CanAnswer) {
+                        <div class="mt-3">
+                            <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryYourAnswer]</label>
+                            <MarkdownEditorWithPreview Value="@GetAnswer(inquiry.Id)" ValueChanged="@((string value) => SetAnswer(inquiry.Id, value))"
+                                                       Rows="6" Flavor="MarkdownFlavor.Motion" />
+                            <button class="btn btn-primary mt-2" disabled="@Busy" @onclick="() => Answer(inquiry.Id)">
+                                <i class="bi bi-send"></i> @I18n[I18nKey.Ui.AssemblyMotion.SendAnswer]
+                            </button>
+                        </div>
+                    }
+
+                    @if (isOpen && CanManage) {
+                        <div class="mt-3">
+                            <button class="btn btn-outline-secondary btn-sm" disabled="@Busy" @onclick="() => Close(inquiry.Id)">
+                                <i class="bi bi-check2-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.CloseInquiry]
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (CanManage && CanAsk) {
+                <div class="border-top pt-3">
+                    <h6>@I18n[I18nKey.Ui.AssemblyMotion.AskInquiry]</h6>
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryQuestion] <RequiredStar /></label>
+                        <MarkdownEditorWithPreview @bind-Value="AskQuestion" Rows="5" Flavor="MarkdownFlavor.Motion" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryResponseDue] <RequiredStar /></label>
+                        <BerlinDateTimeInput @bind-Value="AskDue" />
+                    </div>
+                    <button class="btn btn-primary" disabled="@Busy" @onclick="Ask">
+                        <i class="bi bi-question-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.AskInquiry]
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<ConfirmDialog @ref="_closeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiryTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiry]" />

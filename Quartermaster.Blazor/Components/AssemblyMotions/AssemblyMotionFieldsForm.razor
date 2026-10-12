@@ -1,0 +1,55 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Rendering
+
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldType] <RequiredStar /></label>
+    <FormSelect Value="@Values.TypeId" ValueChanged="OnTypeChanged" Disabled="@TypeLocked">
+        @foreach (var type in Portal.Types) {
+            <option value="@type.Id">@type.Code - @type.Name</option>
+        }
+    </FormSelect>
+    @if (SelectedType != null) {
+        <div class="form-text">
+            @I18n[I18nKey.Ui.AssemblyMotion.TypeDeadline] <strong>@AssemblyMotionDisplay.Berlin(SelectedType.Deadline ?? Portal.ClosesAt)</strong>
+            @if (SelectedType.CompetingDeadline != null) {
+                <span> (@I18n[I18nKey.Ui.AssemblyMotion.TypeCompetingDeadline] <strong>@AssemblyMotionDisplay.Berlin(SelectedType.CompetingDeadline.Value)</strong>)</span>
+            }
+            <br />
+            @I18n[I18nKey.Ui.AssemblyMotion.TypeMinSubmitters] <strong>@SelectedType.MinSubmitters</strong>,
+            @AssemblyMotionDisplay.MajorityLabel(I18n, SelectedType.RequiredMajority)
+        </div>
+    }
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.Common.Title] <RequiredStar /></label>
+    <FormInput @bind-Value="Values.Title" />
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldSection]</label>
+    <FormInput @bind-Value="Values.Section" />
+    <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.SectionHelp]</div>
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldText] <RequiredStar /></label>
+    <MarkdownEditorWithPreview @bind-Value="Values.TextMarkdown" Rows="12" Flavor="MarkdownFlavor.Motion" />
+    <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.FormattingHelp]</div>
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldReason] <RequiredStar /></label>
+    <MarkdownEditorWithPreview @bind-Value="Values.ReasonMarkdown" Rows="10" Flavor="MarkdownFlavor.Motion" />
+    <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.FormattingHelp]</div>
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldSummary]</label>
+    <FormInput @bind-Value="Values.Summary" />
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldKeywords]</label>
+    <FormInput @bind-Value="Values.Keywords" />
+    <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.KeywordsHelp]</div>
+</div>
+<div class="mb-3">
+    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldPriorDiscussion]</label>
+    <FormInput @bind-Value="Values.PriorDiscussion" />
+</div>

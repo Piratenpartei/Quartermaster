@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +47,7 @@ public class AssemblyMotionPublicListEndpoint : Endpoint<AssemblyMotionPublicLis
             .Where(m => types.ContainsKey(m.TypeId))
             .Where(m => req.TypeId == null || m.TypeId == req.TypeId)
             .Where(m => req.Status == null || m.Status == req.Status)
-            .Where(m => Matches(m, types[m.TypeId], search))
+            .Where(m => AssemblyMotionSearch.Matches(m, types[m.TypeId], search))
             .OrderBy(m => types[m.TypeId].SortOrder)
             .ThenBy(m => m.Number == null)
             .ThenBy(m => m.Number)
@@ -67,15 +66,5 @@ public class AssemblyMotionPublicListEndpoint : Endpoint<AssemblyMotionPublicLis
             Page = req.Page,
             PageSize = req.PageSize
         }, cancellation: ct);
-    }
-
-    private static bool Matches(AssemblyMotion motion, AssemblyMotionType type, string? search) {
-        if (string.IsNullOrEmpty(search))
-            return true;
-        if (motion.Title.Contains(search, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (string.Equals(AssemblyMotionNumber.Format(type.Code, motion.Number!.Value), search, StringComparison.OrdinalIgnoreCase))
-            return true;
-        return string.Equals(type.Code + motion.Number, search, StringComparison.OrdinalIgnoreCase);
     }
 }

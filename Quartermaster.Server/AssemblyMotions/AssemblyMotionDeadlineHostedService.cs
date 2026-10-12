@@ -26,6 +26,9 @@ public class AssemblyMotionDeadlineHostedService : BackgroundService {
             try {
                 using var scope = _scopeFactory.CreateScope();
                 var service = scope.ServiceProvider.GetRequiredService<AssemblyMotionService>();
+                var reminded = service.SendCollectingReminders(DateTime.UtcNow);
+                if (reminded > 0)
+                    _logger.LogInformation("Sent {Count} assembly motion collecting reminders", reminded);
                 var lapsed = service.LapseOverdue(DateTime.UtcNow);
                 if (lapsed > 0)
                     _logger.LogInformation("Lapsed {Count} overdue assembly motions", lapsed);

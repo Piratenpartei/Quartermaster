@@ -1,0 +1,133 @@
+@page "/Administration/Events/{EventId:guid}/Motions"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.CommissionDashboardTitle]</PageTitle>
+
+<PageBackLink Href="/Administration/AssemblyMotionPortals" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Portal == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.DashboardPortalNotFound]</div>
+} else {
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+            <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.CommissionDashboardTitle]</div>
+            <h3 class="mb-0">@Portal.EventName</h3>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            @if (FailedWikiSyncCount > 0) {
+                <span class="badge text-bg-warning fs-6">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.FailedWikiSyncs, ("count", FailedWikiSyncCount.ToString()))]
+                </span>
+            }
+            <a href="/Events/@EventId/Motions" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.AssemblyMotion.OpenPortal]
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <FormSelect Value="@FilterTypeId" ValueChanged="OnTypeFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterAllTypes]</option>
+                @foreach (var type in Portal.Types) {
+                    <option value="@type.Id">@type.Name</option>
+                }
+            </FormSelect>
+        </div>
+        <div class="col-md-3">
+            <FormSelect Value="@FilterStatus" ValueChanged="OnStatusFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterAllStatuses]</option>
+                @foreach (var status in _filterStatuses) {
+                    <option value="@((int)status)">@AssemblyMotionDisplay.StatusLabel(I18n, status, false)</option>
+                }
+            </FormSelect>
+        </div>
+        <div class="col-md-3">
+            <FormSelect Value="@FilterInquiry" ValueChanged="OnInquiryFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterInquiryAny]</option>
+                <option value="true">@I18n[I18nKey.Ui.AssemblyMotion.FilterInquiryOpen]</option>
+                <option value="false">@I18n[I18nKey.Ui.AssemblyMotion.FilterInquiryNone]</option>
+            </FormSelect>
+        </div>
+        <div class="col-md-3">
+            <FormSelect Value="@FilterWiki" ValueChanged="OnWikiFilterChanged">
+                <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterWikiAny]</option>
+                @foreach (var state in _wikiStates) {
+                    <option value="@((int)state)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, state)</option>
+                }
+            </FormSelect>
+        </div>
+        <div class="col-12">
+            <div class="input-group">
+                <input type="search" class="form-control" value="@Search" @oninput="OnSearchInput" @onkeydown="OnSearchKeyDown"
+                       placeholder="@I18n[I18nKey.Ui.AssemblyMotion.SearchPlaceholder]" />
+                <button class="btn btn-outline-secondary" @onclick="ApplySearch">
+                    <i class="bi bi-search"></i> @I18n[I18nKey.Ui.Common.Search]
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (ListLoading) {
+        <LoadingSpinner />
+    } else if (Items.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoDashboardMotions]" />
+    } else {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnInquiries]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRevision]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnWiki]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnOpenSlides]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Items) {
+                        <tr>
+                            <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                            <td><a href="/Administration/AssemblyMotions/@item.Id">@item.Title</a></td>
+                            <td>@item.TypeCode</td>
+                            <td class="text-nowrap">
+                                <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
+                                @if (item.Result != AssemblyMotionResult.None) {
+                                    <span class="badge border border-secondary text-secondary-emphasis">@AssemblyMotionDisplay.ResultLabel(I18n, item.Result)</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">@item.SubmitterCount / @item.MinSubmitters</td>
+                            <td>
+                                @if (item.OpenInquiryCount > 0) {
+                                    <span class="badge text-bg-warning">@item.OpenInquiryCount</span>
+                                } else {
+                                    <span>-</span>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                @AssemblyMotionDisplay.Berlin(item.EffectiveDeadline)
+                                @if (item.DeadlinePassed) {
+                                    <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.DeadlinePassed]</span>
+                                }
+                            </td>
+                            <td>@item.Revision</td>
+                            <td><span class="badge border @AssemblyMotionDisplay.WikiSyncBadgeClass(item.WikiSyncState)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, item.WikiSyncState)</span></td>
+                            <td>@(item.OpenSlidesPushedRevision == null ? "-" : item.OpenSlidesPushedRevision.Value.ToString())</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />
+    }
+}

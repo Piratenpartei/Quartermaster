@@ -1,0 +1,60 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+
+@if (Revisions.Count > 0) {
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.RevisionsTitle]</h5>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRevision]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnEditedAt]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnEditedBy]</th>
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnChangeNote]</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var revision in Revisions) {
+                            <tr class="@(revision.Revision == SelectedRevision ? "table-active" : "")">
+                                <td>@revision.Revision</td>
+                                <td class="text-nowrap">@AssemblyMotionDisplay.Berlin(revision.EditedAt)</td>
+                                <td>
+                                    @if (revision.EditedByCommission) {
+                                        <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.EditedByCommission]</span>
+                                    } else {
+                                        <span>@I18n[I18nKey.Ui.AssemblyMotion.EditedByAuthor]</span>
+                                    }
+                                </td>
+                                <td>@(string.IsNullOrWhiteSpace(revision.ChangeNote) ? "-" : revision.ChangeNote)</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Select(revision.Revision)">
+                                        <i class="bi bi-file-diff"></i> @I18n[I18nKey.Ui.AssemblyMotion.ShowDiff]
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Current != null) {
+                @if (Previous == null) {
+                    <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.DiffFirstRevision]</div>
+                } else {
+                    <h6>@DiffTitle</h6>
+                    <div class="mb-3">
+                        <div class="fw-semibold">@I18n[I18nKey.Ui.AssemblyMotion.FieldText]</div>
+                        <AssemblyMotionDiffView Lines="@TextDiffLines" />
+                    </div>
+                    <div>
+                        <div class="fw-semibold">@I18n[I18nKey.Ui.AssemblyMotion.FieldReason]</div>
+                        <AssemblyMotionDiffView Lines="@ReasonDiffLines" />
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}

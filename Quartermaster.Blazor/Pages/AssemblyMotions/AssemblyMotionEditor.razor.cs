@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -8,7 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
-using Quartermaster.Blazor.Http;
+using Quartermaster.Blazor.Components.AssemblyMotions;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.AssemblyMotions;
@@ -46,14 +45,7 @@ public partial class AssemblyMotionEditor {
     private Guid motionId;
     private int revision;
 
-    private string TypeId = "";
-    private string Title = "";
-    private string Section = "";
-    private string TextMarkdown = "";
-    private string ReasonMarkdown = "";
-    private string Summary = "";
-    private string Keywords = "";
-    private string PriorDiscussion = "";
+    private AssemblyMotionFieldValues Fields = new();
 
     private bool IsExisting => Id != Guid.Empty;
 
@@ -63,15 +55,28 @@ public partial class AssemblyMotionEditor {
 
     private bool TypeLocked => Detail != null && !string.IsNullOrEmpty(Detail.DisplayNumber);
 
-    private AssemblyMotionTypeDTO? SelectedType => Portal?.Types.FirstOrDefault(t => t.Id.ToString() == TypeId);
+    private AssemblyMotionTypeDTO? SelectedType => Portal?.Types.FirstOrDefault(t => t.Id.ToString() == Fields.TypeId);
 
     private string BackHref => motionId != Guid.Empty
         ? $"/AssemblyMotions/{motionId}"
         : $"/Events/{EventId}/Motions";
 
-    private string RevisionWarning => SelectedType != null && SelectedType.MinSubmitters <= 1
-        ? I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningSingle]
-        : I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningMulti];
+    private string RevisionWarning {
+        get {
+            if (Detail == null)
+                return "";
+            if (SelectedType != null && SelectedType.MinSubmitters <= 1)
+                return I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningSingle];
+
+            var coSubmitterCount = Detail.Submitters.Count(s => !s.IsAuthor);
+            if (coSubmitterCount == 0)
+                return I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningMultiAlone];
+
+            return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningMulti,
+                ("count", coSubmitterCount.ToString()),
+                ("deadline", AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)))];
+        }
+    }
 
     protected override async Task OnParametersSetAsync() {
         await LoadAsync();
@@ -99,7 +104,8 @@ public partial class AssemblyMotionEditor {
                 Detail = detailResponse.IsSuccessStatusCode ? await detailResponse.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>() : null;
                 if (Detail != null) {
                     eventId = Detail.EventId;
-                    Fill(Detail);
+                    Fields.Fill(Detail);
+                    revision = Detail.Revision;
                 }
             }
 
@@ -110,29 +116,13 @@ public partial class AssemblyMotionEditor {
 
             if (Portal != null && !IsExisting) {
                 Context = await Http.GetFromJsonAsync<AssemblyMotionPortalContextDTO>($"/api/assemblymotions/portals/{Portal.Id}/context");
-                if (TypeId == "" && Portal.Types.Count > 0)
-                    TypeId = Portal.Types[0].Id.ToString();
+                if (Fields.TypeId == "" && Portal.Types.Count > 0)
+                    Fields.TypeId = Portal.Types[0].Id.ToString();
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
         Loading = false;
-    }
-
-    private void Fill(AssemblyMotionDetailDTO detail) {
-        TypeId = detail.TypeId.ToString();
-        Title = detail.Title;
-        Section = detail.Section ?? "";
-        TextMarkdown = detail.TextMarkdown;
-        ReasonMarkdown = detail.ReasonMarkdown;
-        Summary = detail.Summary ?? "";
-        Keywords = detail.Keywords ?? "";
-        PriorDiscussion = detail.PriorDiscussion ?? "";
-        revision = detail.Revision;
-    }
-
-    private void OnTypeChanged(string value) {
-        TypeId = value;
     }
 
     private async Task SaveDraft() {
@@ -169,23 +159,17 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task<bool> SaveAsync() {
-        if (Portal == null || !Guid.TryParse(TypeId, out var typeId))
+        if (Portal == null)
             return false;
 
         Conflict = null;
         var request = new AssemblyMotionSaveRequest {
             PortalId = Portal.Id,
             Id = motionId,
-            TypeId = typeId,
-            Title = Title,
-            Section = NullIfBlank(Section),
-            TextMarkdown = TextMarkdown,
-            ReasonMarkdown = ReasonMarkdown,
-            Summary = NullIfBlank(Summary),
-            Keywords = NullIfBlank(Keywords),
-            PriorDiscussion = NullIfBlank(PriorDiscussion),
             BaseRevision = revision
         };
+        if (!Fields.TryApplyTo(request))
+            return false;
 
         try {
             var response = motionId == Guid.Empty
@@ -210,15 +194,6 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task ShowErrorAsync(HttpResponseMessage response) {
-        var messages = await ApiErrorHelper.GetTranslatedErrorsAsync(response, I18n);
-        var revisionConflict = I18n[I18nKey.Error.AssemblyMotion.RevisionConflict];
-        if (response.StatusCode == HttpStatusCode.Conflict && messages.Contains(revisionConflict))
-            Conflict = revisionConflict;
-        else if (messages.Count > 0)
-            ToastService.Error(string.Join("\n", messages));
-        else
-            ToastService.ErrorKey(I18nKey.Ui.AssemblyMotion.SaveFailed);
+        Conflict = await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
     }
-
-    private static string? NullIfBlank(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
 }

@@ -30,6 +30,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.AdministrativeDivisions;
 using Quartermaster.Server.Antiforgery;
+using Quartermaster.Server.AssemblyMotions.Notifications;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
@@ -161,11 +162,15 @@ public partial class Program {
             sp.GetRequiredService<Accreditation.KeycloakTokenProvider>()));
         builder.Services.AddScoped<Accreditation.TemporaryAccountChecker>();
 
+        builder.Services.AddScoped<AssemblyMotionNotifier>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionAccess>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionInquiryService>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionDetailBuilder>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionMemberActions>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionActions>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionPortalSettingsBuilder>();
 
         builder.Services.AddSingleton<AdminDivisionImportService>();
@@ -201,6 +206,8 @@ public partial class Program {
         builder.Services.AddScoped<IRecipientResolver, MotionSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, ApplicationSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();
+        foreach (var triggerId in AssemblyMotionRecipientResolver.TriggerIds)
+            builder.Services.AddScoped<IRecipientResolver>(sp => new AssemblyMotionRecipientResolver(triggerId, sp.GetRequiredService<DbContext>()));
         builder.Services.AddScoped<NotificationDispatcher>();
         builder.Services.AddSingleton<ChannelNotificationDispatchQueue>();
         builder.Services.AddSingleton<INotificationDispatchQueue>(sp => sp.GetRequiredService<ChannelNotificationDispatchQueue>());

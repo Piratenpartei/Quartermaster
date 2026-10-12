@@ -1,0 +1,12 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+
+@if (!Lines.Any(l => l.Kind != TextDiffKind.Unchanged)) {
+    <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.DiffNoChanges]</div>
+} else {
+    <div class="border rounded font-monospace small">
+        @foreach (var line in Lines) {
+            <div class="px-2 diff-line @LineClass(line.Kind)">@Prefix(line.Kind) @line.Text</div>
+        }
+    </div>
+}

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using LinqToDB;
 using Quartermaster.Api.AssemblyMotions;
@@ -8,24 +9,30 @@ using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Members;
 using Quartermaster.Rendering;
+using Quartermaster.Server.AssemblyMotions.Notifications;
 
 namespace Quartermaster.Server.AssemblyMotions;
 
 public class AssemblyMotionService {
+    private static readonly TimeSpan CollectingReminderLead = TimeSpan.FromHours(48);
+
     private readonly AssemblyMotionRepository _motions;
     private readonly AssemblyMotionPortalRepository _portals;
     private readonly AuditLogRepository _auditLog;
     private readonly DbContext _db;
+    private readonly AssemblyMotionNotifier _notifier;
 
     public AssemblyMotionService(AssemblyMotionRepository motions, AssemblyMotionPortalRepository portals,
-        AuditLogRepository auditLog, DbContext db) {
+        AuditLogRepository auditLog, DbContext db, AssemblyMotionNotifier notifier) {
         _motions = motions;
         _portals = portals;
         _auditLog = auditLog;
         _db = db;
+        _notifier = notifier;
     }
 
     public AssemblyMotionOutcome CreateDraft(AssemblyMotionPortal portal, Member author, Guid userId, AssemblyMotionDraft draft, DateTime nowUtc) {
+        draft = draft.Normalized();
         if (nowUtc < portal.OpensAt)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.PortalNotOpen);
         if (nowUtc > portal.ClosesAt)
@@ -85,78 +92,108 @@ public class AssemblyMotionService {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    public AssemblyMotionOutcome UpdateDraft(AssemblyMotion motion, Member author, Guid userId, AssemblyMotionDraft draft, int baseRevision, DateTime nowUtc) {
+    public AssemblyMotionOutcome UpdateByAuthor(AssemblyMotion motion, Member author, Guid userId, AssemblyMotionDraft draft, int baseRevision, DateTime nowUtc) {
+        draft = draft.Normalized();
         using var tx = _motions.BeginTransaction();
 
+        var notifications = new List<Action>();
         var locked = _motions.GetForUpdate(motion.Id);
         if (locked == null)
             return AssemblyMotionOutcome.Fail(404, I18nKey.Error.AssemblyMotion.NotFound);
-        if (locked.CreatedByMemberId != author.Id)
-            return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.NotAuthor);
-        if (locked.Status != AssemblyMotionStatus.Draft)
-            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.InvalidState);
+
+        var portal = _portals.Get(locked.PortalId)
+            ?? throw new InvalidOperationException($"Portal {locked.PortalId} not found for motion {locked.Id}.");
+        var currentType = _portals.GetType(locked.TypeId)
+            ?? throw new InvalidOperationException($"Type {locked.TypeId} not found for motion {locked.Id}.");
+
+        var problem = EditProblem(portal, currentType, locked, author.Id, nowUtc);
+        if (problem != null)
+            return problem;
         if (baseRevision != locked.Revision)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.RevisionConflict);
 
-        var type = _portals.GetType(draft.TypeId);
-        if (type == null || type.PortalId != locked.PortalId)
-            return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.TypeNotInPortal);
+        var type = currentType;
+        if (draft.TypeId != locked.TypeId) {
+            if (locked.Number != null)
+                return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.InvalidState);
 
-        var oldTitle = locked.Title;
-        var oldSection = locked.Section;
-        var oldTextMarkdown = locked.TextMarkdown;
-        var oldReasonMarkdown = locked.ReasonMarkdown;
-        var oldSummary = locked.Summary;
-        var oldKeywords = locked.Keywords;
-        var oldPriorDiscussion = locked.PriorDiscussion;
+            type = _portals.GetType(draft.TypeId);
+            if (type == null || type.PortalId != locked.PortalId)
+                return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.TypeNotInPortal);
 
-        locked.TypeId = draft.TypeId;
-        locked.Title = draft.Title;
-        locked.Section = draft.Section;
-        locked.TextMarkdown = draft.TextMarkdown;
-        locked.TextHtml = MarkdownService.ToHtml(draft.TextMarkdown, SanitizationProfile.Standard, MarkdownFlavor.Motion);
-        locked.ReasonMarkdown = draft.ReasonMarkdown;
-        locked.ReasonHtml = MarkdownService.ToHtml(draft.ReasonMarkdown, SanitizationProfile.Standard, MarkdownFlavor.Motion);
-        locked.Summary = draft.Summary;
-        locked.Keywords = draft.Keywords;
-        locked.PriorDiscussion = draft.PriorDiscussion;
+            problem = EditProblem(portal, type, locked, author.Id, nowUtc);
+            if (problem != null)
+                return problem;
+        }
+
+        if (!AssemblyMotionContent.HasChange(locked, draft))
+            return AssemblyMotionOutcome.Ok(locked);
+
+        var before = AssemblyMotionContent.Snapshot(locked);
+        AssemblyMotionContent.Apply(locked, draft);
         locked.Revision += 1;
+
+        var removedCoSubmitterIds = new List<Guid>();
+        if (locked.Status != AssemblyMotionStatus.Draft) {
+            removedCoSubmitterIds = _motions.RemoveCoSubmitters(locked.Id);
+            locked.CollectingReminderSentAt = null;
+            if (locked.Status == AssemblyMotionStatus.Submitted) {
+                if (type.MinSubmitters > 1) {
+                    locked.Status = AssemblyMotionStatus.CollectingCoSubmitters;
+                    locked.SubmittedAt = null;
+                } else {
+                    locked.SubmittedAt = nowUtc;
+                }
+            }
+        }
         _motions.Update(locked);
+
+        if (locked.Status == AssemblyMotionStatus.CollectingCoSubmitters && type.MinSubmitters <= 1) {
+            Submit(locked, nowUtc);
+            notifications.Add(() => _notifier.Submitted(locked));
+        }
+
+        if (locked.Status != AssemblyMotionStatus.Draft && locked.Number != null)
+            _motions.MarkWikiPending(locked.Id, nowUtc);
 
         _db.AssemblyMotionSubmitters
             .Where(s => s.MotionId == locked.Id && s.IsAuthor)
             .Set(s => s.JoinedRevision, locked.Revision)
             .Update();
 
-        _motions.AddRevision(new AssemblyMotionRevision {
-            MotionId = locked.Id,
-            Revision = locked.Revision,
-            Title = locked.Title,
-            Section = locked.Section,
-            TextMarkdown = locked.TextMarkdown,
-            ReasonMarkdown = locked.ReasonMarkdown,
-            Summary = locked.Summary,
-            Keywords = locked.Keywords,
-            PriorDiscussion = locked.PriorDiscussion,
-            EditedByUserId = userId,
-            EditedAt = nowUtc,
-            EditedByCommission = false
-        });
+        _motions.AddRevision(AssemblyMotionContent.ToRevision(locked, userId, nowUtc, false));
 
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.Title), oldTitle, locked.Title);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.Section), oldSection, locked.Section);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.TextMarkdown), oldTextMarkdown, locked.TextMarkdown);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.ReasonMarkdown), oldReasonMarkdown, locked.ReasonMarkdown);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.Summary), oldSummary, locked.Summary);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.Keywords), oldKeywords, locked.Keywords);
-        _auditLog.LogFieldChange("AssemblyMotion", locked.Id, nameof(AssemblyMotion.PriorDiscussion), oldPriorDiscussion, locked.PriorDiscussion);
+        AssemblyMotionContent.LogChanges(_auditLog, locked.Id, before, draft);
+        if (removedCoSubmitterIds.Count > 0) {
+            _auditLog.Log("AssemblyMotion", locked.Id, "CoSubmittersReset", "CoSubmitterCount", removedCoSubmitterIds.Count.ToString(), "0");
+            notifications.Add(() => _notifier.CoSubmittersReset(locked, removedCoSubmitterIds));
+        }
 
         tx.Commit();
+        RunAll(notifications);
         return AssemblyMotionOutcome.Ok(locked);
     }
 
-    public bool CanEdit(AssemblyMotion motion, Member author)
-        => motion.CreatedByMemberId == author.Id && motion.Status == AssemblyMotionStatus.Draft;
+    public bool CanEditAsAuthor(AssemblyMotion motion, AssemblyMotionType type, AssemblyMotionPortal portal, Guid? memberId, DateTime nowUtc)
+        => EditProblem(portal, type, motion, memberId, nowUtc) == null;
+
+    private AssemblyMotionOutcome? EditProblem(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Guid? memberId, DateTime nowUtc) {
+        if (memberId == null || motion.CreatedByMemberId != memberId)
+            return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.NotAuthor);
+        if (!IsAuthorEditableStatus(motion.Status))
+            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.EditLocked);
+
+        var effectiveDeadline = AssemblyMotionDeadlines.Effective(portal, type, motion.IsCompetingMotion);
+        if (AssemblyMotionDeadlines.IsPast(effectiveDeadline, nowUtc))
+            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.EditLocked);
+
+        return null;
+    }
+
+    private static bool IsAuthorEditableStatus(AssemblyMotionStatus status)
+        => status == AssemblyMotionStatus.Draft
+            || status == AssemblyMotionStatus.CollectingCoSubmitters
+            || status == AssemblyMotionStatus.Submitted;
 
     public bool CanRelease(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Member author, DateTime nowUtc)
         => ReleaseProblem(portal, type, motion, author, nowUtc) == null;
@@ -179,6 +216,7 @@ public class AssemblyMotionService {
     }
 
     public AssemblyMotionOutcome Release(Guid motionId, Member author, DateTime nowUtc) {
+        var notifications = new List<Action>();
         using var tx = _motions.BeginTransaction();
 
         var motion = _motions.GetForUpdate(motionId);
@@ -198,12 +236,14 @@ public class AssemblyMotionService {
 
         if (type.MinSubmitters <= 1) {
             Submit(motion, nowUtc);
+            notifications.Add(() => _notifier.Submitted(motion));
         } else {
             motion.Status = AssemblyMotionStatus.CollectingCoSubmitters;
             _motions.Update(motion);
         }
 
         tx.Commit();
+        RunAll(notifications);
         return AssemblyMotionOutcome.Ok(motion);
     }
 
@@ -227,6 +267,7 @@ public class AssemblyMotionService {
     }
 
     public AssemblyMotionOutcome Join(Guid motionId, Member member, DateTime nowUtc) {
+        var notifications = new List<Action>();
         using var tx = _motions.BeginTransaction();
 
         var motion = _motions.GetForUpdate(motionId);
@@ -255,10 +296,13 @@ public class AssemblyMotionService {
 
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
 
-        if (submitters.Count + 1 >= type.MinSubmitters)
+        if (submitters.Count + 1 >= type.MinSubmitters) {
             Submit(motion, nowUtc);
+            notifications.Add(() => _notifier.Submitted(motion));
+        }
 
         tx.Commit();
+        RunAll(notifications);
         return AssemblyMotionOutcome.Ok(motion);
     }
 
@@ -310,6 +354,7 @@ public class AssemblyMotionService {
     }
 
     public AssemblyMotionOutcome Withdraw(Guid motionId, Member author, DateTime nowUtc) {
+        var notifications = new List<Action>();
         using var tx = _motions.BeginTransaction();
 
         var motion = _motions.GetForUpdate(motionId);
@@ -323,6 +368,13 @@ public class AssemblyMotionService {
         if (problem != null)
             return problem;
 
+        var wasReleased = motion.Status != AssemblyMotionStatus.Draft;
+        var includeCommission = motion.WasSubmitted;
+        var coSubmitterIds = _motions.GetSubmitters(motion.Id)
+            .Where(s => !s.IsAuthor)
+            .Select(s => s.MemberId)
+            .ToList();
+
         motion.Status = AssemblyMotionStatus.Withdrawn;
         motion.WithdrawnAt = nowUtc;
         _motions.Update(motion);
@@ -332,7 +384,11 @@ public class AssemblyMotionService {
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn");
 
+        if (wasReleased)
+            notifications.Add(() => _notifier.Withdrawn(motion, coSubmitterIds, includeCommission));
+
         tx.Commit();
+        RunAll(notifications);
         return AssemblyMotionOutcome.Ok(motion);
     }
 
@@ -385,6 +441,10 @@ public class AssemblyMotionService {
             if (!AssemblyMotionDeadlines.IsPast(effectiveDeadline, nowUtc))
                 continue;
 
+            var submitterIds = _motions.GetSubmitters(motion.Id)
+                .Select(s => s.MemberId)
+                .ToList();
+
             motion.Status = AssemblyMotionStatus.Lapsed;
             _motions.Update(motion);
 
@@ -394,10 +454,49 @@ public class AssemblyMotionService {
             _auditLog.Log("AssemblyMotion", motion.Id, "Lapsed");
 
             tx.Commit();
+            _notifier.Lapsed(motion, submitterIds);
             lapsedCount++;
         }
 
         return lapsedCount;
+    }
+
+    public int SendCollectingReminders(DateTime nowUtc) {
+        var candidates = _motions.ListOverdueCollecting(nowUtc)
+            .Where(m => m.CollectingReminderSentAt == null)
+            .ToList();
+        var sentCount = 0;
+
+        foreach (var candidate in candidates) {
+            using var tx = _motions.BeginTransaction();
+
+            var motion = _motions.GetForUpdate(candidate.Id);
+            if (motion == null || motion.Status != AssemblyMotionStatus.CollectingCoSubmitters || motion.CollectingReminderSentAt != null)
+                continue;
+
+            var portal = _portals.Get(motion.PortalId)
+                ?? throw new InvalidOperationException($"Portal {motion.PortalId} not found for motion {motion.Id}.");
+            var type = _portals.GetType(motion.TypeId)
+                ?? throw new InvalidOperationException($"Type {motion.TypeId} not found for motion {motion.Id}.");
+
+            var effectiveDeadline = AssemblyMotionDeadlines.Effective(portal, type, motion.IsCompetingMotion);
+            if (effectiveDeadline <= nowUtc || effectiveDeadline > nowUtc.Add(CollectingReminderLead))
+                continue;
+
+            motion.CollectingReminderSentAt = nowUtc;
+            _motions.Update(motion);
+
+            tx.Commit();
+            _notifier.CollectingReminder(motion, effectiveDeadline);
+            sentCount++;
+        }
+
+        return sentCount;
+    }
+
+    private static void RunAll(List<Action> notifications) {
+        foreach (var notification in notifications)
+            notification();
     }
 
     private void Submit(AssemblyMotion motion, DateTime nowUtc) {

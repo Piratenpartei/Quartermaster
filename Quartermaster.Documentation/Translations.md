@@ -151,3 +151,6 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Rückfrage | inquiry | A question from the commission to the submitters with a response deadline |
 | Konkurrenz | competition | Two motions that exclude each other |
 | Priorisierung | prioritization | The optional upvote phase that determines the order of motions |
+| Fassung | revision | One saved version of a motion; every change creates a new one |
+| Versionsgeschichte | revision history | The list of revisions of a motion with a diff to the predecessor |
+| Änderungsnotiz | change note | The mandatory explanation of a commission edit |

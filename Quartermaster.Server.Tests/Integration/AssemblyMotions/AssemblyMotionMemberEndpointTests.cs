@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -277,5 +278,54 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
         await Assert.That(memberContext.IsCommission).IsFalse();
         await Assert.That(outsiderContext!.IsEligible).IsFalse();
         await Assert.That(outsiderContext.Problem).IsEqualTo(EligibilityProblem.OutsideChapter);
+    }
+
+    [Test]
+    public async Task Revisions_hidden_from_anonymous() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type);
+        await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
+        using var anonymous = AnonymousClient();
+
+        var response = await anonymous.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
+    }
+
+    [Test]
+    public async Task Revisions_visible_to_eligible_member() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var other = SeedParticipant(chapter, "Bert", "Zweiter");
+        var outsider = SeedParticipant(Builder.SeedChapter("Foreign"), "Out", "Sider");
+        var created = await CreateMotion(author, portal, type);
+        await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
+        using var otherClient = await AuthenticatedClientWithCsrfAsync(other.Token);
+        using var outsiderClient = await AuthenticatedClientWithCsrfAsync(outsider.Token);
+
+        var response = await otherClient.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+        var revisions = await response.Content.ReadFromJsonAsync<List<AssemblyMotionRevisionDTO>>();
+        var denied = await outsiderClient.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(revisions!.Select(r => r.Revision).ToArray()).IsEquivalentTo(new[] { 1 });
+        await Assert.That(denied.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+    }
+
+    [Test]
+    public async Task Revisions_of_draft_only_for_author() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var other = SeedParticipant(chapter, "Bert", "Zweiter");
+        var created = await CreateMotion(author, portal, type);
+        using var authorClient = await AuthenticatedClientWithCsrfAsync(author.Token);
+        using var otherClient = await AuthenticatedClientWithCsrfAsync(other.Token);
+
+        var own = await authorClient.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+        var foreign = await otherClient.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+
+        await Assert.That(own.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(foreign.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
 }

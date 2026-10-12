@@ -1,0 +1,65 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            @if (!string.IsNullOrWhiteSpace(Motion.Section)) {
+                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSection]</dt>
+                <dd class="col-sm-9">@Motion.Section</dd>
+            }
+            @if (!string.IsNullOrWhiteSpace(Motion.Summary)) {
+                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldSummary]</dt>
+                <dd class="col-sm-9">@Motion.Summary</dd>
+            }
+            @if (!string.IsNullOrWhiteSpace(Motion.Keywords)) {
+                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldKeywords]</dt>
+                <dd class="col-sm-9">@Motion.Keywords</dd>
+            }
+            @if (!string.IsNullOrWhiteSpace(Motion.PriorDiscussion)) {
+                <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldPriorDiscussion]</dt>
+                <dd class="col-sm-9">@Motion.PriorDiscussion</dd>
+            }
+            <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.FieldMajority]</dt>
+            <dd class="col-sm-9">@AssemblyMotionDisplay.MajorityLabel(I18n, Motion.RequiredMajority)</dd>
+        </dl>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Motion.CheckNote)) {
+    <div class="alert alert-warning">
+        <strong>@I18n[I18nKey.Ui.AssemblyMotion.CheckNote]</strong>
+        @Motion.CheckNote
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldText]</h5>
+        <div class="rendered-markdown">
+            @((MarkupString)Motion.TextHtml)
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.AssemblyMotion.FieldReason]</h5>
+        <div class="rendered-markdown">
+            @((MarkupString)Motion.ReasonHtml)
+        </div>
+    </div>
+</div>
+
+@if (Motion.Competitions.Count > 0) {
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>
+            <ul class="mb-0">
+                @foreach (var competition in Motion.Competitions) {
+                    <li><a href="/AssemblyMotions/@competition.Id">@competition.DisplayNumber @competition.Title</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+}

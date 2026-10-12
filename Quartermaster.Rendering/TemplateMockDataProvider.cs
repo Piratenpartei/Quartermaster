@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
@@ -84,6 +85,27 @@ public static class TemplateMockDataProvider {
                         IsPublic = true,
                         ApprovalStatus = MotionApprovalStatus.Pending,
                         CreatedAt = DateTimeOffset.UtcNow.AddDays(-2)
+                    };
+                    break;
+
+                case "AssemblyMotionNotificationModel":
+                    data["motion"] = new AssemblyMotionNotificationModel {
+                        Id = Guid.NewGuid(),
+                        DisplayNumber = "A001",
+                        Title = "Beispielantrag: Änderung der Geschäftsordnung",
+                        TitleEscaped = "Beispielantrag: Änderung der Geschäftsordnung",
+                        TypeName = "Satzungsänderungsantrag",
+                        EventName = "Mitgliederversammlung Q3",
+                        StatusLabel = "Eingereicht",
+                        CheckNote = "Beispielhinweis der Antragskommission.",
+                        ChangeNote = "Tippfehler im Antragstext korrigiert.",
+                        InquiryQuestion = "Beispielfrage der Antragskommission.",
+                        InquiryDueAt = "20.10. um 18:00 Uhr",
+                        Deadline = "25.10. um 23:59 Uhr",
+                        Path = "/AssemblyMotions/00000000-0000-0000-0000-000000000000",
+                        OtherDisplayNumber = "A002",
+                        OtherTitle = "Beispielantrag eines anderen Teams",
+                        OtherTitleEscaped = "Beispielantrag eines anderen Teams"
                     };
                     break;
 

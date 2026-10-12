@@ -125,6 +125,7 @@ public class DbContext : DataConnection {
         services.AddScoped<PostPublicationRepository>();
         services.AddScoped<AssemblyMotionPortalRepository>();
         services.AddScoped<AssemblyMotionRepository>();
+        services.AddScoped<AssemblyMotionInquiryRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>

@@ -1,0 +1,41 @@
+@page "/Administration/AssemblyMotionPortals"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.CommissionPortalsTitle]</PageTitle>
+
+<PageHeader Title="@I18n[I18nKey.Ui.AssemblyMotion.CommissionPortalsTitle]" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Portals.Count == 0) {
+    <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoManagedPortals]" />
+} else {
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnAssembly]</th>
+                    <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                    <th>@I18n[I18nKey.Ui.Common.Date]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var portal in Portals) {
+                    <tr>
+                        <td><a href="/Administration/Events/@portal.EventId/Motions">@portal.EventName</a></td>
+                        <td>@portal.ChapterName</td>
+                        <td><LocalTime DateValue="portal.EventDate" /></td>
+                        <td class="text-end">
+                            <a href="/Administration/Events/@portal.EventId/Motions" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-clipboard-check"></i> @I18n[I18nKey.Ui.AssemblyMotion.OpenDashboard]
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,171 @@
+@page "/Administration/AssemblyMotions/{Id:guid}"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.CommissionDetailPageTitle]</PageTitle>
+
+<PageBackLink Href="@BackHref" Text="@I18n[I18nKey.Ui.AssemblyMotion.BackToDashboard]" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Detail == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.MotionNotFound]</div>
+} else if (Detail.Commission == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.CommissionOnly]</div>
+} else {
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+            <div class="text-secondary">
+                @Detail.TypeName (@Detail.TypeCode)
+                @if (!string.IsNullOrEmpty(Detail.DisplayNumber)) {
+                    <span> - @Detail.DisplayNumber</span>
+                }
+            </div>
+            <h2 class="mb-0">@Detail.Title</h2>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <AssemblyMotionStatusBadge Status="@Detail.Status" IsInRevision="@Detail.IsInRevision" Class="fs-6" />
+            @if (Detail.Result != AssemblyMotionResult.None) {
+                <span class="badge border border-secondary text-secondary-emphasis fs-6">@AssemblyMotionDisplay.ResultLabel(I18n, Detail.Result)</span>
+            }
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        <a href="/AssemblyMotions/@Id" class="btn btn-outline-secondary">
+            <i class="bi bi-eye"></i> @I18n[I18nKey.Ui.AssemblyMotion.PublicView]
+        </a>
+        @if (CanCorrect) {
+            <button class="btn btn-outline-primary" disabled="@Busy" @onclick="ToggleEdit">
+                <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionEditButton]
+            </button>
+        }
+        @if (CanCommissionWithdraw) {
+            <button class="btn btn-outline-danger" disabled="@Busy" @onclick="CommissionWithdraw">
+                <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdraw]
+            </button>
+        }
+    </div>
+
+    <div class="text-secondary mb-3">
+        @I18n[I18nKey.Ui.AssemblyMotion.CurrentRevision] <strong>@Detail.Revision</strong>,
+        @I18n[I18nKey.Ui.AssemblyMotion.EffectiveDeadline] <strong>@AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)</strong>,
+        @I18n[I18nKey.Ui.AssemblyMotion.Submitters] <strong>@Detail.Submitters.Count / @Detail.MinSubmitters</strong>
+    </div>
+
+    @if (Conflict != null) {
+        <div class="alert alert-danger d-flex justify-content-between align-items-center">
+            <span>@Conflict</span>
+            <button class="btn btn-sm btn-outline-danger" @onclick="ReloadAsync">
+                <i class="bi bi-arrow-clockwise"></i> @I18n[I18nKey.Ui.AssemblyMotion.Reload]
+            </button>
+        </div>
+    }
+
+    @if (Editing && Portal != null) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.CommissionEditTitle]</h5>
+                <AssemblyMotionFieldsForm Values="@Fields" Portal="@Portal" TypeLocked="true" />
+                <div class="form-text mb-3">@I18n[I18nKey.Ui.AssemblyMotion.TypeLockedHint]</div>
+                <div class="mb-3">
+                    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.ChangeNote] <RequiredStar /></label>
+                    <FormInput @bind-Value="ChangeNote" />
+                    <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.ChangeNoteHelp]</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" disabled="@Busy" @onclick="SaveEdit">
+                        <i class="bi bi-save"></i> @I18n[I18nKey.Ui.AssemblyMotion.SaveChanges]
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="ToggleEdit">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <AssemblyMotionContentCard Motion="@Detail" />
+
+    <AssemblyMotionSubmitterList Submitters="@Detail.Submitters" />
+
+    @if (CanCheck) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.CheckTitle]</h5>
+                @if (Detail.Commission.CheckedAt != null) {
+                    <div class="text-secondary mb-2">
+                        @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.CheckedBy,
+                            ("name", Detail.Commission.CheckedByName ?? "-"),
+                            ("date", AssemblyMotionDisplay.Berlin(Detail.Commission.CheckedAt.Value)))]
+                    </div>
+                }
+                <div class="mb-3">
+                    <RadioGroup E="AssemblyMotionStatus" @bind-Value="CheckStatus" ExcludeValueFunc="IsNotCheckStatus"
+                                ToStringFunc="CheckStatusLabel" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        @I18n[I18nKey.Ui.AssemblyMotion.CheckNoteLabel]
+                        @if (CheckStatus == AssemblyMotionStatus.FormallyInsufficient) {
+                            <RequiredStar />
+                        }
+                    </label>
+                    <FormTextarea @bind-Value="CheckNote" Rows="3" />
+                </div>
+                <button class="btn btn-primary" disabled="@Busy" @onclick="SaveCheck">
+                    <i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.AssemblyMotion.CheckSave]
+                </button>
+            </div>
+        </div>
+    }
+
+    <AssemblyMotionInquiries MotionId="@Id" Inquiries="@Detail.Inquiries" CanManage="true" CanAsk="@CanAsk" OnChanged="Apply" />
+
+    <AssemblyMotionRevisionHistory MotionId="@Id" CurrentRevision="@Detail.Revision" />
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>@I18n[I18nKey.Ui.AssemblyMotion.WikiStateTitle]</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.Common.Status]</dt>
+                        <dd class="col-sm-6">
+                            <span class="badge border @AssemblyMotionDisplay.WikiSyncBadgeClass(Detail.Commission.WikiSyncState)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, Detail.Commission.WikiSyncState)</span>
+                        </dd>
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiSyncedRevision]</dt>
+                        <dd class="col-sm-6">@(Detail.Commission.WikiSyncedRevision == null ? "-" : Detail.Commission.WikiSyncedRevision.Value.ToString())</dd>
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiLastSyncedAt]</dt>
+                        <dd class="col-sm-6">@(Detail.Commission.WikiLastSyncedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.WikiLastSyncedAt.Value))</dd>
+                        @if (!string.IsNullOrEmpty(Detail.Commission.WikiLastError)) {
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
+                            <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.WikiLastError</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesTitle]</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMotionId]</dt>
+                        <dd class="col-sm-6">@(Detail.Commission.OpenSlidesMotionId == null ? "-" : Detail.Commission.OpenSlidesMotionId.Value.ToString())</dd>
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushedRevision]</dt>
+                        <dd class="col-sm-6">@(Detail.Commission.OpenSlidesPushedRevision == null ? "-" : Detail.Commission.OpenSlidesPushedRevision.Value.ToString())</dd>
+                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushedAt]</dt>
+                        <dd class="col-sm-6">@(Detail.Commission.OpenSlidesPushedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.OpenSlidesPushedAt.Value))</dd>
+                        @if (!string.IsNullOrEmpty(Detail.Commission.OpenSlidesLastError)) {
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
+                            <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.OpenSlidesLastError</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <ConfirmDialog @ref="_withdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdrawTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdraw]" />
+    <ConfirmDialog @ref="_reloadDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Reload]" />
+}
