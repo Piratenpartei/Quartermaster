@@ -28,6 +28,20 @@
         </div>
     }
 
+    @if (PrioritizationOpen && Portal.PrioritizationEndsAt != null) {
+        <div class="alert alert-info">
+            @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.PrioritizationOpenHint, ("date", AssemblyMotionDisplay.Berlin(Portal.PrioritizationEndsAt.Value)))]
+        </div>
+    }
+
+    @if (RankingAvailable) {
+        <div class="mb-3">
+            <a href="/Events/@EventId/Motions/Ranking" class="btn btn-outline-primary">
+                <i class="bi bi-list-ol"></i> @I18n[I18nKey.Ui.AssemblyMotion.RankingLink]
+            </a>
+        </div>
+    }
+
     @if (Context != null && Context.IsSignedIn && !Context.IsEligible) {
         <div class="alert alert-info">
             <strong>@I18n[I18nKey.Ui.AssemblyMotion.NotEligibleTitle]</strong>
@@ -140,7 +154,14 @@
                         @foreach (var item in group) {
                             <tr>
                                 <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
-                                <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
+                                <td>
+                                    <a href="/AssemblyMotions/@item.Id">@item.Title</a>
+                                    @if (UpvotedIds.Contains(item.Id)) {
+                                        <span class="badge border border-warning text-warning-emphasis ms-1">
+                                            <i class="bi bi-star-fill"></i> @I18n[I18nKey.Ui.AssemblyMotion.UpvotedMarker]
+                                        </span>
+                                    }
+                                </td>
                                 <td class="text-end">
                                     <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
                                     @if (item.Result != AssemblyMotionResult.None) {

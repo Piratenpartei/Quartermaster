@@ -86,9 +86,38 @@
         }
     }
 
-    <AssemblyMotionContentCard Motion="@Motion" />
+    <AssemblyMotionContentCard Motion="@Motion" ShowCompetitions="@(Member == null)" />
+
+    @if (ShowUpvote) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.PrioritizationTitle]</h5>
+                @if (Member != null && Member.HasUpvoted) {
+                    <div class="mb-2">
+                        <i class="bi bi-star-fill text-warning"></i> @I18n[I18nKey.Ui.AssemblyMotion.UpvotedByYou]
+                    </div>
+                }
+                @if (Motion.UpvoteCount != null) {
+                    <div>@I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.UpvoteCountText, ("count", Motion.UpvoteCount.Value.ToString()))]</div>
+                }
+                @if (ShowUpvoteToggle && Member != null) {
+                    @if (Member.HasUpvoted) {
+                        <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="RemoveUpvote">
+                            <i class="bi bi-star"></i> @I18n[I18nKey.Ui.AssemblyMotion.UpvoteRemove]
+                        </button>
+                    } else {
+                        <button class="btn btn-primary" disabled="@Busy" @onclick="AddUpvote">
+                            <i class="bi bi-star"></i> @I18n[I18nKey.Ui.AssemblyMotion.Upvote]
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    }
 
     @if (Member != null) {
+        <AssemblyMotionCompetitions Motion="@Member" Types="@PortalTypes" OnChanged="Apply" />
+
         <AssemblyMotionSubmitterList Submitters="@Member.Submitters" />
 
         <AssemblyMotionInquiries MotionId="@Id" Inquiries="@Member.Inquiries" CanAnswer="@Member.IsSubmitter" OnChanged="Apply" />

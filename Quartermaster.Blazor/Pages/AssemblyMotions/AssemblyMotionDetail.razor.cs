@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Components.AssemblyMotions;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.AssemblyMotions;
@@ -33,6 +35,7 @@ public partial class AssemblyMotionDetail {
 
     private AssemblyMotionPublicDTO? Motion;
     private AssemblyMotionDetailDTO? Member;
+    private AssemblyMotionPortalDTO? Portal;
     private bool Loading = true;
     private bool Busy;
     private ConfirmDialog _joinDialog = default!;
@@ -48,6 +51,32 @@ public partial class AssemblyMotionDetail {
         && Member.IsAuthor
         && !Member.CanEdit
         && IsPastDraftAndActive(Member.Status);
+
+    private List<AssemblyMotionTypeDTO> PortalTypes => Portal?.Types ?? [];
+
+    private bool ShowUpvote {
+        get {
+            if (Motion == null)
+                return false;
+            if (Motion.UpvoteCount != null)
+                return true;
+            if (Member == null)
+                return false;
+            return Member.CanUpvote || Member.HasUpvoted;
+        }
+    }
+
+    private bool ShowUpvoteToggle {
+        get {
+            if (Member == null)
+                return false;
+            if (Member.CanUpvote)
+                return true;
+            if (!Member.HasUpvoted || Portal == null)
+                return false;
+            return AssemblyMotionDisplay.IsPrioritizationOpen(Portal);
+        }
+    }
 
     private string ShareLink => $"{Navigation.BaseUri}AssemblyMotions/{Id}";
 
@@ -65,12 +94,19 @@ public partial class AssemblyMotionDetail {
         Loading = true;
         Motion = null;
         Member = null;
+        Portal = null;
         try {
             await AuthService.WaitForInitializationAsync();
             if (AuthService.IsAuthenticated) {
                 var memberResponse = await Http.GetAsync($"/api/assemblymotions/motions/{Id}");
                 if (memberResponse.IsSuccessStatusCode)
                     Apply(await memberResponse.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>());
+            }
+
+            if (Member != null) {
+                var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{Member.EventId}");
+                if (portalResponse.IsSuccessStatusCode)
+                    Portal = await portalResponse.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>();
             }
 
             if (Motion == null) {
@@ -134,6 +170,31 @@ public partial class AssemblyMotionDetail {
             ToastService.Error(ex);
         }
         Busy = false;
+    }
+
+    private async Task AddUpvote() {
+        await SendUpvoteAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/upvote", new { }), I18nKey.Ui.AssemblyMotion.ToastUpvoted);
+    }
+
+    private async Task RemoveUpvote() {
+        await SendUpvoteAsync(() => Http.DeleteAsync($"/api/assemblymotions/motions/{Id}/upvote"), I18nKey.Ui.AssemblyMotion.ToastUpvoteRemoved);
+    }
+
+    private async Task SendUpvoteAsync(Func<Task<HttpResponseMessage>> send, string toastKey) {
+        Busy = true;
+        try {
+            var response = await send();
+            if (response.IsSuccessStatusCode) {
+                Apply(await response.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>());
+                ToastService.ToastKey(toastKey);
+            } else {
+                await ToastService.ErrorAsync(response);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
     }
 
     private async Task RunActionAsync(string action, string toastKey) {

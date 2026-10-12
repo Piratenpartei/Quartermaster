@@ -154,3 +154,6 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Fassung | revision | One saved version of a motion; every change creates a new one |
 | Versionsgeschichte | revision history | The list of revisions of a motion with a diff to the predecessor |
 | Änderungsnotiz | change note | The mandatory explanation of a commission edit |
+| konkurrierender Antrag | competing motion | A motion linked to an earlier submitted motion that excludes it; may have a later deadline |
+| Reihenfolge | order | The ranking of motions by prioritization, public after the prioritization window |
+| Ergebnis | result | The outcome of the assembly's vote on a motion, entered by the commission |

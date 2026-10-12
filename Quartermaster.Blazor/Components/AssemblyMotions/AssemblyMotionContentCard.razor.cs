@@ -10,4 +10,7 @@ public partial class AssemblyMotionContentCard {
 
     [Parameter, EditorRequired]
     public required AssemblyMotionPublicDTO Motion { get; set; }
+
+    [Parameter]
+    public bool ShowCompetitions { get; set; } = true;
 }

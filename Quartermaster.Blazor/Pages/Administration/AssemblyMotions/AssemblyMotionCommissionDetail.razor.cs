@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -40,10 +41,17 @@ public partial class AssemblyMotionCommissionDetail {
     private string ChangeNote = "";
     private AssemblyMotionStatus CheckStatus = AssemblyMotionStatus.Submitted;
     private string CheckNote = "";
+    private string ResultSelection = "0";
 
     private string BackHref => Detail == null
         ? "/Administration/AssemblyMotionPortals"
         : $"/Administration/Events/{Detail.EventId}/Motions";
+
+    private List<AssemblyMotionTypeDTO> PortalTypes => Portal?.Types ?? [];
+
+    private bool ResultsEnabled => Portal != null && AssemblyMotionDisplay.IsEventReached(Portal.EventDate);
+
+    private string ResultsLockedText => AssemblyMotionDisplay.ResultsLockedText(I18n, Portal?.EventDate);
 
     private bool CanCheck => Detail != null && IsCheckStatus(Detail.Status);
 
@@ -78,6 +86,7 @@ public partial class AssemblyMotionCommissionDetail {
             if (Detail != null) {
                 FillEditForm(Detail);
                 ResetCheckForm(Detail);
+                ResultSelection = ((int)Detail.Result).ToString();
                 var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{Detail.EventId}");
                 Portal = portalResponse.IsSuccessStatusCode ? await portalResponse.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>() : null;
             }
@@ -130,6 +139,20 @@ public partial class AssemblyMotionCommissionDetail {
         };
         if (await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/check", request), I18nKey.Ui.AssemblyMotion.ToastChecked) && Detail != null)
             ResetCheckForm(Detail);
+    }
+
+    private string ResultOptionLabel(AssemblyMotionResult result) => AssemblyMotionDisplay.ResultOptionLabel(I18n, result);
+
+    private async Task SaveResult() {
+        if (!ResultsEnabled || !int.TryParse(ResultSelection, out var value))
+            return;
+
+        var request = new AssemblyMotionResultRequest {
+            Id = Id,
+            Result = (AssemblyMotionResult)value
+        };
+        if (await RunAsync(() => Http.PutAsJsonAsync($"/api/assemblymotions/motions/{Id}/result", request), I18nKey.Ui.AssemblyMotion.ToastResultSaved) && Detail != null)
+            ResultSelection = ((int)Detail.Result).ToString();
     }
 
     private async Task SaveEdit() {

@@ -1,0 +1,42 @@
+@page "/Events/{EventId:guid}/Motions/Ranking"
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.RankingPageTitle]</PageTitle>
+
+<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Portal == null) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.PortalNotFound]</div>
+} else {
+    <h1>@I18n[I18nKey.Ui.AssemblyMotion.RankingPageTitle]</h1>
+    <div class="text-secondary mb-3">@Portal.EventName</div>
+
+    @if (NotAvailable) {
+        <div class="alert alert-info">@NotAvailableText</div>
+    } else if (Items.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.RankingEmpty]" />
+    } else {
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <button type="button" class="nav-link @(ByType ? "" : "active")" @onclick="() => SwitchView(false)">@I18n[I18nKey.Ui.AssemblyMotion.RankingTabOverall]</button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link @(ByType ? "active" : "")" @onclick="() => SwitchView(true)">@I18n[I18nKey.Ui.AssemblyMotion.RankingTabByType]</button>
+            </li>
+        </ul>
+
+        @if (ByType) {
+            @foreach (var group in Groups) {
+                var first = group.First();
+                <h5 class="mt-3" @key="group.Key">@first.TypeName (@first.TypeCode)</h5>
+                <AssemblyMotionRankingTable Items="@group.ToList()" />
+            }
+        } else {
+            <AssemblyMotionRankingTable Items="@Items" />
+        }
+    }
+}

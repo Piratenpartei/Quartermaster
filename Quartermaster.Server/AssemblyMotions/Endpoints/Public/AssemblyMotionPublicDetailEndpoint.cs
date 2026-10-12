@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -11,17 +12,23 @@ namespace Quartermaster.Server.AssemblyMotions.Endpoints.Public;
 public class AssemblyMotionPublicDetailEndpoint : Endpoint<AssemblyMotionPublicDetailRequest, AssemblyMotionPublicDTO> {
     private readonly AssemblyMotionPortalRepository _portals;
     private readonly AssemblyMotionRepository _motions;
+    private readonly AssemblyMotionUpvoteRepository _upvotes;
     private readonly EventRepository _events;
+    private readonly AssemblyMotionCompetitionViewBuilder _competitionViews;
     private readonly PermissionContext _perms;
 
     public AssemblyMotionPublicDetailEndpoint(
         AssemblyMotionPortalRepository portals,
         AssemblyMotionRepository motions,
         EventRepository events,
+        AssemblyMotionUpvoteRepository upvotes,
+        AssemblyMotionCompetitionViewBuilder competitionViews,
         PermissionContext perms) {
         _portals = portals;
         _motions = motions;
         _events = events;
+        _upvotes = upvotes;
+        _competitionViews = competitionViews;
         _perms = perms;
     }
 
@@ -42,6 +49,9 @@ public class AssemblyMotionPublicDetailEndpoint : Endpoint<AssemblyMotionPublicD
         var dto = AssemblyMotionPublicView.Build(motion, type);
         dto.PortalId = portal.Id;
         dto.EventId = portal.EventId;
+        dto.Competitions = _competitionViews.BuildPublic(motion);
+        if (AssemblyMotionUpvoteService.IsCountPublic(portal, motion, DateTime.UtcNow))
+            dto.UpvoteCount = _upvotes.CountForMotion(motion.Id);
         await SendAsync(dto, cancellation: ct);
     }
 

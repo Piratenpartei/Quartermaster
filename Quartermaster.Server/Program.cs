@@ -168,6 +168,10 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionService>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionService>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionInquiryService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCompetitionService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionUpvoteService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionResultService>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCompetitionViewBuilder>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionDetailBuilder>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionMemberActions>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionActions>();

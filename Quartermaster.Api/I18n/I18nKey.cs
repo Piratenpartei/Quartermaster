@@ -134,6 +134,14 @@ public static class I18nKey {
             public const string InquiryAnswerRequired = "error.assembly_motion.inquiry_answer_required";
             public const string InquiryAnswerMaxLength = "error.assembly_motion.inquiry_answer_max_length";
             public const string InquiryNotFound = "error.assembly_motion.inquiry_not_found";
+            public const string CompetitionExists = "error.assembly_motion.competition_exists";
+            public const string CompetitionNotFound = "error.assembly_motion.competition_not_found";
+            public const string CompetingFlagRequiresLink = "error.assembly_motion.competing_flag_requires_link";
+            public const string PrioritizationNotOpen = "error.assembly_motion.prioritization_not_open";
+            public const string RankingNotAvailable = "error.assembly_motion.ranking_not_available";
+            public const string EventNotReached = "error.assembly_motion.event_not_reached";
+            public const string ResultItemsInvalid = "error.assembly_motion.result_items_invalid";
+            public const string ResultItemInvalid = "error.assembly_motion.result_item_invalid";
 
             public static class Portal {
                 public const string NotFound = "error.assembly_motion.portal.not_found";
@@ -2319,6 +2327,57 @@ public static class I18nKey {
             public const string OpenSlidesPushedAt = "ui.assembly_motion.open_slides_pushed_at";
             public const string CurrentRevision = "ui.assembly_motion.current_revision";
             public const string EffectiveDeadline = "ui.assembly_motion.effective_deadline";
+            public const string NoCompetitions = "ui.assembly_motion.no_competitions";
+            public const string CompetitionByCommission = "ui.assembly_motion.competition_by_commission";
+            public const string CompetitionRemove = "ui.assembly_motion.competition_remove";
+            public const string CompetitionRemoveTitle = "ui.assembly_motion.competition_remove_title";
+            public const string CompetitionRemoveMessage = "ui.assembly_motion.competition_remove_message";
+            public const string CompetitionDeclareTitle = "ui.assembly_motion.competition_declare_title";
+            public const string CompetitionSearchPlaceholder = "ui.assembly_motion.competition_search_placeholder";
+            public const string CompetitionSearchHint = "ui.assembly_motion.competition_search_hint";
+            public const string CompetitionNoMatches = "ui.assembly_motion.competition_no_matches";
+            public const string CompetitionDeclare = "ui.assembly_motion.competition_declare";
+            public const string ToastCompetitionDeclared = "ui.assembly_motion.toast_competition_declared";
+            public const string ToastCompetitionRemoved = "ui.assembly_motion.toast_competition_removed";
+            public const string CompetingBadge = "ui.assembly_motion.competing_badge";
+            public const string CompetingFlag = "ui.assembly_motion.competing_flag";
+            public const string CompetingFlagDeadline = "ui.assembly_motion.competing_flag_deadline";
+            public const string CompetingFlagNoDeadline = "ui.assembly_motion.competing_flag_no_deadline";
+            public const string ClearCompetingFlag = "ui.assembly_motion.clear_competing_flag";
+            public const string ToastCompetingFlagChanged = "ui.assembly_motion.toast_competing_flag_changed";
+            public const string PrioritizationTitle = "ui.assembly_motion.prioritization_title";
+            public const string PrioritizationOpenHint = "ui.assembly_motion.prioritization_open_hint";
+            public const string Upvote = "ui.assembly_motion.upvote";
+            public const string UpvoteRemove = "ui.assembly_motion.upvote_remove";
+            public const string UpvotedByYou = "ui.assembly_motion.upvoted_by_you";
+            public const string UpvotedMarker = "ui.assembly_motion.upvoted_marker";
+            public const string UpvoteCountText = "ui.assembly_motion.upvote_count_text";
+            public const string ToastUpvoted = "ui.assembly_motion.toast_upvoted";
+            public const string ToastUpvoteRemoved = "ui.assembly_motion.toast_upvote_removed";
+            public const string RankingLink = "ui.assembly_motion.ranking_link";
+            public const string RankingPageTitle = "ui.assembly_motion.ranking_page_title";
+            public const string RankingNotAvailable = "ui.assembly_motion.ranking_not_available";
+            public const string RankingNotEnabled = "ui.assembly_motion.ranking_not_enabled";
+            public const string RankingTabOverall = "ui.assembly_motion.ranking_tab_overall";
+            public const string RankingTabByType = "ui.assembly_motion.ranking_tab_by_type";
+            public const string RankingEmpty = "ui.assembly_motion.ranking_empty";
+            public const string ColumnRank = "ui.assembly_motion.column_rank";
+            public const string ColumnUpvotes = "ui.assembly_motion.column_upvotes";
+            public const string ColumnResult = "ui.assembly_motion.column_result";
+            public const string ResultsButton = "ui.assembly_motion.results_button";
+            public const string ResultsPageTitle = "ui.assembly_motion.results_page_title";
+            public const string ResultNone = "ui.assembly_motion.result_none";
+            public const string ResultsNoMotions = "ui.assembly_motion.results_no_motions";
+            public const string ResultsSave = "ui.assembly_motion.results_save";
+            public const string ResultsNoChanges = "ui.assembly_motion.results_no_changes";
+            public const string ToastResultsSaved = "ui.assembly_motion.toast_results_saved";
+            public const string ResultTitle = "ui.assembly_motion.result_title";
+            public const string ResultSave = "ui.assembly_motion.result_save";
+            public const string ToastResultSaved = "ui.assembly_motion.toast_result_saved";
+            public const string CompetitionTooManyResults = "ui.assembly_motion.competition_too_many_results";
+            public const string ResultsChangedCount = "ui.assembly_motion.results_changed_count";
+            public const string ResultsEventNotReached = "ui.assembly_motion.results_event_not_reached";
+            public const string ResultsNoEventDate = "ui.assembly_motion.results_no_event_date";
         }
     }
 }

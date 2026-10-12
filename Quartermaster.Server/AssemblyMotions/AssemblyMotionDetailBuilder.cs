@@ -15,15 +15,19 @@ public class AssemblyMotionDetailBuilder {
 
     private readonly AssemblyMotionRepository _motions;
     private readonly AssemblyMotionInquiryRepository _inquiries;
+    private readonly AssemblyMotionUpvoteRepository _upvotes;
     private readonly AssemblyMotionService _service;
+    private readonly AssemblyMotionCompetitionViewBuilder _competitionViews;
     private readonly AssemblyMotionAccess _access;
     private readonly DbContext _db;
 
     public AssemblyMotionDetailBuilder(AssemblyMotionRepository motions, AssemblyMotionInquiryRepository inquiries,
-        AssemblyMotionService service, AssemblyMotionAccess access, DbContext db) {
+        AssemblyMotionUpvoteRepository upvotes, AssemblyMotionService service, AssemblyMotionCompetitionViewBuilder competitionViews, AssemblyMotionAccess access, DbContext db) {
         _motions = motions;
         _inquiries = inquiries;
+        _upvotes = upvotes;
         _service = service;
+        _competitionViews = competitionViews;
         _access = access;
         _db = db;
     }
@@ -53,6 +57,8 @@ public class AssemblyMotionDetailBuilder {
         dto.EffectiveDeadline = AssemblyMotionDeadlines.Effective(portal, type, motion.IsCompetingMotion).ToDtoUtc();
         dto.IsAuthor = viewerMember != null && motion.CreatedByMemberId == viewerMember.Id;
         dto.IsSubmitter = viewerIsSubmitter;
+        dto.Competitions = _competitionViews.BuildPublic(motion);
+        dto.CompetitionLinks = _competitionViews.BuildDetail(motion, viewerMember, viewer.IsCommission);
 
         if (AssemblyMotionVisibility.CanSeeNames(viewer, viewerIsSubmitter))
             dto.Submitters = BuildSubmitters(submitters, viewer.IsCommission);
@@ -62,6 +68,9 @@ public class AssemblyMotionDetailBuilder {
 
         if (viewerIsSubmitter || viewer.IsCommission)
             ApplyInquiries(dto, motion);
+
+        if (AssemblyMotionUpvoteService.IsCountPublic(portal, motion, nowUtc))
+            dto.UpvoteCount = _upvotes.CountForMotion(motion.Id);
 
         if (viewerMember != null)
             ApplyActionFlags(dto, motion, portal, type, viewerMember, eligibility.IsEligible, viewerIsSubmitter, nowUtc);
@@ -104,6 +113,8 @@ public class AssemblyMotionDetailBuilder {
         dto.CanDelete = _service.CanDelete(motion, viewerMember);
         dto.CanLeave = _service.CanLeave(motion, viewerMember, viewerIsSubmitter);
         dto.CanWithdraw = _service.CanWithdraw(portal, motion, viewerMember, nowUtc);
+        dto.CanUpvote = AssemblyMotionUpvoteService.CanUpvote(portal, motion, isEligible, nowUtc);
+        dto.HasUpvoted = _upvotes.Exists(motion.Id, viewerMember.Id);
     }
 
     private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion) => new() {

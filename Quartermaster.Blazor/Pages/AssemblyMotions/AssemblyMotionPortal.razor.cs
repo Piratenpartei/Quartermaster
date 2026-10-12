@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Components.AssemblyMotions;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.AssemblyMotions;
@@ -38,6 +39,7 @@ public partial class AssemblyMotionPortal {
 
     private AssemblyMotionPortalDTO? Portal;
     private AssemblyMotionPortalContextDTO? Context;
+    private HashSet<Guid> UpvotedIds = [];
     private List<AssemblyMotionPublicListItemDTO> Items = [];
     private bool Loading = true;
     private bool ListLoading;
@@ -47,6 +49,10 @@ public partial class AssemblyMotionPortal {
     private string FilterStatus = "";
     private string Search = "";
 
+    private bool PrioritizationOpen => Portal != null && AssemblyMotionDisplay.IsPrioritizationOpen(Portal);
+
+    private bool RankingAvailable => Portal != null && AssemblyMotionDisplay.IsRankingAvailable(Portal);
+
     protected override async Task OnParametersSetAsync() {
         Loading = true;
         try {
@@ -54,12 +60,36 @@ public partial class AssemblyMotionPortal {
             Portal = response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>() : null;
             if (Portal != null) {
                 Context = await Http.GetFromJsonAsync<AssemblyMotionPortalContextDTO>($"/api/assemblymotions/portals/{Portal.Id}/context");
+                await LoadUpvotesSafeAsync();
                 await LoadMotionsAsync();
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
         Loading = false;
+    }
+
+    private async Task LoadUpvotesSafeAsync() {
+        try {
+            await LoadUpvotesAsync();
+        } catch (Exception ex) when (ex is HttpRequestException || ex is System.Text.Json.JsonException) {
+            UpvotedIds = [];
+        }
+    }
+
+    private async Task LoadUpvotesAsync() {
+        UpvotedIds = [];
+        if (Portal == null || Context == null || !PrioritizationOpen)
+            return;
+        if (!Context.IsSignedIn || Context.Problem == EligibilityProblem.NoLinkedMember)
+            return;
+
+        var response = await Http.GetAsync($"/api/assemblymotions/portals/{Portal.Id}/my-upvotes");
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        var ids = await response.Content.ReadFromJsonAsync<List<Guid>>();
+        UpvotedIds = (ids ?? []).ToHashSet();
     }
 
     private async Task LoadMotionsAsync() {

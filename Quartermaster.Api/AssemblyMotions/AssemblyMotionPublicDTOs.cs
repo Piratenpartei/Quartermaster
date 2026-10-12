@@ -33,6 +33,7 @@ public class AssemblyMotionPublicDTO : AssemblyMotionPublicListItemDTO {
 
 public class AssemblyMotionCompetitionPublicDTO {
     public Guid Id { get; set; }
+    public Guid OtherMotionId { get; set; }
     public string DisplayNumber { get; set; } = "";
     public string Title { get; set; } = "";
 }

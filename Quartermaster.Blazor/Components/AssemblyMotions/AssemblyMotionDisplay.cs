@@ -70,6 +70,51 @@ public static class AssemblyMotionDisplay {
         _ => "border-secondary text-secondary-emphasis"
     };
 
+    public static readonly AssemblyMotionResult[] AllResults = [
+        AssemblyMotionResult.None,
+        AssemblyMotionResult.Accepted,
+        AssemblyMotionResult.AcceptedModified,
+        AssemblyMotionResult.Rejected,
+        AssemblyMotionResult.NotHandled
+    ];
+
+    public static string ResultOptionLabel(I18nService i18n, AssemblyMotionResult result) {
+        if (result == AssemblyMotionResult.None)
+            return i18n[I18nKey.Ui.AssemblyMotion.ResultNone];
+
+        return ResultLabel(i18n, result);
+    }
+
+    public static bool IsEventReached(DateOnly? eventDate) {
+        if (eventDate == null)
+            return false;
+
+        var today = DateOnly.FromDateTime(BerlinTime.FromUtc(DateTime.UtcNow));
+        return today >= eventDate.Value;
+    }
+
+    public static string ResultsLockedText(I18nService i18n, DateOnly? eventDate) {
+        if (eventDate == null)
+            return i18n[I18nKey.Ui.AssemblyMotion.ResultsNoEventDate];
+
+        return i18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.ResultsEventNotReached, ("date", eventDate.Value.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)))];
+    }
+
+    public static bool IsPrioritizationOpen(AssemblyMotionPortalDTO portal) {
+        if (!portal.PrioritizationEnabled || portal.PrioritizationStartsAt == null || portal.PrioritizationEndsAt == null)
+            return false;
+
+        var now = DateTimeOffset.UtcNow;
+        return portal.PrioritizationStartsAt <= now && now <= portal.PrioritizationEndsAt;
+    }
+
+    public static bool IsRankingAvailable(AssemblyMotionPortalDTO portal) {
+        if (!portal.PrioritizationEnabled || portal.PrioritizationEndsAt == null)
+            return false;
+
+        return DateTimeOffset.UtcNow > portal.PrioritizationEndsAt;
+    }
+
     public static string Berlin(DateTimeOffset value)
         => BerlinTime.FromUtc(value.UtcDateTime).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
 

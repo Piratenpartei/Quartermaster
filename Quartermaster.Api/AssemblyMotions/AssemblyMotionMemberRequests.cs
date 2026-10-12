@@ -20,6 +20,20 @@ public class AssemblyMotionIdRequest {
     public Guid Id { get; set; }
 }
 
+public class AssemblyMotionCompetitionDeclareRequest {
+    public Guid MotionId { get; set; }
+    public Guid OtherMotionId { get; set; }
+}
+
+public class AssemblyMotionCompetitionIdRequest {
+    public Guid Id { get; set; }
+}
+
+public class AssemblyMotionCompetingFlagRequest {
+    public Guid Id { get; set; }
+    public bool Value { get; set; }
+}
+
 public class AssemblyMotionPortalIdRequest {
     public Guid PortalId { get; set; }
 }

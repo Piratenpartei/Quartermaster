@@ -1,0 +1,27 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th style="width: 5rem;">@I18n[I18nKey.Ui.AssemblyMotion.ColumnRank]</th>
+                <th style="width: 8rem;">@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                <th class="text-end">@I18n[I18nKey.Ui.AssemblyMotion.ColumnUpvotes]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Items) {
+                <tr @key="item.Id">
+                    <td>@item.Rank</td>
+                    <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                    <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
+                    <td>@item.TypeCode</td>
+                    <td class="text-end">@item.UpvoteCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

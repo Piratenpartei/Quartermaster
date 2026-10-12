@@ -51,7 +51,7 @@
     </div>
 </div>
 
-@if (Motion.Competitions.Count > 0) {
+@if (ShowCompetitions && Motion.Competitions.Count > 0) {
     <div class="card mb-3">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>

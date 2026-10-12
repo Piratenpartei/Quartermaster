@@ -1,0 +1,100 @@
+@using Quartermaster.Api.AssemblyMotions
+@using Quartermaster.Api.I18n
+
+@if (IsVisible) {
+    <div class="card mb-3" id="competitions">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>
+
+            @if (Motion.IsCompetingMotion) {
+                <div class="mb-2">
+                    <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.CompetingBadge]</span>
+                </div>
+            }
+
+            @if (Motion.CompetitionLinks.Count == 0) {
+                <div class="text-secondary mb-3">@I18n[I18nKey.Ui.AssemblyMotion.NoCompetitions]</div>
+            } else {
+                <ul class="list-group mb-3">
+                    @foreach (var link in Motion.CompetitionLinks) {
+                        <li class="list-group-item d-flex justify-content-between align-items-center gap-2" @key="link.Id">
+                            <div>
+                                <a href="/AssemblyMotions/@link.OtherMotionId">
+                                    <span class="text-nowrap">@(string.IsNullOrEmpty(link.OtherDisplayNumber) ? "-" : link.OtherDisplayNumber)</span>
+                                    @link.OtherTitle
+                                </a>
+                                @if (link.DeclaredByCommission) {
+                                    <span class="badge border border-secondary text-secondary-emphasis ms-1">@I18n[I18nKey.Ui.AssemblyMotion.CompetitionByCommission]</span>
+                                }
+                            </div>
+                            @if (link.CanRemove) {
+                                <button class="btn btn-outline-danger btn-sm" disabled="@Busy" @onclick="() => Remove(link.Id)">
+                                    <i class="bi bi-x-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemove]
+                                </button>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+
+            @if (CanSetFlag) {
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="competing-flag" @key="_flagRenderKey"
+                           checked="@Motion.IsCompetingMotion" disabled="@Busy" @onchange="OnFlagChanged" />
+                    <label class="form-check-label" for="competing-flag">@I18n[I18nKey.Ui.AssemblyMotion.CompetingFlag]</label>
+                    @if (FlagExplanation != "") {
+                        <div class="form-text">@FlagExplanation</div>
+                    }
+                </div>
+            }
+
+            @if (CanClearFlag) {
+                <div class="mb-3">
+                    <button class="btn btn-outline-secondary btn-sm" disabled="@Busy" @onclick="ClearFlag">
+                        <i class="bi bi-flag"></i> @I18n[I18nKey.Ui.AssemblyMotion.ClearCompetingFlag]
+                    </button>
+                </div>
+            }
+
+            @if (CanDeclare) {
+                <div class="border-top pt-3">
+                    <h6>@I18n[I18nKey.Ui.AssemblyMotion.CompetitionDeclareTitle]</h6>
+                    <div class="input-group mb-1">
+                        <input type="search" class="form-control" value="@Search" @oninput="OnSearchInput" @onkeydown="OnSearchKeyDown"
+                               placeholder="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionSearchPlaceholder]" />
+                        <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="RunSearch">
+                            <i class="bi bi-search"></i> @I18n[I18nKey.Ui.Common.Search]
+                        </button>
+                    </div>
+                    <div class="form-text mb-2">@I18n[I18nKey.Ui.AssemblyMotion.CompetitionSearchHint]</div>
+
+                    @if (Searched && TooManyResults) {
+                        <div class="alert alert-info py-2">@I18n[I18nKey.Ui.AssemblyMotion.CompetitionTooManyResults]</div>
+                    }
+
+                    @if (Searching) {
+                        <LoadingSpinner />
+                    } else if (Searched && Candidates.Count == 0) {
+                        <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.CompetitionNoMatches]</div>
+                    } else if (Candidates.Count > 0) {
+                        <ul class="list-group">
+                            @foreach (var candidate in Candidates) {
+                                <li class="list-group-item d-flex justify-content-between align-items-center gap-2" @key="candidate.Id">
+                                    <div>
+                                        <span class="text-nowrap">@(string.IsNullOrEmpty(candidate.DisplayNumber) ? "-" : candidate.DisplayNumber)</span>
+                                        @candidate.Title
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" disabled="@Busy" @onclick="() => Declare(candidate.Id)">
+                                        <i class="bi bi-link-45deg"></i> @I18n[I18nKey.Ui.AssemblyMotion.CompetitionDeclare]
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<ConfirmDialog @ref="_removeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemoveTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemove]" />

@@ -84,7 +84,7 @@
         </div>
     }
 
-    <AssemblyMotionContentCard Motion="@Detail" />
+    <AssemblyMotionContentCard Motion="@Detail" ShowCompetitions="false" />
 
     <AssemblyMotionSubmitterList Submitters="@Detail.Submitters" />
 
@@ -115,6 +115,31 @@
                 <button class="btn btn-primary" disabled="@Busy" @onclick="SaveCheck">
                     <i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.AssemblyMotion.CheckSave]
                 </button>
+            </div>
+        </div>
+    }
+
+    <AssemblyMotionCompetitions Motion="@Detail" Types="@PortalTypes" AsCommission="true" OnChanged="Apply" />
+
+    @if (!string.IsNullOrEmpty(Detail.DisplayNumber)) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.ResultTitle]</h5>
+                @if (Portal != null && !ResultsEnabled) {
+                    <div class="text-secondary mb-2">@ResultsLockedText</div>
+                }
+                <div class="d-flex gap-2 flex-wrap">
+                    <div style="min-width: 16rem;">
+                        <FormSelect @bind-Value="ResultSelection" Disabled="@(Busy || !ResultsEnabled)">
+                            @foreach (var result in AssemblyMotionDisplay.AllResults) {
+                                <option value="@((int)result)">@ResultOptionLabel(result)</option>
+                            }
+                        </FormSelect>
+                    </div>
+                    <button class="btn btn-primary" disabled="@(Busy || !ResultsEnabled)" @onclick="SaveResult">
+                        <i class="bi bi-save"></i> @I18n[I18nKey.Ui.AssemblyMotion.ResultSave]
+                    </button>
+                </div>
             </div>
         </div>
     }

@@ -234,6 +234,11 @@ public class AssemblyMotionService {
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Released");
 
+        var declaredCompetitions = _db.AssemblyMotionCompetitions
+            .Where(c => c.DeclaringMotionId == motion.Id)
+            .Select(c => c.MotionAId == motion.Id ? c.MotionBId : c.MotionAId)
+            .ToList();
+
         if (type.MinSubmitters <= 1) {
             Submit(motion, nowUtc);
             notifications.Add(() => _notifier.Submitted(motion));
@@ -242,9 +247,24 @@ public class AssemblyMotionService {
             _motions.Update(motion);
         }
 
+        notifications.Add(() => NotifyDeclaredCompetitions(motion, declaredCompetitions));
+
         tx.Commit();
         RunAll(notifications);
         return AssemblyMotionOutcome.Ok(motion);
+    }
+
+    private void NotifyDeclaredCompetitions(AssemblyMotion motion, List<Guid> otherMotionIds) {
+        foreach (var otherMotionId in otherMotionIds) {
+            var other = _motions.Get(otherMotionId);
+            if (other == null || (other.Status != AssemblyMotionStatus.Submitted && other.Status != AssemblyMotionStatus.Admitted))
+                continue;
+
+            var submitterIds = _motions.GetSubmitters(other.Id)
+                .Select(s => s.MemberId)
+                .ToList();
+            _notifier.CompetitionDeclared(motion, other, submitterIds);
+        }
     }
 
     public bool CanJoin(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, bool isAlreadySubmitter, DateTime nowUtc)

@@ -33,6 +33,15 @@ public class AssemblyMotionSubmitterDTO {
     public int? MemberNumber { get; set; }
 }
 
+public class AssemblyMotionCompetitionDTO {
+    public Guid Id { get; set; }
+    public Guid OtherMotionId { get; set; }
+    public string? OtherDisplayNumber { get; set; }
+    public string OtherTitle { get; set; } = "";
+    public bool DeclaredByCommission { get; set; }
+    public bool CanRemove { get; set; }
+}
+
 public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
     public string TextMarkdown { get; set; } = "";
     public string ReasonMarkdown { get; set; } = "";
@@ -49,8 +58,11 @@ public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
     public bool CanLeave { get; set; }
     public bool CanWithdraw { get; set; }
     public bool CanDelete { get; set; }
+    public bool CanUpvote { get; set; }
+    public bool HasUpvoted { get; set; }
     public AssemblyMotionCommissionInfoDTO? Commission { get; set; }
     public List<AssemblyMotionInquiryDTO> Inquiries { get; set; } = [];
+    public List<AssemblyMotionCompetitionDTO> CompetitionLinks { get; set; } = [];
     public int OpenInquiryCount { get; set; }
 }
 

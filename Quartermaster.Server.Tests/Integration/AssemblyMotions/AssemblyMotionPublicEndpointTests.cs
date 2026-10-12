@@ -191,4 +191,36 @@ public class AssemblyMotionPublicEndpointTests : IntegrationTestBase {
 
         await Assert.That(detail.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
+
+    [Test]
+    public async Task Public_detail_lists_competition_without_names() {
+        var (portal, type) = SeedPortal();
+        var first = SeedMotion(portal, type, "Erster", AssemblyMotionStatus.Submitted, 1, firstName: "Zebulon", lastName: "Quaxwell");
+        var second = SeedMotion(portal, type, "Zweiter", AssemblyMotionStatus.Admitted, 2);
+        var draft = SeedMotion(portal, type, "Entwurf", AssemblyMotionStatus.Draft, null);
+        InsertLink(first, second, first);
+        InsertLink(first, draft, draft);
+        using var client = AnonymousClient();
+
+        var response = await client.GetAsync($"/api/assemblymotions/motions/{first.Id}/public");
+        var body = await response.Content.ReadAsStringAsync();
+        var detail = await client.GetFromJsonAsync<AssemblyMotionPublicDTO>($"/api/assemblymotions/motions/{second.Id}/public");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(body).DoesNotContain("Quaxwell");
+        await Assert.That(body).DoesNotContain("Entwurf");
+        await Assert.That(detail!.Competitions.Single().DisplayNumber).IsEqualTo("SÄA001");
+        await Assert.That(detail.Competitions.Single().Title).IsEqualTo("Erster");
+    }
+
+    private void InsertLink(AssemblyMotion first, AssemblyMotion second, AssemblyMotion declaring) {
+        var ordered = first.Id.CompareTo(second.Id) <= 0 ? (first, second) : (second, first);
+        Db.Insert(new AssemblyMotionCompetition {
+            MotionAId = ordered.Item1.Id,
+            MotionBId = ordered.Item2.Id,
+            DeclaringMotionId = declaring.Id,
+            DeclaredByUserId = Guid.NewGuid(),
+            DeclaredAt = DateTime.UtcNow
+        });
+    }
 }
