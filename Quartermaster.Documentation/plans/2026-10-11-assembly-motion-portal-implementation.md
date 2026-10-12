@@ -1037,6 +1037,8 @@ Nach der Versammlung trägt die Antragskommission die Ergebnisse der Abstimmunge
 
 ### Task 21: Markdown to MediaWiki converter
 
+**Superseded during implementation (review findings):** `|` is emitted as `&#124;` everywhere and never as `{{!}}`; `!`, `"`, `=`, `*`, `#`, `;`, `:` are entities too; input is NFC-normalized and a combining character after emitted markup is a numeric reference; control characters are stripped; `ISBN`/`RFC`/`PMID` are defused in a final pass; `pre` is emitted without an inner `code`; `thead`/`tbody` are dropped; `MotionMarkdownProblem` has `TooDeeplyNested` and `TooLong` (100,000 characters). Where the text below says `{{!}}`, read `&#124;`.
+
 **Files:**
 - Create: `Quartermaster.Rendering/MotionWikiConverter.cs`
 - Modify: `Quartermaster.Rendering/Quartermaster.Rendering.csproj` only if `AngleSharp` (already a dependency of `HtmlSanitizer`) is not resolvable directly; then add an explicit `PackageReference` with the version `HtmlSanitizer` pulls in

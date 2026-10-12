@@ -102,6 +102,8 @@ public static class I18nKey {
         public static class AssemblyMotion {
             public const string MarkdownHtmlNotAllowed = "error.assembly_motion.markdown_html_not_allowed";
             public const string MarkdownImageNotAllowed = "error.assembly_motion.markdown_image_not_allowed";
+            public const string MarkdownTooDeeplyNested = "error.assembly_motion.markdown_too_deeply_nested";
+            public const string MarkdownTooLong = "error.assembly_motion.markdown_too_long";
             public const string NotFound = "error.assembly_motion.not_found";
             public const string NotAuthor = "error.assembly_motion.not_author";
             public const string NotCommission = "error.assembly_motion.not_commission";
@@ -110,6 +112,11 @@ public static class I18nKey {
             public const string DeadlinePassed = "error.assembly_motion.deadline_passed";
             public const string InvalidState = "error.assembly_motion.invalid_state";
             public const string EditLocked = "error.assembly_motion.edit_locked";
+            public const string WikiPrefixInvalid = "error.assembly_motion.wiki_prefix_invalid";
+            public const string WikiLoginFailed = "error.assembly_motion.wiki_login_failed";
+            public const string WikiNotConfigured = "error.assembly_motion.wiki_not_configured";
+            public const string WikiMirrorDisabled = "error.assembly_motion.wiki_mirror_disabled";
+            public const string WikiMotionNotNumbered = "error.assembly_motion.wiki_motion_not_numbered";
             public const string RevisionConflict = "error.assembly_motion.revision_conflict";
             public const string AlreadySubmitter = "error.assembly_motion.already_submitter";
             public const string NotSubmitter = "error.assembly_motion.not_submitter";
@@ -2322,6 +2329,16 @@ public static class I18nKey {
             public const string WikiSyncedRevision = "ui.assembly_motion.wiki_synced_revision";
             public const string WikiLastSyncedAt = "ui.assembly_motion.wiki_last_synced_at";
             public const string LastError = "ui.assembly_motion.last_error";
+            public const string WikiPageTitle = "ui.assembly_motion.wiki_page_title";
+            public const string WikiResync = "ui.assembly_motion.wiki_resync";
+            public const string ToastWikiResync = "ui.assembly_motion.toast_wiki_resync";
+            public const string WikiResyncAll = "ui.assembly_motion.wiki_resync_all";
+            public const string WikiResyncAllTitle = "ui.assembly_motion.wiki_resync_all_title";
+            public const string WikiResyncAllMessage = "ui.assembly_motion.wiki_resync_all_message";
+            public const string ToastWikiResyncAll = "ui.assembly_motion.toast_wiki_resync_all";
+            public const string ShowFailedWikiSyncs = "ui.assembly_motion.show_failed_wiki_syncs";
+            public const string WikiCheckConnection = "ui.assembly_motion.wiki_check_connection";
+            public const string WikiCheckConnectionHint = "ui.assembly_motion.wiki_check_connection_hint";
             public const string OpenSlidesMotionId = "ui.assembly_motion.open_slides_motion_id";
             public const string OpenSlidesPushedRevision = "ui.assembly_motion.open_slides_pushed_revision";
             public const string OpenSlidesPushedAt = "ui.assembly_motion.open_slides_pushed_at";

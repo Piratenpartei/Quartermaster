@@ -41,6 +41,10 @@ public class AssemblyMotionResultServiceTests : RepositoryTestBase {
     private void SeedPortal(DateTime? eventDate) {
         var ev = _builder.SeedEvent(_chapter.Id, eventDate: eventDate);
         _portal = _portalRepo.Create(ev.Id, _now.AddDays(-5), _now.AddDays(7), _now);
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == _portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Update();
     }
 
     private AssemblyMotion NewMotion(bool release = true) {

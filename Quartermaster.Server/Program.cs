@@ -162,6 +162,15 @@ public partial class Program {
             sp.GetRequiredService<Accreditation.KeycloakTokenProvider>()));
         builder.Services.AddScoped<Accreditation.TemporaryAccountChecker>();
 
+        builder.Services.AddScoped(sp => AssemblyMotions.Wiki.WikiBotSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddSingleton<AssemblyMotions.Wiki.IWikiBotClient>(sp => new AssemblyMotions.Wiki.HttpWikiBotClient(
+            new SocketsHttpHandler {
+                UseCookies = true,
+                CookieContainer = new CookieContainer(),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(15)
+            },
+            sp.GetRequiredService<ILogger<AssemblyMotions.Wiki.HttpWikiBotClient>>()));
+
         builder.Services.AddScoped<AssemblyMotionNotifier>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionAccess>();
@@ -186,6 +195,12 @@ public partial class Program {
         builder.Services.AddScoped<RetentionAnonymizationService>();
         builder.Services.AddHostedService<RetentionAnonymizationHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.AssemblyMotionDeadlineHostedService>();
+        builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiSync>();
+        builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiReconcile>();
+        builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
+        builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
+        builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
+        builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();

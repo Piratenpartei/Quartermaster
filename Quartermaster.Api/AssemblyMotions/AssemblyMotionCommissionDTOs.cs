@@ -27,11 +27,14 @@ public class AssemblyMotionDashboardResponse : IPaginatedResponse<AssemblyMotion
     public int Page { get; set; }
     public int PageSize { get; set; }
     public int FailedWikiSyncCount { get; set; }
+    public bool WikiMirrorEnabled { get; set; }
 }
 
 public class AssemblyMotionCommissionInfoDTO {
     public DateTimeOffset? CheckedAt { get; set; }
     public string? CheckedByName { get; set; }
+    public bool WikiMirrorEnabled { get; set; }
+    public string? WikiPageTitle { get; set; }
     public WikiSyncState WikiSyncState { get; set; }
     public int? WikiSyncedRevision { get; set; }
     public DateTimeOffset? WikiLastSyncedAt { get; set; }

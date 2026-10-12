@@ -121,6 +121,51 @@ public class AssemblyMotionPortalUpdateRequestValidatorTests {
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Test]
+    [Arguments("/Antrag")]
+    [Arguments("Antrag/")]
+    [Arguments(" Antrag")]
+    [Arguments("Antrag ")]
+    [Arguments("Antrag//BPT")]
+    [Arguments("Antrag#BPT")]
+    [Arguments("Antrag<BPT")]
+    [Arguments("Antrag>BPT")]
+    [Arguments("Antrag[BPT")]
+    [Arguments("Antrag]BPT")]
+    [Arguments("Antrag|BPT")]
+    [Arguments("Antrag{BPT")]
+    [Arguments("Antrag}BPT")]
+    public void InvalidWikiPagePrefix_ShouldHaveError(string prefix) {
+        var request = ValidRequest();
+        request.WikiPagePrefix = prefix;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.WikiPagePrefix)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.WikiPrefixInvalid);
+    }
+
+    [Test]
+    public void WikiPagePrefixLongerThanColumn_ShouldHaveError() {
+        var request = ValidRequest();
+        request.WikiPagePrefix = new string('a', 301);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.WikiPagePrefix)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.WikiPrefixInvalid);
+    }
+
+    [Test]
+    public void WikiPagePrefixWithNamespaceAndSlashes_ShouldHaveNoErrors() {
+        var request = ValidRequest();
+        request.WikiPagePrefix = "Antrag:Bundesparteitag 2027.1/Antragsportal";
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
 }
 
 public class AssemblyMotionPortalEnableRequestValidatorTests {

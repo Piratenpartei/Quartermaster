@@ -22,7 +22,7 @@ public class AssemblyMotionPortalRepository {
     public AssemblyMotionPortal? GetByEvent(Guid eventId)
         => _context.AssemblyMotionPortals.Where(p => p.EventId == eventId).FirstOrDefault();
 
-    public AssemblyMotionPortal Create(Guid eventId, DateTime opensAt, DateTime closesAt, DateTime nowUtc) {
+    public AssemblyMotionPortal Create(Guid eventId, DateTime opensAt, DateTime closesAt, DateTime nowUtc, Func<string, string>? templateFor = null) {
         var portal = new AssemblyMotionPortal {
             EventId = eventId,
             OpensAt = opensAt,
@@ -31,7 +31,7 @@ public class AssemblyMotionPortalRepository {
         };
         _context.Insert(portal);
 
-        foreach (var type in AssemblyMotionDefaultTypes.Create(portal.Id))
+        foreach (var type in AssemblyMotionDefaultTypes.Create(portal.Id, templateFor ?? (_ => "")))
             _context.Insert(type);
 
         _auditLog.LogCreated("AssemblyMotionPortal", portal.Id);

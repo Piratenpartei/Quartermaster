@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Markdig;
 using Quartermaster.Rendering;
 
@@ -61,5 +63,36 @@ public class MotionMarkdownTests {
         var actual = MarkdownService.ToHtml(markdown);
 
         await Assert.That(actual).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("> - ", 60)]
+    [Arguments(">", 500)]
+    [Arguments("[a", 500)]
+    public async Task Excessive_nesting_is_reported_not_thrown(string unit, int repeat) {
+        var markdown = string.Concat(Enumerable.Repeat(unit, repeat)) + "x";
+        var problems = MotionMarkdown.FindProblems(markdown);
+        await Assert.That(problems).IsEquivalentTo([MotionMarkdownProblem.TooDeeplyNested]);
+        await Assert.That(MarkdownService.ToHtml(markdown, SanitizationProfile.Standard, MarkdownFlavor.Motion)).IsEqualTo("");
+    }
+
+    [Test]
+    public async Task Markdig_signals_nesting_with_argument_exception() {
+        var markdown = string.Concat(Enumerable.Repeat("[a", 500));
+        await Assert.That(() => Markdig.Markdown.ToHtml(markdown, MotionMarkdown.Pipeline)).Throws<ArgumentException>();
+    }
+
+    [Test]
+    public async Task Over_the_length_limit_is_reported_and_nothing_else() {
+        var markdown = new string('a', MotionMarkdown.MaxLength + 1);
+        await Assert.That(MotionMarkdown.FindProblems(markdown)).IsEquivalentTo([MotionMarkdownProblem.TooLong]);
+        await Assert.That(MarkdownService.ToHtml(markdown, SanitizationProfile.Standard, MarkdownFlavor.Motion)).IsEqualTo("");
+        await Assert.That(MotionMarkdown.FindProblems(new string('a', MotionMarkdown.MaxLength))).IsEmpty();
+    }
+
+    [Test]
+    public async Task Full_flavour_is_not_limited_by_the_motion_rules() {
+        var html = MarkdownService.ToHtml(new string('a', MotionMarkdown.MaxLength + 1), SanitizationProfile.Standard, MarkdownFlavor.Full);
+        await Assert.That(html).IsNotEmpty();
     }
 }

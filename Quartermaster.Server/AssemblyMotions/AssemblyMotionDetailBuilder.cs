@@ -7,6 +7,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
+using Quartermaster.Server.AssemblyMotions.Wiki;
 
 namespace Quartermaster.Server.AssemblyMotions;
 
@@ -64,7 +65,7 @@ public class AssemblyMotionDetailBuilder {
             dto.Submitters = BuildSubmitters(submitters, viewer.IsCommission);
 
         if (viewer.IsCommission)
-            dto.Commission = BuildCommissionInfo(motion);
+            dto.Commission = BuildCommissionInfo(motion, portal, type);
 
         if (viewerIsSubmitter || viewer.IsCommission)
             ApplyInquiries(dto, motion);
@@ -117,9 +118,11 @@ public class AssemblyMotionDetailBuilder {
         dto.HasUpvoted = _upvotes.Exists(motion.Id, viewerMember.Id);
     }
 
-    private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion) => new() {
+    private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) => new() {
         CheckedAt = motion.CheckedAt.ToDtoUtc(),
         CheckedByName = CheckedByName(motion.CheckedByUserId),
+        WikiMirrorEnabled = portal.WikiMirrorEnabled,
+        WikiPageTitle = WikiPageTitle(motion, portal, type),
         WikiSyncState = motion.WikiSyncState,
         WikiSyncedRevision = motion.WikiSyncedRevision,
         WikiLastSyncedAt = motion.WikiLastSyncedAt.ToDtoUtc(),
@@ -129,6 +132,15 @@ public class AssemblyMotionDetailBuilder {
         OpenSlidesPushedAt = motion.OpenSlidesPushedAt.ToDtoUtc(),
         OpenSlidesLastError = motion.OpenSlidesLastError
     };
+
+    private static string? WikiPageTitle(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) {
+        if (motion.Number == null)
+            return null;
+        if (string.IsNullOrWhiteSpace(portal.WikiPagePrefix))
+            return null;
+
+        return AssemblyMotionWikiPage.Title(portal, type, motion);
+    }
 
     private string? CheckedByName(Guid? userId) {
         if (userId == null)

@@ -25,7 +25,8 @@ public class AssemblyMotionCommissionEndpointTests : IntegrationTestBase {
             EventId = ev.Id,
             OpensAt = DateTime.UtcNow.AddDays(-1),
             ClosesAt = DateTime.UtcNow.AddDays(30),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            WikiMirrorEnabled = true
         };
         Db.Insert(portal);
         var type = new AssemblyMotionType {

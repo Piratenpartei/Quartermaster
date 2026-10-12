@@ -5,11 +5,14 @@ using System.Linq;
 using LinqToDB;
 using LinqToDB.Data;
 using Quartermaster.Api.AssemblyMotions;
+using Quartermaster.Api.Events;
 using Quartermaster.Data.AuditLog;
 
 namespace Quartermaster.Data.AssemblyMotions;
 
 public class AssemblyMotionRepository {
+    public const int WikiLastErrorMaxLength = 4000;
+
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
 
@@ -168,12 +171,119 @@ public class AssemblyMotionRepository {
             .Set(m => m.DeletedAt, nowUtc)
             .Update();
 
+    /// <summary>Queues the motion for the wiki sync. Does nothing while the motion's portal has the wiki mirror disabled.</summary>
     public void MarkWikiPending(Guid motionId, DateTime nowUtc)
         => _context.AssemblyMotions
-            .Where(m => m.Id == motionId)
+            .Where(m => m.Id == motionId
+                && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.WikiMirrorEnabled))
             .Set(m => m.WikiSyncState, WikiSyncState.Pending)
             .Set(m => m.WikiSyncRequestedAt, nowUtc)
             .Set(m => m.WikiNextAttemptAt, (DateTime?)null)
             .Set(m => m.WikiFailureCount, 0)
             .Update();
+
+    /// <summary>Sets the pending motions of the portal back to not mirrored; synced and failed motions keep their state as history.</summary>
+    public void ResetWikiPendingToNotMirrored(Guid portalId)
+        => _context.AssemblyMotions
+            .Where(m => m.PortalId == portalId && m.WikiSyncState == WikiSyncState.Pending)
+            .Set(m => m.WikiSyncState, WikiSyncState.NotMirrored)
+            .Update();
+
+    /// <summary>Numbered motions of mirrored portals whose wiki page needs work now, oldest request first. A motion that was never mirrored (portal mirroring enabled later) counts as due.</summary>
+    public List<AssemblyMotion> ListWikiDue(DateTime nowUtc, int limit) {
+        return _context.AssemblyMotions
+            .InnerJoin(_context.AssemblyMotionPortals, (m, p) => m.PortalId == p.Id, (m, p) => new { Motion = m, Portal = p })
+            .Where(x => x.Portal.WikiMirrorEnabled
+                && x.Motion.Number != null
+                && x.Motion.DeletedAt == null
+                && (x.Motion.WikiSyncState == WikiSyncState.Pending
+                    || x.Motion.WikiSyncState == WikiSyncState.NotMirrored
+                    || ((x.Motion.WikiSyncState == WikiSyncState.Failed || x.Motion.WikiSyncState == WikiSyncState.ProtectionFailed)
+                        && x.Motion.WikiNextAttemptAt <= nowUtc)))
+            .OrderBy(x => x.Motion.WikiSyncRequestedAt)
+            .Select(x => x.Motion)
+            .Take(limit)
+            .ToList();
+    }
+
+    /// <summary>
+    /// A window of at most <paramref name="batchSize"/> synced, numbered motions of mirrored portals whose event is not archived, ordered by id. The window start rotates by day (days since 2000-01-01 times the batch size, modulo the total, wrapping at the end) so repeated daily calls cover every motion over time.
+    /// </summary>
+    public List<AssemblyMotion> ListWikiSynced(DateTime nowUtc, int batchSize) {
+        var query = _context.AssemblyMotions
+            .InnerJoin(_context.AssemblyMotionPortals, (m, p) => m.PortalId == p.Id, (m, p) => new { Motion = m, Portal = p })
+            .InnerJoin(_context.Events, (x, e) => x.Portal.EventId == e.Id, (x, e) => new { x.Motion, x.Portal, Event = e })
+            .Where(x => x.Portal.WikiMirrorEnabled
+                && x.Event.Status != EventStatus.Archived
+                && x.Motion.Number != null
+                && x.Motion.DeletedAt == null
+                && x.Motion.WikiSyncState == WikiSyncState.Synced)
+            .Select(x => x.Motion)
+            .OrderBy(m => m.Id);
+
+        var total = query.Count();
+        if (total <= batchSize)
+            return query.ToList();
+
+        var dayIndex = (long)(nowUtc.Date - new DateTime(2000, 1, 1)).TotalDays;
+        var offset = (int)(dayIndex * batchSize % total);
+        var window = query.Skip(offset).Take(batchSize).ToList();
+        if (window.Count < batchSize)
+            window.AddRange(query.Take(batchSize - window.Count).ToList());
+
+        return window;
+    }
+
+    /// <summary>
+    /// Records a finished sync with one conditional UPDATE that only matches while the request timestamp is still the one the sync started with. Returns false when a newer change arrived meanwhile: state, error and request stay untouched so the motion remains pending, and only the facts about the page that was written (revision, hash, time) are stored.
+    /// </summary>
+    public bool CompleteWikiSync(Guid motionId, DateTime? loadedRequestedAt, WikiSyncState state, int revision, string hash, string? lastError, DateTime? nextAttemptAt, DateTime nowUtc) {
+        var applied = _context.AssemblyMotions
+            .Where(m => m.Id == motionId && m.WikiSyncRequestedAt == loadedRequestedAt)
+            .Set(m => m.WikiSyncState, state)
+            .Set(m => m.WikiSyncedRevision, revision)
+            .Set(m => m.WikiSyncedHash, hash)
+            .Set(m => m.WikiLastSyncedAt, nowUtc)
+            .Set(m => m.WikiLastError, TruncateError(lastError))
+            .Set(m => m.WikiFailureCount, 0)
+            .Set(m => m.WikiNextAttemptAt, nextAttemptAt)
+            .Update() > 0;
+
+        if (applied)
+            return true;
+
+        _context.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.WikiSyncedRevision, revision)
+            .Set(m => m.WikiSyncedHash, hash)
+            .Set(m => m.WikiLastSyncedAt, nowUtc)
+            .Update();
+        return false;
+    }
+
+    /// <summary>
+    /// Records a failed sync with one conditional UPDATE. When a newer change arrived meanwhile the state stays pending and the backoff is not applied (the newer request reset it); only the error text is stored. Returns whether the failure state was applied.
+    /// </summary>
+    public bool FailWikiSync(Guid motionId, DateTime? loadedRequestedAt, string error, int failureCount, DateTime nextAttemptAt) {
+        var truncated = TruncateError(error);
+        var applied = _context.AssemblyMotions
+            .Where(m => m.Id == motionId && m.WikiSyncRequestedAt == loadedRequestedAt)
+            .Set(m => m.WikiSyncState, WikiSyncState.Failed)
+            .Set(m => m.WikiLastError, truncated)
+            .Set(m => m.WikiFailureCount, failureCount)
+            .Set(m => m.WikiNextAttemptAt, nextAttemptAt)
+            .Update() > 0;
+
+        if (applied)
+            return true;
+
+        _context.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.WikiLastError, truncated)
+            .Update();
+        return false;
+    }
+
+    private static string? TruncateError(string? error)
+        => error != null && error.Length > WikiLastErrorMaxLength ? error[..WikiLastErrorMaxLength] : error;
 }

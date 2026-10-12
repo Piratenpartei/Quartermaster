@@ -48,6 +48,10 @@ public class AssemblyMotionInquiryServiceTests : RepositoryTestBase {
     private (AssemblyMotion Motion, Member Author) SubmittedMotion(int minSubmitters = 1) {
         var now = DateTime.UtcNow;
         var portal = _portalRepo.GetByEvent(_event.Id) ?? _portalRepo.Create(_event.Id, now.AddHours(-1), now.AddDays(7), now);
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Update();
         var type = _portalRepo.GetTypes(portal.Id).First(t => t.MinSubmitters == minSubmitters);
         var author = _builder.SeedMember(chapterId: _chapter.Id);
         var motion = _service.CreateDraft(portal, author, _userId, NewDraft(type.Id), now).Motion!;

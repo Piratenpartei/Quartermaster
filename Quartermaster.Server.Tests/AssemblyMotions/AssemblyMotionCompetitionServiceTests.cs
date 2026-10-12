@@ -42,6 +42,10 @@ public class AssemblyMotionCompetitionServiceTests : RepositoryTestBase {
         _chapter = _builder.SeedChapter();
         var ev = _builder.SeedEvent(_chapter.Id);
         _portal = _portalRepo.Create(ev.Id, _now.AddHours(-1), _now.AddDays(7), _now);
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == _portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Update();
     }
 
     private (AssemblyMotion Motion, Member Author) NewMotion(bool release, int minSubmitters = 1) {

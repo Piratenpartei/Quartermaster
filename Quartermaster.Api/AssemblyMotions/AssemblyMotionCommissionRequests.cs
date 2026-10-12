@@ -8,6 +8,7 @@ public class AssemblyMotionDashboardRequest : IPaginatedRequest {
     public AssemblyMotionStatus? Status { get; set; }
     public bool? HasOpenInquiry { get; set; }
     public WikiSyncState? WikiSyncState { get; set; }
+    public bool? WikiFailed { get; set; }
     public string? Search { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 25;

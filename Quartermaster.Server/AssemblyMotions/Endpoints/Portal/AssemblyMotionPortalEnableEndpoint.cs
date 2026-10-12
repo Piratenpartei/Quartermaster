@@ -6,6 +6,7 @@ using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Events;
+using Quartermaster.Server.AssemblyMotions.Wiki;
 
 namespace Quartermaster.Server.AssemblyMotions.Endpoints.Portal;
 
@@ -44,7 +45,7 @@ public class AssemblyMotionPortalEnableEndpoint : Endpoint<AssemblyMotionPortalE
             return;
         }
 
-        var portal = _portals.Create(ev.Id, req.OpensAt.UtcDateTime, req.ClosesAt.UtcDateTime, DateTime.UtcNow);
+        var portal = _portals.Create(ev.Id, req.OpensAt.UtcDateTime, req.ClosesAt.UtcDateTime, DateTime.UtcNow, AssemblyMotionWikiTemplates.DefaultFor);
         await SendAsync(_builder.Build(portal, ev), cancellation: ct);
     }
 }

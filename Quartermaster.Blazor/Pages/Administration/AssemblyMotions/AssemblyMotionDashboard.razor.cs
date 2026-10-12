@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Components.AssemblyMotions;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration.AssemblyMotions;
@@ -46,10 +48,14 @@ public partial class AssemblyMotionDashboard {
     private AssemblyMotionPortalDTO? Portal;
     private List<AssemblyMotionDashboardItemDTO> Items = [];
     private bool Loading = true;
+    private ConfirmDialog _resyncAllDialog = default!;
     private bool ListLoading;
+    private bool Busy;
     private int CurrentPage = 1;
     private int TotalPages;
     private int FailedWikiSyncCount;
+    private bool WikiMirrorEnabled;
+    private bool FilterWikiFailed;
     private string FilterTypeId = "";
     private string FilterStatus = "";
     private string FilterInquiry = "";
@@ -84,6 +90,8 @@ public partial class AssemblyMotionDashboard {
                 query += $"&HasOpenInquiry={FilterInquiry}";
             if (FilterWiki != "")
                 query += $"&WikiSyncState={FilterWiki}";
+            if (FilterWikiFailed)
+                query += "&WikiFailed=true";
             if (!string.IsNullOrWhiteSpace(Search))
                 query += $"&Search={Uri.EscapeDataString(Search.Trim())}";
 
@@ -92,6 +100,7 @@ public partial class AssemblyMotionDashboard {
                 var result = await response.Content.ReadFromJsonAsync<AssemblyMotionDashboardResponse>();
                 Items = result?.Items ?? [];
                 FailedWikiSyncCount = result?.FailedWikiSyncCount ?? 0;
+                WikiMirrorEnabled = result?.WikiMirrorEnabled ?? false;
                 TotalPages = result == null ? 0 : (int)Math.Ceiling(result.TotalCount / (double)PageSize);
             } else {
                 await ToastService.ErrorAsync(response);
@@ -119,6 +128,7 @@ public partial class AssemblyMotionDashboard {
 
     private async Task OnWikiFilterChanged(string value) {
         FilterWiki = value;
+        FilterWikiFailed = false;
         await ReloadFromStartAsync();
     }
 
@@ -138,6 +148,35 @@ public partial class AssemblyMotionDashboard {
     private async Task OnPageChanged(int page) {
         CurrentPage = page;
         await LoadAsync();
+    }
+
+    private async Task ShowFailedWikiSyncsAsync() {
+        FilterWiki = "";
+        FilterWikiFailed = true;
+        await ReloadFromStartAsync();
+    }
+
+    private async Task ResyncAllAsync() {
+        if (Portal == null)
+            return;
+        if (!await _resyncAllDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllMessage]))
+            return;
+
+        Busy = true;
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Portal.Id}/wiki/resync", new { });
+            if (response.IsSuccessStatusCode) {
+                var result = await response.Content.ReadFromJsonAsync<AssemblyMotionWikiResyncAllDTO>();
+                ToastService.Toast(I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.ToastWikiResyncAll, ("count", (result?.Queued ?? 0).ToString()))], "success");
+                await LoadAsync();
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
     }
 
     private async Task ReloadFromStartAsync() {

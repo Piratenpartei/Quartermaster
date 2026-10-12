@@ -351,7 +351,7 @@ Motion text and reason are written in a restricted Markdown: CommonMark plus pip
 
 For the wiki the Markdown is rendered to sanitized HTML and converted to MediaWiki text: the HTML tags MediaWiki accepts (paragraphs, line breaks, bold, italic, strikethrough, lists, headings, block quotes, code, horizontal rules, tables) are kept without attributes, links become external wiki links, every other tag is dropped and only its text kept.
 
-Because the output is placed inside a template parameter, all member text is neutralized: `|` becomes `{{!}}`, and braces, square brackets, angle brackets, `~`, `'` and `_` become HTML entities, so member-written text can never inject template calls, parameters, links, tags, signatures or magic words. Cover this with tests, including hostile input.
+Because the output is placed inside a template parameter, all member text is neutralized: `|` becomes the numeric entity `&#124;` (not `{{!}}`, which turns back into a live pipe once the template is expanded), `!`, `"`, `=`, `*`, `#`, `;` and `:` become entities as well, and braces, square brackets, angle brackets, `~`, `'` and `_` become HTML entities, so member-written text can never inject template calls, parameters, links, tags, signatures or magic words. Cover this with tests, including hostile input. The input is normalized to Unicode NFC first, because MediaWiki normalizes submitted text and a combining character must not merge with emitted markup. Motion text and reason are limited to 100,000 characters each, and text that the Markdown parser refuses as too deeply nested is rejected when saving.
 
 ### What is mirrored and when
 

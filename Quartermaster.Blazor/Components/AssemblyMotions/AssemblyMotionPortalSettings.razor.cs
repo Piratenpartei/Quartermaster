@@ -32,6 +32,7 @@ public partial class AssemblyMotionPortalSettings {
     public Guid ChapterId { get; set; }
 
     private AssemblyMotionPortalSettingsDTO? Settings;
+    private AssemblyMotionConnectionCheckDTO? ConnectionCheck;
     private TypeEdit? Editing;
     private ConfirmDialog _deleteTypeDialog = default!;
     private bool Loading = true;
@@ -133,6 +134,7 @@ public partial class AssemblyMotionPortalSettings {
         }
 
         Busy = true;
+        ConnectionCheck = null;
         try {
             var response = await Http.PutAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}", new AssemblyMotionPortalUpdateRequest {
                 Id = Settings.Id,
@@ -157,6 +159,25 @@ public partial class AssemblyMotionPortalSettings {
             ToastService.Error(ex);
         }
         Busy = false;
+    }
+
+    private async Task CheckWikiConnectionAsync() {
+        if (Settings == null)
+            return;
+
+        Busy = true;
+        ConnectionCheck = null;
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}/wiki/validate", new { });
+            if (response.IsSuccessStatusCode)
+                ConnectionCheck = await response.Content.ReadFromJsonAsync<AssemblyMotionConnectionCheckDTO>();
+            else
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
     }
 
     private void BeginAddType() {

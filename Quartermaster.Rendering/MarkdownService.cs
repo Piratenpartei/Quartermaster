@@ -11,8 +11,14 @@ public static class MarkdownService {
         if (string.IsNullOrEmpty(markdown))
             return "";
 
-        var pipeline = flavor == MarkdownFlavor.Motion ? MotionMarkdown.Pipeline : FullPipeline;
-        var raw = Markdown.ToHtml(markdown, pipeline);
+        string raw;
+        if (flavor == MarkdownFlavor.Motion) {
+            if (!MotionMarkdown.TryRender(markdown, out raw))
+                return "";
+        } else {
+            raw = Markdown.ToHtml(markdown, FullPipeline);
+        }
+
         return HtmlSanitizationService.Sanitize(raw, profile);
     }
 

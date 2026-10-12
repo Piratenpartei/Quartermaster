@@ -26,6 +26,21 @@ public class AssemblyMotionRepositoryTests : RepositoryTestBase {
         return _portalRepo.Create(evt.Id, DateTime.UtcNow, DateTime.UtcNow.AddDays(7), DateTime.UtcNow);
     }
 
+    [Test]
+    public async Task Create_seeds_wiki_template_per_type_code() {
+        var chapter = _builder.SeedChapter();
+        var evt = _builder.SeedEvent(chapter.Id);
+
+        var portal = _portalRepo.Create(evt.Id, DateTime.UtcNow, DateTime.UtcNow.AddDays(7), DateTime.UtcNow, code => "T-" + code);
+
+        var templates = _context.AssemblyMotionTypes
+            .Where(t => t.PortalId == portal.Id)
+            .ToList()
+            .ToDictionary(t => t.Code, t => t.WikiTemplate);
+        await Assert.That(templates.Count).IsEqualTo(6);
+        await Assert.That(templates.All(pair => pair.Value == "T-" + pair.Key)).IsTrue();
+    }
+
     private AssemblyMotion InsertMotion(Guid portalId, Guid typeId, Guid memberId, int? number,
         AssemblyMotionStatus status = AssemblyMotionStatus.Submitted, DateTime? deletedAt = null) {
         var motion = new AssemblyMotion {

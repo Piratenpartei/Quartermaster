@@ -19,5 +19,8 @@
                 }
             </div>
         </div>
+        @foreach (var key in problemMessageKeys) {
+            <div class="text-danger small mt-1">@I18n[key]</div>
+        }
     </div>
 </div>

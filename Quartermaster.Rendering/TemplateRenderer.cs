@@ -19,12 +19,22 @@ public static class TemplateRenderer {
         return (text, error);
     }
 
+    public static async Task<(string? Text, string? Error)> RenderTextAsync(
+        string template, Dictionary<string, object> model, TemplateOptions options) {
+        var (text, error, _) = await RenderTextWithContextAsync(template, model, options);
+        return (text, error);
+    }
+
+    public static Task<(string? Text, string? Error, TemplateContext? Context)> RenderTextWithContextAsync(
+        string template, Dictionary<string, object> model)
+        => RenderTextWithContextAsync(template, model, TemplateOptions.Default);
+
     public static async Task<(string? Text, string? Error, TemplateContext? Context)> RenderTextWithContextAsync(
-        string template, Dictionary<string, object> model) {
+        string template, Dictionary<string, object> model, TemplateOptions options) {
         if (!Parser.TryParse(template, out var parsed, out var error)) {
             return (null, $"Template parse error: {error}", null);
         }
-        var context = new TemplateContext();
+        var context = new TemplateContext(options);
         foreach (var (key, value) in model) {
             context.SetValue(key, value);
         }

@@ -38,8 +38,14 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         _event = _builder.SeedEvent(_chapter.Id);
     }
 
-    private AssemblyMotionPortal SeedPortal(DateTime opensAt, DateTime closesAt)
-        => _portalRepo.Create(_event.Id, opensAt, closesAt, DateTime.UtcNow);
+    private AssemblyMotionPortal SeedPortal(DateTime opensAt, DateTime closesAt) {
+        var portal = _portalRepo.Create(_event.Id, opensAt, closesAt, DateTime.UtcNow);
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Update();
+        return portal;
+    }
 
     private Member SeedEligibleMember()
         => _builder.SeedMember(chapterId: _chapter.Id);
@@ -406,6 +412,28 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         await Assert.That(revisions.Last().Title).IsEqualTo("Neu");
         await Assert.That(_motionRepo.GetSubmitters(motion.Id).Single(x => x.IsAuthor).JoinedRevision).IsEqualTo(2);
         await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "Updated")).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Nfd_input_is_stored_as_nfc_and_an_unchanged_nfd_resave_creates_no_revision() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var nfd = NewDraft(type.Id) with { Title = "Antra\u0308ge", TextMarkdown = "Pru\u0308fung", Keywords = "Wa\u0308hler" };
+
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), nfd, now).Motion!;
+
+        var stored = _motionRepo.Get(motion.Id)!;
+        await Assert.That(stored.Title).IsEqualTo("Antr\u00E4ge");
+        await Assert.That(stored.TextMarkdown).IsEqualTo("Pr\u00FCfung");
+        await Assert.That(stored.Keywords).IsEqualTo("W\u00E4hler");
+
+        var outcome = _service.UpdateByAuthor(stored, author, Guid.NewGuid(), nfd, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.Get(motion.Id)!.Revision).IsEqualTo(1);
+        await Assert.That(_motionRepo.GetRevisions(motion.Id).Count).IsEqualTo(1);
     }
 
     private AssemblyMotion SeedReleased(AssemblyMotionPortal portal, AssemblyMotionType type, Member author, DateTime now) {

@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
@@ -161,6 +162,49 @@ public class AssemblyMotionSaveRequestValidatorTests {
 
         result.ShouldHaveValidationErrorFor(x => x.ReasonMarkdown)
             .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownImageNotAllowed);
+    }
+
+    [Test]
+    public void DeeplyNestedText_ShouldHaveErrorWithoutThrowing() {
+        var request = ValidRequest();
+        request.TextMarkdown = string.Concat(Enumerable.Repeat("> - ", 60)) + "x";
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.TextMarkdown)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownTooDeeplyNested);
+    }
+
+    [Test]
+    public void DeeplyNestedReason_ShouldHaveErrorWithoutThrowing() {
+        var request = ValidRequest();
+        request.ReasonMarkdown = string.Concat(Enumerable.Repeat("[a", 500));
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.ReasonMarkdown)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownTooDeeplyNested);
+    }
+
+    [Test]
+    public void TextOverLengthLimit_ShouldHaveError() {
+        var request = ValidRequest();
+        request.TextMarkdown = new string('a', 100_001);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.TextMarkdown)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownTooLong);
+    }
+
+    [Test]
+    public void TextAtLengthLimit_ShouldHaveNoErrors() {
+        var request = ValidRequest();
+        request.TextMarkdown = new string('a', 100_000);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Test]

@@ -188,6 +188,14 @@ public partial class AssemblyMotionCommissionDetail {
         await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/commission-withdraw", new { }), I18nKey.Ui.AssemblyMotion.ToastCommissionWithdrawn);
     }
 
+    private bool CanResyncWiki => Detail?.Commission != null
+        && Detail.Commission.WikiMirrorEnabled
+        && !string.IsNullOrEmpty(Detail.DisplayNumber);
+
+    private async Task ResyncWiki() {
+        await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/wiki/resync", new { }), I18nKey.Ui.AssemblyMotion.ToastWikiResync);
+    }
+
     private async Task<bool> RunAsync(Func<Task<HttpResponseMessage>> send, string toastKey) {
         Busy = true;
         var succeeded = false;

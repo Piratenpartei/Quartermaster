@@ -1,11 +1,12 @@
 using System;
+using Quartermaster.Rendering;
 
 namespace Quartermaster.Server.AssemblyMotions;
 
 public record AssemblyMotionDraft(Guid TypeId, string Title, string? Section, string TextMarkdown, string ReasonMarkdown,
     string? Summary, string? Keywords, string? PriorDiscussion) {
     public AssemblyMotionDraft Normalized() => this with {
-        Title = Title.Trim(),
+        Title = TextNormalization.ToNfc(Title).Trim(),
         Section = NormalizeOptional(Section),
         TextMarkdown = NormalizeMarkdown(TextMarkdown),
         ReasonMarkdown = NormalizeMarkdown(ReasonMarkdown),
@@ -15,10 +16,10 @@ public record AssemblyMotionDraft(Guid TypeId, string Title, string? Section, st
     };
 
     private static string? NormalizeOptional(string? value) {
-        var trimmed = value?.Trim();
+        var trimmed = TextNormalization.ToNfc(value).Trim();
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
     private static string NormalizeMarkdown(string value)
-        => value.Replace("\r\n", "\n").TrimEnd();
+        => TextNormalization.ToNfc(value).Replace("\r\n", "\n").TrimEnd();
 }

@@ -65,6 +65,7 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             .Where(m => req.Status == null || m.Status == req.Status)
             .Where(m => req.HasOpenInquiry == null || (openInquiries.GetValueOrDefault(m.Id) > 0) == req.HasOpenInquiry)
             .Where(m => req.WikiSyncState == null || m.WikiSyncState == req.WikiSyncState)
+            .Where(m => req.WikiFailed != true || IsWikiFailure(m))
             .Where(m => AssemblyMotionSearch.Matches(m, types[m.TypeId], search))
             .OrderBy(m => types[m.TypeId].SortOrder)
             .ThenBy(m => m.Number == null)
@@ -85,9 +86,13 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             TotalCount = filtered.Count,
             Page = req.Page,
             PageSize = req.PageSize,
-            FailedWikiSyncCount = all.Count(m => m.WikiSyncState == WikiSyncState.Failed || m.WikiSyncState == WikiSyncState.ProtectionFailed)
+            FailedWikiSyncCount = all.Count(IsWikiFailure),
+            WikiMirrorEnabled = portal.WikiMirrorEnabled
         }, cancellation: ct);
     }
+
+    private static bool IsWikiFailure(AssemblyMotion motion)
+        => motion.WikiSyncState == WikiSyncState.Failed || motion.WikiSyncState == WikiSyncState.ProtectionFailed;
 
     private static AssemblyMotionDashboardItemDTO ToItem(AssemblyMotion motion, AssemblyMotionPortal portal,
         AssemblyMotionType type, int submitterCount, int openInquiryCount, DateTime nowUtc) {

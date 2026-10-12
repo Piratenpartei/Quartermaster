@@ -154,6 +154,88 @@ Optional. Lets delegates at Bundesparteitage look up member accounts in Keycloak
 The client needs the `manage-users` client role of `<realm>-realm` (or of `realm-management` when the client lives in the member realm), same client as MemberDataImport.
 In the target realm, set Realm settings > General > Unmanaged attributes to Enabled, same as MemberDataImport's deployment notes; otherwise searches return users without `member_number` and every lookup reports "no account".
 
+### Wiki mirror for the motion portal
+
+Optional. When "Enable wiki mirror" is switched on in the portal settings ("Motion portal" on the event), every motion that was submitted at least once is written to the Piratenwiki as a page and kept up to date. The pages are protected against manual edits. The wiki receives no names and no member numbers: the `autor` parameter is a fixed text pointing to the motion in the portal.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `wiki.api_url` | `https://wiki.piratenpartei.de/api.php` | URL of the MediaWiki Action API. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `wiki.bot_username` | _empty_ | Wiki login of the bot, for a bot password in the form `User@BotName` |
+| `wiki.bot_password` | _empty_ | Bot password (stored masked) |
+| `wiki.protection_level` | `Antrag` | Protection level applied to created pages (edit and move) |
+
+Prerequisites outside Quartermaster:
+
+- A dedicated wiki account for the bot and a bot password with the rights to edit, create and protect pages. The account must be in the wiki group that may edit pages protected at the configured level.
+- The protection level named in `wiki.protection_level` must exist on the wiki (`$wgRestrictionLevels`). Otherwise creating pages works but protecting them fails and the motion shows "Protection failed".
+- The three BPT templates `Satzungsänderungsantrag BPT`, `Programmantrag BPT` and `Sonstiger Antrag BPT` must exist on the wiki.
+- `system.public_base_url` must be set, because every page links back to the motion in the portal.
+
+Every request sends the User-Agent `Quartermaster/4 (+https://piratenpartei.de)`. The wiki sits behind a bot filter that blocks browser-like clients; if the filter rejects this User-Agent the connection check reports that the wiki blocked the request.
+
+"Check connection" in the portal settings logs in once with the stored credentials and shows the result. It never reads, edits or protects a page. Switching "Enable wiki mirror" on runs the same login first and refuses with the wiki's reason when it fails or when the options are not set; on success all numbered motions of the portal are queued.
+
+Which motions are mirrored and when:
+
+- Only motions that have a number (submitted at least once) get a page. Drafts and motions that are still collecting co-submitters are never written.
+- The page title is `<Wiki page prefix>/<type code><number>`, for example `Antrag:Bundesparteitag 2027.1/Antragsportal/SÄA001`.
+- A sync is queued on first submission and on every later change that is visible on the page: content change, resubmission, commission edit, check decision, inquiry opened or closed, competition added or removed, withdrawal, lapse and result change. A motion in revision gets a notice above the template call.
+- A background job writes queued motions about once a minute, at most 20 per run. A user action never waits for the wiki. Failures are retried with a growing delay of up to six hours. A nightly job compares a rotating window of synced pages with the stored state and queues pages that were changed by hand or deleted.
+- "Synchronize again" on a motion and "Synchronize all again" on the dashboard only queue motions and reset their retry delay, so the next job run tries them even after a permanent failure. They are refused while the mirror is disabled.
+
+A wiki page that already exists under the target title and was not created by the portal is never overwritten. The motion then shows "Failed" and the last error explains it. Resolve it by changing the "Wiki page prefix" or by moving or deleting the foreign page on the wiki, then use "Synchronize again".
+
+Switching "Enable wiki mirror" off writes nothing to the wiki. Existing pages stay as they are and the motions keep their last state; they are no longer updated. Switching it on again queues all numbered motions.
+
+The page body is rendered from the "Wiki template (Fluid)" of the motion type. When the field is empty the built-in default for the type code is used. Available variables; all text values are already escaped for the wiki, so print them without further filters:
+
+- `assembly.Label`: the "Assembly label in the wiki" of the portal.
+- `type.Code`, `type.Name`: code and name of the motion type.
+- `motion.Number`: display number such as `SÄA001`.
+- `motion.Title`, `motion.Section`, `motion.Summary`, `motion.Keywords`, `motion.PriorDiscussion`: single-line texts.
+- `motion.Text`, `motion.Reason`: the motion text and reason converted to wikitext.
+- `motion.CompetingNumbers`: display numbers of competing motions, comma separated.
+- `motion.CheckIcon`: value for `prüficon` (1 unchecked, 2 admitted, 5 formally insufficient, 6 withdrawn or lapsed, 7 open inquiry).
+- `motion.VoteResult`: value for `abstimmung` (1 not yet voted, 2 accepted, 3 rejected, 4 withdrawn or lapsed, 5 accepted modified, 8 formally insufficient).
+- `motion.PortalUrl`: public URL of the motion in the portal.
+- `motion.InRevision`: true while the motion is in revision.
+- `bot.UserName`: the configured bot user name.
+
+First run checklist:
+
+1. Set the three options in `/Administration/Settings` and press "Check connection".
+2. Enable the mirror with a test prefix in the bot's own user namespace, for example `Benutzer:<Bot>/Antragsportal-Test`, and not with the real `Antrag:` pages. Let the job write a few pages and check them on the wiki.
+3. Only after the test pages look right, change "Wiki page prefix" to the real prefix and save. Saving a changed prefix on an enabled mirror queues all numbered motions, so the pages appear under the new prefix within a minute or two; "Synchronize all again" on the dashboard forces it. Pages under the old prefix are not touched, stay on the wiki and have to be deleted there by hand.
+
+Inputs to submit on the first real run and what to look for. Use the test prefix, a type with the real BPT template, and enter the text in the motion's title or text field:
+
+1. Title and first text line `x style="color:red" | hello || more !! x`: shown literally, no red cell, no extra table cells.
+2. Titles, one per run: `* a`, `# a`, `; a : b`, `: a`, `= a =`, `- a`, `----`, `{| x`: shown literally, no list, definition term, heading, rule or table anywhere in the rendered template.
+3. Text with five blocks `a | b`, `` `a | b` ``, a table row `| a \| b |` under `| h |` and `|---|`, `## a | b`, `[a | b](https://example.org/)`: a plain `|` is displayed in all five.
+4. A fenced code block with the lines `a|b <x> &amp; {{y}} [[z]] ''q''`, ` leading space`, `* star`, `{| t`, `----` and `ISBN 1234567890`: one grey box with every line literal and no list, table or rule.
+5. Text `[x](https://example.org/?a=1&b=2)`: the link target is exactly `https://example.org/?a=1&b=2`.
+6. Text `[X](HTTPS://EXAMPLE.ORG/)`, `[Mail](mailto:a@example.org)` and `[](https://example.org)`: a link, a mail link and a numbered link `[1]`.
+7. Text `see https://example.org and ISBN 1234567890 and RFC 1234 and PMID 1234`: no automatic link at all.
+8. Text `# A` and `## B`: check whether the headings appear in the page's table of contents and how a first-level heading looks inside the template.
+9. Text with a nested list, a quote with two paragraphs, a table and a hard line break: no stray empty paragraph, no indented preformatted box, table readable without `class="wikitable"`, no literal `thead` or `tbody`.
+10. After the first save, open the page source: it must be identical to what the portal rendered, and a title or text containing `Antra`, `a`, U+0308, `ge` (decomposed) must come back as `Anträge` (U+00E4).
+11. Text `&#x338;foo`, a code block starting with U+0338, a title starting with U+0338 and a title of U+037E followed by ` a`: everything renders as plain text and the template's title field is filled.
+12. Text `[a&#xFFFD;b](https://example.org/)`: note whether it becomes a link or literal brackets.
+13. Text `[x](https://example.org/?a=1)` as the whole text: fully displayed, which confirms that the template receives values as named parameters.
+14. A text of 99000 `|` characters: the save succeeds and the page renders.
+
+What the client assumes about the wiki, to confirm while doing the above:
+
+- Login with `action=login` and a bot password (`User@BotName`) returns `Success`, a later `meta=tokens` query returns a CSRF token, and logging in again on an already logged-in session is accepted.
+- The session cookie is kept across requests and the bot filter accepts the User-Agent on POST as well as GET.
+- A missing page is reported as missing and an existing page returns its text from the main slot.
+- An edit returns the result `Success`, optionally with `nochange`; the abuse filter, spam blacklist and captcha are reported as such.
+- A protect call returns a `protect` object. A missing protection level or missing right shows up as an error code in the last error of the motion.
+- Only `badtoken`, `assertuserfailed` and `notloggedin` are treated as an expired session and retried after a new login; errors such as `readonly`, `ratelimited`, `protectedpage`, `permissiondenied` and `maxlag` are shown as the last error and retried with the growing delay.
+- Request bodies of up to several hundred KB are accepted (`post_max_size` and the 2 MB article size limit).
+- The abuse filter does not block the bot account on its first page creations.
+
 ### SSO support contact
 
 | Identifier | Purpose |

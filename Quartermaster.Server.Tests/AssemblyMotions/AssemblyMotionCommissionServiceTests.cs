@@ -46,6 +46,10 @@ public class AssemblyMotionCommissionServiceTests : RepositoryTestBase {
     private (AssemblyMotionPortal Portal, AssemblyMotionType Type, Member Author) SeedPortal(int minSubmitters) {
         var now = DateTime.UtcNow;
         var portal = _portalRepo.Create(_event.Id, now.AddHours(-1), now.AddDays(7), now);
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Update();
         var type = _portalRepo.GetTypes(portal.Id).First(t => t.MinSubmitters == minSubmitters);
         var author = _builder.SeedMember(chapterId: _chapter.Id);
         return (portal, type, author);

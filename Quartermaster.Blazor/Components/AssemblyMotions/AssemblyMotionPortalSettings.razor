@@ -86,6 +86,16 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || !CanEdit)" @onclick="CheckWikiConnectionAsync">
+                        <i class="bi bi-plug"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiCheckConnection]
+                    </button>
+                    <span class="form-text ms-2">@I18n[I18nKey.Ui.AssemblyMotion.WikiCheckConnectionHint]</span>
+                    @if (ConnectionCheck != null) {
+                        <div class="alert @(ConnectionCheck.Ok ? "alert-success" : "alert-danger") mt-2 mb-0" role="alert">@ConnectionCheck.Message</div>
+                    }
+                </div>
+
                 <button class="btn btn-primary mb-4" disabled="@(Busy || !CanEdit)" @onclick="SavePortalAsync">
                     <i class="bi bi-save"></i> @I18n[I18nKey.Ui.Common.Save]
                 </button>

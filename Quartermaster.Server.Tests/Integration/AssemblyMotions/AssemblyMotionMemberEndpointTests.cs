@@ -260,6 +260,21 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    [Arguments(">", 500)]
+    [Arguments("[a", 500)]
+    public async Task Create_with_too_deeply_nested_text_returns_400(string unit, int repeat) {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        using var client = await AuthenticatedClientWithCsrfAsync(author.Token);
+
+        var request = SaveRequest(type);
+        request.TextMarkdown = string.Concat(Enumerable.Repeat(unit, repeat)) + "x";
+        var response = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", request);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
     public async Task Context_reports_eligibility_and_commission() {
         var (chapter, portal, _) = SeedPortal();
         var member = SeedParticipant(chapter, "Anna", "Autor");

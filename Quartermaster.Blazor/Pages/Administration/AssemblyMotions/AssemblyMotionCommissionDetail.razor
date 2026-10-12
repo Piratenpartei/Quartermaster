@@ -162,11 +162,20 @@
                         <dd class="col-sm-6">@(Detail.Commission.WikiSyncedRevision == null ? "-" : Detail.Commission.WikiSyncedRevision.Value.ToString())</dd>
                         <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiLastSyncedAt]</dt>
                         <dd class="col-sm-6">@(Detail.Commission.WikiLastSyncedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.WikiLastSyncedAt.Value))</dd>
+                        @if (!string.IsNullOrEmpty(Detail.Commission.WikiPageTitle)) {
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiPageTitle]</dt>
+                            <dd class="col-sm-6 text-break">@Detail.Commission.WikiPageTitle</dd>
+                        }
                         @if (!string.IsNullOrEmpty(Detail.Commission.WikiLastError)) {
                             <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
                             <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.WikiLastError</dd>
                         }
                     </dl>
+                    @if (CanResyncWiki) {
+                        <button class="btn btn-sm btn-outline-primary mt-3" disabled="@Busy" @onclick="ResyncWiki">
+                            <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiResync]
+                        </button>
+                    }
                 </div>
             </div>
         </div>

@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.I18n;
 using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
 
@@ -26,6 +29,7 @@ public partial class MarkdownEditorWithPreview {
     public MarkdownFlavor Flavor { get; set; } = MarkdownFlavor.Full;
 
     private string RenderedHtml = "";
+    private List<string> problemMessageKeys = [];
     private CancellationTokenSource? _debounce;
 
     private async Task OnInput(ChangeEventArgs e) {
@@ -39,13 +43,32 @@ public partial class MarkdownEditorWithPreview {
 
         try {
             await Task.Delay(300, token);
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
+            Render();
             StateHasChanged();
         } catch (TaskCanceledException) { }
     }
 
     protected override void OnParametersSet() {
-        if (!string.IsNullOrWhiteSpace(Value))
-            RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
+        if (string.IsNullOrWhiteSpace(Value)) {
+            problemMessageKeys = [];
+        } else {
+            Render();
+        }
     }
+
+    private void Render() {
+        RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
+        problemMessageKeys = Flavor == MarkdownFlavor.Motion
+            ? MotionMarkdown.FindProblems(Value)
+                .Select(ToMessageKey)
+                .ToList()
+            : [];
+    }
+
+    private static string ToMessageKey(MotionMarkdownProblem problem) => problem switch {
+        MotionMarkdownProblem.RawHtml => I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed,
+        MotionMarkdownProblem.Image => I18nKey.Error.AssemblyMotion.MarkdownImageNotAllowed,
+        MotionMarkdownProblem.TooDeeplyNested => I18nKey.Error.AssemblyMotion.MarkdownTooDeeplyNested,
+        _ => I18nKey.Error.AssemblyMotion.MarkdownTooLong
+    };
 }

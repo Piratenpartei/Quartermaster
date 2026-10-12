@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
+using Quartermaster.Server.AssemblyMotions.Wiki;
 
 namespace Quartermaster.Server.AssemblyMotions.Endpoints.Portal;
 
@@ -29,6 +30,12 @@ public class AssemblyMotionPortalUpdateRequestValidator : Validator<AssemblyMoti
                     .LessThanOrEqualTo(x => x.ClosesAt)
                     .WithMessage(I18nKey.Error.AssemblyMotion.Portal.PrioritizationEndAfterClose);
             });
+        });
+
+        When(x => !string.IsNullOrEmpty(x.WikiPagePrefix), () => {
+            RuleFor(x => x.WikiPagePrefix)
+                .Must(AssemblyMotionWikiPage.IsValidPrefix)
+                .WithMessage(I18nKey.Error.AssemblyMotion.WikiPrefixInvalid);
         });
 
         When(x => x.WikiMirrorEnabled, () => {
