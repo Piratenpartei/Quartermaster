@@ -345,6 +345,55 @@ public class AssemblyMotionWikiEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Changing_prefix_or_enabling_the_mirror_forgets_the_written_pages() {
+        SeedWikiOptions();
+        var (chapter, portal, type) = SeedPortal(mirror: true);
+        var (offChapter, offPortal, offType) = SeedPortal(mirror: false);
+        var author = SeedParticipant(chapter);
+        var offAuthor = SeedParticipant(offChapter);
+        var numbered = await CreateMotion(author, portal, type, release: true);
+        var offNumbered = await CreateMotion(offAuthor, offPortal, offType, release: true);
+        foreach (var id in new[] { numbered.Id, offNumbered.Id }) {
+            Db.AssemblyMotions
+                .Where(m => m.Id == id)
+                .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+                .Set(m => m.WikiSyncedHash, "abc")
+                .Set(m => m.WikiSyncedRevision, 1)
+                .Update();
+        }
+        var prefixChange = UpdateRequest(portal, mirror: true);
+        prefixChange.WikiPagePrefix = "Antrag:Echt";
+        using var client = await ClientAsync(SeedEditorToken(chapter));
+        using var offClient = await ClientAsync(SeedEditorToken(offChapter));
+
+        await client.PutAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}", prefixChange);
+        await offClient.PutAsJsonAsync($"/api/assemblymotions/portals/{offPortal.Id}", UpdateRequest(offPortal, mirror: true));
+
+        foreach (var id in new[] { numbered.Id, offNumbered.Id }) {
+            await Assert.That(Reload(id).WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+            await Assert.That(Reload(id).WikiSyncedHash).IsNull();
+            await Assert.That(Reload(id).WikiSyncedRevision).IsNull();
+        }
+    }
+
+    [Test]
+    public async Task Resync_all_keeps_what_is_known_about_the_written_pages() {
+        var (chapter, portal, type) = SeedPortal(mirror: true);
+        var motion = await CreateMotion(SeedParticipant(chapter), portal, type, release: true);
+        Db.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+            .Set(m => m.WikiSyncedHash, "abc")
+            .Update();
+
+        var response = await Post(SeedCommissionToken(chapter), $"/api/assemblymotions/portals/{portal.Id}/wiki/resync");
+
+        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+        await Assert.That(Reload(motion.Id).WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(Reload(motion.Id).WikiSyncedHash).IsEqualTo("abc");
+    }
+
+    [Test]
     public async Task Dashboard_wiki_failed_filter_covers_both_failure_states() {
         var (chapter, portal, type) = SeedPortal(mirror: true);
         var author = SeedParticipant(chapter);

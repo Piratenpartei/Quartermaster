@@ -11,6 +11,7 @@ using Quartermaster.Api.Events;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Server.Tests.AssemblyMotions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.AssemblyMotions;
@@ -299,5 +300,48 @@ public class AssemblyMotionInquiryEndpointTests : IntegrationTestBase {
         var items = await client.GetFromJsonAsync<AssemblyMotionMineItemDTO[]>($"/api/assemblymotions/portals/{portal.Id}/mine");
 
         await Assert.That(items!.Single().OpenInquiryCount).IsEqualTo(2);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task Ask_and_answer_refuse_text_that_becomes_html_when_normalized(string markdown) {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type);
+        var commission = SeedCommissionToken(chapter);
+        var inquiryId = (await (await Ask(commission, created.Id)).Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>())!.Inquiries.Single().Id;
+
+        var asked = await Ask(commission, created.Id, markdown);
+        var answered = await Post(author.Token, $"/api/assemblymotions/inquiries/{inquiryId}/answer", new { AnswerMarkdown = markdown });
+        var stored = Db.AssemblyMotionInquiries
+            .Where(i => i.MotionId == created.Id)
+            .ToList();
+
+        await Assert.That(asked.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(answered.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(stored.Count).IsEqualTo(1);
+        await Assert.That(stored[0].AnswerHtml).IsNull();
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored[0].QuestionHtml)).IsEmpty();
+    }
+
+    [Test]
+    public async Task Indented_html_is_stored_as_the_code_block_that_was_validated() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type);
+        var commission = SeedCommissionToken(chapter);
+        var indented = "    " + MotionMarkdownSafetyTests.Overlay;
+
+        var asked = await Ask(commission, created.Id, indented);
+        var inquiryId = (await asked.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>())!.Inquiries.Single().Id;
+        var answered = await Post(author.Token, $"/api/assemblymotions/inquiries/{inquiryId}/answer", new { AnswerMarkdown = indented });
+        var stored = Db.AssemblyMotionInquiries.Single(i => i.Id == inquiryId);
+
+        await Assert.That(asked.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(answered.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(stored.QuestionMarkdown).IsEqualTo(indented);
+        await Assert.That(stored.QuestionHtml).StartsWith("<pre><code>&lt;a href=");
+        await Assert.That(stored.AnswerHtml).IsEqualTo(stored.QuestionHtml);
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored.QuestionHtml + stored.AnswerHtml)).IsEmpty();
     }
 }

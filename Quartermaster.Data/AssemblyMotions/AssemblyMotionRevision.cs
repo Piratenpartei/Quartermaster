@@ -26,17 +26,19 @@ public class AssemblyMotionRevision {
     public bool EditedByCommission { get; set; }
     public string? ChangeNote { get; set; }
 
-    public AssemblyMotionRevisionDTO ToDto() => new() {
-        Revision = Revision,
-        Title = Title,
-        Section = Section,
-        TextMarkdown = TextMarkdown,
-        ReasonMarkdown = ReasonMarkdown,
-        Summary = Summary,
-        Keywords = Keywords,
-        PriorDiscussion = PriorDiscussion,
-        EditedAt = EditedAt.ToDtoUtc(),
-        EditedByCommission = EditedByCommission,
-        ChangeNote = ChangeNote
-    };
+    public AssemblyMotionRevisionDTO ToDto() {
+        return new() {
+            Revision = Revision,
+            Title = Title,
+            Section = Section,
+            TextMarkdown = TextMarkdown,
+            ReasonMarkdown = ReasonMarkdown,
+            Summary = Summary,
+            Keywords = Keywords,
+            PriorDiscussion = PriorDiscussion,
+            EditedAt = EditedAt.ToDtoUtc(),
+            EditedByCommission = EditedByCommission,
+            ChangeNote = ChangeNote
+        };
+    }
 }

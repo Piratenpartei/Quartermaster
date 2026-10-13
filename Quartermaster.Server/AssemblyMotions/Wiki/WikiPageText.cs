@@ -15,6 +15,7 @@ public static class WikiPageText {
     }
 
     /// <summary>Lowercase hex SHA-256 of the UTF-8 bytes of the normalised text.</summary>
-    public static string Hash(string? text)
-        => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(text))));
+    public static string Hash(string? text) {
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(Normalize(text))));
+    }
 }

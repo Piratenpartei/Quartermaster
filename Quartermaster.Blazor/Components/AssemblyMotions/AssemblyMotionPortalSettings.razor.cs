@@ -33,8 +33,9 @@ public partial class AssemblyMotionPortalSettings {
 
     private AssemblyMotionPortalSettingsDTO? Settings;
     private AssemblyMotionConnectionCheckDTO? ConnectionCheck;
+    private AssemblyMotionConnectionCheckDTO? OpenSlidesConnectionCheck;
     private TypeEdit? Editing;
-    private ConfirmDialog _deleteTypeDialog = default!;
+    private ConfirmDialog DeleteTypeDialog = default!;
     private bool Loading = true;
     private bool Forbidden;
     private bool Busy;
@@ -70,10 +71,11 @@ public partial class AssemblyMotionPortalSettings {
             } else {
                 var portal = await byEvent.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>();
                 var response = await Http.GetAsync($"/api/assemblymotions/portals/{portal!.Id}/settings");
-                if (response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode) {
                     Apply(await response.Content.ReadFromJsonAsync<AssemblyMotionPortalSettingsDTO>());
-                else
+                } else {
                     Forbidden = true;
+                }
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -121,8 +123,9 @@ public partial class AssemblyMotionPortalSettings {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 
     private async Task SavePortalAsync() {
@@ -135,6 +138,7 @@ public partial class AssemblyMotionPortalSettings {
 
         Busy = true;
         ConnectionCheck = null;
+        OpenSlidesConnectionCheck = null;
         try {
             var response = await Http.PutAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}", new AssemblyMotionPortalUpdateRequest {
                 Id = Settings.Id,
@@ -157,8 +161,9 @@ public partial class AssemblyMotionPortalSettings {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 
     private async Task CheckWikiConnectionAsync() {
@@ -169,10 +174,31 @@ public partial class AssemblyMotionPortalSettings {
         ConnectionCheck = null;
         try {
             var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}/wiki/validate", new { });
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode) {
                 ConnectionCheck = await response.Content.ReadFromJsonAsync<AssemblyMotionConnectionCheckDTO>();
-            else
+            } else {
                 await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
+    }
+
+    private async Task CheckOpenSlidesConnectionAsync() {
+        if (Settings == null)
+            return;
+
+        Busy = true;
+        OpenSlidesConnectionCheck = null;
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}/openslides/validate", new { });
+            if (response.IsSuccessStatusCode) {
+                OpenSlidesConnectionCheck = await response.Content.ReadFromJsonAsync<AssemblyMotionConnectionCheckDTO>();
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         } finally {
@@ -224,12 +250,13 @@ public partial class AssemblyMotionPortalSettings {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 
     private async Task DeleteTypeAsync(AssemblyMotionTypeSettingsDTO type) {
-        if (!await _deleteTypeDialog.ShowAsync(I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.DeleteTypeMessage, ("name", type.Name))]))
+        if (!await DeleteTypeDialog.ShowAsync(I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.DeleteTypeMessage, ("name", type.Name))]))
             return;
 
         Busy = true;
@@ -243,8 +270,9 @@ public partial class AssemblyMotionPortalSettings {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 
     private async Task RefreshTypesAsync() {

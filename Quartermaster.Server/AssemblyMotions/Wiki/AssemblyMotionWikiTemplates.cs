@@ -67,10 +67,12 @@ public static class AssemblyMotionWikiTemplates {
         {{ "}}" }}
         """;
 
-    public static string DefaultFor(string typeCode) => TextNormalization.ToNfc(typeCode) switch {
-        "SÄA" => ConstitutionalAmendment,
-        "GP" => ProgramMotion,
-        "WP" => ProgramMotion,
-        _ => OtherMotion
-    };
+    public static string DefaultFor(string typeCode) {
+        return TextNormalization.ToNfc(typeCode) switch {
+            "SÄA" => ConstitutionalAmendment,
+            "GP" => ProgramMotion,
+            "WP" => ProgramMotion,
+            _ => OtherMotion
+        };
+    }
 }

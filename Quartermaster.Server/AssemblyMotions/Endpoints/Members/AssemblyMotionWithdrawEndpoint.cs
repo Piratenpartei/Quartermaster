@@ -16,6 +16,7 @@ public class AssemblyMotionWithdrawEndpoint : AssemblyMotionActionEndpoint {
         Post("/api/assemblymotions/motions/{Id}/withdraw");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.Withdraw(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.Withdraw(motionId, member, nowUtc);
+    }
 }

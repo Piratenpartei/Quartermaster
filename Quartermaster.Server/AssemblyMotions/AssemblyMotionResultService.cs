@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
@@ -70,7 +71,7 @@ public class AssemblyMotionResultService {
         var locked = new List<AssemblyMotion>();
         foreach (var motionId in resultByMotion.Keys.Order()) {
             var motion = _motions.GetForUpdate(motionId);
-            if (motion == null || motion.PortalId != portalId)
+            if (!IsBulkTarget(motion, portalId))
                 return AssemblyMotionOutcome.Fail(404, I18nKey.Error.AssemblyMotion.NotFound);
             if (motion.Number == null)
                 return AssemblyMotionOutcome.Fail(409, I18nParams.With(I18nKey.Error.AssemblyMotion.ResultItemInvalid, ("number", motion.Title)));
@@ -83,6 +84,15 @@ public class AssemblyMotionResultService {
 
         tx.Commit();
         return new AssemblyMotionOutcome(200, null, null);
+    }
+
+    private static bool IsBulkTarget([NotNullWhen(true)] AssemblyMotion? motion, Guid portalId) {
+        if (motion == null)
+            return false;
+        if (motion.PortalId != portalId)
+            return false;
+
+        return motion.Status != AssemblyMotionStatus.Draft;
     }
 
     private AssemblyMotionOutcome? EventProblem(Guid portalId, DateTime nowUtc) {

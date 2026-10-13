@@ -8,8 +8,9 @@ public static class AssemblyMotionWikiPage {
     public const int MaxPrefixLength = 300;
     private const string ForbiddenPrefixCharacters = "#<>[]|{}";
 
-    public static string Title(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion)
-        => $"{portal.WikiPagePrefix?.Trim().Trim('/')}/{AssemblyMotionNumber.Format(type.Code, motion.Number!.Value)}";
+    public static string Title(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion) {
+        return $"{portal.WikiPagePrefix?.Trim().Trim('/')}/{AssemblyMotionNumber.Format(type.Code, motion.Number!.Value)}";
+    }
 
     /// <summary>A prefix is valid when it has no surrounding whitespace or slash, no wikitext/title-special characters, no double slash and fits the column.</summary>
     public static bool IsValidPrefix(string? prefix) {

@@ -32,8 +32,9 @@ public class AssemblyMotionUpvoteService {
         return nowUtc > portal.PrioritizationEndsAt;
     }
 
-    public static bool IsCountPublic(AssemblyMotionPortal portal, AssemblyMotion motion, DateTime nowUtc)
-        => IsRankingPublic(portal, nowUtc) && CanReceiveUpvotes(motion);
+    public static bool IsCountPublic(AssemblyMotionPortal portal, AssemblyMotion motion, DateTime nowUtc) {
+        return IsRankingPublic(portal, nowUtc) && CanReceiveUpvotes(motion);
+    }
 
     public static bool CanUpvote(AssemblyMotionPortal portal, AssemblyMotion motion, bool isEligible, DateTime nowUtc) {
         if (!isEligible)
@@ -43,8 +44,9 @@ public class AssemblyMotionUpvoteService {
         return CanReceiveUpvotes(motion);
     }
 
-    public static bool CanReceiveUpvotes(AssemblyMotion motion)
-        => motion.Status == AssemblyMotionStatus.Submitted || motion.Status == AssemblyMotionStatus.Admitted;
+    public static bool CanReceiveUpvotes(AssemblyMotion motion) {
+        return motion.Status == AssemblyMotionStatus.Submitted || motion.Status == AssemblyMotionStatus.Admitted;
+    }
 
     public AssemblyMotionOutcome Upvote(Guid motionId, Member member, DateTime nowUtc) {
         using var tx = _motions.BeginTransaction();

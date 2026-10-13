@@ -64,7 +64,7 @@
             }
         </div>
 
-        @if (ShowEditLockedHint) {
+        @if (ShowEditLockedHint()) {
             <div class="alert alert-secondary">
                 @I18n[I18nKey.Ui.AssemblyMotion.EditLockedHint]
                 @if (OpenInquiry != null) {
@@ -86,6 +86,20 @@
         }
     }
 
+    @if (Context != null) {
+        @if (!Context.IsSignedIn) {
+            <div class="alert alert-info">
+                @I18n[I18nKey.Ui.AssemblyMotion.SignInHint]
+                <a href="/Login">@I18n[I18nKey.Ui.AssemblyMotion.SignInLink]</a>
+            </div>
+        } else if (!Context.IsEligible) {
+            <div class="alert alert-info">
+                <strong>@I18n[I18nKey.Ui.AssemblyMotion.JoinNotEligibleTitle]</strong>
+                @AssemblyMotionDisplay.ProblemLabel(I18n, Context.Problem)
+            </div>
+        }
+    }
+
     <AssemblyMotionContentCard Motion="@Motion" ShowCompetitions="@(Member == null)" />
 
     @if (ShowUpvote) {
@@ -98,7 +112,7 @@
                     </div>
                 }
                 @if (Motion.UpvoteCount != null) {
-                    <div>@I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.UpvoteCountText, ("count", Motion.UpvoteCount.Value.ToString()))]</div>
+                    <div>@UpvoteCountText</div>
                 }
                 @if (ShowUpvoteToggle && Member != null) {
                     @if (Member.HasUpvoted) {
@@ -125,8 +139,9 @@
         <AssemblyMotionRevisionHistory MotionId="@Id" CurrentRevision="@Member.Revision" />
     }
 
-    <ConfirmDialog @ref="_joinDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.JoinConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Join]" />
-    <ConfirmDialog @ref="_leaveDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.LeaveConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Leave]" />
-    <ConfirmDialog @ref="_withdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WithdrawConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Withdraw]" />
-    <ConfirmDialog @ref="_deleteDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]" />
+    <ConfirmDialog @ref="ReleaseDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.ReleaseConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Release]" />
+    <ConfirmDialog @ref="JoinDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.JoinConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Join]" />
+    <ConfirmDialog @ref="LeaveDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.LeaveConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Leave]" />
+    <ConfirmDialog @ref="WithdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WithdrawConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Withdraw]" />
+    <ConfirmDialog @ref="DeleteDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]" />
 }

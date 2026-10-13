@@ -28,8 +28,8 @@ public partial class AssemblyMotionCommissionDetail {
     private AssemblyMotionDetailDTO? Detail;
     private AssemblyMotionPortalDTO? Portal;
     private AssemblyMotionFieldValues Fields = new();
-    private ConfirmDialog _withdrawDialog = default!;
-    private ConfirmDialog _reloadDialog = default!;
+    private ConfirmDialog WithdrawDialog = default!;
+    private ConfirmDialog ReloadDialog = default!;
     private bool Loading = true;
     private bool Busy;
     private bool Editing;
@@ -55,27 +55,45 @@ public partial class AssemblyMotionCommissionDetail {
 
     private bool CanCheck => Detail != null && IsCheckStatus(Detail.Status);
 
-    private bool CanCorrect => Detail != null && IsCheckStatus(Detail.Status) && !string.IsNullOrEmpty(Detail.DisplayNumber);
-
-    private bool CanCommissionWithdraw => Detail != null
-        && Detail.Status != AssemblyMotionStatus.Draft
-        && Detail.Status != AssemblyMotionStatus.Withdrawn
-        && Detail.Status != AssemblyMotionStatus.Lapsed;
-
-    private bool CanAsk => CanCommissionWithdraw && !string.IsNullOrEmpty(Detail?.DisplayNumber);
+    private bool CanAsk => CanCommissionWithdraw() && !string.IsNullOrEmpty(Detail?.DisplayNumber);
 
     protected override async Task OnParametersSetAsync() {
         await LoadAsync();
     }
 
-    private static bool IsCheckStatus(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Submitted
-            || status == AssemblyMotionStatus.Admitted
-            || status == AssemblyMotionStatus.FormallyInsufficient;
+    private bool CanCorrect() {
+        if (Detail == null)
+            return false;
+        if (string.IsNullOrEmpty(Detail.DisplayNumber))
+            return false;
+        return IsCheckStatus(Detail.Status);
+    }
 
-    private bool IsNotCheckStatus(AssemblyMotionStatus status) => !IsCheckStatus(status);
+    private bool CanCommissionWithdraw() {
+        if (Detail == null)
+            return false;
+        if (Detail.Status == AssemblyMotionStatus.Draft)
+            return false;
+        if (Detail.Status == AssemblyMotionStatus.Withdrawn)
+            return false;
+        return Detail.Status != AssemblyMotionStatus.Lapsed;
+    }
 
-    private string CheckStatusLabel(AssemblyMotionStatus status) => AssemblyMotionDisplay.StatusLabel(I18n, status, false);
+    private static bool IsCheckStatus(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Submitted)
+            return true;
+        if (status == AssemblyMotionStatus.Admitted)
+            return true;
+        return status == AssemblyMotionStatus.FormallyInsufficient;
+    }
+
+    private bool IsNotCheckStatus(AssemblyMotionStatus status) {
+        return !IsCheckStatus(status);
+    }
+
+    private string CheckStatusLabel(AssemblyMotionStatus status) {
+        return AssemblyMotionDisplay.StatusLabel(I18n, status, false);
+    }
 
     private async Task LoadAsync() {
         Loading = true;
@@ -120,7 +138,7 @@ public partial class AssemblyMotionCommissionDetail {
     }
 
     private async Task ReloadAsync() {
-        if (!await _reloadDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmMessage]))
+        if (!await ReloadDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmMessage]))
             return;
 
         await LoadAsync();
@@ -141,7 +159,9 @@ public partial class AssemblyMotionCommissionDetail {
             ResetCheckForm(Detail);
     }
 
-    private string ResultOptionLabel(AssemblyMotionResult result) => AssemblyMotionDisplay.ResultOptionLabel(I18n, result);
+    private string ResultOptionLabel(AssemblyMotionResult result) {
+        return AssemblyMotionDisplay.ResultOptionLabel(I18n, result);
+    }
 
     private async Task SaveResult() {
         if (!ResultsEnabled || !int.TryParse(ResultSelection, out var value))
@@ -182,15 +202,19 @@ public partial class AssemblyMotionCommissionDetail {
     }
 
     private async Task CommissionWithdraw() {
-        if (!await _withdrawDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdrawMessage]))
+        if (!await WithdrawDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdrawMessage]))
             return;
 
         await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/commission-withdraw", new { }), I18nKey.Ui.AssemblyMotion.ToastCommissionWithdrawn);
     }
 
-    private bool CanResyncWiki => Detail?.Commission != null
-        && Detail.Commission.WikiMirrorEnabled
-        && !string.IsNullOrEmpty(Detail.DisplayNumber);
+    private bool CanResyncWiki() {
+        if (Detail?.Commission == null)
+            return false;
+        if (!Detail.Commission.WikiMirrorEnabled)
+            return false;
+        return !string.IsNullOrEmpty(Detail.DisplayNumber);
+    }
 
     private async Task ResyncWiki() {
         await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/wiki/resync", new { }), I18nKey.Ui.AssemblyMotion.ToastWikiResync);

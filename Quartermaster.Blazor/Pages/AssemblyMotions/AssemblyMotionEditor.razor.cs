@@ -37,8 +37,9 @@ public partial class AssemblyMotionEditor {
     private AssemblyMotionPortalDTO? Portal;
     private AssemblyMotionPortalContextDTO? Context;
     private AssemblyMotionDetailDTO? Detail;
-    private ConfirmDialog _revisionDialog = default!;
-    private ConfirmDialog _reloadDialog = default!;
+    private ConfirmDialog RevisionDialog = default!;
+    private ConfirmDialog ReloadDialog = default!;
+    private ConfirmDialog ReleaseDialog = default!;
     private bool Loading = true;
     private bool Saving;
     private string? Conflict;
@@ -68,9 +69,14 @@ public partial class AssemblyMotionEditor {
             if (SelectedType != null && SelectedType.MinSubmitters <= 1)
                 return I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningSingle];
 
+            var hasNumber = !string.IsNullOrEmpty(Detail.DisplayNumber);
             var coSubmitterCount = Detail.Submitters.Count(s => !s.IsAuthor);
             if (coSubmitterCount == 0)
-                return I18n[I18nKey.Ui.AssemblyMotion.RevisionWarningMultiAlone];
+                return I18n[hasNumber ? I18nKey.Ui.AssemblyMotion.RevisionWarningMultiAlone : I18nKey.Ui.AssemblyMotion.RevisionWarningUnnumberedAlone];
+
+            if (!hasNumber)
+                return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningUnnumberedMulti,
+                    ("deadline", AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)))];
 
             return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningMulti,
                 ("count", coSubmitterCount.ToString()),
@@ -83,7 +89,7 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task ReloadAsync() {
-        if (await _reloadDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmMessage]))
+        if (await ReloadDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmMessage]))
             await LoadAsync();
     }
 
@@ -126,12 +132,16 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task SaveDraft() {
-        if (IsRevisionEdit && !await _revisionDialog.ShowAsync(RevisionWarning))
+        if (IsRevisionEdit && !await RevisionDialog.ShowAsync(RevisionWarning))
             return;
 
         Saving = true;
-        var saved = await SaveAsync();
-        Saving = false;
+        bool saved;
+        try {
+            saved = await SaveAsync();
+        } finally {
+            Saving = false;
+        }
         if (saved) {
             ToastService.ToastKey(I18nKey.Ui.AssemblyMotion.ToastSaved);
             Navigation.NavigateTo($"/AssemblyMotions/{motionId}");
@@ -139,6 +149,9 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task Release() {
+        if (!await ReleaseDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReleaseConfirmMessage]))
+            return;
+
         Saving = true;
         try {
             if (!await SaveAsync())

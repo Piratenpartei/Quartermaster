@@ -15,6 +15,7 @@ using Quartermaster.Data.Events;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Server.AssemblyMotions;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Dashboard;
@@ -129,13 +130,28 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
 
     private List<DashboardEventDTO> FetchUpcomingEvents(Guid? userId, Dictionary<Guid, string> chapters) {
         var allowedVisibilities = GetAllowedEventVisibilities(userId);
-        var events = _eventRepo.GetUpcoming(allowedVisibilities, null, WidgetLimit);
+
+        // The card rule admits Private events of any chapter for a ViewEvents holder, the event page only for the event's own chapter.
+        var events = _eventRepo.GetUpcoming(allowedVisibilities, null, int.MaxValue)
+            .Where(e => AssemblyMotionEventVisibility.IsVisible(e, _perms))
+            .Take(WidgetLimit)
+            .ToList();
+
+        var remaining = WidgetLimit - events.Count;
+        if (remaining > 0) {
+            events.AddRange(_eventRepo.GetUndatedWithPortal(allowedVisibilities, int.MaxValue)
+                .Where(e => AssemblyMotionEventVisibility.IsVisible(e, _perms))
+                .Take(remaining));
+        }
+
+        var eventsWithPortal = _eventRepo.GetEventIdsWithPortal(events.Select(e => e.Id).ToList());
 
         return events.Select(e => new DashboardEventDTO {
             Id = e.Id,
             PublicName = e.PublicName,
             ChapterName = chapters.TryGetValue(e.ChapterId, out var name) ? name : "",
-            EventDate = e.EventDate.ToDtoDate()
+            EventDate = e.EventDate.ToDtoDate(),
+            HasMotionPortal = eventsWithPortal.Contains(e.Id)
         }).ToList();
     }
 

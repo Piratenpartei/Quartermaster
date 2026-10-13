@@ -53,8 +53,7 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
         var types = _portals.GetTypes(portal.Id).ToDictionary(t => t.Id);
         var search = req.Search?.Trim();
 
-        var all = _motions.ListByPortal(portal.Id)
-            .Where(AssemblyMotionVisibility.IsPublic)
+        var all = _motions.ListSummariesByPortal(portal.Id)
             .Where(m => types.ContainsKey(m.TypeId))
             .ToList();
 
@@ -87,12 +86,14 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             Page = req.Page,
             PageSize = req.PageSize,
             FailedWikiSyncCount = all.Count(IsWikiFailure),
-            WikiMirrorEnabled = portal.WikiMirrorEnabled
+            WikiMirrorEnabled = portal.WikiMirrorEnabled,
+            OpenSlidesMeetingConfigured = portal.OpenSlidesMeetingId != null
         }, cancellation: ct);
     }
 
-    private static bool IsWikiFailure(AssemblyMotion motion)
-        => motion.WikiSyncState == WikiSyncState.Failed || motion.WikiSyncState == WikiSyncState.ProtectionFailed;
+    private static bool IsWikiFailure(AssemblyMotion motion) {
+        return motion.WikiSyncState == WikiSyncState.Failed || motion.WikiSyncState == WikiSyncState.ProtectionFailed;
+    }
 
     private static AssemblyMotionDashboardItemDTO ToItem(AssemblyMotion motion, AssemblyMotionPortal portal,
         AssemblyMotionType type, int submitterCount, int openInquiryCount, DateTime nowUtc) {

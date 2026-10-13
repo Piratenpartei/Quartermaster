@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Sockets;
 using Quartermaster.Server.AssemblyMotions.Wiki;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 
@@ -494,5 +495,62 @@ public class HttpWikiBotClientTests {
 
         await Assert.That(logger.Entries.Count(e => e.StartsWith("Warning:"))).IsEqualTo(2);
         await Assert.That(string.Join("\n", logger.Entries)).DoesNotContain(Password);
+    }
+
+    [Test]
+    public async Task Wiki_handler_does_not_follow_redirects_and_keeps_cookies() {
+        using var handler = HttpWikiBotClient.CreateHandler();
+
+        await Assert.That(handler.AllowAutoRedirect).IsFalse();
+        await Assert.That(handler.UseCookies).IsTrue();
+        await Assert.That(handler.CookieContainer).IsNotNull();
+    }
+
+    [Test]
+    public async Task Redirect_from_the_wiki_is_not_followed_and_reported_as_http_error() {
+        var port = FreePort();
+        var prefix = $"http://127.0.0.1:{port}/";
+        using var listener = new HttpListener();
+        listener.Prefixes.Add(prefix);
+        listener.Start();
+        var targetHits = 0;
+        var server = Task.Run(async () => {
+            while (listener.IsListening) {
+                HttpListenerContext context;
+                try {
+                    context = await listener.GetContextAsync();
+                } catch (Exception) {
+                    return;
+                }
+
+                if (context.Request.Url!.AbsolutePath == "/target") {
+                    Interlocked.Increment(ref targetHits);
+                    context.Response.StatusCode = 200;
+                } else {
+                    context.Response.StatusCode = 307;
+                    context.Response.RedirectLocation = prefix + "target";
+                }
+
+                context.Response.Close();
+            }
+        });
+        using var http = new HttpClient(HttpWikiBotClient.CreateHandler());
+        using var client = new HttpWikiBotClient(http, new CapturingLogger<HttpWikiBotClient>());
+
+        var ex = await Assert.ThrowsAsync<WikiBotException>(() => client.LoginAsync(Settings(apiUrl: prefix + "api.php"), CancellationToken.None));
+        listener.Stop();
+        await server;
+
+        await Assert.That(ex!.Code).IsEqualTo("http_error");
+        await Assert.That(ex.Message).Contains("307");
+        await Assert.That(Volatile.Read(ref targetHits)).IsEqualTo(0);
+    }
+
+    private static int FreePort() {
+        var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        var port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        return port;
     }
 }

@@ -12,7 +12,7 @@ public class AssemblyMotionCheckRequestValidator : Validator<AssemblyMotionCheck
             .WithMessage(I18nKey.Error.AssemblyMotion.InvalidState);
 
         RuleFor(x => x.CheckNote)
-            .MaximumLength(4000)
+            .MaximumLength(AssemblyMotionContent.CheckNoteMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.CheckNoteMaxLength);
     }
 }

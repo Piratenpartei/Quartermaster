@@ -12,14 +12,16 @@ public class AssemblyMotionInquiryRepository {
         _context = context;
     }
 
-    public AssemblyMotionInquiry? Get(Guid id)
-        => _context.AssemblyMotionInquiries.Where(i => i.Id == id).FirstOrDefault();
+    public AssemblyMotionInquiry? Get(Guid id) {
+        return _context.AssemblyMotionInquiries.Where(i => i.Id == id).FirstOrDefault();
+    }
 
-    public List<AssemblyMotionInquiry> ListForMotion(Guid motionId)
-        => _context.AssemblyMotionInquiries
-            .Where(i => i.MotionId == motionId)
-            .OrderBy(i => i.AskedAt)
-            .ToList();
+    public List<AssemblyMotionInquiry> ListForMotion(Guid motionId) {
+        return _context.AssemblyMotionInquiries
+                .Where(i => i.MotionId == motionId)
+                .OrderBy(i => i.AskedAt)
+                .ToList();
+    }
 
     public Dictionary<Guid, int> CountOpen(IReadOnlyCollection<Guid> motionIds) {
         return _context.AssemblyMotionInquiries
@@ -30,10 +32,13 @@ public class AssemblyMotionInquiryRepository {
             .ToDictionary(x => x.MotionId, x => x.Count);
     }
 
-    public bool HasOpen(Guid motionId)
-        => _context.AssemblyMotionInquiries.Any(i => i.MotionId == motionId && i.ClosedAt == null);
+    public bool HasOpen(Guid motionId) {
+        return _context.AssemblyMotionInquiries.Any(i => i.MotionId == motionId && i.ClosedAt == null);
+    }
 
-    public void Insert(AssemblyMotionInquiry inquiry) => _context.Insert(inquiry);
+    public void Insert(AssemblyMotionInquiry inquiry) {
+        _context.Insert(inquiry);
+    }
 
     public void Update(AssemblyMotionInquiry inquiry) {
         _context.AssemblyMotionInquiries

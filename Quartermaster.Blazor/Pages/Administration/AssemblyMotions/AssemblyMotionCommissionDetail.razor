@@ -36,12 +36,12 @@
         <a href="/AssemblyMotions/@Id" class="btn btn-outline-secondary">
             <i class="bi bi-eye"></i> @I18n[I18nKey.Ui.AssemblyMotion.PublicView]
         </a>
-        @if (CanCorrect) {
+        @if (CanCorrect()) {
             <button class="btn btn-outline-primary" disabled="@Busy" @onclick="ToggleEdit">
                 <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionEditButton]
             </button>
         }
-        @if (CanCommissionWithdraw) {
+        @if (CanCommissionWithdraw()) {
             <button class="btn btn-outline-danger" disabled="@Busy" @onclick="CommissionWithdraw">
                 <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdraw]
             </button>
@@ -149,36 +149,38 @@
     <AssemblyMotionRevisionHistory MotionId="@Id" CurrentRevision="@Detail.Revision" />
 
     <div class="row g-3 mb-3">
-        <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5>@I18n[I18nKey.Ui.AssemblyMotion.WikiStateTitle]</h5>
-                    <dl class="row mb-0">
-                        <dt class="col-sm-6">@I18n[I18nKey.Ui.Common.Status]</dt>
-                        <dd class="col-sm-6">
-                            <span class="badge border @AssemblyMotionDisplay.WikiSyncBadgeClass(Detail.Commission.WikiSyncState)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, Detail.Commission.WikiSyncState)</span>
-                        </dd>
-                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiSyncedRevision]</dt>
-                        <dd class="col-sm-6">@(Detail.Commission.WikiSyncedRevision == null ? "-" : Detail.Commission.WikiSyncedRevision.Value.ToString())</dd>
-                        <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiLastSyncedAt]</dt>
-                        <dd class="col-sm-6">@(Detail.Commission.WikiLastSyncedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.WikiLastSyncedAt.Value))</dd>
-                        @if (!string.IsNullOrEmpty(Detail.Commission.WikiPageTitle)) {
-                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiPageTitle]</dt>
-                            <dd class="col-sm-6 text-break">@Detail.Commission.WikiPageTitle</dd>
+        @if (Detail.Commission.WikiMirrorEnabled) {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5>@I18n[I18nKey.Ui.AssemblyMotion.WikiStateTitle]</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.Common.Status]</dt>
+                            <dd class="col-sm-6">
+                                <span class="badge border @AssemblyMotionDisplay.WikiSyncBadgeClass(Detail.Commission.WikiSyncState)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, Detail.Commission.WikiSyncState)</span>
+                            </dd>
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiSyncedRevision]</dt>
+                            <dd class="col-sm-6">@(Detail.Commission.WikiSyncedRevision == null ? "-" : Detail.Commission.WikiSyncedRevision.Value.ToString())</dd>
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiLastSyncedAt]</dt>
+                            <dd class="col-sm-6">@(Detail.Commission.WikiLastSyncedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.WikiLastSyncedAt.Value))</dd>
+                            @if (!string.IsNullOrEmpty(Detail.Commission.WikiPageTitle)) {
+                                <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiPageTitle]</dt>
+                                <dd class="col-sm-6 text-break">@Detail.Commission.WikiPageTitle</dd>
+                            }
+                            @if (!string.IsNullOrEmpty(Detail.Commission.WikiLastError)) {
+                                <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
+                                <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.WikiLastError</dd>
+                            }
+                        </dl>
+                        @if (CanResyncWiki()) {
+                            <button class="btn btn-sm btn-outline-primary mt-3" disabled="@Busy" @onclick="ResyncWiki">
+                                <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiResync]
+                            </button>
                         }
-                        @if (!string.IsNullOrEmpty(Detail.Commission.WikiLastError)) {
-                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
-                            <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.WikiLastError</dd>
-                        }
-                    </dl>
-                    @if (CanResyncWiki) {
-                        <button class="btn btn-sm btn-outline-primary mt-3" disabled="@Busy" @onclick="ResyncWiki">
-                            <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiResync]
-                        </button>
-                    }
+                    </div>
                 </div>
             </div>
-        </div>
+        }
         <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-body">
@@ -187,7 +189,13 @@
                         <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMotionId]</dt>
                         <dd class="col-sm-6">@(Detail.Commission.OpenSlidesMotionId == null ? "-" : Detail.Commission.OpenSlidesMotionId.Value.ToString())</dd>
                         <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushedRevision]</dt>
-                        <dd class="col-sm-6">@(Detail.Commission.OpenSlidesPushedRevision == null ? "-" : Detail.Commission.OpenSlidesPushedRevision.Value.ToString())</dd>
+                        <dd class="col-sm-6">
+                            @(Detail.Commission.OpenSlidesPushedRevision == null ? "-" : Detail.Commission.OpenSlidesPushedRevision.Value.ToString())
+                            <span class="text-secondary">/ @I18n[I18nKey.Ui.AssemblyMotion.CurrentRevision] @Detail.Revision</span>
+                            @if (Detail.Commission.OpenSlidesPushedRevision != null && Detail.Commission.OpenSlidesPushedRevision < Detail.Revision) {
+                                <div><span class="badge text-bg-warning">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesRevisionOutdated]</span></div>
+                            }
+                        </dd>
                         <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushedAt]</dt>
                         <dd class="col-sm-6">@(Detail.Commission.OpenSlidesPushedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.OpenSlidesPushedAt.Value))</dd>
                         @if (!string.IsNullOrEmpty(Detail.Commission.OpenSlidesLastError)) {
@@ -200,6 +208,6 @@
         </div>
     </div>
 
-    <ConfirmDialog @ref="_withdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdrawTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdraw]" />
-    <ConfirmDialog @ref="_reloadDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Reload]" />
+    <ConfirmDialog @ref="WithdrawDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdrawTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CommissionWithdraw]" />
+    <ConfirmDialog @ref="ReloadDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.ReloadConfirmTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.Reload]" />
 }

@@ -123,6 +123,31 @@ public class AssemblyMotionPortalUpdateRequestValidatorTests {
     }
 
     [Test]
+    [Arguments(0)]
+    [Arguments(-3)]
+    public void OpenSlidesMeetingIdNotPositive_ShouldHaveError(int meetingId) {
+        var request = ValidRequest();
+        request.OpenSlidesMeetingId = meetingId;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.OpenSlidesMeetingId)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.Portal.OpenSlidesMeetingIdInvalid);
+    }
+
+    [Test]
+    [Arguments(null)]
+    [Arguments(7)]
+    public void OpenSlidesMeetingIdNullOrPositive_ShouldHaveNoErrors(int? meetingId) {
+        var request = ValidRequest();
+        request.OpenSlidesMeetingId = meetingId;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
     [Arguments("/Antrag")]
     [Arguments("Antrag/")]
     [Arguments(" Antrag")]

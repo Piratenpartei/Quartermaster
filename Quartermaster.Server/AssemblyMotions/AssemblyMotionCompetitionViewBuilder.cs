@@ -61,6 +61,7 @@ public class AssemblyMotionCompetitionViewBuilder {
         return result;
     }
 
-    private static string? DisplayNumber(AssemblyMotion motion, AssemblyMotionType type)
-        => motion.Number == null ? null : AssemblyMotionNumber.Format(type.Code, motion.Number.Value);
+    private static string? DisplayNumber(AssemblyMotion motion, AssemblyMotionType type) {
+        return motion.Number == null ? null : AssemblyMotionNumber.Format(type.Code, motion.Number.Value);
+    }
 }

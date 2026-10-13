@@ -36,21 +36,18 @@ public partial class AssemblyMotionDetail {
     private AssemblyMotionPublicDTO? Motion;
     private AssemblyMotionDetailDTO? Member;
     private AssemblyMotionPortalDTO? Portal;
+    private AssemblyMotionPortalContextDTO? Context;
     private bool Loading = true;
     private bool Busy;
-    private ConfirmDialog _joinDialog = default!;
-    private ConfirmDialog _leaveDialog = default!;
-    private ConfirmDialog _withdrawDialog = default!;
-    private ConfirmDialog _deleteDialog = default!;
+    private ConfirmDialog ReleaseDialog = default!;
+    private ConfirmDialog JoinDialog = default!;
+    private ConfirmDialog LeaveDialog = default!;
+    private ConfirmDialog WithdrawDialog = default!;
+    private ConfirmDialog DeleteDialog = default!;
 
     private string BackHref => Motion == null ? "/Events" : $"/Events/{Motion.EventId}/Motions";
 
     private AssemblyMotionInquiryDTO? OpenInquiry => Member?.Inquiries.FirstOrDefault(i => i.ClosedAt == null);
-
-    private bool ShowEditLockedHint => Member != null
-        && Member.IsAuthor
-        && !Member.CanEdit
-        && IsPastDraftAndActive(Member.Status);
 
     private List<AssemblyMotionTypeDTO> PortalTypes => Portal?.Types ?? [];
 
@@ -80,6 +77,19 @@ public partial class AssemblyMotionDetail {
 
     private string ShareLink => $"{Navigation.BaseUri}AssemblyMotions/{Id}";
 
+    private string UpvoteCountText {
+        get {
+            if (Motion?.UpvoteCount == null)
+                return "";
+
+            var count = Motion.UpvoteCount.Value;
+            if (count == 1)
+                return I18n[I18nKey.Ui.AssemblyMotion.UpvoteCountTextOne];
+
+            return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.UpvoteCountText, ("count", count.ToString()))];
+        }
+    }
+
     private string CollectingProgressText => Member == null
         ? ""
         : I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.CollectingProgress,
@@ -95,6 +105,7 @@ public partial class AssemblyMotionDetail {
         Motion = null;
         Member = null;
         Portal = null;
+        Context = null;
         try {
             await AuthService.WaitForInitializationAsync();
             if (AuthService.IsAuthenticated) {
@@ -114,6 +125,12 @@ public partial class AssemblyMotionDetail {
                 if (publicResponse.IsSuccessStatusCode)
                     Motion = await publicResponse.Content.ReadFromJsonAsync<AssemblyMotionPublicDTO>();
             }
+
+            if (Member == null && Motion != null && Motion.Status == AssemblyMotionStatus.CollectingCoSubmitters) {
+                var contextResponse = await Http.GetAsync($"/api/assemblymotions/portals/{Motion.PortalId}/context");
+                if (contextResponse.IsSuccessStatusCode)
+                    Context = await contextResponse.Content.ReadFromJsonAsync<AssemblyMotionPortalContextDTO>();
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -125,35 +142,52 @@ public partial class AssemblyMotionDetail {
         Motion = detail;
     }
 
-    private static bool IsPastDraftAndActive(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.CollectingCoSubmitters
-            || status == AssemblyMotionStatus.Submitted
-            || status == AssemblyMotionStatus.Admitted
-            || status == AssemblyMotionStatus.FormallyInsufficient;
+    private bool ShowEditLockedHint() {
+        if (Member == null)
+            return false;
+        if (!Member.IsAuthor)
+            return false;
+        if (Member.CanEdit)
+            return false;
+        return IsPastDraftAndActive(Member.Status);
+    }
 
-    private Task Release() => RunActionAsync("release", I18nKey.Ui.AssemblyMotion.ToastReleased);
+    private static bool IsPastDraftAndActive(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.CollectingCoSubmitters)
+            return true;
+        if (status == AssemblyMotionStatus.Submitted)
+            return true;
+        if (status == AssemblyMotionStatus.Admitted)
+            return true;
+        return status == AssemblyMotionStatus.FormallyInsufficient;
+    }
+
+    private async Task Release() {
+        if (await ReleaseDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ReleaseConfirmMessage]))
+            await RunActionAsync("release", I18nKey.Ui.AssemblyMotion.ToastReleased);
+    }
 
     private async Task Join() {
         if (Motion == null)
             return;
 
         var message = I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.JoinConfirmMessage, ("title", Motion.Title))];
-        if (await _joinDialog.ShowAsync(message))
+        if (await JoinDialog.ShowAsync(message))
             await RunActionAsync("join", I18nKey.Ui.AssemblyMotion.ToastJoined);
     }
 
     private async Task Leave() {
-        if (await _leaveDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.LeaveConfirmMessage]))
+        if (await LeaveDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.LeaveConfirmMessage]))
             await RunActionAsync("leave", I18nKey.Ui.AssemblyMotion.ToastLeft);
     }
 
     private async Task Withdraw() {
-        if (await _withdrawDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.WithdrawConfirmMessage]))
+        if (await WithdrawDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.WithdrawConfirmMessage]))
             await RunActionAsync("withdraw", I18nKey.Ui.AssemblyMotion.ToastWithdrawn);
     }
 
     private async Task DeleteDraft() {
-        if (!await _deleteDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.DeleteConfirmMessage]))
+        if (!await DeleteDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.DeleteConfirmMessage]))
             return;
 
         var backHref = BackHref;
@@ -168,8 +202,9 @@ public partial class AssemblyMotionDetail {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 
     private async Task AddUpvote() {
@@ -212,7 +247,8 @@ public partial class AssemblyMotionDetail {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Busy = false;
         }
-        Busy = false;
     }
 }

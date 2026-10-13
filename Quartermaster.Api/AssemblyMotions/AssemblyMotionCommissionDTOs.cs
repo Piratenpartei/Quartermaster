@@ -28,6 +28,7 @@ public class AssemblyMotionDashboardResponse : IPaginatedResponse<AssemblyMotion
     public int PageSize { get; set; }
     public int FailedWikiSyncCount { get; set; }
     public bool WikiMirrorEnabled { get; set; }
+    public bool OpenSlidesMeetingConfigured { get; set; }
 }
 
 public class AssemblyMotionCommissionInfoDTO {

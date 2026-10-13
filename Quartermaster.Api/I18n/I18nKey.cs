@@ -104,11 +104,17 @@ public static class I18nKey {
             public const string MarkdownImageNotAllowed = "error.assembly_motion.markdown_image_not_allowed";
             public const string MarkdownTooDeeplyNested = "error.assembly_motion.markdown_too_deeply_nested";
             public const string MarkdownTooLong = "error.assembly_motion.markdown_too_long";
+            public const string MarkdownTableTooLarge = "error.assembly_motion.markdown_table_too_large";
+            public const string MarkdownTooManyBrackets = "error.assembly_motion.markdown_too_many_brackets";
+            public const string MarkdownTooMuchInlineMarkup = "error.assembly_motion.markdown_too_much_inline_markup";
+            public const string MarkdownOutputTooLarge = "error.assembly_motion.markdown_output_too_large";
+            public const string MarkdownTooManyLines = "error.assembly_motion.markdown_too_many_lines";
             public const string NotFound = "error.assembly_motion.not_found";
             public const string NotAuthor = "error.assembly_motion.not_author";
             public const string NotCommission = "error.assembly_motion.not_commission";
             public const string PortalNotOpen = "error.assembly_motion.portal_not_open";
             public const string PortalClosed = "error.assembly_motion.portal_closed";
+            public const string DraftLimitReached = "error.assembly_motion.draft_limit_reached";
             public const string DeadlinePassed = "error.assembly_motion.deadline_passed";
             public const string InvalidState = "error.assembly_motion.invalid_state";
             public const string EditLocked = "error.assembly_motion.edit_locked";
@@ -117,6 +123,9 @@ public static class I18nKey {
             public const string WikiNotConfigured = "error.assembly_motion.wiki_not_configured";
             public const string WikiMirrorDisabled = "error.assembly_motion.wiki_mirror_disabled";
             public const string WikiMotionNotNumbered = "error.assembly_motion.wiki_motion_not_numbered";
+            public const string OpenSlidesNotConfigured = "error.assembly_motion.openslides_not_configured";
+            public const string OpenSlidesMeetingMissing = "error.assembly_motion.openslides_meeting_missing";
+            public const string OpenSlidesPushRunning = "error.assembly_motion.openslides_push_running";
             public const string RevisionConflict = "error.assembly_motion.revision_conflict";
             public const string AlreadySubmitter = "error.assembly_motion.already_submitter";
             public const string NotSubmitter = "error.assembly_motion.not_submitter";
@@ -161,6 +170,7 @@ public static class I18nKey {
                 public const string PrioritizationEndAfterClose = "error.assembly_motion.portal.prioritization_end_after_close";
                 public const string WikiPagePrefixRequired = "error.assembly_motion.portal.wiki_page_prefix_required";
                 public const string WikiAssemblyLabelRequired = "error.assembly_motion.portal.wiki_assembly_label_required";
+                public const string OpenSlidesMeetingIdInvalid = "error.assembly_motion.portal.openslides_meeting_id_invalid";
             }
 
             public static class Type {
@@ -723,6 +733,7 @@ public static class I18nKey {
             public const string OpenMotionsTitle = "ui.home.open_motions_title";
             public const string OpenMotionsEmpty = "ui.home.open_motions_empty";
             public const string UpcomingEventsTitle = "ui.home.upcoming_events_title";
+            public const string UpcomingEventDateOpen = "ui.home.upcoming_event_date_open";
             public const string WelcomeText = "ui.home.welcome_text";
             public const string ChangelogTitle = "ui.home.changelog_title";
         }
@@ -2342,6 +2353,22 @@ public static class I18nKey {
             public const string OpenSlidesMotionId = "ui.assembly_motion.open_slides_motion_id";
             public const string OpenSlidesPushedRevision = "ui.assembly_motion.open_slides_pushed_revision";
             public const string OpenSlidesPushedAt = "ui.assembly_motion.open_slides_pushed_at";
+            public const string OpenSlidesPush = "ui.assembly_motion.open_slides_push";
+            public const string OpenSlidesPushTitle = "ui.assembly_motion.open_slides_push_title";
+            public const string OpenSlidesPushMessage = "ui.assembly_motion.open_slides_push_message";
+            public const string OpenSlidesIncludeSubmitted = "ui.assembly_motion.open_slides_include_submitted";
+            public const string OpenSlidesPushRunning = "ui.assembly_motion.open_slides_push_running";
+            public const string OpenSlidesMeetingMissingHint = "ui.assembly_motion.open_slides_meeting_missing_hint";
+            public const string OpenSlidesResultTitle = "ui.assembly_motion.open_slides_result_title";
+            public const string OpenSlidesResultCreated = "ui.assembly_motion.open_slides_result_created";
+            public const string OpenSlidesResultUpdated = "ui.assembly_motion.open_slides_result_updated";
+            public const string OpenSlidesResultSkipped = "ui.assembly_motion.open_slides_result_skipped";
+            public const string OpenSlidesResultFailures = "ui.assembly_motion.open_slides_result_failures";
+            public const string OpenSlidesCheckConnection = "ui.assembly_motion.open_slides_check_connection";
+            public const string OpenSlidesCheckConnectionHint = "ui.assembly_motion.open_slides_check_connection_hint";
+            public const string OpenSlidesRevisionOutdated = "ui.assembly_motion.open_slides_revision_outdated";
+            public const string ExportJson = "ui.assembly_motion.export_json";
+            public const string OpenSlidesPushInterrupted = "ui.assembly_motion.open_slides_push_interrupted";
             public const string CurrentRevision = "ui.assembly_motion.current_revision";
             public const string EffectiveDeadline = "ui.assembly_motion.effective_deadline";
             public const string NoCompetitions = "ui.assembly_motion.no_competitions";
@@ -2395,6 +2422,14 @@ public static class I18nKey {
             public const string ResultsChangedCount = "ui.assembly_motion.results_changed_count";
             public const string ResultsEventNotReached = "ui.assembly_motion.results_event_not_reached";
             public const string ResultsNoEventDate = "ui.assembly_motion.results_no_event_date";
+            public const string PortalOpensHint = "ui.assembly_motion.portal_opens_hint";
+            public const string PortalClosedHint = "ui.assembly_motion.portal_closed_hint";
+            public const string ReleaseConfirmTitle = "ui.assembly_motion.release_confirm_title";
+            public const string ReleaseConfirmMessage = "ui.assembly_motion.release_confirm_message";
+            public const string JoinNotEligibleTitle = "ui.assembly_motion.join_not_eligible_title";
+            public const string UpvoteCountTextOne = "ui.assembly_motion.upvote_count_text_one";
+            public const string RevisionWarningUnnumberedAlone = "ui.assembly_motion.revision_warning_unnumbered_alone";
+            public const string RevisionWarningUnnumberedMulti = "ui.assembly_motion.revision_warning_unnumbered_multi";
         }
     }
 }

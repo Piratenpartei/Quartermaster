@@ -141,7 +141,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | German (UI) | English (code) | Meaning |
 |---|---|---|
 | Versammlung | assembly | An `Event` with the motion portal enabled |
-| Antragsportal | motion portal | The per-event feature described here |
+| Antragsportal | motion portal | The motion portal of an event |
 | Antrag | assembly motion | A motion addressed to an assembly. Not the existing board `Motion` |
 | Antragsart | motion type | GP, WP, SÄA, SBA, PP, SO or whatever the event configures |
 | Antragsteller | author | The member who created the motion |

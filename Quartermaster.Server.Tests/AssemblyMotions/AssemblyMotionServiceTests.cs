@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -378,6 +380,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         var type = TypeWithMinSubmitters(portal.Id, 1);
         var author = SeedEligibleMember();
         var staleMotion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+        _service.Release(staleMotion.Id, author, now);
 
         using var dbReleaser = Worker.CreateDbContext();
         using var dbEditor = Worker.CreateDbContext();
@@ -788,5 +791,215 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
 
         var numbers = results.Select(r => r.Motion!.Number!.Value).OrderBy(n => n).ToArray();
         await Assert.That(numbers).IsEquivalentTo([1, 2]);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task CreateDraft_refuses_text_that_becomes_html_when_normalized(string markdown) {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+
+        var inText = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = markdown }, now);
+        var inReason = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id) with { ReasonMarkdown = markdown }, now);
+        var stored = _context.AssemblyMotions
+            .Where(m => m.PortalId == portal.Id)
+            .ToList();
+
+        await Assert.That(inText.StatusCode).IsEqualTo(422);
+        await Assert.That(inText.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(inReason.StatusCode).IsEqualTo(422);
+        await Assert.That(inReason.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(stored.SelectMany(m => MotionMarkdownSafetyTests.ForeignMarkup(m.TextHtml + m.ReasonHtml))).IsEmpty();
+        await Assert.That(stored).IsEmpty();
+    }
+
+    [Test]
+    public async Task CreateDraft_refuses_table_bomb() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var bomb = string.Concat(Enumerable.Repeat("|a", 400)) + "\n" + string.Concat(Enumerable.Repeat("|-", 400)) + "\n" + string.Concat(Enumerable.Repeat("a|\n", 400));
+
+        var outcome = _service.CreateDraft(portal, SeedEligibleMember(), Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = bomb }, now);
+
+        await Assert.That(outcome.StatusCode).IsEqualTo(422);
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownTableTooLarge);
+        await Assert.That(_context.AssemblyMotions.Count(m => m.PortalId == portal.Id)).IsEqualTo(0);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task UpdateByAuthor_refuses_text_that_becomes_html_when_normalized(string markdown) {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { ReasonMarkdown = markdown }, baseRevision: 1, now);
+        var stored = _motionRepo.Get(motion.Id)!;
+
+        await Assert.That(outcome.StatusCode).IsEqualTo(422);
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(stored.ReasonMarkdown).IsEqualTo("Begründung");
+        await Assert.That(stored.Revision).IsEqualTo(1);
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored.TextHtml + stored.ReasonHtml)).IsEmpty();
+    }
+
+    [Test]
+    public async Task CreateDraft_stores_the_normalized_text_and_the_html_rendered_from_it() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var draft = NewDraft(type.Id) with { TextMarkdown = "Über\r\n===\r\rEin `Code" + MotionMarkdownSafetyTests.GreekVaria + " \r\n" };
+
+        var motion = _service.CreateDraft(portal, SeedEligibleMember(), Guid.NewGuid(), draft, now).Motion!;
+
+        await Assert.That(motion.TextMarkdown).IsEqualTo("Über\n===\n\nEin `Code`");
+        await Assert.That(motion.TextHtml).IsEqualTo("<h1>Über</h1>\n<p>Ein <code>Code</code></p>\n");
+    }
+
+    [Test]
+    public async Task Draft_cannot_be_withdrawn() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var draft = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+
+        var outcome = _service.Withdraw(draft.Id, author, now);
+
+        await Assert.That(outcome.Succeeded).IsFalse();
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InvalidState);
+        await Assert.That(_service.CanWithdraw(portal, draft, author, now)).IsFalse();
+        await Assert.That(_motionRepo.Get(draft.Id)!.Status).IsEqualTo(AssemblyMotionStatus.Draft);
+        await Assert.That(_motionRepo.Get(draft.Id)!.WithdrawnAt).IsNull();
+    }
+
+    [Test]
+    public async Task Released_motion_can_still_be_withdrawn() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+
+        await Assert.That(_service.CanWithdraw(portal, motion, author, now)).IsTrue();
+        await Assert.That(_service.Withdraw(motion.Id, author, now).Succeeded).IsTrue();
+    }
+
+    [Test]
+    public async Task Drafts_per_member_and_portal_are_capped() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var otherPortal = _portalRepo.Create(_builder.SeedEvent(_chapter.Id).Id, now.AddHours(-1), now.AddDays(7), now);
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var other = SeedEligibleMember();
+        for (var i = 0; i < AssemblyMotionService.MaxDraftsPerMemberAndPortal; i++)
+            _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now);
+
+        var refused = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now);
+        var otherMember = _service.CreateDraft(portal, other, Guid.NewGuid(), NewDraft(type.Id), now);
+        var otherPortalDraft = _service.CreateDraft(otherPortal, author, Guid.NewGuid(), NewDraft(TypeWithMinSubmitters(otherPortal.Id, 1).Id), now);
+        var summariesWhileOnlyDrafts = _motionRepo.ListSummariesByPortal(portal.Id).Count;
+        var firstDraft = Db.AssemblyMotions.First(m => m.PortalId == portal.Id && m.CreatedByMemberId == author.Id);
+        _service.DeleteDraft(firstDraft.Id, author, now);
+        var afterDelete = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now);
+
+        await Assert.That(refused.Succeeded).IsFalse();
+        await Assert.That(refused.StatusCode).IsEqualTo(409);
+        await Assert.That(refused.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.DraftLimitReached);
+        await Assert.That(otherMember.Succeeded).IsTrue();
+        await Assert.That(otherPortalDraft.Succeeded).IsTrue();
+        await Assert.That(summariesWhileOnlyDrafts).IsEqualTo(0);
+        await Assert.That(afterDelete.Succeeded).IsTrue();
+    }
+
+    [Test]
+    public async Task Released_motions_do_not_count_against_the_draft_cap() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        for (var i = 0; i < AssemblyMotionService.MaxDraftsPerMemberAndPortal; i++) {
+            var draft = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+            _service.Release(draft.Id, author, now);
+        }
+
+        var next = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now);
+
+        await Assert.That(next.Succeeded).IsTrue();
+    }
+
+    [Test]
+    public async Task Control_characters_are_removed_from_single_line_fields_and_a_title_of_only_control_characters_is_refused() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var dirty = NewDraft(type.Id) with {
+            Title = "Ti\r\ntel\u0000",
+            Section = "\u2028§ 3",
+            Summary = "eine\nZeile",
+            Keywords = "\t",
+            PriorDiscussion = "x\ry"
+        };
+
+        var created = _service.CreateDraft(portal, author, Guid.NewGuid(), dirty, now);
+        var empty = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "\u0001\r\n" }, now);
+        var updated = _service.UpdateByAuthor(created.Motion!, author, Guid.NewGuid(), dirty with { Title = "Neu\nTitel" }, 1, now);
+
+        await Assert.That(created.Succeeded).IsTrue();
+        await Assert.That(created.Motion!.Title).IsEqualTo("Titel");
+        await Assert.That(created.Motion.Section).IsEqualTo("§ 3");
+        await Assert.That(created.Motion.Summary).IsEqualTo("eineZeile");
+        await Assert.That(created.Motion.Keywords).IsNull();
+        await Assert.That(created.Motion.PriorDiscussion).IsEqualTo("xy");
+        await Assert.That(empty.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.TitleRequired);
+        await Assert.That(updated.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.Get(created.Motion.Id)!.Title).IsEqualTo("NeuTitel");
+    }
+
+    [Test]
+    public async Task Concurrent_type_changes_to_the_same_single_submitter_type_do_not_deadlock() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var collectingType = TypeWithMinSubmitters(portal.Id, 5);
+        var singleType = TypeWithMinSubmitters(portal.Id, 1);
+        var numbers = new List<int>();
+
+        for (var round = 0; round < 12; round++) {
+            var authorA = SeedEligibleMember();
+            var authorB = SeedEligibleMember();
+            var motionA = _service.CreateDraft(portal, authorA, Guid.NewGuid(), NewDraft(collectingType.Id), now).Motion!;
+            var motionB = _service.CreateDraft(portal, authorB, Guid.NewGuid(), NewDraft(collectingType.Id), now).Motion!;
+            _service.Release(motionA.Id, authorA, now);
+            _service.Release(motionB.Id, authorB, now);
+            using var dbA = Worker.CreateDbContext();
+            using var dbB = Worker.CreateDbContext();
+            var serviceA = NewServiceOn(dbA);
+            var serviceB = NewServiceOn(dbB);
+            var gate = new ManualResetEventSlim(false);
+
+            var taskA = Task.Run(() => {
+                gate.Wait();
+                return serviceA.UpdateByAuthor(motionA, authorA, Guid.NewGuid(), NewDraft(singleType.Id), 1, now);
+            });
+            var taskB = Task.Run(() => {
+                gate.Wait();
+                return serviceB.UpdateByAuthor(motionB, authorB, Guid.NewGuid(), NewDraft(singleType.Id), 1, now);
+            });
+            gate.Set();
+            var results = await Task.WhenAll(taskA, taskB);
+
+            await Assert.That(results.All(r => r.Succeeded)).IsTrue();
+            numbers.Add(_motionRepo.Get(motionA.Id)!.Number!.Value);
+            numbers.Add(_motionRepo.Get(motionB.Id)!.Number!.Value);
+        }
+
+        await Assert.That(numbers.Distinct().Count()).IsEqualTo(numbers.Count);
     }
 }

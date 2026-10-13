@@ -8,7 +8,7 @@ namespace Quartermaster.Server.AssemblyMotions.Endpoints.Commission;
 public class AssemblyMotionCommissionEditRequestValidator : AssemblyMotionSaveFieldsValidator<AssemblyMotionCommissionEditRequest> {
     public AssemblyMotionCommissionEditRequestValidator() {
         RuleFor(x => x.ChangeNote)
-            .MaximumLength(2000)
+            .MaximumLength(AssemblyMotionContent.ChangeNoteMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.ChangeNoteMaxLength);
     }
 }

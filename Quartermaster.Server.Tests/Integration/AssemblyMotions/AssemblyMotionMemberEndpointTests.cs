@@ -12,6 +12,8 @@ using Quartermaster.Api.Events;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Server.AssemblyMotions;
+using Quartermaster.Server.Tests.AssemblyMotions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.AssemblyMotions;
@@ -261,7 +263,7 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
 
     [Test]
     [Arguments(">", 500)]
-    [Arguments("[a", 500)]
+    [Arguments("[a", 200)]
     public async Task Create_with_too_deeply_nested_text_returns_400(string unit, int repeat) {
         var (chapter, portal, type) = SeedPortal();
         var author = SeedParticipant(chapter, "Anna", "Autor");
@@ -342,5 +344,165 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
 
         await Assert.That(own.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(foreign.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task Create_and_update_refuse_text_that_becomes_html_when_normalized(string markdown) {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type);
+        using var client = await AuthenticatedClientWithCsrfAsync(author.Token);
+
+        var createRequest = SaveRequest(type, "Zweiter");
+        createRequest.TextMarkdown = markdown;
+        var createResponse = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", createRequest);
+        var updateRequest = SaveRequest(type);
+        updateRequest.ReasonMarkdown = markdown;
+        updateRequest.BaseRevision = created.Revision;
+        var updateResponse = await client.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}", updateRequest);
+        var stored = Db.AssemblyMotions
+            .Where(m => m.PortalId == portal.Id)
+            .ToList();
+
+        await Assert.That(createResponse.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await createResponse.Content.ReadAsStringAsync()).Contains("error.assembly_motion.markdown_html_not_allowed");
+        await Assert.That(updateResponse.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(stored.SelectMany(m => MotionMarkdownSafetyTests.ForeignMarkup(m.TextHtml + m.ReasonHtml))).IsEmpty();
+        await Assert.That(stored.Count).IsEqualTo(1);
+        await Assert.That(stored[0].ReasonMarkdown).IsEqualTo("Grund");
+    }
+
+    [Test]
+    public async Task Create_with_table_bomb_returns_400() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        using var client = await AuthenticatedClientWithCsrfAsync(author.Token);
+
+        var request = SaveRequest(type);
+        request.TextMarkdown = string.Concat(Enumerable.Repeat("|a", 1000)) + "\n" + string.Concat(Enumerable.Repeat("|-", 1000)) + "\n" + string.Concat(Enumerable.Repeat("a|\n", 2000));
+        var response = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", request);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.assembly_motion.markdown_table_too_large");
+        await Assert.That(Db.AssemblyMotions.Count(m => m.PortalId == portal.Id)).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Draft_cannot_be_withdrawn_and_detail_offers_no_withdraw() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type);
+
+        var withdraw = await Post(author, $"/api/assemblymotions/motions/{created.Id}/withdraw");
+        var detail = await GetDetail(author.Token, created.Id);
+        using var anonymous = AnonymousClient();
+        var anonymousView = await anonymous.GetAsync($"/api/assemblymotions/motions/{created.Id}/public");
+
+        await Assert.That(created.CanWithdraw).IsFalse();
+        await Assert.That(withdraw.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await withdraw.Content.ReadAsStringAsync()).Contains("error.assembly_motion.invalid_state");
+        await Assert.That(detail!.Status).IsEqualTo(AssemblyMotionStatus.Draft);
+        await Assert.That(detail.CanWithdraw).IsFalse();
+        await Assert.That(anonymousView.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+    }
+
+    [Test]
+    public async Task Revisions_saved_as_draft_are_only_returned_to_the_author() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var other = SeedParticipant(chapter, "Bert", "Zweiter");
+        var created = await CreateMotion(author, portal, type);
+        using var authorClient = await AuthenticatedClientWithCsrfAsync(author.Token);
+        var draftOne = SaveRequest(type, "Entwurf-Titel-eins");
+        draftOne.TextMarkdown = "Entwurfstext-geheim-eins";
+        draftOne.BaseRevision = 1;
+        await authorClient.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}", draftOne);
+        var draftTwo = SaveRequest(type, "Titel-bei-Freigabe");
+        draftTwo.TextMarkdown = "Text-bei-Freigabe";
+        draftTwo.BaseRevision = 2;
+        await authorClient.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}", draftTwo);
+        await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
+        var afterRelease = SaveRequest(type, "Titel-nach-Freigabe");
+        afterRelease.TextMarkdown = "Text-nach-Freigabe";
+        afterRelease.BaseRevision = 3;
+        var edit = await authorClient.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}", afterRelease);
+        using var otherClient = await AuthenticatedClientWithCsrfAsync(other.Token);
+
+        var own = await authorClient.GetFromJsonAsync<List<AssemblyMotionRevisionDTO>>($"/api/assemblymotions/motions/{created.Id}/revisions");
+        var foreignResponse = await otherClient.GetAsync($"/api/assemblymotions/motions/{created.Id}/revisions");
+        var foreignBody = await foreignResponse.Content.ReadAsStringAsync();
+        var foreign = await foreignResponse.Content.ReadFromJsonAsync<List<AssemblyMotionRevisionDTO>>();
+
+        await Assert.That(edit.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(own!.Select(r => r.Revision).ToArray()).IsEquivalentTo(new[] { 1, 2, 3, 4 });
+        await Assert.That(foreignResponse.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(foreign!.Select(r => r.Revision).ToArray()).IsEquivalentTo(new[] { 3, 4 });
+        await Assert.That(foreignBody).Contains("Text-bei-Freigabe");
+        await Assert.That(foreignBody).DoesNotContain("Entwurfstext-geheim-eins");
+        await Assert.That(foreignBody).DoesNotContain("Entwurf-Titel-eins");
+        await Assert.That(foreignBody).Contains("Titel-nach-Freigabe");
+    }
+
+    [Test]
+    public async Task Creating_more_drafts_than_the_cap_is_refused() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        for (var i = 0; i < AssemblyMotionService.MaxDraftsPerMemberAndPortal; i++) {
+            Db.Insert(new AssemblyMotion {
+                PortalId = portal.Id,
+                TypeId = type.Id,
+                Title = "Entwurf " + i,
+                Status = AssemblyMotionStatus.Draft,
+                CreatedByMemberId = author.Member.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        using var client = await AuthenticatedClientWithCsrfAsync(author.Token);
+
+        var response = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", SaveRequest(type));
+        var body = await response.Content.ReadAsStringAsync();
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(body).Contains("error.assembly_motion.draft_limit_reached");
+        await Assert.That(Db.AssemblyMotions.Count(m => m.PortalId == portal.Id)).IsEqualTo(AssemblyMotionService.MaxDraftsPerMemberAndPortal);
+    }
+
+    [Test]
+    public async Task Control_characters_are_stripped_from_single_line_fields() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        using var client = await AuthenticatedClientWithCsrfAsync(author.Token);
+
+        var request = SaveRequest(type, "Zeile\r\neins\u0001");
+        request.Section = "\u0007Abschnitt\n3";
+        request.Keywords = "a\tb";
+        var response = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", request);
+        var detail = await response.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>();
+        var onlyControl = SaveRequest(type, "\u0001\u0002");
+        var rejected = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/motions", onlyControl);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(detail!.Title).IsEqualTo("Zeileeins");
+        await Assert.That(detail.Section).IsEqualTo("Abschnitt3");
+        await Assert.That(detail.Keywords).IsEqualTo("ab");
+        await Assert.That(rejected.StatusCode).IsEqualTo(HttpStatusCode.UnprocessableEntity);
+        await Assert.That(await rejected.Content.ReadAsStringAsync()).Contains("error.assembly_motion.title_required");
+        await Assert.That(Db.AssemblyMotions.Count(m => m.PortalId == portal.Id)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Submitter_list_carries_no_member_ids() {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var other = SeedParticipant(chapter, "Bert", "Zweiter");
+        var created = await CreateMotion(author, portal, type);
+        await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
+        using var client = await AuthenticatedClientWithCsrfAsync(other.Token);
+
+        var body = await client.GetStringAsync($"/api/assemblymotions/motions/{created.Id}");
+
+        await Assert.That(body).Contains("Anna Autor");
+        await Assert.That(body).DoesNotContain(author.Member.Id.ToString());
     }
 }

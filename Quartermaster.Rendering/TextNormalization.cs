@@ -13,6 +13,30 @@ public static class TextNormalization {
         return ReplaceLoneSurrogates(text).Normalize(NormalizationForm.FormC);
     }
 
+    /// <summary>
+    /// Removes control characters (including CR, LF and tab) and the Unicode line and paragraph separators, so the result is safe for a single-line field. Null yields an empty string.
+    /// </summary>
+    public static string RemoveControlCharacters(string? text) {
+        if (string.IsNullOrEmpty(text))
+            return "";
+
+        var sb = new StringBuilder(text.Length);
+        foreach (var c in text) {
+            if (IsLineOrControlCharacter(c))
+                continue;
+            sb.Append(c);
+        }
+
+        return sb.ToString();
+    }
+
+    private static bool IsLineOrControlCharacter(char c) {
+        if (char.IsControl(c))
+            return true;
+
+        return c == '\u2028' || c == '\u2029';
+    }
+
     private static string ReplaceLoneSurrogates(string text) {
         StringBuilder? sb = null;
         for (var i = 0; i < text.Length; i++) {

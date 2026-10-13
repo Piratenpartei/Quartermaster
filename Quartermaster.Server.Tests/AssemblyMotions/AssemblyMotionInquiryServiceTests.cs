@@ -227,4 +227,56 @@ public class AssemblyMotionInquiryServiceTests : RepositoryTestBase {
         await Assert.That(counts[first.Id]).IsEqualTo(2);
         await Assert.That(counts.ContainsKey(second.Id)).IsFalse();
     }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task Ask_and_answer_refuse_text_that_becomes_html_when_normalized(string markdown) {
+        var (motion, author) = SubmittedMotion();
+        var now = DateTime.UtcNow;
+        var inquiry = AskedInquiry(motion);
+
+        var asked = _inquiries.Ask(motion.Id, markdown, now.AddDays(2), _userId, now);
+        var answered = _inquiries.Answer(inquiry.Id, author, markdown, now);
+        var stored = _inquiryRepo.ListForMotion(motion.Id);
+
+        await Assert.That(asked.StatusCode).IsEqualTo(422);
+        await Assert.That(asked.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(answered.StatusCode).IsEqualTo(422);
+        await Assert.That(answered.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(stored.Count).IsEqualTo(1);
+        await Assert.That(stored[0].AnswerMarkdown).IsNull();
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored[0].QuestionHtml + stored[0].AnswerHtml)).IsEmpty();
+    }
+
+    [Test]
+    public async Task Ask_and_answer_store_the_normalized_text() {
+        var (motion, author) = SubmittedMotion();
+        var now = DateTime.UtcNow;
+
+        _inquiries.Ask(motion.Id, "    Fräge\r\nzwei \r\n", now.AddDays(2), _userId, now);
+        var inquiry = _inquiryRepo.ListForMotion(motion.Id).Single();
+        _inquiries.Answer(inquiry.Id, author, "*Ja*" + MotionMarkdownSafetyTests.GreekQuestionMark + "\n\n", now);
+        var answered = _inquiryRepo.ListForMotion(motion.Id).Single();
+
+        await Assert.That(inquiry.QuestionMarkdown).IsEqualTo("    Fräge\nzwei");
+        await Assert.That(inquiry.QuestionHtml).IsEqualTo("<pre><code>Fräge\n</code></pre>\n<p>zwei</p>\n");
+        await Assert.That(answered.AnswerMarkdown).IsEqualTo("*Ja*;");
+        await Assert.That(answered.AnswerHtml).IsEqualTo("<p><em>Ja</em>;</p>\n");
+    }
+
+    [Test]
+    public async Task Length_limit_applies_to_the_normalized_inquiry_text() {
+        var (motion, author) = SubmittedMotion();
+        var now = DateTime.UtcNow;
+        var inquiry = AskedInquiry(motion);
+        var expanding = new string('שּׁ', 7000);
+
+        var asked = _inquiries.Ask(motion.Id, expanding, now.AddDays(2), _userId, now);
+        var answered = _inquiries.Answer(inquiry.Id, author, expanding, now);
+
+        await Assert.That(asked.StatusCode).IsEqualTo(422);
+        await Assert.That(asked.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InquiryQuestionMaxLength);
+        await Assert.That(answered.StatusCode).IsEqualTo(422);
+        await Assert.That(answered.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InquiryAnswerMaxLength);
+    }
 }

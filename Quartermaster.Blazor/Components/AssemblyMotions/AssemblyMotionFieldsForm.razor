@@ -31,13 +31,13 @@
     <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.SectionHelp]</div>
 </div>
 <div class="mb-3">
-    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldText] <RequiredStar /></label>
-    <MarkdownEditorWithPreview @bind-Value="Values.TextMarkdown" Rows="12" Flavor="MarkdownFlavor.Motion" />
+    <label for="motion-text" class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldText] <RequiredStar /></label>
+    <MarkdownEditorWithPreview Id="motion-text" @bind-Value="Values.TextMarkdown" Rows="12" Flavor="MarkdownFlavor.Motion" />
     <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.FormattingHelp]</div>
 </div>
 <div class="mb-3">
-    <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldReason] <RequiredStar /></label>
-    <MarkdownEditorWithPreview @bind-Value="Values.ReasonMarkdown" Rows="10" Flavor="MarkdownFlavor.Motion" />
+    <label for="motion-reason" class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.FieldReason] <RequiredStar /></label>
+    <MarkdownEditorWithPreview Id="motion-reason" @bind-Value="Values.ReasonMarkdown" Rows="10" Flavor="MarkdownFlavor.Motion" />
     <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.FormattingHelp]</div>
 </div>
 <div class="mb-3">

@@ -13,7 +13,7 @@ public abstract class AssemblyMotionTypeFieldsValidator<T> : Validator<T> where 
             .WithMessage(I18nKey.Error.AssemblyMotion.Type.CodeInvalid);
 
         RuleFor(x => x.Name)
-            .NotEmpty()
+            .Must(name => !string.IsNullOrWhiteSpace(AssemblyMotionContent.SingleLineSetting(name)))
             .WithMessage(I18nKey.Error.AssemblyMotion.Type.NameRequired);
 
         RuleFor(x => x.MinSubmitters)

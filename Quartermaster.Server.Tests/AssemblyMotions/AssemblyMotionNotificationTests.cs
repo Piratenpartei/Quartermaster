@@ -261,7 +261,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Withdrawing_a_draft_enqueues_nothing() {
+    public async Task Withdrawing_a_draft_is_refused_and_enqueues_nothing() {
         var now = DateTime.UtcNow;
         var portal = _portalRepo.Create(_event.Id, now.AddHours(-1), now.AddDays(7), now);
         var type = _portalRepo.GetTypes(portal.Id).First(t => t.MinSubmitters == 5);
@@ -270,7 +270,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
 
         var outcome = _service.Withdraw(draft.Id, author, now);
 
-        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(outcome.Succeeded).IsFalse();
         await Assert.That(_queue.Requests.Count).IsEqualTo(0);
     }
 

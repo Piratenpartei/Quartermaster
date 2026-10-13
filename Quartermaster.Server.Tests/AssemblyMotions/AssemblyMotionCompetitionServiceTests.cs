@@ -382,4 +382,160 @@ public class AssemblyMotionCompetitionServiceTests : RepositoryTestBase {
         await Assert.That(secondRelease.Succeeded).IsFalse();
         await Assert.That(_queue.Requests.Count(r => r.TriggerId == NotificationTriggers.AssemblyMotionCompetitionDeclared)).IsEqualTo(1);
     }
+
+    private void SetDeadlines(DateTime deadline, DateTime competingDeadline)
+        => Db.AssemblyMotionTypes
+            .Where(t => t.PortalId == _portal.Id)
+            .Set(t => t.Deadline, deadline)
+            .Set(t => t.CompetingDeadline, competingDeadline)
+            .Update();
+
+    private AssemblyMotionDraft DraftOf(AssemblyMotion motion, string title)
+        => new(motion.TypeId, title, null, "Antragstext", "Begründung", null, null, null);
+
+    [Test]
+    [Arguments(0.5, true)]
+    [Arguments(2.0, true)]
+    [Arguments(4.0, false)]
+    public async Task Competing_motion_can_flag_edit_and_release_until_the_competing_deadline(double daysAfterStart, bool allowed) {
+        var start = _now;
+        SetDeadlines(start.AddDays(1), start.AddDays(3));
+        var (first, _) = Submitted();
+        var (draft, draftAuthor) = NewMotion(false);
+        var at = start.AddDays(daysAfterStart);
+        _competitions.Declare(draft.Id, first.Id, _userId, draftAuthor, false, at);
+
+        var flag = _competitions.SetCompetingFlag(draft.Id, true, draftAuthor, false, at);
+        var edit = _service.UpdateByAuthor(_motionRepo.Get(draft.Id)!, draftAuthor, _userId, DraftOf(draft, "Spät"), 1, at);
+        var release = _service.Release(draft.Id, draftAuthor, at);
+
+        await Assert.That(flag.Succeeded).IsEqualTo(allowed);
+        await Assert.That(edit.Succeeded).IsEqualTo(allowed);
+        await Assert.That(release.Succeeded).IsEqualTo(allowed);
+        await Assert.That(_motionRepo.Get(draft.Id)!.Status).IsEqualTo(allowed ? AssemblyMotionStatus.Submitted : AssemblyMotionStatus.Draft);
+        if (!allowed)
+            await Assert.That(flag.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+    }
+
+    [Test]
+    public async Task Motion_without_a_link_cannot_use_the_competing_deadline() {
+        var start = _now;
+        SetDeadlines(start.AddDays(1), start.AddDays(3));
+        var (draft, draftAuthor) = NewMotion(false);
+        var at = start.AddDays(2);
+
+        var flag = _competitions.SetCompetingFlag(draft.Id, true, draftAuthor, false, at);
+        var edit = _service.UpdateByAuthor(_motionRepo.Get(draft.Id)!, draftAuthor, _userId, DraftOf(draft, "Spät"), 1, at);
+        var release = _service.Release(draft.Id, draftAuthor, at);
+
+        await Assert.That(flag.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.CompetingFlagRequiresLink);
+        await Assert.That(edit.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.EditLocked);
+        await Assert.That(release.ErrorKey).StartsWith(I18nKey.Error.AssemblyMotion.DeadlinePassed);
+        await Assert.That(_motionRepo.Get(draft.Id)!.IsCompetingMotion).IsFalse();
+    }
+
+    [Test]
+    public async Task Removing_the_link_after_the_normal_deadline_takes_the_later_deadline_away() {
+        var start = _now;
+        SetDeadlines(start.AddDays(1), start.AddDays(3));
+        var (first, _) = Submitted();
+        var (draft, draftAuthor) = NewMotion(false);
+        var at = start.AddDays(2);
+        _competitions.Declare(draft.Id, first.Id, _userId, draftAuthor, false, at);
+        _competitions.SetCompetingFlag(draft.Id, true, draftAuthor, false, at);
+
+        _competitions.Remove(OnlyLink(draft.Id).Id, _userId, draftAuthor, false, at);
+        var release = _service.Release(draft.Id, draftAuthor, at);
+
+        await Assert.That(_motionRepo.Get(draft.Id)!.IsCompetingMotion).IsFalse();
+        await Assert.That(release.ErrorKey).StartsWith(I18nKey.Error.AssemblyMotion.DeadlinePassed);
+        await Assert.That(_motionRepo.Get(draft.Id)!.Status).IsEqualTo(AssemblyMotionStatus.Draft);
+    }
+
+    [Test]
+    public async Task Clearing_the_flag_after_the_normal_deadline_lapses_a_collecting_motion() {
+        var start = _now;
+        SetDeadlines(start.AddDays(1), start.AddDays(3));
+        var (first, _) = Submitted();
+        var (collecting, collectingAuthor) = NewMotion(false, minSubmitters: 5);
+        var at = start.AddDays(2);
+        _competitions.Declare(collecting.Id, first.Id, _userId, collectingAuthor, false, at);
+        _competitions.SetCompetingFlag(collecting.Id, true, collectingAuthor, false, at);
+        _service.Release(collecting.Id, collectingAuthor, at);
+
+        _competitions.SetCompetingFlag(collecting.Id, false, null, true, at);
+        var lapsed = _service.LapseOverdue(at);
+
+        await Assert.That(lapsed).IsEqualTo(1);
+        await Assert.That(_motionRepo.Get(collecting.Id)!.Status).IsEqualTo(AssemblyMotionStatus.Lapsed);
+    }
+
+    [Test]
+    public async Task Removing_a_link_keeps_the_wiki_requeue_when_the_flag_is_cleared() {
+        var (first, _) = Submitted();
+        var (second, secondAuthor) = Submitted();
+        _competitions.Declare(second.Id, first.Id, _userId, secondAuthor, false, _now);
+        _competitions.SetCompetingFlag(second.Id, true, secondAuthor, false, _now);
+        Db.AssemblyMotions
+            .Where(m => m.Id == first.Id || m.Id == second.Id)
+            .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+            .Set(m => m.WikiSyncRequestedAt, (DateTime?)null)
+            .Update();
+
+        _competitions.Remove(OnlyLink(second.Id).Id, _userId, secondAuthor, false, _now);
+
+        var reloaded = _motionRepo.Get(second.Id)!;
+        await Assert.That(reloaded.IsCompetingMotion).IsFalse();
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(reloaded.WikiSyncRequestedAt).IsNotNull();
+        await Assert.That(_motionRepo.Get(first.Id)!.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+    }
+
+    [Test]
+    public async Task Release_of_a_linked_draft_queues_the_older_motion_for_the_wiki() {
+        var (first, _) = Submitted();
+        var (draft, draftAuthor) = NewMotion(false);
+        _competitions.Declare(draft.Id, first.Id, _userId, draftAuthor, false, _now);
+        MarkSynced(first.Id);
+
+        _service.Release(draft.Id, draftAuthor, _now);
+
+        await Assert.That(_motionRepo.Get(first.Id)!.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+    }
+
+    [Test]
+    public async Task Final_join_of_a_linked_collecting_motion_queues_the_older_motion_for_the_wiki() {
+        var (first, _) = Submitted();
+        var (collecting, collectingAuthor) = NewMotion(false, minSubmitters: 5);
+        _competitions.Declare(collecting.Id, first.Id, _userId, collectingAuthor, false, _now);
+        _service.Release(collecting.Id, collectingAuthor, _now);
+        MarkSynced(first.Id);
+        for (var i = 0; i < 3; i++)
+            _service.Join(collecting.Id, _builder.SeedMember(chapterId: _chapter.Id), _now);
+        var beforeFinalJoin = _motionRepo.Get(first.Id)!.WikiSyncState;
+
+        _service.Join(collecting.Id, _builder.SeedMember(chapterId: _chapter.Id), _now);
+
+        await Assert.That(beforeFinalJoin).IsEqualTo(WikiSyncState.Synced);
+        await Assert.That(_motionRepo.Get(collecting.Id)!.Number).IsNotNull();
+        await Assert.That(_motionRepo.Get(first.Id)!.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+    }
+
+    [Test]
+    public async Task Edit_of_a_numbered_motion_does_not_requeue_linked_motions() {
+        var (first, _) = Submitted();
+        var (second, secondAuthor) = Submitted();
+        _competitions.Declare(second.Id, first.Id, _userId, secondAuthor, false, _now);
+        MarkSynced(first.Id);
+
+        _service.UpdateByAuthor(_motionRepo.Get(second.Id)!, secondAuthor, _userId, DraftOf(second, "Neu"), 1, _now);
+
+        await Assert.That(_motionRepo.Get(first.Id)!.WikiSyncState).IsEqualTo(WikiSyncState.Synced);
+    }
+
+    private void MarkSynced(Guid motionId)
+        => Db.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+            .Update();
 }

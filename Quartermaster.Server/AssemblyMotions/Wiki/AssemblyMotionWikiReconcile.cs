@@ -32,7 +32,7 @@ public class AssemblyMotionWikiReconcile {
     /// </summary>
     public async Task<int> RunAsync(DateTime nowUtc, CancellationToken ct, int batchSize = MaxPagesPerRun) {
         var settings = WikiBotSettings.ReadFrom(_options);
-        if (!settings.IsConfigured)
+        if (!settings.IsConfigured())
             return 0;
 
         var checkedCount = 0;
@@ -56,7 +56,11 @@ public class AssemblyMotionWikiReconcile {
                 if (content != null && WikiPageText.Hash(content) == motion.WikiSyncedHash)
                     continue;
 
-                _motions.MarkWikiPending(motion.Id, nowUtc);
+                if (content == null) {
+                    _motions.MarkWikiPendingAsNeverSynced(motion.Id, nowUtc);
+                } else {
+                    _motions.MarkWikiPending(motion.Id, nowUtc);
+                }
                 queued++;
             } catch (Exception ex) when (!ct.IsCancellationRequested) {
                 _logger.LogWarning(ex, "Wiki reconcile of assembly motion {MotionId} failed", motion.Id);

@@ -15,5 +15,7 @@ public static class AssemblyMotionDeadlines {
         return candidate < portal.ClosesAt ? candidate : portal.ClosesAt;
     }
 
-    public static bool IsPast(DateTime effectiveDeadlineUtc, DateTime nowUtc) => nowUtc > effectiveDeadlineUtc;
+    public static bool IsPast(DateTime effectiveDeadlineUtc, DateTime nowUtc) {
+        return nowUtc > effectiveDeadlineUtc;
+    }
 }

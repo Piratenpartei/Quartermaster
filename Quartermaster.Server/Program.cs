@@ -164,12 +164,13 @@ public partial class Program {
 
         builder.Services.AddScoped(sp => AssemblyMotions.Wiki.WikiBotSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
         builder.Services.AddSingleton<AssemblyMotions.Wiki.IWikiBotClient>(sp => new AssemblyMotions.Wiki.HttpWikiBotClient(
-            new SocketsHttpHandler {
-                UseCookies = true,
-                CookieContainer = new CookieContainer(),
-                PooledConnectionLifetime = TimeSpan.FromMinutes(15)
-            },
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("wiki"),
             sp.GetRequiredService<ILogger<AssemblyMotions.Wiki.HttpWikiBotClient>>()));
+
+        builder.Services.AddScoped(sp => AssemblyMotions.OpenSlides.OpenSlidesSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddSingleton<AssemblyMotions.OpenSlides.IOpenSlidesClient>(sp => new AssemblyMotions.OpenSlides.HttpOpenSlidesClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("openslides"),
+            sp.GetRequiredService<ILogger<AssemblyMotions.OpenSlides.HttpOpenSlidesClient>>()));
 
         builder.Services.AddScoped<AssemblyMotionNotifier>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
@@ -185,6 +186,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionMemberActions>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionActions>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionPortalSettingsBuilder>();
+        builder.Services.AddScoped<AssemblyMotions.AssemblyMotionExportBuilder>();
 
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
@@ -199,6 +201,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiReconcile>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
+        builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
 
@@ -245,6 +248,14 @@ public partial class Program {
         builder.Services.AddScoped<MeetingLifecycleService>();
 
         builder.Services.AddHttpClient();
+        builder.Services.AddHttpClient("wiki")
+            .ConfigurePrimaryHttpMessageHandler(AssemblyMotions.Wiki.HttpWikiBotClient.CreateHandler);
+        builder.Services.AddHttpClient("openslides")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
+                AllowAutoRedirect = false,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                UseCookies = false
+            });
         builder.Services.AddMemoryCache();
 
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,

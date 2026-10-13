@@ -43,14 +43,23 @@ public class AssemblyMotionWikiResync {
         return count;
     }
 
-    public void ResetPending(Guid portalId) => _motions.ResetWikiPendingToNotMirrored(portalId);
+    /// <summary>Queues every numbered motion of the portal as never written to the wiki, so the next sync applies the foreign-page check and protects the page.</summary>
+    public int QueueNumberedAsNeverSynced(Guid portalId, DateTime nowUtc) {
+        var ids = _motions.ListNumberedIds(portalId);
 
-    /// <summary>Queues every numbered motion of the portal without an audit entry, e.g. when the mirror has just been enabled.</summary>
+        foreach (var id in ids)
+            _motions.MarkWikiPendingAsNeverSynced(id, nowUtc);
+
+        return ids.Count;
+    }
+
+    public void ResetPending(Guid portalId) {
+        _motions.ResetWikiPendingToNotMirrored(portalId);
+    }
+
+    /// <summary>Queues every numbered motion of the portal without an audit entry and without touching what is known about the written pages.</summary>
     public int QueueNumbered(Guid portalId, DateTime nowUtc) {
-        var ids = _motions.ListByPortal(portalId)
-            .Where(m => m.Number != null)
-            .Select(m => m.Id)
-            .ToList();
+        var ids = _motions.ListNumberedIds(portalId);
 
         foreach (var id in ids)
             _motions.MarkWikiPending(id, nowUtc);

@@ -25,7 +25,7 @@ public class AssemblyMotionWikiConnectionCheck {
     /// <summary>Makes exactly one login attempt with the stored settings and never reads, edits or protects a page.</summary>
     public async Task<WikiConnectionCheckResult> CheckAsync(CancellationToken ct) {
         var settings = WikiBotSettings.ReadFrom(_options);
-        if (!settings.IsConfigured)
+        if (!settings.IsConfigured())
             return new WikiConnectionCheckResult(false, false, NotConfiguredMessage);
 
         try {

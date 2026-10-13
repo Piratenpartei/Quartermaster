@@ -39,12 +39,14 @@ public partial class AssemblyMotionInquiries {
     public EventCallback<AssemblyMotionDetailDTO> OnChanged { get; set; }
 
     private readonly Dictionary<Guid, string> _answers = [];
-    private ConfirmDialog _closeDialog = default!;
+    private ConfirmDialog CloseDialog = default!;
     private bool Busy;
     private string AskQuestion = "";
     private string AskDue = AssemblyMotionDisplay.ToInput(DateTimeOffset.UtcNow.AddDays(2));
 
-    private string GetAnswer(Guid inquiryId) => _answers.GetValueOrDefault(inquiryId, "");
+    private string GetAnswer(Guid inquiryId) {
+        return _answers.GetValueOrDefault(inquiryId, "");
+    }
 
     private void SetAnswer(Guid inquiryId, string value) {
         _answers[inquiryId] = value;
@@ -79,7 +81,7 @@ public partial class AssemblyMotionInquiries {
     }
 
     private async Task Close(Guid inquiryId) {
-        if (!await _closeDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CloseInquiryMessage]))
+        if (!await CloseDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CloseInquiryMessage]))
             return;
 
         await SendAsync($"/api/assemblymotions/inquiries/{inquiryId}/close", new { }, I18nKey.Ui.AssemblyMotion.ToastInquiryClosed);

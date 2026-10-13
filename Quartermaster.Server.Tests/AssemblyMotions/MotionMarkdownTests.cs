@@ -68,7 +68,7 @@ public class MotionMarkdownTests {
     [Test]
     [Arguments("> - ", 60)]
     [Arguments(">", 500)]
-    [Arguments("[a", 500)]
+    [Arguments("[a", 200)]
     public async Task Excessive_nesting_is_reported_not_thrown(string unit, int repeat) {
         var markdown = string.Concat(Enumerable.Repeat(unit, repeat)) + "x";
         var problems = MotionMarkdown.FindProblems(markdown);

@@ -34,27 +34,31 @@ public class AssemblyMotionType {
         WikiTemplate = fields.WikiTemplate;
     }
 
-    public AssemblyMotionTypeDTO ToDto() => new() {
-        Id = Id,
-        Code = Code,
-        Name = Name,
-        SortOrder = SortOrder,
-        MinSubmitters = MinSubmitters,
-        Deadline = Deadline.ToDtoUtc(),
-        CompetingDeadline = CompetingDeadline.ToDtoUtc(),
-        RequiredMajority = RequiredMajority
-    };
+    public AssemblyMotionTypeDTO ToDto() {
+        return new() {
+            Id = Id,
+            Code = Code,
+            Name = Name,
+            SortOrder = SortOrder,
+            MinSubmitters = MinSubmitters,
+            Deadline = Deadline.ToDtoUtc(),
+            CompetingDeadline = CompetingDeadline.ToDtoUtc(),
+            RequiredMajority = RequiredMajority
+        };
+    }
 
-    public AssemblyMotionTypeSettingsDTO ToSettingsDto(bool hasMotions) => new() {
-        Id = Id,
-        Code = Code,
-        Name = Name,
-        SortOrder = SortOrder,
-        MinSubmitters = MinSubmitters,
-        Deadline = Deadline.ToDtoUtc(),
-        CompetingDeadline = CompetingDeadline.ToDtoUtc(),
-        RequiredMajority = RequiredMajority,
-        WikiTemplate = WikiTemplate,
-        HasMotions = hasMotions
-    };
+    public AssemblyMotionTypeSettingsDTO ToSettingsDto(bool hasMotions) {
+        return new() {
+            Id = Id,
+            Code = Code,
+            Name = Name,
+            SortOrder = SortOrder,
+            MinSubmitters = MinSubmitters,
+            Deadline = Deadline.ToDtoUtc(),
+            CompetingDeadline = CompetingDeadline.ToDtoUtc(),
+            RequiredMajority = RequiredMajority,
+            WikiTemplate = WikiTemplate,
+            HasMotions = hasMotions
+        };
+    }
 }

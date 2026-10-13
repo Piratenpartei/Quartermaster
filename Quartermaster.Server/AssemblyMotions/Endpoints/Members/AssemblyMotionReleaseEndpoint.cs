@@ -16,6 +16,7 @@ public class AssemblyMotionReleaseEndpoint : AssemblyMotionActionEndpoint {
         Post("/api/assemblymotions/motions/{Id}/release");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.Release(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.Release(motionId, member, nowUtc);
+    }
 }

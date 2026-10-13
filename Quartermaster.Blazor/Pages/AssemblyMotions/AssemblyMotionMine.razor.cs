@@ -45,12 +45,13 @@ public partial class AssemblyMotionMine {
             var portal = portalResponse.IsSuccessStatusCode ? await portalResponse.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>() : null;
             if (portal != null) {
                 var response = await Http.GetAsync($"/api/assemblymotions/portals/{portal.Id}/mine");
-                if (response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode) {
                     Items = await response.Content.ReadFromJsonAsync<List<AssemblyMotionMineItemDTO>>() ?? [];
-                else if (response.StatusCode == HttpStatusCode.Forbidden)
+                } else if (response.StatusCode == HttpStatusCode.Forbidden) {
                     Forbidden = true;
-                else
+                } else {
                     await ToastService.ErrorAsync(response);
+                }
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

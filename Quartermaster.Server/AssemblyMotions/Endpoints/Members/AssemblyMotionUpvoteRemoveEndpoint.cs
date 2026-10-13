@@ -16,6 +16,7 @@ public class AssemblyMotionUpvoteRemoveEndpoint : AssemblyMotionActionEndpoint {
         Delete("/api/assemblymotions/motions/{Id}/upvote");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.Remove(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.Remove(motionId, member, nowUtc);
+    }
 }

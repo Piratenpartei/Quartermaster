@@ -57,9 +57,13 @@
     @if (Context != null && (Context.IsEligible || Context.IsCommission)) {
         <div class="d-flex gap-2 flex-wrap mb-3">
             @if (Context.IsEligible) {
-                <a href="/Events/@EventId/Motions/New" class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.NewMotion]
-                </a>
+                @if (AssemblyMotionDisplay.IsPortalOpen(Portal)) {
+                    <a href="/Events/@EventId/Motions/New" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.NewMotion]
+                    </a>
+                } else {
+                    <span class="text-secondary align-self-center">@AssemblyMotionDisplay.PortalClosedText(I18n, Portal)</span>
+                }
                 <a href="/Events/@EventId/Motions/Collecting" class="btn btn-outline-primary">
                     <i class="bi bi-people"></i> @I18n[I18nKey.Ui.AssemblyMotion.CollectingButton]
                 </a>

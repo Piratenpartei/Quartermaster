@@ -10,11 +10,11 @@ public abstract class AssemblyMotionSaveFieldsValidator<T> : Validator<T> where 
         RuleFor(x => x.Title)
             .NotEmpty()
             .WithMessage(I18nKey.Error.AssemblyMotion.TitleRequired)
-            .MaximumLength(500)
+            .MaximumLength(AssemblyMotionContent.TitleMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.TitleMaxLength);
 
         RuleFor(x => x.Section)
-            .MaximumLength(500)
+            .MaximumLength(AssemblyMotionContent.SectionMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.SectionMaxLength);
 
         RuleFor(x => x.TextMarkdown)
@@ -30,15 +30,15 @@ public abstract class AssemblyMotionSaveFieldsValidator<T> : Validator<T> where 
             .RestrictedMarkdown();
 
         RuleFor(x => x.Summary)
-            .MaximumLength(2000)
+            .MaximumLength(AssemblyMotionContent.SummaryMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.SummaryMaxLength);
 
         RuleFor(x => x.Keywords)
-            .MaximumLength(500)
+            .MaximumLength(AssemblyMotionContent.KeywordsMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.KeywordsMaxLength);
 
         RuleFor(x => x.PriorDiscussion)
-            .MaximumLength(2000)
+            .MaximumLength(AssemblyMotionContent.PriorDiscussionMaxLength)
             .WithMessage(I18nKey.Error.AssemblyMotion.PriorDiscussionMaxLength);
     }
 }

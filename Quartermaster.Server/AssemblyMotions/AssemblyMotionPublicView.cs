@@ -5,21 +5,24 @@ using Quartermaster.Data.AssemblyMotions;
 namespace Quartermaster.Server.AssemblyMotions;
 
 public static class AssemblyMotionPublicView {
-    public static AssemblyMotionPublicListItemDTO BuildListItem(AssemblyMotion motion, AssemblyMotionType type) => new() {
-        Id = motion.Id,
-        TypeId = type.Id,
-        TypeCode = type.Code,
-        TypeName = type.Name,
-        DisplayNumber = motion.Number == null ? "" : AssemblyMotionNumber.Format(type.Code, motion.Number.Value),
-        Title = motion.Title,
-        Status = motion.Status,
-        IsInRevision = motion.IsInRevision,
-        Result = motion.Result,
-        SubmittedAt = motion.SubmittedAt.ToDtoUtc()
-    };
+    public static AssemblyMotionPublicListItemDTO BuildListItem(AssemblyMotion motion, AssemblyMotionType type) {
+        return new() {
+            Id = motion.Id,
+            TypeId = type.Id,
+            TypeCode = type.Code,
+            TypeName = type.Name,
+            DisplayNumber = motion.Number == null ? "" : AssemblyMotionNumber.Format(type.Code, motion.Number.Value),
+            Title = motion.Title,
+            Status = motion.Status,
+            IsInRevision = motion.IsInRevision,
+            Result = motion.Result,
+            SubmittedAt = motion.SubmittedAt.ToDtoUtc()
+        };
+    }
 
-    public static AssemblyMotionPublicDTO Build(AssemblyMotion motion, AssemblyMotionType type)
-        => Fill(new AssemblyMotionPublicDTO(), motion, type);
+    public static AssemblyMotionPublicDTO Build(AssemblyMotion motion, AssemblyMotionType type) {
+        return Fill(new AssemblyMotionPublicDTO(), motion, type);
+    }
 
     public static T Fill<T>(T dto, AssemblyMotion motion, AssemblyMotionType type) where T : AssemblyMotionPublicDTO {
         var item = BuildListItem(motion, type);

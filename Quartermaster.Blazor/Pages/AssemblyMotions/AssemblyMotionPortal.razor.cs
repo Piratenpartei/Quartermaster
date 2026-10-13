@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -72,7 +73,7 @@ public partial class AssemblyMotionPortal {
     private async Task LoadUpvotesSafeAsync() {
         try {
             await LoadUpvotesAsync();
-        } catch (Exception ex) when (ex is HttpRequestException || ex is System.Text.Json.JsonException) {
+        } catch (Exception ex) when (ex is HttpRequestException || ex is JsonException) {
             UpvotedIds = [];
         }
     }
@@ -120,11 +121,12 @@ public partial class AssemblyMotionPortal {
         ListLoading = false;
     }
 
-    private List<IGrouping<Guid, AssemblyMotionPublicListItemDTO>> GetGroups()
-        => Items
-            .GroupBy(i => i.TypeId)
-            .OrderBy(g => Portal!.Types.FindIndex(t => t.Id == g.Key))
-            .ToList();
+    private List<IGrouping<Guid, AssemblyMotionPublicListItemDTO>> GetGroups() {
+        return Items
+                .GroupBy(i => i.TypeId)
+                .OrderBy(g => Portal!.Types.FindIndex(t => t.Id == g.Key))
+                .ToList();
+    }
 
     private async Task OnTypeFilterChanged(string value) {
         FilterTypeId = value;

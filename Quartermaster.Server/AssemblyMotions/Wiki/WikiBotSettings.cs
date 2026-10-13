@@ -4,7 +4,13 @@ using Quartermaster.Data.Options;
 namespace Quartermaster.Server.AssemblyMotions.Wiki;
 
 public record WikiBotSettings(string ApiUrl, string Username, string Password, string ProtectionLevel) {
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiUrl) && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+    public bool IsConfigured() {
+        if (string.IsNullOrWhiteSpace(ApiUrl))
+            return false;
+        if (string.IsNullOrWhiteSpace(Username))
+            return false;
+        return !string.IsNullOrWhiteSpace(Password);
+    }
 
     /// <summary>True for https URLs, and for http only on localhost, 127.0.0.1 and [::1].</summary>
     public static bool IsSecureUrl(string apiUrl) {
@@ -49,5 +55,7 @@ public record WikiBotSettings(string ApiUrl, string Username, string Password, s
     }
 
     // The generated record ToString would print the password.
-    public override string ToString() => $"WikiBotSettings {{ ApiUrl = {ApiUrl}, Username = {Username}, ProtectionLevel = {ProtectionLevel} }}";
+    public override string ToString() {
+        return $"WikiBotSettings {{ ApiUrl = {ApiUrl}, Username = {Username}, ProtectionLevel = {ProtectionLevel} }}";
+    }
 }

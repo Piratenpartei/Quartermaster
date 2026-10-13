@@ -42,4 +42,5 @@ public class DashboardEventDTO {
     public string PublicName { get; set; } = "";
     public string ChapterName { get; set; } = "";
     public DateOnly? EventDate { get; set; }
+    public bool HasMotionPortal { get; set; }
 }

@@ -5,6 +5,9 @@ namespace Quartermaster.Blazor.Components.AssemblyMotions;
 
 public partial class BerlinDateTimeInput {
     [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
     public string Value { get; set; } = "";
 
     [Parameter]

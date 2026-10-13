@@ -11,7 +11,11 @@ public class AssemblyMotionAccess {
         _perms = perms;
     }
 
-    public bool IsCommission(Event ev) => _perms.Has(ev.ChapterId, PermissionIdentifier.ManageAssemblyMotions);
+    public bool IsCommission(Event ev) {
+        return _perms.Has(ev.ChapterId, PermissionIdentifier.ManageAssemblyMotions);
+    }
 
-    public bool CanEditPortal(Event ev) => _perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents);
+    public bool CanEditPortal(Event ev) {
+        return _perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents);
+    }
 }

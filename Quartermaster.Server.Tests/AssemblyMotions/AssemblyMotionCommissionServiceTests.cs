@@ -261,4 +261,43 @@ public class AssemblyMotionCommissionServiceTests : RepositoryTestBase {
         await Assert.That(stored.Status).IsEqualTo(AssemblyMotionStatus.Withdrawn);
         await Assert.That(stored.WikiSyncState).IsEqualTo(WikiSyncState.NotMirrored);
     }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task Commission_edit_refuses_text_that_becomes_html_when_normalized(string markdown) {
+        var motion = SubmittedMotion();
+
+        var outcome = _commission.Edit(motion.Id, _userId, NewDraft(motion.TypeId) with { TextMarkdown = markdown }, 1, "Korrektur", DateTime.UtcNow);
+        var stored = _motionRepo.Get(motion.Id)!;
+
+        await Assert.That(outcome.StatusCode).IsEqualTo(422);
+        await Assert.That(outcome.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        await Assert.That(stored.TextMarkdown).IsEqualTo("Antragstext");
+        await Assert.That(stored.Revision).IsEqualTo(1);
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored.TextHtml + stored.ReasonHtml)).IsEmpty();
+    }
+
+    [Test]
+    public async Task Check_note_and_change_note_lose_control_characters() {
+        var motion = SubmittedMotion();
+
+        var checkedOutcome = _commission.Check(motion.Id, AssemblyMotionStatus.FormallyInsufficient, "Frist\r\nverpasst\u0001", _userId, DateTime.UtcNow);
+        var onlyControl = _commission.Check(motion.Id, AssemblyMotionStatus.FormallyInsufficient, "\r\n\u0001", _userId, DateTime.UtcNow);
+        var edited = _commission.Edit(motion.Id, _userId, NewDraft(motion.TypeId, "Neu"), 1, "Tippfehler\nkorrigiert", DateTime.UtcNow);
+        var revision = _motionRepo.GetRevision(motion.Id, 2);
+
+        await Assert.That(checkedOutcome.Motion!.CheckNote).IsEqualTo("Fristverpasst");
+        await Assert.That(onlyControl.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.CheckNoteRequired);
+        await Assert.That(edited.Succeeded).IsTrue();
+        await Assert.That(revision!.ChangeNote).IsEqualTo("Tippfehlerkorrigiert");
+    }
+
+    [Test]
+    public async Task Change_note_of_only_control_characters_counts_as_missing() {
+        var motion = SubmittedMotion();
+
+        var edited = _commission.Edit(motion.Id, _userId, NewDraft(motion.TypeId, "Neu"), 1, "\r\n\u0002", DateTime.UtcNow);
+
+        await Assert.That(edited.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.ChangeNoteRequired);
+    }
 }

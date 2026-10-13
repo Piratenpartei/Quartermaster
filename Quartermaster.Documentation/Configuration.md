@@ -181,7 +181,7 @@ Which motions are mirrored and when:
 - Only motions that have a number (submitted at least once) get a page. Drafts and motions that are still collecting co-submitters are never written.
 - The page title is `<Wiki page prefix>/<type code><number>`, for example `Antrag:Bundesparteitag 2027.1/Antragsportal/SÄA001`.
 - A sync is queued on first submission and on every later change that is visible on the page: content change, resubmission, commission edit, check decision, inquiry opened or closed, competition added or removed, withdrawal, lapse and result change. A motion in revision gets a notice above the template call.
-- A background job writes queued motions about once a minute, at most 20 per run. A user action never waits for the wiki. Failures are retried with a growing delay of up to six hours. A nightly job compares a rotating window of synced pages with the stored state and queues pages that were changed by hand or deleted.
+- A background job writes queued motions about once a minute, at most 20 per run. A user action never waits for the wiki. Failures are retried with a growing delay of up to six hours. A reconcile job starts ten minutes after the server starts and then runs every 24 hours. Each run compares at most 500 synced pages with the stored state, rotating through all pages by day, and queues pages that were changed by hand or deleted.
 - "Synchronize again" on a motion and "Synchronize all again" on the dashboard only queue motions and reset their retry delay, so the next job run tries them even after a permanent failure. They are refused while the mirror is disabled.
 
 A wiki page that already exists under the target title and was not created by the portal is never overwritten. The motion then shows "Failed" and the last error explains it. Resolve it by changing the "Wiki page prefix" or by moving or deleting the foreign page on the wiki, then use "Synchronize again".
@@ -235,6 +235,57 @@ What the client assumes about the wiki, to confirm while doing the above:
 - Only `badtoken`, `assertuserfailed` and `notloggedin` are treated as an expired session and retried after a new login; errors such as `readonly`, `ratelimited`, `protectedpage`, `permissiondenied` and `maxlag` are shown as the last error and retried with the growing delay.
 - Request bodies of up to several hundred KB are accepted (`post_max_size` and the 2 MB article size limit).
 - The abuse filter does not block the bot account on its first page creations.
+
+### OpenSlides push for the motion portal
+
+Optional. The commission can push the motions of a portal to an OpenSlides 4.3 meeting with "Push to OpenSlides" on the motion dashboard. The push is started by hand and never runs in the background. The same dashboard offers "Export JSON", which downloads the numbered motions of the portal as a JSON file and needs no configuration. Drafts and motions that never had a number are not part of the file. Status, result and required majority are written as names, for example `Admitted`, `AcceptedModified` and `TwoThirds`.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `openslides.url` | _empty_ | Base URL of the OpenSlides instance, for example `https://openslides.example.org`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `openslides.username` | _empty_ | Login of the account used for the push |
+| `openslides.password` | _empty_ | Password of that account (stored masked) |
+
+Prerequisites outside Quartermaster:
+
+- An OpenSlides account that has the permission to manage motions in the target meeting. The push creates categories and motions and changes motions it created earlier.
+- The meeting id of the target meeting. It is the number in the meeting's URL, for example `2` in `https://openslides.example.org/2/motions`. Enter it as "OpenSlides meeting ID" in the portal settings ("Motion portal" on the event) and save. "Check connection" next to it logs in once with the stored options, creates nothing and does not depend on unsaved form values.
+
+What the push does:
+
+- It sends the admitted motions. With "Also push submitted motions that have not been checked yet" ticked in the dialog it also sends motions with the status "Submitted". Motions without a number are never sent.
+- The order is the prioritization ranking once the ranking is public, then all other motions by type sort order and number.
+- Each motion type gets one OpenSlides category, created on the first push that needs it, with the type name as name and the type code as prefix. The category id is remembered, so later pushes reuse it.
+- A motion that is not in OpenSlides yet is created with its title, number, text, reason, category and the submitter names as additional submitter text. A motion that was pushed earlier is updated when its revision is newer than the pushed one and left alone otherwise. A push never deletes anything.
+- The result is shown on the dashboard as created, updated and unchanged counts plus one line per failed motion. A failed motion keeps its error as the last error on the motion's OpenSlides card and is tried again by the next push. Only one push per portal runs at a time.
+
+Known limits:
+
+- A motion that is withdrawn or becomes ineligible after a push stays in OpenSlides and has to be removed there by hand.
+- A later change of a motion's type or number is not transferred to the pushed motion or its category.
+- If OpenSlides creates a motion but the answer is lost, for example through a timeout, the next push creates the motion a second time. After a failed run, check OpenSlides for duplicates.
+- Submitter names are sent as text. They are not updated when a member is anonymized later.
+- When the browser request is cut off, because the client times out after 100 seconds or the tab is closed, the server stops the run before the next motion. Motions already transferred keep their OpenSlides id, and the next push continues with the rest without creating duplicates.
+- Changing the meeting id of a portal that has already pushed is not supported: later pushes would update and categorize by ids of the old meeting.
+- The guard against two simultaneous pushes of the same portal holds per server process only.
+
+First run checklist:
+
+1. Create a throwaway test meeting in OpenSlides and give the account the motion management permission there.
+2. Set the three options in `/Administration/Settings`.
+3. Enter the test meeting's id as "OpenSlides meeting ID" in the portal settings, save, and press "Check connection".
+4. Push with and without the checkbox and compare the result with the meeting: categories, numbers, texts, reasons, submitter text and order.
+5. Change a pushed motion, push again and confirm that the motion is updated and not duplicated.
+6. Do this first run with a portal of a test event, not with the real one. The OpenSlides ids of pushed motions and categories are stored per portal and are not tied to a meeting id, so a portal that has pushed must never be pointed at a different meeting.
+
+What the code assumes about OpenSlides 4.3, to confirm by a real run:
+
+- A login with `POST /system/auth/login` and a JSON body of `username` and `password` returns the access token in the `Authentication` response header and sets a `refreshId` cookie. Both are sent on later requests.
+- Actions are accepted at `POST /system/action/handle_request` with a body of the form `[{"action": "<name>", "data": [{...}]}]` and are answered with `success`, `message` and `results`, where the id of a created object is `results[0][0].id`.
+- `motion_category.create` accepts `meeting_id`, `name` and `prefix`.
+- `motion.create` accepts `meeting_id`, `title`, `number`, `text`, `reason`, `category_id` and `additional_submitter`.
+- `motion.update` accepts `id`, `title`, `text`, `reason` and `additional_submitter`.
+- A new `Authentication` header in an answer replaces the stored token, and a 401 is answered by one new login.
 
 ### SSO support contact
 

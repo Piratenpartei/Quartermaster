@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using LinqToDB.Mapping;
+using Quartermaster.Api;
 using Quartermaster.Api.AssemblyMotions;
 
 namespace Quartermaster.Data.AssemblyMotions;
@@ -58,4 +60,30 @@ public class AssemblyMotion {
     public DateTime? OpenSlidesPushedAt { get; set; }
     public string? OpenSlidesLastError { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public AssemblyMotionExportItemDTO ToExportItemDto(AssemblyMotionType type, List<string> competingDisplayNumbers, List<string> submitters, int? rank, int? upvoteCount) {
+        return new() {
+            DisplayNumber = AssemblyMotionNumber.Format(type.Code, Number!.Value),
+            TypeCode = type.Code,
+            TypeName = type.Name,
+            RequiredMajority = type.RequiredMajority,
+            Title = Title,
+            Section = Section,
+            TextMarkdown = TextMarkdown,
+            TextHtml = TextHtml,
+            ReasonMarkdown = ReasonMarkdown,
+            ReasonHtml = ReasonHtml,
+            Summary = Summary,
+            Keywords = Keywords,
+            PriorDiscussion = PriorDiscussion,
+            Status = Status,
+            Result = Result,
+            CheckNote = CheckNote,
+            SubmittedAt = SubmittedAt.ToDtoUtc(),
+            CompetingDisplayNumbers = competingDisplayNumbers,
+            Submitters = submitters,
+            Rank = rank,
+            UpvoteCount = upvoteCount
+        };
+    }
 }

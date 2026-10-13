@@ -117,10 +117,14 @@ A type that has motions cannot be deleted, and its `Code` cannot be changed.
 | CheckedAt, CheckedByUserId | | |
 | CreatedByMemberId | Guid | The author |
 | CreatedAt, SubmittedAt, WithdrawnAt | DateTime | `SubmittedAt` is the time the current revision reached the required submitters |
+| CollectingReminderSentAt | DateTime? | When the reminder before the deadline was sent; cleared by a content change |
 | WikiSyncState | enum | `NotMirrored`, `Pending`, `Synced`, `Failed`, `ProtectionFailed` |
 | WikiSyncedRevision | int? | Last revision written to the wiki |
 | WikiSyncedHash | string? | Hash of the last wikitext written |
 | WikiLastSyncedAt, WikiLastError | | |
+| WikiFailureCount | int | Consecutive failed sync attempts; drives the retry delay |
+| WikiNextAttemptAt | DateTime? | Earliest time of the next sync attempt after a failure |
+| WikiSyncRequestedAt | DateTime? | When the current sync request was queued |
 | OpenSlidesMotionId | int? | Id of the motion in OpenSlides after the first push |
 | OpenSlidesPushedRevision | int? | Revision last pushed to OpenSlides |
 | OpenSlidesPushedAt, OpenSlidesLastError | | |
@@ -171,6 +175,7 @@ One row per content change, written when the change is saved.
 | MotionAId, MotionBId | Guid | Stored with the smaller id first; the pair is unique; both motions belong to the same portal |
 | DeclaredByUserId, DeclaredAt | | |
 | DeclaredByCommission | bool | |
+| DeclaringMotionId | Guid | The motion the declaring submitter acted for. A link declared by a submitter can be removed by a submitter of this motion |
 
 ### AssemblyMotionUpvote
 
@@ -192,7 +197,7 @@ One service, `AssemblyMotionEligibility`, answers whether the current user may a
 
 `HasVotingRights` is not required. For a federal assembly this covers every member; for a state assembly only the members of that state and its sub-chapters.
 
-Eligibility is checked at the time of each action. A later exit does not remove a past co-submission or upvote.
+Eligibility is checked at the time of each action. A later exit does not remove a past co-submission or upvote. Creating, releasing, joining, upvoting, declaring a competition and setting the competing flag need current eligibility. Leaving, withdrawing, deleting an own draft, removing a competition link and clearing the competing flag do not, so a member who is no longer eligible can still clean up their own motions. Deleting an own draft needs authorship only.
 
 Ineligible signed-in users see the public view plus a short explanation of why they cannot take part.
 
@@ -219,9 +224,10 @@ Rules:
 
 - The author releases a draft. If the type's `MinSubmitters` is 1 the motion goes straight to `Submitted`, otherwise to `CollectingCoSubmitters`.
 - When the number of submitters reaches `MinSubmitters`, the motion becomes `Submitted` and `SubmittedAt` is set. This transition happens inside the same transaction as the join.
-- The effective deadline of a motion is the type's `CompetingDeadline` if `IsCompetingMotion` is true and that deadline is set, otherwise the type's `Deadline`, otherwise the portal's `ClosesAt`. Releasing, joining and submitting are refused after the effective deadline.
+- The effective deadline of a motion is the type's `CompetingDeadline` if `IsCompetingMotion` is true and that deadline is set, otherwise the type's `Deadline`, otherwise the portal's `ClosesAt`. Releasing, joining and submitting are refused after the effective deadline. Setting the competing flag is checked against the competing deadline; a motion without the flag keeps the normal deadline for editing and releasing.
 - A background job moves motions still in `CollectingCoSubmitters` to `Lapsed` once their effective deadline has passed.
-- Only the author can withdraw, at any time before the portal closes. The commission can withdraw on the author's request. A withdrawn motion cannot be reopened; the author creates a new one.
+- Only the author can withdraw a released motion, at any time before the portal closes. The commission can withdraw on the author's request. A withdrawn motion cannot be reopened; the author creates a new one. A draft cannot be withdrawn; the author deletes it.
+- A member can hold at most 50 drafts per portal. Creating another is refused until one is released or deleted.
 - The commission can move a motion between `Submitted`, `Admitted` and `FormallyInsufficient` freely (a decision can be corrected). `CheckNote` is required for `FormallyInsufficient`.
 
 ### Numbering
@@ -240,19 +246,20 @@ A motion receives its number at the first transition to `Submitted`: the next fr
 By the author:
 
 - `Draft`: free editing.
-- `CollectingCoSubmitters`: allowed. Saving a content change increments the revision, removes all co-submitters except the author and notifies each removed member with a link to rejoin.
+- `CollectingCoSubmitters`: allowed. Saving a content change increments the revision, removes all co-submitters except the author and notifies each removed member with a link to rejoin. If the remaining submitters already meet the `MinSubmitters` of the (possibly changed) type, the motion becomes `Submitted` at once and receives its number if it has none.
 - `Submitted` before the effective deadline: allowed with the same reset. If the type needs more than one submitter, the motion returns to `CollectingCoSubmitters` and `SubmittedAt` is cleared; it must reach the required number again before the deadline or it lapses. The number is kept. If the type needs only the author, the motion stays `Submitted`.
 - An edited motion is the same for everyone: the portal, the public view and the wiki show the current text right away. A numbered motion back in `CollectingCoSubmitters` is shown to everyone as "In Überarbeitung" until it reaches the required submitters again. There is no older "submitted" version that some viewers keep seeing.
 - `Admitted`, `FormallyInsufficient`, or any state after the effective deadline: not allowed. The page tells the author to contact the commission and offers the open inquiry, if any, as the channel.
+- Saved fields are normalized before they are compared and stored: control characters are removed from single-line fields, surrounding whitespace is trimmed, empty optional fields become empty values, line breaks become LF and text is converted to Unicode NFC. A save that changes nothing creates no revision and removes no co-submitter.
 
-As soon as the author opens the editor for a motion that is not a draft, a clear warning says what saving will do: the motion goes back into revision and is visible as such to everyone, including the wiki; all co-submitters (with their number) are removed and have to join again before the deadline. For types that need only the author, the warning says that the change is public immediately. Saving asks for confirmation with the same text.
+As soon as the author opens the editor for a motion that is not a draft, a clear warning says what saving will do. For a numbered motion: it goes back into revision and is visible as such to everyone, including the wiki, and all co-submitters are removed and have to join again before the deadline. For a motion without a number: the change is visible to everyone at once and all co-submitters are removed. For types that need only the author, the warning says that the change is public immediately. Saving asks for confirmation with the same text.
 
 By the commission (`assemblymotions_manage`):
 
-- Allowed in every state from `Submitted` on, with a mandatory `ChangeNote`.
+- Allowed for numbered motions in `Submitted`, `Admitted` or `FormallyInsufficient`, with a mandatory `ChangeNote`. Withdrawn and lapsed motions and numbered motions that are back in `CollectingCoSubmitters` cannot be edited by the commission.
 - Does not remove co-submitters. All submitters are notified with the change note.
 
-Every saved change writes an `AssemblyMotionRevision`. Signed-in eligible members and the commission can view the revision history with a diff; anonymous visitors see only the current submitted text.
+Every saved change writes an `AssemblyMotionRevision`. Signed-in eligible members and the commission can view the revision history with a diff; anonymous visitors see only the current submitted text. The author sees every revision, including those saved while the motion was a draft. Everyone else sees the revisions from the release on.
 
 ## Formal Check and Inquiries
 
@@ -270,11 +277,11 @@ Inquiries:
 
 ## Competition
 
-- Any submitter of a motion, or the commission, can declare that the motion competes with another motion of the same portal that is `Submitted` or `Admitted`.
+- Any submitter of a motion, or the commission, can declare that the motion competes with another motion of the same portal that is `Submitted` or `Admitted`. Submitters need current eligibility; a draft can declare too, and the other motion's submitters are notified when the draft is released.
 - The link is symmetric and shown on both motions, publicly, with the motion numbers and titles.
 - The submitters of the other motion are notified.
 - A link declared by a submitter can be removed by a submitter of the declaring motion or by the commission. A link declared by the commission can be removed only by the commission.
-- `IsCompetingMotion` can be set by the author only while the motion has at least one competition link to a motion that was submitted before it. The commission can clear the flag; if that puts the motion past its effective deadline while it is still collecting, it lapses with the next run of the deadline job.
+- `IsCompetingMotion` can be set by the author, with current eligibility, only while the motion has at least one competition link to a motion that was submitted before it and that is `Submitted`, `Admitted` or `FormallyInsufficient`; a link to a withdrawn or lapsed motion does not qualify. Removing the last qualifying link clears the flag. The commission can clear the flag; if that puts the motion past its effective deadline while it is still collecting, it lapses with the next run of the deadline job.
 
 ## Prioritization
 
@@ -315,7 +322,7 @@ The requirement: every motion that was ever `Submitted` exists as a page in the 
 
 ### Target format
 
-The Piratenwiki runs MediaWiki 1.35 with the Action API at `https://wiki.piratenpartei.de/api.php`. The wiki sits behind a bot filter that blocks browser-like clients, so every request sends its own User-Agent, for example `Quartermaster/4 (+<public base url>)`. Motion pages are template calls. The existing templates and their parameters:
+The Piratenwiki runs MediaWiki 1.35 with the Action API at `https://wiki.piratenpartei.de/api.php`. The wiki sits behind a bot filter that blocks browser-like clients, so every request sends its own User-Agent, which is the fixed text `Quartermaster/4 (+https://piratenpartei.de)`. Motion pages are template calls. The existing templates and their parameters:
 
 - `Satzungsänderungsantrag BPT` (SÄA), `Programmantrag BPT` (GP, WP), `Sonstiger Antrag BPT` (PP, SO, SBA).
 - Parameters in use: `bundesparteitag`, `autor`, `antragstellerID`, `unterstützer1` to `unterstützer5` with `unterstützer1ID` and so on, `antragstyp`, `antragsgruppe`, `titel`, `text`, `begruendung`, `diskussionVorher`, `schlagworte`, `zusammenfassung`, `konkurrenz`, `prüficon`, `abstimmung`, `wikiBenutzer`, `antragsdiskussion`, `artantrag`.
@@ -349,6 +356,10 @@ Status mapping:
 
 Motion text and reason are written in a restricted Markdown: CommonMark plus pipe tables and strikethrough. Raw HTML and images are rejected with a validation message; the editor preview uses the same restricted flavour, so members see exactly what will be published. Other formatting is rendered as plain text.
 
+The text is normalized (Unicode NFC, LF line breaks, no trailing whitespace) before it is checked, so the check, the preview, the stored HTML and the wiki conversion all see the same text. Cost limits keep hostile input cheap to process, and a text that exceeds one is refused with a message that names the limit: 100,000 characters; 10,000 table cells in total (the widest row times the number of lines, summed over all paragraphs that contain a pipe); 250 `[` per paragraph; 1,000 runs of `*`, `_`, `~`, a backtick or `<` per paragraph and 10,000 in the whole text; 5,000 lines; 100 quote or list markers at the start of a line; 500,000 characters of rendered HTML. A paragraph is a run of lines without a blank line. Inquiry questions and answers follow the same rules with a limit of 20,000 characters.
+
+In the displayed HTML only the tags of the restricted flavour remain (paragraphs, line breaks, emphasis, strikethrough, lists, headings, block quotes, code, rules, links and tables). Links keep only their `href`, and only when it starts with `https://`, `http://` or `mailto:`. Relative links, `class`, `style`, `rel`, `target` and every other attribute are removed.
+
 For the wiki the Markdown is rendered to sanitized HTML and converted to MediaWiki text: the HTML tags MediaWiki accepts (paragraphs, line breaks, bold, italic, strikethrough, lists, headings, block quotes, code, horizontal rules, tables) are kept without attributes, links become external wiki links, every other tag is dropped and only its text kept.
 
 Because the output is placed inside a template parameter, all member text is neutralized: `|` becomes the numeric entity `&#124;` (not `{{!}}`, which turns back into a live pipe once the template is expanded), `!`, `"`, `=`, `*`, `#`, `;` and `:` become entities as well, and braces, square brackets, angle brackets, `~`, `'` and `_` become HTML entities, so member-written text can never inject template calls, parameters, links, tags, signatures or magic words. Cover this with tests, including hostile input. The input is normalized to Unicode NFC first, because MediaWiki normalizes submitted text and a combining character must not merge with emitted markup. Motion text and reason are limited to 100,000 characters each, and text that the Markdown parser refuses as too deeply nested is rejected when saving.
@@ -356,20 +367,24 @@ Because the output is placed inside a template parameter, all member text is neu
 ### What is mirrored and when
 
 - The wiki always shows the current text and status. A motion in revision gets a notice above the template call ("Dieser Antrag wird überarbeitet und sucht erneut Mitantragsteller.") with the portal link.
-- A sync is queued on: first submission (page creation), every content change of a numbered motion (including the change that puts it into revision), resubmission, commission edit, formal check decision, inquiry opened or closed, competition added or removed, withdrawal, lapse of a previously submitted motion, result change.
+- A sync is queued on: first submission (page creation), every content change of a numbered motion (including the change that puts it into revision), resubmission, commission edit, formal check decision, inquiry opened or closed, competition added or removed, withdrawal, lapse of a previously submitted motion, result change. When a motion receives its number, the numbered motions linked to it by a competition are queued as well, because their pages list the competing numbers.
+- A sync is queued only while the mirror is enabled; with the mirror off nothing is queued and the state stays `NotMirrored`. Switching the mirror on queues all numbered motions of the portal, switching it off sets motions that are still `Pending` back to `NotMirrored`, and changing the page prefix while the mirror is on queues all numbered motions again, as never synced, so their pages appear under the new prefix. Pages under the old prefix stay as they are.
 - Drafts and motions that never reached `Submitted` are never written to the wiki.
 - A withdrawn or lapsed motion keeps its page, with the status values above.
 
 ### Mechanics
 
-- Options (global): `wiki.api_url`, `wiki.bot_username`, `wiki.bot_password` (secret, bot password of a dedicated wiki account), `wiki.protection_level` (default `Antrag`; the wiki has a protection level of that name).
+- Options (global): `wiki.api_url` (must be `https`; plain `http` is accepted only for `localhost`), `wiki.bot_username`, `wiki.bot_password` (secret, bot password of a dedicated wiki account), `wiki.protection_level` (default `Antrag`; the wiki has a protection level of that name).
 - The client sends the User-Agent described above on every request.
 - A singleton client logs in with the bot password (`action=login` with a login token), fetches a CSRF token and keeps the session; on an expired session it logs in again once and retries.
 - Write with `action=edit`, `bot=1` and an edit summary naming the reason and the portal revision, for example "Antragsportal: Revision 3 eingereicht".
 - After creating a page, protect it with `action=protect` for `edit` and `move` at the configured level. If protection fails, the page still counts as written and the motion gets `WikiSyncState = ProtectionFailed`, which the dashboard shows.
 - Sync is asynchronous. State changes set `WikiSyncState = Pending` in the same transaction as the change; a hosted background service picks up pending motions, renders the current wikitext and writes it. Failures set `Failed` with `WikiLastError` and are retried with backoff. A user-facing action never fails or waits because the wiki is down.
 - The portal is the source of truth. Before writing, the service compares the hash of the current wiki content with `WikiSyncedHash`. If they differ, someone edited the page by hand: overwrite it and write an audit log entry with the page title.
-- A reconcile job runs once per night for every portal with the mirror enabled whose event is not archived: for every motion that was ever submitted it verifies that the page exists and matches, and queues a sync where it does not.
+- A page that exists under the target title but was never written by the portal for this motion (no stored hash, for example after a prefix change) is taken over only when its text contains the motion's portal URL. Otherwise the sync fails permanently with a message that names the cause, nothing is written, and the commission resolves it by changing the prefix or by moving or deleting the foreign page. A page that the portal creates or takes over is protected after the write.
+- The wiki client does not follow redirects. A run of the sync job stops after the first failed login.
+- The page prefix must not start or end with a slash or whitespace, must not contain a double slash or any of the characters `#`, `<`, `>`, `[`, `]`, `|`, `{`, `}`, and has at most 300 characters.
+- A reconcile job starts ten minutes after the server starts and then runs every 24 hours. Each run checks at most 500 synced pages of portals with the mirror enabled whose event is not archived; the window rotates by day, so every page is checked over time. It queues a sync where the page differs from the stored hash. A page that is missing is queued as never synced, so the rules for foreign pages and protection apply to its recreation.
 - The dashboard shows the sync state per motion, a count of failed syncs for the portal, and buttons to resync one motion or all motions.
 
 ### Prerequisites outside Quartermaster
@@ -382,10 +397,11 @@ OpenSlides 4.3.2 has no motion import (neither a CSV import dialog nor a backend
 
 ### Connection
 
-- Options (global): `openslides.url` (base URL of the OpenSlides instance, for example `https://openslides.example.org`), `openslides.username`, `openslides.password` (secret). The account is a local OpenSlides account that has the motion manage permission in the target meetings.
+- Options (global): `openslides.url` (base URL of the OpenSlides instance, for example `https://openslides.example.org`; must be `https`, plain `http` is accepted only for `localhost`), `openslides.username`, `openslides.password` (secret). The account is a local OpenSlides account that has the motion manage permission in the target meetings.
 - Login: `POST {url}/system/auth/login` with JSON `{"username": ..., "password": ...}`. The access token comes back in the `Authentication` response header, the refresh token as the `refreshId` cookie.
 - Actions: `POST {url}/system/action/handle_request` with the JSON body `[{"action": "<name>", "data": [ ... ]}]`, the `Authentication` header and the `refreshId` cookie. The response has `success`, `message` and `results` (one list per action with the created ids). A response that carries a new `Authentication` header replaces the stored access token. On a 401 the client logs in again once and retries.
 - The portal settings offer "Verbindung prüfen" for OpenSlides, which performs a login and reports the result.
+- The client does not follow redirects, so the token is never sent to a redirect target. When an action fails, the message of OpenSlides is shown only for the error code `action_failed`; every other error maps to a fixed text, and the details go to the log. Only one push per portal runs at a time; a second one is refused.
 
 ### What is pushed
 
@@ -398,7 +414,7 @@ OpenSlides 4.3.2 has no motion import (neither a CSV import dialog nor a backend
 
 ### JSON export
 
-The commission can also download all motions from `Submitted` on as JSON with all public fields, the submitter names, rank and upvote count, for other consumers.
+The commission can also download the numbered motions of the portal (from `Submitted` on, including withdrawn and lapsed ones and numbered motions in revision) as JSON with all public fields, the submitter names, rank and upvote count, for other consumers. Drafts and motions that never had a number are not part of it. Status, result and required majority are written as names, for example `Admitted`, `AcceptedModified` and `TwoThirds`.
 
 ## Notifications
 
@@ -415,7 +431,7 @@ New triggers in `NotificationTriggers`, each with a payload, a recipient resolve
 | `assembly_motion_inquiry_answered` | The commission |
 | `assembly_motion_edited_by_commission` | All submitters, with the change note |
 | `assembly_motion_competition_declared` | Submitters of the other motion |
-| `assembly_motion_withdrawn` | Co-submitters and the commission |
+| `assembly_motion_withdrawn` | Withdrawal by the author: the co-submitters, and the commission when the motion has a number. Withdrawal by the commission: all submitters including the author, not the commission |
 
 Recipients are resolved to the users linked to the members, so each person's channel preferences apply.
 
@@ -438,7 +454,7 @@ Endpoints follow the one-endpoint-per-class FastEndpoints pattern with request v
 - Commission: dashboard list; formal check; edit with change note; inquiries (ask, close); results (single and bulk); withdraw; clear competing flag; wiki resync (one, all) and sync status; OpenSlides push; JSON export.
 - Event editor: enable portal, update portal settings, create, update and delete motion types, validate wiki and OpenSlides credentials.
 
-All list endpoints are paginated with the existing `IPaginatedRequest` and `IPaginatedResponse`.
+The public list, the list of motions collecting co-submitters and the commission dashboard are paginated with the existing `IPaginatedRequest` and `IPaginatedResponse`. The own motions, the revision history, the managed portals and the own upvotes are plain lists.
 
 ## UI
 
@@ -452,6 +468,10 @@ Public and member pages:
 - Motion editor: type selection with the type's deadline and required submitters shown, the fields from the data model, `MarkdownEditorWithPreview` for text and reason, save as draft, release.
 - "Meine Anträge": own motions and co-submissions with status and open inquiries.
 - Ranking page after the prioritization window.
+- "Neuer Antrag" is offered only while the portal is open for new motions; before `OpensAt` and after `ClosesAt` a short hint with the date takes its place, and the editor shows the same hint instead of the form.
+- Releasing a draft asks for confirmation, in the editor and on the motion page. The text says that the motion becomes visible to everyone and that releasing cannot be undone.
+- On a motion that is collecting co-submitters, a visitor who is not signed in sees a hint to sign in, and a signed-in user who is not eligible sees why they cannot join.
+- Front page: the card of upcoming events links each event to its public page and shows an "Antragsportal" button for events with a motion portal. Events without a date appear after the dated ones when they have a portal. The visibility filter of the event page applies.
 
 Administration pages:
 

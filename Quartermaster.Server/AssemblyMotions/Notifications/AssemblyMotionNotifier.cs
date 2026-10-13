@@ -133,12 +133,11 @@ public class AssemblyMotionNotifier {
 
     /// <summary>
     /// Notifies <paramref name="memberIds"/> and, when <paramref name="includeCommission"/> is set, the commission.
-    /// The caller decides who is notified, because an author's own withdrawal does not notify the author while a
-    /// withdrawal by the commission does.
     /// </summary>
     public void Withdrawn(AssemblyMotion motion, IReadOnlyList<Guid> memberIds, bool includeCommission) {
         Safely(nameof(Withdrawn), () => {
             var context = BuildContext(motion);
+            // The caller decides who is notified, because an author's own withdrawal does not notify the author while a withdrawal by the commission does.
             Enqueue(NotificationTriggers.AssemblyMotionWithdrawn, context, memberIds, includeCommission);
         });
     }

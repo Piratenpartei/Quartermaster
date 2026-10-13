@@ -46,6 +46,9 @@ public class AssemblyMotionPortalUpdateEndpoint : Endpoint<AssemblyMotionPortalU
             return;
         }
 
+        req.WikiPagePrefix = AssemblyMotionContent.SingleLineSetting(req.WikiPagePrefix);
+        req.WikiAssemblyLabel = AssemblyMotionContent.SingleLineSetting(req.WikiAssemblyLabel);
+
         var enablesMirror = req.WikiMirrorEnabled && !portal.WikiMirrorEnabled;
         var disablesMirror = !req.WikiMirrorEnabled && portal.WikiMirrorEnabled;
         var changesPrefix = req.WikiMirrorEnabled && portal.WikiMirrorEnabled && portal.WikiPagePrefix != req.WikiPagePrefix;
@@ -77,7 +80,7 @@ public class AssemblyMotionPortalUpdateEndpoint : Endpoint<AssemblyMotionPortalU
         portal.OpenSlidesMeetingId = req.OpenSlidesMeetingId;
         _portals.Update(portal);
         if (enablesMirror || changesPrefix)
-            _wikiResync.QueueNumbered(portal.Id, DateTime.UtcNow);
+            _wikiResync.QueueNumberedAsNeverSynced(portal.Id, DateTime.UtcNow);
         if (disablesMirror)
             _wikiResync.ResetPending(portal.Id);
 

@@ -12,15 +12,19 @@ public partial class AssemblyMotionDiffView {
     [Parameter, EditorRequired]
     public required List<TextDiffLine> Lines { get; set; }
 
-    private static string LineClass(TextDiffKind kind) => kind switch {
-        TextDiffKind.Added => "bg-success-subtle text-success-emphasis",
-        TextDiffKind.Removed => "bg-danger-subtle text-danger-emphasis",
-        _ => ""
-    };
+    private static string LineClass(TextDiffKind kind) {
+        return kind switch {
+            TextDiffKind.Added => "bg-success-subtle text-success-emphasis",
+            TextDiffKind.Removed => "bg-danger-subtle text-danger-emphasis",
+            _ => ""
+        };
+    }
 
-    private static string Prefix(TextDiffKind kind) => kind switch {
-        TextDiffKind.Added => "+",
-        TextDiffKind.Removed => "-",
-        _ => " "
-    };
+    private static string Prefix(TextDiffKind kind) {
+        return kind switch {
+            TextDiffKind.Added => "+",
+            TextDiffKind.Removed => "-",
+            _ => " "
+        };
+    }
 }

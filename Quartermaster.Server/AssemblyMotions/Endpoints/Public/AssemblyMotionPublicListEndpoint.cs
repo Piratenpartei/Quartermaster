@@ -42,8 +42,7 @@ public class AssemblyMotionPublicListEndpoint : Endpoint<AssemblyMotionPublicLis
         var types = _portals.GetTypes(portal.Id).ToDictionary(t => t.Id);
         var search = req.Search?.Trim();
 
-        var filtered = _motions.ListByPortal(portal.Id)
-            .Where(AssemblyMotionVisibility.IsPublic)
+        var filtered = _motions.ListSummariesByPortal(portal.Id)
             .Where(m => types.ContainsKey(m.TypeId))
             .Where(m => req.TypeId == null || m.TypeId == req.TypeId)
             .Where(m => req.Status == null || m.Status == req.Status)

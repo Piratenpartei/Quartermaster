@@ -28,9 +28,24 @@
                 </button>
             }
             @if (WikiMirrorEnabled) {
-                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="ResyncAllAsync">
+                <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || PushRunning)" @onclick="ResyncAllAsync">
                     <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAll]
                 </button>
+            }
+            <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || PushRunning || !OpenSlidesMeetingConfigured)" @onclick="PushToOpenSlidesAsync"
+                    title="@(OpenSlidesMeetingConfigured ? "" : I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingMissingHint])">
+                @if (PushRunning) {
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    @I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushRunning]
+                } else {
+                    <i class="bi bi-cloud-upload"></i> @I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPush]
+                }
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || PushRunning)" @onclick="ExportAsync">
+                <i class="bi bi-download"></i> @I18n[I18nKey.Ui.AssemblyMotion.ExportJson]
+            </button>
+            @if (!OpenSlidesMeetingConfigured) {
+                <span class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingMissingHint]</span>
             }
             <a href="/Administration/Events/@EventId/Motions/Results" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-list-check"></i> @I18n[I18nKey.Ui.AssemblyMotion.ResultsButton]
@@ -40,6 +55,30 @@
             </a>
         </div>
     </div>
+
+    @if (PushResult != null) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesResultTitle]</h5>
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesResultCreated]</dt>
+                    <dd class="col-sm-9">@PushResult.Created</dd>
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesResultUpdated]</dt>
+                    <dd class="col-sm-9">@PushResult.Updated</dd>
+                    <dt class="col-sm-3">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesResultSkipped]</dt>
+                    <dd class="col-sm-9">@PushResult.Skipped</dd>
+                </dl>
+                @if (PushResult.Failures.Count > 0) {
+                    <h6 class="mt-3 text-danger-emphasis">@I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.OpenSlidesResultFailures, ("count", PushResult.Failures.Count.ToString()))]</h6>
+                    <ul class="mb-0">
+                        @foreach (var failure in PushResult.Failures) {
+                            <li><strong>@failure.DisplayNumber</strong>: <span class="text-break">@failure.Error</span></li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    }
 
     <div class="row g-2 mb-3">
         <div class="col-md-3">
@@ -144,5 +183,6 @@
         <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />
     }
 
-    <ConfirmDialog @ref="_resyncAllDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAll]" />
+    <ConfirmDialog @ref="ResyncAllDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAll]" />
+    <OpenSlidesPushDialog @ref="PushDialog" />
 }

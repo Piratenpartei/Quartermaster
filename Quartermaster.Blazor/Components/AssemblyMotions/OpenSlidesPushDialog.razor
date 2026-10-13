@@ -1,0 +1,24 @@
+@using Quartermaster.Api.I18n
+
+@if (IsVisible) {
+    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushTitle]</h5>
+                </div>
+                <div class="modal-body">
+                    <p>@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPushMessage]</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="openSlidesIncludeSubmitted" @bind="IncludeSubmitted" />
+                        <label class="form-check-label" for="openSlidesIncludeSubmitted">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesIncludeSubmitted]</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="Cancel">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                    <button class="btn btn-primary" @onclick="Confirm">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPush]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

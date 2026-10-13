@@ -12,6 +12,8 @@ namespace Quartermaster.Data.AssemblyMotions;
 
 public class AssemblyMotionRepository {
     public const int WikiLastErrorMaxLength = 4000;
+    public const string ReleasedAuditAction = "Released";
+    public const string ReleasedRevisionField = "Revision";
 
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
@@ -22,10 +24,13 @@ public class AssemblyMotionRepository {
     }
 
     // READ COMMITTED so reads after a lock wait see rows committed meanwhile (e.g. the numbers handed out under LockType); REPEATABLE READ would keep the earlier snapshot.
-    public DataConnectionTransaction BeginTransaction() => _context.BeginTransaction(IsolationLevel.ReadCommitted);
+    public DataConnectionTransaction BeginTransaction() {
+        return _context.BeginTransaction(IsolationLevel.ReadCommitted);
+    }
 
-    public AssemblyMotion? Get(Guid id)
-        => _context.AssemblyMotions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
+    public AssemblyMotion? Get(Guid id) {
+        return _context.AssemblyMotions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
+    }
 
     public AssemblyMotion? GetForUpdate(Guid id) {
         return _context.Query<AssemblyMotion>(
@@ -33,10 +38,11 @@ public class AssemblyMotionRepository {
             new DataParameter("id", id)).FirstOrDefault();
     }
 
-    public void LockType(Guid typeId)
-        => _context.Query<Guid>(
-            $"SELECT Id FROM {AssemblyMotionType.TableName} WHERE Id = @id FOR UPDATE",
-            new DataParameter("id", typeId)).FirstOrDefault();
+    public void LockType(Guid typeId) {
+        _context.Query<Guid>(
+                $"SELECT Id FROM {AssemblyMotionType.TableName} WHERE Id = @id FOR UPDATE",
+                new DataParameter("id", typeId)).FirstOrDefault();
+    }
 
     public int NextNumber(Guid portalId, Guid typeId) {
         var maxNumber = _context.AssemblyMotions
@@ -47,7 +53,14 @@ public class AssemblyMotionRepository {
         return (maxNumber ?? 0) + 1;
     }
 
-    public void Insert(AssemblyMotion motion) => _context.Insert(motion);
+    public int CountDrafts(Guid portalId, Guid memberId) {
+        return _context.AssemblyMotions.Count(m => m.PortalId == portalId && m.CreatedByMemberId == memberId
+                && m.Status == AssemblyMotionStatus.Draft && m.DeletedAt == null);
+    }
+
+    public void Insert(AssemblyMotion motion) {
+        _context.Insert(motion);
+    }
 
     public void Update(AssemblyMotion motion) {
         _context.AssemblyMotions
@@ -89,12 +102,21 @@ public class AssemblyMotionRepository {
             .Update();
     }
 
-    public List<AssemblyMotionSubmitter> GetSubmitters(Guid motionId)
-        => _context.AssemblyMotionSubmitters
-            .Where(s => s.MotionId == motionId)
-            .OrderByDescending(s => s.IsAuthor)
-            .ThenBy(s => s.JoinedAt)
-            .ToList();
+    /// <summary>Writes only the competing flag, leaving every other column untouched.</summary>
+    public void SetCompetingFlag(Guid motionId, bool value) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId)
+                .Set(m => m.IsCompetingMotion, value)
+                .Update();
+    }
+
+    public List<AssemblyMotionSubmitter> GetSubmitters(Guid motionId) {
+        return _context.AssemblyMotionSubmitters
+                .Where(s => s.MotionId == motionId)
+                .OrderByDescending(s => s.IsAuthor)
+                .ThenBy(s => s.JoinedAt)
+                .ToList();
+    }
 
     public Dictionary<Guid, List<AssemblyMotionSubmitter>> GetSubmitters(IReadOnlyCollection<Guid> motionIds) {
         return _context.AssemblyMotionSubmitters
@@ -106,12 +128,15 @@ public class AssemblyMotionRepository {
             .ToDictionary(g => g.Key, g => g.ToList());
     }
 
-    public void AddSubmitter(AssemblyMotionSubmitter submitter) => _context.Insert(submitter);
+    public void AddSubmitter(AssemblyMotionSubmitter submitter) {
+        _context.Insert(submitter);
+    }
 
-    public void RemoveSubmitter(Guid motionId, Guid memberId)
-        => _context.AssemblyMotionSubmitters
-            .Where(s => s.MotionId == motionId && s.MemberId == memberId)
-            .Delete();
+    public void RemoveSubmitter(Guid motionId, Guid memberId) {
+        _context.AssemblyMotionSubmitters
+                .Where(s => s.MotionId == motionId && s.MemberId == memberId)
+                .Delete();
+    }
 
     public List<Guid> RemoveCoSubmitters(Guid motionId) {
         var memberIds = _context.AssemblyMotionSubmitters
@@ -126,23 +151,79 @@ public class AssemblyMotionRepository {
         return memberIds;
     }
 
-    public void AddRevision(AssemblyMotionRevision revision) => _context.Insert(revision);
+    public void AddRevision(AssemblyMotionRevision revision) {
+        _context.Insert(revision);
+    }
 
-    public List<AssemblyMotionRevision> GetRevisions(Guid motionId)
-        => _context.AssemblyMotionRevisions
-            .Where(r => r.MotionId == motionId)
-            .OrderBy(r => r.Revision)
-            .ToList();
+    public List<AssemblyMotionRevision> GetRevisions(Guid motionId) {
+        return _context.AssemblyMotionRevisions
+                .Where(r => r.MotionId == motionId)
+                .OrderBy(r => r.Revision)
+                .ToList();
+    }
 
-    public AssemblyMotionRevision? GetRevision(Guid motionId, int revision)
-        => _context.AssemblyMotionRevisions
-            .Where(r => r.MotionId == motionId && r.Revision == revision)
+    /// <summary>
+    /// The revision that was current when the motion was first released, read from the audit entry written by the release. Null when no such entry carries a revision.
+    /// </summary>
+    public int? GetReleasedRevision(Guid motionId) {
+        var value = _context.AuditLogs
+            .Where(a => a.EntityType == "AssemblyMotion" && a.EntityId == motionId
+                && a.Action == ReleasedAuditAction && a.FieldName == ReleasedRevisionField)
+            .OrderBy(a => a.Timestamp)
+            .Select(a => a.NewValue)
             .FirstOrDefault();
 
-    public List<AssemblyMotion> ListByPortal(Guid portalId)
-        => _context.AssemblyMotions
-            .Where(m => m.PortalId == portalId && m.DeletedAt == null)
+        return int.TryParse(value, out var revision) ? revision : null;
+    }
+
+    public AssemblyMotionRevision? GetRevision(Guid motionId, int revision) {
+        return _context.AssemblyMotionRevisions
+                .Where(r => r.MotionId == motionId && r.Revision == revision)
+                .FirstOrDefault();
+    }
+
+    /// <summary>Full rows of the numbered motions of the portal (drafts never have a number), for callers that need the texts.</summary>
+    public List<AssemblyMotion> ListNumberedByPortal(Guid portalId) {
+        return _context.AssemblyMotions
+                .Where(m => m.PortalId == portalId && m.DeletedAt == null && m.Number != null)
+                .ToList();
+    }
+
+    public List<Guid> ListNumberedIds(Guid portalId) {
+        return _context.AssemblyMotions
+                .Where(m => m.PortalId == portalId && m.DeletedAt == null && m.Number != null)
+                .Select(m => m.Id)
+                .ToList();
+    }
+
+    /// <summary>
+    /// The non-draft motions of the portal for list and ranking views, optionally of one status. Drafts are excluded in SQL and only the columns the lists need are read: the Markdown and HTML texts, summary, keywords, check note and the wiki and OpenSlides error texts are left at their defaults and must not be used.
+    /// </summary>
+    public List<AssemblyMotion> ListSummariesByPortal(Guid portalId, AssemblyMotionStatus? status = null) {
+        var query = _context.AssemblyMotions
+            .Where(m => m.PortalId == portalId && m.DeletedAt == null && m.Status != AssemblyMotionStatus.Draft);
+        if (status != null)
+            query = query.Where(m => m.Status == status);
+
+        return query
+            .Select(m => new AssemblyMotion {
+                Id = m.Id,
+                PortalId = m.PortalId,
+                TypeId = m.TypeId,
+                Number = m.Number,
+                Title = m.Title,
+                IsCompetingMotion = m.IsCompetingMotion,
+                Status = m.Status,
+                Result = m.Result,
+                Revision = m.Revision,
+                CreatedByMemberId = m.CreatedByMemberId,
+                CreatedAt = m.CreatedAt,
+                SubmittedAt = m.SubmittedAt,
+                WikiSyncState = m.WikiSyncState,
+                OpenSlidesPushedRevision = m.OpenSlidesPushedRevision
+            })
             .ToList();
+    }
 
     /// <summary>Candidate motions for the deadline job.</summary>
     public List<AssemblyMotion> ListOverdueCollecting(DateTime nowUtc) {
@@ -165,29 +246,48 @@ public class AssemblyMotionRepository {
             .ToList();
     }
 
-    public void SoftDelete(Guid id, DateTime nowUtc)
-        => _context.AssemblyMotions
-            .Where(m => m.Id == id)
-            .Set(m => m.DeletedAt, nowUtc)
-            .Update();
+    public void SoftDelete(Guid id, DateTime nowUtc) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == id)
+                .Set(m => m.DeletedAt, nowUtc)
+                .Update();
+    }
 
     /// <summary>Queues the motion for the wiki sync. Does nothing while the motion's portal has the wiki mirror disabled.</summary>
-    public void MarkWikiPending(Guid motionId, DateTime nowUtc)
-        => _context.AssemblyMotions
-            .Where(m => m.Id == motionId
-                && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.WikiMirrorEnabled))
-            .Set(m => m.WikiSyncState, WikiSyncState.Pending)
-            .Set(m => m.WikiSyncRequestedAt, nowUtc)
-            .Set(m => m.WikiNextAttemptAt, (DateTime?)null)
-            .Set(m => m.WikiFailureCount, 0)
-            .Update();
+    public void MarkWikiPending(Guid motionId, DateTime nowUtc) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId
+                    && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.WikiMirrorEnabled))
+                .Set(m => m.WikiSyncState, WikiSyncState.Pending)
+                .Set(m => m.WikiSyncRequestedAt, nowUtc)
+                .Set(m => m.WikiNextAttemptAt, (DateTime?)null)
+                .Set(m => m.WikiFailureCount, 0)
+                .Update();
+    }
+
+    /// <summary>
+    /// Queues the motion like <see cref="MarkWikiPending"/> and forgets that it was ever written to the wiki (hash and revision cleared), so the next sync treats the page as a first write: an existing page is taken over only when it carries the motion's portal URL, and the page is protected.
+    /// </summary>
+    public void MarkWikiPendingAsNeverSynced(Guid motionId, DateTime nowUtc) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId
+                    && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.WikiMirrorEnabled))
+                .Set(m => m.WikiSyncState, WikiSyncState.Pending)
+                .Set(m => m.WikiSyncRequestedAt, nowUtc)
+                .Set(m => m.WikiNextAttemptAt, (DateTime?)null)
+                .Set(m => m.WikiFailureCount, 0)
+                .Set(m => m.WikiSyncedHash, (string?)null)
+                .Set(m => m.WikiSyncedRevision, (int?)null)
+                .Update();
+    }
 
     /// <summary>Sets the pending motions of the portal back to not mirrored; synced and failed motions keep their state as history.</summary>
-    public void ResetWikiPendingToNotMirrored(Guid portalId)
-        => _context.AssemblyMotions
-            .Where(m => m.PortalId == portalId && m.WikiSyncState == WikiSyncState.Pending)
-            .Set(m => m.WikiSyncState, WikiSyncState.NotMirrored)
-            .Update();
+    public void ResetWikiPendingToNotMirrored(Guid portalId) {
+        _context.AssemblyMotions
+                .Where(m => m.PortalId == portalId && m.WikiSyncState == WikiSyncState.Pending)
+                .Set(m => m.WikiSyncState, WikiSyncState.NotMirrored)
+                .Update();
+    }
 
     /// <summary>Numbered motions of mirrored portals whose wiki page needs work now, oldest request first. A motion that was never mirrored (portal mirroring enabled later) counts as due.</summary>
     public List<AssemblyMotion> ListWikiDue(DateTime nowUtc, int limit) {
@@ -284,6 +384,7 @@ public class AssemblyMotionRepository {
         return false;
     }
 
-    private static string? TruncateError(string? error)
-        => error != null && error.Length > WikiLastErrorMaxLength ? error[..WikiLastErrorMaxLength] : error;
+    private static string? TruncateError(string? error) {
+        return error != null && error.Length > WikiLastErrorMaxLength ? error[..WikiLastErrorMaxLength] : error;
+    }
 }

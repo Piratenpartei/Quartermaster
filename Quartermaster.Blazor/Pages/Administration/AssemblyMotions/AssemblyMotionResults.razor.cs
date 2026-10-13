@@ -92,14 +92,18 @@ public partial class AssemblyMotionResults {
         }
     }
 
-    private string GetSelection(Guid motionId) => ((int)_selected[motionId]).ToString();
+    private string GetSelection(Guid motionId) {
+        return ((int)_selected[motionId]).ToString();
+    }
 
     private void SetSelection(Guid motionId, string value) {
         if (int.TryParse(value, out var parsed))
             _selected[motionId] = (AssemblyMotionResult)parsed;
     }
 
-    private string ResultOptionLabel(AssemblyMotionResult result) => AssemblyMotionDisplay.ResultOptionLabel(I18n, result);
+    private string ResultOptionLabel(AssemblyMotionResult result) {
+        return AssemblyMotionDisplay.ResultOptionLabel(I18n, result);
+    }
 
     private async Task Save() {
         var changed = _selected

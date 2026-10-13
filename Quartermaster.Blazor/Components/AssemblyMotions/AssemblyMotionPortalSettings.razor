@@ -71,18 +71,14 @@
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiPagePrefix]</label>
-                        <input type="text" class="form-control" @bind="WikiPagePrefix" @bind:event="oninput"
-                               readonly="@(!WikiMirrorEnabled)" disabled="@(!WikiMirrorEnabled)" />
+                        <label class="form-label small text-secondary" for="wikiPagePrefix">@I18n[I18nKey.Ui.AssemblyMotion.WikiPagePrefix]</label>
+                        <input type="text" class="form-control" id="wikiPagePrefix" @bind="WikiPagePrefix" @bind:event="oninput"
+                               readonly="@(!WikiMirrorEnabled || !CanEdit)" disabled="@(!WikiMirrorEnabled || !CanEdit)" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiAssemblyLabel]</label>
-                        <input type="text" class="form-control" @bind="WikiAssemblyLabel" @bind:event="oninput"
-                               readonly="@(!WikiMirrorEnabled)" disabled="@(!WikiMirrorEnabled)" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingId]</label>
-                        <input type="number" class="form-control" @bind="OpenSlidesMeetingId" @bind:event="oninput" />
+                        <label class="form-label small text-secondary" for="wikiAssemblyLabel">@I18n[I18nKey.Ui.AssemblyMotion.WikiAssemblyLabel]</label>
+                        <input type="text" class="form-control" id="wikiAssemblyLabel" @bind="WikiAssemblyLabel" @bind:event="oninput"
+                               readonly="@(!WikiMirrorEnabled || !CanEdit)" disabled="@(!WikiMirrorEnabled || !CanEdit)" />
                     </div>
                 </div>
 
@@ -93,6 +89,24 @@
                     <span class="form-text ms-2">@I18n[I18nKey.Ui.AssemblyMotion.WikiCheckConnectionHint]</span>
                     @if (ConnectionCheck != null) {
                         <div class="alert @(ConnectionCheck.Ok ? "alert-success" : "alert-danger") mt-2 mb-0" role="alert">@ConnectionCheck.Message</div>
+                    }
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary" for="openSlidesMeetingId">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingId]</label>
+                        <input type="number" class="form-control" id="openSlidesMeetingId" min="1" @bind="OpenSlidesMeetingId" @bind:event="oninput"
+                               readonly="@(!CanEdit)" disabled="@(!CanEdit)" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || !CanEdit)" @onclick="CheckOpenSlidesConnectionAsync">
+                        <i class="bi bi-plug"></i> @I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesCheckConnection]
+                    </button>
+                    <span class="form-text ms-2">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesCheckConnectionHint]</span>
+                    @if (OpenSlidesConnectionCheck != null) {
+                        <div class="alert @(OpenSlidesConnectionCheck.Ok ? "alert-success" : "alert-danger") mt-2 mb-0" role="alert">@OpenSlidesConnectionCheck.Message</div>
                     }
                 </div>
 
@@ -189,5 +203,5 @@
         </div>
     </div>
 
-    <ConfirmDialog @ref="_deleteTypeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteTypeTitle]" ConfirmText="@I18n[I18nKey.Ui.Common.Delete]" />
+    <ConfirmDialog @ref="DeleteTypeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.DeleteTypeTitle]" ConfirmText="@I18n[I18nKey.Ui.Common.Delete]" />
 }

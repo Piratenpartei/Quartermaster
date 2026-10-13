@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api.I18n;
 using Quartermaster.Rendering;
 using Quartermaster.Blazor.Components.Forms;
 
@@ -18,6 +17,9 @@ public partial class MarkdownEditorWithPreview {
 
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public string? Id { get; set; }
 
     [Parameter]
     public int Rows { get; set; } = 8;
@@ -60,15 +62,8 @@ public partial class MarkdownEditorWithPreview {
         RenderedHtml = MarkdownService.ToHtml(Value, Profile, Flavor);
         problemMessageKeys = Flavor == MarkdownFlavor.Motion
             ? MotionMarkdown.FindProblems(Value)
-                .Select(ToMessageKey)
+                .Select(MotionMarkdown.MessageKey)
                 .ToList()
             : [];
     }
-
-    private static string ToMessageKey(MotionMarkdownProblem problem) => problem switch {
-        MotionMarkdownProblem.RawHtml => I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed,
-        MotionMarkdownProblem.Image => I18nKey.Error.AssemblyMotion.MarkdownImageNotAllowed,
-        MotionMarkdownProblem.TooDeeplyNested => I18nKey.Error.AssemblyMotion.MarkdownTooDeeplyNested,
-        _ => I18nKey.Error.AssemblyMotion.MarkdownTooLong
-    };
 }

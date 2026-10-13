@@ -35,7 +35,7 @@ public class AssemblyMotionInquiryAskEndpoint : AssemblyMotionMemberEndpoint<Ass
 
     public override async Task HandleAsync(AssemblyMotionInquiryAskRequest req, CancellationToken ct) {
         var result = _actions.Run(req.MotionId, (userId, nowUtc)
-            => _service.Ask(req.MotionId, req.QuestionMarkdown.Trim(), req.ResponseDueAt.UtcDateTime, userId, nowUtc));
+            => _service.Ask(req.MotionId, req.QuestionMarkdown, req.ResponseDueAt.UtcDateTime, userId, nowUtc));
         await SendResultAsync(result, ct);
     }
 }

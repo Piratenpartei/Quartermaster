@@ -58,9 +58,19 @@ public class AssemblyMotionRevisionsEndpoint : Endpoint<AssemblyMotionIdRequest,
             return;
         }
 
-        var revisions = _motions.GetRevisions(motion.Id)
+        var revisions = _motions.GetRevisions(motion.Id);
+        var isAuthor = eligibility.Member != null && motion.CreatedByMemberId == eligibility.Member.Id;
+        if (!isAuthor) {
+            // Revisions saved while the motion was a draft stay private to its author.
+            var firstReleasedRevision = _motions.GetReleasedRevision(motion.Id) ?? motion.Revision;
+            revisions = revisions
+                .Where(r => r.Revision >= firstReleasedRevision)
+                .ToList();
+        }
+
+        var dtos = revisions
             .Select(r => r.ToDto())
             .ToList();
-        await SendAsync(revisions, cancellation: ct);
+        await SendAsync(dtos, cancellation: ct);
     }
 }

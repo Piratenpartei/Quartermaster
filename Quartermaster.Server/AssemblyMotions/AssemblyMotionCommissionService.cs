@@ -21,9 +21,11 @@ public class AssemblyMotionCommissionService {
     }
 
     public AssemblyMotionOutcome Check(Guid motionId, AssemblyMotionStatus decision, string? checkNote, Guid userId, DateTime nowUtc) {
-        var note = string.IsNullOrWhiteSpace(checkNote) ? null : checkNote.Trim();
+        var note = AssemblyMotionContent.NormalizeNote(checkNote);
         if (!IsCheckStatus(decision))
             return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.InvalidState);
+        if (note?.Length > AssemblyMotionContent.CheckNoteMaxLength)
+            return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.CheckNoteMaxLength);
 
         using var tx = _motions.BeginTransaction();
 
@@ -57,7 +59,13 @@ public class AssemblyMotionCommissionService {
 
     public AssemblyMotionOutcome Edit(Guid motionId, Guid userId, AssemblyMotionDraft draft, int baseRevision, string? changeNote, DateTime nowUtc) {
         draft = draft.Normalized();
-        var note = string.IsNullOrWhiteSpace(changeNote) ? null : changeNote.Trim();
+        var contentProblem = AssemblyMotionContent.FieldProblem(draft) ?? AssemblyMotionContent.MarkdownProblem(draft);
+        if (contentProblem != null)
+            return contentProblem;
+
+        var note = AssemblyMotionContent.NormalizeNote(changeNote);
+        if (note?.Length > AssemblyMotionContent.ChangeNoteMaxLength)
+            return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.ChangeNoteMaxLength);
 
         using var tx = _motions.BeginTransaction();
 
@@ -118,13 +126,17 @@ public class AssemblyMotionCommissionService {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    private List<Guid> SubmitterIds(Guid motionId)
-        => _motions.GetSubmitters(motionId)
-            .Select(s => s.MemberId)
-            .ToList();
+    private List<Guid> SubmitterIds(Guid motionId) {
+        return _motions.GetSubmitters(motionId)
+                .Select(s => s.MemberId)
+                .ToList();
+    }
 
-    private static bool IsCheckStatus(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Submitted
-            || status == AssemblyMotionStatus.Admitted
-            || status == AssemblyMotionStatus.FormallyInsufficient;
+    private static bool IsCheckStatus(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Submitted)
+            return true;
+        if (status == AssemblyMotionStatus.Admitted)
+            return true;
+        return status == AssemblyMotionStatus.FormallyInsufficient;
+    }
 }

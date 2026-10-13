@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -28,11 +29,24 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
     private (string ApiUrl, string Username, string Password)? loggedInAs;
     private string? csrfToken;
 
-    public HttpWikiBotClient(HttpMessageHandler handler, ILogger<HttpWikiBotClient> logger) {
-        _http = new HttpClient(handler) {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
+    public HttpWikiBotClient(HttpMessageHandler handler, ILogger<HttpWikiBotClient> logger)
+        : this(new HttpClient(handler), logger) { }
+
+    public HttpWikiBotClient(HttpClient http, ILogger<HttpWikiBotClient> logger) {
+        _http = http;
+        _http.Timeout = TimeSpan.FromSeconds(30);
         _logger = logger;
+    }
+
+    /// <summary>The primary handler of the "wiki" named client: keeps the session cookies and surfaces a 3xx answer as an http_error.</summary>
+    public static SocketsHttpHandler CreateHandler() {
+        // A followed 307 or 308 would resend the login POST with the bot password to the redirect target.
+        return new SocketsHttpHandler {
+            AllowAutoRedirect = false,
+            UseCookies = true,
+            CookieContainer = new CookieContainer(),
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15)
+        };
     }
 
     public async Task LoginAsync(WikiBotSettings settings, CancellationToken ct) {
@@ -178,11 +192,17 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
         throw new WikiBotException($"Speichern fehlgeschlagen: {(result.Length == 0 ? "unbekanntes Ergebnis" : result)}", "edit_failed");
     }
 
-    private static WikiBotException Unexpected(string action, string detail)
-        => new($"Unerwartete Antwort des Wikis ({action}): {detail}", "unexpected_response");
+    private static WikiBotException Unexpected(string action, string detail) {
+        return new($"Unerwartete Antwort des Wikis ({action}): {detail}", "unexpected_response");
+    }
 
-    private static bool IsTrue(JsonElement element, string name)
-        => element.ValueKind == JsonValueKind.Object && element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
+    private static bool IsTrue(JsonElement element, string name) {
+        if (element.ValueKind != JsonValueKind.Object)
+            return false;
+        if (!element.TryGetProperty(name, out var value))
+            return false;
+        return value.ValueKind == JsonValueKind.True;
+    }
 
     private static JsonElement Member(JsonElement element, string action, params string[] path) {
         var current = element;
@@ -206,7 +226,9 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
         return value.GetString() ?? "";
     }
 
-    private static string Excerpt(string body) => body.Length <= MaxBodyExcerpt ? body : body[..MaxBodyExcerpt] + "...";
+    private static string Excerpt(string body) {
+        return body.Length <= MaxBodyExcerpt ? body : body[..MaxBodyExcerpt] + "...";
+    }
 
     private static string Encode(IEnumerable<KeyValuePair<string, string>> fields) {
         var builder = new StringBuilder();
@@ -286,7 +308,7 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
     }
 
     private async Task LoginCoreAsync(WikiBotSettings settings, CancellationToken ct) {
-        if (!settings.IsConfigured) {
+        if (!settings.IsConfigured()) {
             throw new WikiBotException("Anmeldung am Wiki fehlgeschlagen: Bot-Zugang ist nicht konfiguriert.", "login_failed");
         }
 

@@ -39,5 +39,7 @@ public class AssemblyMotionFieldValues {
         return true;
     }
 
-    private static string? NullIfBlank(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
+    private static string? NullIfBlank(string value) {
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 }

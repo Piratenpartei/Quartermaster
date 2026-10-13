@@ -39,7 +39,7 @@
 
             @if (CanSetFlag) {
                 <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="competing-flag" @key="_flagRenderKey"
+                    <input type="checkbox" class="form-check-input" id="competing-flag" @key="FlagRenderKey"
                            checked="@Motion.IsCompetingMotion" disabled="@Busy" @onchange="OnFlagChanged" />
                     <label class="form-check-label" for="competing-flag">@I18n[I18nKey.Ui.AssemblyMotion.CompetingFlag]</label>
                     @if (FlagExplanation != "") {
@@ -97,4 +97,4 @@
     </div>
 }
 
-<ConfirmDialog @ref="_removeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemoveTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemove]" />
+<ConfirmDialog @ref="RemoveDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemoveTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemove]" />

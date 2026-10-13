@@ -48,7 +48,7 @@ public class AssemblyMotionRankingEndpoint : Endpoint<AssemblyMotionPortalIdRequ
         }
 
         var types = _portals.GetTypes(portal.Id).ToDictionary(t => t.Id);
-        var entries = AssemblyMotionRanking.Compute(_motions.ListByPortal(portal.Id), types, _upvotes.CountsForPortal(portal.Id));
+        var entries = AssemblyMotionRanking.Compute(_motions.ListSummariesByPortal(portal.Id), types, _upvotes.CountsForPortal(portal.Id));
 
         await SendAsync(new AssemblyMotionRankingResponse {
             Items = entries.Select(ToItem).ToList(),
@@ -56,16 +56,18 @@ public class AssemblyMotionRankingEndpoint : Endpoint<AssemblyMotionPortalIdRequ
         }, cancellation: ct);
     }
 
-    private static AssemblyMotionRankingItemDTO ToItem(AssemblyMotionRankingEntry entry) => new() {
-        Rank = entry.Rank,
-        Id = entry.Motion.Id,
-        DisplayNumber = AssemblyMotionNumber.Format(entry.Type.Code, entry.Motion.Number!.Value),
-        Title = entry.Motion.Title,
-        TypeId = entry.Type.Id,
-        TypeCode = entry.Type.Code,
-        TypeName = entry.Type.Name,
-        TypeSortOrder = entry.Type.SortOrder,
-        UpvoteCount = entry.UpvoteCount,
-        Status = entry.Motion.Status
-    };
+    private static AssemblyMotionRankingItemDTO ToItem(AssemblyMotionRankingEntry entry) {
+        return new() {
+            Rank = entry.Rank,
+            Id = entry.Motion.Id,
+            DisplayNumber = AssemblyMotionNumber.Format(entry.Type.Code, entry.Motion.Number!.Value),
+            Title = entry.Motion.Title,
+            TypeId = entry.Type.Id,
+            TypeCode = entry.Type.Code,
+            TypeName = entry.Type.Name,
+            TypeSortOrder = entry.Type.SortOrder,
+            UpvoteCount = entry.UpvoteCount,
+            Status = entry.Motion.Status
+        };
+    }
 }

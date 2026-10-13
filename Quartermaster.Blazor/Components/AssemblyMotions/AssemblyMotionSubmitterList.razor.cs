@@ -12,6 +12,7 @@ public partial class AssemblyMotionSubmitterList {
     [Parameter, EditorRequired]
     public required List<AssemblyMotionSubmitterDTO> Submitters { get; set; }
 
-    private string MemberNumberLabel(int memberNumber)
-        => I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.MemberNumber, ("number", memberNumber.ToString()))];
+    private string MemberNumberLabel(int memberNumber) {
+        return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.MemberNumber, ("number", memberNumber.ToString()))];
+    }
 }

@@ -47,10 +47,10 @@ public class AssemblyMotionResultServiceTests : RepositoryTestBase {
             .Update();
     }
 
-    private AssemblyMotion NewMotion(bool release = true) {
-        var type = _portalRepo.GetTypes(_portal.Id).First(t => t.MinSubmitters == 1);
+    private AssemblyMotion NewMotion(bool release = true, int minSubmitters = 1, string title = "Testantrag") {
+        var type = _portalRepo.GetTypes(_portal.Id).First(t => t.MinSubmitters == minSubmitters);
         var author = _builder.SeedMember(chapterId: _chapter.Id);
-        var draft = new AssemblyMotionDraft(type.Id, "Testantrag", null, "Antragstext", "Begründung", null, null, null);
+        var draft = new AssemblyMotionDraft(type.Id, title, null, "Antragstext", "Begründung", null, null, null);
         var motion = _service.CreateDraft(_portal, author, _userId, draft, _now).Motion!;
         return release ? _service.Release(motion.Id, author, _now).Motion! : motion;
     }
@@ -165,7 +165,7 @@ public class AssemblyMotionResultServiceTests : RepositoryTestBase {
     [Test]
     public async Task Bulk_is_atomic() {
         var valid = NewMotion();
-        var unnumbered = NewMotion(release: false);
+        var unnumbered = NewMotion(minSubmitters: 5);
 
         var outcome = _results.SetResults(_portal.Id, [
             new AssemblyMotionResultItem { MotionId = valid.Id, Result = AssemblyMotionResult.Accepted },
@@ -176,6 +176,25 @@ public class AssemblyMotionResultServiceTests : RepositoryTestBase {
         await Assert.That(outcome.ErrorKey!).StartsWith(I18nKey.Error.AssemblyMotion.ResultItemInvalid);
         await Assert.That(_motionRepo.Get(valid.Id)!.Result).IsEqualTo(AssemblyMotionResult.None);
         await Assert.That(ResultAuditCount(valid.Id)).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Bulk_treats_a_draft_as_not_found_without_revealing_its_title() {
+        var valid = NewMotion();
+        var draft = NewMotion(release: false, title: "Geheimer-Entwurfstitel");
+
+        var outcome = _results.SetResults(_portal.Id, [
+            new AssemblyMotionResultItem { MotionId = valid.Id, Result = AssemblyMotionResult.Accepted },
+            new AssemblyMotionResultItem { MotionId = draft.Id, Result = AssemblyMotionResult.Accepted }
+        ], _now);
+        var missing = _results.SetResults(_portal.Id, [
+            new AssemblyMotionResultItem { MotionId = Guid.NewGuid(), Result = AssemblyMotionResult.Accepted }
+        ], _now);
+
+        await Assert.That(outcome.StatusCode).IsEqualTo(404);
+        await Assert.That(outcome.ErrorKey).IsEqualTo(missing.ErrorKey);
+        await Assert.That(outcome.ErrorKey!).DoesNotContain("Geheimer");
+        await Assert.That(_motionRepo.Get(valid.Id)!.Result).IsEqualTo(AssemblyMotionResult.None);
     }
 
     [Test]

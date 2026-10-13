@@ -34,6 +34,8 @@ public partial class AssemblyMotionRevisionHistory {
     private int SelectedRevision;
     private Guid loadedMotionId;
     private int loadedRevision = -1;
+    private List<TextDiffLine> TextDiffLines = [];
+    private List<TextDiffLine> ReasonDiffLines = [];
 
     private AssemblyMotionRevisionDTO? Current => Revisions.FirstOrDefault(r => r.Revision == SelectedRevision);
 
@@ -41,9 +43,6 @@ public partial class AssemblyMotionRevisionHistory {
         .Where(r => r.Revision < SelectedRevision)
         .OrderByDescending(r => r.Revision)
         .FirstOrDefault();
-
-    private List<TextDiffLine> TextDiffLines = [];
-    private List<TextDiffLine> ReasonDiffLines = [];
 
     private string DiffTitle => Current == null || Previous == null
         ? ""

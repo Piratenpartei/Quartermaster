@@ -31,8 +31,9 @@ public class AssemblyMotionCompetitionService {
         _notifier = notifier;
     }
 
-    public static (Guid A, Guid B) OrderPair(Guid first, Guid second)
-        => first.CompareTo(second) <= 0 ? (first, second) : (second, first);
+    public static (Guid A, Guid B) OrderPair(Guid first, Guid second) {
+        return first.CompareTo(second) <= 0 ? (first, second) : (second, first);
+    }
 
     /// <summary>
     /// A link qualifies for the competing flag when the other motion is numbered and was submitted earlier than
@@ -150,7 +151,7 @@ public class AssemblyMotionCompetitionService {
 
         var before = motion.IsCompetingMotion;
         motion.IsCompetingMotion = value;
-        _motions.Update(motion);
+        _motions.SetCompetingFlag(motion.Id, value);
         _auditLog.Log(EntityType, motion.Id, "CompetingFlagChanged", nameof(AssemblyMotion.IsCompetingMotion), before.ToString(), value.ToString());
 
         tx.Commit();
@@ -163,7 +164,7 @@ public class AssemblyMotionCompetitionService {
         var type = _portals.GetType(motion.TypeId)
             ?? throw new InvalidOperationException($"Type {motion.TypeId} not found for motion {motion.Id}.");
 
-        if (!_motionService.CanEditAsAuthor(motion, type, portal, author.Id, nowUtc))
+        if (!_motionService.CanEditAsAuthor(motion, type, portal, author.Id, nowUtc, value))
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.EditLocked);
         if (value && !HasQualifyingLink(motion))
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.CompetingFlagRequiresLink);
@@ -200,8 +201,9 @@ public class AssemblyMotionCompetitionService {
     /// <summary>
     /// Whether <paramref name="viewer"/> may remove <paramref name="link"/>, as the same rule <see cref="Remove"/> applies.
     /// </summary>
-    public bool CanRemove(AssemblyMotionCompetition link, Member? viewer, bool isCommission)
-        => RemovePermissionProblem(link, viewer, isCommission) == null;
+    public bool CanRemove(AssemblyMotionCompetition link, Member? viewer, bool isCommission) {
+        return RemovePermissionProblem(link, viewer, isCommission) == null;
+    }
 
     private Dictionary<Guid, AssemblyMotion> LockPair(Guid first, Guid second) {
         var pair = OrderPair(first, second);
@@ -229,7 +231,7 @@ public class AssemblyMotionCompetitionService {
             return;
 
         motion.IsCompetingMotion = false;
-        _motions.Update(motion);
+        _motions.SetCompetingFlag(motion.Id, false);
         _auditLog.Log(EntityType, motion.Id, "CompetingFlagChanged", nameof(AssemblyMotion.IsCompetingMotion), true.ToString(), false.ToString());
     }
 
@@ -240,24 +242,33 @@ public class AssemblyMotionCompetitionService {
             .Any(other => other != null && IsQualifying(motion, other));
     }
 
-    private bool IsSubmitter(Guid motionId, Guid memberId)
-        => _motions.GetSubmitters(motionId).Any(s => s.MemberId == memberId);
+    private bool IsSubmitter(Guid motionId, Guid memberId) {
+        return _motions.GetSubmitters(motionId).Any(s => s.MemberId == memberId);
+    }
 
-    private List<Guid> SubmitterIds(Guid motionId)
-        => _motions.GetSubmitters(motionId)
-            .Select(s => s.MemberId)
-            .ToList();
+    private List<Guid> SubmitterIds(Guid motionId) {
+        return _motions.GetSubmitters(motionId)
+                .Select(s => s.MemberId)
+                .ToList();
+    }
 
-    private static bool IsActive(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Submitted
-            || status == AssemblyMotionStatus.Admitted
-            || status == AssemblyMotionStatus.FormallyInsufficient;
+    private static bool IsActive(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Submitted)
+            return true;
+        if (status == AssemblyMotionStatus.Admitted)
+            return true;
+        return status == AssemblyMotionStatus.FormallyInsufficient;
+    }
 
-    private static bool CanDeclareFrom(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Draft
-            || status == AssemblyMotionStatus.CollectingCoSubmitters
-            || IsDeclarable(status);
+    private static bool CanDeclareFrom(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Draft)
+            return true;
+        if (status == AssemblyMotionStatus.CollectingCoSubmitters)
+            return true;
+        return IsDeclarable(status);
+    }
 
-    private static bool IsDeclarable(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Submitted || status == AssemblyMotionStatus.Admitted;
+    private static bool IsDeclarable(AssemblyMotionStatus status) {
+        return status == AssemblyMotionStatus.Submitted || status == AssemblyMotionStatus.Admitted;
+    }
 }

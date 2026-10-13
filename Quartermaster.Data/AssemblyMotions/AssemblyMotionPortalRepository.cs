@@ -16,11 +16,13 @@ public class AssemblyMotionPortalRepository {
         _auditLog = auditLog;
     }
 
-    public AssemblyMotionPortal? Get(Guid id)
-        => _context.AssemblyMotionPortals.Where(p => p.Id == id).FirstOrDefault();
+    public AssemblyMotionPortal? Get(Guid id) {
+        return _context.AssemblyMotionPortals.Where(p => p.Id == id).FirstOrDefault();
+    }
 
-    public AssemblyMotionPortal? GetByEvent(Guid eventId)
-        => _context.AssemblyMotionPortals.Where(p => p.EventId == eventId).FirstOrDefault();
+    public AssemblyMotionPortal? GetByEvent(Guid eventId) {
+        return _context.AssemblyMotionPortals.Where(p => p.EventId == eventId).FirstOrDefault();
+    }
 
     public AssemblyMotionPortal Create(Guid eventId, DateTime opensAt, DateTime closesAt, DateTime nowUtc, Func<string, string>? templateFor = null) {
         var portal = new AssemblyMotionPortal {
@@ -81,15 +83,17 @@ public class AssemblyMotionPortalRepository {
             existing.OpenSlidesMeetingId?.ToString(), portal.OpenSlidesMeetingId?.ToString());
     }
 
-    public List<AssemblyMotionType> GetTypes(Guid portalId)
-        => _context.AssemblyMotionTypes
-            .Where(t => t.PortalId == portalId)
-            .OrderBy(t => t.SortOrder)
-            .ThenBy(t => t.Code)
-            .ToList();
+    public List<AssemblyMotionType> GetTypes(Guid portalId) {
+        return _context.AssemblyMotionTypes
+                .Where(t => t.PortalId == portalId)
+                .OrderBy(t => t.SortOrder)
+                .ThenBy(t => t.Code)
+                .ToList();
+    }
 
-    public AssemblyMotionType? GetType(Guid typeId)
-        => _context.AssemblyMotionTypes.Where(t => t.Id == typeId).FirstOrDefault();
+    public AssemblyMotionType? GetType(Guid typeId) {
+        return _context.AssemblyMotionTypes.Where(t => t.Id == typeId).FirstOrDefault();
+    }
 
     public AssemblyMotionType CreateType(AssemblyMotionType type) {
         _context.Insert(type);
@@ -132,8 +136,11 @@ public class AssemblyMotionPortalRepository {
             existing.WikiTemplate, type.WikiTemplate);
     }
 
-    public bool TypeHasMotions(Guid typeId)
-        => _context.AssemblyMotions.Any(m => m.TypeId == typeId && m.DeletedAt == null);
+    /// <summary>Whether any motion row references the type, soft-deleted ones included.</summary>
+    public bool TypeHasMotions(Guid typeId) {
+        // Soft-deleted rows keep their foreign key, so they still block deleting the type.
+        return _context.AssemblyMotions.Any(m => m.TypeId == typeId);
+    }
 
     public void DeleteType(Guid typeId) {
         _context.AssemblyMotionTypes.Where(t => t.Id == typeId).Delete();

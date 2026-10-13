@@ -34,18 +34,24 @@ public class AssemblyMotionPortalUpdateRequestValidator : Validator<AssemblyMoti
 
         When(x => !string.IsNullOrEmpty(x.WikiPagePrefix), () => {
             RuleFor(x => x.WikiPagePrefix)
-                .Must(AssemblyMotionWikiPage.IsValidPrefix)
+                .Must(prefix => AssemblyMotionWikiPage.IsValidPrefix(AssemblyMotionContent.SingleLineSetting(prefix)))
                 .WithMessage(I18nKey.Error.AssemblyMotion.WikiPrefixInvalid);
         });
 
         When(x => x.WikiMirrorEnabled, () => {
             RuleFor(x => x.WikiPagePrefix)
-                .NotEmpty()
+                .Must(prefix => !string.IsNullOrWhiteSpace(AssemblyMotionContent.SingleLineSetting(prefix)))
                 .WithMessage(I18nKey.Error.AssemblyMotion.Portal.WikiPagePrefixRequired);
 
             RuleFor(x => x.WikiAssemblyLabel)
-                .NotEmpty()
+                .Must(label => !string.IsNullOrWhiteSpace(AssemblyMotionContent.SingleLineSetting(label)))
                 .WithMessage(I18nKey.Error.AssemblyMotion.Portal.WikiAssemblyLabelRequired);
+        });
+
+        When(x => x.OpenSlidesMeetingId != null, () => {
+            RuleFor(x => x.OpenSlidesMeetingId)
+                .GreaterThan(0)
+                .WithMessage(I18nKey.Error.AssemblyMotion.Portal.OpenSlidesMeetingIdInvalid);
         });
     }
 }

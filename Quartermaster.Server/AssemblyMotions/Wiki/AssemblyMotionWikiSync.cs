@@ -16,6 +16,7 @@ namespace Quartermaster.Server.AssemblyMotions.Wiki;
 /// Mirrors numbered assembly motions to wiki pages. Never holds a transaction or row lock across a wiki call: it reads, talks to the wiki, then records the outcome with a conditional update that cannot overwrite a concurrent change.
 /// </summary>
 public class AssemblyMotionWikiSync {
+    public const string LoginFailedCode = "login_failed";
     public const string TemplateErrorCode = "template_error";
     public const string BaseUrlMissingCode = "base_url_missing";
     public const string PagePrefixMissingCode = "page_prefix_missing";
@@ -31,7 +32,7 @@ public class AssemblyMotionWikiSync {
     private static readonly TimeSpan ProtectionRetryDelay = TimeSpan.FromHours(1);
     private static readonly TimeSpan UnconfiguredWarningInterval = TimeSpan.FromHours(1);
     private static readonly HashSet<string> PermanentCodes = [
-        "login_failed",
+        LoginFailedCode,
         "permissiondenied",
         "protectedpage",
         "insecure_url",
@@ -74,7 +75,7 @@ public class AssemblyMotionWikiSync {
 
     /// <summary>Syncs the motions that are due and returns how many were written or confirmed unchanged. Does nothing when the wiki settings are not configured.</summary>
     public async Task<int> SyncDueAsync(DateTime nowUtc, CancellationToken ct) {
-        if (!WikiBotSettings.ReadFrom(_options).IsConfigured) {
+        if (!WikiBotSettings.ReadFrom(_options).IsConfigured()) {
             WarnUnconfigured(nowUtc);
             return 0;
         }
@@ -83,8 +84,13 @@ public class AssemblyMotionWikiSync {
         foreach (var due in _motions.ListWikiDue(nowUtc, DueBatchSize)) {
             ct.ThrowIfCancellationRequested();
             try {
-                if (await SyncOneAsync(due.Id, nowUtc, ct))
+                var attempt = await AttemptAsync(due.Id, nowUtc, ct);
+                if (attempt.Written)
                     synced++;
+                if (IsLoginFailure(attempt.Failure)) {
+                    _logger.LogWarning("Wiki sync stops for this run after a failed login");
+                    break;
+                }
             } catch (Exception ex) when (!ct.IsCancellationRequested) {
                 _logger.LogError(ex, "Wiki sync of assembly motion {MotionId} failed unexpectedly", due.Id);
             }
@@ -97,23 +103,27 @@ public class AssemblyMotionWikiSync {
     /// Syncs one motion now. Returns true when the wiki page matches the motion afterwards, false when the motion is not mirrored, the settings are not configured or the attempt failed (recorded on the motion). Shutdown cancellation propagates and records nothing.
     /// </summary>
     public async Task<bool> SyncOneAsync(Guid motionId, DateTime nowUtc, CancellationToken ct) {
+        return (await AttemptAsync(motionId, nowUtc, ct)).Written;
+    }
+
+    private async Task<SyncAttempt> AttemptAsync(Guid motionId, DateTime nowUtc, CancellationToken ct) {
         var settings = WikiBotSettings.ReadFrom(_options);
-        if (!settings.IsConfigured) {
+        if (!settings.IsConfigured()) {
             WarnUnconfigured(nowUtc);
-            return false;
+            return SyncAttempt.NotWritten;
         }
 
         var motion = _motions.Get(motionId);
         if (motion == null || !motion.WasSubmitted)
-            return false;
+            return SyncAttempt.NotWritten;
 
         var portal = _portals.Get(motion.PortalId);
         if (portal == null || !portal.WikiMirrorEnabled)
-            return false;
+            return SyncAttempt.NotWritten;
 
         var type = _portals.GetType(motion.TypeId);
         if (type == null)
-            return false;
+            return SyncAttempt.NotWritten;
 
         var requestedAt = motion.WikiSyncRequestedAt;
         try {
@@ -124,6 +134,9 @@ public class AssemblyMotionWikiSync {
 
             var protectionFailure = await WriteAsync(settings, motion, title, text, hash, portalUrl, ct);
 
+            if (IsSuperseded(portal, type, motion, title))
+                return SyncAttempt.NotWritten;
+
             _motions.CompleteWikiSync(
                 motion.Id,
                 requestedAt,
@@ -133,11 +146,28 @@ public class AssemblyMotionWikiSync {
                 protectionFailure,
                 protectionFailure == null ? null : nowUtc + ProtectionRetryDelay,
                 nowUtc);
-            return true;
+            return new SyncAttempt(true, null);
         } catch (Exception ex) when (!IsShutdown(ex, ct)) {
             RecordFailure(motion, requestedAt, ex, nowUtc);
-            return false;
+            return new SyncAttempt(false, ex);
         }
+    }
+
+    // A prefix change during the write requeues the motion as never synced; recording the hash of the page written under the old title would undo that.
+    private bool IsSuperseded(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, string writtenTitle) {
+        var currentPortal = _portals.Get(portal.Id);
+        if (currentPortal == null || !currentPortal.WikiMirrorEnabled)
+            return true;
+
+        return PageTitle(currentPortal, type, motion) != writtenTitle;
+    }
+
+    private static bool IsLoginFailure(Exception? exception) {
+        return exception is WikiBotException wikiException && wikiException.Code == LoginFailedCode;
+    }
+
+    private sealed record SyncAttempt(bool Written, Exception? Failure) {
+        public static readonly SyncAttempt NotWritten = new(false, null);
     }
 
     /// <summary>
@@ -149,11 +179,17 @@ public class AssemblyMotionWikiSync {
         return delay > MaxBackoff ? MaxBackoff : delay;
     }
 
-    public static bool IsPermanent(Exception exception)
-        => exception is WikiBotException wikiException && wikiException.Code != null && PermanentCodes.Contains(wikiException.Code);
+    public static bool IsPermanent(Exception exception) {
+        if (exception is not WikiBotException wikiException)
+            return false;
+        if (wikiException.Code == null)
+            return false;
+        return PermanentCodes.Contains(wikiException.Code);
+    }
 
-    private static bool IsShutdown(Exception exception, CancellationToken ct)
-        => exception is OperationCanceledException && ct.IsCancellationRequested;
+    private static bool IsShutdown(Exception exception, CancellationToken ct) {
+        return exception is OperationCanceledException && ct.IsCancellationRequested;
+    }
 
     private static bool IsWikiFailure(Exception exception, CancellationToken ct) {
         if (exception is WikiBotException || exception is HttpRequestException || exception is TimeoutException)
@@ -162,10 +198,17 @@ public class AssemblyMotionWikiSync {
         return exception is OperationCanceledException && !ct.IsCancellationRequested;
     }
 
-    private static string FailureMessage(Exception exception)
-        => exception is WikiBotException || exception is HttpRequestException || exception is TimeoutException || exception is OperationCanceledException
-            ? exception.Message
-            : $"Interner Fehler beim Wiki-Abgleich ({InternalErrorCode}), Details stehen im Serverprotokoll.";
+    private static string FailureMessage(Exception exception) {
+        if (exception is WikiBotException)
+            return exception.Message;
+        if (exception is HttpRequestException)
+            return exception.Message;
+        if (exception is TimeoutException)
+            return exception.Message;
+        if (exception is OperationCanceledException)
+            return exception.Message;
+        return $"Interner Fehler beim Wiki-Abgleich ({InternalErrorCode}), Details stehen im Serverprotokoll.";
+    }
 
     private static string PageTitle(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion) {
         if (string.IsNullOrWhiteSpace(portal.WikiPagePrefix))
@@ -176,8 +219,8 @@ public class AssemblyMotionWikiSync {
 
     /// <returns>Null when the page is written and protected, otherwise the protection error (the page itself is written).</returns>
     private async Task<string?> WriteAsync(WikiBotSettings settings, AssemblyMotion motion, string title, string text, string hash, string portalUrl, CancellationToken ct) {
-        var needsProtection = motion.WikiSyncState == WikiSyncState.ProtectionFailed || motion.WikiSyncedHash == null;
         var current = await _wiki.GetContentAsync(settings, title, ct);
+        var needsProtection = NeedsProtection(motion, current);
 
         if (current == null) {
             await _wiki.EditAsync(settings, title, text, $"Antragsportal: Antrag angelegt (Revision {motion.Revision})", ct);
@@ -205,6 +248,15 @@ public class AssemblyMotionWikiSync {
         }
     }
 
+    private static bool NeedsProtection(AssemblyMotion motion, string? currentPageText) {
+        if (currentPageText == null)
+            return true;
+        if (motion.WikiSyncState == WikiSyncState.ProtectionFailed)
+            return true;
+
+        return motion.WikiSyncedHash == null;
+    }
+
     private WikiBotException ForeignPage(AssemblyMotion motion, string title) {
         if (motion.WikiFailureCount == 0)
             _auditLog.Log("AssemblyMotion", motion.Id, "WikiForeignPageRefused", "PageTitle", null, title);
@@ -212,10 +264,11 @@ public class AssemblyMotionWikiSync {
         return new WikiBotException(ForeignPageMessage, ForeignPageCode);
     }
 
-    private static string EditSummary(AssemblyMotion motion)
-        => motion.WikiSyncedRevision != motion.Revision
-            ? $"Antragsportal: Revision {motion.Revision} eingereicht"
-            : $"Antragsportal: Status aktualisiert (Revision {motion.Revision})";
+    private static string EditSummary(AssemblyMotion motion) {
+        return motion.WikiSyncedRevision != motion.Revision
+                ? $"Antragsportal: Revision {motion.Revision} eingereicht"
+                : $"Antragsportal: Status aktualisiert (Revision {motion.Revision})";
+    }
 
     private string PortalUrl(AssemblyMotion motion) {
         var baseUrl = _options.GetGlobalValue(NotificationTemplateGlobals.BaseUrlOptionKey)?.Value?.Trim().TrimEnd('/') ?? "";
@@ -265,18 +318,20 @@ public class AssemblyMotionWikiSync {
         var message = FailureMessage(exception);
         _motions.FailWikiSync(motion.Id, requestedAt, message, newCount, nowUtc + delay);
 
-        if (IsWikiFailure(exception, CancellationToken.None))
+        if (IsWikiFailure(exception, CancellationToken.None)) {
             _logger.LogWarning(exception, "Wiki sync of assembly motion {MotionId} failed (attempt {Count})", motion.Id, newCount);
-        else
+        } else {
             _logger.LogError(exception, "Wiki sync of assembly motion {MotionId} failed unexpectedly (attempt {Count})", motion.Id, newCount);
+        }
 
         var foreign = exception is WikiBotException wikiException && wikiException.Code == ForeignPageCode;
         if (newCount == 1 && !foreign)
             _auditLog.Log("AssemblyMotion", motion.Id, "WikiSyncFailed", "WikiLastError", null, Truncate(message, AuditErrorMaxLength));
     }
 
-    private static string Truncate(string text, int maxLength)
-        => text.Length > maxLength ? text[..maxLength] : text;
+    private static string Truncate(string text, int maxLength) {
+        return text.Length > maxLength ? text[..maxLength] : text;
+    }
 
     private void WarnUnconfigured(DateTime nowUtc) {
         lock (WarningLock) {

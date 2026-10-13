@@ -44,7 +44,7 @@ public class AssemblyMotionInquiryAnswerEndpoint : AssemblyMotionMemberEndpoint<
         }
 
         var result = _actions.Run(inquiry.MotionId, false, (_, member, _, nowUtc)
-            => _service.Answer(req.Id, member, req.AnswerMarkdown.Trim(), nowUtc));
+            => _service.Answer(req.Id, member, req.AnswerMarkdown, nowUtc));
         await SendResultAsync(result, ct);
     }
 }

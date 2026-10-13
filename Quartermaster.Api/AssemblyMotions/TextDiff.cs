@@ -48,8 +48,9 @@ public static class TextDiff {
         return result;
     }
 
-    private static string[] SplitLines(string text)
-        => text.Replace("\r\n", "\n").Split('\n');
+    private static string[] SplitLines(string text) {
+        return text.Replace("\r\n", "\n").Split('\n');
+    }
 
     private static int[,] BuildLcsTable(string[] oldLines, string[] newLines) {
         var table = new int[oldLines.Length + 1, newLines.Length + 1];

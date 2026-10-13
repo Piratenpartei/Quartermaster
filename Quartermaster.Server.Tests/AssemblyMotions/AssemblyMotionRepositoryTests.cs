@@ -126,7 +126,7 @@ public class AssemblyMotionRepositoryTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task TypeHasMotions_ignores_soft_deleted_drafts() {
+    public async Task TypeHasMotions_counts_soft_deleted_drafts_because_they_still_reference_the_type() {
         var portal = SeedPortal();
         var member = _builder.SeedMember();
         var types = _portalRepo.GetTypes(portal.Id);
@@ -136,7 +136,61 @@ public class AssemblyMotionRepositoryTests : RepositoryTestBase {
         InsertMotion(portal.Id, typeWithDeletedDraft.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft, deletedAt: DateTime.UtcNow);
         InsertMotion(portal.Id, typeWithLiveDraft.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft);
 
-        await Assert.That(_portalRepo.TypeHasMotions(typeWithDeletedDraft.Id)).IsFalse();
+        await Assert.That(_portalRepo.TypeHasMotions(typeWithDeletedDraft.Id)).IsTrue();
         await Assert.That(_portalRepo.TypeHasMotions(typeWithLiveDraft.Id)).IsTrue();
+        await Assert.That(_portalRepo.TypeHasMotions(types[2].Id)).IsFalse();
+    }
+
+    [Test]
+    public async Task ListSummariesByPortal_excludes_drafts_and_deleted_rows_in_sql_and_leaves_texts_unread() {
+        var portal = SeedPortal();
+        var member = _builder.SeedMember();
+        var type = _portalRepo.GetTypes(portal.Id)[0];
+        var submitted = InsertMotion(portal.Id, type.Id, member.Id, number: 1);
+        InsertMotion(portal.Id, type.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft);
+        InsertMotion(portal.Id, type.Id, member.Id, number: 2, deletedAt: DateTime.UtcNow);
+        var collecting = InsertMotion(portal.Id, type.Id, member.Id, number: null, status: AssemblyMotionStatus.CollectingCoSubmitters);
+        _context.AssemblyMotions
+            .Where(m => m.Id == submitted.Id)
+            .Set(m => m.TextMarkdown, "Volltext")
+            .Set(m => m.TextHtml, "<p>Volltext</p>")
+            .Set(m => m.ReasonMarkdown, "Begruendung")
+            .Set(m => m.CheckNote, "Pruefnotiz")
+            .Set(m => m.WikiLastError, "Fehlertext")
+            .Update();
+
+        var all = _motionRepo.ListSummariesByPortal(portal.Id);
+        var onlyCollecting = _motionRepo.ListSummariesByPortal(portal.Id, AssemblyMotionStatus.CollectingCoSubmitters);
+        var summary = all.Single(m => m.Id == submitted.Id);
+
+        await Assert.That(all.Select(m => m.Id).ToArray()).IsEquivalentTo(new[] { submitted.Id, collecting.Id });
+        await Assert.That(onlyCollecting.Select(m => m.Id).ToArray()).IsEquivalentTo(new[] { collecting.Id });
+        await Assert.That(summary.Title).IsEqualTo("Testantrag");
+        await Assert.That(summary.Number).IsEqualTo(1);
+        await Assert.That(summary.TextMarkdown).IsEqualTo("");
+        await Assert.That(summary.TextHtml).IsEqualTo("");
+        await Assert.That(summary.ReasonMarkdown).IsEqualTo("");
+        await Assert.That(summary.CheckNote).IsNull();
+        await Assert.That(summary.WikiLastError).IsNull();
+    }
+
+    [Test]
+    public async Task ListNumberedByPortal_returns_full_rows_of_numbered_motions_only() {
+        var portal = SeedPortal();
+        var member = _builder.SeedMember();
+        var type = _portalRepo.GetTypes(portal.Id)[0];
+        var numbered = InsertMotion(portal.Id, type.Id, member.Id, number: 1);
+        InsertMotion(portal.Id, type.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft);
+        InsertMotion(portal.Id, type.Id, member.Id, number: 2, deletedAt: DateTime.UtcNow);
+        _context.AssemblyMotions
+            .Where(m => m.Id == numbered.Id)
+            .Set(m => m.TextMarkdown, "Volltext")
+            .Update();
+
+        var rows = _motionRepo.ListNumberedByPortal(portal.Id);
+
+        await Assert.That(rows.Select(m => m.Id).ToArray()).IsEquivalentTo(new[] { numbered.Id });
+        await Assert.That(rows[0].TextMarkdown).IsEqualTo("Volltext");
+        await Assert.That(_motionRepo.ListNumberedIds(portal.Id).ToArray()).IsEquivalentTo(new[] { numbered.Id });
     }
 }

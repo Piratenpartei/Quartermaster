@@ -14,6 +14,8 @@ using Quartermaster.Server.AssemblyMotions.Notifications;
 namespace Quartermaster.Server.AssemblyMotions;
 
 public class AssemblyMotionService {
+    public const int MaxDraftsPerMemberAndPortal = 50;
+
     private static readonly TimeSpan CollectingReminderLead = TimeSpan.FromHours(48);
 
     private readonly AssemblyMotionRepository _motions;
@@ -33,6 +35,9 @@ public class AssemblyMotionService {
 
     public AssemblyMotionOutcome CreateDraft(AssemblyMotionPortal portal, Member author, Guid userId, AssemblyMotionDraft draft, DateTime nowUtc) {
         draft = draft.Normalized();
+        var contentProblem = AssemblyMotionContent.FieldProblem(draft) ?? AssemblyMotionContent.MarkdownProblem(draft);
+        if (contentProblem != null)
+            return contentProblem;
         if (nowUtc < portal.OpensAt)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.PortalNotOpen);
         if (nowUtc > portal.ClosesAt)
@@ -44,15 +49,19 @@ public class AssemblyMotionService {
 
         using var tx = _motions.BeginTransaction();
 
+        // Not serialized per member: parallel requests of one member can exceed the cap by the number of requests in flight.
+        if (_motions.CountDrafts(portal.Id, author.Id) >= MaxDraftsPerMemberAndPortal)
+            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.DraftLimitReached);
+
         var motion = new AssemblyMotion {
             PortalId = portal.Id,
             TypeId = draft.TypeId,
             Title = draft.Title,
             Section = draft.Section,
             TextMarkdown = draft.TextMarkdown,
-            TextHtml = MarkdownService.ToHtml(draft.TextMarkdown, SanitizationProfile.Standard, MarkdownFlavor.Motion),
+            TextHtml = MarkdownService.ToHtml(draft.TextMarkdown, SanitizationProfile.Motion, MarkdownFlavor.Motion),
             ReasonMarkdown = draft.ReasonMarkdown,
-            ReasonHtml = MarkdownService.ToHtml(draft.ReasonMarkdown, SanitizationProfile.Standard, MarkdownFlavor.Motion),
+            ReasonHtml = MarkdownService.ToHtml(draft.ReasonMarkdown, SanitizationProfile.Motion, MarkdownFlavor.Motion),
             Summary = draft.Summary,
             Keywords = draft.Keywords,
             PriorDiscussion = draft.PriorDiscussion,
@@ -94,6 +103,10 @@ public class AssemblyMotionService {
 
     public AssemblyMotionOutcome UpdateByAuthor(AssemblyMotion motion, Member author, Guid userId, AssemblyMotionDraft draft, int baseRevision, DateTime nowUtc) {
         draft = draft.Normalized();
+        var contentProblem = AssemblyMotionContent.FieldProblem(draft) ?? AssemblyMotionContent.MarkdownProblem(draft);
+        if (contentProblem != null)
+            return contentProblem;
+
         using var tx = _motions.BeginTransaction();
 
         var notifications = new List<Action>();
@@ -106,7 +119,7 @@ public class AssemblyMotionService {
         var currentType = _portals.GetType(locked.TypeId)
             ?? throw new InvalidOperationException($"Type {locked.TypeId} not found for motion {locked.Id}.");
 
-        var problem = EditProblem(portal, currentType, locked, author.Id, nowUtc);
+        var problem = EditProblem(portal, currentType, locked, author.Id, nowUtc, locked.IsCompetingMotion);
         if (problem != null)
             return problem;
         if (baseRevision != locked.Revision)
@@ -121,7 +134,7 @@ public class AssemblyMotionService {
             if (type == null || type.PortalId != locked.PortalId)
                 return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.TypeNotInPortal);
 
-            problem = EditProblem(portal, type, locked, author.Id, nowUtc);
+            problem = EditProblem(portal, type, locked, author.Id, nowUtc, locked.IsCompetingMotion);
             if (problem != null)
                 return problem;
         }
@@ -146,10 +159,16 @@ public class AssemblyMotionService {
                 }
             }
         }
+
+        var submitsNow = locked.Status == AssemblyMotionStatus.CollectingCoSubmitters && type.MinSubmitters <= 1;
+        if (submitsNow && locked.Number == null) {
+            // Taken before the update below: that update puts a shared foreign-key lock on the new type row, and two authors upgrading to the same type would then deadlock when Submit asks for the exclusive lock.
+            _motions.LockType(type.Id);
+        }
         _motions.Update(locked);
 
-        if (locked.Status == AssemblyMotionStatus.CollectingCoSubmitters && type.MinSubmitters <= 1) {
-            Submit(locked, nowUtc);
+        if (submitsNow) {
+            Submit(locked, nowUtc, notifications);
             notifications.Add(() => _notifier.Submitted(locked));
         }
 
@@ -174,29 +193,41 @@ public class AssemblyMotionService {
         return AssemblyMotionOutcome.Ok(locked);
     }
 
-    public bool CanEditAsAuthor(AssemblyMotion motion, AssemblyMotionType type, AssemblyMotionPortal portal, Guid? memberId, DateTime nowUtc)
-        => EditProblem(portal, type, motion, memberId, nowUtc) == null;
+    public bool CanEditAsAuthor(AssemblyMotion motion, AssemblyMotionType type, AssemblyMotionPortal portal, Guid? memberId, DateTime nowUtc) {
+        return EditProblem(portal, type, motion, memberId, nowUtc, motion.IsCompetingMotion) == null;
+    }
 
-    private AssemblyMotionOutcome? EditProblem(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Guid? memberId, DateTime nowUtc) {
+    /// <summary>
+    /// Whether the author could edit <paramref name="motion"/> if its competing flag were <paramref name="isCompetingMotion"/>; used to decide whether the flag may be set.
+    /// </summary>
+    public bool CanEditAsAuthor(AssemblyMotion motion, AssemblyMotionType type, AssemblyMotionPortal portal, Guid? memberId, DateTime nowUtc, bool isCompetingMotion) {
+        return EditProblem(portal, type, motion, memberId, nowUtc, isCompetingMotion) == null;
+    }
+
+    private AssemblyMotionOutcome? EditProblem(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Guid? memberId, DateTime nowUtc, bool isCompetingMotion) {
         if (memberId == null || motion.CreatedByMemberId != memberId)
             return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.NotAuthor);
         if (!IsAuthorEditableStatus(motion.Status))
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.EditLocked);
 
-        var effectiveDeadline = AssemblyMotionDeadlines.Effective(portal, type, motion.IsCompetingMotion);
+        var effectiveDeadline = AssemblyMotionDeadlines.Effective(portal, type, isCompetingMotion);
         if (AssemblyMotionDeadlines.IsPast(effectiveDeadline, nowUtc))
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.EditLocked);
 
         return null;
     }
 
-    private static bool IsAuthorEditableStatus(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Draft
-            || status == AssemblyMotionStatus.CollectingCoSubmitters
-            || status == AssemblyMotionStatus.Submitted;
+    private static bool IsAuthorEditableStatus(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Draft)
+            return true;
+        if (status == AssemblyMotionStatus.CollectingCoSubmitters)
+            return true;
+        return status == AssemblyMotionStatus.Submitted;
+    }
 
-    public bool CanRelease(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Member author, DateTime nowUtc)
-        => ReleaseProblem(portal, type, motion, author, nowUtc) == null;
+    public bool CanRelease(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Member author, DateTime nowUtc) {
+        return ReleaseProblem(portal, type, motion, author, nowUtc) == null;
+    }
 
     private AssemblyMotionOutcome? ReleaseProblem(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, Member author, DateTime nowUtc) {
         if (motion.CreatedByMemberId != author.Id)
@@ -232,7 +263,7 @@ public class AssemblyMotionService {
         if (problem != null)
             return problem;
 
-        _auditLog.Log("AssemblyMotion", motion.Id, "Released");
+        _auditLog.Log("AssemblyMotion", motion.Id, AssemblyMotionRepository.ReleasedAuditAction, AssemblyMotionRepository.ReleasedRevisionField, null, motion.Revision.ToString());
 
         var declaredCompetitions = _db.AssemblyMotionCompetitions
             .Where(c => c.DeclaringMotionId == motion.Id)
@@ -240,7 +271,7 @@ public class AssemblyMotionService {
             .ToList();
 
         if (type.MinSubmitters <= 1) {
-            Submit(motion, nowUtc);
+            Submit(motion, nowUtc, notifications);
             notifications.Add(() => _notifier.Submitted(motion));
         } else {
             motion.Status = AssemblyMotionStatus.CollectingCoSubmitters;
@@ -267,8 +298,9 @@ public class AssemblyMotionService {
         }
     }
 
-    public bool CanJoin(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, bool isAlreadySubmitter, DateTime nowUtc)
-        => JoinProblem(portal, type, motion, isAlreadySubmitter, nowUtc) == null;
+    public bool CanJoin(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, bool isAlreadySubmitter, DateTime nowUtc) {
+        return JoinProblem(portal, type, motion, isAlreadySubmitter, nowUtc) == null;
+    }
 
     private AssemblyMotionOutcome? JoinProblem(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, bool isAlreadySubmitter, DateTime nowUtc) {
         if (motion.Status != AssemblyMotionStatus.CollectingCoSubmitters)
@@ -317,7 +349,7 @@ public class AssemblyMotionService {
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
 
         if (submitters.Count + 1 >= type.MinSubmitters) {
-            Submit(motion, nowUtc);
+            Submit(motion, nowUtc, notifications);
             notifications.Add(() => _notifier.Submitted(motion));
         }
 
@@ -326,8 +358,9 @@ public class AssemblyMotionService {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    public bool CanLeave(AssemblyMotion motion, Member member, bool isSubmitter)
-        => LeaveProblem(motion, member, isSubmitter) == null;
+    public bool CanLeave(AssemblyMotion motion, Member member, bool isSubmitter) {
+        return LeaveProblem(motion, member, isSubmitter) == null;
+    }
 
     private AssemblyMotionOutcome? LeaveProblem(AssemblyMotion motion, Member member, bool isSubmitter) {
         if (motion.Status != AssemblyMotionStatus.CollectingCoSubmitters)
@@ -359,18 +392,28 @@ public class AssemblyMotionService {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    public bool CanWithdraw(AssemblyMotionPortal portal, AssemblyMotion motion, Member author, DateTime nowUtc)
-        => WithdrawProblem(portal, motion, author, nowUtc) == null;
+    public bool CanWithdraw(AssemblyMotionPortal portal, AssemblyMotion motion, Member author, DateTime nowUtc) {
+        return WithdrawProblem(portal, motion, author, nowUtc) == null;
+    }
 
     private AssemblyMotionOutcome? WithdrawProblem(AssemblyMotionPortal portal, AssemblyMotion motion, Member author, DateTime nowUtc) {
         if (motion.CreatedByMemberId != author.Id)
             return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.NotAuthor);
-        if (motion.Status == AssemblyMotionStatus.Withdrawn || motion.Status == AssemblyMotionStatus.Lapsed)
+        if (!IsWithdrawableStatus(motion.Status))
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.InvalidState);
         if (nowUtc > portal.ClosesAt)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.PortalClosed);
 
         return null;
+    }
+
+    private static bool IsWithdrawableStatus(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Draft)
+            return false;
+        if (status == AssemblyMotionStatus.Withdrawn)
+            return false;
+
+        return status != AssemblyMotionStatus.Lapsed;
     }
 
     public AssemblyMotionOutcome Withdraw(Guid motionId, Member author, DateTime nowUtc) {
@@ -388,7 +431,6 @@ public class AssemblyMotionService {
         if (problem != null)
             return problem;
 
-        var wasReleased = motion.Status != AssemblyMotionStatus.Draft;
         var includeCommission = motion.WasSubmitted;
         var coSubmitterIds = _motions.GetSubmitters(motion.Id)
             .Where(s => !s.IsAuthor)
@@ -404,16 +446,16 @@ public class AssemblyMotionService {
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn");
 
-        if (wasReleased)
-            notifications.Add(() => _notifier.Withdrawn(motion, coSubmitterIds, includeCommission));
+        notifications.Add(() => _notifier.Withdrawn(motion, coSubmitterIds, includeCommission));
 
         tx.Commit();
         RunAll(notifications);
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    public bool CanDelete(AssemblyMotion motion, Member author)
-        => DeleteProblem(motion, author) == null;
+    public bool CanDelete(AssemblyMotion motion, Member author) {
+        return DeleteProblem(motion, author) == null;
+    }
 
     private AssemblyMotionOutcome? DeleteProblem(AssemblyMotion motion, Member author) {
         if (motion.CreatedByMemberId != author.Id)
@@ -514,15 +556,32 @@ public class AssemblyMotionService {
         return sentCount;
     }
 
+    private void QueueLinkedMotionsForWiki(Guid motionId, DateTime nowUtc) {
+        var linkedIds = _db.AssemblyMotionCompetitions
+            .Where(c => c.MotionAId == motionId || c.MotionBId == motionId)
+            .Select(c => c.MotionAId == motionId ? c.MotionBId : c.MotionAId)
+            .ToList();
+
+        var numberedIds = _db.AssemblyMotions
+            .Where(m => linkedIds.Contains(m.Id) && m.Number != null && m.DeletedAt == null)
+            .Select(m => m.Id)
+            .ToList();
+
+        foreach (var numberedId in numberedIds)
+            _motions.MarkWikiPending(numberedId, nowUtc);
+    }
+
     private static void RunAll(List<Action> notifications) {
         foreach (var notification in notifications)
             notification();
     }
 
-    private void Submit(AssemblyMotion motion, DateTime nowUtc) {
+    private void Submit(AssemblyMotion motion, DateTime nowUtc, List<Action> afterCommit) {
         if (motion.Number == null) {
             _motions.LockType(motion.TypeId);
             motion.Number = _motions.NextNumber(motion.PortalId, motion.TypeId);
+            // The linked motions' pages list this number; they are queued after the commit so no second motion lock is taken inside this transaction.
+            afterCommit.Add(() => QueueLinkedMotionsForWiki(motion.Id, nowUtc));
         }
         motion.Status = AssemblyMotionStatus.Submitted;
         motion.SubmittedAt = nowUtc;

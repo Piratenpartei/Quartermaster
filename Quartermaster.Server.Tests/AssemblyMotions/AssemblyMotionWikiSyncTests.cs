@@ -837,4 +837,191 @@ public class AssemblyMotionWikiSyncTests : RepositoryTestBase {
         await Assert.That(logger.Entries.Any(e => e.Contains(motion.Id.ToString()) && e.StartsWith("Warning"))).IsTrue();
         await Assert.That(logger.Entries.Any(e => e.Contains("skipped 1"))).IsTrue();
     }
+
+    private const string NewPrefix = "Antrag:Bundesparteitag 2027.2/Antragsportal";
+
+    private AssemblyMotionWikiResync NewResync() => new(_motionRepo, _portalRepo, AuditLog);
+
+    private string TitleUnder(string prefix, AssemblyMotion motion) {
+        var portal = _portalRepo.Get(_portal.Id)!;
+        portal.WikiPagePrefix = prefix;
+        return AssemblyMotionWikiPage.Title(portal, _portalRepo.GetType(motion.TypeId)!, motion);
+    }
+
+    private void ChangePrefixAndRequeue(string prefix) {
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == _portal.Id)
+            .Set(p => p.WikiPagePrefix, prefix)
+            .Update();
+        NewResync().QueueNumberedAsNeverSynced(_portal.Id, _now.AddMinutes(30));
+    }
+
+    [Test]
+    public async Task Prefix_change_forgets_what_was_written_under_the_old_prefix() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        ChangePrefixAndRequeue(NewPrefix);
+
+        var reloaded = Reload(motion.Id);
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(reloaded.WikiSyncedHash).IsNull();
+        await Assert.That(reloaded.WikiSyncedRevision).IsNull();
+        await Assert.That(reloaded.WikiFailureCount).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Prefix_change_onto_a_foreign_page_does_not_overwrite_it() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var newTitle = TitleUnder(NewPrefix, motion);
+        FakeWikiBotClient.Pages[newTitle] = "Antrag der letzten Versammlung";
+        var editsBefore = FakeWikiBotClient.Edits.Count;
+
+        ChangePrefixAndRequeue(NewPrefix);
+        await _sync.SyncDueAsync(_now.AddHours(1), CancellationToken.None);
+
+        var failed = Reload(motion.Id);
+        await Assert.That(failed.WikiSyncState).IsEqualTo(WikiSyncState.Failed);
+        await Assert.That(failed.WikiLastError).IsEqualTo(AssemblyMotionWikiSync.ForeignPageMessage);
+        await Assert.That(FakeWikiBotClient.Pages[newTitle]).IsEqualTo("Antrag der letzten Versammlung");
+        await Assert.That(FakeWikiBotClient.Edits.Count).IsEqualTo(editsBefore);
+        await Assert.That(FakeWikiBotClient.Protected.Contains(newTitle)).IsFalse();
+    }
+
+    [Test]
+    public async Task Prefix_change_to_an_empty_location_creates_and_protects_the_new_page() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var newTitle = TitleUnder(NewPrefix, motion);
+
+        ChangePrefixAndRequeue(NewPrefix);
+        await _sync.SyncDueAsync(_now.AddHours(1), CancellationToken.None);
+
+        await Assert.That(FakeWikiBotClient.Pages.ContainsKey(newTitle)).IsTrue();
+        await Assert.That(FakeWikiBotClient.Protected.Contains(newTitle)).IsTrue();
+        await Assert.That(Reload(motion.Id).WikiSyncState).IsEqualTo(WikiSyncState.Synced);
+    }
+
+    [Test]
+    public async Task Prefix_change_onto_an_own_older_page_takes_it_over_and_protects_it() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var newTitle = TitleUnder(NewPrefix, motion);
+        FakeWikiBotClient.Pages[newTitle] = $"Frueherer Stand {BaseUrl}/AssemblyMotions/{motion.Id}";
+
+        ChangePrefixAndRequeue(NewPrefix);
+        await _sync.SyncDueAsync(_now.AddHours(1), CancellationToken.None);
+
+        await Assert.That(FakeWikiBotClient.Pages[newTitle]).StartsWith("{{");
+        await Assert.That(FakeWikiBotClient.Protected.Contains(newTitle)).IsTrue();
+    }
+
+    [Test]
+    public async Task Page_deleted_in_the_wiki_is_recreated_and_protected() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var title = TitleOf(motion);
+        FakeWikiBotClient.Pages.Remove(title);
+        FakeWikiBotClient.Protected.Clear();
+
+        var queued = await _reconcile.RunAsync(_now.AddDays(1), CancellationToken.None);
+        await _sync.SyncDueAsync(_now.AddDays(1), CancellationToken.None);
+
+        await Assert.That(queued).IsEqualTo(1);
+        await Assert.That(FakeWikiBotClient.Pages.ContainsKey(title)).IsTrue();
+        await Assert.That(FakeWikiBotClient.Protected).IsEquivalentTo([title]);
+        await Assert.That(Reload(motion.Id).WikiSyncState).IsEqualTo(WikiSyncState.Synced);
+    }
+
+    [Test]
+    public async Task Page_found_missing_by_the_reconcile_is_treated_as_never_synced() {
+        var missing = Submit().Motion;
+        var edited = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        FakeWikiBotClient.Pages.Remove(TitleOf(missing));
+        FakeWikiBotClient.Pages[TitleOf(edited)] = "Geändert";
+
+        await _reconcile.RunAsync(_now.AddDays(1), CancellationToken.None);
+
+        await Assert.That(Reload(missing.Id).WikiSyncedHash).IsNull();
+        await Assert.That(Reload(edited.Id).WikiSyncedHash).IsNotNull();
+    }
+
+    [Test]
+    public async Task Foreign_page_that_appears_where_a_deleted_page_was_is_not_overwritten() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var title = TitleOf(motion);
+        FakeWikiBotClient.Pages.Remove(title);
+        await _reconcile.RunAsync(_now.AddDays(1), CancellationToken.None);
+        FakeWikiBotClient.Pages[title] = "Jemand anderes hat die Seite angelegt";
+        var editsBefore = FakeWikiBotClient.Edits.Count;
+
+        await _sync.SyncDueAsync(_now.AddDays(1), CancellationToken.None);
+
+        await Assert.That(Reload(motion.Id).WikiLastError).IsEqualTo(AssemblyMotionWikiSync.ForeignPageMessage);
+        await Assert.That(FakeWikiBotClient.Pages[title]).IsEqualTo("Jemand anderes hat die Seite angelegt");
+        await Assert.That(FakeWikiBotClient.Edits.Count).IsEqualTo(editsBefore);
+    }
+
+    [Test]
+    public async Task Page_missing_at_sync_time_is_protected_even_with_bookkeeping_present() {
+        var motion = Submit().Motion;
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var title = TitleOf(motion);
+        FakeWikiBotClient.Pages.Remove(title);
+        FakeWikiBotClient.Protected.Clear();
+        _motionRepo.MarkWikiPending(motion.Id, _now.AddMinutes(5));
+
+        await _sync.SyncDueAsync(_now.AddMinutes(10), CancellationToken.None);
+
+        await Assert.That(Reload(motion.Id).WikiSyncedHash).IsNotNull();
+        await Assert.That(FakeWikiBotClient.Protected).IsEquivalentTo([title]);
+    }
+
+    [Test]
+    public async Task Prefix_change_during_a_write_does_not_record_the_old_page_as_synced() {
+        var motion = Submit().Motion;
+        FakeWikiBotClient.OnEdit = _ => {
+            ChangePrefixAndRequeue(NewPrefix);
+            return Task.CompletedTask;
+        };
+
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        var reloaded = Reload(motion.Id);
+        await Assert.That(reloaded.WikiSyncedHash).IsNull();
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+    }
+
+    [Test]
+    public async Task Failed_login_stops_the_run_after_one_attempt() {
+        var first = Submit().Motion;
+        var second = Submit().Motion;
+        var third = Submit().Motion;
+        FakeWikiBotClient.ThrowOn["GetContent"] = new WikiBotException("Anmeldung fehlgeschlagen", "login_failed");
+
+        var synced = await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        var states = new[] { first, second, third }
+            .Select(m => Reload(m.Id).WikiSyncState)
+            .ToList();
+        await Assert.That(synced).IsEqualTo(0);
+        await Assert.That(FakeWikiBotClient.GetCount).IsEqualTo(1);
+        await Assert.That(states.Count(state => state == WikiSyncState.Failed)).IsEqualTo(1);
+        await Assert.That(states.Count(state => state == WikiSyncState.Pending)).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task Other_failures_do_not_stop_the_run() {
+        Submit();
+        Submit();
+        Submit();
+        FakeWikiBotClient.ThrowOn["GetContent"] = new WikiBotException("Wiki nicht erreichbar", "http_error");
+
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        await Assert.That(FakeWikiBotClient.GetCount).IsEqualTo(3);
+    }
 }

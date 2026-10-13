@@ -51,8 +51,8 @@ public class AssemblyMotionCollectingListEndpoint : Endpoint<AssemblyMotionColle
         }
 
         var types = _portals.GetTypes(portal.Id).ToDictionary(t => t.Id);
-        var collecting = _motions.ListByPortal(portal.Id)
-            .Where(m => m.Status == AssemblyMotionStatus.CollectingCoSubmitters && m.Number == null)
+        var collecting = _motions.ListSummariesByPortal(portal.Id, AssemblyMotionStatus.CollectingCoSubmitters)
+            .Where(m => m.Number == null)
             .Where(m => types.ContainsKey(m.TypeId))
             .OrderBy(m => types[m.TypeId].SortOrder)
             .ThenBy(m => m.CreatedAt)

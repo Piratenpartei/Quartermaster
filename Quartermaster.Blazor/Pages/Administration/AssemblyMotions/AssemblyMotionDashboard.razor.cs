@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
@@ -42,13 +44,20 @@ public partial class AssemblyMotionDashboard {
     [Inject]
     public required I18nService I18n { get; set; }
 
+    [Inject]
+    public required IJSRuntime JS { get; set; }
+
     [Parameter]
     public Guid EventId { get; set; }
 
     private AssemblyMotionPortalDTO? Portal;
     private List<AssemblyMotionDashboardItemDTO> Items = [];
     private bool Loading = true;
-    private ConfirmDialog _resyncAllDialog = default!;
+    private ConfirmDialog ResyncAllDialog = default!;
+    private OpenSlidesPushDialog PushDialog = default!;
+    private OpenSlidesPushResultDTO? PushResult;
+    private bool PushRunning;
+    private bool OpenSlidesMeetingConfigured;
     private bool ListLoading;
     private bool Busy;
     private int CurrentPage = 1;
@@ -101,6 +110,7 @@ public partial class AssemblyMotionDashboard {
                 Items = result?.Items ?? [];
                 FailedWikiSyncCount = result?.FailedWikiSyncCount ?? 0;
                 WikiMirrorEnabled = result?.WikiMirrorEnabled ?? false;
+                OpenSlidesMeetingConfigured = result?.OpenSlidesMeetingConfigured ?? false;
                 TotalPages = result == null ? 0 : (int)Math.Ceiling(result.TotalCount / (double)PageSize);
             } else {
                 await ToastService.ErrorAsync(response);
@@ -159,10 +169,13 @@ public partial class AssemblyMotionDashboard {
     private async Task ResyncAllAsync() {
         if (Portal == null)
             return;
-        if (!await _resyncAllDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllMessage]))
+        if (Busy || PushRunning)
+            return;
+        if (!await ResyncAllDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllMessage]))
             return;
 
         Busy = true;
+        StateHasChanged();
         try {
             var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Portal.Id}/wiki/resync", new { });
             if (response.IsSuccessStatusCode) {
@@ -173,6 +186,68 @@ public partial class AssemblyMotionDashboard {
                 await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
             }
         } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } catch (TaskCanceledException ex) {
+            ToastService.Error(ex);
+        } catch (JsonException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
+    }
+
+    private async Task PushToOpenSlidesAsync() {
+        if (Portal == null || PushRunning || Busy)
+            return;
+
+        var includeSubmitted = await PushDialog.ShowAsync();
+        if (includeSubmitted == null)
+            return;
+
+        PushRunning = true;
+        StateHasChanged();
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Portal.Id}/openslides/push", new OpenSlidesPushRequest {
+                PortalId = Portal.Id,
+                IncludeSubmitted = includeSubmitted.Value
+            });
+            if (response.IsSuccessStatusCode) {
+                PushResult = await response.Content.ReadFromJsonAsync<OpenSlidesPushResultDTO>();
+                await LoadAsync();
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } catch (OperationCanceledException) {
+            ToastService.ErrorKey(I18nKey.Ui.AssemblyMotion.OpenSlidesPushInterrupted);
+            await LoadAsync();
+        } catch (JsonException ex) {
+            ToastService.Error(ex);
+        } finally {
+            PushRunning = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportAsync() {
+        if (Portal == null || Busy || PushRunning)
+            return;
+
+        Busy = true;
+        StateHasChanged();
+        try {
+            var response = await Http.GetAsync($"/api/assemblymotions/portals/{Portal.Id}/export");
+            if (response.IsSuccessStatusCode) {
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"antraege-{BerlinTime.FromUtc(DateTime.UtcNow):yyyy-MM-dd}.json";
+                await JS.InvokeVoidAsync("qmDownload.blob", bytes, fileName, "application/json");
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } catch (TaskCanceledException ex) {
             ToastService.Error(ex);
         } finally {
             Busy = false;

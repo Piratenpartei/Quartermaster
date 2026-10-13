@@ -47,8 +47,8 @@
 
                     @if (isOpen && CanAnswer) {
                         <div class="mt-3">
-                            <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryYourAnswer]</label>
-                            <MarkdownEditorWithPreview Value="@GetAnswer(inquiry.Id)" ValueChanged="@((string value) => SetAnswer(inquiry.Id, value))"
+                            <label for="inquiry-answer-@inquiry.Id" class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryYourAnswer]</label>
+                            <MarkdownEditorWithPreview Id="@($"inquiry-answer-{inquiry.Id}")" Value="@GetAnswer(inquiry.Id)" ValueChanged="@((string value) => SetAnswer(inquiry.Id, value))"
                                                        Rows="6" Flavor="MarkdownFlavor.Motion" />
                             <button class="btn btn-primary mt-2" disabled="@Busy" @onclick="() => Answer(inquiry.Id)">
                                 <i class="bi bi-send"></i> @I18n[I18nKey.Ui.AssemblyMotion.SendAnswer]
@@ -70,12 +70,12 @@
                 <div class="border-top pt-3">
                     <h6>@I18n[I18nKey.Ui.AssemblyMotion.AskInquiry]</h6>
                     <div class="mb-3">
-                        <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryQuestion] <RequiredStar /></label>
-                        <MarkdownEditorWithPreview @bind-Value="AskQuestion" Rows="5" Flavor="MarkdownFlavor.Motion" />
+                        <label for="inquiry-question" class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryQuestion] <RequiredStar /></label>
+                        <MarkdownEditorWithPreview Id="inquiry-question" @bind-Value="AskQuestion" Rows="5" Flavor="MarkdownFlavor.Motion" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryResponseDue] <RequiredStar /></label>
-                        <BerlinDateTimeInput @bind-Value="AskDue" />
+                        <label for="inquiry-response-due" class="form-label">@I18n[I18nKey.Ui.AssemblyMotion.InquiryResponseDue] <RequiredStar /></label>
+                        <BerlinDateTimeInput Id="inquiry-response-due" @bind-Value="AskDue" />
                     </div>
                     <button class="btn btn-primary" disabled="@Busy" @onclick="Ask">
                         <i class="bi bi-question-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.AskInquiry]
@@ -86,4 +86,4 @@
     </div>
 }
 
-<ConfirmDialog @ref="_closeDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiryTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiry]" />
+<ConfirmDialog @ref="CloseDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiryTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.CloseInquiry]" />

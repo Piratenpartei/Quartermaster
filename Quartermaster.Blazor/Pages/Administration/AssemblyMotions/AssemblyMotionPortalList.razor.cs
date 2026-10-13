@@ -25,10 +25,11 @@ public partial class AssemblyMotionPortalList {
     protected override async Task OnInitializedAsync() {
         try {
             var response = await Http.GetAsync("/api/assemblymotions/portals/managed");
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode) {
                 Portals = await response.Content.ReadFromJsonAsync<List<AssemblyMotionManagedPortalDTO>>() ?? [];
-            else
+            } else {
                 await ToastService.ErrorAsync(response);
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

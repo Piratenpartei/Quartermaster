@@ -118,20 +118,22 @@ public class AssemblyMotionDetailBuilder {
         dto.HasUpvoted = _upvotes.Exists(motion.Id, viewerMember.Id);
     }
 
-    private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) => new() {
-        CheckedAt = motion.CheckedAt.ToDtoUtc(),
-        CheckedByName = CheckedByName(motion.CheckedByUserId),
-        WikiMirrorEnabled = portal.WikiMirrorEnabled,
-        WikiPageTitle = WikiPageTitle(motion, portal, type),
-        WikiSyncState = motion.WikiSyncState,
-        WikiSyncedRevision = motion.WikiSyncedRevision,
-        WikiLastSyncedAt = motion.WikiLastSyncedAt.ToDtoUtc(),
-        WikiLastError = motion.WikiLastError,
-        OpenSlidesMotionId = motion.OpenSlidesMotionId,
-        OpenSlidesPushedRevision = motion.OpenSlidesPushedRevision,
-        OpenSlidesPushedAt = motion.OpenSlidesPushedAt.ToDtoUtc(),
-        OpenSlidesLastError = motion.OpenSlidesLastError
-    };
+    private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) {
+        return new() {
+            CheckedAt = motion.CheckedAt.ToDtoUtc(),
+            CheckedByName = CheckedByName(motion.CheckedByUserId),
+            WikiMirrorEnabled = portal.WikiMirrorEnabled,
+            WikiPageTitle = WikiPageTitle(motion, portal, type),
+            WikiSyncState = motion.WikiSyncState,
+            WikiSyncedRevision = motion.WikiSyncedRevision,
+            WikiLastSyncedAt = motion.WikiLastSyncedAt.ToDtoUtc(),
+            WikiLastError = motion.WikiLastError,
+            OpenSlidesMotionId = motion.OpenSlidesMotionId,
+            OpenSlidesPushedRevision = motion.OpenSlidesPushedRevision,
+            OpenSlidesPushedAt = motion.OpenSlidesPushedAt.ToDtoUtc(),
+            OpenSlidesLastError = motion.OpenSlidesLastError
+        };
+    }
 
     private static string? WikiPageTitle(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) {
         if (motion.Number == null)
@@ -169,7 +171,6 @@ public class AssemblyMotionDetailBuilder {
             .Select(s => {
                 members.TryGetValue(s.MemberId, out var member);
                 return new AssemblyMotionSubmitterDTO {
-                    MemberId = s.MemberId,
                     DisplayName = DisplayName(member),
                     IsAuthor = s.IsAuthor,
                     JoinedAt = s.JoinedAt.ToDtoUtc(),
@@ -180,15 +181,17 @@ public class AssemblyMotionDetailBuilder {
             .ToList();
     }
 
-    private static string DisplayName(Member? member) {
+    public static string DisplayName(Member? member) {
         if (member == null || member.AnonymizedAt != null)
             return FormerMemberName;
         return $"{member.FirstName} {member.LastName}";
     }
 
-    private static bool IsSubmitter(List<AssemblyMotionSubmitter> submitters, Member? member)
-        => member != null && submitters.Any(s => s.MemberId == member.Id);
+    private static bool IsSubmitter(List<AssemblyMotionSubmitter> submitters, Member? member) {
+        return member != null && submitters.Any(s => s.MemberId == member.Id);
+    }
 
-    private AssemblyMotionViewer CreateViewer(Event ev, EligibilityResult eligibility)
-        => new(eligibility.Member?.Id, eligibility.IsEligible, _access.IsCommission(ev));
+    private AssemblyMotionViewer CreateViewer(Event ev, EligibilityResult eligibility) {
+        return new(eligibility.Member?.Id, eligibility.IsEligible, _access.IsCommission(ev));
+    }
 }

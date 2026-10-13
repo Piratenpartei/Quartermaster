@@ -7,19 +7,21 @@ public static class MarkdownService {
         .UseAdvancedExtensions()
         .Build();
 
+    /// <summary>
+    /// Renders Markdown to sanitized HTML. The motion flavour always uses the motion sanitizer profile, whatever profile is passed,
+    /// and yields an empty string for a text that <see cref="MotionMarkdown.TryRender(string?, out string)"/> refuses.
+    /// </summary>
     public static string ToHtml(string markdown, SanitizationProfile profile = SanitizationProfile.Standard, MarkdownFlavor flavor = MarkdownFlavor.Full) {
         if (string.IsNullOrEmpty(markdown))
             return "";
 
-        string raw;
         if (flavor == MarkdownFlavor.Motion) {
-            if (!MotionMarkdown.TryRender(markdown, out raw))
-                return "";
-        } else {
-            raw = Markdown.ToHtml(markdown, FullPipeline);
+            return MotionMarkdown.TryRender(markdown, out var motionHtml)
+                ? HtmlSanitizationService.Sanitize(motionHtml, SanitizationProfile.Motion)
+                : "";
         }
 
-        return HtmlSanitizationService.Sanitize(raw, profile);
+        return HtmlSanitizationService.Sanitize(Markdown.ToHtml(markdown, FullPipeline), profile);
     }
 
     /// <summary>

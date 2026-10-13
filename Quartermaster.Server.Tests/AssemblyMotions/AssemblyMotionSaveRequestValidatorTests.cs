@@ -178,7 +178,7 @@ public class AssemblyMotionSaveRequestValidatorTests {
     [Test]
     public void DeeplyNestedReason_ShouldHaveErrorWithoutThrowing() {
         var request = ValidRequest();
-        request.ReasonMarkdown = string.Concat(Enumerable.Repeat("[a", 500));
+        request.ReasonMarkdown = string.Concat(Enumerable.Repeat("[a", 200));
 
         var result = _validator.TestValidate(request);
 
@@ -230,4 +230,51 @@ public class AssemblyMotionSaveRequestValidatorTests {
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public void TextThatBecomesHtmlWhenNormalized_ShouldHaveError(string markdown) {
+        var request = ValidRequest();
+        request.TextMarkdown = markdown;
+        request.ReasonMarkdown = markdown;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.TextMarkdown)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+        result.ShouldHaveValidationErrorFor(x => x.ReasonMarkdown)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+    }
+
+    [Test]
+    [Arguments("table", I18nKey.Error.AssemblyMotion.MarkdownTableTooLarge)]
+    [Arguments("brackets", I18nKey.Error.AssemblyMotion.MarkdownTooManyBrackets)]
+    [Arguments("markers", I18nKey.Error.AssemblyMotion.MarkdownTooMuchInlineMarkup)]
+    [Arguments("lines", I18nKey.Error.AssemblyMotion.MarkdownTooManyLines)]
+    [Arguments("output", I18nKey.Error.AssemblyMotion.MarkdownOutputTooLarge)]
+    [Arguments("expanding", I18nKey.Error.AssemblyMotion.MarkdownTooLong)]
+    public void TextOverACostLimit_ShouldHaveItsOwnError(string kind, string expectedKey) {
+        var request = ValidRequest();
+        request.TextMarkdown = CostlyText(kind);
+        request.ReasonMarkdown = CostlyText(kind);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.TextMarkdown)
+            .WithErrorMessage(expectedKey);
+        result.ShouldHaveValidationErrorFor(x => x.ReasonMarkdown)
+            .WithErrorMessage(expectedKey);
+    }
+
+    private static string CostlyText(string kind) => kind switch {
+        "table" => Repeat("|a", 400) + "\n" + Repeat("|-", 400) + "\n" + Repeat("a|\n", 400),
+        "brackets" => Repeat("[a](", 251),
+        "markers" => Repeat("*a ", 1001),
+        "lines" => Repeat("a\n", 5001),
+        "output" => new string('&', 100_000),
+        _ => new string('שּׁ', 40_000)
+    };
+
+    private static string Repeat(string unit, int count)
+        => string.Concat(Enumerable.Repeat(unit, count));
 }

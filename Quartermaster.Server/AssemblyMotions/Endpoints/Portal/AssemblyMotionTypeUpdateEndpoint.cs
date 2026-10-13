@@ -38,6 +38,7 @@ public class AssemblyMotionTypeUpdateEndpoint : Endpoint<AssemblyMotionTypeUpdat
             return;
         }
 
+        req.Name = AssemblyMotionContent.SingleLineSetting(req.Name)!;
         var code = req.Code.Trim();
         var hasMotions = _portals.TypeHasMotions(type.Id);
         var codeChanged = !string.Equals(type.Code, code, StringComparison.Ordinal);

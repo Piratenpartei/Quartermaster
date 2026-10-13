@@ -304,4 +304,71 @@ public class AssemblyMotionPortalEndpointTests : IntegrationTestBase {
         await Assert.That(response.IsSuccessStatusCode).IsTrue();
         await Assert.That(Db.AssemblyMotionTypes.Count(t => t.Id == type.Id)).IsEqualTo(0);
     }
+
+    [Test]
+    public async Task Type_delete_refused_when_only_soft_deleted_motions_exist() {
+        var (_, eventId, client) = await SeedEditorAsync();
+        using var _ = client;
+        var portal = SeedPortal(eventId);
+        var type = SeedType(portal.Id, "AB");
+        SeedMotion(portal.Id, type.Id);
+        Db.AssemblyMotions
+            .Where(m => m.TypeId == type.Id)
+            .Set(m => m.DeletedAt, DateTime.UtcNow)
+            .Update();
+
+        var response = await client.DeleteAsync($"/api/assemblymotions/types/{type.Id}");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.assembly_motion.type.has_motions");
+        await Assert.That(Db.AssemblyMotionTypes.Count(t => t.Id == type.Id)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Type_name_has_control_characters_removed_and_must_not_be_only_control_characters() {
+        var (_, eventId, client) = await SeedEditorAsync();
+        using var _ = client;
+        var portal = SeedPortal(eventId);
+
+        var created = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/types", new AssemblyMotionTypeCreateRequest {
+            PortalId = portal.Id,
+            Code = "Neu",
+            Name = "Neue\r\nArt\u0001",
+            MinSubmitters = 1
+        });
+        var rejected = await client.PostAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}/types", new AssemblyMotionTypeCreateRequest {
+            PortalId = portal.Id,
+            Code = "Leer",
+            Name = "\u0001\u0002",
+            MinSubmitters = 1
+        });
+
+        await Assert.That(created.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.AssemblyMotionTypes.First(t => t.PortalId == portal.Id && t.Code == "Neu").Name).IsEqualTo("NeueArt");
+        await Assert.That(rejected.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(Db.AssemblyMotionTypes.Count(t => t.PortalId == portal.Id && t.Code == "Leer")).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Wiki_prefix_and_label_are_checked_and_stored_without_control_characters() {
+        var (_, eventId, client) = await SeedEditorAsync();
+        using var _ = client;
+        var portal = SeedPortal(eventId);
+        AssemblyMotionPortalUpdateRequest Request(string prefix, string label) => new() {
+            Id = portal.Id,
+            OpensAt = portal.OpensAt,
+            ClosesAt = portal.ClosesAt,
+            WikiPagePrefix = prefix,
+            WikiAssemblyLabel = label
+        };
+
+        var clean = await client.PutAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}", Request("Antrag:Test\n/Sub", "BPT\r\n 1"));
+        var joinsToDoubleSlash = await client.PutAsJsonAsync($"/api/assemblymotions/portals/{portal.Id}", Request("A/\n/B", "BPT"));
+        var stored = Db.AssemblyMotionPortals.First(p => p.Id == portal.Id);
+
+        await Assert.That(clean.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(stored.WikiPagePrefix).IsEqualTo("Antrag:Test/Sub");
+        await Assert.That(stored.WikiAssemblyLabel).IsEqualTo("BPT 1");
+        await Assert.That(joinsToDoubleSlash.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
 }

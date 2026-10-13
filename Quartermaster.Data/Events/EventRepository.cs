@@ -144,6 +144,26 @@ public class EventRepository {
         return q.OrderBy(e => e.EventDate).Take(limit).ToList();
     }
 
+    public List<Event> GetUndatedWithPortal(List<EventVisibility>? allowedVisibilities, int limit) {
+        var q = _context.Events
+            .Where(e => e.DeletedAt == null
+                && e.Status != EventStatus.Archived
+                && e.EventDate == null
+                && _context.AssemblyMotionPortals.Any(p => p.EventId == e.Id));
+
+        if (allowedVisibilities != null)
+            q = q.Where(e => allowedVisibilities.Contains(e.Visibility));
+
+        return q.OrderByDescending(e => e.CreatedAt).Take(limit).ToList();
+    }
+
+    public HashSet<Guid> GetEventIdsWithPortal(List<Guid> eventIds) {
+        return _context.AssemblyMotionPortals
+            .Where(p => eventIds.Contains(p.EventId))
+            .Select(p => p.EventId)
+            .ToHashSet();
+    }
+
     public List<EventChecklistItem> GetChecklistItems(Guid eventId)
         => _context.EventChecklistItems
             .Where(i => i.EventId == eventId)

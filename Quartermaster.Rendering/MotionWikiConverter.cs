@@ -30,7 +30,7 @@ public static class MotionWikiConverter {
         if (string.IsNullOrEmpty(markdown))
             return "";
 
-        var html = MarkdownService.ToHtml(TextNormalization.ToNfc(markdown), SanitizationProfile.Standard, MarkdownFlavor.Motion);
+        var html = MarkdownService.ToHtml(markdown, SanitizationProfile.Motion, MarkdownFlavor.Motion);
         return ConvertHtml(html);
     }
 

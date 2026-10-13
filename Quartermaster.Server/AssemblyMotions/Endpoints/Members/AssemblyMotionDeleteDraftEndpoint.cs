@@ -16,6 +16,7 @@ public class AssemblyMotionDeleteDraftEndpoint : AssemblyMotionActionEndpoint {
         Delete("/api/assemblymotions/motions/{Id}");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.DeleteDraft(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.DeleteDraft(motionId, member, nowUtc);
+    }
 }

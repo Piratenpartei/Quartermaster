@@ -12,6 +12,7 @@ namespace Quartermaster.Server.AssemblyMotions;
 
 public class AssemblyMotionInquiryService {
     private const string EntityType = "AssemblyMotionInquiry";
+    private const int MaxTextLength = 20_000;
 
     private readonly AssemblyMotionRepository _motions;
     private readonly AssemblyMotionInquiryRepository _inquiries;
@@ -26,6 +27,10 @@ public class AssemblyMotionInquiryService {
     }
 
     public AssemblyMotionOutcome Ask(Guid motionId, string questionMarkdown, DateTime responseDueAt, Guid userId, DateTime nowUtc) {
+        questionMarkdown = MotionMarkdown.Normalize(questionMarkdown);
+        var textProblem = TextProblem(questionMarkdown, I18nKey.Error.AssemblyMotion.InquiryQuestionMaxLength);
+        if (textProblem != null)
+            return textProblem;
         if (responseDueAt < nowUtc.AddHours(24))
             return AssemblyMotionOutcome.Fail(422, I18nKey.Error.AssemblyMotion.InquiryDueTooSoon);
 
@@ -60,6 +65,11 @@ public class AssemblyMotionInquiryService {
     }
 
     public AssemblyMotionOutcome Answer(Guid inquiryId, Member member, string answerMarkdown, DateTime nowUtc) {
+        answerMarkdown = MotionMarkdown.Normalize(answerMarkdown);
+        var textProblem = TextProblem(answerMarkdown, I18nKey.Error.AssemblyMotion.InquiryAnswerMaxLength);
+        if (textProblem != null)
+            return textProblem;
+
         using var tx = _motions.BeginTransaction();
 
         var inquiry = _inquiries.Get(inquiryId);
@@ -120,6 +130,15 @@ public class AssemblyMotionInquiryService {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    private static string ToHtml(string markdown)
-        => MarkdownService.ToHtml(markdown, SanitizationProfile.Standard, MarkdownFlavor.Motion);
+    private static AssemblyMotionOutcome? TextProblem(string normalizedMarkdown, string tooLongKey) {
+        if (normalizedMarkdown.Length > MaxTextLength)
+            return AssemblyMotionOutcome.Fail(422, tooLongKey);
+
+        var key = AssemblyMotionContent.MarkdownProblemKey(normalizedMarkdown);
+        return key == null ? null : AssemblyMotionOutcome.Fail(422, key);
+    }
+
+    private static string ToHtml(string markdown) {
+        return MarkdownService.ToHtml(markdown, SanitizationProfile.Motion, MarkdownFlavor.Motion);
+    }
 }

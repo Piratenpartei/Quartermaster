@@ -28,36 +28,40 @@ public class AssemblyMotionPortal {
     public int? OpenSlidesMeetingId { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public AssemblyMotionPortalDTO ToDto(string eventName, DateTime? eventDate, IEnumerable<AssemblyMotionType> types) => new() {
-        Id = Id,
-        EventId = EventId,
-        EventName = eventName,
-        EventDate = eventDate.ToDtoDate(),
-        OpensAt = OpensAt.ToDtoUtc(),
-        ClosesAt = ClosesAt.ToDtoUtc(),
-        IntroHtml = IntroHtml,
-        PrioritizationEnabled = PrioritizationEnabled,
-        PrioritizationStartsAt = PrioritizationStartsAt.ToDtoUtc(),
-        PrioritizationEndsAt = PrioritizationEndsAt.ToDtoUtc(),
-        Types = types.Select(t => t.ToDto()).ToList()
-    };
+    public AssemblyMotionPortalDTO ToDto(string eventName, DateTime? eventDate, IEnumerable<AssemblyMotionType> types) {
+        return new() {
+            Id = Id,
+            EventId = EventId,
+            EventName = eventName,
+            EventDate = eventDate.ToDtoDate(),
+            OpensAt = OpensAt.ToDtoUtc(),
+            ClosesAt = ClosesAt.ToDtoUtc(),
+            IntroHtml = IntroHtml,
+            PrioritizationEnabled = PrioritizationEnabled,
+            PrioritizationStartsAt = PrioritizationStartsAt.ToDtoUtc(),
+            PrioritizationEndsAt = PrioritizationEndsAt.ToDtoUtc(),
+            Types = types.Select(t => t.ToDto()).ToList()
+        };
+    }
 
-    public AssemblyMotionPortalSettingsDTO ToSettingsDto(string eventName, DateTime? eventDate, IEnumerable<AssemblyMotionType> types, IReadOnlySet<Guid> typeIdsWithMotions) => new() {
-        Id = Id,
-        EventId = EventId,
-        EventName = eventName,
-        EventDate = eventDate.ToDtoDate(),
-        OpensAt = OpensAt.ToDtoUtc(),
-        ClosesAt = ClosesAt.ToDtoUtc(),
-        IntroMarkdown = IntroMarkdown,
-        IntroHtml = IntroHtml,
-        PrioritizationEnabled = PrioritizationEnabled,
-        PrioritizationStartsAt = PrioritizationStartsAt.ToDtoUtc(),
-        PrioritizationEndsAt = PrioritizationEndsAt.ToDtoUtc(),
-        WikiMirrorEnabled = WikiMirrorEnabled,
-        WikiPagePrefix = WikiPagePrefix,
-        WikiAssemblyLabel = WikiAssemblyLabel,
-        OpenSlidesMeetingId = OpenSlidesMeetingId,
-        Types = types.Select(t => t.ToSettingsDto(typeIdsWithMotions.Contains(t.Id))).ToList()
-    };
+    public AssemblyMotionPortalSettingsDTO ToSettingsDto(string eventName, DateTime? eventDate, IEnumerable<AssemblyMotionType> types, IReadOnlySet<Guid> typeIdsWithMotions) {
+        return new() {
+            Id = Id,
+            EventId = EventId,
+            EventName = eventName,
+            EventDate = eventDate.ToDtoDate(),
+            OpensAt = OpensAt.ToDtoUtc(),
+            ClosesAt = ClosesAt.ToDtoUtc(),
+            IntroMarkdown = IntroMarkdown,
+            IntroHtml = IntroHtml,
+            PrioritizationEnabled = PrioritizationEnabled,
+            PrioritizationStartsAt = PrioritizationStartsAt.ToDtoUtc(),
+            PrioritizationEndsAt = PrioritizationEndsAt.ToDtoUtc(),
+            WikiMirrorEnabled = WikiMirrorEnabled,
+            WikiPagePrefix = WikiPagePrefix,
+            WikiAssemblyLabel = WikiAssemblyLabel,
+            OpenSlidesMeetingId = OpenSlidesMeetingId,
+            Types = types.Select(t => t.ToSettingsDto(typeIdsWithMotions.Contains(t.Id))).ToList()
+        };
+    }
 }

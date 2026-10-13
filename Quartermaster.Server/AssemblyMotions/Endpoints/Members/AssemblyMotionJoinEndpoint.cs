@@ -16,6 +16,7 @@ public class AssemblyMotionJoinEndpoint : AssemblyMotionActionEndpoint {
         Post("/api/assemblymotions/motions/{Id}/join");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.Join(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.Join(motionId, member, nowUtc);
+    }
 }

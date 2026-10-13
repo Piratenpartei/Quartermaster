@@ -12,11 +12,12 @@ public class AssemblyMotionCompetitionRepository {
         _context = context;
     }
 
-    public List<AssemblyMotionCompetition> ListForMotion(Guid motionId)
-        => _context.AssemblyMotionCompetitions
-            .Where(c => c.MotionAId == motionId || c.MotionBId == motionId)
-            .OrderBy(c => c.DeclaredAt)
-            .ToList();
+    public List<AssemblyMotionCompetition> ListForMotion(Guid motionId) {
+        return _context.AssemblyMotionCompetitions
+                .Where(c => c.MotionAId == motionId || c.MotionBId == motionId)
+                .OrderBy(c => c.DeclaredAt)
+                .ToList();
+    }
 
     public Dictionary<Guid, List<AssemblyMotionCompetition>> ListForMotions(IReadOnlyCollection<Guid> motionIds) {
         var links = _context.AssemblyMotionCompetitions
@@ -34,16 +35,21 @@ public class AssemblyMotionCompetitionRepository {
         return result;
     }
 
-    public AssemblyMotionCompetition? Get(Guid id)
-        => _context.AssemblyMotionCompetitions.Where(c => c.Id == id).FirstOrDefault();
+    public AssemblyMotionCompetition? Get(Guid id) {
+        return _context.AssemblyMotionCompetitions.Where(c => c.Id == id).FirstOrDefault();
+    }
 
-    public bool Exists(Guid motionAId, Guid motionBId)
-        => _context.AssemblyMotionCompetitions.Any(c => c.MotionAId == motionAId && c.MotionBId == motionBId);
+    public bool Exists(Guid motionAId, Guid motionBId) {
+        return _context.AssemblyMotionCompetitions.Any(c => c.MotionAId == motionAId && c.MotionBId == motionBId);
+    }
 
-    public void Insert(AssemblyMotionCompetition competition) => _context.Insert(competition);
+    public void Insert(AssemblyMotionCompetition competition) {
+        _context.Insert(competition);
+    }
 
-    public void Delete(Guid id)
-        => _context.AssemblyMotionCompetitions
-            .Where(c => c.Id == id)
-            .Delete();
+    public void Delete(Guid id) {
+        _context.AssemblyMotionCompetitions
+                .Where(c => c.Id == id)
+                .Delete();
+    }
 }

@@ -326,7 +326,14 @@ public enum MarkdownFlavor {
 
 public enum MotionMarkdownProblem {
     RawHtml = 0,
-    Image = 1
+    Image = 1,
+    TooDeeplyNested = 2,
+    TooLong = 3,
+    TableTooLarge = 4,
+    TooManyBrackets = 5,
+    TooMuchInlineMarkup = 6,
+    OutputTooLarge = 7,
+    TooManyLines = 8
 }
 
 public static class MotionMarkdown {
@@ -340,7 +347,9 @@ public static string ToHtml(string markdown, SanitizationProfile profile = Sanit
 
 `FindProblems` parses with `MotionMarkdown.Pipeline` and walks `document.Descendants()`: `HtmlBlock` or `HtmlInline` -> `RawHtml`; `LinkInline` with `IsImage` -> `Image`. Everything else the motion pipeline knows is allowed: paragraphs, headings, emphasis, strikethrough, lists, links, autolinks, block quotes, inline code, code blocks, thematic breaks, pipe tables. Features of the full flavour (footnotes, task lists, definition lists, ...) render as plain text under the motion pipeline.
 
-`MarkdownService.ToHtml` selects `MotionMarkdown.Pipeline` for `MarkdownFlavor.Motion` and the existing pipeline otherwise; existing callers are unchanged. `MarkdownEditorWithPreview` gets `[Parameter] public MarkdownFlavor Flavor { get; set; } = MarkdownFlavor.Full;`.
+`FindProblems` and `TryRender` normalize first (Unicode NFC, CRLF and lone CR to LF, trailing whitespace removed), then check the cost limits in one lexical pass before Markdig runs (`MotionMarkdownLimits`): 100,000 characters; 10,000 table cells (widest row times lines, summed over the paragraphs that contain a pipe); 250 `[` per paragraph; 1,000 runs of `*`, `_`, `~`, a backtick or `<` per paragraph and 10,000 in total; 5,000 lines; 100 quote or list markers at a line start; 500,000 characters of rendered HTML. A text that exceeds a limit, or that Markdig refuses as too deeply nested, is a validation problem with its own message key naming the limit, and `TryRender` returns nothing for it. Services re-check the normalized draft before storing, so a request that bypasses the validator is refused with 422. Inquiry questions and answers follow the same rules (20,000 characters).
+
+`MarkdownService.ToHtml` selects `MotionMarkdown.Pipeline` for `MarkdownFlavor.Motion` and the existing pipeline otherwise; existing callers are unchanged. For the motion flavour it always sanitizes with `SanitizationProfile.Motion`: the tags of the restricted flavour, `href` as the only attribute, and only on `a` with a URL that starts with `https://`, `http://` or `mailto:`; relative links lose their `href`, and `class`, `style`, `rel`, `target` and `src` are removed. Table column alignment is dropped before rendering. `MarkdownEditorWithPreview` gets `[Parameter] public MarkdownFlavor Flavor { get; set; } = MarkdownFlavor.Full;`.
 
 Validation, used by Task 10's `AssemblyMotionSaveRequestValidator` and Task 13's commission edit validator for `TextMarkdown` and `ReasonMarkdown`: `Must(markdown => !MotionMarkdown.FindProblems(markdown).Contains(MotionMarkdownProblem.RawHtml))` with `error.assembly_motion.markdown_html_not_allowed` "HTML ist im Antragstext nicht erlaubt. Bitte nur Markdown verwenden.", and the same for `Image` with `error.assembly_motion.markdown_image_not_allowed` "Bilder sind in Anträgen nicht erlaubt.".
 
@@ -484,13 +493,13 @@ Error keys (all under `error.assembly_motion.*`, German text in `de.json`):
 - `type_not_in_portal` "Die Antragsart gehört nicht zu diesem Antragsportal." (422)
 
 Rules (phase 1 scope; author edits beyond drafts come in Task 12):
-- `CreateDraft`: refused before `OpensAt` and after `ClosesAt`; type must belong to the portal; inserts the motion (`Status = Draft`, `Revision = 1`, HTML via `MarkdownService.ToHtml(markdown, SanitizationProfile.Standard, MarkdownFlavor.Motion)`), the author submitter row (`IsAuthor = true`, `JoinedRevision = 1`) and revision 1; audit `Created`.
+- `CreateDraft`: the draft is normalized first (control characters removed from single-line fields, trimmed, empty optional fields become null, CRLF to LF, NFC) and refused with 422 when a field or the Markdown breaks a rule; refused before `OpensAt` and after `ClosesAt`; refused with 409 `draft_limit_reached` when the author already holds 50 drafts in the portal; type must belong to the portal; inserts the motion (`Status = Draft`, `Revision = 1`, HTML via `MarkdownService.ToHtml(markdown, SanitizationProfile.Standard, MarkdownFlavor.Motion)`), the author submitter row (`IsAuthor = true`, `JoinedRevision = 1`) and revision 1; audit `Created`.
 - `UpdateDraft`: only the author, only `Draft`, `baseRevision == motion.Revision` else `revision_conflict`; increments `Revision`, writes a revision row, updates the author's `JoinedRevision`; type may change while `Draft`. Audit `LogFieldChange` per changed text field.
 - `Release`: only author, only `Draft`, `nowUtc >= OpensAt`, not past effective deadline. `MinSubmitters <= 1` -> `Submit`, else `CollectingCoSubmitters`. Audit `Released`.
 - `Join`: in one transaction: `GetForUpdate`, status must be `CollectingCoSubmitters`, not past effective deadline, not already a submitter; insert submitter with `JoinedRevision = motion.Revision`; if submitter count >= `MinSubmitters` -> `Submit`. Audit `CoSubmitterJoined`.
 - `Leave`: `CollectingCoSubmitters` only, author refused, removes the row. Audit `CoSubmitterLeft`.
-- `Withdraw`: author only, any status except `Withdrawn`, `Lapsed`, not after `ClosesAt`. Sets `Withdrawn`, `WithdrawnAt`; if `WasSubmitted` -> `MarkWikiPending`. Audit `Withdrawn`.
-- `DeleteDraft`: author only, `Draft` only, soft delete.
+- `Withdraw`: author only, released motions only (`CollectingCoSubmitters`, `Submitted`, `Admitted`, `FormallyInsufficient`; a `Draft` is refused with `invalid_state`, the author deletes it), not after `ClosesAt`. Sets `Withdrawn`, `WithdrawnAt`; if `WasSubmitted` -> `MarkWikiPending`. Notifies the co-submitters, and the commission when the motion has a number. Audit `Withdrawn`.
+- `DeleteDraft`: author only, `Draft` only, soft delete. Needs authorship only, no current eligibility.
 - `Submit` (private, inside the caller's transaction):
 
 ```csharp
@@ -507,7 +516,7 @@ private void Submit(AssemblyMotion motion, DateTime nowUtc) {
 }
 ```
 
-  `Release` also runs in a transaction with `GetForUpdate`. `MarkWikiPending` is called unconditionally; the wiki sync (Task 24) ignores portals without the mirror.
+  `Release` also runs in a transaction with `GetForUpdate`. `MarkWikiPending` does nothing while the portal's mirror is off. When `Submit` assigns a number, the numbered motions linked to the motion by a competition are marked wiki-pending after the commit, because their pages list the competing numbers.
 - `LapseOverdue`: loads `ListOverdueCollecting`, computes the effective deadline per motion, sets `Lapsed` where past; if `WasSubmitted` -> `MarkWikiPending`; audit `Lapsed`; returns the count.
 
 - [ ] **Step 1: Tests** `AssemblyMotionServiceTests : RepositoryTestBase` (construct the service directly over `Db`; helper methods `SeedPortal(opensAt, closesAt)`, `SeedEligibleMember()`):
@@ -617,7 +626,7 @@ List: filter by `TypeId`, `Status`, `Search` (matches title case-insensitively o
 - `POST .../motions/{Id}/release`, `/join`, `/leave`, `/withdraw`, `DELETE .../motions/{Id}`.
 - `GET /api/assemblymotions/portals/{PortalId}/mine` -> list of `AssemblyMotionMineItemDTO` (Id, DisplayNumber, Title, Status, IsAuthor, OpenInquiryCount (0 until phase 2)).
 
-Every mutating member endpoint first runs `AssemblyMotionEligibility.Check`; ineligible -> 403 with error key `error.assembly_motion.not_eligible` ("Du kannst an diesem Antragsportal nicht teilnehmen."). Withdraw and leave do not require eligibility (an exited member can still withdraw their own motion or leave).
+Every mutating member endpoint first runs `AssemblyMotionEligibility.Check`; ineligible -> 403 with error key `error.assembly_motion.not_eligible` ("Du kannst an diesem Antragsportal nicht teilnehmen."). Withdraw, leave and deleting an own draft do not require eligibility (an exited member can still withdraw their own motion, leave or delete their own draft).
 
 `AssemblyMotionDetailDTO`: all public detail fields + TextMarkdown, ReasonMarkdown, Revision, IsCompetingMotion, MinSubmitters, EffectiveDeadline, Submitters (`AssemblyMotionSubmitterDTO` MemberId, DisplayName, IsAuthor, JoinedAt, JoinedRevision, MemberNumber (int?, filled only for the commission)), IsAuthor, IsSubmitter, CanEdit, CanRelease, CanJoin, CanLeave, CanWithdraw, CanDelete. Names: `"{FirstName} {LastName}"` from `Member`; anonymized or missing -> `"Ehemaliges Mitglied"`. Submitters are included only when `CanSeeNames`; otherwise the list is empty. The `Can*` flags are computed by the same rule methods the service uses (expose them as `public bool CanJoin(...)` etc. on `AssemblyMotionService` so UI flags and enforcement cannot drift).
 
@@ -651,9 +660,9 @@ Validator `AssemblyMotionSaveRequestValidator`: Title required, max 500; TextMar
 - Create: `Quartermaster.Server/Changelog/V4.md`
 
 Pages:
-- Portal page: intro HTML, a deadline table per type (name, code, required submitters, deadline in Berlin time via `BerlinTime.FromUtc`, competing deadline), motions grouped by type with `AssemblyMotionStatusBadge`, filter by type and status, search box, pagination. When the context says eligible: buttons "Neuer Antrag", "Anträge, die Mitantragsteller suchen", "Meine Anträge". When signed in but ineligible: an info alert with the reason (one i18n text per `EligibilityProblem`). When `IsCommission`: button "Antragskommission" (target page comes in Task 16; hide until then).
-- Detail page: loads the member detail when signed in (falls back to the public detail on 401), shows number, type, title, section, text, reason, summary, keywords, prior discussion, status, check note; submitters with "(Antragsteller)" marker; action buttons from the `Can*` flags with `ConfirmDialog` for withdraw, leave and join (join confirm text: title + "Mit dem Beitritt wirst du Mitantragsteller. Dein Name ist für angemeldete Mitglieder sichtbar."); share link hint while collecting.
-- Editor: type select showing deadline and required submitters of the chosen type; fields; `MarkdownEditorWithPreview` with `Flavor="MarkdownFlavor.Motion"` for text and reason, with a short help line listing the allowed formatting (Überschriften, fett, kursiv, durchgestrichen, Listen, Links, Zitate, Code, Tabellen; kein HTML, keine Bilder); "Als Entwurf speichern" and "Freigeben" (release saves first). Sends `BaseRevision`; on 409 `revision_conflict` show the message and offer reload.
+- Portal page: intro HTML, a deadline table per type (name, code, required submitters, deadline in Berlin time via `BerlinTime.FromUtc`, competing deadline), motions grouped by type with `AssemblyMotionStatusBadge`, filter by type and status, search box, pagination. When the context says eligible: buttons "Neuer Antrag" (only while the portal is open, that is between `OpensAt` and `ClosesAt`; outside the window a short hint with the opening or closing date replaces it), "Anträge, die Mitantragsteller suchen", "Meine Anträge". When signed in but ineligible: an info alert with the reason (one i18n text per `EligibilityProblem`). When `IsCommission`: button "Antragskommission" (target page comes in Task 16; hide until then).
+- Detail page: loads the member detail when signed in (falls back to the public detail on 401), shows number, type, title, section, text, reason, summary, keywords, prior discussion, status, check note; submitters with "(Antragsteller)" marker; action buttons from the `Can*` flags with `ConfirmDialog` for withdraw, leave and join (join confirm text: title + "Mit dem Beitritt wirst du Mitantragsteller. Dein Name ist für angemeldete Mitglieder sichtbar."); share link hint while collecting. "Freigeben" asks for confirmation through `ConfirmDialog` ("Der Antrag wird veröffentlicht und ist danach für alle sichtbar. Das Freigeben kann nicht rückgängig gemacht werden."). On a motion that is collecting co-submitters, a visitor who is not signed in sees the sign-in hint and a signed-in ineligible user sees why they cannot join, from the portal context. The count text of prioritization has a singular form ("Priorisiert von 1 Mitglied").
+- Editor: type select showing deadline and required submitters of the chosen type; fields; `MarkdownEditorWithPreview` with `Flavor="MarkdownFlavor.Motion"` for text and reason, with a short help line listing the allowed formatting (Überschriften, fett, kursiv, durchgestrichen, Listen, Links, Zitate, Code, Tabellen; kein HTML, keine Bilder); "Als Entwurf speichern" and "Freigeben" (release saves first). Outside the portal window the editor of a new motion shows the same hint as the portal page instead of the form. "Freigeben" asks for confirmation before it saves and releases. The warning for a changed motion differs for motions with and without a number (a motion without a number is not in revision and not on the wiki). Sends `BaseRevision`; on 409 `revision_conflict` show the message and offer reload.
 - Portal settings section: when no portal, button "Antragsportal aktivieren" with opens/closes inputs (`datetime-local`, Berlin time). When present: dates, intro (`MarkdownEditorWithPreview`), prioritization toggle and window, wiki toggle, prefix, label, OpenSlides meeting id, types table with inline edit/add/delete (delete and code disabled when `HasMotions`, with a tooltip). Inputs that cannot be edited get both `readonly` and `disabled`.
 - All markup text through `I18n[...]`.
 
@@ -706,15 +715,15 @@ public bool CanEditAsAuthor(AssemblyMotion motion, AssemblyMotionType type, Asse
 
 `UpdateByAuthor` rules (spec "Editing" by the author), inside a transaction with `GetForUpdate`:
 - Not the author -> `not_author`. `baseRevision != motion.Revision` -> `revision_conflict`.
-- A save without any content change (Title, Section, TextMarkdown, ReasonMarkdown, Summary, Keywords, PriorDiscussion, TypeId all equal) returns `Ok` without a new revision.
+- The draft is normalized first (see Task 6) and checked for field and Markdown problems (422). A save without any content change (Title, Section, TextMarkdown, ReasonMarkdown, Summary, Keywords, PriorDiscussion, TypeId all equal, compared after normalization) returns `Ok` without a new revision and resets nobody.
 - `TypeId` may change only while `motion.Number == null`; otherwise `invalid_state`.
 - `Draft`: save, `Revision++`, revision row, author `JoinedRevision = Revision`.
-- `CollectingCoSubmitters` before the effective deadline: as Draft, plus `RemoveCoSubmitters`, `CollectingReminderSentAt = null`; when the motion has a number (in revision) also `MarkWikiPending`.
+- `CollectingCoSubmitters` before the effective deadline: as Draft, plus `RemoveCoSubmitters`, `CollectingReminderSentAt = null`; when the motion has a number (in revision) also `MarkWikiPending`. When the remaining submitters already meet `MinSubmitters` of the (possibly changed) type, the motion is submitted at once through `Submit` and gets its number. The effective deadline for the edit lock uses the competing flag as it is.
 - `Submitted` before the effective deadline: as Collecting; if `type.MinSubmitters > 1` -> status `CollectingCoSubmitters` (in revision: portal, public view and wiki show the new text as "In Überarbeitung"), `SubmittedAt = null`, keep `Number`; else stays `Submitted` with `SubmittedAt = nowUtc`. Both cases `MarkWikiPending`.
 - `Admitted`, `FormallyInsufficient`, `Withdrawn`, `Lapsed`, or after the effective deadline, or after `ClosesAt` -> `edit_locked` "Der Antrag kann nicht mehr geändert werden. Bitte wende dich an die Antragskommission.".
 - Audit: `LogFieldChange` per changed field (full old and new Markdown, like board motions) and `CoSubmittersReset` with the count when co-submitters were removed.
 
-Revisions endpoint `GET /api/assemblymotions/motions/{Id}/revisions`: allowed for eligible members (for non-draft motions), submitters and the commission; never anonymous. Returns `AssemblyMotionRevisionDTO` list (Revision, Title, Section, TextMarkdown, ReasonMarkdown, Summary, Keywords, PriorDiscussion, EditedAt, EditedByCommission, ChangeNote). Drafts: author only.
+Revisions endpoint `GET /api/assemblymotions/motions/{Id}/revisions`: allowed for eligible members (for non-draft motions), submitters and the commission; never anonymous. Returns a plain list of `AssemblyMotionRevisionDTO` (Revision, Title, Section, TextMarkdown, ReasonMarkdown, Summary, Keywords, PriorDiscussion, EditedAt, EditedByCommission, ChangeNote). Drafts: author only. The author receives every revision; everyone else receives the revisions from the release on (the release writes an audit entry `Released` with field `Revision` and the revision as new value, which marks the first public revision; without such an entry only the current revision is returned).
 
 - [ ] **Step 1: TextDiff tests**: identical texts all `Unchanged`; one inserted line; one removed line; changed middle line yields `Removed` then `Added`; CRLF input equals LF input; huge input fallback.
 - [ ] **Step 2: Service tests**: `Edit_while_collecting_removes_cosubmitters`, `Edit_submitted_five_type_returns_to_collecting_keeps_number`, `Edit_submitted_one_type_stays_submitted_and_queues_wiki`, `Edit_after_deadline_locked`, `Edit_admitted_locked`, `Type_change_refused_after_number`, `Noop_save_creates_no_revision`, `Stale_base_revision_conflicts`.
@@ -744,13 +753,13 @@ public class AssemblyMotionCommissionService {
 
 Rules:
 - `Check`: motion status must be `Submitted`, `Admitted` or `FormallyInsufficient`; `decision` must be one of these three; `FormallyInsufficient` needs a non-empty `checkNote` (`error.assembly_motion.check_note_required`). Sets `Status`, `CheckNote` (trimmed, null when empty), `CheckedAt`, `CheckedByUserId`; `MarkWikiPending`; audit `LogFieldChange("AssemblyMotion", id, "Status", old, new)` and `CheckNote`.
-- `Edit`: allowed when `motion.Number != null` and status is not `CollectingCoSubmitters` (`invalid_state` otherwise); `changeNote` required (`error.assembly_motion.change_note_required`); base revision check; `TypeId` cannot change; no co-submitter reset; `Revision++`, revision row with `EditedByCommission = true` and `ChangeNote`; `MarkWikiPending`; audit per field.
-- `Withdraw`: any status except `Withdrawn` and `Lapsed`; sets `Withdrawn`, `WithdrawnAt`; `MarkWikiPending` when `WasSubmitted`; audit `Withdrawn` with field `ByCommission`.
+- `Edit`: allowed when `motion.Number != null` and the status is `Submitted`, `Admitted` or `FormallyInsufficient` (`invalid_state` otherwise, so also for `Withdrawn`, `Lapsed` and numbered motions back in `CollectingCoSubmitters`); the draft is normalized and checked like an author draft; `changeNote` required (`error.assembly_motion.change_note_required`); base revision check; `TypeId` cannot change; no co-submitter reset; `Revision++`, revision row with `EditedByCommission = true` and `ChangeNote`; `MarkWikiPending`; audit per field.
+- `Withdraw`: any status except `Draft`, `Withdrawn` and `Lapsed`; sets `Withdrawn`, `WithdrawnAt`; `MarkWikiPending` when `WasSubmitted`; notifies all submitters including the author, not the commission; audit `Withdrawn` with field `ByCommission`.
 
 Endpoints (all commission-only via `AssemblyMotionAccess.IsCommission(event)`, else 403):
 - `GET /api/assemblymotions/portals/{PortalId}/dashboard`: motions from `CollectingCoSubmitters` on (no drafts), filters, search like Task 9, order type `SortOrder`, `Number` (nulls last), `CreatedAt`. Item: Id, DisplayNumber (null without number), Title, TypeCode, Status, Result, SubmitterCount, MinSubmitters, OpenInquiryCount (0 until Task 14), EffectiveDeadline, DeadlinePassed, WikiSyncState, Revision, OpenSlidesPushedRevision. `FailedWikiSyncCount` = motions of the portal in `Failed` or `ProtectionFailed`.
 - `POST /api/assemblymotions/motions/{Id}/check`, `PUT /api/assemblymotions/motions/{Id}/commission-edit`, `POST /api/assemblymotions/motions/{Id}/commission-withdraw`.
-- `GET /api/assemblymotions/portals/managed`: portals whose event the caller is commission for (load all portals with their events, filter by `IsCommission`), as `AssemblyMotionManagedPortalDTO` (PortalId, EventId, EventName, EventDate, ChapterName).
+- `GET /api/assemblymotions/portals/managed`: portals whose event the caller is commission for (load all portals with their events, filter by `IsCommission`), as a plain list of `AssemblyMotionManagedPortalDTO` (PortalId, EventId, EventName, EventDate, ChapterName).
 - Member detail endpoint: for the commission, `Commission` = CheckedAt, CheckedByName (user display name), WikiSyncState, WikiSyncedRevision, WikiLastSyncedAt, WikiLastError, OpenSlidesMotionId, OpenSlidesPushedRevision, OpenSlidesPushedAt, OpenSlidesLastError. The commission sees collecting motions but not drafts (Task 5 rule).
 
 - [ ] **Step 1: Service tests**: `Insufficient_requires_note`, `Decision_can_be_corrected` (Admitted -> FormallyInsufficient -> Admitted), `Check_refused_while_collecting`, `Commission_edit_keeps_cosubmitters_and_bumps_submitted_revision`, `Commission_edit_requires_change_note`, `Commission_withdraw_after_close_allowed`.
@@ -824,7 +833,7 @@ public class AssemblyMotionNotifier {
     public void InquiryAnswered(AssemblyMotion motion, AssemblyMotionInquiry inquiry)
     public void EditedByCommission(AssemblyMotion motion, string changeNote, IReadOnlyList<Guid> submitterMemberIds)
     public void CompetitionDeclared(AssemblyMotion motion, AssemblyMotion otherMotion, IReadOnlyList<Guid> otherSubmitterMemberIds)
-    public void Withdrawn(AssemblyMotion motion, IReadOnlyList<Guid> coSubmitterMemberIds)
+    public void Withdrawn(AssemblyMotion motion, IReadOnlyList<Guid> memberIds, bool includeCommission)
 }
 ```
 
@@ -838,7 +847,7 @@ Triggers (constant name -> id -> recipients):
 - `AssemblyMotionInquiryAnswered` `assembly_motion_inquiry_answered`: commission.
 - `AssemblyMotionEditedByCommission` `assembly_motion_edited_by_commission`: all submitters.
 - `AssemblyMotionCompetitionDeclared` `assembly_motion_competition_declared`: submitters of the other motion (fired in Task 17).
-- `AssemblyMotionWithdrawn` `assembly_motion_withdrawn`: co-submitters (not the author) + commission.
+- `AssemblyMotionWithdrawn` `assembly_motion_withdrawn`: withdrawal by the author notifies the co-submitters (not the author) and the commission only when the motion has a number; withdrawal by the commission notifies all submitters including the author and not the commission.
 
 Resolver: members -> `Member.UserId` -> `User` -> `NotificationRecipient(user.Id, user.Email)`; members without a user or users without email are skipped. With `IncludeCommission`: users holding `assemblymotions_manage` globally, directly on `EventChapterId`, or through a role assigned on `EventChapterId` (copy the grant and role queries of `ChapterPermissionRecipientResolver`, but for the exact chapter only, because the permission does not inherit). Deduplicate by `UserId`.
 
@@ -937,13 +946,13 @@ public class AssemblyMotionCompetitionService {
 ```
 
 Rules:
-- Declare: same portal; not the same motion; the other motion is `Submitted` or `Admitted`; the declaring motion is `Draft`, `CollectingCoSubmitters`, `Submitted` or `Admitted`; a non-commission caller must be a current submitter of the declaring motion (for a draft: its author); pair unique (`error.assembly_motion.competition_exists`). Stores `DeclaringMotionId = motionId`, `DeclaredByCommission = asCommission`. `MarkWikiPending` on both motions where `WasSubmitted`. Audit `CompetitionDeclared` on both motions. Notification `CompetitionDeclared` to the other motion's submitters, except while the declaring motion is a draft: then `Release` sends it.
+- Declare: same portal; not the same motion; the other motion is `Submitted` or `Admitted`; the declaring motion is `Draft`, `CollectingCoSubmitters`, `Submitted` or `Admitted`; a non-commission caller must be currently eligible and a current submitter of the declaring motion (for a draft: its author); pair unique (`error.assembly_motion.competition_exists`). Stores `DeclaringMotionId = motionId`, `DeclaredByCommission = asCommission`. `MarkWikiPending` on both motions where `WasSubmitted`. Audit `CompetitionDeclared` on both motions. Notification `CompetitionDeclared` to the other motion's submitters, except while the declaring motion is a draft: then `Release` sends it.
 - Remove: a link with `DeclaredByCommission` only by the commission; otherwise by a current submitter of `DeclaringMotionId` or the commission. After removal, if a motion with `IsCompetingMotion` has no remaining qualifying link, clear the flag (ruling: the spec requires at least one link for the flag; clearing keeps the data consistent; if wrong, the author sets the flag again). Wiki pending and audit as for declare.
-- Qualifying link for the flag: a link to another motion with `Number != null` whose `SubmittedAt` is earlier than this motion's `SubmittedAt`, or any such motion when this motion has no `SubmittedAt` yet.
-- SetCompetingFlag: author may set `true` only with a qualifying link and while `CanEditAsAuthor` holds; author may set `false` while `CanEditAsAuthor` holds; the commission may only set `false` (any status). Audit.
+- Qualifying link for the flag: a link to another motion with `Number != null` that is `Submitted`, `Admitted` or `FormallyInsufficient` (not `Withdrawn` or `Lapsed`) and whose `SubmittedAt` is earlier than this motion's `SubmittedAt`, or any such motion when this motion has no `SubmittedAt` yet.
+- SetCompetingFlag: author may set `true` only with current eligibility, with a qualifying link and while the edit lock, evaluated with the competing deadline for the value about to be set, does not apply; author may set `false` while `CanEditAsAuthor` holds, without current eligibility; the commission may only set `false` (any status). A motion without the flag keeps the normal deadline for editing and releasing. Setting and clearing the flag write only that column, so a wiki requeue made in the same step is kept. Audit.
 - Public competitions: links where the other motion `IsPublic`, showing its display number and title.
 
-- [ ] **Step 1: Tests**: `Declare_is_symmetric` (visible from both motions), `Pair_stored_ordered_and_unique` (declaring B->A after A->B fails), `Declare_against_collecting_motion_refused`, `Commission_link_removable_only_by_commission`, `Submitter_link_removable_by_declaring_submitter_not_by_other_side`, `Flag_requires_earlier_submitted_link`, `Removing_last_link_clears_flag`, `Draft_declaration_notifies_on_release`, `Public_detail_lists_competition_without_names`.
+- [ ] **Step 1: Tests**: `Declare_is_symmetric` (visible from both motions), `Pair_stored_ordered_and_unique` (declaring B->A after A->B fails), `Declare_against_collecting_motion_refused`, `Commission_link_removable_only_by_commission`, `Submitter_link_removable_by_declaring_submitter_not_by_other_side`, `Flag_requires_earlier_submitted_link`, `Removing_last_link_clears_flag`, `Competing_motion_can_flag_edit_and_release_until_the_competing_deadline`, `Draft_declaration_notifies_on_release`, `Public_detail_lists_competition_without_names`.
 - [ ] **Step 2: Implement**, build, run `AssemblyMotionCompetitionServiceTests`, `AssemblyMotionPublicEndpointTests`. Expected: PASS.
 
 ### Task 18: Prioritization and ranking
@@ -1190,7 +1199,7 @@ No names and no member numbers in the model at all (the spec omits `antragstelle
 
 **Files:**
 - Create: `Quartermaster.Server/AssemblyMotions/Wiki/WikiBotSettings.cs` (pattern `KeycloakSettings.ReadFrom(OptionRepository)`), `IWikiBotClient.cs`, `HttpWikiBotClient.cs`, `WikiBotException.cs`
-- Modify: `Program.cs` (singleton registration with its own handler, scoped settings)
+- Modify: `Program.cs` (singleton registration over the named client `wiki`, whose handler keeps cookies and does not follow redirects; scoped settings)
 - Test: `Quartermaster.Server.Tests/AssemblyMotions/HttpWikiBotClientTests.cs` (+ `Fakes/RecordingHttpMessageHandler.cs` if no reusable one exists; check `grep -rn HttpMessageHandler Quartermaster.Server.Tests`)
 
 **Interfaces:**
@@ -1209,7 +1218,7 @@ public interface IWikiBotClient {
 }
 ```
 
-`HttpWikiBotClient` is a singleton: constructor `HttpWikiBotClient(HttpMessageHandler handler)`, creates `new HttpClient(handler)`; registration passes `new SocketsHttpHandler { UseCookies = true, CookieContainer = new CookieContainer(), PooledConnectionLifetime = TimeSpan.FromMinutes(15) }` (the wiki session lives in the cookie container). It keeps the CSRF token and the logged-in user name in fields guarded by a `SemaphoreSlim(1, 1)`; a settings change (different user or URL) forces a new login. Every request sends `User-Agent: Quartermaster/4 (+https://piratenpartei.de)` (same reason as `HttpWikiClient`: the wiki's bot filter challenges browser-like agents) and `format=json&formatversion=2`.
+`HttpWikiBotClient` is a singleton: constructor `HttpWikiBotClient(HttpClient client, ILogger<HttpWikiBotClient> logger)`; `HttpWikiBotClient.CreateHandler()` returns `new SocketsHttpHandler { UseCookies = true, CookieContainer = new CookieContainer(), AllowAutoRedirect = false, PooledConnectionLifetime = TimeSpan.FromMinutes(15) }` for the named client `wiki` (the wiki session lives in the cookie container; a redirect answer is reported as `http_error` and never followed). A constructor over a handler remains for tests. The API URL must be `https`; `http` is accepted only for `localhost`. It keeps the CSRF token and the logged-in user name in fields guarded by a `SemaphoreSlim(1, 1)`; a settings change (different user or URL) forces a new login. Every request sends `User-Agent: Quartermaster/4 (+https://piratenpartei.de)` (same reason as `HttpWikiClient`: the wiki's bot filter challenges browser-like agents) and `format=json&formatversion=2`.
 
 Flow:
 - Login: `GET action=query&meta=tokens&type=login` -> `query.tokens.logintoken`; `POST action=login` form `lgname`, `lgpassword`, `lgtoken` -> `login.result == "Success"` else `WikiBotException("Anmeldung am Wiki fehlgeschlagen: <reason>")`; `GET action=query&meta=tokens` -> `query.tokens.csrftoken`.
@@ -1252,17 +1261,20 @@ public class AssemblyMotionWikiReconcile {
 1. Settings not configured -> leave the motion untouched, log a warning once per run, return false.
 2. Load portal, type, open inquiry flag, competing display numbers (other motion has a number), portal URL (`{globals BaseUrl}/AssemblyMotions/{id}`; read the base URL the way `NotificationTemplateGlobals` does), render, `newHash` = lowercase hex SHA-256 of the UTF-8 text. Remember the loaded `WikiSyncRequestedAt`.
 3. `current = GetContentAsync(title)`.
-   - null -> `EditAsync(title, text, "Antragsportal: Antrag angelegt (Revision n)")`, then `ProtectAsync`; protection exception -> state `ProtectionFailed`, `WikiLastError` = message, `WikiNextAttemptAt = now + 1h`.
+   - null -> `EditAsync(title, text, "Antragsportal: Antrag angelegt (Revision n)")`, then `ProtectAsync`; this also applies to a page that was deleted in the wiki, and the foreign-page rule below applies to it when the stored hash was reset; protection exception -> state `ProtectionFailed`, `WikiLastError` = message, `WikiNextAttemptAt = now + 1h`.
    - exists and `Hash(current) == newHash` -> nothing to write.
+   - exists and `WikiSyncedHash == null` (the portal never synced this page, for example after a prefix change) -> take the page over only when its text contains this motion's portal URL, then edit and protect it; otherwise fail permanently with a message that names the cause and write nothing.
    - exists and `WikiSyncedHash != null && Hash(current) != WikiSyncedHash` -> audit `Log("AssemblyMotion", id, "WikiManualEditOverwritten", "PageTitle", null, title)`, then edit.
    - exists otherwise -> edit with summary "Antragsportal: <reason> (Revision n)" where reason is "Status aktualisiert" (keep it generic; the spec example "Revision 3 eingereicht" is used when `WikiSyncedRevision != Revision`).
    - Previous state `ProtectionFailed` -> try `ProtectAsync` again after the write.
 4. Success -> `CompleteWikiSync(motionId, loadedRequestedAt, state, revision, hash, now)`: `UPDATE ... SET WikiSyncState, WikiSyncedRevision, WikiSyncedHash, WikiLastSyncedAt, WikiLastError = null, WikiFailureCount = 0 WHERE Id = @id AND WikiSyncRequestedAt <=> @loaded` (null-safe). When no row matched, a newer change arrived during the sync: leave it `Pending`.
 5. Exception (`WikiBotException`, `HttpRequestException`, template error) -> `FailWikiSync`: `Failed`, `WikiLastError`, `WikiFailureCount++`, `WikiNextAttemptAt = now + min(2^count minutes, 6 h)`; audit `WikiSyncFailed` only when the count becomes 1.
 
-Reconcile: portals with `WikiMirrorEnabled` whose event status is not `Archived`; for every motion with a number in `Synced` state: `GetContentAsync`; missing page or `Hash(content) != WikiSyncedHash` -> `MarkWikiPending`. Errors are logged and skipped.
+Reconcile: portals with `WikiMirrorEnabled` whose event status is not `Archived`; a window of at most 500 motions with a number in `Synced` state, ordered by id and rotating by day (offset = day index times 500, modulo the total); for each: `GetContentAsync`; a missing page is queued as never synced (hash and synced revision reset), a differing hash is queued as pending. Errors are logged and skipped, and the run stops early after three consecutive wiki errors.
 
-Hosted services: sync every minute (`SyncDueAsync`), reconcile once per day, both following the `RetentionAnonymizationHostedService` loop with a scope per run.
+`SyncDueAsync` stops the run after the first failed login. After a write it re-reads the portal and records nothing when the page title is no longer the current one or the mirror is off, so a prefix change during a write cannot store the old page's hash.
+
+Hosted services: sync every minute (`SyncDueAsync`), reconcile 10 minutes after the server start and then every 24 hours, both following the `RetentionAnonymizationHostedService` loop with a scope per run.
 
 `FakeWikiBotClient`: static `Dictionary<string, string> Pages`, `List<string> Protected`, `List<(string Title, string Summary)> Edits`, flags `FailNextEdit`, `FailProtect`, `Configured`, `Reset()`; tests run `[NotInParallel("FakeWikiBotClient")]`.
 
@@ -1285,12 +1297,12 @@ Hosted services: sync every minute (`SyncDueAsync`), reconcile once per day, bot
 **Files:**
 - Create: endpoints `Portal/AssemblyMotionWikiValidateEndpoint.cs` (`POST /api/assemblymotions/portals/{PortalId}/wiki/validate`, `events_edit`, returns `AssemblyMotionConnectionCheckDTO { bool Ok, string Message }`), `Commission/AssemblyMotionWikiResyncEndpoint.cs` (`POST /api/assemblymotions/motions/{Id}/wiki/resync`), `Commission/AssemblyMotionWikiResyncAllEndpoint.cs` (`POST /api/assemblymotions/portals/{PortalId}/wiki/resync`)
 - Create: `Quartermaster.Api/AssemblyMotions/AssemblyMotionConnectionCheckDTO.cs`
-- Modify: `AssemblyMotionPortalUpdateEndpoint.cs` (switching `WikiMirrorEnabled` from false to true runs `LoginAsync`; failure -> 422 `error.assembly_motion.wiki_login_failed` "Anmeldung am Wiki fehlgeschlagen: {reason}"; success -> `MarkWikiPending` for every numbered motion of the portal)
+- Modify: `AssemblyMotionPortalUpdateEndpoint.cs` (switching `WikiMirrorEnabled` from false to true runs `LoginAsync`; failure -> 422 `error.assembly_motion.wiki_login_failed` "Anmeldung am Wiki fehlgeschlagen: {reason}"; success -> every numbered motion of the portal is queued as never synced. Changing the page prefix while the mirror is on queues them the same way. Switching the mirror off sets motions that are `Pending` back to `NotMirrored`. The prefix is validated: no leading or trailing slash or whitespace, no double slash, none of `#<>[]|{}`, at most 300 characters)
 - Modify: Blazor `AssemblyMotionPortalSettings` ("Verbindung prüfen" next to the wiki fields), `AssemblyMotionDashboard` (wiki state column with badge, "Alle neu synchronisieren"), `AssemblyMotionCommissionDetail` (state, last sync, error, "Neu synchronisieren")
 - Modify: `Quartermaster.Documentation/Configuration.md` (section "Wiki mirror for the motion portal": the four `wiki.*` options, the prerequisites from the spec, the User-Agent note), i18n, `V4.md`
 - Test: `Integration/AssemblyMotions/AssemblyMotionWikiEndpointTests.cs` (fake client swapped in like `AccreditationEndpointTests`)
 
-Resync one or all: `MarkWikiPending` (only numbered motions of mirrored portals), audit `WikiResyncRequested`. Validate endpoint: options not configured -> `Ok = false` with "Die Wiki-Zugangsdaten sind nicht hinterlegt."; login exception -> `Ok = false` with the message.
+Resync one or all: `MarkWikiPending` (only numbered motions of mirrored portals; refused while the mirror is off), audit `WikiResyncRequested`. The resync keeps what is known about the written pages, so the hand-edit and foreign-page rules apply unchanged. The wiki card on the commission motion detail is shown only while the portal's mirror is on. Validate endpoint: options not configured -> `Ok = false` with "Die Wiki-Zugangsdaten sind nicht hinterlegt."; login exception -> `Ok = false` with the message.
 
 Changelog section:
 
@@ -1316,7 +1328,7 @@ Jeder eingereichte Antrag erscheint automatisch als geschützte Seite im Piraten
 
 **Files:**
 - Create: `Quartermaster.Server/AssemblyMotions/OpenSlides/OpenSlidesSettings.cs`, `IOpenSlidesClient.cs`, `HttpOpenSlidesClient.cs`, `OpenSlidesException.cs`, `OpenSlidesMotionCreate.cs`, `OpenSlidesMotionUpdate.cs` (the two records may share one file as pure data types)
-- Modify: `Program.cs` (singleton client with `IHttpClientFactory.CreateClient()`, scoped settings)
+- Modify: `Program.cs` (singleton client over a named `HttpClient` without automatic redirects, so the token is never sent to a redirect target; scoped settings)
 - Test: `Quartermaster.Server.Tests/AssemblyMotions/HttpOpenSlidesClientTests.cs`
 
 **Interfaces:**
@@ -1346,7 +1358,7 @@ Protocol (verified against OpenSlides 4.3.2 backend and auth service):
   - `motion.update`: `id`, `title`, `text`, `reason` (omit when null or empty), `additional_submitter`.
 - Response JSON `{ "success": bool, "message": string, "results": [[{ "id": n, ... }]] }`. `success == false` -> `OpenSlidesException(message)`. Created id = `results[0][0].id`.
 - A response carrying an `Authentication` header replaces the stored access token.
-- HTTP 401 -> log in again once and retry; a second 401 -> `OpenSlidesException("OpenSlides hat die Anmeldung abgelehnt.")`. Other non-success status codes -> `OpenSlidesException` with status code and body (truncated to 500 chars).
+- HTTP 401 -> log in again once and retry; a second 401 -> `OpenSlidesException("OpenSlides hat die Anmeldung abgelehnt.")`. A non-2xx response with a parseable message becomes `OpenSlidesException` with the code `action_failed` and that message; any other non-success status becomes the code `http_error`. The URL must be `https`; `http` is accepted only for `localhost`. Only the code `action_failed` passes the OpenSlides message on to the user; every other code maps to a fixed text and the details go to the log.
 
 - [ ] **Step 1: Tests** with a recording handler: `Login_reads_header_and_cookie`, `Action_sends_token_and_cookie`, `Create_motion_body_uses_snake_case_and_omits_empty_reason`, `Created_id_read_from_results`, `New_authentication_header_replaces_token`, `Unauthorized_triggers_one_relogin`, `Second_unauthorized_throws`, `Success_false_throws_with_message`.
 - [ ] **Step 2: Implement**, build, run `HttpOpenSlidesClientTests`. Expected: PASS.
@@ -1382,6 +1394,7 @@ Rules (spec "OpenSlides Push"):
   - else `Skipped++`.
   - exception (`OpenSlidesException`, `HttpRequestException`) -> `OpenSlidesLastError = message`, add to `Failures`.
 - Audit once per push on the portal: `Log("AssemblyMotionPortal", portal.Id, "OpenSlidesPushed", null, null, "created=x updated=y skipped=z failed=w")`.
+- Only one push per portal runs at a time; a second one is refused with 409 `openslides_push_running`. Cancellation by the caller stops the run between motions and returns what was done.
 - Ruling: the push runs synchronously in the request; a portal has at most a few hundred motions, and the commission wants the result list immediately.
 
 - [ ] **Step 1: Service tests** with `FakeOpenSlidesClient` (static lists of created categories and motions, incrementing ids, `FailCreateFor(string number)`, `Reset()`, `[NotInParallel("FakeOpenSlidesClient")]`):
@@ -1403,9 +1416,9 @@ Rules (spec "OpenSlides Push"):
 - Create: `Quartermaster.Server/AssemblyMotions/Endpoints/Commission/AssemblyMotionExportEndpoint.cs` (`GET /api/assemblymotions/portals/{PortalId}/export`)
 - Test: `Integration/AssemblyMotions/AssemblyMotionExportEndpointTests.cs`
 
-Content: all motions with a number (every status from `Submitted` on, including withdrawn and lapsed, with their status), in the same order as the push. Item fields: DisplayNumber, TypeCode, TypeName, RequiredMajority, Title, Section, TextMarkdown, TextHtml, ReasonMarkdown, ReasonHtml, Summary, Keywords, PriorDiscussion, Status, Result, CheckNote, SubmittedAt, CompetingDisplayNumbers, Submitters (names only, author first), Rank and UpvoteCount (null unless the ranking is public). Never member numbers, never upvoter identities. Response is the DTO as JSON (`application/json`); the Blazor page saves it as a file. Audit `Exported`.
+Content: all motions with a number (every status from `Submitted` on, including withdrawn and lapsed and numbered motions in revision, with their status), in the same order as the push; drafts and motions that never had a number are not included. `RequiredMajority`, `Status` and `Result` are written as enum names (`[JsonConverter(typeof(JsonStringEnumConverter))]` on those three properties), not as integers. Item fields: DisplayNumber, TypeCode, TypeName, RequiredMajority, Title, Section, TextMarkdown, TextHtml, ReasonMarkdown, ReasonHtml, Summary, Keywords, PriorDiscussion, Status, Result, CheckNote, SubmittedAt, CompetingDisplayNumbers, Submitters (names only, author first), Rank and UpvoteCount (null unless the ranking is public). Never member numbers, never upvoter identities. Response is the DTO as JSON (`application/json`); the Blazor page saves it as a file. Audit `Exported`.
 
-- [ ] **Step 1: Tests**: `Export_requires_commission`, `Export_contains_names_but_no_member_numbers` (raw body contains the seeded name and not the member number), `Export_excludes_drafts_and_unnumbered`, `Export_rank_null_during_window`.
+- [ ] **Step 1: Tests**: `Export_requires_commission`, `Export_contains_names_but_no_member_numbers` (raw body contains the seeded name and not the member number), `Export_writes_status_result_and_majority_as_names`, `Export_excludes_drafts_and_unnumbered`, `Export_rank_null_during_window`.
 - [ ] **Step 2: Implement**, build, run. Expected: PASS.
 
 ### Task 29: Blazor for phase 5, docs, final changelog

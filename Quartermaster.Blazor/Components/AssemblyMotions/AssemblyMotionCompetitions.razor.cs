@@ -36,14 +36,13 @@ public partial class AssemblyMotionCompetitions {
     [Parameter]
     public EventCallback<AssemblyMotionDetailDTO> OnChanged { get; set; }
 
-    private ConfirmDialog _removeDialog = default!;
+    private ConfirmDialog RemoveDialog = default!;
     private List<AssemblyMotionPublicListItemDTO> Candidates = [];
     private bool Busy;
     private bool Searching;
     private bool Searched;
-    private int _flagRenderKey;
+    private int FlagRenderKey;
     private string Search = "";
-
     private bool TooManyResults;
 
     private bool IsVisible {
@@ -94,13 +93,17 @@ public partial class AssemblyMotionCompetitions {
         }
     }
 
-    private static bool CanDeclareFrom(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Draft
-            || status == AssemblyMotionStatus.CollectingCoSubmitters
-            || IsPickable(status);
+    private static bool CanDeclareFrom(AssemblyMotionStatus status) {
+        if (status == AssemblyMotionStatus.Draft)
+            return true;
+        if (status == AssemblyMotionStatus.CollectingCoSubmitters)
+            return true;
+        return IsPickable(status);
+    }
 
-    private static bool IsPickable(AssemblyMotionStatus status)
-        => status == AssemblyMotionStatus.Submitted || status == AssemblyMotionStatus.Admitted;
+    private static bool IsPickable(AssemblyMotionStatus status) {
+        return status == AssemblyMotionStatus.Submitted || status == AssemblyMotionStatus.Admitted;
+    }
 
     private void OnSearchInput(ChangeEventArgs e) {
         Search = e.Value?.ToString() ?? "";
@@ -153,7 +156,7 @@ public partial class AssemblyMotionCompetitions {
     }
 
     private async Task Remove(Guid competitionId) {
-        if (!await _removeDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemoveMessage]))
+        if (!await RemoveDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.CompetitionRemoveMessage]))
             return;
 
         // The server answers with the declaring motion, which may be the other side of the link, so this motion is reloaded.
@@ -186,7 +189,9 @@ public partial class AssemblyMotionCompetitions {
         await SetFlag(e.Value is true);
     }
 
-    private Task ClearFlag() => SetFlag(false);
+    private Task ClearFlag() {
+        return SetFlag(false);
+    }
 
     private async Task SetFlag(bool value) {
         var request = new AssemblyMotionCompetingFlagRequest {
@@ -194,7 +199,7 @@ public partial class AssemblyMotionCompetitions {
             Value = value
         };
         if (!await SendAsync(() => Http.PutAsJsonAsync($"/api/assemblymotions/motions/{Motion.Id}/competing-flag", request), I18nKey.Ui.AssemblyMotion.ToastCompetingFlagChanged))
-            _flagRenderKey++;
+            FlagRenderKey++;
     }
 
     private async Task<bool> SendAsync(Func<Task<HttpResponseMessage>> send, string toastKey) {

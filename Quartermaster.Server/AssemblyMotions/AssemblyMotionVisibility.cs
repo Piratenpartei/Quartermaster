@@ -10,9 +10,15 @@ public static class AssemblyMotionVisibility {
         return true;
     }
 
-    public static bool IsPublic(AssemblyMotion motion)
-        => motion.Status != AssemblyMotionStatus.Draft;
+    public static bool IsPublic(AssemblyMotion motion) {
+        return motion.Status != AssemblyMotionStatus.Draft;
+    }
 
-    public static bool CanSeeNames(AssemblyMotionViewer viewer, bool viewerIsSubmitter)
-        => viewer.IsEligible || viewer.IsCommission || viewerIsSubmitter;
+    public static bool CanSeeNames(AssemblyMotionViewer viewer, bool viewerIsSubmitter) {
+        if (viewerIsSubmitter)
+            return true;
+        if (viewer.IsEligible)
+            return true;
+        return viewer.IsCommission;
+    }
 }

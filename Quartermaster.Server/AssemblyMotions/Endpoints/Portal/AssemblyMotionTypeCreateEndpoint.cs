@@ -37,6 +37,7 @@ public class AssemblyMotionTypeCreateEndpoint : Endpoint<AssemblyMotionTypeCreat
             return;
         }
 
+        req.Name = AssemblyMotionContent.SingleLineSetting(req.Name)!;
         var code = req.Code.Trim();
         var codeTaken = _portals.GetTypes(portal.Id)
             .Any(t => string.Equals(t.Code, code, StringComparison.OrdinalIgnoreCase));

@@ -16,6 +16,7 @@ public class AssemblyMotionLeaveEndpoint : AssemblyMotionActionEndpoint {
         Post("/api/assemblymotions/motions/{Id}/leave");
     }
 
-    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc)
-        => _service.Leave(motionId, member, nowUtc);
+    protected override AssemblyMotionOutcome Execute(Guid motionId, Member member, DateTime nowUtc) {
+        return _service.Leave(motionId, member, nowUtc);
+    }
 }

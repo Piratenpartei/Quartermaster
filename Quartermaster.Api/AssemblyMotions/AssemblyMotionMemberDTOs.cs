@@ -25,7 +25,6 @@ public class AssemblyMotionCollectingListResponse : IPaginatedResponse<AssemblyM
 }
 
 public class AssemblyMotionSubmitterDTO {
-    public Guid MemberId { get; set; }
     public string DisplayName { get; set; } = "";
     public bool IsAuthor { get; set; }
     public DateTimeOffset JoinedAt { get; set; }

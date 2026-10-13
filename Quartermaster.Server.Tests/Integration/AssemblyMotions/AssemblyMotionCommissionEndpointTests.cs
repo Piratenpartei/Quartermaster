@@ -11,6 +11,7 @@ using Quartermaster.Api.Events;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Server.Tests.AssemblyMotions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.AssemblyMotions;
@@ -112,6 +113,22 @@ public class AssemblyMotionCommissionEndpointTests : IntegrationTestBase {
         await Assert.That(list.Items[0].IsInRevision).IsFalse();
         await Assert.That(list.FailedWikiSyncCount).IsEqualTo(0);
         await Assert.That(searchList!.TotalCount).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Dashboard_reports_whether_an_openslides_meeting_id_is_set() {
+        var (chapter, portal, _) = SeedPortal();
+        var commission = SeedCommissionToken(chapter);
+
+        var without = await (await Get(commission, $"/api/assemblymotions/portals/{portal.Id}/dashboard")).Content.ReadFromJsonAsync<AssemblyMotionDashboardResponse>();
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.OpenSlidesMeetingId, 7)
+            .Update();
+        var with = await (await Get(commission, $"/api/assemblymotions/portals/{portal.Id}/dashboard")).Content.ReadFromJsonAsync<AssemblyMotionDashboardResponse>();
+
+        await Assert.That(without!.OpenSlidesMeetingConfigured).IsFalse();
+        await Assert.That(with!.OpenSlidesMeetingConfigured).IsTrue();
     }
 
     [Test]
@@ -254,5 +271,28 @@ public class AssemblyMotionCommissionEndpointTests : IntegrationTestBase {
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(list!.Length).IsEqualTo(0);
+    }
+
+    [Test]
+    [MethodDataSource(typeof(MotionMarkdownSafetyTests), nameof(MotionMarkdownSafetyTests.ShapeShiftingPayloads))]
+    public async Task Commission_edit_refuses_text_that_becomes_html_when_normalized(string markdown) {
+        var (chapter, portal, type) = SeedPortal();
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var created = await CreateMotion(author, portal, type, release: true);
+        using var client = await AuthenticatedClientWithCsrfAsync(SeedCommissionToken(chapter));
+
+        var response = await client.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}/commission-edit", new AssemblyMotionCommissionEditRequest {
+            TypeId = type.Id,
+            Title = "Antrag",
+            TextMarkdown = markdown,
+            ReasonMarkdown = "Grund",
+            BaseRevision = 1,
+            ChangeNote = "Korrektur"
+        });
+        var stored = Db.AssemblyMotions.Single(m => m.Id == created.Id);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(stored.TextMarkdown).IsEqualTo("Text");
+        await Assert.That(MotionMarkdownSafetyTests.ForeignMarkup(stored.TextHtml + stored.ReasonHtml)).IsEmpty();
     }
 }
