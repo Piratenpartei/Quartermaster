@@ -29,7 +29,7 @@ public sealed class WorkerDatabase {
         get {
             if (_factory != null)
                 return _factory;
-            lock (_factoryLock) {
+            using (_factoryLock.EnterScope()) {
                 _factory ??= new IntegrationTestFactory(ConnectionString);
             }
             return _factory;
@@ -46,7 +46,7 @@ public sealed class WorkerDatabase {
         get {
             if (_e2eFactory != null)
                 return _e2eFactory;
-            lock (_factoryLock) {
+            using (_factoryLock.EnterScope()) {
                 _e2eFactory ??= new E2ETestFactory(ConnectionString);
             }
             return _e2eFactory;
@@ -147,7 +147,7 @@ public sealed class WorkerDatabase {
     }
 
     internal void Drop() {
-        lock (_factoryLock) {
+        using (_factoryLock.EnterScope()) {
             _factory?.Dispose();
             _factory = null;
             _e2eFactory?.Dispose();

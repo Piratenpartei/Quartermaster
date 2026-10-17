@@ -21,7 +21,7 @@ public class TelegramBotClientCache {
     }
 
     public ITelegramBotClient GetOrCreate(string token) {
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             if (_cachedClient != null && _cachedToken == token) {
                 return _cachedClient;
             }

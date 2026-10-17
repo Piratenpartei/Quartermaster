@@ -68,7 +68,7 @@ public class AssemblyMotionWikiSync {
 
     /// <summary>Test seam: forgets when the unconfigured-settings warning was last logged.</summary>
     internal static void ResetUnconfiguredWarning() {
-        lock (WarningLock) {
+        using (WarningLock.EnterScope()) {
             lastUnconfiguredWarning = DateTime.MinValue;
         }
     }
@@ -334,7 +334,7 @@ public class AssemblyMotionWikiSync {
     }
 
     private void WarnUnconfigured(DateTime nowUtc) {
-        lock (WarningLock) {
+        using (WarningLock.EnterScope()) {
             if (nowUtc - lastUnconfiguredWarning < UnconfiguredWarningInterval)
                 return;
             lastUnconfiguredWarning = nowUtc;

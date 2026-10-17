@@ -13,7 +13,7 @@ public class ProgrammeIndex {
 
     public int Count {
         get {
-            lock (_lock) {
+            using (_lock.EnterScope()) {
                 return entries.Count;
             }
         }
@@ -24,14 +24,14 @@ public class ProgrammeIndex {
             .Where(s => s.Embedding.Length > 0)
             .Select(s => (s.Id, EmbeddingCodec.Decode(s.Embedding)))
             .ToList();
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             entries = loaded;
         }
     }
 
     public List<SectionMatch> TopMatches(float[] query, int count) {
         List<(Guid Id, float[] Vector)> snapshot;
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             snapshot = entries;
         }
         return snapshot

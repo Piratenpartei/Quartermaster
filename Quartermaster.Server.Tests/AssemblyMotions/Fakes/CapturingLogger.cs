@@ -8,7 +8,7 @@ public class CapturingLogger<T> : ILogger<T> {
 
     public List<string> Entries {
         get {
-            lock (_lock) {
+            using (_lock.EnterScope()) {
                 return [.. _entries];
             }
         }
@@ -19,7 +19,7 @@ public class CapturingLogger<T> : ILogger<T> {
     public bool IsEnabled(LogLevel logLevel) => true;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) {
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             _entries.Add($"{logLevel}: {formatter(state, exception)}{(exception == null ? "" : " " + exception)}");
         }
     }

@@ -25,7 +25,7 @@ public class FakeWikiBotClient : IWikiBotClient {
     public static Dictionary<string, Exception> ThrowOn { get; } = [];
 
     public static void Reset() {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             Pages.Clear();
             Protected.Clear();
             Edits.Clear();
@@ -42,7 +42,7 @@ public class FakeWikiBotClient : IWikiBotClient {
     }
 
     public Task LoginAsync(WikiBotSettings settings, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             LoginCount++;
         }
 
@@ -51,7 +51,7 @@ public class FakeWikiBotClient : IWikiBotClient {
     }
 
     public async Task<string?> GetContentAsync(WikiBotSettings settings, string title, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             GetCount++;
         }
 
@@ -61,7 +61,7 @@ public class FakeWikiBotClient : IWikiBotClient {
         if (callback != null)
             await callback(title);
 
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             if (!Pages.TryGetValue(title, out var text))
                 return null;
 
@@ -71,7 +71,7 @@ public class FakeWikiBotClient : IWikiBotClient {
 
     public async Task EditAsync(WikiBotSettings settings, string title, string text, string summary, CancellationToken ct) {
         ThrowIfFaulted("Edit");
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             if (FailNextEdit) {
                 FailNextEdit = false;
                 throw new WikiBotException("Fake edit failure", "http_error");
@@ -82,7 +82,7 @@ public class FakeWikiBotClient : IWikiBotClient {
         if (callback != null)
             await callback(title);
 
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             Pages[title] = text;
             Edits.Add((title, summary));
         }
@@ -90,7 +90,7 @@ public class FakeWikiBotClient : IWikiBotClient {
 
     public Task ProtectAsync(WikiBotSettings settings, string title, CancellationToken ct) {
         ThrowIfFaulted("Protect");
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             if (FailProtect)
                 throw new WikiBotException("Fake protect failure", "permissiondenied");
 
@@ -102,7 +102,7 @@ public class FakeWikiBotClient : IWikiBotClient {
 
     private static void ThrowIfFaulted(string method) {
         Exception? exception;
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             if (!Configured)
                 throw new WikiBotException("Fake wiki is not configured", "login_failed");
 

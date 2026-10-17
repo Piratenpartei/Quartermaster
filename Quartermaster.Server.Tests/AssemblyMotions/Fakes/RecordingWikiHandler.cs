@@ -17,7 +17,7 @@ public class RecordingWikiHandler : HttpMessageHandler {
 
     public List<RecordedWikiRequest> Requests {
         get {
-            lock (_lock) {
+            using (_lock.EnterScope()) {
                 return [.. _requests];
             }
         }
@@ -26,7 +26,7 @@ public class RecordingWikiHandler : HttpMessageHandler {
     public List<string> Actions => Requests.Select(r => r.Action).ToList();
 
     public void Enqueue(string key, string body, HttpStatusCode status = HttpStatusCode.OK) {
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             if (!_queues.TryGetValue(key, out var queue)) {
                 queue = new Queue<(HttpStatusCode, string)>();
                 _queues[key] = queue;
@@ -66,7 +66,7 @@ public class RecordingWikiHandler : HttpMessageHandler {
 
         var key = KeyOf(fields);
         (HttpStatusCode Status, string Body) answer;
-        lock (_lock) {
+        using (_lock.EnterScope()) {
             _requests.Add(recorded);
             if (!_queues.TryGetValue(key, out var queue) || queue.Count == 0) {
                 throw new InvalidOperationException($"No canned response left for '{key}'.");
