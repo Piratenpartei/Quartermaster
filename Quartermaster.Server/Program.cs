@@ -202,6 +202,15 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
         builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
+
+        builder.Services.AddSingleton<AssemblyAssistant.Mumble.IMumbleConnectionFactory, AssemblyAssistant.Mumble.MumbleConnectionFactory>();
+        builder.Services.AddScoped<AssemblyAssistant.Mumble.MumbleConnectionCheck>();
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AssemblyAssistant.Session.IAssemblyPublisher, AssemblyAssistant.HubAssemblyPublisher>();
+        builder.Services.AddSingleton<AssemblyAssistant.OpenSlides.IOpenSlidesAutoupdateClientFactory, AssemblyAssistant.OpenSlides.OpenSlidesAutoupdateClientFactory>();
+        builder.Services.AddSingleton<AssemblyAssistant.Session.AssemblySessionHost>();
+        builder.Services.AddScoped<AssemblyAssistant.Export.AssemblyLogExport>();
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<AssemblyAssistant.Session.AssemblySessionHost>());
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
 
@@ -254,6 +263,11 @@ public partial class Program {
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
                 AllowAutoRedirect = false,
                 PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                UseCookies = false
+            });
+        builder.Services.AddHttpClient(AssemblyAssistant.OpenSlides.OpenSlidesAutoupdateClientFactory.HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
+                AllowAutoRedirect = false,
                 UseCookies = false
             });
         builder.Services.AddMemoryCache();
@@ -319,6 +333,7 @@ public partial class Program {
         app.UseEndpoints(ep => {
             ep.MapStaticAssets();
             ep.MapHub<MeetingHub>("/hubs/meeting");
+            ep.MapHub<AssemblyAssistant.AssemblyHub>(Api.AssemblyAssistant.AssemblyHubMethods.HubPath);
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014

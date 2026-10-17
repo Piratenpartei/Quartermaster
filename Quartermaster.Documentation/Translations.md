@@ -157,3 +157,24 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | konkurrierender Antrag | competing motion | A motion linked to an earlier submitted motion that excludes it; may have a later deadline |
 | Reihenfolge | order | The ranking of motions by prioritization, public after the prioritization window |
 | Ergebnis | result | The outcome of the assembly's vote on a motion, entered by the commission |
+
+## Assembly Assistant (Versammlungsassistent)
+
+| German | English | Notes |
+|---|---|---|
+| Versammlungsassistent | assembly assistant | Mumble bot, chair console and OBS overlay of a running assembly |
+| Versammlungsleitung (VL) | chair | Holds `assembly_chair` for the event's chapter; also the name of the bot's channel |
+| VL-Helfende | chair helper | Same permission as the chair, appointed by the chair (GO § 3 Abs. 2) |
+| Wortmeldung | request | A member waiting in a request channel |
+| Wortmeldekanal | request channel | Pro, Contra, Frage and GO-Antrag |
+| Redner | speaker channel | Where the current speaker sits |
+| Antragsteller | motion author / candidate channel | Where the motion author or the candidate of the current item sits; code `MotionAuthor` |
+| Rederecht | give the floor | Move a member into the speaker or motion author channel |
+| Fertig | done | Move the speaker back to the listener channel |
+| Redeliste | list of speakers | Can be closed now or at a set time; later requests are marked |
+| Redezeit | speaking time | Per-speech countdown, starts with the first voice packet |
+| Durchgang | round | Up to five Pro and five Contra speeches |
+| Überspringen | skip | The request stays in the queue but is not suggested |
+| Abweisen | dismiss | The request is removed from the suggestions without moving the member |
+| Einblendung | overlay | Web page used as an OBS browser source |
+

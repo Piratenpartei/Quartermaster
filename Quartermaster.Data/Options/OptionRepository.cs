@@ -478,6 +478,183 @@ public class OptionRepository {
             OptionDataType.String, false, "", "",
             description: "Passwort für die OpenSlides-API.",
             isSecret: true);
+
+        AddDefinitionIfNotExists("mumble.host",
+            "Mumble: Server",
+            OptionDataType.String, false, "", "mumble.piratenpartei.de",
+            description: "Hostname des Mumble-Servers, mit dem sich der Versammlungsassistent verbindet.");
+
+        AddDefinitionIfNotExists("mumble.port",
+            "Mumble: Port",
+            OptionDataType.Number, false, "", "64738",
+            description: "TCP-Port des Mumble-Servers.");
+
+        AddDefinitionIfNotExists("mumble.username",
+            "Mumble: Name des Bots",
+            OptionDataType.String, false, "", "Versammlungsassistent",
+            description: "Name, unter dem der Versammlungsassistent im Mumble erscheint.");
+
+        AddDefinitionIfNotExists("mumble.certificate",
+            "Mumble: Client-Zertifikat",
+            OptionDataType.String, false, "", "",
+            description: "PKCS#12-Zertifikat des Bots als Base64; wird auf der Seite Versammlungsassistent erzeugt.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("mumble.certificate_password",
+            "Mumble: Zertifikatspasswort",
+            OptionDataType.String, false, "", "",
+            description: "Passwort des PKCS#12-Zertifikats des Bots.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("mumble.server_certificate_sha256",
+            "Mumble: Fingerabdruck des Serverzertifikats",
+            OptionDataType.String, false, "", "",
+            description: "Leer = Systemvertrauen; gesetzt = nur ein Serverzertifikat mit diesem SHA-256-Fingerabdruck wird akzeptiert.");
+
+        AddDefinitionIfNotExists("mumble.channels.chair",
+            "Mumble: Kanal Versammlungsleitung",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Versammlungsleitung; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.speaker",
+            "Mumble: Kanal Redner",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Redner; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.motion_author",
+            "Mumble: Kanal Antragsteller",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Antragsteller; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.pro",
+            "Mumble: Kanal Wortmeldung / Pro",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Wortmeldung / Pro; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.contra",
+            "Mumble: Kanal Contra",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Contra; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.question",
+            "Mumble: Kanal Frage",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Frage; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.point",
+            "Mumble: Kanal GO-Antrag",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle GO-Antrag; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("mumble.channels.listener",
+            "Mumble: Kanal Zuhörer",
+            OptionDataType.String, false, "", "",
+            description: "Kanal-ID für die Rolle Zuhörer; wird auf der Seite Versammlungsassistent gesetzt.");
+
+        AddDefinitionIfNotExists("assembly.times.presentation",
+            "Versammlung: Redezeit Antragsvorstellung",
+            OptionDataType.Number, false, "", "300",
+            description: "Standardredezeit in Sekunden für Antragsvorstellung.");
+
+        AddDefinitionIfNotExists("assembly.times.speech",
+            "Versammlung: Redezeit Redebeitrag",
+            OptionDataType.Number, false, "", "180",
+            description: "Standardredezeit in Sekunden für Redebeitrag.");
+
+        AddDefinitionIfNotExists("assembly.times.question",
+            "Versammlung: Redezeit Frage",
+            OptionDataType.Number, false, "", "30",
+            description: "Standardredezeit in Sekunden für Frage.");
+
+        AddDefinitionIfNotExists("assembly.times.statement",
+            "Versammlung: Redezeit Stellungnahme",
+            OptionDataType.Number, false, "", "60",
+            description: "Standardredezeit in Sekunden für Stellungnahme.");
+
+        AddDefinitionIfNotExists("assembly.times.closing_word",
+            "Versammlung: Redezeit Schlusswort",
+            OptionDataType.Number, false, "", "180",
+            description: "Standardredezeit in Sekunden für Schlusswort.");
+
+        AddDefinitionIfNotExists("assembly.times.candidate_presentation",
+            "Versammlung: Redezeit Kandidatenvorstellung",
+            OptionDataType.Number, false, "", "300",
+            description: "Standardredezeit in Sekunden für Kandidatenvorstellung.");
+
+        AddDefinitionIfNotExists("assembly.times.candidate_presentation_repeat",
+            "Versammlung: Redezeit erneute Kandidatenvorstellung",
+            OptionDataType.Number, false, "", "180",
+            description: "Standardredezeit in Sekunden für erneute Kandidatenvorstellung.");
+
+        AddDefinitionIfNotExists("assembly.times.candidate_question",
+            "Versammlung: Redezeit Frage an Kandidierende",
+            OptionDataType.Number, false, "", "30",
+            description: "Standardredezeit in Sekunden für Frage an Kandidierende.");
+
+        AddDefinitionIfNotExists("assembly.times.candidate_answer",
+            "Versammlung: Redezeit Antwort von Kandidierenden",
+            OptionDataType.Number, false, "", "120",
+            description: "Standardredezeit in Sekunden für Antwort von Kandidierenden.");
+
+        AddDefinitionIfNotExists("assembly.grace_seconds",
+            "Versammlung: Karenzzeit Wortmeldung",
+            OptionDataType.Number, false, "", "30",
+            description: "Sekunden, in denen eine Wortmeldung nach Verlassen des Kanals oder Verbindungsabbruch ihren Platz behält.");
+
+        AddDefinitionIfNotExists("assembly.voice_hangover_ms",
+            "Versammlung: Sprecherkennung Nachlauf",
+            OptionDataType.Number, false, "", "500",
+            description: "Millisekunden ohne Sprachpaket, nach denen eine Person nicht mehr als sprechend gilt.");
+
+        AddDefinitionIfNotExists("assembly.start_now_after_seconds",
+            "Versammlung: Timer-Start anbieten nach",
+            OptionDataType.Number, false, "", "20",
+            description: "Sekunden ohne Sprachpaket nach dem Rederecht, nach denen die Konsole Jetzt starten anbietet.");
+
+        AddDefinitionIfNotExists("assembly.messages.warning",
+            "Versammlung: Text Redezeitwarnung",
+            OptionDataType.String, false, "", "Noch 30 Sekunden",
+            description: "Mumble-Nachricht an die redende Person 30 Sekunden vor Ende der Redezeit.");
+
+        AddDefinitionIfNotExists("assembly.messages.expired",
+            "Versammlung: Text Redezeit abgelaufen",
+            OptionDataType.String, false, "", "Die Redezeit ist abgelaufen",
+            description: "Mumble-Nachricht an die redende Person bei Ablauf der Redezeit.");
+
+        AddDefinitionIfNotExists("assembly.openslides.delegates_group_id",
+            "Versammlung: OpenSlides-Gruppe Stimmberechtigte",
+            OptionDataType.Number, false, "", "",
+            description: "ID der OpenSlides-Gruppe (delegates), die bei jeder Abstimmung stimmberechtigt ist.");
+
+        AddDefinitionIfNotExists("assembly.poll.duration_seconds",
+            "Versammlung: Abstimmungsdauer",
+            OptionDataType.Number, false, "", "70",
+            description: "Standarddauer einer Abstimmung in Sekunden (60 s plus 10 s Streamverzögerung).");
+
+        AddDefinitionIfNotExists("assembly.poll.auto_start",
+            "Versammlung: Abstimmung automatisch starten",
+            OptionDataType.String, false, "", "true",
+            description: "true = vom Assistenten angelegte Abstimmungen starten sofort.");
+
+        AddDefinitionIfNotExists("assembly.poll.auto_stop",
+            "Versammlung: Abstimmung automatisch beenden",
+            OptionDataType.String, false, "", "true",
+            description: "true = Abstimmung wird bei Ablauf des Countdowns beendet.");
+
+        AddDefinitionIfNotExists("assembly.poll.project",
+            "Versammlung: Abstimmung auf dem Beamer zeigen",
+            OptionDataType.String, false, "", "false",
+            description: "true = eine gestartete Abstimmung wird auf den OpenSlides-Projektoren aus assembly.openslides.projector_ids gezeigt.");
+
+        AddDefinitionIfNotExists("assembly.openslides.projector_ids",
+            "Versammlung: OpenSlides-Projektoren",
+            OptionDataType.String, false, "", "",
+            description: "Kommagetrennte IDs der OpenSlides-Projektoren, auf denen laufende Abstimmungen gezeigt werden.");
+
+        AddDefinitionIfNotExists("assembly.poll.auto_publish",
+            "Versammlung: Ergebnis automatisch veröffentlichen",
+            OptionDataType.String, false, "", "true",
+            description: "true = Ergebnis wird nach dem Beenden sofort veröffentlicht.");
     }
 
     private const string NewsPostsDefaultPrompt =

@@ -1,0 +1,51 @@
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<div class="card mt-3">
+    <div class="card-header assembly-card-header">
+        <span>@I18n[I18nKey.Ui.AssemblyLog.Title]</span>
+    </div>
+    <div class="card-body pb-2">
+        <p class="small text-secondary mb-2">@I18n[I18nKey.Ui.AssemblyLog.Intro]</p>
+        @if (Sessions == null) {
+            <LoadingSpinner />
+        } else if (Sessions.Count == 0) {
+            <p class="small text-secondary mb-0">@I18n[I18nKey.Ui.AssemblyLog.NoSessions]</p>
+        }
+    </div>
+    @if (Sessions != null && Sessions.Count > 0) {
+        <ul class="list-group list-group-flush">
+            @foreach (var session in Sessions) {
+                <li class="list-group-item d-flex flex-wrap align-items-center gap-2">
+                    <span class="fw-semibold">
+                        <LocalTime Value="@session.StartedAt" Format="dd.MM.yyyy HH:mm" />
+                        @if (session.EndedAt != null) {
+                            <span> - <LocalTime Value="@session.EndedAt" Format="HH:mm" /></span>
+                        }
+                    </span>
+                    @if (session.EndedAt == null) {
+                        <span class="assembly-flag bg-success-subtle text-success-emphasis border-success-subtle">@I18n[I18nKey.Ui.AssemblyLog.Running]</span>
+                    }
+                    @if (session.LogDeletedAt != null) {
+                        <span class="assembly-flag bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">@I18n[I18nKey.Ui.AssemblyLog.Deleted]</span>
+                    } else {
+                        <span class="small text-secondary">@I18n[I18nParams.With(I18nKey.Ui.AssemblyLog.Entries, ("count", session.EntryCount.ToString()))]</span>
+                        <div class="btn-group btn-group-sm ms-auto">
+                            <button type="button" class="btn btn-outline-secondary" @onclick='() => Download(session.Id, "csv")'>
+                                <i class="bi bi-filetype-csv me-1"></i>@I18n[I18nKey.Ui.AssemblyLog.Csv]
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" @onclick='() => Download(session.Id, "markdown")'>
+                                <i class="bi bi-markdown me-1"></i>@I18n[I18nKey.Ui.AssemblyLog.Markdown]
+                            </button>
+                        </div>
+                        @if (CanControl && session.EndedAt != null) {
+                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => Delete(session.Id)">@I18n[I18nKey.Ui.AssemblyLog.Delete]</button>
+                        }
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+<ConfirmDialog @ref="DeleteDialog" Message="@I18n[I18nKey.Ui.AssemblyLog.DeleteConfirm]" />

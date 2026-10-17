@@ -69,6 +69,8 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
         AddIfNotExists(PermissionIdentifier.ManageChapterMail, "Mailings verwalten", false);
         AddIfNotExists(PermissionIdentifier.ManageAssemblyMotions, "Antragskommission (Versammlungsanträge)", false);
+        AddIfNotExists(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
+        AddIfNotExists(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);
     }
 
     private void AddIfNotExists(string identifier, string displayName, bool global) {

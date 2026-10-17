@@ -52,6 +52,18 @@ A membership management and dues payment system for the Pirate Party (Piratenpar
 - Chapter-scoped permissions (permission tied to a user + chapter)
 - Enforced via FastEndpoints endpoint processors (`ChapterRequirement`, `ChapterPermissionRequirement`)
 
+### Assembly Assistant
+- Mumble bot connected to the party's Mumble server while an assembly session runs; tracks request channels and moves members only on a chair's click
+- Speaker queues per request channel with a grace period for reconnects, list of speakers with closing time
+- Speaking timer that starts with the speaker's first voice packet and warns by Mumble text message
+- Chair console at `/assembly/{eventId}` (permission `assembly_chair`, read only with `assembly_view`), live through SignalR (`/hubs/assembly`)
+- Session log of speeches and chair actions; an open session resumes after a restart
+- Procedure per agenda item (motion, election, general debate) with suggestions after the rules of procedure, round counters and GO motion interruption
+- OpenSlides live connection: polls with countdown, automatic stop and publish, advisory majority evaluation
+- OBS overlay at `/assembly/{eventId}/overlay`, also per element
+- Poll templates with procedural topics, election flow with candidate list, minutes aid export (CSV, Markdown)
+- Design and plan in `plans/2026-10-16-assembly-assistant-design.md` and `plans/2026-10-16-assembly-assistant-implementation.md`
+
 ## Architecture
 
 ### API Layer (FastEndpoints)

@@ -80,9 +80,39 @@ public class RoleRepository {
             Create(motionCommission);
         }
 
+        var assemblyChair = GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyChair);
+        if (assemblyChair == null) {
+            assemblyChair = new Role {
+                Id = Guid.NewGuid(),
+                Identifier = PermissionIdentifier.SystemRole.AssemblyChair,
+                Name = "Versammlungsleitung",
+                Description = "Systemrolle: Versammlungsleitung und VL-Helfende einer Versammlung, steuern den Versammlungsassistenten.",
+                Scope = RoleScope.ChapterScoped,
+                IsSystem = true,
+                InheritsToChildren = false
+            };
+            Create(assemblyChair);
+        }
+
+        var assemblyMinutes = GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyMinutes);
+        if (assemblyMinutes == null) {
+            assemblyMinutes = new Role {
+                Id = Guid.NewGuid(),
+                Identifier = PermissionIdentifier.SystemRole.AssemblyMinutes,
+                Name = "Protokoll Versammlung",
+                Description = "Systemrolle: sieht den Versammlungsassistenten nur lesend und exportiert die Protokollhilfe.",
+                Scope = RoleScope.ChapterScoped,
+                IsSystem = true,
+                InheritsToChildren = false
+            };
+            Create(assemblyMinutes);
+        }
+
         SetPermissions(officer.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(delegateRole.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(motionCommission.Id, [PermissionIdentifier.ManageAssemblyMotions]);
+        SetPermissions(assemblyChair.Id, [PermissionIdentifier.AssemblyChair, PermissionIdentifier.AssemblyView]);
+        SetPermissions(assemblyMinutes.Id, [PermissionIdentifier.AssemblyView]);
     }
 
     public void Update(Role role) {

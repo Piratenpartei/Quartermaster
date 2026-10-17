@@ -1,0 +1,72 @@
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<div class="card h-100">
+    <div class="card-header assembly-card-header">
+        <span>@I18n[AssemblyDisplay.QueueKey(Queue.Kind)]</span>
+        <span class="badge rounded-pill text-bg-secondary">@Queue.Entries.Count</span>
+    </div>
+    @if (!Queue.ChannelMapped) {
+        <div class="card-body small text-secondary">@I18n[I18nKey.Ui.AssemblyConsole.NotMapped]</div>
+    } else if (Queue.Entries.Count == 0) {
+        <div class="card-body small text-secondary">@I18n[I18nKey.Ui.AssemblyConsole.QueueEmpty]</div>
+    } else {
+        <ul class="list-group list-group-flush">
+            @foreach (var entry in Queue.Entries) {
+                var suggested = entry.Key == SuggestedKey;
+                <li class="list-group-item assembly-queue-entry @(suggested ? "assembly-suggested" : "") @(entry.Dismissed ? "assembly-dismissed" : "")">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fw-semibold text-truncate flex-grow-1" title="@entry.Name">@entry.Name</span>
+                        <span class="small text-secondary font-monospace">@AssemblyDisplay.FormatDuration(ServerNow - entry.EnteredAt)</span>
+                    </div>
+                    @if (HasFlags(entry, suggested)) {
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @if (suggested) {
+                                <span class="assembly-flag bg-primary-subtle text-primary-emphasis border-primary-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Suggested]</span>
+                            }
+                            @if (entry.MovePending) {
+                                <span class="assembly-flag bg-info-subtle text-info-emphasis border-info-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Pending]</span>
+                            }
+                            @if (entry.AfterListClosed) {
+                                <span class="assembly-flag bg-warning-subtle text-warning-emphasis border-warning-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Late]</span>
+                            }
+                            @if (entry.OrderUncertain) {
+                                <span class="assembly-flag bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Uncertain]</span>
+                            }
+                            @if (entry.Skipped) {
+                                <span class="assembly-flag bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Skipped]</span>
+                            }
+                            @if (entry.Dismissed) {
+                                <span class="assembly-flag bg-danger-subtle text-danger-emphasis border-danger-subtle">@I18n[I18nKey.Ui.AssemblyConsole.Dismissed]</span>
+                            }
+                        </div>
+                    }
+                    @if (CanControl) {
+                        <div class="d-flex gap-1 mt-2">
+                            <button type="button" class="btn btn-success btn-sm flex-grow-1" disabled="@entry.MovePending" @onclick="() => OnGiveFloor.InvokeAsync(entry.Key)">
+                                <i class="bi bi-mic me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.GiveFloor]
+                            </button>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary assembly-icon-btn" title="@I18n[entry.Skipped ? I18nKey.Ui.AssemblyConsole.Unskip : I18nKey.Ui.AssemblyConsole.Skip]"
+                                        @onclick="() => OnSkip.InvokeAsync((entry.Key, !entry.Skipped))">
+                                    <i class="bi @(entry.Skipped ? "bi-skip-backward" : "bi-skip-forward")"></i>
+                                </button>
+                                @if (entry.Dismissed) {
+                                    <button type="button" class="btn btn-outline-secondary assembly-icon-btn" title="@I18n[I18nKey.Ui.AssemblyConsole.UndoDismiss]"
+                                            @onclick="() => OnUndoDismiss.InvokeAsync(entry.Key)">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                } else {
+                                    <button type="button" class="btn btn-outline-danger assembly-icon-btn" title="@I18n[I18nKey.Ui.AssemblyConsole.Dismiss]"
+                                            @onclick="() => OnDismiss.InvokeAsync(entry.Key)">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>

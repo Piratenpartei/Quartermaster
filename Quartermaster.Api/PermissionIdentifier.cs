@@ -82,6 +82,9 @@ public static class PermissionIdentifier {
 
     public static readonly string ManageAssemblyMotions = "assemblymotions_manage";
 
+    public static readonly string AssemblyChair = "assembly_chair";
+    public static readonly string AssemblyView = "assembly_view";
+
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
         ViewMotions, ViewApplications, ViewDueSelections,
@@ -98,6 +101,8 @@ public static class PermissionIdentifier {
         public const string ChapterOfficer = "chapter_officer";
         public const string GeneralChapterDelegate = "general_chapter_delegate";
         public const string MotionCommission = "motion_commission";
+        public const string AssemblyChair = "assembly_chair";
+        public const string AssemblyMinutes = "assembly_minutes";
     }
 
     // Default permissions auto-granted to chapter officers

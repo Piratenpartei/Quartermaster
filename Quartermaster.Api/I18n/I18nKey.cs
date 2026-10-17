@@ -1753,6 +1753,355 @@ public static class I18nKey {
             public const string ReceiptFallbackHint = "ui.imap_setup.receipt_fallback_hint";
         }
 
+        public static class AssemblyLog {
+            public const string Title = "ui.assembly_log.title";
+            public const string Intro = "ui.assembly_log.intro";
+            public const string NoSessions = "ui.assembly_log.no_sessions";
+            public const string Running = "ui.assembly_log.running";
+            public const string Deleted = "ui.assembly_log.deleted";
+            public const string Entries = "ui.assembly_log.entries";
+            public const string Csv = "ui.assembly_log.csv";
+            public const string Markdown = "ui.assembly_log.markdown";
+            public const string Delete = "ui.assembly_log.delete";
+            public const string DeleteConfirm = "ui.assembly_log.delete_confirm";
+            public const string ColumnTime = "ui.assembly_log.column.time";
+            public const string ColumnKind = "ui.assembly_log.column.kind";
+            public const string ColumnItem = "ui.assembly_log.column.item";
+            public const string ColumnName = "ui.assembly_log.column.name";
+            public const string ColumnRole = "ui.assembly_log.column.role";
+            public const string ColumnStart = "ui.assembly_log.column.start";
+            public const string ColumnEnd = "ui.assembly_log.column.end";
+            public const string ColumnDuration = "ui.assembly_log.column.duration";
+            public const string ColumnAllotted = "ui.assembly_log.column.allotted";
+            public const string ColumnPoll = "ui.assembly_log.column.poll";
+            public const string ColumnDetail = "ui.assembly_log.column.detail";
+            public const string KindSessionStarted = "ui.assembly_log.kind.session_started";
+            public const string KindSessionEnded = "ui.assembly_log.kind.session_ended";
+            public const string KindSpeech = "ui.assembly_log.kind.speech";
+            public const string KindChairAction = "ui.assembly_log.kind.chair_action";
+            public const string KindPhaseChange = "ui.assembly_log.kind.phase_change";
+            public const string KindPoll = "ui.assembly_log.kind.poll";
+            public const string KindItemChange = "ui.assembly_log.kind.item_change";
+            public const string MarkdownTitle = "ui.assembly_log.markdown_title";
+            public const string MarkdownSession = "ui.assembly_log.markdown_session";
+            public const string NoItem = "ui.assembly_log.no_item";
+            public const string SpeechLine = "ui.assembly_log.speech_line";
+            public const string SpeechLineUntimed = "ui.assembly_log.speech_line_untimed";
+
+            public static class Error {
+                public const string SessionRunning = "ui.assembly_log.error.session_running";
+            }
+        }
+
+        public static class AssemblyPollResult {
+            public const string Accepted = "ui.assembly_poll_result.accepted";
+            public const string Rejected = "ui.assembly_poll_result.rejected";
+            public const string TwoThirdsReached = "ui.assembly_poll_result.two_thirds_reached";
+            public const string TwoThirdsMissed = "ui.assembly_poll_result.two_thirds_missed";
+            public const string ThresholdReached = "ui.assembly_poll_result.threshold_reached";
+            public const string ThresholdMissed = "ui.assembly_poll_result.threshold_missed";
+            public const string Numbers = "ui.assembly_poll_result.numbers";
+            public const string AcceptanceWinner = "ui.assembly_poll_result.acceptance_winner";
+            public const string RunoffNeeded = "ui.assembly_poll_result.runoff_needed";
+        }
+
+        public static class AssemblyOverlay {
+            public const string PollRunning = "ui.assembly_overlay.poll_running";
+            public const string PollResult = "ui.assembly_overlay.poll_result";
+            public const string Votes = "ui.assembly_overlay.votes";
+            public const string ElectionRunning = "ui.assembly_overlay.election_running";
+            public const string NextPro = "ui.assembly_overlay.next_pro";
+            public const string NextContra = "ui.assembly_overlay.next_contra";
+        }
+
+        public static class AssemblyConsole {
+            public const string TemplatesTitle = "ui.assembly_console.templates_title";
+            public const string TemplateText = "ui.assembly_console.template_text";
+            public const string TemplateContinueDebate = "ui.assembly_console.template.continue_debate";
+            public const string TemplateGoMotion = "ui.assembly_console.template.go_motion";
+            public const string TemplateOpinion = "ui.assembly_console.template.opinion";
+            public const string TemplateSupport = "ui.assembly_console.template.support";
+            public const string TemplateControversy = "ui.assembly_console.template.controversy";
+            public const string TemplateCompetition = "ui.assembly_console.template.competition";
+            public const string TemplateRunoff = "ui.assembly_console.template.runoff";
+            public const string TemplateFinalVote = "ui.assembly_console.template.final_vote";
+            public const string TemplateBlock = "ui.assembly_console.template.block";
+            public const string TemplateQuestionRound = "ui.assembly_console.template.question_round";
+            public const string SupportThreshold = "ui.assembly_console.support_threshold";
+            public const string CreateProceduralTopics = "ui.assembly_console.create_procedural_topics";
+            public const string ResetPoll = "ui.assembly_console.reset_poll";
+            public const string DeletePoll = "ui.assembly_console.delete_poll";
+            public const string ResetConfirm = "ui.assembly_console.reset_confirm";
+            public const string DeleteConfirm = "ui.assembly_console.delete_confirm";
+            public const string ProjectPolls = "ui.assembly_console.project_polls";
+            public const string CandidatesTitle = "ui.assembly_console.candidates_title";
+            public const string ApplyCandidates = "ui.assembly_console.apply_candidates";
+            public const string CandidatePresent = "ui.assembly_console.candidate_present";
+            public const string CandidateSupport = "ui.assembly_console.candidate_support";
+            public const string FlowTitle = "ui.assembly_console.flow_title";
+            public const string RoundInfo = "ui.assembly_console.round_info";
+            public const string SideCounter = "ui.assembly_console.side_counter";
+            public const string RoundComplete = "ui.assembly_console.round_complete";
+            public const string ContinueDebate = "ui.assembly_console.continue_debate";
+            public const string ToClosingWord = "ui.assembly_console.to_closing_word";
+            public const string GoTitle = "ui.assembly_console.go_title";
+            public const string GoAccept = "ui.assembly_console.go_accept";
+            public const string GoObjectionButton = "ui.assembly_console.go_objection";
+            public const string GoObjectionHint = "ui.assembly_console.go_objection_hint";
+            public const string GoEnd = "ui.assembly_console.go_end";
+            public const string RepeatPresentation = "ui.assembly_console.repeat_presentation";
+            public const string ElectionOverlay = "ui.assembly_console.election_overlay";
+            public const string QuestionersInfo = "ui.assembly_console.questioners";
+            public const string PollsTitle = "ui.assembly_console.polls_title";
+            public const string OpenSlidesDisabled = "ui.assembly_console.openslides_disabled";
+            public const string OpenSlidesConnected = "ui.assembly_console.openslides_connected";
+            public const string OpenSlidesConnecting = "ui.assembly_console.openslides_connecting";
+            public const string OpenSlidesDisconnected = "ui.assembly_console.openslides_disconnected";
+            public const string PollDuration = "ui.assembly_console.poll_duration";
+            public const string AutoLabel = "ui.assembly_console.auto_label";
+            public const string AutoStart = "ui.assembly_console.auto_start";
+            public const string AutoStop = "ui.assembly_console.auto_stop";
+            public const string AutoPublish = "ui.assembly_console.auto_publish";
+            public const string NoPolls = "ui.assembly_console.no_polls";
+            public const string PollNotStarted = "ui.assembly_console.poll_not_started";
+            public const string VotesSoFar = "ui.assembly_console.votes_so_far";
+            public const string ExtendPoll = "ui.assembly_console.extend_poll";
+            public const string StopPoll = "ui.assembly_console.stop_poll";
+            public const string PublishPoll = "ui.assembly_console.publish_poll";
+            public const string PollStateFinished = "ui.assembly_console.poll_state_finished";
+            public const string PollStatePublished = "ui.assembly_console.poll_state_published";
+            public const string AgendaPick = "ui.assembly_console.agenda_pick";
+            public const string NotSignedIn = "ui.assembly_console.not_signed_in";
+            public const string SignIn = "ui.assembly_console.sign_in";
+            public const string SecondsShort = "ui.assembly_console.seconds_short";
+            public const string MotionMinutesShort = "ui.assembly_console.motion_minutes_short";
+            public const string MotionMinutesDefault = "ui.assembly_console.motion_minutes_default";
+            public const string MinutesValue = "ui.assembly_console.minutes_value";
+            public const string PickerHint = "ui.assembly_console.picker_hint";
+            public const string PickerNone = "ui.assembly_console.picker_none";
+            public const string NoNotices = "ui.assembly_console.no_notices";
+            public const string PageTitle = "ui.assembly_console.page_title";
+            public const string OpenConsole = "ui.assembly_console.open_console";
+            public const string NoAccess = "ui.assembly_console.no_access";
+            public const string NoSession = "ui.assembly_console.no_session";
+            public const string OtherSession = "ui.assembly_console.other_session";
+            public const string StartSession = "ui.assembly_console.start_session";
+            public const string EndSession = "ui.assembly_console.end_session";
+            public const string EndConfirm = "ui.assembly_console.end_confirm";
+            public const string ReadOnly = "ui.assembly_console.read_only";
+            public const string MumbleState = "ui.assembly_console.mumble_state";
+            public const string StateConnecting = "ui.assembly_console.state_connecting";
+            public const string StateSynced = "ui.assembly_console.state_synced";
+            public const string StateReconnecting = "ui.assembly_console.state_reconnecting";
+            public const string StateDisconnected = "ui.assembly_console.state_disconnected";
+            public const string Item = "ui.assembly_console.item";
+            public const string ItemPlaceholder = "ui.assembly_console.item_placeholder";
+            public const string SetItem = "ui.assembly_console.set_item";
+            public const string MotionMinutes = "ui.assembly_console.motion_minutes";
+            public const string Apply = "ui.assembly_console.apply";
+            public const string Clear = "ui.assembly_console.clear";
+            public const string ListStatus = "ui.assembly_console.list_status";
+            public const string ListOpen = "ui.assembly_console.list_open";
+            public const string ListClosed = "ui.assembly_console.list_closed";
+            public const string ListClosesAt = "ui.assembly_console.list_closes_at";
+            public const string CloseNow = "ui.assembly_console.close_now";
+            public const string CloseAt = "ui.assembly_console.close_at";
+            public const string Reopen = "ui.assembly_console.reopen";
+            public const string FloorTitle = "ui.assembly_console.floor_title";
+            public const string NobodyOnFloor = "ui.assembly_console.nobody_on_floor";
+            public const string Done = "ui.assembly_console.done";
+            public const string AddMinute = "ui.assembly_console.add_minute";
+            public const string Pause = "ui.assembly_console.pause";
+            public const string Resume = "ui.assembly_console.resume";
+            public const string StartNow = "ui.assembly_console.start_now";
+            public const string SetTime = "ui.assembly_console.set_time";
+            public const string Untimed = "ui.assembly_console.untimed";
+            public const string WaitingForVoice = "ui.assembly_console.waiting_for_voice";
+            public const string Paused = "ui.assembly_console.paused";
+            public const string DonePending = "ui.assembly_console.done_pending";
+            public const string Speaking = "ui.assembly_console.speaking";
+            public const string QueuePoint = "ui.assembly_console.queue_point";
+            public const string QueueQuestion = "ui.assembly_console.queue_question";
+            public const string QueuePro = "ui.assembly_console.queue_pro";
+            public const string QueueContra = "ui.assembly_console.queue_contra";
+            public const string QueueEmpty = "ui.assembly_console.queue_empty";
+            public const string NotMapped = "ui.assembly_console.not_mapped";
+            public const string GiveFloor = "ui.assembly_console.give_floor";
+            public const string Skip = "ui.assembly_console.skip";
+            public const string Unskip = "ui.assembly_console.unskip";
+            public const string Dismiss = "ui.assembly_console.dismiss";
+            public const string UndoDismiss = "ui.assembly_console.undo_dismiss";
+            public const string Late = "ui.assembly_console.late";
+            public const string Uncertain = "ui.assembly_console.uncertain";
+            public const string Skipped = "ui.assembly_console.skipped";
+            public const string Dismissed = "ui.assembly_console.dismissed";
+            public const string Pending = "ui.assembly_console.pending";
+            public const string Suggested = "ui.assembly_console.suggested";
+            public const string PickerTitle = "ui.assembly_console.picker_title";
+            public const string PickerSearch = "ui.assembly_console.picker_search";
+            public const string ToSpeaker = "ui.assembly_console.to_speaker";
+            public const string ToMotionAuthor = "ui.assembly_console.to_motion_author";
+            public const string NoticesTitle = "ui.assembly_console.notices_title";
+            public const string Shortcuts = "ui.assembly_console.shortcuts";
+            public const string RoleManual = "ui.assembly_console.role_manual";
+            public const string RolePro = "ui.assembly_console.role_pro";
+            public const string RoleContra = "ui.assembly_console.role_contra";
+            public const string RoleQuestion = "ui.assembly_console.role_question";
+            public const string RolePoint = "ui.assembly_console.role_point";
+            public const string RoleMotionAuthor = "ui.assembly_console.role_motion_author";
+            public const string RoleCandidate = "ui.assembly_console.role_candidate";
+
+            public static class Reject {
+                public const string NoAgendaItem = "ui.assembly_console.reject.no_agenda_item";
+                public const string DelegatesGroupMissing = "ui.assembly_console.reject.delegates_group_missing";
+                public const string TextRequired = "ui.assembly_console.reject.text_required";
+                public const string NotAMotion = "ui.assembly_console.reject.not_a_motion";
+                public const string NoCompetitors = "ui.assembly_console.reject.no_competitors";
+                public const string NotOwnPoll = "ui.assembly_console.reject.not_own_poll";
+                public const string OpenSlidesFailed = "ui.assembly_console.reject.openslides_failed";
+                public const string AgendaItemNotFound = "ui.assembly_console.reject.agenda_item_not_found";
+                public const string PollNotFound = "ui.assembly_console.reject.poll_not_found";
+                public const string NoRunningPoll = "ui.assembly_console.reject.no_running_poll";
+                public const string Stale = "ui.assembly_console.reject.stale";
+                public const string NoSession = "ui.assembly_console.reject.no_session";
+                public const string EntryNotFound = "ui.assembly_console.reject.entry_not_found";
+                public const string UserNotFound = "ui.assembly_console.reject.user_not_found";
+                public const string MovePending = "ui.assembly_console.reject.move_pending";
+                public const string NotOnFloor = "ui.assembly_console.reject.not_on_floor";
+                public const string Untimed = "ui.assembly_console.reject.untimed";
+                public const string InvalidTime = "ui.assembly_console.reject.invalid_time";
+                public const string InvalidThreshold = "ui.assembly_console.reject.invalid_threshold";
+                public const string InvalidTarget = "ui.assembly_console.reject.invalid_target";
+                public const string ChannelNotMapped = "ui.assembly_console.reject.channel_not_mapped";
+                public const string NotConnected = "ui.assembly_console.reject.not_connected";
+                public const string SessionRunning = "ui.assembly_console.reject.session_running";
+                public const string NotConfigured = "ui.assembly_console.reject.not_configured";
+            }
+
+            public static class Phase {
+                public const string None = "ui.assembly_console.phase.none";
+                public const string Presentation = "ui.assembly_console.phase.presentation";
+                public const string Questions = "ui.assembly_console.phase.questions";
+                public const string Debate = "ui.assembly_console.phase.debate";
+                public const string RoundEnd = "ui.assembly_console.phase.round_end";
+                public const string Statement = "ui.assembly_console.phase.statement";
+                public const string ClosingWord = "ui.assembly_console.phase.closing_word";
+                public const string Vote = "ui.assembly_console.phase.vote";
+                public const string Candidacies = "ui.assembly_console.phase.candidacies";
+                public const string CandidatePresentation = "ui.assembly_console.phase.candidate_presentation";
+                public const string CandidateQuestions = "ui.assembly_console.phase.candidate_questions";
+                public const string ElectionRunning = "ui.assembly_console.phase.election_running";
+                public const string GeneralDebate = "ui.assembly_console.phase.general_debate";
+            }
+
+            public static class Notice {
+                public const string PollCreated = "ui.assembly_console.notice.poll_created";
+                public const string ProceduralTopicsCreated = "ui.assembly_console.notice.procedural_topics_created";
+                public const string PollReset = "ui.assembly_console.notice.poll_reset";
+                public const string PollDeleted = "ui.assembly_console.notice.poll_deleted";
+                public const string CandidatesSet = "ui.assembly_console.notice.candidates_set";
+                public const string CurrentCandidate = "ui.assembly_console.notice.current_candidate";
+                public const string ElectionStarted = "ui.assembly_console.notice.election_started";
+                public const string ElectionStopped = "ui.assembly_console.notice.election_stopped";
+                public const string RepeatPresentationOn = "ui.assembly_console.notice.repeat_on";
+                public const string RepeatPresentationOff = "ui.assembly_console.notice.repeat_off";
+                public const string NextRound = "ui.assembly_console.notice.next_round";
+                public const string GoAccepted = "ui.assembly_console.notice.go_accepted";
+                public const string GoObjection = "ui.assembly_console.notice.go_objection";
+                public const string GoEnded = "ui.assembly_console.notice.go_ended";
+                public const string OpenSlidesActionFailed = "ui.assembly_console.notice.openslides_action_failed";
+                public const string OpenSlidesLost = "ui.assembly_console.notice.openslides_lost";
+                public const string OpenSlidesConnected = "ui.assembly_console.notice.openslides_connected";
+                public const string PollPublished = "ui.assembly_console.notice.poll_published";
+                public const string PollPublishRequested = "ui.assembly_console.notice.poll_publish_requested";
+                public const string PollStopRequested = "ui.assembly_console.notice.poll_stop_requested";
+                public const string PollExtended = "ui.assembly_console.notice.poll_extended";
+                public const string PollSettingsChanged = "ui.assembly_console.notice.poll_settings_changed";
+                public const string GaveFloor = "ui.assembly_console.notice.gave_floor";
+                public const string ManualFloor = "ui.assembly_console.notice.manual_floor";
+                public const string Done = "ui.assembly_console.notice.done";
+                public const string MoveFailed = "ui.assembly_console.notice.move_failed";
+                public const string Skipped = "ui.assembly_console.notice.skipped";
+                public const string Unskipped = "ui.assembly_console.notice.unskipped";
+                public const string Dismissed = "ui.assembly_console.notice.dismissed";
+                public const string DismissUndone = "ui.assembly_console.notice.dismiss_undone";
+                public const string TimeAdded = "ui.assembly_console.notice.time_added";
+                public const string TimeSet = "ui.assembly_console.notice.time_set";
+                public const string MotionTimeSet = "ui.assembly_console.notice.motion_time_set";
+                public const string MotionTimeCleared = "ui.assembly_console.notice.motion_time_cleared";
+                public const string TimerPaused = "ui.assembly_console.notice.timer_paused";
+                public const string TimerResumed = "ui.assembly_console.notice.timer_resumed";
+                public const string TimerStarted = "ui.assembly_console.notice.timer_started";
+                public const string ListClosed = "ui.assembly_console.notice.list_closed";
+                public const string ListClosesAt = "ui.assembly_console.notice.list_closes_at";
+                public const string ListReopened = "ui.assembly_console.notice.list_reopened";
+                public const string ItemChanged = "ui.assembly_console.notice.item_changed";
+                public const string BotMovedBack = "ui.assembly_console.notice.bot_moved_back";
+                public const string ConnectionLost = "ui.assembly_console.notice.connection_lost";
+                public const string ConnectionRestored = "ui.assembly_console.notice.connection_restored";
+                public const string PermissionDenied = "ui.assembly_console.notice.permission_denied";
+                public const string SessionStarted = "ui.assembly_console.notice.session_started";
+            }
+        }
+
+        public static class AssemblySetup {
+            public const string PageTitle = "ui.assembly_setup.page_title";
+            public const string Intro = "ui.assembly_setup.intro";
+            public const string ConnectionTitle = "ui.assembly_setup.connection_title";
+            public const string CertificateTitle = "ui.assembly_setup.certificate_title";
+            public const string CertificateMissing = "ui.assembly_setup.certificate_missing";
+            public const string CertificateUnreadable = "ui.assembly_setup.certificate_unreadable";
+            public const string CertificateHash = "ui.assembly_setup.certificate_hash";
+            public const string CertificateValidUntil = "ui.assembly_setup.certificate_valid_until";
+            public const string GenerateButton = "ui.assembly_setup.generate_button";
+            public const string ReplaceButton = "ui.assembly_setup.replace_button";
+            public const string ReplaceConfirm = "ui.assembly_setup.replace_confirm";
+            public const string CertificateGenerated = "ui.assembly_setup.certificate_generated";
+            public const string CheckButton = "ui.assembly_setup.check_button";
+            public const string RegisterButton = "ui.assembly_setup.register_button";
+            public const string Registered = "ui.assembly_setup.registered";
+            public const string NotRegistered = "ui.assembly_setup.not_registered";
+            public const string RegisterDone = "ui.assembly_setup.register_done";
+            public const string ServerVersion = "ui.assembly_setup.server_version";
+            public const string ServerFingerprint = "ui.assembly_setup.server_fingerprint";
+            public const string ChannelsTitle = "ui.assembly_setup.channels_title";
+            public const string ChannelsHint = "ui.assembly_setup.channels_hint";
+            public const string ChannelNone = "ui.assembly_setup.channel_none";
+            public const string SaveChannelsButton = "ui.assembly_setup.save_channels_button";
+            public const string CheckFirst = "ui.assembly_setup.check_first";
+            public const string AclTitle = "ui.assembly_setup.acl_title";
+            public const string AclHint = "ui.assembly_setup.acl_hint";
+            public const string NoProblems = "ui.assembly_setup.no_problems";
+
+            public static class Role {
+                public const string Chair = "ui.assembly_setup.role.chair";
+                public const string Speaker = "ui.assembly_setup.role.speaker";
+                public const string MotionAuthor = "ui.assembly_setup.role.motion_author";
+                public const string Pro = "ui.assembly_setup.role.pro";
+                public const string Contra = "ui.assembly_setup.role.contra";
+                public const string Question = "ui.assembly_setup.role.question";
+                public const string Point = "ui.assembly_setup.role.point";
+                public const string Listener = "ui.assembly_setup.role.listener";
+            }
+
+            public static class Problem {
+                public const string Unmapped = "ui.assembly_setup.problem.unmapped";
+                public const string ChannelMissing = "ui.assembly_setup.problem.channel_missing";
+                public const string NotLinkedToChair = "ui.assembly_setup.problem.not_linked_to_chair";
+                public const string DuplicateChannel = "ui.assembly_setup.problem.duplicate_channel";
+            }
+
+            public static class Error {
+                public const string NotConfigured = "ui.assembly_setup.error.not_configured";
+                public const string ConnectionFailed = "ui.assembly_setup.error.connection_failed";
+                public const string Timeout = "ui.assembly_setup.error.timeout";
+                public const string RegisterFailed = "ui.assembly_setup.error.register_failed";
+                public const string CertificateExists = "ui.assembly_setup.error.certificate_exists";
+                public const string AllRolesRequired = "ui.assembly_setup.error.all_roles_required";
+                public const string SessionRunning = "ui.assembly_setup.error.session_running";
+            }
+        }
+
         public static class SamlSetup {
             public const string PageTitle = "ui.saml_setup.page_title";
             public const string SettingsTitle = "ui.saml_setup.settings_title";
@@ -1837,6 +2186,7 @@ public static class I18nKey {
             public const string SetupImap = "ui.option_list.setup_imap";
             public const string SetupSaml = "ui.option_list.setup_saml";
             public const string SetupOidc = "ui.option_list.setup_oidc";
+            public const string SetupAssemblyAssistant = "ui.option_list.setup_assembly_assistant";
             public const string IdentifierColumn = "ui.option_list.identifier_column";
             public const string TypeColumn = "ui.option_list.type_column";
             public const string OverridableColumn = "ui.option_list.overridable_column";

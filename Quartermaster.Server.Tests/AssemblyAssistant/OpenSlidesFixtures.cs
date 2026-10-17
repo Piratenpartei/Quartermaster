@@ -1,0 +1,65 @@
+namespace Quartermaster.Server.Tests.AssemblyAssistant;
+
+/// <summary>A hand-written autoupdate key map in the shape OpenSlides 4.3 sends: meeting 3 with a finished motion poll, a running topic poll, two agenda items and the voting countdown.</summary>
+public static class OpenSlidesFixtures {
+    public const int MeetingId = 3;
+
+    public const string FullMap = """
+        {
+          "meeting/3/id": 3,
+          "meeting/3/poll_ids": [7, 8],
+          "meeting/3/agenda_item_ids": [20, 21],
+          "meeting/3/poll_countdown_id": 2,
+          "poll/7/id": 7,
+          "poll/7/title": "Schlussabstimmung SÄA001",
+          "poll/7/state": "finished",
+          "poll/7/type": "pseudoanonymous",
+          "poll/7/pollmethod": "YNA",
+          "poll/7/content_object_id": "motion/12",
+          "poll/7/votesvalid": "71.000000",
+          "poll/7/votescast": "71.000000",
+          "poll/7/option_ids": [70],
+          "poll/7/global_option_id": 71,
+          "option/70/id": 70,
+          "option/70/content_object_id": "motion/12",
+          "option/70/yes": "34.000000",
+          "option/70/no": "17.000000",
+          "option/70/abstain": "20.000000",
+          "option/71/id": 71,
+          "option/71/yes": "0.000000",
+          "option/71/no": "0.000000",
+          "option/71/abstain": "0.000000",
+          "poll/8/id": 8,
+          "poll/8/title": "SÄA001: Debatte fortsetzen?",
+          "poll/8/state": "started",
+          "poll/8/type": "pseudoanonymous",
+          "poll/8/pollmethod": "Y",
+          "poll/8/content_object_id": "topic/30",
+          "poll/8/live_votes": { "101": null, "102": null, "103": null },
+          "poll/8/option_ids": [80, 81],
+          "option/80/id": 80,
+          "option/80/text": "Ja",
+          "option/80/yes": "0.000000",
+          "option/81/id": 81,
+          "option/81/text": "Nein",
+          "option/81/yes": "0.000000",
+          "agenda_item/20/id": 20,
+          "agenda_item/20/item_number": "4.1",
+          "agenda_item/20/weight": 10,
+          "agenda_item/20/content_object_id": "motion/12",
+          "motion/12/id": 12,
+          "motion/12/title": "Änderung der Geschäftsordnung",
+          "motion/12/number": "SÄA001",
+          "agenda_item/21/id": 21,
+          "agenda_item/21/parent_id": 20,
+          "agenda_item/21/weight": 11,
+          "agenda_item/21/content_object_id": "topic/30",
+          "topic/30/id": 30,
+          "topic/30/title": "SÄA001: Verfahren",
+          "projector_countdown/2/id": 2,
+          "projector_countdown/2/running": true,
+          "projector_countdown/2/countdown_time": 1800000070.5,
+          "projector_countdown/2/default_time": 60
+        }
+        """;
+}

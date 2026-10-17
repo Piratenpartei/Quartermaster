@@ -1,0 +1,70 @@
+@page "/assembly/{EventId:guid}/overlay"
+@layout OverlayLayout
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyAssistant
+@implements IAsyncDisposable
+
+<div class="@ContainerClass()">
+    @if (Ready && Overlay?.Active == true) {
+        @if (Shows("item") && !string.IsNullOrWhiteSpace(Overlay.ItemTitle)) {
+            <div class="assembly-overlay-item">@Overlay.ItemTitle</div>
+        }
+        @if (Shows("election") && Overlay.ElectionRunning) {
+            <div class="assembly-overlay-election">@I18n[I18nKey.Ui.AssemblyOverlay.ElectionRunning]</div>
+        }
+        @if (Shows("poll") && PollVisible()) {
+            var poll = Overlay.Poll!;
+            <div class="assembly-overlay-poll @PollClass(poll)">
+                <div class="assembly-overlay-poll-header">@I18n[poll.Running ? I18nKey.Ui.AssemblyOverlay.PollRunning : I18nKey.Ui.AssemblyOverlay.PollResult]</div>
+                <div class="assembly-overlay-poll-title">@poll.Title</div>
+                <div class="assembly-overlay-poll-row">
+                    @if (poll.Running) {
+                        var remaining = poll.EndsAt == null ? (TimeSpan?)null : poll.EndsAt.Value - ServerNow();
+                        <span>@I18n[I18nParams.With(I18nKey.Ui.AssemblyOverlay.Votes, ("count", poll.LiveVoteCount.ToString()))]</span>
+                        <span class="assembly-overlay-poll-time">@(remaining == null ? "" : AssemblyDisplay.FormatRemaining(remaining.Value < TimeSpan.Zero ? TimeSpan.Zero : remaining.Value))</span>
+                    } else if (poll.ResultKey != null) {
+                        <span class="assembly-overlay-poll-result">@I18n[poll.ResultKey]</span>
+                    }
+                </div>
+            </div>
+        }
+        @if (Shows("speaker") && Overlay.SpeakerName != null) {
+            var remaining = Overlay.Timer == null ? null : AssemblyDisplay.Remaining(Overlay.Timer, ServerNow());
+            <div class="assembly-overlay-lower-third @TimerStateClass(remaining)">
+                @if (Overlay.SpeakerRole != null && Overlay.SpeakerRole != SpeakerRole.Manual) {
+                    <div class="assembly-overlay-role">@I18n[AssemblyDisplay.RoleKey(Overlay.SpeakerRole.Value)]</div>
+                }
+                <div class="assembly-overlay-name">@Overlay.SpeakerName</div>
+                @if (remaining != null) {
+                    <div class="assembly-overlay-time-row">
+                        <div class="assembly-overlay-bar">
+                            <div class="assembly-overlay-bar-fill" style="width: @BarPercent(remaining.Value)%"></div>
+                        </div>
+                        <div class="assembly-overlay-time">@AssemblyDisplay.FormatRemaining(remaining.Value)</div>
+                    </div>
+                }
+            </div>
+        }
+        @if (Shows("next") && (Overlay.NextPro.Count > 0 || Overlay.NextContra.Count > 0)) {
+            <div class="assembly-overlay-next">
+                @if (Overlay.NextPro.Count > 0) {
+                    <div class="assembly-overlay-next-group">
+                        <div class="assembly-overlay-next-title">@I18n[I18nKey.Ui.AssemblyOverlay.NextPro]</div>
+                        @foreach (var name in Overlay.NextPro) {
+                            <div class="assembly-overlay-next-name">@name</div>
+                        }
+                    </div>
+                }
+                @if (Overlay.NextContra.Count > 0) {
+                    <div class="assembly-overlay-next-group">
+                        <div class="assembly-overlay-next-title">@I18n[I18nKey.Ui.AssemblyOverlay.NextContra]</div>
+                        @foreach (var name in Overlay.NextContra) {
+                            <div class="assembly-overlay-next-name">@name</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>

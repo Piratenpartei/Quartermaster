@@ -1,0 +1,99 @@
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="d-flex align-items-baseline gap-3">
+                <span class="assembly-label mb-0">@I18n[I18nKey.Ui.AssemblyConsole.FlowTitle]</span>
+                <span class="fs-5 fw-semibold">@I18n[AssemblyDisplay.PhaseKey(Snapshot.Phase)]</span>
+            </div>
+            @if (ShowsCounters()) {
+                <div class="d-flex gap-2">
+                    <span class="assembly-status">@I18n[I18nParams.With(I18nKey.Ui.AssemblyConsole.RoundInfo, ("round", Math.Max(1, Snapshot.Round).ToString()))]</span>
+                    <span class="assembly-status">@Counter(I18nKey.Ui.AssemblyConsole.QueuePro, Snapshot.ProCount)</span>
+                    <span class="assembly-status">@Counter(I18nKey.Ui.AssemblyConsole.QueueContra, Snapshot.ContraCount)</span>
+                </div>
+            }
+            @if (Snapshot.Phase == AssemblyPhase.CandidateQuestions) {
+                <span class="assembly-status">@I18n[I18nParams.With(I18nKey.Ui.AssemblyConsole.QuestionersInfo, ("count", Snapshot.Questioners.ToString()), ("max", Snapshot.MaxQuestioners.ToString()))]</span>
+            }
+            @if (CanControl) {
+                <div class="btn-group btn-group-sm ms-auto flex-wrap">
+                    @foreach (var phase in Phases()) {
+                        <button type="button" class="btn @(phase == Snapshot.Phase ? "btn-primary" : "btn-outline-secondary")" @onclick="() => OnSetPhase.InvokeAsync(phase)">
+                            @I18n[AssemblyDisplay.PhaseKey(phase)]
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (IsElection() && CanControl) {
+            <div class="row g-3 mt-1">
+                <div class="col-md-5">
+                    <label class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.CandidatesTitle]</label>
+                    <textarea class="form-control form-control-sm" rows="3" @bind="CandidateInput"></textarea>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" @onclick="ApplyCandidates">@I18n[I18nKey.Ui.AssemblyConsole.ApplyCandidates]</button>
+                </div>
+                <div class="col-md-7">
+                    <ol class="list-group list-group-numbered">
+                        @for (var index = 0; index < Snapshot.Candidates.Count; index++) {
+                            var position = index;
+                            var name = Snapshot.Candidates[index];
+                            <li class="list-group-item d-flex align-items-center gap-2 py-1 @(Snapshot.CurrentCandidate == position ? "list-group-item-primary" : "")">
+                                <span class="flex-grow-1 text-truncate" title="@name">@name</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnPresentCandidate.InvokeAsync(position)">
+                                    @I18n[I18nKey.Ui.AssemblyConsole.CandidatePresent]
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => OnCandidateSupport.InvokeAsync(name)">
+                                    @I18n[I18nKey.Ui.AssemblyConsole.CandidateSupport]
+                                </button>
+                            </li>
+                        }
+                    </ol>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-4 mt-2">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="flow-repeat" checked="@Snapshot.RepeatPresentation"
+                           @onchange="e => OnRepeatPresentation.InvokeAsync((bool)e.Value!)" />
+                    <label class="form-check-label small" for="flow-repeat">@I18n[I18nKey.Ui.AssemblyConsole.RepeatPresentation]</label>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="flow-election" checked="@Snapshot.ElectionRunning"
+                           @onchange="e => OnElectionRunning.InvokeAsync((bool)e.Value!)" />
+                    <label class="form-check-label small" for="flow-election">@I18n[I18nKey.Ui.AssemblyConsole.ElectionOverlay]</label>
+                </div>
+            </div>
+        }
+
+        @if (Snapshot.GoActive) {
+            <div class="alert alert-info d-flex flex-wrap align-items-center gap-2 mt-2 mb-0 py-2">
+                <span class="fw-semibold me-auto">
+                    @I18n[I18nKey.Ui.AssemblyConsole.GoTitle]
+                    @if (Snapshot.GoObjection) {
+                        <span class="fw-normal small d-block">@I18n[I18nKey.Ui.AssemblyConsole.GoObjectionHint]</span>
+                    }
+                </span>
+                @if (CanControl) {
+                    @if (!Snapshot.GoObjection) {
+                        <button type="button" class="btn btn-success btn-sm" @onclick="() => OnGoAccepted.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoAccept]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnGoObjection.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoObjectionButton]</button>
+                    }
+                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => OnGoEnded.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoEnd]</button>
+                }
+            </div>
+        }
+
+        @if (Snapshot.RoundComplete && !Snapshot.GoActive) {
+            <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 mt-2 mb-0 py-2">
+                <span class="me-auto">@I18n[I18nParams.With(I18nKey.Ui.AssemblyConsole.RoundComplete, ("count", Snapshot.WaitingCount.ToString()))]</span>
+                @if (CanControl) {
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="() => OnNextRound.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.ContinueDebate]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnSetPhase.InvokeAsync(AssemblyPhase.ClosingWord)">@I18n[I18nKey.Ui.AssemblyConsole.ToClosingWord]</button>
+                }
+            </div>
+        }
+    </div>
+</div>

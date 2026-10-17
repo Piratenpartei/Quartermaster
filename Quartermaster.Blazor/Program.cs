@@ -42,6 +42,7 @@ public static class Program {
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<LanguageService>();
         builder.Services.AddScoped<MeetingHubClient>();
+        builder.Services.AddScoped<AssemblyHubClient>();
         builder.Services.AddScoped<MeetingsApi>();
 
         await builder.Build().RunAsync();

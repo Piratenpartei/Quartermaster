@@ -274,3 +274,101 @@ code {
 .diff-line {
     white-space: pre-wrap;
 }
+
+/* Assembly assistant console. app.css loads before Bootstrap, so rules that override Bootstrap need a second class. */
+.assembly-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.25rem;
+}
+
+.assembly-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    line-height: 1.5;
+}
+
+.assembly-dot {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.assembly-controls > .col + .col {
+    border-left: 1px solid var(--bs-border-color);
+}
+
+.assembly-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+}
+
+.list-group-flush > .list-group-item.assembly-queue-entry {
+    border-left: 3px solid transparent;
+    padding: 0.5rem 0.75rem;
+}
+
+.list-group-flush > .list-group-item.assembly-queue-entry.assembly-suggested {
+    border-left-color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.list-group-item.assembly-queue-entry.assembly-dismissed {
+    opacity: 0.55;
+}
+
+.assembly-flag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.btn.assembly-icon-btn {
+    width: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.assembly-timer {
+    font-family: var(--bs-font-monospace);
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.assembly-floor-item + .assembly-floor-item {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.input-group.assembly-time-input {
+    width: 7.5rem;
+}
+
+.assembly-scroll {
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
+.assembly-shrink {
+    min-width: 0;
+}

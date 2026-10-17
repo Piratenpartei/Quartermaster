@@ -483,4 +483,135 @@ public class HttpOpenSlidesClientTests {
             return Task.FromResult(response);
         }
     }
+
+    private static OpenSlidesPollCreate Poll() {
+        return new OpenSlidesPollCreate(3, "SÄA001: Debatte fortsetzen?", "topic/9", "Y",
+            [new OpenSlidesPollOption("Ja", null), new OpenSlidesPollOption("Nein", null)], 5, 1, 1, 1, false, false, false, "Y");
+    }
+
+    [Test]
+    public async Task Poll_create_body_is_pseudoanonymous_with_entitled_group() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin();
+        handler.EnqueueOk(Created);
+        using var client = Client(handler);
+
+        var id = await client.CreatePollAsync(Settings(), Poll(), CancellationToken.None);
+
+        await Assert.That(id).IsEqualTo(42);
+        using var body = JsonDocument.Parse(handler.Requests[1].Body);
+        var item = body.RootElement[0];
+        await Assert.That(item.GetProperty("action").GetString()).IsEqualTo("poll.create");
+        var data = item.GetProperty("data")[0];
+        await Assert.That(data.GetProperty("type").GetString()).IsEqualTo("pseudoanonymous");
+        await Assert.That(data.GetProperty("pollmethod").GetString()).IsEqualTo("Y");
+        await Assert.That(data.GetProperty("content_object_id").GetString()).IsEqualTo("topic/9");
+        await Assert.That(data.GetProperty("entitled_group_ids")[0].GetInt32()).IsEqualTo(5);
+        await Assert.That(data.GetProperty("options")[1].GetProperty("text").GetString()).IsEqualTo("Nein");
+        await Assert.That(data.GetProperty("backend").GetString()).IsEqualTo("fast");
+        await Assert.That(data.GetProperty("onehundred_percent_base").GetString()).IsEqualTo("Y");
+    }
+
+    [Test]
+    public async Task Motion_poll_option_uses_content_object() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin();
+        handler.EnqueueOk(Created);
+        using var client = Client(handler);
+        var poll = Poll() with { ContentObjectId = "motion/12", PollMethod = "YNA", Options = [new OpenSlidesPollOption(null, "motion/12")] };
+
+        await client.CreatePollAsync(Settings(), poll, CancellationToken.None);
+
+        using var body = JsonDocument.Parse(handler.Requests[1].Body);
+        var option = body.RootElement[0].GetProperty("data")[0].GetProperty("options")[0];
+        await Assert.That(option.GetProperty("content_object_id").GetString()).IsEqualTo("motion/12");
+        await Assert.That(option.TryGetProperty("text", out _)).IsFalse();
+    }
+
+    [Test]
+    [Arguments("poll.start")]
+    [Arguments("poll.stop")]
+    [Arguments("poll.publish")]
+    [Arguments("poll.reset")]
+    [Arguments("poll.delete")]
+    public async Task Poll_lifecycle_actions_send_id(string action) {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin();
+        handler.EnqueueOk("[null]");
+        using var client = Client(handler);
+
+        var call = action switch {
+            "poll.start" => client.StartPollAsync(Settings(), 17, CancellationToken.None),
+            "poll.stop" => client.StopPollAsync(Settings(), 17, CancellationToken.None),
+            "poll.publish" => client.PublishPollAsync(Settings(), 17, CancellationToken.None),
+            "poll.reset" => client.ResetPollAsync(Settings(), 17, CancellationToken.None),
+            _ => client.DeletePollAsync(Settings(), 17, CancellationToken.None)
+        };
+        await call;
+
+        using var body = JsonDocument.Parse(handler.Requests[1].Body);
+        await Assert.That(body.RootElement[0].GetProperty("action").GetString()).IsEqualTo(action);
+        await Assert.That(body.RootElement[0].GetProperty("data")[0].GetProperty("id").GetInt32()).IsEqualTo(17);
+    }
+
+    [Test]
+    public async Task Countdown_update_body() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin();
+        handler.EnqueueOk("[null]");
+        using var client = Client(handler);
+
+        await client.UpdateCountdownAsync(Settings(), 4, true, 1800000070.5, CancellationToken.None);
+
+        using var body = JsonDocument.Parse(handler.Requests[1].Body);
+        var data = body.RootElement[0].GetProperty("data")[0];
+        await Assert.That(body.RootElement[0].GetProperty("action").GetString()).IsEqualTo("projector_countdown.update");
+        await Assert.That(data.GetProperty("id").GetInt32()).IsEqualTo(4);
+        await Assert.That(data.GetProperty("running").GetBoolean()).IsTrue();
+        await Assert.That(data.GetProperty("countdown_time").GetDouble()).IsEqualTo(1800000070.5);
+    }
+
+    [Test]
+    public async Task Topic_create_body_and_id() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin();
+        handler.EnqueueOk(Created);
+        using var client = Client(handler);
+
+        var id = await client.CreateTopicAsync(Settings(), 3, "SÄA001: Verfahren", 55, CancellationToken.None);
+
+        await Assert.That(id).IsEqualTo(42);
+        using var body = JsonDocument.Parse(handler.Requests[1].Body);
+        var data = body.RootElement[0].GetProperty("data")[0];
+        await Assert.That(data.GetProperty("agenda_parent_id").GetInt32()).IsEqualTo(55);
+        await Assert.That(data.GetProperty("agenda_type").GetString()).IsEqualTo("common");
+    }
+
+    [Test]
+    public async Task Session_tokens_log_in_once() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin("bearer abc", "cookie-xyz");
+        using var client = Client(handler);
+
+        var first = await client.GetSessionTokensAsync(Settings(), CancellationToken.None);
+        var second = await client.GetSessionTokensAsync(Settings(), CancellationToken.None);
+
+        await Assert.That(handler.Requests.Count).IsEqualTo(1);
+        await Assert.That(first.AccessToken).IsEqualTo("bearer abc");
+        await Assert.That(second.RefreshId).IsEqualTo("cookie-xyz");
+    }
+
+    [Test]
+    public async Task Reported_token_replaces_stored_token() {
+        var handler = new RecordingOpenSlidesHandler();
+        handler.EnqueueLogin("bearer old");
+        handler.EnqueueOk("[null]");
+        using var client = Client(handler);
+        await client.GetSessionTokensAsync(Settings(), CancellationToken.None);
+
+        client.ReportRefreshedToken("bearer new");
+        await client.StartPollAsync(Settings(), 1, CancellationToken.None);
+
+        await Assert.That(handler.Requests[1].Headers["Authentication"]).IsEqualTo("bearer new");
+    }
 }

@@ -16,9 +16,16 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
     public static Exception? LoginFailure { get; set; }
     public static Func<string, Task>? OnCreateMotion { get; set; }
     public static string? CategoryFailurePrefix { get; set; }
+    public static List<OpenSlidesPollCreate> CreatedPolls { get; } = [];
+    public static List<(string Action, int Id)> PollActions { get; } = [];
+    public static List<(int Id, bool Running, double Time)> CountdownUpdates { get; } = [];
+    public static List<(int MeetingId, string Title, int ParentId)> Topics { get; } = [];
+    public static Exception? PollFailure { get; set; }
+    public static string SessionToken { get; set; } = "bearer fake";
+    public static List<string> ReportedTokens { get; } = [];
 
     public static void Reset() {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             Categories.Clear();
             Motions.Clear();
             Updates.Clear();
@@ -28,18 +35,25 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
             LoginFailure = null;
             OnCreateMotion = null;
             CategoryFailurePrefix = null;
+            CreatedPolls.Clear();
+            PollActions.Clear();
+            CountdownUpdates.Clear();
+            Topics.Clear();
+            PollFailure = null;
+            SessionToken = "bearer fake";
+            ReportedTokens.Clear();
             nextId = 100;
         }
     }
 
     public static void FailCreateFor(string number, Exception? exception = null) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             CreateFailures[number] = exception ?? new OpenSlidesException($"Fake create failure for {number}", "action_failed");
         }
     }
 
     public static void ClearCreateFailures() {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             CreateFailures.Clear();
         }
     }
@@ -51,7 +65,7 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
     }
 
     public Task LoginAsync(OpenSlidesSettings settings, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             LoginCount++;
             if (LoginFailure != null)
                 throw LoginFailure;
@@ -61,7 +75,7 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
     }
 
     public Task<int> CreateCategoryAsync(OpenSlidesSettings settings, int meetingId, string name, string prefix, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             RequireUncancellable(ct);
             if (CategoryFailurePrefix == prefix)
                 throw new OpenSlidesException($"Fake category failure for {prefix}", "action_failed");
@@ -73,7 +87,7 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
     }
 
     public async Task<int> CreateMotionAsync(OpenSlidesSettings settings, OpenSlidesMotionCreate motion, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             RequireUncancellable(ct);
         }
 
@@ -81,7 +95,7 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
         if (callback != null)
             await callback(motion.Number);
 
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             if (CreateFailures.TryGetValue(motion.Number, out var failure))
                 throw failure;
 
@@ -101,7 +115,7 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
     }
 
     public Task UpdateMotionAsync(OpenSlidesSettings settings, OpenSlidesMotionUpdate motion, CancellationToken ct) {
-        lock (StateLock) {
+        using (StateLock.EnterScope()) {
             RequireUncancellable(ct);
             var stored = Motions.First(m => m.Id == motion.MotionId);
             stored.Title = motion.Title;
@@ -111,6 +125,77 @@ public class FakeOpenSlidesClient : IOpenSlidesClient {
             Updates.Add(motion);
         }
 
+        return Task.CompletedTask;
+    }
+
+    public Task<OpenSlidesSessionTokens> GetSessionTokensAsync(OpenSlidesSettings settings, CancellationToken ct) {
+        using (StateLock.EnterScope()) {
+            return Task.FromResult(new OpenSlidesSessionTokens(SessionToken, "refresh-fake"));
+        }
+    }
+
+    public void ReportRefreshedToken(string authentication) {
+        using (StateLock.EnterScope()) {
+            ReportedTokens.Add(authentication);
+            SessionToken = authentication;
+        }
+    }
+
+    public Task<int> CreatePollAsync(OpenSlidesSettings settings, OpenSlidesPollCreate poll, CancellationToken ct) {
+        using (StateLock.EnterScope()) {
+            if (PollFailure != null)
+                throw PollFailure;
+
+            CreatedPolls.Add(poll);
+            return Task.FromResult(nextId++);
+        }
+    }
+
+    public Task StartPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RecordPollAction("poll.start", pollId);
+    }
+
+    public Task StopPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RecordPollAction("poll.stop", pollId);
+    }
+
+    public Task PublishPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RecordPollAction("poll.publish", pollId);
+    }
+
+    public Task ResetPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RecordPollAction("poll.reset", pollId);
+    }
+
+    public Task DeletePollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RecordPollAction("poll.delete", pollId);
+    }
+
+    public Task UpdateCountdownAsync(OpenSlidesSettings settings, int countdownId, bool running, double countdownTime, CancellationToken ct) {
+        using (StateLock.EnterScope()) {
+            CountdownUpdates.Add((countdownId, running, countdownTime));
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task<int> CreateTopicAsync(OpenSlidesSettings settings, int meetingId, string title, int agendaParentId, CancellationToken ct) {
+        using (StateLock.EnterScope()) {
+            Topics.Add((meetingId, title, agendaParentId));
+            return Task.FromResult(nextId++);
+        }
+    }
+
+    public Task ProjectAsync(OpenSlidesSettings settings, int meetingId, IReadOnlyList<int> projectorIds, string contentObjectId, string? type, CancellationToken ct) {
+        return Task.CompletedTask;
+    }
+
+    private static Task RecordPollAction(string action, int pollId) {
+        using (StateLock.EnterScope()) {
+            if (PollFailure != null)
+                throw PollFailure;
+
+            PollActions.Add((action, pollId));
+        }
         return Task.CompletedTask;
     }
 }

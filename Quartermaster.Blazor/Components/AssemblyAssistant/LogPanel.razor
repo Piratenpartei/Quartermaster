@@ -1,0 +1,19 @@
+@using Quartermaster.Api.I18n
+
+<div class="card">
+    <div class="card-header assembly-card-header">
+        <span>@I18n[I18nKey.Ui.AssemblyConsole.NoticesTitle]</span>
+    </div>
+    @if (Notices.Count == 0) {
+        <div class="card-body small text-secondary">@I18n[I18nKey.Ui.AssemblyConsole.NoNotices]</div>
+    } else {
+        <ul class="list-group list-group-flush small assembly-scroll">
+            @foreach (var notice in Notices) {
+                <li class="list-group-item d-flex gap-2 py-1">
+                    <span class="text-secondary font-monospace flex-shrink-0"><LocalTime Value="@notice.At" Format="HH:mm:ss" /></span>
+                    <span>@I18n[notice.MessageKey]</span>
+                </li>
+            }
+        </ul>
+    }
+</div>

@@ -5,7 +5,7 @@
 @inject I18nService I18n
 
 @if (CurrentException != null) {
-    <div class="container mt-4">
+    <div class="container mt-4 app-error-boundary">
         <div class="alert alert-danger">
             <h4><i class="bi bi-exclamation-triangle"></i> @I18n[I18nKey.Ui.AppErrorBoundary.Heading]</h4>
             <p>@I18n[I18nKey.Ui.AppErrorBoundary.Description]</p>

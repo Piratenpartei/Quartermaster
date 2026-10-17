@@ -3,6 +3,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.AssemblyAssistant;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.ChapterAssociates;
@@ -86,6 +87,8 @@ public class DbContext : DataConnection {
     public ITable<AssemblyMotionInquiry> AssemblyMotionInquiries => this.GetTable<AssemblyMotionInquiry>();
     public ITable<AssemblyMotionCompetition> AssemblyMotionCompetitions => this.GetTable<AssemblyMotionCompetition>();
     public ITable<AssemblyMotionUpvote> AssemblyMotionUpvotes => this.GetTable<AssemblyMotionUpvote>();
+    public ITable<AssemblySession> AssemblySessions => this.GetTable<AssemblySession>();
+    public ITable<AssemblyLogEntry> AssemblyLogEntries => this.GetTable<AssemblyLogEntry>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -128,6 +131,7 @@ public class DbContext : DataConnection {
         services.AddScoped<AssemblyMotionInquiryRepository>();
         services.AddScoped<AssemblyMotionCompetitionRepository>();
         services.AddScoped<AssemblyMotionUpvoteRepository>();
+        services.AddScoped<AssemblySessionRepository>();
     }
 
     /// <summary>Seeds reference data only; user accounts are the caller's responsibility.</summary>

@@ -107,9 +107,136 @@ public class HttpOpenSlidesClient : IOpenSlidesClient, IDisposable {
         }
     }
 
+    public async Task<OpenSlidesSessionTokens> GetSessionTokensAsync(OpenSlidesSettings settings, CancellationToken ct) {
+        await _gate.WaitAsync(ct);
+        try {
+            EnsureUsable(settings);
+            if (accessToken == null || loggedInAs != (settings.Url, settings.Username, settings.Password))
+                await LoginCoreAsync(settings, ct);
+
+            return new OpenSlidesSessionTokens(accessToken!, refreshId);
+        } catch (Exception ex) when (ex is not OperationCanceledException) {
+            Log(ex, "OpenSlides login for the autoupdate stream failed");
+            throw;
+        } finally {
+            _gate.Release();
+        }
+    }
+
+    public void ReportRefreshedToken(string authentication) {
+        _gate.Wait();
+        try {
+            accessToken = authentication;
+        } finally {
+            _gate.Release();
+        }
+    }
+
+    public async Task<int> CreatePollAsync(OpenSlidesSettings settings, OpenSlidesPollCreate poll, CancellationToken ct) {
+        var options = poll.Options.Select(OptionData).ToList();
+        var data = new Dictionary<string, object?> {
+            ["meeting_id"] = poll.MeetingId,
+            ["title"] = poll.Title,
+            ["type"] = "pseudoanonymous",
+            ["pollmethod"] = poll.PollMethod,
+            ["content_object_id"] = poll.ContentObjectId,
+            ["options"] = options,
+            ["entitled_group_ids"] = new[] { poll.EntitledGroupId },
+            ["min_votes_amount"] = poll.MinVotes,
+            ["max_votes_amount"] = poll.MaxVotes,
+            ["max_votes_per_option"] = poll.MaxVotesPerOption,
+            ["global_yes"] = poll.GlobalYes,
+            ["global_no"] = poll.GlobalNo,
+            ["global_abstain"] = poll.GlobalAbstain,
+            ["onehundred_percent_base"] = poll.OnehundredPercentBase,
+            ["backend"] = "fast"
+        };
+
+        using var doc = await RunActionAsync(settings, "poll.create", data, "OpenSlides poll creation failed", ct);
+        return ReadCreatedId(doc.RootElement);
+    }
+
+    public Task StartPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RunIdActionAsync(settings, "poll.start", pollId, ct);
+    }
+
+    public Task StopPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RunIdActionAsync(settings, "poll.stop", pollId, ct);
+    }
+
+    public Task PublishPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RunIdActionAsync(settings, "poll.publish", pollId, ct);
+    }
+
+    public Task ResetPollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RunIdActionAsync(settings, "poll.reset", pollId, ct);
+    }
+
+    public Task DeletePollAsync(OpenSlidesSettings settings, int pollId, CancellationToken ct) {
+        return RunIdActionAsync(settings, "poll.delete", pollId, ct);
+    }
+
+    public async Task UpdateCountdownAsync(OpenSlidesSettings settings, int countdownId, bool running, double countdownTime, CancellationToken ct) {
+        var data = new Dictionary<string, object?> {
+            ["id"] = countdownId,
+            ["running"] = running,
+            ["countdown_time"] = countdownTime
+        };
+
+        using var doc = await RunActionAsync(settings, "projector_countdown.update", data, "OpenSlides countdown update failed", ct);
+    }
+
+    public async Task<int> CreateTopicAsync(OpenSlidesSettings settings, int meetingId, string title, int agendaParentId, CancellationToken ct) {
+        var data = new Dictionary<string, object?> {
+            ["meeting_id"] = meetingId,
+            ["title"] = title,
+            ["agenda_parent_id"] = agendaParentId,
+            ["agenda_type"] = "common"
+        };
+
+        using var doc = await RunActionAsync(settings, "topic.create", data, "OpenSlides topic creation failed", ct);
+        return ReadCreatedId(doc.RootElement);
+    }
+
+    public async Task ProjectAsync(OpenSlidesSettings settings, int meetingId, IReadOnlyList<int> projectorIds, string contentObjectId, string? type, CancellationToken ct) {
+        var data = new Dictionary<string, object?> {
+            ["ids"] = projectorIds,
+            ["meeting_id"] = meetingId,
+            ["content_object_id"] = contentObjectId
+        };
+        if (type != null)
+            data["type"] = type;
+
+        using var doc = await RunActionAsync(settings, "projector.project", data, "OpenSlides projection failed", ct);
+    }
+
     public void Dispose() {
         _http.Dispose();
         _gate.Dispose();
+    }
+
+    private static Dictionary<string, object?> OptionData(OpenSlidesPollOption option) {
+        if (option.ContentObjectId != null)
+            return new Dictionary<string, object?> { ["content_object_id"] = option.ContentObjectId };
+
+        return new Dictionary<string, object?> { ["text"] = option.Text };
+    }
+
+    private async Task RunIdActionAsync(OpenSlidesSettings settings, string action, int id, CancellationToken ct) {
+        var data = new Dictionary<string, object?> { ["id"] = id };
+        using var doc = await RunActionAsync(settings, action, data, $"OpenSlides action {action} failed", ct);
+    }
+
+    private async Task<JsonDocument> RunActionAsync(OpenSlidesSettings settings, string action, Dictionary<string, object?> data, string failureMessage, CancellationToken ct) {
+        await _gate.WaitAsync(ct);
+        try {
+            return await ExecuteActionAsync(settings, action, data, ct);
+        } catch (Exception ex) when (ex is not OperationCanceledException) {
+            Log(ex, failureMessage);
+            throw;
+        } finally {
+            _gate.Release();
+        }
     }
 
     private void Log(Exception ex, string message) {

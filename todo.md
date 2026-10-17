@@ -56,6 +56,37 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
 
 - [ ] **Travel expense reimbursement form.** *(Backlog)* Second user of the PDF form wizard engine introduced under [PDF form wizard + Expense reimbursement form]. German display name "Reisekostenerstattung". Used when a member - or sometimes an external participant invited to travel for the party - claims travel compensation. Typical fields: travel purpose, start/end date+time+location, mode of transport (km for own car with mileage rate, ticket cost for public transit), accommodation, per-diem allowances, attached receipts, payout bank account. Submitter may not be a member, so the wizard should also be reachable by externals via a link or token-gated entry. Once the form engine from the V3 item exists, this should be a new form definition + step config rather than a new engine build.
 
+## Motion portal
+
+- [ ] **Follow-ups from the motion portal review.** Smaller changes left open when the motion portal (V4) was finished:
+  - [ ] Unsaved-changes guard in the motion editor (`AssemblyMotionEditor`). Needs `NavigationLock`, which the project does not use yet.
+  - [ ] Move the German server-side texts of the feature (about 30 literals, e.g. `AssemblyMotionDetailBuilder.FormerMemberName`, the wiki sync and OpenSlides error texts) into i18n keys.
+  - [ ] Rate limits on the motion write endpoints.
+  - [ ] HTML sanitizer is slow on very long documents (50,000 heading lines take 6.7 s). Motions are protected by `MotionMarkdownLimits`; news posts, mails and the portal intro are not. The Full Markdown flavour also still accepts oversized tables.
+  - [ ] One-time re-render of stored motion HTML, so motions saved before the stricter sanitizer profile get the current output.
+  - [ ] A motion type whose only motions are soft-deleted drafts can never be deleted (409). Either hard-delete drafts or let the type delete ignore them.
+  - [ ] A deadline entered as 23:59 ends at 23:59:00, not at the end of that minute.
+  - [ ] Lowering `MinSubmitters` on a type does not re-evaluate motions that are already collecting co-submitters.
+  - [ ] The draft cap of 50 per member is not serialised; parallel requests can exceed it.
+  - [ ] Declaring a competition from a private draft marks the other motion wiki-pending and resets its backoff.
+  - [ ] Portal settings endpoints answer 403 where the other motion endpoints answer 404 for a hidden event.
+  - [ ] OpenSlides push: changing the meeting id after a push acts on the old ids; motions that become ineligible stay in OpenSlides; an update sends neither category nor number; a timeout after a create can duplicate a motion; the push guard is per process.
+  - [ ] Front page card: an event dated today drops off at 00:00 UTC instead of local midnight.
+  - [ ] `Loading` flags on the motion pages are not reset in `finally`; a malformed response leaves the spinner on.
+  - [ ] Wording: "Alle 1 Mitantragsteller" with exactly one co-submitter; "motions committee" in `en.json` (`edit_locked`); German-only "## Antragsportal" heading in `Translations.md`.
+  - [ ] Labels on `FormInput`, `FormSelect` and `FormTextarea` have no `for`, because those components have no `Id` parameter.
+  - [ ] Stripping control characters from single-line motion fields joins the neighbouring words instead of leaving a space.
+  - [ ] Table column alignment is dropped by the motion sanitizer profile.
+  - [ ] Finding the release revision for the revision history scans the audit log without an index.
+  - [ ] Wiki mirror: confirm the template parameter names against the real templates; `&` in link URLs.
+  - [ ] Board-motion notification templates use an unescaped `{{ motion.Title }}` in Markdown bodies.
+  - [ ] `error.user.role.has_active_assignments` exists only in `de.json`.
+  - [ ] Style leftovers: 23 expression-bodied methods in `EventRepository`, `OptionRepository`, `PermissionRepository` and `RoleRepository`; underscore prefix on the mutable fields `_debounce` (`MarkdownEditorWithPreview`), `_card` and `_fitInstalled` (`TemplateFieldPalette`); dashes in `Configuration.md` and `Translations.md`.
+
+## Elections
+
+- [ ] **Support signature management (Unterstützungsunterschriften) for the Landtag election in Lower Saxony.** For the state list the party needs 2,000 support signatures. Each signature form has to be confirmed by the signer's municipality (right to vote), collected back, stored and submitted together. Wanted: a system that tracks every form from collection to submission and prints the cover letters to the municipalities. Expected shape: (a) signer records in the admin database (name, address, date of birth as required by the form, phone, email, municipality derived from the address via the administrative divisions, optional link to a member); (b) per form a status flow such as collected, sent to municipality, confirmed, rejected (with reason), submitted, plus who holds the paper original; (c) batches per municipality with a generated cover letter (PDF via the existing PDF templates) listing the enclosed forms, and tracking of sent and returned dates with reminders for overdue municipalities; (d) a dashboard with counts against the target (confirmed vs. needed, with a safety margin for rejections) and per region; (e) export of the confirmed forms for the submission. Open before planning: the official form and which fields it requires, whether district nominations (Wahlkreisvorschläge, separate thresholds) are in scope too, who may see signer data (chapter-scoped permission), and retention: signer data reveal a political opinion (GDPR Art. 9), so access logging and deletion after the election are mandatory.
+
 ## Operations
 
 - [ ] **E2E test flakiness + general test sweep.** *(Backlog)* Investigation in early V3 work showed the 21 "failing" E2E tests on a full-suite run pass cleanly when invoked in isolation (`Home_page_loads` alone: 4.2s; same test inside a 24-strong E2E batch: times out at 30s waiting for any heading/nav selector). Root cause is resource contention from `E2EParallelLimit` letting too many Playwright + Kestrel + Chromium instances fire concurrently on the VM, not a regression in the page code under test. Plus a couple of broader gaps surfaced while looking at this: (a) tighten the E2E parallel cap or split the E2E namespace into its own serial CI step so a heavy laptop doesn't poison the verdict; (b) raise the per-test selector timeout (currently 30s in `E2ESmokeTests`) since first-WASM-boot under contention can legitimately exceed that; (c) consider sharing a single Kestrel host across the whole E2E pass instead of one-per-test-class, since the per-class `E2ETestFactory` startup is itself a chunk of the wall-clock cost. While doing that, run a full coverage sweep: identify which V2 + V3 features have unit/integration coverage and which only have E2E (or none) - the form wizard PDF renderer, BIC lookup, FormCatalog, local-draft envelope helpers, and the M003 schema all landed without dedicated tests, and the existing E2E set has no Forms coverage at all. Produce a short coverage report so the gaps can be filled deliberately rather than discovered the next time the suite is touched.

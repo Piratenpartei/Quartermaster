@@ -1,0 +1,40 @@
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<div class="card">
+    <div class="card-header assembly-card-header">
+        <span>@I18n[I18nKey.Ui.AssemblyConsole.PickerTitle]</span>
+    </div>
+    <div class="card-body">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" placeholder="@I18n[I18nKey.Ui.AssemblyConsole.PickerSearch]" @bind="Search" @bind:event="oninput" />
+        </div>
+        @if (string.IsNullOrWhiteSpace(Search)) {
+            <div class="small text-secondary mt-2">@I18n[I18nKey.Ui.AssemblyConsole.PickerHint]</div>
+        } else {
+            var matches = Matches().ToList();
+            @if (matches.Count == 0) {
+                <div class="small text-secondary mt-2">@I18n[I18nKey.Ui.AssemblyConsole.PickerNone]</div>
+            } else {
+                <ul class="list-group mt-2">
+                    @foreach (var user in matches) {
+                        <li class="list-group-item d-flex align-items-center gap-2 py-2">
+                            <span class="text-truncate flex-grow-1" title="@user.Name">@user.Name</span>
+                            @if (CanControl) {
+                                <div class="btn-group btn-group-sm flex-shrink-0">
+                                    <button type="button" class="btn btn-outline-success" @onclick="() => Give(user.Session, ChannelRole.Speaker)">
+                                        @I18n[I18nKey.Ui.AssemblyConsole.ToSpeaker]
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" @onclick="() => Give(user.Session, ChannelRole.MotionAuthor)">
+                                        @I18n[I18nKey.Ui.AssemblyConsole.ToMotionAuthor]
+                                    </button>
+                                </div>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        }
+    </div>
+</div>

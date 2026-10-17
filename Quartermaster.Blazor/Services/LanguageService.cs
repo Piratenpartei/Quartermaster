@@ -42,6 +42,12 @@ public class LanguageService {
         _navigation.NavigateTo(_navigation.Uri, forceLoad: true);
     }
 
+    /// <summary>Loads a language for the current page without storing it, e.g. for the OBS overlay whose browser locale is irrelevant.</summary>
+    public async Task UseLanguageAsync(string lang) {
+        if (IsSupported(lang) && lang != CurrentLanguage)
+            await LoadAsync(lang);
+    }
+
     private async Task<string> DetectBrowserLanguageAsync() {
         try {
             var detected = await _js.InvokeAsync<string>("languageStorage.detectBrowser");

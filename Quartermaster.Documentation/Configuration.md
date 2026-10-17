@@ -287,6 +287,82 @@ What the code assumes about OpenSlides 4.3, to confirm by a real run:
 - `motion.update` accepts `id`, `title`, `text`, `reason` and `additional_submitter`.
 - A new `Authentication` header in an answer replaces the stored token, and a 401 is answered by one new login.
 
+### Assembly assistant (Mumble bot)
+
+Optional. The assembly assistant connects to the Mumble server as a bot while an assembly session runs, tracks the request channels and moves members only when the chair clicks. It is set up under "Settings > Configure assembly assistant" (global permission `options_edit`).
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `mumble.host` | `mumble.piratenpartei.de` | Hostname of the Mumble server |
+| `mumble.port` | `64738` | TCP port of the Mumble server |
+| `mumble.username` | `Versammlungsassistent` | Name of the bot in Mumble; also the certificate's common name |
+| `mumble.certificate` | _empty_ | PKCS#12 client certificate of the bot as Base64 (stored masked); generated on the setup page |
+| `mumble.certificate_password` | _empty_ | Password of that certificate (stored masked) |
+| `mumble.server_certificate_sha256` | _empty_ | Empty = the server certificate must be trusted by the system. Set = only a server certificate with this SHA-256 fingerprint is accepted (for a self-signed server certificate); "Check connection" shows the fingerprint |
+| `mumble.channels.chair`, `.speaker`, `.motion_author`, `.pro`, `.contra`, `.question`, `.point`, `.listener` | _empty_ | Channel id per role; set through the channel mapping on the setup page |
+| `assembly.times.presentation`, `.speech`, `.question`, `.statement`, `.closing_word`, `.candidate_presentation`, `.candidate_presentation_repeat`, `.candidate_question`, `.candidate_answer` | 300, 180, 30, 60, 180, 300, 180, 30, 120 | Default speaking times in seconds |
+| `assembly.grace_seconds` | `30` | A request keeps its place in the queue for this long after the member left the channel or lost the connection |
+| `assembly.voice_hangover_ms` | `500` | A member counts as no longer speaking after this long without a voice packet |
+| `assembly.start_now_after_seconds` | `20` | The console offers "start now" for the speaking timer when the speaker has not spoken for this long |
+| `assembly.messages.warning`, `assembly.messages.expired` | `Noch 30 Sekunden`, `Die Redezeit ist abgelaufen` | Mumble text messages to the speaker 30 seconds before and at the end of the speaking time |
+| `assembly.openslides.delegates_group_id` | _empty_ | OpenSlides group that is entitled to vote in every poll |
+| `assembly.poll.duration_seconds` | `70` | Default poll duration (60 seconds plus 10 seconds of stream delay) |
+| `assembly.poll.auto_start`, `.auto_stop`, `.auto_publish` | `true` | Defaults for a new session; the chair changes them in the console during the session |
+
+First setup:
+
+1. On the setup page, enter server, port and bot name, then "Generate certificate". The certificate identifies the bot as the same registered user on every connection. Replacing it later makes the bot a new user on the server, so registration and rights have to be set up again.
+2. "Check connection" connects once, shows the server version and the server certificate fingerprint, loads the channel tree and disconnects. If the server certificate is self-signed, copy the fingerprint into `mumble.server_certificate_sha256` and check again.
+3. "Register bot" registers the bot on the server (the right SelfRegister, which `all` has by default on most servers; otherwise an admin registers it by hand).
+4. Map each role to a channel and save. The check then reports unmapped roles, missing channels, a channel used for several roles and speaker, motion author / candidate ("Antragsteller") or listener channels that are not linked with the chair channel. The motion author / candidate channel is where the motion author or the candidate of the current item sits for presentation, answers, statement and closing word.
+
+Rights on the Mumble server (set by a server admin; the bot never needs admin rights):
+
+- The bot needs Move on the channel tree of the assembly ("Bundesparteitag"), with "Apply to subchannels", for example through membership in the group `bpt-team` or a dedicated group. Moving a member needs Move in the member's current channel and either Move in the target or Enter for the member there; members have no Enter in "Redner" and "Antragsteller", so the bot needs Move on both sides.
+- The bot sits in the chair channel ("Versammlungsleitung", the linked one, not the internal room). It hears every channel reachable through links in which the speaker has Speak, which are the same voices the chair hears. It moves itself back when it is moved elsewhere.
+- For tests, use a separate copy of the channel tree and map its channels; never test in the real assembly channels.
+
+Running an assembly:
+
+- Grant the system role "Versammlungsleitung" (`assembly_chair`, includes `assembly_view`) for the event's chapter to the chair and the chair helpers, and "Protokoll Versammlung" (`assembly_view`) to the minutes taker. The roles do not inherit to sub-chapters.
+- The console is at `/assembly/{eventId}`, also reachable through "Versammlungsassistent" on the event page. "Start assembly" connects the bot; "End assembly" disconnects it and closes the session. Only one session runs at a time.
+- An open session survives a restart of Quartermaster: on startup the bot reconnects, rebuilds the queues from the channels (unknown order is marked) and resumes the timer of the current speech. Do not deploy during an assembly.
+- The procedure card follows the item: a motion starts with the presentation, an election with the candidate presentation, a general debate with the general debate; the chair switches the phase at any time. The suggestion (highlighted entry, space key) follows GO BPT §§ 12, 13 and 15: GO motions first, then questions, but neither while someone speaks or a poll runs; in the debate Pro and Contra alternate starting with Pro, five per side and round, unused slots do not pass over; in the general debate all requests in order of entry; in the candidate questioning at most five questioners. When no side has a free slot and a waiting request, the console shows the round end with "continue debate" (statement of the motion author, then the next round) and "closing word". A GO motion in the speaker channel opens "any objection?" with "accepted without objection", "objection" and "finished"; the interrupted phase and its counters continue afterwards. Speaking times follow the phase: presentation 5 min, answers of the motion author untimed, statement 1 min, closing word 3 min, candidate presentation 5 min (3 min when repeated), candidate answers 2 min, candidate questions 30 s.
+- While a session runs, the connection check and the registration on the setup page are refused, because a second connection with the bot's certificate would push the live bot off the server.
+
+OpenSlides polls:
+
+- The session connects to OpenSlides when the event's motion portal has an "OpenSlides meeting ID" and the `openslides.*` access of the motion push is configured; otherwise the poll panel stays off and queues and timers work without it.
+- The OpenSlides account of the push additionally needs a group in the meeting with `poll.can_manage` (polls on topics), `motion.can_manage_polls` (polls on motions) and `agenda_item.can_manage` (procedural topics). It must be a local account with a login, not SSO, because starting and stopping polls goes through the vote service with that account's session.
+- `assembly.openslides.delegates_group_id` is the id of the group that may vote (the number in the group's URL in OpenSlides); it is set as the entitled group of every poll the assistant creates.
+- The console shows a live connection to the meeting: running polls with the voting countdown and the number of votes cast, the latest results with an advisory evaluation (simple majority Ja > Nein, two-thirds Ja >= 2 x Nein for motion types that require it; abstentions never count), and the agenda of the meeting as a picker for the current item.
+- The poll duration (default 70 seconds, i.e. 60 plus 10 for the stream delay) is set on the meeting's voting countdown right after a poll starts. With "stop when time is up" the poll is stopped when the countdown reaches zero, with "publish result" it is published right after. Both apply to polls created by hand in OpenSlides too. The settings are changed in the poll panel during the session; the options are only the defaults of a new session.
+
+Poll templates and procedural topics:
+
+- The poll panel creates standard polls on one click for the current agenda item (chosen from the OpenSlides agenda) and starts them when "start" is on: continue debate?, point of order (text), opinion poll (text), support (text and threshold, default 20), controversy (threshold 10), competition as acceptance vote and its runoff (only when the motion has competing motions in the motion portal), final vote, block vote, and for elections another round of questions. Titles carry the motion number.
+- Procedural polls cannot hang on a motion, so they go onto the motion's procedural topic "<number>: Verfahren", a child of the motion's agenda item. The assistant finds it by title and creates it on first use; "create procedural topics for all motions" creates them in advance. For a plain topic item the poll goes onto that topic.
+- Yes/No polls have the options "Ja" and "Nein", one vote, no abstain option. The final vote is a motion poll with Ja/Nein/Enthaltung (100 % base Ja + Nein); its evaluation follows the motion type. The competition poll allows one vote per motion and offers OpenSlides' general "No" as the valid empty ballot; the evaluation names the motion with the most votes if it has more than half of the valid ballots, otherwise a runoff is needed.
+- Only polls created by the assistant in the running session can be reset or deleted from the console.
+- `assembly.openslides.projector_ids` (comma-separated projector ids) and `assembly.poll.project` (default `false`, switchable in the poll panel) put every started poll and the voting countdown on those projectors.
+
+Elections:
+
+- On an election item the procedure card takes the candidates (one per line) and orders them by surname. "Presentation" next to a candidate marks them current and starts the presentation phase; "support (20)" creates the support poll for that candidate. The person in the motion author channel carries the role "Kandidatur" in console and overlay; the overlay marker "Wahlgang läuft" is switched in the card. The secret election itself runs in SecretBallot.
+
+Minutes aid:
+
+- The console lists the sessions of the event with their log. CSV (semicolon, UTF-8 with BOM, Berlin time) and Markdown (grouped by agenda item: speeches with role, duration and speaking time, polls with result, chair actions) are downloaded by everyone with `assembly_view`. A chair deletes the log of an ended session once the minutes are signed; the session row keeps the delete date.
+
+OBS overlay:
+
+- Add a browser source to the scene with the URL `https://<quartermaster>/assembly/{eventId}/overlay`, width 1920, height 1080. No login is needed; the page only shows what the stream audience sees anyway. The page background is already transparent; OBS's default custom CSS for browser sources can stay.
+- `?element=` turns the source into a single element drawn at 0,0 in a fixed size, so the browser source can be set to exactly that size and moved, scaled and hidden per scene in OBS: `item` (agenda item, 1100x56), `speaker` (lower third with role and time, 780x180), `poll` (running poll with countdown and votes cast, then the result for 15 seconds, 700x150), `next` (next speakers per side, 400x260), `election` (election marker, 360x56). Without `element` the page is the full 1920x1080 layout with item, speaker, poll and election; `?next=true` adds the next-speakers column there.
+- `?lang=en` switches the labels to English (default German regardless of the OBS browser's language).
+- Finer adjustments without a code change go into the "Custom CSS" field of the browser source, for example `.assembly-overlay-lower-third { left: 1100px; bottom: 60px; }`. Classes (inside `.assembly-overlay` for the full layout, `.assembly-overlay-single` for a single element): `assembly-overlay-item`, `assembly-overlay-poll`, `assembly-overlay-lower-third`, `assembly-overlay-role`, `assembly-overlay-name`, `assembly-overlay-bar-fill`, `assembly-overlay-time`, `assembly-overlay-next`, `assembly-overlay-election`; colours as variables on that container (`--overlay-orange`, `--overlay-panel`, `--overlay-warning`, `--overlay-danger`).
+- The overlay shows nothing while no session runs or the connection is down, and reconnects on its own, also after a Quartermaster restart. The time turns orange from 30 seconds and red with the overrun after expiry.
+- Fonts are the party's house fonts PoliticsHead and DejaRip from the Piratenwiki page "Pirate Design/Schriften", served by Quartermaster.
+
 ### SSO support contact
 
 | Identifier | Purpose |

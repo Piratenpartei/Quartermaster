@@ -1,0 +1,173 @@
+@page "/assembly/{EventId:guid}"
+@layout FluidLayout
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyAssistant
+@implements IAsyncDisposable
+
+<PageBackLink Href="@($"/Administration/Events/{EventId}")" />
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <div class="d-flex align-items-baseline gap-2 assembly-shrink">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.AssemblyConsole.PageTitle]</h3>
+        @if (Join?.EventName != null) {
+            <span class="fs-5 text-secondary text-truncate">@Join.EventName</span>
+        }
+    </div>
+    @if (Join?.Allowed == true && Snapshot != null) {
+        <div class="d-flex align-items-center gap-2">
+            @if (!Join.CanControl) {
+                <span class="assembly-status">@I18n[I18nKey.Ui.AssemblyConsole.ReadOnly]</span>
+            }
+            <span class="assembly-status">
+                <span class="assembly-dot @(Snapshot.MumbleState == "Synced" ? "bg-success" : "bg-warning")"></span>
+                @I18n[I18nKey.Ui.AssemblyConsole.MumbleState]: @I18n[AssemblyDisplay.MumbleStateKey(Snapshot.MumbleState)]
+            </span>
+            @if (Join.CanControl) {
+                <button type="button" class="btn btn-outline-danger btn-sm" @onclick="EndSession" disabled="@Busy">
+                    <i class="bi bi-stop-circle me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.EndSession]
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@if (Join == null) {
+    <LoadingSpinner />
+} else if (!Join.Allowed && !Auth.IsAuthenticated) {
+    <div class="alert alert-info d-flex align-items-center justify-content-between">
+        <span>@I18n[I18nKey.Ui.AssemblyConsole.NotSignedIn]</span>
+        <a class="btn btn-primary btn-sm" href="/Login">@I18n[I18nKey.Ui.AssemblyConsole.SignIn]</a>
+    </div>
+} else if (!Join.Allowed) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyConsole.NoAccess]</div>
+} else if (Snapshot == null) {
+    <div class="alert alert-info d-flex align-items-center justify-content-between">
+        <span>@I18n[I18nKey.Ui.AssemblyConsole.NoSession]</span>
+        @if (Join.CanControl) {
+            <button type="button" class="btn btn-primary btn-sm" @onclick="StartSession" disabled="@Busy">
+                <i class="bi bi-play-circle me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.StartSession]
+            </button>
+        }
+    </div>
+} else {
+    var now = ServerNow();
+    <div class="card mb-3">
+        <div class="row g-0 assembly-controls">
+            <div class="col p-3">
+                <div class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.Item]</div>
+                <div class="fs-5 fw-semibold text-truncate mb-2" title="@Snapshot.ItemTitle">@(Snapshot.ItemTitle ?? "-")</div>
+                @if (Join.CanControl && Snapshot.AgendaItems.Count > 0) {
+                    <select class="form-select form-select-sm mb-2" value="@(Snapshot.CurrentAgendaItemId?.ToString() ?? "")"
+                            @onchange="e => SelectAgendaItem(e.Value?.ToString())">
+                        <option value="">@I18n[I18nKey.Ui.AssemblyConsole.AgendaPick]</option>
+                        @foreach (var item in Snapshot.AgendaItems) {
+                            <option value="@item.Id">@item.Label</option>
+                        }
+                    </select>
+                }
+                @if (Join.CanControl) {
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.AssemblyConsole.ItemPlaceholder]" @bind="ItemInput" />
+                        <button type="button" class="btn btn-outline-primary" @onclick="SetItem">@I18n[I18nKey.Ui.AssemblyConsole.SetItem]</button>
+                    </div>
+                }
+            </div>
+            <div class="col p-3">
+                <div class="assembly-label" title="@I18n[I18nKey.Ui.AssemblyConsole.MotionMinutes]">@I18n[I18nKey.Ui.AssemblyConsole.MotionMinutesShort]</div>
+                <div class="fs-5 fw-semibold mb-2">@MotionMinutesText()</div>
+                @if (Join.CanControl) {
+                    <div class="input-group input-group-sm" title="@I18n[I18nKey.Ui.AssemblyConsole.MotionMinutes]">
+                        <input type="number" class="form-control" min="1" max="60" @bind="MotionMinutesInput" placeholder="min" />
+                        <button type="button" class="btn btn-outline-primary" @onclick="ApplyMotionMinutes">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="ClearMotionMinutes" disabled="@(Snapshot.MotionSpeechMinutes == null)">
+                            @I18n[I18nKey.Ui.AssemblyConsole.Clear]
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="col p-3">
+                <div class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.ListStatus]</div>
+                <div class="fs-5 fw-semibold mb-2 d-flex align-items-center gap-2">
+                    <span class="assembly-dot @(Snapshot.ListClosedAt != null ? "bg-danger" : Snapshot.ListClosesAt != null ? "bg-warning" : "bg-success")"></span>
+                    @ListStatusText()
+                </div>
+                @if (Join.CanControl) {
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (Snapshot.ListClosedAt == null) {
+                            <button type="button" class="btn btn-outline-danger btn-sm" @onclick="CloseNow">@I18n[I18nKey.Ui.AssemblyConsole.CloseNow]</button>
+                            <div class="input-group input-group-sm w-auto">
+                                <span class="input-group-text">@I18n[I18nKey.Ui.AssemblyConsole.CloseAt]</span>
+                                <input type="time" class="form-control" @bind="CloseAtInput" />
+                                <button type="button" class="btn btn-outline-primary" @onclick="CloseAt">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
+                            </div>
+                        }
+                        @if (Snapshot.ListClosedAt != null || Snapshot.ListClosesAt != null) {
+                            <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="Reopen">@I18n[I18nKey.Ui.AssemblyConsole.Reopen]</button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <FlowPanel Snapshot="@Snapshot" CanControl="@Join.CanControl"
+               OnSetPhase="@(phase => Run("SetPhase", phase))"
+               OnNextRound="@(() => Run("StartNextRound"))"
+               OnGoAccepted="@(() => Run("RecordGoAccepted"))"
+               OnGoObjection="@(() => Run("StartGoObjection"))"
+               OnGoEnded="@(() => Run("ResumeAfterGo"))"
+               OnElectionRunning="@(running => Run("SetElectionRunning", running))"
+               OnRepeatPresentation="@(repeat => Run("SetRepeatPresentation", repeat))"
+               OnSetCandidates="@(names => Run("SetCandidates", names))"
+               OnPresentCandidate="@PresentCandidate"
+               OnCandidateSupport="@(name => Run("CreatePoll", PollTemplate.Support, name, 20))" />
+
+    <div class="row g-3">
+        <div class="col-xxl-4 col-xl-5 d-flex flex-column gap-3">
+            <SpeakerPanel Floor="@Snapshot.Floor" SpeakingSessions="@Snapshot.SpeakingSessions" CanControl="@Join.CanControl" ServerNow="@now"
+                          OnDone="@(session => Run("Done", session))"
+                          OnAddMinute="@(session => Run("AddMinute", session))"
+                          OnPause="@(session => Run("PauseTimer", session))"
+                          OnResume="@(session => Run("ResumeTimer", session))"
+                          OnStartNow="@(session => Run("StartTimerNow", session))"
+                          OnSetTime="@(value => Run("SetSpeechTime", value.Session, value.Seconds))" />
+            <PollPanel State="@Snapshot.OpenSlidesState" Settings="@Snapshot.PollSettings" Polls="@Snapshot.Polls" CanControl="@Join.CanControl" ServerNow="@now"
+                       OnSettingsChanged="@ChangePollSettings"
+                       OnExtend="@(seconds => Run("ExtendPoll", seconds))"
+                       OnStop="@(pollId => Run("StopPoll", pollId))"
+                       OnPublish="@(pollId => Run("PublishPoll", pollId))"
+                       ItemKind="@Snapshot.ItemKind" CurrentIsMotion="@Snapshot.CurrentIsMotion" HasCompetitors="@Snapshot.HasCompetitors"
+                       ProjectorConfigured="@Snapshot.ProjectorConfigured"
+                       OnCreatePoll="@(value => Run("CreatePoll", value.Template, value.Text, value.Threshold))"
+                       OnCreateProceduralTopics="@CreateProceduralTopics"
+                       OnReset="@(pollId => Run("ResetPoll", pollId))"
+                       OnDelete="@(pollId => Run("DeletePoll", pollId))" />
+            <UserPicker Users="@Snapshot.Users" CanControl="@Join.CanControl" OnGive="@(value => Run("GiveFloorToUser", value.Session, value.Target))" />
+            <LogPanel Notices="@Snapshot.Notices" />
+        </div>
+        <div class="col-xxl-8 col-xl-7">
+            <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xxl-4 h-100">
+                @foreach (var queue in Snapshot.Queues) {
+                    <div class="col">
+                        <QueueColumn Queue="@queue" SuggestedKey="@Snapshot.SuggestedKey" CanControl="@Join.CanControl" ServerNow="@now"
+                                     OnGiveFloor="@(key => Run("GiveFloor", key))"
+                                     OnSkip="@(value => Run("Skip", value.Key, value.Skipped))"
+                                     OnDismiss="@(key => Run("Dismiss", key))"
+                                     OnUndoDismiss="@(key => Run("UndoDismiss", key))" />
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (Join.CanControl) {
+        <p class="small text-secondary mt-3 mb-0"><i class="bi bi-keyboard me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.Shortcuts]</p>
+    }
+}
+
+@if (Join?.Allowed == true) {
+    <LogExportPanel EventId="@EventId" CanControl="@Join.CanControl" RefreshKey="@(Snapshot?.SessionId.ToString() ?? "none")" />
+}
+
+<ConfirmDialog @ref="EndDialog" Message="@I18n[I18nKey.Ui.AssemblyConsole.EndConfirm]" />

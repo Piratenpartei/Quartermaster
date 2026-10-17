@@ -1,0 +1,139 @@
+@page "/Administration/Setup/AssemblyAssistant"
+@using Quartermaster.Api
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<PageBackLink Href="/Administration/Settings" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.AssemblySetup.PageTitle]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.AssemblySetup.Intro]</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">@I18n[I18nKey.Ui.AssemblySetup.ConnectionTitle]</h5>
+            <OptionGroupEditor Keys="@ConnectionKeys" />
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">@I18n[I18nKey.Ui.AssemblySetup.CertificateTitle]</h5>
+            @if (Status == null) {
+                <LoadingSpinner />
+            } else {
+                @if (!Status.CertificatePresent) {
+                    <p>@I18n[I18nKey.Ui.AssemblySetup.CertificateMissing]</p>
+                } else if (Status.CertificateUnreadable) {
+                    <p class="text-danger">@I18n[I18nKey.Ui.AssemblySetup.CertificateUnreadable]</p>
+                } else {
+                    <dl class="row mb-3">
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.AssemblySetup.CertificateHash]</dt>
+                        <dd class="col-sm-8"><code>@Status.CertificateHash</code></dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.AssemblySetup.CertificateValidUntil]</dt>
+                        <dd class="col-sm-8"><LocalTime Value="@Status.CertificateNotAfter" /></dd>
+                    </dl>
+                }
+                @if (Status.CertificatePresent) {
+                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="ReplaceCertificate" disabled="@Busy">
+                        <i class="bi bi-arrow-repeat me-1"></i> @I18n[I18nKey.Ui.AssemblySetup.ReplaceButton]
+                    </button>
+                } else {
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="GenerateCertificate" disabled="@Busy">
+                        <i class="bi bi-file-earmark-lock me-1"></i> @I18n[I18nKey.Ui.AssemblySetup.GenerateButton]
+                    </button>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title mb-0">@I18n[I18nKey.Ui.AssemblySetup.CheckButton]</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm" @onclick="Check" disabled="@Busy">
+                    <i class="bi bi-plug me-1"></i> @I18n[I18nKey.Ui.AssemblySetup.CheckButton]
+                </button>
+            </div>
+            @if (Busy) {
+                <LoadingSpinner />
+            }
+            @if (CheckResult != null) {
+                @if (CheckResult.ErrorKey != null) {
+                    <div class="alert alert-danger">
+                        @I18n[CheckResult.ErrorKey]
+                        @if (!string.IsNullOrEmpty(CheckResult.ErrorDetail)) {
+                            <div class="small mt-1"><code>@CheckResult.ErrorDetail</code></div>
+                        }
+                    </div>
+                }
+                <dl class="row mb-3">
+                    @if (CheckResult.ServerVersion != null) {
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.AssemblySetup.ServerVersion]</dt>
+                        <dd class="col-sm-8">@CheckResult.ServerVersion</dd>
+                    }
+                    @if (CheckResult.ServerCertificateSha256 != null) {
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.AssemblySetup.ServerFingerprint]</dt>
+                        <dd class="col-sm-8"><code class="text-break">@CheckResult.ServerCertificateSha256</code></dd>
+                    }
+                </dl>
+                @if (CheckResult.Connected) {
+                    @if (CheckResult.Registered) {
+                        <p class="text-success"><i class="bi bi-check-circle me-1"></i> @I18n[I18nKey.Ui.AssemblySetup.Registered]</p>
+                    } else {
+                        <p>
+                            @I18n[I18nKey.Ui.AssemblySetup.NotRegistered]
+                            <button type="button" class="btn btn-primary btn-sm ms-2" @onclick="Register" disabled="@Busy">
+                                @I18n[I18nKey.Ui.AssemblySetup.RegisterButton]
+                            </button>
+                        </p>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-2">@I18n[I18nKey.Ui.AssemblySetup.ChannelsTitle]</h5>
+            <p class="text-secondary small">@I18n[I18nKey.Ui.AssemblySetup.ChannelsHint]</p>
+            @if (ChannelOptions.Count == 0) {
+                <p>@I18n[I18nKey.Ui.AssemblySetup.CheckFirst]</p>
+            } else {
+                @foreach (var role in Roles) {
+                    <div class="row mb-2 align-items-center">
+                        <label class="col-sm-3 col-form-label">@I18n[RoleKey(role)]</label>
+                        <div class="col-sm-5">
+                            <select class="form-select form-select-sm" value="@SelectedValue(role)" @onchange="e => SelectChannel(role, e.Value?.ToString())">
+                                <option value="">@I18n[I18nKey.Ui.AssemblySetup.ChannelNone]</option>
+                                @foreach (var option in ChannelOptions) {
+                                    <option value="@option.Id">@option.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4 small text-danger">
+                            @foreach (var problem in ProblemsFor(role)) {
+                                <div>@I18n[problem.MessageKey]</div>
+                            }
+                        </div>
+                    </div>
+                }
+                <button type="button" class="btn btn-primary btn-sm mt-2" @onclick="SaveChannels" disabled="@Busy">
+                    @I18n[I18nKey.Ui.AssemblySetup.SaveChannelsButton]
+                </button>
+                @if (CheckResult != null && CheckResult.Connected && CheckResult.Problems.Count == 0) {
+                    <span class="text-success small ms-2">@I18n[I18nKey.Ui.AssemblySetup.NoProblems]</span>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-2">@I18n[I18nKey.Ui.AssemblySetup.AclTitle]</h5>
+            <p class="mb-0">@I18n[I18nKey.Ui.AssemblySetup.AclHint]</p>
+        </div>
+    </div>
+
+    <ConfirmDialog @ref="ReplaceDialog" Message="@I18n[I18nKey.Ui.AssemblySetup.ReplaceConfirm]" />
+</RequirePermission>

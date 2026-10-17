@@ -1,0 +1,304 @@
+/* OBS overlay of the assembly assistant: transparent 1920x1080 canvas in the party's house fonts (Piratenwiki "Pirate Design/Schriften"). */
+@font-face {
+    font-family: "PoliticsHead";
+    src: url("../fonts/PoliticsHead.otf") format("opentype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "DejaRip";
+    src: url("../fonts/DejaRip.otf") format("opentype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "DejaRip";
+    src: url("../fonts/DejaRip-Bold.otf") format("opentype");
+    font-weight: 700;
+}
+
+html.assembly-overlay-mode,
+html.assembly-overlay-mode body {
+    background: transparent !important;
+    overflow: hidden;
+}
+
+html.assembly-overlay-mode .loading-progress,
+html.assembly-overlay-mode .loading-progress-text,
+html.assembly-overlay-mode #blazor-error-ui,
+html.assembly-overlay-mode .app-error-boundary {
+    display: none !important;
+}
+
+.assembly-overlay,
+.assembly-overlay-single {
+    --overlay-orange: #ff8800;
+    --overlay-panel: rgba(18, 18, 18, 0.86);
+    --overlay-warning: #ff8800;
+    --overlay-danger: #e53935;
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    font-family: "DejaRip", sans-serif;
+    color: #fff;
+}
+
+.assembly-overlay-item {
+    position: absolute;
+    top: 48px;
+    left: 80px;
+    max-width: 1100px;
+    padding: 10px 22px;
+    background: var(--overlay-panel);
+    border-left: 8px solid var(--overlay-orange);
+    font-family: "PoliticsHead", sans-serif;
+    font-size: 26px;
+    line-height: 36px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assembly-overlay-election {
+    position: absolute;
+    top: 48px;
+    right: 80px;
+    padding: 10px 22px;
+    background: var(--overlay-orange);
+    color: #111;
+    font-family: "PoliticsHead", sans-serif;
+    font-size: 26px;
+    line-height: 36px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.assembly-overlay-lower-third {
+    position: absolute;
+    left: 80px;
+    bottom: 80px;
+    width: 780px;
+    padding: 18px 28px 22px;
+    background: var(--overlay-panel);
+    border-left: 10px solid var(--overlay-orange);
+}
+
+.assembly-overlay-role {
+    font-family: "PoliticsHead", sans-serif;
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--overlay-orange);
+    line-height: 1.1;
+}
+
+.assembly-overlay-name {
+    font-weight: 700;
+    font-size: 46px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assembly-overlay-time-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 12px;
+}
+
+.assembly-overlay-bar {
+    flex: 1;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.assembly-overlay-bar-fill {
+    height: 100%;
+    background: #fff;
+    transition: width 0.25s linear, background-color 0.3s;
+}
+
+.assembly-overlay-time {
+    min-width: 130px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 38px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.assembly-overlay-warning .assembly-overlay-bar-fill {
+    background: var(--overlay-warning);
+}
+
+.assembly-overlay-warning .assembly-overlay-time {
+    color: var(--overlay-warning);
+}
+
+.assembly-overlay-expired .assembly-overlay-bar-fill {
+    background: var(--overlay-danger);
+}
+
+.assembly-overlay-expired .assembly-overlay-time {
+    color: var(--overlay-danger);
+}
+
+.assembly-overlay-next {
+    position: absolute;
+    right: 80px;
+    bottom: 80px;
+    width: 400px;
+    padding: 16px 24px;
+    background: var(--overlay-panel);
+}
+
+.assembly-overlay-next-title {
+    font-family: "PoliticsHead", sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--overlay-orange);
+}
+
+.assembly-overlay-next-name {
+    font-size: 26px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assembly-overlay-next-group + .assembly-overlay-next-group {
+    margin-top: 12px;
+}
+
+.assembly-overlay-poll {
+    position: absolute;
+    top: 124px;
+    right: 80px;
+    width: 700px;
+    padding: 16px 24px;
+    background: var(--overlay-panel);
+    border-left: 10px solid var(--overlay-orange);
+}
+
+.assembly-overlay-poll-header {
+    font-family: "PoliticsHead", sans-serif;
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--overlay-orange);
+}
+
+.assembly-overlay-poll-title {
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assembly-overlay-poll-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 26px;
+    line-height: 1.3;
+}
+
+.assembly-overlay-poll-time {
+    font-weight: 700;
+    font-size: 34px;
+    font-variant-numeric: tabular-nums;
+}
+
+.assembly-overlay-poll-result {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.assembly-overlay-poll-passed {
+    border-left-color: #43a047;
+}
+
+.assembly-overlay-poll-failed {
+    border-left-color: var(--overlay-danger);
+}
+
+/* ?element=: a single element at 0,0 in a fixed size, so the OBS browser source matches it exactly. */
+.assembly-overlay-single {
+    position: relative;
+    overflow: hidden;
+    font-family: "DejaRip", sans-serif;
+    color: #fff;
+}
+
+.assembly-overlay-single > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.assembly-overlay-single-item,
+.assembly-overlay-single-item > .assembly-overlay-item {
+    width: 1100px;
+    height: 56px;
+}
+
+.assembly-overlay-single-item > .assembly-overlay-item {
+    max-width: none;
+}
+
+.assembly-overlay-single-speaker,
+.assembly-overlay-single-speaker > .assembly-overlay-lower-third {
+    width: 780px;
+    height: 180px;
+}
+
+.assembly-overlay-single-speaker > .assembly-overlay-lower-third {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.assembly-overlay-single-next,
+.assembly-overlay-single-next > .assembly-overlay-next {
+    width: 400px;
+    height: 260px;
+}
+
+.assembly-overlay-single-election,
+.assembly-overlay-single-election > .assembly-overlay-election {
+    width: 360px;
+    height: 56px;
+}
+
+.assembly-overlay-single-election > .assembly-overlay-election {
+    text-align: center;
+}
+
+.assembly-overlay-single-poll,
+.assembly-overlay-single-poll > .assembly-overlay-poll {
+    width: 700px;
+    height: 150px;
+}
+
+.assembly-overlay-single-poll > .assembly-overlay-poll {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}

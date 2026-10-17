@@ -141,6 +141,11 @@
     </div>
 
     <div class="d-flex gap-2 flex-wrap">
+        <RequirePermission AnyOfPermissions="@(new List<string> { PermissionIdentifier.AssemblyChair, PermissionIdentifier.AssemblyView })">
+            <a href="/assembly/@Id" class="btn btn-outline-primary">
+                <i class="bi bi-mic"></i> @I18n[I18nKey.Ui.AssemblyConsole.OpenConsole]
+            </a>
+        </RequirePermission>
         @if (Event.Status == EventStatus.Draft) {
             <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
                 <i class="bi bi-clipboard"></i> @I18n[I18nKey.Ui.EventDetail.SaveAsTemplate]

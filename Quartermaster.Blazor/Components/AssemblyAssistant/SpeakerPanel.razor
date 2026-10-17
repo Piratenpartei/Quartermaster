@@ -1,0 +1,69 @@
+@using Quartermaster.Api.AssemblyAssistant
+@using Quartermaster.Api.I18n
+
+<div class="card">
+    <div class="card-header assembly-card-header">
+        <span>@I18n[I18nKey.Ui.AssemblyConsole.FloorTitle]</span>
+    </div>
+    @if (Floor.Count == 0) {
+        <div class="card-body small text-secondary">@I18n[I18nKey.Ui.AssemblyConsole.NobodyOnFloor]</div>
+    }
+    @foreach (var holder in Floor) {
+        var remaining = AssemblyDisplay.Remaining(holder.Timer, ServerNow);
+        var speaking = SpeakingSessions.Contains(holder.Session);
+        <div class="assembly-floor-item p-3">
+            <div class="d-flex align-items-start justify-content-between gap-3">
+                <div class="assembly-shrink flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="assembly-flag bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">@I18n[AssemblyDisplay.RoleKey(holder.Role)]</span>
+                        @if (speaking) {
+                            <span class="assembly-flag bg-success-subtle text-success-emphasis border-success-subtle">
+                                <i class="bi bi-mic-fill me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.Speaking]
+                            </span>
+                        }
+                    </div>
+                    <div class="fs-5 fw-semibold text-truncate" title="@holder.Name">@holder.Name</div>
+                    <div class="small text-secondary">@StatusText(holder)</div>
+                </div>
+                <div class="assembly-timer @AssemblyDisplay.TimerClass(remaining)">
+                    @(remaining == null ? "-" : AssemblyDisplay.FormatRemaining(remaining.Value))
+                </div>
+            </div>
+            @if (CanControl && !holder.DonePending) {
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                    <button type="button" class="btn btn-primary btn-sm" @onclick="() => OnDone.InvokeAsync(holder.Session)">
+                        <i class="bi bi-check-lg me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.Done]
+                    </button>
+                    @if (holder.Timer.AllottedSeconds != null) {
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="() => OnAddMinute.InvokeAsync(holder.Session)">
+                                @I18n[I18nKey.Ui.AssemblyConsole.AddMinute]
+                            </button>
+                            @if (holder.Timer.Paused) {
+                                <button type="button" class="btn btn-outline-secondary" @onclick="() => OnResume.InvokeAsync(holder.Session)">
+                                    <i class="bi bi-play-fill me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.Resume]
+                                </button>
+                            } else if (holder.Timer.StartedAt != null) {
+                                <button type="button" class="btn btn-outline-secondary" @onclick="() => OnPause.InvokeAsync(holder.Session)">
+                                    <i class="bi bi-pause-fill me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.Pause]
+                                </button>
+                            }
+                        </div>
+                    }
+                    @if (holder.Timer.StartedAt == null) {
+                        <button type="button" class="btn btn-sm @(holder.Timer.OfferStartNow ? "btn-warning" : "btn-outline-secondary")" @onclick="() => OnStartNow.InvokeAsync(holder.Session)">
+                            <i class="bi bi-play-fill me-1"></i>@I18n[I18nKey.Ui.AssemblyConsole.StartNow]
+                        </button>
+                    }
+                    <div class="input-group input-group-sm assembly-time-input ms-auto" title="@I18n[I18nKey.Ui.AssemblyConsole.SetTime]">
+                        <input type="number" class="form-control" min="1" max="3600" placeholder="@I18n[I18nKey.Ui.AssemblyConsole.SecondsShort]"
+                               @bind="TimeInputs[holder.Session]" />
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => SetTime(holder.Session)">
+                            <i class="bi bi-stopwatch"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
