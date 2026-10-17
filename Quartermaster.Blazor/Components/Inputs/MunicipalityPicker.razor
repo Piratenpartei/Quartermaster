@@ -1,11 +1,14 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.AdministrativeDivisions
 
-<div class="row g-3 mb-3 align-items-end">
+<div class="row g-3 mb-3 align-items-start">
     <div class="col-md">
         <label class="form-label">@I18n[I18nKey.Ui.MunicipalityPicker.NameLabel]</label>
         <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.MunicipalityPicker.NamePlaceholder]"
                value="@NameQuery" @oninput="OnNameInput" />
+        <div class="form-text">
+            <a href="/Attributions#geonames" class="link-secondary">@I18n[I18nKey.Ui.MunicipalityPicker.DataSource]</a>
+        </div>
     </div>
     <div class="col-md-auto">
         <label class="form-label">@I18n[I18nKey.Ui.MunicipalityPicker.PostCodeLabel]</label>

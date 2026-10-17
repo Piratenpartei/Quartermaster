@@ -2,53 +2,55 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
 
-<div class="mb-3">
-    <h3>@I18n[I18nKey.Ui.Declarations.PageTitle]</h3>
-</div>
+<PublicFormGate Forms="@([PublicFormKind.MembershipApplication])">
+    <div class="mb-3">
+        <h3>@I18n[I18nKey.Ui.Declarations.PageTitle]</h3>
+    </div>
 
-@if (EntryState == null)
-    return;
+    @if (EntryState == null)
+        return;
 
-<div class="mb-3">
-    <Checkbox @bind-Value=EntryState.ConformityDeclarationAccepted>
-        <strong>@I18n[I18nKey.Ui.Declarations.ConformityHeader]</strong> <RequiredStar />
-    </Checkbox>
-    <p class="text-secondary small ms-4">
-        @I18n[I18nKey.Ui.Declarations.ConformityBody]
-    </p>
-</div>
+    <div class="mb-3">
+        <Checkbox @bind-Value=EntryState.ConformityDeclarationAccepted>
+            <strong>@I18n[I18nKey.Ui.Declarations.ConformityHeader]</strong> <RequiredStar />
+        </Checkbox>
+        <p class="text-secondary small ms-4">
+            @I18n[I18nKey.Ui.Declarations.ConformityBody]
+        </p>
+    </div>
 
-<div class="mb-3">
-    <Checkbox @bind-Value=NoPriorDeclinedApplication>
-        @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedLabel]
-    </Checkbox>
-    <p class="text-secondary small ms-4">
-        @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedHint]
-    </p>
-</div>
+    <div class="mb-3">
+        <Checkbox @bind-Value=NoPriorDeclinedApplication>
+            @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedLabel]
+        </Checkbox>
+        <p class="text-secondary small ms-4">
+            @I18n[I18nKey.Ui.Declarations.NoPriorDeclinedHint]
+        </p>
+    </div>
 
-<div class="mb-3">
-    <Checkbox @bind-Value=EntryState.IsMemberOfAnotherParty>
-        @I18n[I18nKey.Ui.Declarations.OtherPartyLabel]
-    </Checkbox>
-    <p class="text-secondary small ms-4">
-        @I18n[I18nKey.Ui.Declarations.OtherPartyHint]
-    </p>
-</div>
+    <div class="mb-3">
+        <Checkbox @bind-Value=EntryState.IsMemberOfAnotherParty>
+            @I18n[I18nKey.Ui.Declarations.OtherPartyLabel]
+        </Checkbox>
+        <p class="text-secondary small ms-4">
+            @I18n[I18nKey.Ui.Declarations.OtherPartyHint]
+        </p>
+    </div>
 
-<div class="mb-3">
-    <label for="entryDate" class="form-label">@I18n[I18nKey.Ui.Declarations.EntryDateLabel]</label>
-    <input type="date" class="form-control" id="entryDate" @bind=EntryState.EntryDate />
-</div>
+    <div class="mb-3">
+        <label for="entryDate" class="form-label">@I18n[I18nKey.Ui.Declarations.EntryDateLabel]</label>
+        <input type="date" class="form-control" id="entryDate" @bind=EntryState.EntryDate />
+    </div>
 
-<div class="mb-3">
-    <label for="applicationText" class="form-label">@I18n[I18nKey.Ui.Declarations.AdditionalMessageLabel]</label>
-    <textarea class="form-control" rows="4" id="applicationText" @bind=EntryState.ApplicationText @bind:event="oninput"
-              maxlength="2048"></textarea>
-</div>
+    <div class="mb-3">
+        <label for="applicationText" class="form-label">@I18n[I18nKey.Ui.Declarations.AdditionalMessageLabel]</label>
+        <textarea class="form-control" rows="4" id="applicationText" @bind=EntryState.ApplicationText @bind:event="oninput"
+                  maxlength="2048"></textarea>
+    </div>
 
-<div class="d-flex justify-content-between">
-    <a href="/MembershipApplication/DuesTypeSelection" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
-    <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
-       href="/MembershipApplication/Summary">@I18n[I18nKey.Ui.Common.Next]</a>
-</div>
+    <div class="d-flex justify-content-between">
+        <a href="/MembershipApplication/DuesTypeSelection" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
+        <a class="btn btn-primary @(CanContinue() ? "" : "disabled")"
+           href="/MembershipApplication/Summary">@I18n[I18nKey.Ui.Common.Next]</a>
+    </div>
+</PublicFormGate>

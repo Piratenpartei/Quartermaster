@@ -67,9 +67,14 @@ public static class I18nKey {
             }
         }
 
+        public static class PublicForm {
+            public const string Disabled = "error.public_form.disabled";
+        }
+
         public static class Motion {
             public const string ChapterRequired = "error.motion.chapter_required";
             public const string ChapterNotFound = "error.motion.chapter_not_found";
+            public const string PublicFormDisabled = "error.motion.public_form_disabled";
             public const string SubmitterNameRequired = "error.motion.submitter_name_required";
             public const string SubmitterNameMaxLength = "error.motion.submitter_name_max_length";
             public const string EmailRequired = "error.motion.email_required";
@@ -477,6 +482,7 @@ public static class I18nKey {
         public static class MotionCreate {
             public const string AdminPageTitle = "ui.motion_create.admin_page_title";
             public const string PublicPageTitle = "ui.motion_create.public_page_title";
+            public const string ChapterPlaceholder = "ui.motion_create.chapter_placeholder";
             public const string AuthorNameLabel = "ui.motion_create.author_name_label";
             public const string AuthorEmailLabel = "ui.motion_create.author_email_label";
             public const string YourName = "ui.motion_create.your_name";
@@ -724,6 +730,7 @@ public static class I18nKey {
         public static class Home {
             public const string PageTitle = "ui.home.page_title";
             public const string Heading = "ui.home.heading";
+            public const string Intro = "ui.home.intro";
             public const string PendingApplicationsTitle = "ui.home.pending_applications_title";
             public const string PendingApplicationsEmpty = "ui.home.pending_applications_empty";
             public const string SubmittedColumn = "ui.home.submitted_column";
@@ -734,8 +741,6 @@ public static class I18nKey {
             public const string OpenMotionsEmpty = "ui.home.open_motions_empty";
             public const string UpcomingEventsTitle = "ui.home.upcoming_events_title";
             public const string UpcomingEventDateOpen = "ui.home.upcoming_event_date_open";
-            public const string WelcomeText = "ui.home.welcome_text";
-            public const string ChangelogTitle = "ui.home.changelog_title";
         }
 
         public static class ConfirmSubmission {
@@ -2250,6 +2255,28 @@ public static class I18nKey {
             public const string PostCodePlaceholder = "ui.municipality_picker.post_code_placeholder";
             public const string MunicipalityLabel = "ui.municipality_picker.municipality_label";
             public const string NoResults = "ui.municipality_picker.no_results";
+            public const string DataSource = "ui.municipality_picker.data_source";
+        }
+
+        public static class Footer {
+            public const string OpenSource = "ui.footer.open_source";
+            public const string Attributions = "ui.footer.attributions";
+        }
+
+        public static class Attributions {
+            public const string PageTitle = "ui.attributions.page_title";
+            public const string OwnLicense = "ui.attributions.own_license";
+            public const string GeoNamesText = "ui.attributions.geonames_text";
+            public const string CcByLicenseLink = "ui.attributions.cc_by_license_link";
+            public const string FontsHeading = "ui.attributions.fonts_heading";
+            public const string FontsText = "ui.attributions.fonts_text";
+            public const string FontsLink = "ui.attributions.fonts_link";
+            public const string LibrariesHeading = "ui.attributions.libraries_heading";
+            public const string LibrariesText = "ui.attributions.libraries_text";
+            public const string ScopeServer = "ui.attributions.scope_server";
+            public const string ScopeBrowser = "ui.attributions.scope_browser";
+            public const string ColumnProject = "ui.attributions.column_project";
+            public const string ColumnLicense = "ui.attributions.column_license";
         }
 
         public static class AdminDivisionPicker {

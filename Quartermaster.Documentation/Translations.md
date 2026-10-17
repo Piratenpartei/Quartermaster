@@ -12,6 +12,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Gemeindedatenbank | Administrative Division Database | Gemeinde = municipality/administrative division, Datenbank = database |
 | Beitragseinstufung | Dues Classification | The process of selecting/classifying membership dues |
 | Zusammenfassung | Summary | |
+| Quellen & Lizenzen | Sources & licenses | Attribution page for data, fonts and open source libraries |
 
 ## Dues Selection (Beitragseinstufung)
 

@@ -4,57 +4,59 @@
 @using Quartermaster.Api.Motions
 @inject I18nService I18n
 
-<div class="mb-3">
-    <h3>@I18n[I18nKey.Ui.MotionCreate.PublicPageTitle]</h3>
-</div>
-
-@if (SubmittedDirect) {
-    <div class="alert alert-success">
-        <i class="bi bi-check-circle me-2"></i>
-        @I18n[I18nKey.Ui.MotionCreate.SubmittedDirectSuccess]
+<PublicFormGate Forms="@([PublicFormKind.Motion])">
+    <div class="mb-3">
+        <h3>@I18n[I18nKey.Ui.MotionCreate.PublicPageTitle]</h3>
     </div>
-    return;
-}
 
-@if (SubmittedEmail != null) {
-    <SubmissionConfirmationNotice Email="@SubmittedEmail" />
-    return;
-}
+    @if (SubmittedDirect) {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>
+            @I18n[I18nKey.Ui.MotionCreate.SubmittedDirectSuccess]
+        </div>
+        return;
+    }
 
-<div class="mb-3">
-    <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter] <RequiredStar /></label>
-    <ChapterPicker @bind-Value="SelectedChapterId" />
-</div>
+    @if (SubmittedEmail != null) {
+        <SubmissionConfirmationNotice Email="@SubmittedEmail" />
+        return;
+    }
 
-<div class="mb-3">
-    <label for="authorName" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourName] <RequiredStar /></label>
-    <input type="text" class="form-control" id="authorName" @bind="AuthorName" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
-</div>
+    <div class="mb-3">
+        <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter] <RequiredStar /></label>
+        <ChapterPicker @bind-Value="SelectedChapterId" OnlyIds="@Config.MotionFormChapterIds" AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.MotionCreate.ChapterPlaceholder]" />
+    </div>
 
-<div class="mb-3">
-    <label for="authorEmail" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourEmail] <RequiredStar /></label>
-    <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
-</div>
+    <div class="mb-3">
+        <label for="authorName" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourName] <RequiredStar /></label>
+        <input type="text" class="form-control" id="authorName" @bind="AuthorName" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
+    </div>
 
-@if (AuthService.IsAuthenticated) {
-    <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.MotionCreate.AuthedPrefillShort]</p>
-}
+    <div class="mb-3">
+        <label for="authorEmail" class="form-label">@I18n[I18nKey.Ui.MotionCreate.YourEmail] <RequiredStar /></label>
+        <input type="email" class="form-control" id="authorEmail" @bind="AuthorEmail" @bind:event="oninput" disabled="@AuthService.IsAuthenticated" />
+    </div>
 
-<div class="mb-3">
-    <label for="title" class="form-label">@I18n[I18nKey.Ui.MotionCreate.MotionTitleLabel] <RequiredStar /></label>
-    <input type="text" class="form-control" id="title" @bind="Title" @bind:event="oninput" />
-</div>
+    @if (AuthService.IsAuthenticated) {
+        <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.MotionCreate.AuthedPrefillShort]</p>
+    }
 
-<div class="mb-3">
-    <label for="text" class="form-label">@I18n[I18nKey.Ui.MotionCreate.BodyLabel] <RequiredStar /></label>
-    <textarea class="form-control" rows="6" id="text" @bind="Text" @bind:event="oninput" maxlength="8192"></textarea>
-</div>
+    <div class="mb-3">
+        <label for="title" class="form-label">@I18n[I18nKey.Ui.MotionCreate.MotionTitleLabel] <RequiredStar /></label>
+        <input type="text" class="form-control" id="title" @bind="Title" @bind:event="oninput" />
+    </div>
 
-<div class="d-flex justify-content-end">
-    <button class="btn btn-primary btn-hover-scale1" @onclick="Submit" disabled="@(!CanSubmit() || Submitting)">
-        @if (Submitting) {
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-        }
-        @I18n[I18nKey.Ui.MotionCreate.SubmitPublic]
-    </button>
-</div>
+    <div class="mb-3">
+        <label for="text" class="form-label">@I18n[I18nKey.Ui.MotionCreate.BodyLabel] <RequiredStar /></label>
+        <textarea class="form-control" rows="6" id="text" @bind="Text" @bind:event="oninput" maxlength="8192"></textarea>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button class="btn btn-primary btn-hover-scale1" @onclick="Submit" disabled="@(!CanSubmit() || Submitting)">
+            @if (Submitting) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            @I18n[I18nKey.Ui.MotionCreate.SubmitPublic]
+        </button>
+    </div>
+</PublicFormGate>

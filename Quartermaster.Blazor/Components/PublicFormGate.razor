@@ -1,0 +1,9 @@
+@using Quartermaster.Api.I18n
+
+@if (IsOpen()) {
+    @ChildContent
+} else {
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>@I18n[I18nKey.Error.PublicForm.Disabled]
+    </div>
+}

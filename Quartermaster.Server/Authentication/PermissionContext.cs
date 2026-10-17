@@ -73,6 +73,16 @@ public class PermissionContext {
         return _chapterPermRepo.HasPermissionWithInheritance(uid.Value, chapterId, permission, _chapterRepo);
     }
 
+    /// <summary>True if authenticated and holds the permission globally or on at least one chapter.</summary>
+    public bool HasInAnyChapter(string permission) {
+        var uid = UserId;
+        if (uid == null)
+            return false;
+        if (HasGlobal(permission))
+            return true;
+        return _chapterPermRepo.GetAllForUser(uid.Value).Any(kvp => kvp.Value.Contains(permission));
+    }
+
     /// <summary>
     /// True if authenticated and holds the permission on the exact chapter — no inheritance.
     /// Use for chapter-bound privileges (voting) where parent-chapter holders must NOT inherit.

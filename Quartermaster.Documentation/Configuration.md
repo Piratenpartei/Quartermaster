@@ -377,6 +377,20 @@ OBS overlay:
 | `auth.lockout.max_attempts` | `5` | Failed login attempts per (IP, user) tuple before lockout |
 | `auth.lockout.duration_minutes` | `15` | Both the rolling window for attempt counting and the lockout duration after the threshold trips |
 
+### Public forms
+
+The public membership application, due selection and motion form ship switched off. A switched-off form disappears from the "Member portal" menu (the menu itself disappears when all three are off), its pages show a "not available" notice, and the server refuses submissions.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `public_forms.membership_application.enabled` | `false` | `true` opens the membership application form |
+| `public_forms.due_selection.enabled` | `false` | `true` opens the due selection form |
+| `public_forms.motion.enabled` | `false` | `true` lets the chapter take motions through the public form (per-chapter overridable) |
+
+- The motion form only offers chapters that are switched on. A value set on a chapter also applies to its sub-chapters unless they set their own, so switching on a state chapter opens the form for all its districts; the menu entry shows as soon as one chapter is switched on.
+- Holders of `applications_process` or `dueselections_process` (in any chapter) still reach and submit those forms while they are off, so officers can enter paper submissions. The board's own motion page (Board work, Motions, Create) keeps working for holders of `motions_edit`.
+- The browser reads the switches once when the app loads; visitors see a change after reloading.
+
 ### Rate limiting (anonymous endpoints)
 
 Shared bucket across all anonymous POST endpoints (motion create, membership application create, due-selection create). Hot-reloaded — takes effect for new IP buckets immediately and for active buckets after their current window expires.
@@ -411,8 +425,20 @@ The following options can be overridden per chapter; users see the override that
 - `general.contact.email`
 - `general.error.contact`
 - `meetings.motion_notes_template`
+- `public_forms.motion.enabled`
 
 Edit per-chapter values from the chapter detail page rather than the global Options UI.
+
+## Administrative divisions (GeoNames)
+
+Municipalities and postcodes come from GeoNames (CC BY 4.0) and ship as two files beside the server binary:
+
+- `DE_Base.txt`: `DE.txt` from https://download.geonames.org/export/dump/DE.zip
+- `DE_PostCodes.txt`: `DE.txt` from https://download.geonames.org/export/zip/DE.zip
+
+On startup and then daily the server hashes both files and imports them when they changed. Renamed units are updated in place; a removed unit is replaced by the unit that now holds its postcode (or its parent), and members and chapters pointing at it move along; units without a replacement are marked orphaned. The import history is under System, Import status. German municipal reforms mostly take effect on 1 January, so refresh the files early in the year.
+
+The license requires naming GeoNames as the source: the "Sources & licenses" page (`/Attributions#geonames`, linked from the footer) does that, and the municipality search links to it.
 
 ## Notification templates
 

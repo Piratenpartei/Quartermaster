@@ -11,6 +11,8 @@ A membership management and dues payment system for the Pirate Party (Piratenpar
 - **Blazor WebAssembly** — client-side frontend with Bootstrap 5
 - Custom token-based authentication + SAML SSO support
 
+Every shipped third-party package, vendored browser library and data source is credited on the "Sources & licenses" page (`/Attributions`, linked from the footer). The list lives in `Quartermaster.Blazor/Pages/Attributions/OpenSourceLibraries.cs`; `OpenSourceLibrariesTests` fails when a project gains or drops a NuGet package that the list does not reflect. Vendored browser files have no package reference, so add them by hand.
+
 ## Solution Structure
 
 | Project | Role |
@@ -43,7 +45,7 @@ A membership management and dues payment system for the Pirate Party (Piratenpar
 
 ### Administrative Divisions
 - Hierarchical German geographic data (countries → states → districts → cities)
-- Loaded from bundled data files (~199K records)
+- Loaded from bundled GeoNames data files (CC BY 4.0, credited on `/Attributions` and next to the municipality search)
 - Linked to members via citizenship and address
 - Associated with postal codes
 

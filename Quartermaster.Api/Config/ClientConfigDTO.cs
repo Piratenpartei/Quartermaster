@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Quartermaster.Api.Config;
 
 public class ClientConfigDTO {
@@ -9,4 +12,7 @@ public class ClientConfigDTO {
     public bool OidcEnabled { get; set; }
     public string OidcButtonText { get; set; } = "";
     public bool IsDebug { get; set; }
+    public bool MembershipApplicationEnabled { get; set; }
+    public bool DueSelectionEnabled { get; set; }
+    public List<Guid> MotionFormChapterIds { get; set; } = [];
 }

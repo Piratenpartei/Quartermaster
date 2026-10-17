@@ -1,0 +1,58 @@
+@page "/Attributions"
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.Attributions.PageTitle]</PageTitle>
+
+<h1 class="mb-3">@I18n[I18nKey.Ui.Attributions.PageTitle]</h1>
+
+<section class="mb-4">
+    <h2 class="h4">Quartermaster</h2>
+    <p>@I18n[I18nKey.Ui.Attributions.OwnLicense]</p>
+</section>
+
+<section id="geonames" class="mb-4">
+    <h2 class="h4">GeoNames</h2>
+    <p>@I18n[I18nKey.Ui.Attributions.GeoNamesText]</p>
+    <ul>
+        <li><a href="https://www.geonames.org" target="_blank" rel="noopener">geonames.org</a></li>
+        <li><a href="https://creativecommons.org/licenses/by/4.0/deed.de" target="_blank" rel="noopener">@I18n[I18nKey.Ui.Attributions.CcByLicenseLink]</a></li>
+    </ul>
+</section>
+
+<section id="fonts" class="mb-4">
+    <h2 class="h4">@I18n[I18nKey.Ui.Attributions.FontsHeading]</h2>
+    <p>@I18n[I18nKey.Ui.Attributions.FontsText]</p>
+    <ul>
+        <li><a href="https://wiki.piratenpartei.de/Pirate_Design/Schriften" target="_blank" rel="noopener">@I18n[I18nKey.Ui.Attributions.FontsLink]</a></li>
+    </ul>
+</section>
+
+<section id="libraries" class="mb-4">
+    <h2 class="h4">@I18n[I18nKey.Ui.Attributions.LibrariesHeading]</h2>
+    <p>@I18n[I18nKey.Ui.Attributions.LibrariesText]</p>
+    @foreach (var scope in Scopes) {
+        <h3 class="h6 mt-3">@ScopeLabel(scope)</h3>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped mb-0 attribution-table">
+                <colgroup>
+                    <col class="attribution-project" />
+                    <col />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.Attributions.ColumnProject]</th>
+                        <th>@I18n[I18nKey.Ui.Attributions.ColumnLicense]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var library in LibrariesIn(scope)) {
+                        <tr>
+                            <td><a href="@library.Url" target="_blank" rel="noopener">@library.Name</a></td>
+                            <td>@library.License</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

@@ -63,6 +63,11 @@ public abstract class IntegrationTestBase : IDisposable {
             var optionRepo = scope.ServiceProvider.GetRequiredService<OptionRepository>();
             optionRepo.SetValue("email.smtp.host", null, "smtp.test.local");
             optionRepo.SetValue("email.smtp.sender_address", null, "no-reply@test.local");
+
+            // The public forms ship switched off; the submission tests exercise them switched on.
+            optionRepo.SetValue(PublicFormOptions.MembershipApplication, null, "true");
+            optionRepo.SetValue(PublicFormOptions.DueSelection, null, "true");
+            optionRepo.SetValue(PublicFormOptions.Motion, null, "true");
         }
     }
 

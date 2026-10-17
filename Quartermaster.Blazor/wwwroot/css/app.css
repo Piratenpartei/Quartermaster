@@ -372,3 +372,12 @@ code {
 .assembly-shrink {
     min-width: 0;
 }
+
+/* Fixed layout so the server and browser tables on the attributions page line up. */
+.attribution-table {
+    table-layout: fixed;
+}
+
+.attribution-project {
+    width: 70%;
+}

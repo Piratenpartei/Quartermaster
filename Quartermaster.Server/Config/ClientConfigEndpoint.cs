@@ -3,14 +3,17 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.Config;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.PublicForms;
 
 namespace Quartermaster.Server.Config;
 
 public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
     private readonly OptionRepository _optionRepo;
+    private readonly PublicFormSettings _publicForms;
 
-    public ClientConfigEndpoint(OptionRepository optionRepo) {
+    public ClientConfigEndpoint(OptionRepository optionRepo, PublicFormSettings publicForms) {
         _optionRepo = optionRepo;
+        _publicForms = publicForms;
     }
 
     public override void Configure() {
@@ -35,6 +38,9 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
             SsoSupportContact = ssoSupportContact,
             OidcEnabled = !string.IsNullOrEmpty(oidcAuthority),
             OidcButtonText = oidcButtonText,
+            MembershipApplicationEnabled = _publicForms.IsMembershipApplicationEnabled(),
+            DueSelectionEnabled = _publicForms.IsDueSelectionEnabled(),
+            MotionFormChapterIds = _publicForms.MotionFormChapterIds(),
 #if DEBUG
             IsDebug = true
 #else

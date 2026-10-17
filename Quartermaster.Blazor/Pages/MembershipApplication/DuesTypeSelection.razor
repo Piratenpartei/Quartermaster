@@ -3,41 +3,43 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Pages.DueSelector
 
-<div class="mb-3">
-    <h3>@I18n[I18nKey.Ui.DuesTypeSelection.PageTitle]</h3>
-    <p class="text-secondary">@I18n[I18nKey.Ui.DuesTypeSelection.Instruction]</p>
-</div>
+<PublicFormGate Forms="@([PublicFormKind.MembershipApplication])">
+    <div class="mb-3">
+        <h3>@I18n[I18nKey.Ui.DuesTypeSelection.PageTitle]</h3>
+        <p class="text-secondary">@I18n[I18nKey.Ui.DuesTypeSelection.Instruction]</p>
+    </div>
 
-@if (EntryState == null)
-    return;
+    @if (EntryState == null)
+        return;
 
-<div class="mb-2">
-    <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.OnePercentYearlyPay))>
-        <span>@I18n[I18nKey.Ui.DuesTypeSelection.OnePercentLabel]</span>
-        <span class="fw-bold">@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]</span>
-    </CardLink>
-</div>
+    <div class="mb-2">
+        <CardLink HRef="/DueSelector/SelectOnePercentYearlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.OnePercentYearlyPay))>
+            <span>@I18n[I18nKey.Ui.DuesTypeSelection.OnePercentLabel]</span>
+            <span class="fw-bold">@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]</span>
+        </CardLink>
+    </div>
 
-<div class="mb-2">
-    <CardLink HRef="/DueSelector/SelectByMonthlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.MonthlyPayGroup))>
-        <span>@I18n[I18nKey.Ui.DuesTypeSelection.MonthlyPayLabel]</span>
-    </CardLink>
-</div>
+    <div class="mb-2">
+        <CardLink HRef="/DueSelector/SelectByMonthlyPay" OnNavigate=@(() => SelectDueType(SelectedValuation.MonthlyPayGroup))>
+            <span>@I18n[I18nKey.Ui.DuesTypeSelection.MonthlyPayLabel]</span>
+        </CardLink>
+    </div>
 
-<div class="mb-2">
-    <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/MembershipApplication/DuesTypeSelection")}")"
-              OnNavigate=@HandleUnderage>
-        <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageLabel]</span><br />
-        <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageHint]</span>
-    </CardLink>
-</div>
+    <div class="mb-2">
+        <CardLink HRef="@($"/DueSelector/PaymentOptionSelection/{System.Net.WebUtility.UrlEncode("/MembershipApplication/DuesTypeSelection")}")"
+                  OnNavigate=@HandleUnderage>
+            <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageLabel]</span><br />
+            <span>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageHint]</span>
+        </CardLink>
+    </div>
 
-<div class="mb-3">
-    <CardLink HRef="/DueSelector/SelectReduced" OnNavigate=@(() => SelectDueType(SelectedValuation.Reduced))>
-        <span>@I18n[I18nKey.Ui.DuesTypeSelection.ReducedLabel]</span>
-    </CardLink>
-</div>
+    <div class="mb-3">
+        <CardLink HRef="/DueSelector/SelectReduced" OnNavigate=@(() => SelectDueType(SelectedValuation.Reduced))>
+            <span>@I18n[I18nKey.Ui.DuesTypeSelection.ReducedLabel]</span>
+        </CardLink>
+    </div>
 
-<div>
-    <a href="/MembershipApplication/Address" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
-</div>
+    <div>
+        <a href="/MembershipApplication/Address" class="btn btn-primary">@I18n[I18nKey.Ui.Common.Back]</a>
+    </div>
+</PublicFormGate>

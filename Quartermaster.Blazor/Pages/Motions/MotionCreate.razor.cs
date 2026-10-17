@@ -16,6 +16,8 @@ public partial class MotionCreate {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required AuthService AuthService { get; set; }
+    [Inject]
+    public required ClientConfigService Config { get; set; }
 
     private string SelectedChapterId { get; set; } = "";
     private string AuthorName { get; set; } = "";

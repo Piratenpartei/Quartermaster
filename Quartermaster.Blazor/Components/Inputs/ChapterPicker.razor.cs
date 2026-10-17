@@ -40,6 +40,10 @@ public partial class ChapterPicker {
     [Parameter]
     public List<Guid>? ExcludeIds { get; set; }
 
+    /// <summary>When set, only these chapters are selectable (e.g. chapters that take motions through the public form).</summary>
+    [Parameter]
+    public IReadOnlyCollection<Guid>? OnlyIds { get; set; }
+
     /// <summary>Opt-in: include archived chapters. Default is to hide them, which is correct for "assign new thing to chapter" surfaces; filter/browse surfaces can flip this.</summary>
     [Parameter]
     public bool IncludeArchived { get; set; }
@@ -57,6 +61,10 @@ public partial class ChapterPicker {
             if (ExcludeIds != null && ExcludeIds.Count > 0) {
                 var excluded = new HashSet<Guid>(ExcludeIds);
                 source = source.Where(c => !excluded.Contains(c.Id));
+            }
+            if (OnlyIds != null) {
+                var allowed = new HashSet<Guid>(OnlyIds);
+                source = source.Where(c => allowed.Contains(c.Id));
             }
             return source.ToList();
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -22,6 +23,10 @@ public class ClientConfigService {
     public bool OidcEnabled => _config?.OidcEnabled ?? false;
     public string OidcButtonText => _config?.OidcButtonText ?? "OpenID Login";
     public bool IsDebug => _config?.IsDebug ?? false;
+    public bool MembershipApplicationEnabled => _config?.MembershipApplicationEnabled ?? false;
+    public bool DueSelectionEnabled => _config?.DueSelectionEnabled ?? false;
+    public IReadOnlyList<Guid> MotionFormChapterIds => _config?.MotionFormChapterIds ?? [];
+    public bool MotionFormEnabled => MotionFormChapterIds.Count > 0;
 
     public async Task LoadAsync(bool forceRefresh = false) {
         if (_config != null && !forceRefresh)

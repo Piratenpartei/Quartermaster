@@ -1,0 +1,8 @@
+@using Quartermaster.Api.I18n
+
+<footer class="border-top py-3 small text-secondary">
+    <div class="@(Fluid ? "container-fluid" : "container") d-flex flex-wrap justify-content-between gap-2">
+        <span>@I18n[I18nKey.Ui.Footer.OpenSource]</span>
+        <a href="/Attributions" class="link-secondary">@I18n[I18nKey.Ui.Footer.Attributions]</a>
+    </div>
+</footer>

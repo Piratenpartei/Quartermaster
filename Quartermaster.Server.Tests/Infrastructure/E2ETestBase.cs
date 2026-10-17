@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,6 +88,13 @@ public abstract class E2ETestBase : PageTest, IDisposable {
         Db.SystemOptions
             .Where(o => o.Identifier == "meetings.collab.save_interval_seconds" && o.ChapterId == null)
             .Set(o => o.Value, "1")
+            .Update();
+
+        // The public forms ship switched off; the E2E tests open them.
+        string[] publicForms = [PublicFormOptions.MembershipApplication, PublicFormOptions.DueSelection, PublicFormOptions.Motion];
+        Db.SystemOptions
+            .Where(o => publicForms.Contains(o.Identifier) && o.ChapterId == null)
+            .Set(o => o.Value, "true")
             .Update();
     }
 

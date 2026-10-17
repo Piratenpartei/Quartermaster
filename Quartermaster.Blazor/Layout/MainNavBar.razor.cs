@@ -33,6 +33,18 @@ public partial class MainNavBar : IDisposable {
     [Inject]
     public required I18nService I18n { get; set; }
 
+    private bool IsFormOpen(PublicFormKind form) {
+        return PublicFormGate.IsOpen(form, ConfigService, AuthService);
+    }
+
+    private bool ShowMemberPortal() {
+        if (IsFormOpen(PublicFormKind.DueSelection))
+            return true;
+        if (IsFormOpen(PublicFormKind.MembershipApplication))
+            return true;
+        return IsFormOpen(PublicFormKind.Motion);
+    }
+
     private void ToggleMenu() {
         Collapsed = !Collapsed;
     }

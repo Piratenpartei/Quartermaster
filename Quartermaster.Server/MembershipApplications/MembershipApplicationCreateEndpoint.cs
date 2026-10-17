@@ -4,9 +4,12 @@ using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.RateLimiting;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.PublicForms;
 using Quartermaster.Server.Submissions;
 #if DEBUG
 using Quartermaster.Data.Options;
@@ -18,18 +21,20 @@ namespace Quartermaster.Server.MembershipApplications;
 /// <summary>
 /// Membership-application submission. Authenticated callers (officers entering a paper
 /// application on someone else's behalf) create directly; anonymous applicants go through
-/// the email-confirm pending flow.
+/// the email-confirm pending flow. While the public form is switched off, only holders of applications_process
+/// may still submit.
 /// </summary>
 public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicationDTO, SubmissionAcceptedResponse> {
     private readonly SubmissionIntakeService _intake;
     private readonly SubmissionMaterializer _materializer;
     private readonly PermissionContext _perms;
+    private readonly PublicFormSettings _publicForms;
 #if DEBUG
     private readonly OptionRepository _optionRepo;
 #endif
 
     public MembershipApplicationCreateEndpoint(SubmissionIntakeService intake,
-        SubmissionMaterializer materializer, PermissionContext perms
+        SubmissionMaterializer materializer, PermissionContext perms, PublicFormSettings publicForms
 #if DEBUG
         , OptionRepository optionRepo
 #endif
@@ -37,6 +42,7 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
         _intake = intake;
         _materializer = materializer;
         _perms = perms;
+        _publicForms = publicForms;
 #if DEBUG
         _optionRepo = optionRepo;
 #endif
@@ -49,6 +55,9 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     }
 
     public override async Task HandleAsync(MembershipApplicationDTO req, CancellationToken ct) {
+        if (!_publicForms.IsMembershipApplicationEnabled() && !_perms.HasInAnyChapter(PermissionIdentifier.ProcessApplications))
+            ThrowError(I18nKey.Error.PublicForm.Disabled, 403);
+
         var skipConfirmation = false;
 #if DEBUG
         skipConfirmation = SmtpConfig.ReadFrom(_optionRepo) == null;

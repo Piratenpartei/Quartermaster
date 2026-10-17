@@ -96,21 +96,6 @@ public partial class RequirePermission : IDisposable {
     }
 
     private bool HasAnyChapterPermission(string permission) {
-        if (!AuthService.IsAuthenticated)
-            return false;
-
-        if (AuthService.HasGlobalPermission(permission))
-            return true;
-
-        var chapters = AuthService.Permissions?.Chapters;
-        if (chapters == null)
-            return false;
-
-        foreach (var (_, perms) in chapters) {
-            if (perms.Contains(permission))
-                return true;
-        }
-
-        return false;
+        return AuthService.IsAuthenticated && AuthService.HasPermissionInAnyChapter(permission);
     }
 }

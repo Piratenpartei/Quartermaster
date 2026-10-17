@@ -38,6 +38,10 @@ public class OptionRepository {
     public List<SystemOption> GetAllValues()
         => _context.SystemOptions.ToList();
 
+    /// <summary>The global value and every chapter override of one option.</summary>
+    public List<SystemOption> GetValues(string identifier)
+        => _context.SystemOptions.Where(o => o.Identifier == identifier).ToList();
+
     public string? ResolveValue(string identifier, Guid? chapterId, ChapterRepository chapterRepo) {
         if (chapterId.HasValue) {
             var chain = chapterRepo.GetAncestorChainIds(chapterId.Value);
@@ -93,6 +97,21 @@ public class OptionRepository {
     private static string? RedactedAuditValue(string? raw) => string.IsNullOrEmpty(raw) ? raw : SecretMask;
 
     public void SupplementDefaults() {
+        AddDefinitionIfNotExists(PublicFormOptions.MembershipApplication,
+            "Öffentliche Formulare: Mitgliedsantrag",
+            OptionDataType.String, false, "", "false",
+            description: "Wenn 'true', ist der Mitgliedsantrag öffentlich erreichbar und im Menü sichtbar.");
+
+        AddDefinitionIfNotExists(PublicFormOptions.DueSelection,
+            "Öffentliche Formulare: Beitragseinstufung",
+            OptionDataType.String, false, "", "false",
+            description: "Wenn 'true', ist die Beitragseinstufung öffentlich erreichbar und im Menü sichtbar.");
+
+        AddDefinitionIfNotExists(PublicFormOptions.Motion,
+            "Öffentliche Formulare: Antrag einreichen",
+            OptionDataType.String, true, "", "false",
+            description: "Wenn 'true', können Anträge an diese Gliederung über das öffentliche Formular eingereicht werden. Ein Wert an einer Gliederung gilt auch für ihre Untergliederungen, solange diese keinen eigenen setzen. Ist keine Gliederung freigeschaltet, verschwindet der Menüpunkt.");
+
         AddDefinitionIfNotExists("general.chaptername.display",
             "Anzeigename der Gliederung",
             OptionDataType.String, true, "", "");

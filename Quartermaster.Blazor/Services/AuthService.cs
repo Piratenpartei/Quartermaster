@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -97,6 +98,15 @@ public class AuthService {
         if (chapters == null)
             return false;
         return chapters.TryGetValue(chapterId.ToString(), out var perms) && perms.Contains(permission);
+    }
+
+    /// <summary>Mirrors <c>PermissionContext.HasInAnyChapter</c>: a global grant or a grant on at least one chapter.</summary>
+    public bool HasPermissionInAnyChapter(string permission) {
+        if (HasGlobalPermission(permission))
+            return true;
+
+        var chapters = _state.Permissions?.Chapters;
+        return chapters != null && chapters.Values.Any(perms => perms.Contains(permission));
     }
 
     /// <summary>
