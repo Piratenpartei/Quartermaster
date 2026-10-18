@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.AssemblyMotions;
@@ -28,6 +29,18 @@ public class DashboardUpcomingEventsTests : IntegrationTestBase {
         var rows = await GetUpcoming(client);
 
         await Assert.That(rows.Select(r => r.Id).ToList()).IsEquivalentTo(new[] { publicEvent.Id });
+    }
+
+    [Test]
+    public async Task Event_dated_today_stays_listed_for_the_whole_berlin_day() {
+        var chapter = Builder.SeedChapter("C");
+        var today = Builder.SeedEvent(chapter.Id, publicName: "Heute", status: EventStatus.Active,
+            visibility: EventVisibility.Public, eventDate: BerlinTime.FromUtc(DateTime.UtcNow).Date);
+        using var client = AnonymousClient();
+
+        var rows = await GetUpcoming(client);
+
+        await Assert.That(rows.Select(r => r.Id).ToList()).Contains(today.Id);
     }
 
     [Test]

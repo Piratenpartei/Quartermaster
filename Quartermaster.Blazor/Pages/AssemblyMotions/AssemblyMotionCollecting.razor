@@ -37,7 +37,7 @@
                         <td>@item.TypeName (@item.TypeCode)</td>
                         <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
                         <td>@item.SubmitterCount / @item.MinSubmitters</td>
-                        <td>@AssemblyMotionDisplay.Berlin(item.EffectiveDeadline)</td>
+                        <td><DeadlineText Value="@item.EffectiveDeadline" /></td>
                     </tr>
                 }
             </tbody>

@@ -44,6 +44,7 @@ public class AdminDivisionImportService {
     public AdminDivisionImportLog Import(string? dataDirectory = null) {
         var sw = Stopwatch.StartNew();
         var errors = new List<string>();
+        var notes = new List<string>();
         var changes = new ChangeResult();
 
         using var scope = _scopeFactory.CreateScope();
@@ -84,7 +85,7 @@ public class AdminDivisionImportService {
                 adminDivRepo.CreateBulk(parsed);
                 changes.Added = parsed.Count;
             } else {
-                changes = ApplyChanges(context, adminDivRepo, parsed, errors);
+                changes = ApplyChanges(context, adminDivRepo, parsed, notes);
             }
         } catch (Exception ex) {
             sw.Stop();
@@ -92,7 +93,7 @@ public class AdminDivisionImportService {
             _initialLoadTcs.TrySetResult();
             errors.Add($"{ex}");
             return PersistLog(context, CreateLog(fileHash, parsed.Count, changes,
-                errors.Count, string.Join("\n", errors), sw.ElapsedMilliseconds));
+                errors.Count, LogText(errors, notes), sw.ElapsedMilliseconds));
         }
 
         sw.Stop();
@@ -100,7 +101,7 @@ public class AdminDivisionImportService {
         _initialLoadTcs.TrySetResult();
 
         var log = PersistLog(context, CreateLog(fileHash, parsed.Count, changes,
-            errors.Count, errors.Count > 0 ? string.Join("\n", errors) : null, sw.ElapsedMilliseconds));
+            errors.Count, LogText(errors, notes), sw.ElapsedMilliseconds));
 
         _logger.LogInformation(
             "Admin division import complete: {Total} total, {Added} added, {Updated} updated, {Removed} removed, {Remapped} remapped, {Orphaned} orphaned, {Errors} errors in {Duration}ms",
@@ -108,6 +109,12 @@ public class AdminDivisionImportService {
             errors.Count, sw.ElapsedMilliseconds);
 
         return log;
+    }
+
+    // Remap and orphan notes go into the same text as errors, but only real failures count towards ErrorCount.
+    private static string? LogText(List<string> errors, List<string> notes) {
+        var lines = errors.Concat(notes).ToList();
+        return lines.Count > 0 ? string.Join("\n", lines) : null;
     }
 
     private AdminDivisionImportLog PersistLog(DbContext context, AdminDivisionImportLog log) {
@@ -123,7 +130,7 @@ public class AdminDivisionImportService {
         DbContext context,
         AdministrativeDivisionRepository adminDivRepo,
         List<AdministrativeDivision> parsed,
-        List<string> errors) {
+        List<string> notes) {
 
         var result = new ChangeResult();
 
@@ -198,7 +205,7 @@ public class AdminDivisionImportService {
                 toDelete.Add((ex, replacement));
                 result.Remapped++;
                 if (membersUpdated > 0 || chaptersUpdated > 0) {
-                    errors.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters moved");
+                    notes.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters moved");
                 }
             } else {
                 // Mark as orphaned in DB
@@ -215,7 +222,7 @@ public class AdminDivisionImportService {
                     .Where(c => c.AdministrativeDivisionId == ex.Id)
                     .Count();
 
-                errors.Add($"ORPHANED division '{ex.Name}' ({adminCode}): no replacement found. {memberCount} members, {chapterCount} chapters still reference it.");
+                notes.Add($"ORPHANED division '{ex.Name}' ({adminCode}): no replacement found. {memberCount} members, {chapterCount} chapters still reference it.");
             }
 
             result.Removed++;

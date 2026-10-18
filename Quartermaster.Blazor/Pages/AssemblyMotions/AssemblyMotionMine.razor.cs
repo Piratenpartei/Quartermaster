@@ -36,10 +36,8 @@ public partial class AssemblyMotionMine {
         Forbidden = false;
         try {
             await AuthService.WaitForInitializationAsync();
-            if (!AuthService.IsAuthenticated) {
-                Loading = false;
+            if (!AuthService.IsAuthenticated)
                 return;
-            }
 
             var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{EventId}");
             var portal = portalResponse.IsSuccessStatusCode ? await portalResponse.Content.ReadFromJsonAsync<AssemblyMotionPortalDTO>() : null;
@@ -55,7 +53,8 @@ public partial class AssemblyMotionMine {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 }

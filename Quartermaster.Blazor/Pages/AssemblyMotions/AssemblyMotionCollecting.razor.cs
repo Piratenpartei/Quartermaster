@@ -45,10 +45,8 @@ public partial class AssemblyMotionCollecting {
         Forbidden = false;
         try {
             await AuthService.WaitForInitializationAsync();
-            if (!AuthService.IsAuthenticated) {
-                Loading = false;
+            if (!AuthService.IsAuthenticated)
                 return;
-            }
 
             if (Portal == null) {
                 var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{EventId}");
@@ -69,8 +67,9 @@ public partial class AssemblyMotionCollecting {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private async Task OnPageChanged(int page) {

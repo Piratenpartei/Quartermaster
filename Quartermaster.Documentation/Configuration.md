@@ -154,6 +154,10 @@ Optional. Lets delegates at Bundesparteitage look up member accounts in Keycloak
 The client needs the `manage-users` client role of `<realm>-realm` (or of `realm-management` when the client lives in the member realm), same client as MemberDataImport.
 In the target realm, set Realm settings > General > Unmanaged attributes to Enabled, same as MemberDataImport's deployment notes; otherwise searches return users without `member_number` and every lookup reports "no account".
 
+### Motion portal deadlines
+
+Deadlines (portal closing time, per-type and competing-motion deadlines, inquiry response times) are stored as the instant they end, in Berlin time. Enter a deadline that should cover a whole day as 00:00 of the following day: the portal shows "28.11.2026 00:00 (up to and including 27.11.2026 23:59:59)", so submitters see the last valid second while the stored value stays a plain instant.
+
 ### Wiki mirror for the motion portal
 
 Optional. When "Enable wiki mirror" is switched on in the portal settings ("Motion portal" on the event), every motion that was submitted at least once is written to the Piratenwiki as a page and kept up to date. The pages are protected against manual edits. The wiki receives no names and no member numbers: the `autor` parameter is a fixed text pointing to the motion in the portal.

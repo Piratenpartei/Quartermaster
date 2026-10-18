@@ -133,8 +133,9 @@ public partial class AssemblyMotionDetail {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private void Apply(AssemblyMotionDetailDTO? detail) {

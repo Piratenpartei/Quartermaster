@@ -2225,6 +2225,8 @@
   "ui.assembly_motion.result_not_handled": "Nicht behandelt",
   "ui.assembly_motion.result_rejected": "Abgelehnt",
   "ui.assembly_motion.revision_warning_multi": "Achtung: Sobald du eine Änderung speicherst, ist der Antrag wieder in Überarbeitung und für alle so sichtbar, auch im Wiki. Alle {count} Mitantragsteller werden entfernt und müssen erneut beitreten, bevor die Frist am {deadline} abläuft.",
+  "ui.assembly_motion.revision_warning_multi_one": "Achtung: Sobald du eine Änderung speicherst, ist der Antrag wieder in Überarbeitung und für alle so sichtbar, auch im Wiki. Der Mitantragsteller wird entfernt und muss erneut beitreten, bevor die Frist am {deadline} abläuft.",
+  "ui.assembly_motion.deadline_up_to_including": "bis einschließlich {date}",
   "ui.assembly_motion.revision_warning_single": "Achtung: Deine Änderung ist nach dem Speichern sofort für alle sichtbar, auch im Wiki.",
   "ui.assembly_motion.revision_warning_title": "Antrag ändern",
   "ui.assembly_motion.role_author": "Antragsteller",

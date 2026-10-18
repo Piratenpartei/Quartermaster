@@ -89,7 +89,7 @@ public partial class AssemblyMotionCompetitions {
             if (deadline == null)
                 return I18n[I18nKey.Ui.AssemblyMotion.CompetingFlagNoDeadline];
 
-            return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.CompetingFlagDeadline, ("deadline", AssemblyMotionDisplay.Berlin(deadline.Value)))];
+            return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.CompetingFlagDeadline, ("deadline", AssemblyMotionDisplay.Deadline(I18n, deadline.Value)))];
         }
     }
 

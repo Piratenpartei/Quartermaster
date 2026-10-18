@@ -17,7 +17,7 @@
                     <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
                         <div class="text-secondary small">
                             @I18n[I18nKey.Ui.AssemblyMotion.InquiryAskedAt] @AssemblyMotionDisplay.Berlin(inquiry.AskedAt),
-                            @I18n[I18nKey.Ui.AssemblyMotion.InquiryDueAt] <strong>@AssemblyMotionDisplay.Berlin(inquiry.ResponseDueAt)</strong>
+                            @I18n[I18nKey.Ui.AssemblyMotion.InquiryDueAt] <strong><DeadlineText Value="@inquiry.ResponseDueAt" /></strong>
                         </div>
                         @if (isOpen) {
                             <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.InquiryOpen]</span>

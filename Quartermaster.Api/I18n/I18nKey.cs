@@ -2586,6 +2586,8 @@ public static class I18nKey {
             public const string ResultNotHandled = "ui.assembly_motion.result_not_handled";
             public const string ResultRejected = "ui.assembly_motion.result_rejected";
             public const string RevisionWarningMulti = "ui.assembly_motion.revision_warning_multi";
+            public const string RevisionWarningMultiOne = "ui.assembly_motion.revision_warning_multi_one";
+            public const string DeadlineUpToIncluding = "ui.assembly_motion.deadline_up_to_including";
             public const string RevisionWarningSingle = "ui.assembly_motion.revision_warning_single";
             public const string RevisionWarningTitle = "ui.assembly_motion.revision_warning_title";
             public const string RoleAuthor = "ui.assembly_motion.role_author";

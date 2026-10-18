@@ -52,17 +52,19 @@ public class AssemblyMotionPortalEndpointTests : IntegrationTestBase {
         return type;
     }
 
-    private void SeedMotion(Guid portalId, Guid typeId) {
+    private AssemblyMotion SeedMotion(Guid portalId, Guid typeId) {
         var chapter = Builder.SeedChapter("Member chapter");
         var member = Builder.SeedMember(chapter.Id);
-        Db.Insert(new AssemblyMotion {
+        var motion = new AssemblyMotion {
             PortalId = portalId,
             TypeId = typeId,
             Title = "Antrag",
             Status = AssemblyMotionStatus.Draft,
             CreatedByMemberId = member.Id,
             CreatedAt = DateTime.UtcNow
-        });
+        };
+        Db.Insert(motion);
+        return motion;
     }
 
     [Test]
@@ -306,22 +308,26 @@ public class AssemblyMotionPortalEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Type_delete_refused_when_only_soft_deleted_motions_exist() {
+    public async Task Type_delete_purges_deleted_drafts_with_their_rows() {
         var (_, eventId, client) = await SeedEditorAsync();
         using var _ = client;
         var portal = SeedPortal(eventId);
         var type = SeedType(portal.Id, "AB");
-        SeedMotion(portal.Id, type.Id);
+        var draft = SeedMotion(portal.Id, type.Id);
+        Db.Insert(new AssemblyMotionSubmitter { MotionId = draft.Id, MemberId = draft.CreatedByMemberId, IsAuthor = true, JoinedAt = DateTime.UtcNow });
+        Db.Insert(new AssemblyMotionRevision { MotionId = draft.Id, Revision = 1, Title = "Antrag", EditedByUserId = Guid.NewGuid(), EditedAt = DateTime.UtcNow });
         Db.AssemblyMotions
-            .Where(m => m.TypeId == type.Id)
+            .Where(m => m.Id == draft.Id)
             .Set(m => m.DeletedAt, DateTime.UtcNow)
             .Update();
 
         var response = await client.DeleteAsync($"/api/assemblymotions/types/{type.Id}");
 
-        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
-        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.assembly_motion.type.has_motions");
-        await Assert.That(Db.AssemblyMotionTypes.Count(t => t.Id == type.Id)).IsEqualTo(1);
+        await Assert.That(response.IsSuccessStatusCode).IsTrue();
+        await Assert.That(Db.AssemblyMotionTypes.Count(t => t.Id == type.Id)).IsEqualTo(0);
+        await Assert.That(Db.AssemblyMotions.Count(m => m.Id == draft.Id)).IsEqualTo(0);
+        await Assert.That(Db.AssemblyMotionSubmitters.Count(s => s.MotionId == draft.Id)).IsEqualTo(0);
+        await Assert.That(Db.AssemblyMotionRevisions.Count(r => r.MotionId == draft.Id)).IsEqualTo(0);
     }
 
     [Test]

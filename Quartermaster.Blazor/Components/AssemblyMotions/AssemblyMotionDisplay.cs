@@ -141,6 +141,27 @@ public static class AssemblyMotionDisplay {
         return BerlinTime.FromUtc(value.UtcDateTime).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
     }
 
+    /// <summary>
+    /// For a deadline at Berlin midnight, the last second that still counts (the previous day, 23:59:59); null otherwise.
+    /// Deadlines are stored as the instant they end, so "28.11. 00:00" reads clearer with this next to it.
+    /// </summary>
+    public static string? LastSecondBefore(DateTimeOffset deadline) {
+        var berlin = BerlinTime.FromUtc(deadline.UtcDateTime);
+        if (berlin.TimeOfDay != TimeSpan.Zero)
+            return null;
+
+        return berlin.AddSeconds(-1).ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>A deadline for use inside a sentence, with the last valid second added for midnight deadlines.</summary>
+    public static string Deadline(I18nService i18n, DateTimeOffset deadline) {
+        var lastSecond = LastSecondBefore(deadline);
+        if (lastSecond == null)
+            return Berlin(deadline);
+
+        return $"{Berlin(deadline)} ({i18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.DeadlineUpToIncluding, ("date", lastSecond))]})";
+    }
+
     public static string ToInput(DateTimeOffset? value) {
         return value == null ? "" : BerlinTime.FromUtc(value.Value.UtcDateTime).ToString(InputFormat, CultureInfo.InvariantCulture);
     }

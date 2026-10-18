@@ -77,7 +77,7 @@
             <div class="alert alert-info">
                 <div>
                     @CollectingProgressText
-                    @I18n[I18nKey.Ui.AssemblyMotion.CollectingDeadline] <strong>@AssemblyMotionDisplay.Berlin(Member.EffectiveDeadline)</strong>
+                    @I18n[I18nKey.Ui.AssemblyMotion.CollectingDeadline] <strong><DeadlineText Value="@Member.EffectiveDeadline" /></strong>
                 </div>
                 <div class="mt-1">
                     @I18n[I18nKey.Ui.AssemblyMotion.ShareHint] <code>@ShareLink</code>

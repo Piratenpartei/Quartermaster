@@ -17,7 +17,7 @@
         @I18n[I18nKey.Ui.AssemblyMotion.PortalWindow]
         <strong>@AssemblyMotionDisplay.Berlin(Portal.OpensAt)</strong>
         @I18n[I18nKey.Ui.AssemblyMotion.PortalWindowTo]
-        <strong>@AssemblyMotionDisplay.Berlin(Portal.ClosesAt)</strong>
+        <strong><DeadlineText Value="@Portal.ClosesAt" /></strong>
     </div>
 
     @if (!string.IsNullOrEmpty(Portal.IntroHtml)) {
@@ -30,7 +30,7 @@
 
     @if (PrioritizationOpen && Portal.PrioritizationEndsAt != null) {
         <div class="alert alert-info">
-            @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.PrioritizationOpenHint, ("date", AssemblyMotionDisplay.Berlin(Portal.PrioritizationEndsAt.Value)))]
+            @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.PrioritizationOpenHint, ("date", AssemblyMotionDisplay.Deadline(I18n, Portal.PrioritizationEndsAt.Value)))]
         </div>
     }
 
@@ -99,8 +99,8 @@
                                 <td>@type.Name</td>
                                 <td>@type.Code</td>
                                 <td>@type.MinSubmitters</td>
-                                <td>@AssemblyMotionDisplay.Berlin(type.Deadline ?? Portal.ClosesAt)</td>
-                                <td>@(type.CompetingDeadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.CompetingDeadline.Value))</td>
+                                <td><DeadlineText Value="@(type.Deadline ?? Portal.ClosesAt)" /></td>
+                                <td><DeadlineText Value="@type.CompetingDeadline" /></td>
                             </tr>
                         }
                     </tbody>

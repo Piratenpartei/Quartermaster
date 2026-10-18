@@ -138,13 +138,28 @@ public class AssemblyMotionPortalRepository {
 
     /// <summary>Whether any motion row references the type, soft-deleted ones included.</summary>
     public bool TypeHasMotions(Guid typeId) {
-        // Soft-deleted rows keep their foreign key, so they still block deleting the type.
-        return _context.AssemblyMotions.Any(m => m.TypeId == typeId);
+        return _context.AssemblyMotions.Any(m => m.TypeId == typeId && m.DeletedAt == null);
     }
 
+    /// <summary>Deleted drafts keep their foreign key to the type, so they are purged together with it, child rows first.</summary>
     public void DeleteType(Guid typeId) {
+        using var tx = _context.BeginTransaction();
+        var deletedMotionIds = _context.AssemblyMotions
+            .Where(m => m.TypeId == typeId && m.DeletedAt != null)
+            .Select(m => m.Id)
+            .ToList();
+        if (deletedMotionIds.Count > 0) {
+            _context.AssemblyMotionSubmitters.Where(s => deletedMotionIds.Contains(s.MotionId)).Delete();
+            _context.AssemblyMotionRevisions.Where(r => deletedMotionIds.Contains(r.MotionId)).Delete();
+            _context.AssemblyMotionInquiries.Where(i => deletedMotionIds.Contains(i.MotionId)).Delete();
+            _context.AssemblyMotionUpvotes.Where(u => deletedMotionIds.Contains(u.MotionId)).Delete();
+            _context.AssemblyMotionCompetitions.Where(c => deletedMotionIds.Contains(c.MotionAId) || deletedMotionIds.Contains(c.MotionBId)).Delete();
+            _context.AssemblyMotions.Where(m => deletedMotionIds.Contains(m.Id)).Delete();
+        }
+
         _context.AssemblyMotionTypes.Where(t => t.Id == typeId).Delete();
         _auditLog.LogDeleted("AssemblyMotionType", typeId);
+        tx.Commit();
     }
 
     public List<AssemblyMotionPortal> GetForChapters(IReadOnlyCollection<Guid>? chapterIds) {

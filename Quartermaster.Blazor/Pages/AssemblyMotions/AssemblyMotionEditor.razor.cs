@@ -76,11 +76,14 @@ public partial class AssemblyMotionEditor {
 
             if (!hasNumber)
                 return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningUnnumberedMulti,
-                    ("deadline", AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)))];
+                    ("deadline", AssemblyMotionDisplay.Deadline(I18n, Detail.EffectiveDeadline)))];
+
+            if (coSubmitterCount == 1)
+                return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningMultiOne, ("deadline", AssemblyMotionDisplay.Deadline(I18n, Detail.EffectiveDeadline)))];
 
             return I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.RevisionWarningMulti,
                 ("count", coSubmitterCount.ToString()),
-                ("deadline", AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)))];
+                ("deadline", AssemblyMotionDisplay.Deadline(I18n, Detail.EffectiveDeadline)))];
         }
     }
 
@@ -98,10 +101,8 @@ public partial class AssemblyMotionEditor {
         Conflict = null;
         try {
             await AuthService.WaitForInitializationAsync();
-            if (!AuthService.IsAuthenticated) {
-                Loading = false;
+            if (!AuthService.IsAuthenticated)
                 return;
-            }
 
             var eventId = EventId;
             if (IsExisting) {
@@ -127,8 +128,9 @@ public partial class AssemblyMotionEditor {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private async Task SaveDraft() {

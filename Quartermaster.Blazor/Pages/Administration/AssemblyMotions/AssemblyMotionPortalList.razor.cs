@@ -32,7 +32,8 @@ public partial class AssemblyMotionPortalList {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 }

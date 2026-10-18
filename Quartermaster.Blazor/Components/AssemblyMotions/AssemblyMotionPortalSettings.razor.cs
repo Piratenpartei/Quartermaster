@@ -79,8 +79,9 @@ public partial class AssemblyMotionPortalSettings {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private void Apply(AssemblyMotionPortalSettingsDTO? settings) {

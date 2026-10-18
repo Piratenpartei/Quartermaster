@@ -137,7 +137,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Pol. Geschäftsführer | Political Director | PoliticalDirector |
 | Beisitzer | Board Member | Member (generic officer) |
 
-## Antragsportal
+## Motion Portal (Antragsportal)
 
 | German (UI) | English (code) | Meaning |
 |---|---|---|

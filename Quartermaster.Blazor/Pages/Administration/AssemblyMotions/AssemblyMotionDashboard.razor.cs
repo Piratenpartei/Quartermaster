@@ -80,8 +80,9 @@ public partial class AssemblyMotionDashboard {
                 await LoadAsync();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private async Task LoadAsync() {
@@ -117,8 +118,9 @@ public partial class AssemblyMotionDashboard {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            ListLoading = false;
         }
-        ListLoading = false;
     }
 
     private async Task OnTypeFilterChanged(string value) {

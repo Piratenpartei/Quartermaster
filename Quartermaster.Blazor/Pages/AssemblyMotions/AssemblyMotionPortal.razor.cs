@@ -66,8 +66,9 @@ public partial class AssemblyMotionPortal {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            Loading = false;
         }
-        Loading = false;
     }
 
     private async Task LoadUpvotesSafeAsync() {
@@ -117,8 +118,9 @@ public partial class AssemblyMotionPortal {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        } finally {
+            ListLoading = false;
         }
-        ListLoading = false;
     }
 
     private List<IGrouping<Guid, AssemblyMotionPublicListItemDTO>> GetGroups() {

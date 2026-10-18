@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.AuditLog;
 using System;
@@ -127,13 +128,14 @@ public class EventRepository {
         return (items, totalCount);
     }
 
+    /// <summary>Events dated today or later; "today" is the Berlin date, so an event stays listed until local midnight.</summary>
     public List<Event> GetUpcoming(List<EventVisibility>? allowedVisibilities, List<Guid>? allowedChapterIds, int limit) {
-        var now = DateTime.UtcNow;
+        var today = BerlinTime.FromUtc(DateTime.UtcNow).Date;
         var q = _context.Events
             .Where(e => e.DeletedAt == null
                 && e.Status != EventStatus.Archived
                 && e.EventDate != null
-                && e.EventDate >= now);
+                && e.EventDate >= today);
 
         if (allowedVisibilities != null)
             q = q.Where(e => allowedVisibilities.Contains(e.Visibility));

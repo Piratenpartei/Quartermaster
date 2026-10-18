@@ -11,9 +11,9 @@
     </FormSelect>
     @if (SelectedType != null) {
         <div class="form-text">
-            @I18n[I18nKey.Ui.AssemblyMotion.TypeDeadline] <strong>@AssemblyMotionDisplay.Berlin(SelectedType.Deadline ?? Portal.ClosesAt)</strong>
+            @I18n[I18nKey.Ui.AssemblyMotion.TypeDeadline] <strong><DeadlineText Value="@(SelectedType.Deadline ?? Portal.ClosesAt)" /></strong>
             @if (SelectedType.CompetingDeadline != null) {
-                <span> (@I18n[I18nKey.Ui.AssemblyMotion.TypeCompetingDeadline] <strong>@AssemblyMotionDisplay.Berlin(SelectedType.CompetingDeadline.Value)</strong>)</span>
+                <span> (@I18n[I18nKey.Ui.AssemblyMotion.TypeCompetingDeadline] <strong><DeadlineText Value="@SelectedType.CompetingDeadline" /></strong>)</span>
             }
             <br />
             @I18n[I18nKey.Ui.AssemblyMotion.TypeMinSubmitters] <strong>@SelectedType.MinSubmitters</strong>,

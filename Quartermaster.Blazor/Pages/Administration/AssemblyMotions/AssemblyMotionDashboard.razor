@@ -167,7 +167,7 @@
                                 }
                             </td>
                             <td class="text-nowrap">
-                                @AssemblyMotionDisplay.Berlin(item.EffectiveDeadline)
+                                <DeadlineText Value="@item.EffectiveDeadline" />
                                 @if (item.DeadlinePassed) {
                                     <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.DeadlinePassed]</span>
                                 }

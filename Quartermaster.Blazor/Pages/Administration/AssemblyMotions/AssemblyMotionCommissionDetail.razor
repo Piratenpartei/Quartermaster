@@ -50,7 +50,7 @@
 
     <div class="text-secondary mb-3">
         @I18n[I18nKey.Ui.AssemblyMotion.CurrentRevision] <strong>@Detail.Revision</strong>,
-        @I18n[I18nKey.Ui.AssemblyMotion.EffectiveDeadline] <strong>@AssemblyMotionDisplay.Berlin(Detail.EffectiveDeadline)</strong>,
+        @I18n[I18nKey.Ui.AssemblyMotion.EffectiveDeadline] <strong><DeadlineText Value="@Detail.EffectiveDeadline" /></strong>,
         @I18n[I18nKey.Ui.AssemblyMotion.Submitters] <strong>@Detail.Submitters.Count / @Detail.MinSubmitters</strong>
     </div>
 

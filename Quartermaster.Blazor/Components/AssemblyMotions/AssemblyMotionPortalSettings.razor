@@ -173,8 +173,8 @@
                                         <td>@type.Name</td>
                                         <td>@type.SortOrder</td>
                                         <td>@type.MinSubmitters</td>
-                                        <td>@(type.Deadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.Deadline.Value))</td>
-                                        <td>@(type.CompetingDeadline == null ? "-" : AssemblyMotionDisplay.Berlin(type.CompetingDeadline.Value))</td>
+                                        <td><DeadlineText Value="@type.Deadline" /></td>
+                                        <td><DeadlineText Value="@type.CompetingDeadline" /></td>
                                         <td>@AssemblyMotionDisplay.MajorityLabel(I18n, type.RequiredMajority)</td>
                                         <td class="text-nowrap">
                                             <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || !CanEdit)" @onclick="() => BeginEditType(type)"

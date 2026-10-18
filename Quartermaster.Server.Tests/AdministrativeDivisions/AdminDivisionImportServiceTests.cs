@@ -240,6 +240,8 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         await Assert.That(orphan).IsNotNull();
 
         await Assert.That(log.OrphanedRecords).IsGreaterThan(0);
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(log.Errors).Contains("ORPHANED division");
     }
 
     [Test]

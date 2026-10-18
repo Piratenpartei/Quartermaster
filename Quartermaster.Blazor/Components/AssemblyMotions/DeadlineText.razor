@@ -1,0 +1,10 @@
+@using Quartermaster.Api.I18n
+
+@if (Value == null) {
+    @Placeholder
+} else {
+    @AssemblyMotionDisplay.Berlin(Value.Value)
+    @if (LastSecond != null) {
+        <span class="small text-secondary fw-normal"> (@I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.DeadlineUpToIncluding, ("date", LastSecond))])</span>
+    }
+}
