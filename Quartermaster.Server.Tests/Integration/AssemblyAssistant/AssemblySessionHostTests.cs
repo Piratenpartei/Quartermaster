@@ -1,12 +1,17 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Quartermaster.Api;
 using Quartermaster.Api.AssemblyAssistant;
+using Quartermaster.Api.Events;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.AssemblyAssistant;
 using Quartermaster.Data.Options;
@@ -89,7 +94,7 @@ public class AssemblySessionHostTests : IntegrationTestBase {
 
     private async Task<(AssemblySessionHost Host, Guid EventId)> StartedSessionAsync() {
         var chapter = Builder.SeedChapter();
-        var evt = Builder.SeedEvent(chapter.Id);
+        var evt = Builder.SeedEvent(chapter.Id, status: EventStatus.Active);
         var host = CreateHost();
         var result = await host.StartSessionAsync(evt.Id, Guid.NewGuid(), CancellationToken.None);
         await Assert.That(result.Accepted).IsTrue();
@@ -109,7 +114,7 @@ public class AssemblySessionHostTests : IntegrationTestBase {
     [Test]
     public async Task Start_refused_while_other_session_runs() {
         var (host, _) = await StartedSessionAsync();
-        var otherEvent = Builder.SeedEvent(Builder.SeedChapter().Id);
+        var otherEvent = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
 
         var second = await host.StartSessionAsync(otherEvent.Id, Guid.NewGuid(), CancellationToken.None);
 
@@ -119,7 +124,7 @@ public class AssemblySessionHostTests : IntegrationTestBase {
 
     [Test]
     public async Task Start_refused_when_not_configured() {
-        var evt = Builder.SeedEvent(Builder.SeedChapter().Id);
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
         var host = CreateHost(configure: false);
 
         var result = await host.StartSessionAsync(evt.Id, Guid.NewGuid(), CancellationToken.None);
@@ -227,7 +232,7 @@ public class AssemblySessionHostTests : IntegrationTestBase {
 
     [Test]
     public async Task Open_session_resumes_on_start_and_timer_resumes_from_log() {
-        var evt = Builder.SeedEvent(Builder.SeedChapter().Id);
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
         var startedAt = DateTime.UtcNow.AddSeconds(-100);
         var session = new AssemblySession { EventId = evt.Id, StartedAt = startedAt.AddMinutes(-5), StartedByUserId = Guid.NewGuid() };
         Db.Insert(session);
@@ -255,6 +260,77 @@ public class AssemblySessionHostTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Start_refused_when_event_not_active() {
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Draft);
+        var host = CreateHost();
+
+        var result = await host.StartSessionAsync(evt.Id, Guid.NewGuid(), CancellationToken.None);
+
+        await Assert.That(result.MessageKey).IsEqualTo(I18nKey.Ui.AssemblyConsole.Reject.EventNotActive);
+        await Assert.That(host.IsRunning).IsFalse();
+        await Assert.That(_connections.Created).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Open_session_of_inactive_event_is_ended_instead_of_resumed() {
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Completed);
+        var session = new AssemblySession { EventId = evt.Id, StartedAt = DateTime.UtcNow.AddDays(-2), StartedByUserId = Guid.NewGuid() };
+        Db.Insert(session);
+
+        var host = CreateHost();
+        await host.StartAsync(CancellationToken.None);
+
+        await Assert.That(host.IsRunning).IsFalse();
+        await Assert.That(_connections.Created).IsEqualTo(0);
+        await Assert.That(Db.AssemblySessions.Single(s => s.Id == session.Id).EndedAt).IsNotNull();
+        await Assert.That(Db.AssemblyLogEntries.Any(e => e.SessionId == session.Id && e.Kind == AssemblyLogKind.SessionEnded)).IsTrue();
+    }
+
+    [Test]
+    public async Task Ending_the_event_ends_its_running_session() {
+        var (host, eventId) = await StartedSessionAsync();
+        var chapterId = Db.Events.Single(e => e.Id == eventId).ChapterId;
+        var (user, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapterId] = new[] { PermissionIdentifier.EditEvents } });
+        using var client = _host!.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = true });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await AttachAntiforgeryTokenAsync(client);
+
+        var response = await client.PutAsJsonAsync($"/api/events/{eventId}/status", new EventStatusUpdateRequest { Id = eventId, Status = EventStatus.Completed });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(host.IsRunning).IsFalse();
+        await Assert.That(_connections.Connection.Stopped).IsTrue();
+        var session = Db.AssemblySessions.Single(s => s.EventId == eventId);
+        await Assert.That(session.EndedAt).IsNotNull();
+        var ended = Db.AssemblyLogEntries.Single(e => e.SessionId == session.Id && e.Kind == AssemblyLogKind.SessionEnded);
+        await Assert.That(ended.ActorUserId).IsEqualTo(user.Id);
+    }
+
+    [Test]
+    public async Task Ending_another_event_keeps_the_session_running() {
+        var (host, _) = await StartedSessionAsync();
+        var other = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
+
+        await host.EndSessionOfEventAsync(other.Id, Guid.NewGuid(), CancellationToken.None);
+
+        await Assert.That(host.IsRunning).IsTrue();
+        await Assert.That(_connections.Connection.Stopped).IsFalse();
+    }
+
+    [Test]
+    public async Task Ending_the_event_ends_a_stored_session_that_does_not_run() {
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
+        var session = new AssemblySession { EventId = evt.Id, StartedAt = DateTime.UtcNow, StartedByUserId = Guid.NewGuid() };
+        Db.Insert(session);
+        var host = CreateHost(configure: false);
+
+        await host.EndSessionOfEventAsync(evt.Id, Guid.NewGuid(), CancellationToken.None);
+
+        await Assert.That(Db.AssemblySessions.Single(s => s.Id == session.Id).EndedAt).IsNotNull();
+    }
+
+    [Test]
     public async Task Setup_check_refused_while_session_runs() {
         await StartedSessionAsync();
 
@@ -267,7 +343,7 @@ public class AssemblySessionHostTests : IntegrationTestBase {
 
     [Test]
     public async Task Repository_open_speech_ignores_unstarted_and_ended() {
-        var evt = Builder.SeedEvent(Builder.SeedChapter().Id);
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
         var session = new AssemblySession { EventId = evt.Id, StartedAt = DateTime.UtcNow, StartedByUserId = Guid.NewGuid() };
         Db.Insert(session);
         var now = DateTime.UtcNow;

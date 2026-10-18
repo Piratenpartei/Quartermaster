@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using Quartermaster.Api.AssemblyAssistant;
 using Quartermaster.Api.AssemblyMotions;
+using Quartermaster.Api.Events;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.AssemblyAssistant;
 using Quartermaster.Data.AssemblyMotions;
@@ -24,7 +25,8 @@ namespace Quartermaster.Server.AssemblyAssistant.Session;
 /// <summary>
 /// Owns the running assembly session: the state under one lock, the Mumble connection, the 250 ms tick, persistence and
 /// publishing. State methods run under the lock; their effects run outside it (moves fire and report failures back,
-/// log writes and publishing go through one pump task in order). An open session is resumed when the application starts.
+/// log writes and publishing go through one pump task in order). An open session is resumed when the application starts,
+/// as long as its event is still active; a session only runs for an active event.
 /// </summary>
 public class AssemblySessionHost : IHostedService {
     private static readonly TimeSpan TickInterval = TimeSpan.FromMilliseconds(250);
@@ -106,6 +108,8 @@ public class AssemblySessionHost : IHostedService {
             var evt = services.GetRequiredService<EventRepository>().Get(eventId);
             if (evt == null)
                 return AssemblyCommandResult.Rejected(I18nKey.Ui.AssemblyConsole.Reject.NoSession);
+            if (evt.Status != EventStatus.Active)
+                return AssemblyCommandResult.Rejected(I18nKey.Ui.AssemblyConsole.Reject.EventNotActive);
 
             var now = Now();
             var meetingId = services.GetRequiredService<AssemblyMotionPortalRepository>().GetByEvent(eventId)?.OpenSlidesMeetingId;
@@ -124,26 +128,57 @@ public class AssemblySessionHost : IHostedService {
     public async Task<AssemblyCommandResult> EndSessionAsync(Guid userId, CancellationToken ct) {
         await _lifecycle.WaitAsync(ct);
         try {
-            var sessionId = SessionId;
-            var eventId = EventId;
-            if (!IsRunning || sessionId == null || eventId == null)
-                return AssemblyCommandResult.Rejected(I18nKey.Ui.AssemblyConsole.Reject.NoSession);
-
-            var now = Now();
-            ApplyAndProcess(s => s.Close(now));
-            await StopRunningAsync();
-
-            using (var scope = _scopes.CreateScope()) {
-                var sessions = scope.ServiceProvider.GetRequiredService<AssemblySessionRepository>();
-                sessions.SaveLog([SessionLog(sessionId.Value, AssemblyLogKind.SessionEnded, now, userId)]);
-                sessions.End(sessionId.Value, now);
-            }
-
-            await _publisher.PublishEndedAsync(eventId.Value);
-            return AssemblyCommandResult.Ok();
+            return await EndRunningAsync(userId);
         } finally {
             _lifecycle.Release();
         }
+    }
+
+    /// <summary>Ends the event's open session, whether it runs here or only exists in the database; called when the event stops being active.</summary>
+    public async Task EndSessionOfEventAsync(Guid eventId, Guid userId, CancellationToken ct) {
+        await _lifecycle.WaitAsync(ct);
+        try {
+            if (IsRunning && EventId == eventId) {
+                await EndRunningAsync(userId);
+                return;
+            }
+
+            using var scope = _scopes.CreateScope();
+            var sessions = scope.ServiceProvider.GetRequiredService<AssemblySessionRepository>();
+            var open = sessions.GetOpen();
+            if (open == null || open.EventId != eventId)
+                return;
+
+            EndStored(sessions, open.Id, userId);
+        } finally {
+            _lifecycle.Release();
+        }
+    }
+
+    private async Task<AssemblyCommandResult> EndRunningAsync(Guid? userId) {
+        var sessionId = SessionId;
+        var eventId = EventId;
+        if (!IsRunning || sessionId == null || eventId == null)
+            return AssemblyCommandResult.Rejected(I18nKey.Ui.AssemblyConsole.Reject.NoSession);
+
+        var now = Now();
+        ApplyAndProcess(s => s.Close(now));
+        await StopRunningAsync();
+
+        using (var scope = _scopes.CreateScope()) {
+            var sessions = scope.ServiceProvider.GetRequiredService<AssemblySessionRepository>();
+            sessions.SaveLog([SessionLog(sessionId.Value, AssemblyLogKind.SessionEnded, now, userId)]);
+            sessions.End(sessionId.Value, now);
+        }
+
+        await _publisher.PublishEndedAsync(eventId.Value);
+        return AssemblyCommandResult.Ok();
+    }
+
+    private void EndStored(AssemblySessionRepository sessions, Guid sessionId, Guid? userId) {
+        var now = Now();
+        sessions.SaveLog([SessionLog(sessionId, AssemblyLogKind.SessionEnded, now, userId)]);
+        sessions.End(sessionId, now);
     }
 
     public AssemblyCommandResult Execute(Guid eventId, Func<AssemblySessionState, DateTime, (AssemblyCommandResult Result, AssemblyEffects Effects)> command) {
@@ -188,6 +223,11 @@ public class AssemblySessionHost : IHostedService {
             var options = services.GetRequiredService<OptionRepository>();
             var settings = MumbleSettings.ReadFrom(options);
             var evt = services.GetRequiredService<EventRepository>().Get(open.EventId);
+            if (evt != null && evt.Status != EventStatus.Active) {
+                _logger.LogInformation("Ending assembly session {SessionId}: its event {EventId} is no longer active", open.Id, open.EventId);
+                EndStored(sessions, open.Id, null);
+                return;
+            }
             if (evt == null || !IsUsable(settings)) {
                 _logger.LogWarning("Open assembly session {SessionId} cannot be resumed (event missing or Mumble not configured)", open.Id);
                 return;
@@ -574,7 +614,7 @@ public class AssemblySessionHost : IHostedService {
         return settings.IsConfigured() && settings.Channels.ContainsKey(ChannelRole.Chair);
     }
 
-    private static AssemblyLogEntry SessionLog(Guid sessionId, AssemblyLogKind kind, DateTime now, Guid userId) {
+    private static AssemblyLogEntry SessionLog(Guid sessionId, AssemblyLogKind kind, DateTime now, Guid? userId) {
         return new AssemblyLogEntry { SessionId = sessionId, At = now, Kind = kind, ActorUserId = userId };
     }
 

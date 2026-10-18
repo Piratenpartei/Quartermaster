@@ -1952,6 +1952,7 @@ public static class I18nKey {
                 public const string NoRunningPoll = "ui.assembly_console.reject.no_running_poll";
                 public const string Stale = "ui.assembly_console.reject.stale";
                 public const string NoSession = "ui.assembly_console.reject.no_session";
+                public const string EventNotActive = "ui.assembly_console.reject.event_not_active";
                 public const string EntryNotFound = "ui.assembly_console.reject.entry_not_found";
                 public const string UserNotFound = "ui.assembly_console.reject.user_not_found";
                 public const string MovePending = "ui.assembly_console.reject.move_pending";

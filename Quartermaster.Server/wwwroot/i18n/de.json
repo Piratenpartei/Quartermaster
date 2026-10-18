@@ -1653,6 +1653,7 @@
   "ui.assembly_console.notice.openslides_action_failed": "OpenSlides-Aktion fehlgeschlagen: {reason}",
   "ui.assembly_console.reject.stale": "Der Stand hat sich inzwischen geändert; bitte noch einmal prüfen und erneut klicken.",
   "ui.assembly_console.reject.no_session": "Es läuft keine Versammlung.",
+  "ui.assembly_console.reject.event_not_active": "Die Veranstaltung ist nicht aktiv. Setze sie auf aktiv, um die Versammlung zu starten.",
   "ui.assembly_console.reject.entry_not_found": "Diese Wortmeldung gibt es nicht mehr.",
   "ui.assembly_console.reject.user_not_found": "Diese Person ist nicht mehr im Mumble.",
   "ui.assembly_console.reject.move_pending": "Diese Person wird gerade verschoben.",

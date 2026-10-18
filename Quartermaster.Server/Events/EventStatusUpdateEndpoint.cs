@@ -5,6 +5,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.Events;
+using Quartermaster.Server.AssemblyAssistant.Session;
 using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Events;
@@ -12,10 +13,12 @@ namespace Quartermaster.Server.Events;
 public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
     private readonly EventRepository _eventRepo;
     private readonly PermissionContext _perms;
+    private readonly AssemblySessionHost _assemblySessions;
 
-    public EventStatusUpdateEndpoint(EventRepository eventRepo, PermissionContext perms) {
+    public EventStatusUpdateEndpoint(EventRepository eventRepo, PermissionContext perms, AssemblySessionHost assemblySessions) {
         _eventRepo = eventRepo;
         _perms = perms;
+        _assemblySessions = assemblySessions;
     }
 
     public override void Configure() {
@@ -51,6 +54,9 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
         }
 
         _eventRepo.SetStatus(req.Id, req.Status);
+        if (req.Status != EventStatus.Active)
+            await _assemblySessions.EndSessionOfEventAsync(req.Id, _perms.UserId.Value, ct);
+
         await SendOkAsync(ct);
     }
 

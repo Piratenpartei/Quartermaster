@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Quartermaster.Api;
 using Quartermaster.Api.AssemblyAssistant;
+using Quartermaster.Api.Events;
 using Quartermaster.Server.AssemblyAssistant.Mumble;
 using Quartermaster.Server.AssemblyAssistant.Session;
 using Quartermaster.Server.Tests.AssemblyAssistant;
@@ -39,7 +40,7 @@ public class AssemblyOverlayTests : IntegrationTestBase {
         }));
 
         var chapter = Builder.SeedChapter();
-        _eventId = Builder.SeedEvent(chapter.Id).Id;
+        _eventId = Builder.SeedEvent(chapter.Id, status: EventStatus.Active).Id;
         (_, _chairToken) = Builder.SeedAuthenticatedUser(chapterPermissions: new() { [chapter.Id] = [PermissionIdentifier.AssemblyChair] });
     }
 

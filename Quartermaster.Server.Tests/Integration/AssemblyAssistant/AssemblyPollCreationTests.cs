@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Quartermaster.Api.AssemblyAssistant;
+using Quartermaster.Api.Events;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.AssemblyAssistant.Mumble;
@@ -51,7 +52,7 @@ public class AssemblyPollCreationTests : IntegrationTestBase {
             options.SetValue("assembly.openslides.delegates_group_id", null, "5");
         }
 
-        var evt = Builder.SeedEvent(Builder.SeedChapter().Id);
+        var evt = Builder.SeedEvent(Builder.SeedChapter().Id, status: EventStatus.Active);
         Db.Insert(new AssemblyMotionPortal {
             EventId = evt.Id,
             OpensAt = DateTime.UtcNow.AddDays(-10),

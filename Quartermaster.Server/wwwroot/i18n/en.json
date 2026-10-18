@@ -1653,6 +1653,7 @@
   "ui.assembly_console.notice.openslides_action_failed": "OpenSlides action failed: {reason}",
   "ui.assembly_console.reject.stale": "The state has changed meanwhile; please check and click again.",
   "ui.assembly_console.reject.no_session": "No assembly is running.",
+  "ui.assembly_console.reject.event_not_active": "The event is not active. Set it to active to start the assembly.",
   "ui.assembly_console.reject.entry_not_found": "This request no longer exists.",
   "ui.assembly_console.reject.user_not_found": "This person is no longer in Mumble.",
   "ui.assembly_console.reject.move_pending": "This person is being moved right now.",
