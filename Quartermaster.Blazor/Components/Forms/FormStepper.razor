@@ -1,0 +1,33 @@
+<ol class="form-wizard-stepper d-flex flex-wrap gap-2 list-unstyled mb-4">
+    @for (var i = 0; i < Steps.Count; i++) {
+        var idx = i;
+        var step = Steps[idx];
+        var isCurrent = idx == CurrentStep;
+        var stateClass = isCurrent
+            ? "form-wizard-step active fw-semibold"
+            : idx < CurrentStep
+                ? "form-wizard-step completed text-success"
+                : "form-wizard-step text-secondary";
+        var badgeClass = isCurrent ? "text-bg-primary" : idx < CurrentStep ? "text-bg-success" : "text-bg-light border";
+        <li class="@stateClass d-flex align-items-center gap-2">
+            @if (IsClickable(idx) && step.Href != null) {
+                <a href="@step.Href" class="text-reset text-decoration-none d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill @badgeClass">@(idx + 1)</span>
+                    <span>@step.Title</span>
+                </a>
+            } else if (IsClickable(idx) && OnStepClick.HasDelegate) {
+                <button type="button" class="btn btn-link p-0 text-reset text-decoration-none d-flex align-items-center gap-2"
+                        @onclick="() => OnStepClick.InvokeAsync(idx)" disabled="@Busy">
+                    <span class="badge rounded-pill @badgeClass">@(idx + 1)</span>
+                    <span>@step.Title</span>
+                </button>
+            } else {
+                <span class="badge rounded-pill @badgeClass">@(idx + 1)</span>
+                <span>@step.Title</span>
+            }
+            @if (idx < Steps.Count - 1) {
+                <span class="text-secondary ms-1">›</span>
+            }
+        </li>
+    }
+</ol>

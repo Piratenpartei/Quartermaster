@@ -1866,6 +1866,13 @@
   "ui.settings_check.mistral_ok": "Connected, {count} models available.",
   "ui.settings_check.postiz_ok": "Connected, {count} active channels:",
 
+  "ui.public_form_stepper.personal_data": "Personal data",
+  "ui.public_form_stepper.address": "Address",
+  "ui.public_form_stepper.dues": "Dues",
+  "ui.public_form_stepper.payment": "Payment schedule",
+  "ui.public_form_stepper.declarations": "Declarations",
+  "ui.public_form_stepper.summary": "Summary",
+
   "ui.public_forms_setup.intro": "New forms stay closed until they are opened here. Closed forms disappear from the menu.",
   "ui.public_forms_setup.membership_title": "Membership application and due selection",
   "ui.public_forms_setup.membership_label": "Open the membership application",

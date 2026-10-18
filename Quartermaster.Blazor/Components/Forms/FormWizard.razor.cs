@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
@@ -46,12 +47,16 @@ public partial class FormWizard {
     private bool Busy;
     private BusyKind BusyAction;
     private List<WizardStep>? _previousSteps;
+    private List<FormStep> StepperSteps = [];
 
     protected override void OnParametersSet() {
         if (Steps != null && !ReferenceEquals(Steps, _previousSteps)) {
             _previousSteps = Steps;
             CurrentStep = ResolveInitialStep();
         }
+        StepperSteps = (Steps ?? [])
+            .Select(s => new FormStep(s.Title))
+            .ToList();
     }
 
     /// <summary>First step whose <see cref="WizardStep.IsValid"/> returns false; if every step validates, the last step (typically the overview/submit step). Lets a loaded draft drop the user where they left off instead of always at step 1.</summary>

@@ -1866,6 +1866,13 @@
   "ui.settings_check.mistral_ok": "Verbunden, {count} Modelle verfügbar.",
   "ui.settings_check.postiz_ok": "Verbunden, {count} aktive Kanäle:",
 
+  "ui.public_form_stepper.personal_data": "Persönliche Daten",
+  "ui.public_form_stepper.address": "Adresse",
+  "ui.public_form_stepper.dues": "Beitrag",
+  "ui.public_form_stepper.payment": "Zahlungsweise",
+  "ui.public_form_stepper.declarations": "Erklärungen",
+  "ui.public_form_stepper.summary": "Übersicht",
+
   "ui.public_forms_setup.intro": "Neue Formulare sind geschlossen, bis sie hier geöffnet werden. Geschlossene Formulare verschwinden aus dem Menü.",
   "ui.public_forms_setup.membership_title": "Mitgliedsantrag und Beitragseinstufung",
   "ui.public_forms_setup.membership_label": "Mitgliedsantrag öffnen",

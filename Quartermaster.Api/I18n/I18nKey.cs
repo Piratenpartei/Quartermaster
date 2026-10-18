@@ -2401,6 +2401,15 @@ public static class I18nKey {
             public const string PostizOk = "ui.settings_check.postiz_ok";
         }
 
+        public static class PublicFormStepper {
+            public const string PersonalData = "ui.public_form_stepper.personal_data";
+            public const string Address = "ui.public_form_stepper.address";
+            public const string Dues = "ui.public_form_stepper.dues";
+            public const string Payment = "ui.public_form_stepper.payment";
+            public const string Declarations = "ui.public_form_stepper.declarations";
+            public const string Summary = "ui.public_form_stepper.summary";
+        }
+
         public static class PublicFormsSetup {
             public const string Intro = "ui.public_forms_setup.intro";
             public const string MembershipTitle = "ui.public_forms_setup.membership_title";
