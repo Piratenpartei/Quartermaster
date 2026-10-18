@@ -16,4 +16,7 @@ public interface IKeycloakAdminClient {
 
     /// <summary>Sets one attribute to a single value, leaving every other attribute untouched.</summary>
     Task SetAttributeAsync(string userId, string name, string value, CancellationToken ct);
+
+    /// <summary>Lists at most one account of the realm, proving the credentials and the user management role.</summary>
+    Task CheckAccessAsync(CancellationToken ct);
 }

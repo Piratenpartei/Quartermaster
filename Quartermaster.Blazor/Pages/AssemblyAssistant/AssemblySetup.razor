@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.AssemblyAssistant
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Pages.Administration.Settings
 
 <PageBackLink Href="/Administration/Settings" />
 
@@ -12,7 +13,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">@I18n[I18nKey.Ui.AssemblySetup.ConnectionTitle]</h5>
-            <OptionGroupEditor Keys="@ConnectionKeys" />
+            <OptionGroupEditor Fields="@SettingsAssistantCatalog.AssemblyAssistant.Sections[0].Fields" />
         </div>
     </div>
 

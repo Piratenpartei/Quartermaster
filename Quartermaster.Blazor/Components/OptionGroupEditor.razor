@@ -1,47 +1,108 @@
 @using Quartermaster.Api.I18n
-@using Quartermaster.Api.Options
+@using Quartermaster.Blazor.Pages.Administration.Settings
 
-@if (Fields == null) {
+@if (Rows == null) {
     <LoadingSpinner />
-} else if (Fields.Count == 0) {
+} else if (Rows.Count == 0) {
     <div class="alert alert-warning mb-0">@I18n[I18nKey.Ui.OptionGroupEditor.NoMatchingOptions]</div>
 } else {
     <div class="row g-3">
-        @foreach (var field in Fields) {
-            <div class="@ColumnClass(field)">
-                <label class="form-label">@field.FriendlyName</label>
-                @if (IsBool(field)) {
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="@field.Identifier"
-                               checked="@BoolValue(field.Identifier)"
-                               @onchange="e => SetBool(field.Identifier, (bool)e.Value!)" />
-                        <label class="form-check-label" for="@field.Identifier">@I18n[I18nKey.Ui.OptionGroupEditor.ActivatedLabel]</label>
+        @foreach (var row in Rows) {
+            var key = row.Field.Key;
+            var id = InputId(row);
+            <div class="@ColumnClass(row)">
+                <label class="form-label" for="@id">@Label(row)</label>
+                @if (row.Definition.IsSecret) {
+                    <input id="@id" type="password" class="form-control" autocomplete="new-password"
+                           placeholder="@(HasStoredSecret(row) ? I18n[I18nKey.Ui.OptionGroupEditor.SecretUnchangedPlaceholder] : "")"
+                           value="@_values[key]"
+                           @oninput="e => OnInput(key, e)" />
+                } else if (row.Field.Kind == SettingsFieldKind.Bool) {
+                    <div class="form-check form-switch">
+                        <input id="@id" type="checkbox" class="form-check-input" role="switch"
+                               checked="@BoolValue(key)"
+                               @onchange="e => SetBool(key, (bool)e.Value!)" />
+                        <label class="form-check-label" for="@id">@I18n[I18nKey.Ui.OptionGroupEditor.ActivatedLabel]</label>
                     </div>
-                } else if (field.IsSecret) {
-                    <input type="password" class="form-control" autocomplete="new-password"
-                           placeholder="@(HasStoredSecret(field) ? I18n[I18nKey.Ui.OptionGroupEditor.SecretUnchangedPlaceholder] : "")"
-                           value="@_values[field.Identifier]"
-                           @oninput="e => OnInput(field.Identifier, e)" />
+                } else if (row.Field.Kind == SettingsFieldKind.Multiline) {
+                    <textarea id="@id" class="form-control" rows="8"
+                              value="@_values[key]"
+                              @oninput="e => OnInput(key, e)"></textarea>
+                } else if (row.Field.Kind == SettingsFieldKind.Select) {
+                    <select id="@id" class="form-select" value="@_values[key]" @onchange="e => OnInput(key, e)">
+                        @if (!row.Field.Choices.Any(c => c.Value == _values[key])) {
+                            <option value="@_values[key]">@_values[key]</option>
+                        }
+                        @foreach (var choice in row.Field.Choices) {
+                            <option value="@choice.Value">@I18n[choice.LabelKey]</option>
+                        }
+                    </select>
+                } else if (row.Field.Kind == SettingsFieldKind.BaseUrl) {
+                    <div class="input-group">
+                        <input id="@id" type="url" class="form-control"
+                               value="@_values[key]"
+                               @oninput="e => OnInput(key, e)" />
+                        <button type="button" class="btn btn-outline-secondary" @onclick="() => UseCurrentAddress(key)">
+                            <i class="bi bi-geo me-1"></i>@I18n[I18nKey.Ui.Settings.UseCurrentAddress]
+                        </button>
+                    </div>
+                } else if (row.Field.Kind == SettingsFieldKind.Duration) {
+                    <div class="input-group">
+                        <input id="@id" type="text" class="form-control" inputmode="numeric" placeholder="m:ss"
+                               value="@_values[key]"
+                               @oninput="e => OnInput(key, e)" />
+                        <span class="input-group-text">@I18n[I18nKey.Ui.Settings.UnitMinutesSeconds]</span>
+                    </div>
+                } else if (row.Field.Kind == SettingsFieldKind.Number) {
+                    <div class="input-group">
+                        <input id="@id" type="number" class="form-control" step="@(row.Field.Step ?? "1")"
+                               value="@_values[key]"
+                               @oninput="e => OnInput(key, e)" />
+                        @if (row.Field.UnitKey != null) {
+                            <span class="input-group-text">@I18n[row.Field.UnitKey]</span>
+                        }
+                    </div>
+                } else if (row.Field.Kind == SettingsFieldKind.Suggest) {
+                    <input id="@id" type="text" class="form-control" list="@(id + "-suggestions")"
+                           value="@_values[key]"
+                           @oninput="e => OnInput(key, e)" />
+                    <datalist id="@(id + "-suggestions")">
+                        @foreach (var item in CheckItems) {
+                            <option value="@item"></option>
+                        }
+                    </datalist>
                 } else {
-                    <input type="@(field.DataType == OptionDataType.Number ? "number" : "text")" class="form-control"
-                           value="@_values[field.Identifier]"
-                           @oninput="e => OnInput(field.Identifier, e)" />
+                    <input id="@id" type="text" class="form-control"
+                           value="@_values[key]"
+                           @oninput="e => OnInput(key, e)" />
                 }
-                @if (!string.IsNullOrEmpty(field.Description)) {
-                    <div class="form-text">@field.Description</div>
+                @if (_filled.Contains(key)) {
+                    <div class="form-text text-success"><i class="bi bi-magic me-1"></i>@I18n[I18nKey.Ui.Settings.FilledFromCheck]</div>
+                }
+                @if (!string.IsNullOrEmpty(row.Definition.Description)) {
+                    <div class="form-text">@row.Definition.Description</div>
+                }
+                @if (row.Definition.IsOverridable && row.Definition.Overrides.Count > 0) {
+                    <div class="form-text">
+                        <a href="/Administration/Settings/@row.Definition.Id">
+                            @I18n[I18nParams.With(I18nKey.Ui.Settings.OverridesLink, ("count", row.Definition.Overrides.Count.ToString()))]
+                        </a>
+                    </div>
                 }
             </div>
         }
     </div>
 
-    <div class="mt-3">
-        <button class="btn btn-primary btn-hover-scale1" @onclick="Save" disabled="@Saving">
-            @if (Saving) {
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            } else {
-                <i class="bi bi-check-circle me-1"></i>
-            }
-            @I18n[I18nKey.Ui.Common.Save]
-        </button>
-    </div>
+    @if (ShowSaveButton) {
+        <div class="mt-3">
+            <button class="btn btn-primary btn-hover-scale1" @onclick="SaveClicked" disabled="@Saving">
+                @if (Saving) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                } else {
+                    <i class="bi bi-check-circle me-1"></i>
+                }
+                @I18n[I18nKey.Ui.Common.Save]
+            </button>
+        </div>
+    }
 }

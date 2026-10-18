@@ -26,21 +26,6 @@ public partial class ImapSetup {
     private bool Copying;
     private string SmtpSenderFallback = "";
 
-    private static readonly string[] ImapKeys = [
-        "email.imap.host",
-        "email.imap.port",
-        "email.imap.use_ssl",
-        "email.imap.username",
-        "email.imap.password",
-        "email.imap.mailbox",
-        "email.imap.poll_interval_minutes"
-    ];
-
-    private static readonly string[] MdnKeys = [
-        "email.mdn.request_default",
-        "email.mdn.receipt_address"
-    ];
-
     private static readonly (string Source, string Target)[] SmtpToImapMap = [
         ("email.smtp.host", "email.imap.host"),
         ("email.smtp.use_ssl", "email.imap.use_ssl"),

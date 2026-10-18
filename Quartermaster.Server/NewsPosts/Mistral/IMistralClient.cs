@@ -10,4 +10,7 @@ public interface IMistralClient {
 
     /// <summary>Runs a chat completion in JSON mode and returns the raw message content.</summary>
     Task<string> CompleteJsonAsync(string model, string systemPrompt, string userPrompt, CancellationToken ct);
+
+    /// <summary>The ids of all models the API key can use, sorted.</summary>
+    Task<List<string>> ListModelsAsync(CancellationToken ct);
 }

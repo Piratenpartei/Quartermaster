@@ -80,6 +80,10 @@ public class HttpKeycloakAdminClient : IKeycloakAdminClient {
         await SendAsync(HttpMethod.Put, url, current.ToJsonString(), ct);
     }
 
+    public async Task CheckAccessAsync(CancellationToken ct) {
+        await SendAsync(HttpMethod.Get, $"{AdminBase}/users?max=1&briefRepresentation=true", null, ct);
+    }
+
     private async Task<string> SendAsync(HttpMethod method, string url, string? jsonBody, CancellationToken ct) {
         using var response = await SendWithRetryAsync(method, url, jsonBody, ct);
         if (!response.IsSuccessStatusCode)

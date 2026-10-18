@@ -1,6 +1,7 @@
 @page "/Administration/Setup/Imap"
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Pages.Administration.Settings
 
 <PageBackLink Href="/Administration/Settings" />
 
@@ -15,7 +16,7 @@
                     <i class="bi bi-arrow-down-left-square me-1"></i> @I18n[I18nKey.Ui.ImapSetup.CopyFromSmtpButton]
                 </button>
             </div>
-            <OptionGroupEditor @ref="ImapEditor" Keys="@ImapKeys" />
+            <OptionGroupEditor @ref="ImapEditor" Fields="@SettingsAssistantCatalog.Imap.Sections[0].Fields" />
         </div>
     </div>
 
@@ -28,7 +29,7 @@
                     @I18n[$"{I18nKey.Ui.ImapSetup.ReceiptFallbackHint}?sender={SmtpSenderFallback}"]
                 </p>
             }
-            <OptionGroupEditor @ref="MdnEditor" Keys="@MdnKeys" />
+            <OptionGroupEditor @ref="MdnEditor" Fields="@SettingsAssistantCatalog.Imap.Sections[1].Fields" />
         </div>
     </div>
 </RequirePermission>

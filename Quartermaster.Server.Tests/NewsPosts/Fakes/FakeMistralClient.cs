@@ -30,6 +30,12 @@ public class FakeMistralClient : IMistralClient {
         return Task.FromResult(ChatAnswers.Dequeue());
     }
 
+    public List<string> Models { get; } = ["mistral-embed", "mistral-medium-latest", "mistral-small-latest"];
+
+    public Task<List<string>> ListModelsAsync(CancellationToken ct) {
+        return Task.FromResult(Models.ToList());
+    }
+
     public static float[] Vector(string text) {
         if (text.Contains("Jugendschutz") || text.Contains("Alterskontrolle"))
             return [1f, 0f, 0f];

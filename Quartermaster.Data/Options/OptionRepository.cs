@@ -96,6 +96,21 @@ public class OptionRepository {
     private const string SecretMask = "••••••";
     private static string? RedactedAuditValue(string? raw) => string.IsNullOrEmpty(raw) ? raw : SecretMask;
 
+    /// <summary>Removes a chapter override so the chapter inherits again; false when there was none.</summary>
+    public bool DeleteChapterValue(string identifier, Guid chapterId) {
+        var existing = GetChapterValue(identifier, chapterId);
+        if (existing == null)
+            return false;
+
+        using var tx = _context.BeginTransaction();
+        _context.SystemOptions
+            .Where(o => o.Id == existing.Id)
+            .Delete();
+        _auditLog.LogDeleted("SystemOption", existing.Id);
+        tx.Commit();
+        return true;
+    }
+
     public void SupplementDefaults() {
         AddDefinitionIfNotExists(PublicFormOptions.MembershipApplication,
             "Öffentliche Formulare: Mitgliedsantrag",

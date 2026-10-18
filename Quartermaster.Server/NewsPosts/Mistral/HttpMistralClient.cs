@@ -61,6 +61,36 @@ public class HttpMistralClient : IMistralClient {
         }
     }
 
+    public async Task<List<string>> ListModelsAsync(CancellationToken ct) {
+        using var request = new HttpRequestMessage(HttpMethod.Get, _settings.MistralBaseUrl + "/v1/models");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _settings.MistralApiKey);
+
+        HttpResponseMessage response;
+        try {
+            response = await _http.SendAsync(request, ct);
+        } catch (OperationCanceledException) when (!ct.IsCancellationRequested) {
+            throw new MistralException("Mistral /v1/models timed out");
+        }
+        using (response) {
+            var text = await response.Content.ReadAsStringAsync(ct);
+            if (!response.IsSuccessStatusCode)
+                throw new MistralException($"Mistral /v1/models returned {(int)response.StatusCode}: {Truncate(text)}");
+
+            try {
+                using var doc = JsonDocument.Parse(text);
+                return doc.RootElement.GetProperty("data")
+                    .EnumerateArray()
+                    .Select(m => m.GetProperty("id").GetString() ?? "")
+                    .Where(id => id.Length > 0)
+                    .Distinct()
+                    .Order(StringComparer.Ordinal)
+                    .ToList();
+            } catch (Exception ex) when (ex is KeyNotFoundException || ex is JsonException || ex is InvalidOperationException) {
+                throw new MistralException("Mistral model list has an unexpected shape: " + ex.Message);
+            }
+        }
+    }
+
     private async Task<JsonDocument> PostAsync(string path, object body, string model, CancellationToken ct) {
         for (var attempt = 1; ; attempt++) {
             var sw = Stopwatch.StartNew();

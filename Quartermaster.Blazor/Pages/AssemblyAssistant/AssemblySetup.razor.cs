@@ -22,13 +22,6 @@ public partial class AssemblySetup {
     [Inject]
     public required I18nService I18n { get; set; }
 
-    private static readonly string[] ConnectionKeys = [
-        "mumble.host",
-        "mumble.port",
-        "mumble.username",
-        "mumble.server_certificate_sha256"
-    ];
-
     private static readonly ChannelRole[] Roles = Enum.GetValues<ChannelRole>();
 
     private AssemblySetupStatusDTO? Status;

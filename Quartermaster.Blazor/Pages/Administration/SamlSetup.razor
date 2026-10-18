@@ -1,6 +1,7 @@
 @page "/Administration/Setup/Saml"
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Pages.Administration.Settings
 @inject I18nService I18n
 
 <PageBackLink Href="/Administration/Settings" />
@@ -11,7 +12,7 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5 class="card-title mb-3">@I18n[I18nKey.Ui.SamlSetup.SettingsTitle]</h5>
-            <OptionGroupEditor Keys="@SamlKeys" FullWidthFields="true" OnSaved="RefreshClientConfig" />
+            <OptionGroupEditor Fields="@SettingsAssistantCatalog.Saml.Sections[0].Fields" FullWidthFields="true" OnSaved="RefreshClientConfig" />
         </div>
     </div>
 </RequirePermission>

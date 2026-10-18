@@ -2187,11 +2187,6 @@ public static class I18nKey {
 
         public static class OptionList {
             public const string PageTitle = "ui.option_list.page_title";
-            public const string SetupSmtp = "ui.option_list.setup_smtp";
-            public const string SetupImap = "ui.option_list.setup_imap";
-            public const string SetupSaml = "ui.option_list.setup_saml";
-            public const string SetupOidc = "ui.option_list.setup_oidc";
-            public const string SetupAssemblyAssistant = "ui.option_list.setup_assembly_assistant";
             public const string IdentifierColumn = "ui.option_list.identifier_column";
             public const string TypeColumn = "ui.option_list.type_column";
             public const string OverridableColumn = "ui.option_list.overridable_column";
@@ -2199,6 +2194,9 @@ public static class I18nKey {
             public const string DataTypeString = "ui.option_list.data_type.string";
             public const string DataTypeNumber = "ui.option_list.data_type.number";
             public const string DataTypeUnknown = "ui.option_list.data_type.unknown";
+            public const string Intro = "ui.option_list.intro";
+            public const string SearchPlaceholder = "ui.option_list.search_placeholder";
+            public const string AssistantColumn = "ui.option_list.assistant_column";
         }
 
         public static class OptionDetail {
@@ -2312,6 +2310,116 @@ public static class I18nKey {
         public static class Pagination {
             public const string PreviousAriaLabel = "ui.pagination.previous_aria_label";
             public const string NextAriaLabel = "ui.pagination.next_aria_label";
+        }
+
+        public static class Settings {
+            public const string PageTitle = "ui.settings.page_title";
+            public const string Intro = "ui.settings.intro";
+            public const string AdvancedLink = "ui.settings.advanced_link";
+            public const string NotFound = "ui.settings.not_found";
+            public const string GroupBasics = "ui.settings.group.basics";
+            public const string GroupLogin = "ui.settings.group.login";
+            public const string GroupCommunication = "ui.settings.group.communication";
+            public const string GroupIntegrations = "ui.settings.group.integrations";
+            public const string GroupAssembly = "ui.settings.group.assembly";
+            public const string StatusConfigured = "ui.settings.status.configured";
+            public const string StatusPartial = "ui.settings.status.partial";
+            public const string StatusNotConfigured = "ui.settings.status.not_configured";
+            public const string StatusOn = "ui.settings.status.on";
+            public const string StatusOff = "ui.settings.status.off";
+            public const string CheckButton = "ui.settings.check_button";
+            public const string UseCurrentAddress = "ui.settings.use_current_address";
+            public const string OverridesLink = "ui.settings.overrides_link";
+            public const string DurationInvalid = "ui.settings.duration_invalid";
+            public const string FilledFromCheck = "ui.settings.filled_from_check";
+            public const string UnitSeconds = "ui.settings.unit.seconds";
+            public const string UnitMinutes = "ui.settings.unit.minutes";
+            public const string UnitHours = "ui.settings.unit.hours";
+            public const string UnitDays = "ui.settings.unit.days";
+            public const string UnitMinutesSeconds = "ui.settings.unit.minutes_seconds";
+            public const string LinkImportHistory = "ui.settings.link.import_history";
+            public const string LinkNewsFeeds = "ui.settings.link.news_feeds";
+            public const string GeneralTitle = "ui.settings.general.title";
+            public const string GeneralDescription = "ui.settings.general.description";
+            public const string PublicFormsTitle = "ui.settings.public_forms.title";
+            public const string PublicFormsDescription = "ui.settings.public_forms.description";
+            public const string SamlTitle = "ui.settings.saml.title";
+            public const string SamlDescription = "ui.settings.saml.description";
+            public const string OidcTitle = "ui.settings.oidc.title";
+            public const string OidcDescription = "ui.settings.oidc.description";
+            public const string SecurityTitle = "ui.settings.security.title";
+            public const string SecurityDescription = "ui.settings.security.description";
+            public const string SecuritySessionsTitle = "ui.settings.security.sessions_title";
+            public const string SecurityLockoutTitle = "ui.settings.security.lockout_title";
+            public const string SecurityRateLimitTitle = "ui.settings.security.rate_limit_title";
+            public const string SmtpTitle = "ui.settings.smtp.title";
+            public const string SmtpDescription = "ui.settings.smtp.description";
+            public const string ImapTitle = "ui.settings.imap.title";
+            public const string ImapDescription = "ui.settings.imap.description";
+            public const string TelegramTitle = "ui.settings.telegram.title";
+            public const string TelegramDescription = "ui.settings.telegram.description";
+            public const string MemberImportTitle = "ui.settings.member_import.title";
+            public const string MemberImportDescription = "ui.settings.member_import.description";
+            public const string KeycloakTitle = "ui.settings.keycloak.title";
+            public const string KeycloakDescription = "ui.settings.keycloak.description";
+            public const string WikiTitle = "ui.settings.wiki.title";
+            public const string WikiDescription = "ui.settings.wiki.description";
+            public const string OpenSlidesTitle = "ui.settings.openslides.title";
+            public const string OpenSlidesDescription = "ui.settings.openslides.description";
+            public const string SocialMediaTitle = "ui.settings.social_media.title";
+            public const string SocialMediaDescription = "ui.settings.social_media.description";
+            public const string SocialMediaMistralTitle = "ui.settings.social_media.mistral_title";
+            public const string SocialMediaMistralDescription = "ui.settings.social_media.mistral_description";
+            public const string SocialMediaPostizTitle = "ui.settings.social_media.postiz_title";
+            public const string SocialMediaPipelineTitle = "ui.settings.social_media.pipeline_title";
+            public const string AssemblyAssistantTitle = "ui.settings.assembly_assistant.title";
+            public const string AssemblyAssistantDescription = "ui.settings.assembly_assistant.description";
+            public const string AssemblyProcedureTitle = "ui.settings.assembly_procedure.title";
+            public const string AssemblyProcedureDescription = "ui.settings.assembly_procedure.description";
+            public const string AssemblyTimesTitle = "ui.settings.assembly_procedure.times_title";
+            public const string AssemblySpeakersTitle = "ui.settings.assembly_procedure.speakers_title";
+            public const string AssemblyPollsTitle = "ui.settings.assembly_procedure.polls_title";
+            public const string XReplyEveryone = "ui.settings.x_reply.everyone";
+            public const string XReplyFollowing = "ui.settings.x_reply.following";
+            public const string XReplyMentioned = "ui.settings.x_reply.mentioned";
+            public const string XReplySubscribers = "ui.settings.x_reply.subscribers";
+            public const string XReplyVerified = "ui.settings.x_reply.verified";
+        }
+
+        public static class SettingsCheck {
+            public const string NotConfigured = "ui.settings_check.not_configured";
+            public const string InsecureUrl = "ui.settings_check.insecure_url";
+            public const string Failed = "ui.settings_check.failed";
+            public const string TelegramOk = "ui.settings_check.telegram_ok";
+            public const string MemberImportOk = "ui.settings_check.member_import_ok";
+            public const string MemberImportFileMissing = "ui.settings_check.member_import_file_missing";
+            public const string MemberImportUnreadable = "ui.settings_check.member_import_unreadable";
+            public const string MemberImportColumnMissing = "ui.settings_check.member_import_column_missing";
+            public const string KeycloakOk = "ui.settings_check.keycloak_ok";
+            public const string LoginOk = "ui.settings_check.login_ok";
+            public const string MistralOk = "ui.settings_check.mistral_ok";
+            public const string PostizOk = "ui.settings_check.postiz_ok";
+        }
+
+        public static class PublicFormsSetup {
+            public const string Intro = "ui.public_forms_setup.intro";
+            public const string MembershipTitle = "ui.public_forms_setup.membership_title";
+            public const string MembershipLabel = "ui.public_forms_setup.membership_label";
+            public const string DueSelectionLabel = "ui.public_forms_setup.due_selection_label";
+            public const string MembershipHint = "ui.public_forms_setup.membership_hint";
+            public const string MotionTitle = "ui.public_forms_setup.motion_title";
+            public const string MotionDescription = "ui.public_forms_setup.motion_description";
+            public const string MotionDefaultLabel = "ui.public_forms_setup.motion_default_label";
+            public const string OverridesTitle = "ui.public_forms_setup.overrides_title";
+            public const string NoOverrides = "ui.public_forms_setup.no_overrides";
+            public const string ValueColumn = "ui.public_forms_setup.value_column";
+            public const string Open = "ui.public_forms_setup.open";
+            public const string Closed = "ui.public_forms_setup.closed";
+            public const string Inherit = "ui.public_forms_setup.inherit";
+            public const string InheritHint = "ui.public_forms_setup.inherit_hint";
+            public const string AddChapterPlaceholder = "ui.public_forms_setup.add_chapter_placeholder";
+            public const string AddButton = "ui.public_forms_setup.add_button";
+            public const string OpenCount = "ui.public_forms_setup.open_count";
         }
 
         public static class OptionGroupEditor {

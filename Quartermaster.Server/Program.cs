@@ -35,6 +35,8 @@ using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
 using Quartermaster.Server.Email;
 using Quartermaster.Server.Rendering;
+using Quartermaster.Server.Settings;
+using Quartermaster.Server.Settings.Checks;
 using Quartermaster.Server.DueSelector;
 using Quartermaster.Server.MembershipApplications;
 using Quartermaster.Server.Motions;
@@ -218,6 +220,15 @@ public partial class Program {
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddScoped<SmtpTestService>();
+
+        builder.Services.AddScoped<ISettingsCheck, TelegramSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, MemberImportSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, KeycloakSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, WikiSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, OpenSlidesSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, MistralSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, PostizSettingsCheck>();
+
         builder.Services.AddHostedService<EmailSendingBackgroundService>();
         builder.Services.AddHostedService<MdnPollerHostedService>();
         builder.Services.AddHostedService<MarkdownWarmupHostedService>();

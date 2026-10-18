@@ -108,6 +108,11 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Eingereicht | Submitted | |
 | Gewählter Beitrag | Selected Dues | |
 | Geminderter Betrag | Reduced Amount | |
+| Assistent | Assistant | One settings area under System settings |
+| Erweiterte Einstellungen | Advanced settings | Full option list |
+| Speichern und prüfen | Save and check | Saves a section, then tests the stored credentials |
+| Eingerichtet / Teilweise / Nicht eingerichtet | Configured / Partial / Not configured | Status badge on a settings card |
+| Erben | Inherit | Removes a chapter's own value |
 
 ## Motions (Anträge)
 

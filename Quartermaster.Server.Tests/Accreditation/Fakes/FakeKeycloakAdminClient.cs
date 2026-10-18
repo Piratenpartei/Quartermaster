@@ -106,6 +106,11 @@ public class FakeKeycloakAdminClient : IKeycloakAdminClient {
         return Task.CompletedTask;
     }
 
+    public Task CheckAccessAsync(CancellationToken ct) {
+        ThrowIfFailing();
+        return Task.CompletedTask;
+    }
+
     private static void ThrowIfFailing() {
         if (FailNext == null)
             return;

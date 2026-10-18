@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
+using Quartermaster.Blazor.Pages.Administration.Settings;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -19,6 +22,7 @@ public partial class OptionList {
 
     private List<OptionDefinitionDTO>? Options;
     private bool Loading = true;
+    private string Search = "";
 
     protected override async Task OnInitializedAsync() {
         try {
@@ -27,6 +31,17 @@ public partial class OptionList {
             ToastService.Error(ex);
         }
         Loading = false;
+    }
+
+    private IEnumerable<OptionDefinitionDTO> FilteredOptions() {
+        if (Options == null)
+            return [];
+        if (string.IsNullOrWhiteSpace(Search))
+            return Options;
+
+        var term = Search.Trim();
+        return Options.Where(o => o.Identifier.Contains(term, StringComparison.OrdinalIgnoreCase)
+            || o.FriendlyName.Contains(term, StringComparison.OrdinalIgnoreCase));
     }
 
     private string DataTypeLabel(OptionDataType dt) => dt switch {

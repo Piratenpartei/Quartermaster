@@ -1,6 +1,7 @@
 @page "/Administration/Setup/Smtp"
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Pages.Administration.Settings
 
 <PageBackLink Href="/Administration/Settings" />
 
@@ -10,7 +11,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">@I18n[I18nKey.Ui.SmtpSetup.ServerSettingsTitle]</h5>
-            <OptionGroupEditor Keys="@SmtpKeys" />
+            <OptionGroupEditor Fields="@SettingsAssistantCatalog.Smtp.Sections[0].Fields" />
         </div>
     </div>
 

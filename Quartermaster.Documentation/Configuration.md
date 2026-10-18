@@ -9,7 +9,7 @@ Quartermaster splits configuration across two layers:
 | Layer | What goes there | How it's edited |
 |---|---|---|
 | `appsettings.Production.json` | DB connection string, trusted reverse-proxy IPs, log levels | Edit file, restart service |
-| **Options table** (DB-backed) | Everything else — SMTP, branding, SAML/OIDC, rate limits, etc. | Web UI: `/Administration/Settings`. Hot-reload, no restart |
+| **Options table** (DB-backed) | Everything else — SMTP, branding, SAML/OIDC, rate limits, etc. | Web UI: assistants at `/Administration/Settings`, the full list at `/Administration/Settings/Advanced`. Hot-reload, no restart |
 
 A handful of Options are **per-chapter overridable**: setting them at the chapter level overrides the global default for users scoped to that chapter and its descendants. The rest are global only.
 
@@ -45,7 +45,11 @@ Both lists are additive. The client IP that ends up in audit logs and rate-limit
 
 ## Global options (DB-backed)
 
-Settings below are edited at `/Administration/Settings`. The "Identifier" column is what appears in import/export and audit logs.
+Settings below are edited at `/Administration/Settings`. The page shows one card per area (General, Public forms, SAML, OpenID Connect, Login security, Sending mail, Read receipts, Telegram, Member import, Keycloak, Pirate wiki, OpenSlides, Social media, Assembly assistant, Assembly procedure); each opens an assistant with the options of that area and a status badge on the card. Assistants for remote services have a "Save and check" button that saves the section and then tests the stored values (Telegram `getMe`, a read of the member import file, a Keycloak user listing, a wiki and an OpenSlides login, the Mistral model list, the Postiz channel list) without changing anything remote. The model fields of the social media assistant suggest the models the check found, and the Telegram check fills in the bot username.
+
+"Advanced settings" below the cards lists every option with its identifier and the assistant that covers it. Options only reachable there: `general.error.show_details`, `email.smtp.batch_size`, `newsposts.mistral.base_url`, `assembly.voice_hangover_ms`, `meetings.collab.save_interval_seconds`, `meetings.motion_notes_template`, `messaging.pdf.output_dir` and `meetings.protocol.archive_dir`.
+
+The "Identifier" column is what appears in import/export and audit logs.
 
 ### System branding & links
 
@@ -208,7 +212,7 @@ The page body is rendered from the "Wiki template (Fluid)" of the motion type. W
 
 First run checklist:
 
-1. Set the three options in `/Administration/Settings` and press "Check connection".
+1. Set the options in the "Pirate wiki" assistant under `/Administration/Settings` and press "Check connection" in the portal settings.
 2. Enable the mirror with a test prefix in the bot's own user namespace, for example `Benutzer:<Bot>/Antragsportal-Test`, and not with the real `Antrag:` pages. Let the job write a few pages and check them on the wiki.
 3. Only after the test pages look right, change "Wiki page prefix" to the real prefix and save. Saving a changed prefix on an enabled mirror queues all numbered motions, so the pages appear under the new prefix within a minute or two; "Synchronize all again" on the dashboard forces it. Pages under the old prefix are not touched, stay on the wiki and have to be deleted there by hand.
 
@@ -276,7 +280,7 @@ Known limits:
 First run checklist:
 
 1. Create a throwaway test meeting in OpenSlides and give the account the motion management permission there.
-2. Set the three options in `/Administration/Settings`.
+2. Set the three options in the "OpenSlides" assistant under `/Administration/Settings`.
 3. Enter the test meeting's id as "OpenSlides meeting ID" in the portal settings, save, and press "Check connection".
 4. Push with and without the checkbox and compare the result with the meeting: categories, numbers, texts, reasons, submitter text and order.
 5. Change a pushed motion, push again and confirm that the motion is updated and not duplicated.
@@ -293,7 +297,7 @@ What the code assumes about OpenSlides 4.3, to confirm by a real run:
 
 ### Assembly assistant (Mumble bot)
 
-Optional. The assembly assistant connects to the Mumble server as a bot while an assembly session runs, tracks the request channels and moves members only when the chair clicks. It is set up under "Settings > Configure assembly assistant" (global permission `options_edit`).
+Optional. The assembly assistant connects to the Mumble server as a bot while an assembly session runs, tracks the request channels and moves members only when the chair clicks. It is set up under "Settings > Assembly assistant" (global permission `options_edit`); speaking times and poll defaults are in "Settings > Assembly procedure".
 
 | Identifier | Default | Purpose |
 |---|---|---|
@@ -394,6 +398,7 @@ The public membership application, due selection and motion form ship switched o
 - The motion form only offers chapters that are switched on. A value set on a chapter also applies to its sub-chapters unless they set their own, so switching on a state chapter opens the form for all its districts; the menu entry shows as soon as one chapter is switched on.
 - Holders of `applications_process` or `dueselections_process` (in any chapter) still reach and submit those forms while they are off, so officers can enter paper submissions. The board's own motion page (Board work, Motions, Create) keeps working for holders of `motions_edit`.
 - The browser reads the switches once when the app loads; visitors see a change after reloading.
+- The "Public forms" assistant saves each switch at once. Its chapter list sets a chapter to open or closed; "Inherit" removes the chapter's own value (`DELETE /api/options/{identifier}/overrides/{chapterId}`), so the chapter follows its parent again.
 
 ### Rate limiting (anonymous endpoints)
 
