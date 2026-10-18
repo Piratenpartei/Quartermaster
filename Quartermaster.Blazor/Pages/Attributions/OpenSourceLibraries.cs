@@ -18,7 +18,8 @@ public static class OpenSourceLibraries {
             "Microsoft.AspNetCore.Components.WebAssembly",
             "Microsoft.AspNetCore.Components.WebAssembly.Server",
             "Microsoft.AspNetCore.SignalR.Client",
-            "Microsoft.Extensions.Http"
+            "Microsoft.Extensions.Http",
+            "System.Security.Cryptography.Pkcs"
         ]),
         new("AspNetSaml", "Apache-2.0", "https://github.com/jitbit/AspNetSaml", LibraryScope.Server, ["AspNetSaml"]),
         new("Bogus", "MIT", "https://github.com/bchavez/Bogus", LibraryScope.Server, ["Bogus"]),

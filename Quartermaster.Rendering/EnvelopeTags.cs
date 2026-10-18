@@ -37,7 +37,7 @@ public static class EnvelopeTags {
             var fullKey = KeyPrefix + contextKey;
             parser.RegisterExpressionTag(tagName, async (expression, writer, encoder, context) => {
                 var value = await expression.EvaluateAsync(context);
-                context.AmbientValues[fullKey] = value.ToStringValue();
+                context.AmbientValues[fullKey] = value.ToStringValue(context);
                 return Completion.Normal;
             });
         }
