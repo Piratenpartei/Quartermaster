@@ -1,0 +1,19 @@
+@page "/DueSelector"
+@page "/DueSelector/UserDataInput"
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.PublicFormWizard.DueSelectionTitle]</PageTitle>
+
+<PublicFormGate Forms="@([PublicFormKind.DueSelection])">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.PublicFormWizard.DueSelectionTitle]</h3>
+
+    @if (SubmittedDirect) {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>@I18n[I18nKey.Ui.DueSelectorSummary.SubmittedDirect]
+        </div>
+    } else if (SubmittedEmail != null) {
+        <SubmissionConfirmationNotice Email="@SubmittedEmail" />
+    } else if (Steps.Count > 0) {
+        <FormWizard Steps="Steps" SubmitLabel="@I18n[I18nKey.Ui.DueSelectorSummary.SubmitFormButton]" OnSubmit="Submit" />
+    }
+</PublicFormGate>

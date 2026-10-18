@@ -56,6 +56,8 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
 
 - [ ] **Travel expense reimbursement form.** *(Backlog)* Second user of the PDF form wizard engine introduced under [PDF form wizard + Expense reimbursement form]. German display name "Reisekostenerstattung". Used when a member - or sometimes an external participant invited to travel for the party - claims travel compensation. Typical fields: travel purpose, start/end date+time+location, mode of transport (km for own car with mileage rate, ticket cost for public transit), accommodation, per-diem allowances, attached receipts, payout bank account. Submitter may not be a member, so the wizard should also be reachable by externals via a link or token-gated entry. Once the form engine from the V3 item exists, this should be a new form definition + step config rather than a new engine build.
 
+- [ ] **Store the country of membership applicants living abroad.** The membership application asks applicants abroad for their country (`MembershipApplicationEntryState.AddressCountry`), but `MembershipApplicationDTO` has no country field, so the value is dropped on submit and officers only see post code and city. Needs `AddressCountry` on `MembershipApplicationDTO`, the `MembershipApplication` entity (new release migration, V5 is in production), the validator (max length), the submit mapping in `MembershipApplicationWizard.Submit` and the application detail page.
+
 ## Motion portal
 
 - [ ] **Follow-ups from the motion portal review.** Smaller changes left open when the motion portal (V4) was finished:

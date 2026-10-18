@@ -1,0 +1,19 @@
+@page "/MembershipApplication"
+@page "/MembershipApplication/PersonalData"
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.PublicFormWizard.MembershipApplicationTitle]</PageTitle>
+
+<PublicFormGate Forms="@([PublicFormKind.MembershipApplication])">
+    <h3 class="mb-3">@I18n[I18nKey.Ui.PublicFormWizard.MembershipApplicationTitle]</h3>
+
+    @if (SubmittedDirect) {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>@I18n[I18nKey.Ui.ApplicationSummary.DirectSubmittedNotice]
+        </div>
+    } else if (SubmittedEmail != null) {
+        <SubmissionConfirmationNotice Email="@SubmittedEmail" />
+    } else if (Steps.Count > 0) {
+        <FormWizard Steps="Steps" SubmitLabel="@I18n[I18nKey.Ui.ApplicationSummary.SubmitButton]" OnAdvance="SyncDuesState" OnSubmit="Submit" />
+    }
+</PublicFormGate>

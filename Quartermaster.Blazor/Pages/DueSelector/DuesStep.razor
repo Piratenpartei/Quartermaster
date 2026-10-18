@@ -1,0 +1,87 @@
+@using Quartermaster.Api.DueSelector
+@using Quartermaster.Api.I18n
+
+<p class="text-secondary">@I18n[I18nKey.Ui.DuesTypeSelection.Instruction]</p>
+
+<div class="d-grid gap-2 mb-3" role="radiogroup">
+    <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.OnePercentYearlyPay)" OnSelect="() => Select(SelectedValuation.OnePercentYearlyPay)">
+        <span>@I18n[I18nKey.Ui.DuesTypeSelection.OnePercentLabel]</span>
+        <span class="badge text-bg-primary ms-1">@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]</span>
+    </ChoiceCard>
+    <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.MonthlyPayGroup)" OnSelect="() => Select(SelectedValuation.MonthlyPayGroup)">
+        @I18n[I18nKey.Ui.DuesTypeSelection.MonthlyPayLabel]
+    </ChoiceCard>
+    <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.Underage)" OnSelect="() => Select(SelectedValuation.Underage)">
+        <div>@I18n[I18nKey.Ui.DuesTypeSelection.UnderageLabel]</div>
+        <div class="small text-secondary">@I18n[I18nKey.Ui.DuesTypeSelection.UnderageHint]</div>
+    </ChoiceCard>
+    <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.Reduced)" OnSelect="() => Select(SelectedValuation.Reduced)">
+        @I18n[I18nKey.Ui.DuesTypeSelection.ReducedLabel]
+    </ChoiceCard>
+</div>
+
+@if (State.SelectedValuation == SelectedValuation.OnePercentYearlyPay) {
+    var isValid = State.YearlyIncome >= DueSelectorEntryState.MinimumOnePercentIncome;
+    <hr />
+    <div class="mb-2">
+        <label for="yearlyIncome" class="form-label">@I18n[I18nKey.Ui.SelectOnePercentYearlyPay.YearlyIncomeLabel]</label>
+        <div class="input-group @(isValid ? "" : "has-validation")">
+            <span class="input-group-text">€</span>
+            <input type="number" class="form-control @(isValid ? "" : "is-invalid")" id="yearlyIncome"
+                   min="7200" @bind="State.YearlyIncome" @bind:event="oninput" @bind:after="State.RecalculateDue" />
+            @if (!isValid) {
+                <div class="invalid-feedback">
+                    @I18n[I18nKey.Ui.SelectOnePercentYearlyPay.IncomeTooLowLine1]<br />
+                    @I18n[I18nKey.Ui.SelectOnePercentYearlyPay.IncomeTooLowLine2]<br />
+                    @I18n[I18nKey.Ui.SelectOnePercentYearlyPay.IncomeTooLowLine3]
+                </div>
+            }
+        </div>
+    </div>
+    <div class="mb-0">
+        <label for="calculatedYearlyDue" class="form-label">@I18n[I18nKey.Ui.SelectOnePercentYearlyPay.CalculatedYearlyDueLabel]</label>
+        <input type="text" class="form-control" id="calculatedYearlyDue" value="@FormatAmount(State.SelectedDue)" readonly disabled />
+    </div>
+} else if (State.SelectedValuation == SelectedValuation.MonthlyPayGroup) {
+    <hr />
+    <MonthlyIncomeGroupInput State="@State" />
+} else if (State.SelectedValuation == SelectedValuation.Reduced) {
+    var justificationMissing = string.IsNullOrWhiteSpace(State.ReducedJustification);
+    var amountInvalid = State.ReducedAmount < 1;
+    <hr />
+    <div class="mb-3">
+        <label for="reducedJustification" class="form-label">@I18n[I18nKey.Ui.SelectReduced.JustificationLabel] <RequiredStar /></label>
+        <textarea class="form-control" id="reducedJustification" @bind="State.ReducedJustification" @bind:event="oninput" maxlength="2048"></textarea>
+        @if (justificationMissing) {
+            <div class="form-text">@I18n[I18nKey.Ui.SelectReduced.JustificationRequired]</div>
+        }
+    </div>
+    <div class="mb-3">
+        <label for="reducedAmount" class="form-label">@I18n[I18nKey.Ui.SelectReduced.YearlyAmountLabel] <RequiredStar /></label>
+        <div class="input-group @(amountInvalid ? "has-validation" : "")">
+            <span class="input-group-text">€</span>
+            <input type="number" class="form-control @(amountInvalid ? "is-invalid" : "")" min="1" id="reducedAmount"
+                   @bind="State.ReducedAmount" @bind:event="oninput" />
+            @if (amountInvalid) {
+                <div class="invalid-feedback">@I18n[I18nKey.Ui.SelectReduced.AmountTooLowFeedback]</div>
+            }
+        </div>
+    </div>
+    <div class="mb-3">
+        <RadioGroup E="ReducedTimeSpan" @bind-Value="State.ReducedTimeSpan" ToStringFunc="TextForReducedTimeSpan" />
+    </div>
+
+    <h5>@I18n[I18nKey.Ui.SelectReduced.ClassificationHeader]</h5>
+    <p>@I18n[I18nKey.Ui.SelectReduced.ClassificationNotice]</p>
+    <div class="d-grid gap-2 mb-3" role="radiogroup">
+        <ChoiceCard Name="reduced-fallback" Selected="@State.ReducedIncomeFallback" OnSelect="() => SetIncomeFallback(true)">
+            @I18n[I18nKey.Ui.SelectReduced.MonthlyClassificationOption]
+        </ChoiceCard>
+        <ChoiceCard Name="reduced-fallback" Selected="@(!State.ReducedIncomeFallback)" OnSelect="() => SetIncomeFallback(false)">
+            @I18n[I18nKey.Ui.SelectReduced.SkipOption]
+        </ChoiceCard>
+    </div>
+    @if (State.ReducedIncomeFallback) {
+        <MonthlyIncomeGroupInput State="@State" />
+    }
+}

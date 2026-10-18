@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Quartermaster.Api.Forms;
 using Quartermaster.Api.Forms.ExpenseReimbursements;
+using Quartermaster.Api.Banking;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
@@ -70,7 +71,7 @@ public partial class ExpenseReimbursement {
         SplitSum == LineItemTotal
         && (Input.PayoutAmount == 0m
             || (Input.PayoutMethod == ExpensePayoutMethodDTO.Cash)
-            || (Input.PayoutMethod == ExpensePayoutMethodDTO.BankTransfer && !string.IsNullOrWhiteSpace(Input.Iban)));
+            || (Input.PayoutMethod == ExpensePayoutMethodDTO.BankTransfer && Iban.IsValid(Input.Iban)));
 
     private string ChapterIdString {
         get => Input.ChapterId?.ToString() ?? "";
@@ -292,9 +293,18 @@ public partial class ExpenseReimbursement {
             }
             return false;
         }
-        if (Input.PayoutMethod == ExpensePayoutMethodDTO.BankTransfer && string.IsNullOrWhiteSpace(Input.Iban)) {
+        if (Input.PayoutMethod != ExpensePayoutMethodDTO.BankTransfer) {
+            return true;
+        }
+        if (string.IsNullOrWhiteSpace(Input.Iban)) {
             if (surfaceErrors) {
                 ToastService.Error(I18n[I18nKey.Ui.ExpenseReimbursement.ValidationIbanRequired]);
+            }
+            return false;
+        }
+        if (!Iban.IsValid(Input.Iban)) {
+            if (surfaceErrors) {
+                ToastService.Error(I18n[I18nKey.Ui.PaymentOptionSelection.IbanInvalid]);
             }
             return false;
         }

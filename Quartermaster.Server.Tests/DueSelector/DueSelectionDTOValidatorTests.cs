@@ -212,4 +212,52 @@ public class DueSelectionDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.ReducedJustification);
     }
+
+    [Test]
+    public void DirectDebitWithValidIban_ShouldHaveNoErrors() {
+        var selection = ValidDueSelection();
+        selection.IsDirectDeposit = true;
+        selection.IBAN = "DE89 3704 0044 0532 0130 00";
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
+    public void DirectDebitWithMistypedIban_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.IsDirectDeposit = true;
+        selection.IBAN = "DE89370400440532013001";
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.IBAN)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.IbanInvalid);
+    }
+
+    [Test]
+    public void DirectDebitWithoutAccountHolder_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.IsDirectDeposit = true;
+        selection.AccountHolder = "";
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.AccountHolder)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.AccountHolderRequired);
+    }
+
+    [Test]
+    public void ManualTransfer_DoesNotCheckTheIban() {
+        var selection = ValidDueSelection();
+        selection.IsDirectDeposit = false;
+        selection.IBAN = "not an iban";
+        selection.AccountHolder = "";
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.IBAN);
+        result.ShouldNotHaveValidationErrorFor(x => x.AccountHolder);
+    }
 }

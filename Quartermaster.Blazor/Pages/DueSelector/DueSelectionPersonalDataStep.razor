@@ -1,0 +1,23 @@
+@using Quartermaster.Api.I18n
+
+<div class="mb-3 d-flex flex-row">
+    <div class="flex-grow-1 pe-3">
+        <label for="firstName" class="form-label">@I18n[I18nKey.Ui.Common.FirstName] <RequiredStar /></label>
+        <input type="text" class="form-control" id="firstName" @bind="State.FirstName" @bind:event="oninput" disabled="@Locked" />
+    </div>
+    <div class="flex-grow-1">
+        <label for="lastName" class="form-label">@I18n[I18nKey.Ui.Common.LastName] <RequiredStar /></label>
+        <input type="text" class="form-control" id="lastName" @bind="State.LastName" @bind:event="oninput" disabled="@Locked" />
+    </div>
+</div>
+<div class="mb-3">
+    <label for="eMail" class="form-label">@I18n[I18nKey.Ui.DueSelectorUserData.EmailLabel] <RequiredStar /></label>
+    <input type="email" class="form-control" id="eMail" @bind="State.Email" @bind:event="oninput" disabled="@Locked" />
+</div>
+@if (Locked) {
+    <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.DueSelectorUserData.PrefillNotice]</p>
+}
+<div class="mb-0">
+    <label for="memberNumber" class="form-label">@I18n[I18nKey.Ui.DueSelectorUserData.MemberNumberLabel] <RequiredStar /></label>
+    <input type="number" step="1" class="form-control" id="memberNumber" @bind="State.MemberNumber" @bind:event="oninput" />
+</div>

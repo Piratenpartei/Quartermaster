@@ -23,10 +23,10 @@
                             <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.MemberPortal]</ButtonContent>
                             <DropdownContent>
                                 @if (IsFormOpen(PublicFormKind.DueSelection)) {
-                                    <li><a class="dropdown-item" href="/DueSelector/UserDataInput">@I18n[I18nKey.Ui.MainNavBar.MemberPortalDueSelector]</a></li>
+                                    <li><a class="dropdown-item" href="/DueSelector">@I18n[I18nKey.Ui.MainNavBar.MemberPortalDueSelector]</a></li>
                                 }
                                 @if (IsFormOpen(PublicFormKind.MembershipApplication)) {
-                                    <li><a class="dropdown-item" href="/MembershipApplication/PersonalData">@I18n[I18nKey.Ui.MainNavBar.MemberPortalApplication]</a></li>
+                                    <li><a class="dropdown-item" href="/MembershipApplication">@I18n[I18nKey.Ui.MainNavBar.MemberPortalApplication]</a></li>
                                 }
                                 @if (IsFormOpen(PublicFormKind.Motion)) {
                                     <li><a class="dropdown-item" href="/Motions/Create">@I18n[I18nKey.Ui.MainNavBar.MemberPortalSubmitMotion]</a></li>

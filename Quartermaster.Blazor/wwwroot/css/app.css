@@ -381,3 +381,8 @@ code {
 .attribution-project {
     width: 70%;
 }
+
+/* The radio inside a choice card is the focus target; show its ring on the whole card. */
+.choice-card:has(.form-check-input:focus-visible) {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}

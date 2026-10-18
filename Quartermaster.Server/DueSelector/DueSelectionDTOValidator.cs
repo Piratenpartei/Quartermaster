@@ -31,6 +31,8 @@ public class DueSelectionDTOValidator : Validator<DueSelectionDTO> {
             .MaximumLength(64)
             .WithMessage(I18nKey.Error.Admin.DueSelection.IbanMaxLength);
 
+        Include(new DirectDebitValidator());
+
         RuleFor(x => x.ReducedJustification)
             .MaximumLength(2048)
             .WithMessage(I18nKey.Error.Admin.DueSelection.JustificationMaxLength);

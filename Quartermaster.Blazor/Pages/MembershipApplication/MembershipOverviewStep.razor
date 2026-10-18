@@ -1,0 +1,55 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Pages.DueSelector
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.PersonalDataSection]</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.NameLabel]:</strong> @State.FirstName @State.LastName</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.DateOfBirthLabel]:</strong> <LocalTime DateValue="DateOfBirth()" /></li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.CitizenshipLabel]:</strong> @State.Citizenship</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.EmailLabel]:</strong> @State.Email</li>
+            <li class="list-group-item"><strong>@I18n[I18nKey.Ui.ApplicationSummary.PhoneLabel]:</strong> @State.PhoneNumber</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.AddressSection]</h5>
+        <p class="card-text">
+            @State.AddressStreet @State.AddressHouseNbr<br />
+            @State.AddressPostCode @State.AddressCity
+            @if (!State.IsGermany) {
+                <br />@State.AddressCountry
+            }
+        </p>
+        @if (State.ChapterName != null) {
+            <p class="card-text"><strong>@I18n[I18nKey.Ui.ApplicationSummary.ChapterLabel]:</strong> @State.ChapterName</p>
+        }
+    </div>
+</div>
+
+<DuesSummary State="@DuesState" />
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.ApplicationSummary.DeclarationsSection]</h5>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">@I18n[I18nParams.With(I18nKey.Ui.ApplicationSummary.ConformityLine, ("status", ConformityStatus()))]</li>
+            @if (State.HasPriorDeclinedApplication) {
+                <li class="list-group-item text-warning">@I18n[I18nKey.Ui.ApplicationSummary.PriorDeclined]</li>
+            }
+            @if (State.IsMemberOfAnotherParty) {
+                <li class="list-group-item">@I18n[I18nKey.Ui.ApplicationSummary.MemberOfAnotherParty]</li>
+            }
+        </ul>
+        @if (!string.IsNullOrEmpty(State.ApplicationText)) {
+            <p class="card-text mt-2"><em>@State.ApplicationText</em></p>
+        }
+    </div>
+</div>
+
+<p class="small text-secondary">@I18n[I18nKey.Ui.ApplicationSummary.PrivacyNotice]</p>
+
+<h5 class="mb-0">@I18n[I18nKey.Ui.ApplicationSummary.ConfirmCorrectHeading]</h5>

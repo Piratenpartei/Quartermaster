@@ -398,4 +398,32 @@ public class MembershipApplicationDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.ConformityDeclarationAccepted);
     }
+
+    [Test]
+    public void DuesWithMistypedIban_ShouldHaveError() {
+        var application = ValidApplication();
+        application.DueSelection = new DueSelectionDTO {
+            FirstName = "Max",
+            LastName = "Mustermann",
+            IsDirectDeposit = true,
+            AccountHolder = "Max Mustermann",
+            IBAN = "DE89370400440532013001",
+            PaymentSchedule = PaymentSchedule.Annual
+        };
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldHaveValidationErrorFor(x => x.DueSelection!.IBAN)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.IbanInvalid);
+    }
+
+    [Test]
+    public void ApplicationWithoutDues_ShouldHaveNoDuesErrors() {
+        var application = ValidApplication();
+        application.DueSelection = null;
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
 }

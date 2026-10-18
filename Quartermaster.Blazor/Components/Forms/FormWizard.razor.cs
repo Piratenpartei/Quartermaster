@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
 
@@ -13,13 +16,18 @@ namespace Quartermaster.Blazor.Components.Forms;
 /// middle, and Back / Save Draft / Next or Submit at the bottom. Per-step validation is delegated
 /// to <see cref="WizardStep.Validate"/>; auto-save on Next is delegated to <see cref="OnAdvance"/>;
 /// the final submit is delegated to <see cref="OnSubmit"/>. The hosting page owns the form state,
-/// the wizard owns navigation.
+/// the wizard owns navigation. The current step is mirrored as <c>?step=N</c> (1-based), so browser back and forward
+/// move between steps and a reload returns to the step as long as every step before it is valid.
 /// </summary>
-public partial class FormWizard {
+public partial class FormWizard : IDisposable {
+    private const string StepQueryParameter = "step";
+
     [Inject]
     public required I18nService I18n { get; set; }
     [Inject]
     public required ToastService ToastService { get; set; }
+    [Inject]
+    public required NavigationManager Navigation { get; set; }
 
     [Parameter]
     public required List<WizardStep> Steps { get; set; }
@@ -49,10 +57,20 @@ public partial class FormWizard {
     private List<WizardStep>? _previousSteps;
     private List<FormStep> StepperSteps = [];
 
+    protected override void OnInitialized() {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose() {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
     protected override void OnParametersSet() {
         if (Steps != null && !ReferenceEquals(Steps, _previousSteps)) {
             _previousSteps = Steps;
-            CurrentStep = ResolveInitialStep();
+            var requested = StepFromUrl();
+            CurrentStep = requested != null && IsStepReachable(requested.Value) ? requested.Value : ResolveInitialStep();
+            SyncUrl(replace: true);
         }
         StepperSteps = (Steps ?? [])
             .Select(s => new FormStep(s.Title))
@@ -103,6 +121,7 @@ public partial class FormWizard {
                 await OnAdvance.InvokeAsync(CurrentStep);
             }
             CurrentStep = idx;
+            SyncUrl(replace: false);
         } catch (Exception ex) {
             ToastService.Error(ex.Message);
         } finally {
@@ -126,6 +145,7 @@ public partial class FormWizard {
             }
             if (CurrentStep < Steps.Count - 1) {
                 CurrentStep++;
+                SyncUrl(replace: false);
             }
         } catch (Exception ex) {
             ToastService.Error(ex.Message);
@@ -138,6 +158,7 @@ public partial class FormWizard {
     private void GoBack() {
         if (CurrentStep > 0) {
             CurrentStep--;
+            SyncUrl(replace: false);
         }
     }
 
@@ -175,6 +196,50 @@ public partial class FormWizard {
             Busy = false;
             StateHasChanged();
         }
+    }
+
+    /// <summary>The 0-based step named in the URL, or null when it names none of the steps.</summary>
+    private int? StepFromUrl() {
+        var raw = HttpUtility.ParseQueryString(Navigation.ToAbsoluteUri(Navigation.Uri).Query)[StepQueryParameter];
+        if (!int.TryParse(raw, NumberStyles.None, CultureInfo.InvariantCulture, out var oneBased))
+            return null;
+        if (Steps == null || oneBased < 1 || oneBased > Steps.Count)
+            return null;
+
+        return oneBased - 1;
+    }
+
+    private void SyncUrl(bool replace) {
+        if (StepFromUrl() == CurrentStep)
+            return;
+
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter(StepQueryParameter, CurrentStep + 1), new NavigationOptions { ReplaceHistoryEntry = replace });
+    }
+
+    // Browser back and forward only change the query, so the page stays and the wizard follows the URL. A step that
+    // isn't reachable yet (e.g. typed into the URL) is refused by putting the current step back.
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e) {
+        var requested = StepFromUrl();
+        if (requested == null || requested == CurrentStep || Busy)
+            return;
+
+        await InvokeAsync(async () => {
+            if (!IsStepReachable(requested.Value)) {
+                SyncUrl(replace: true);
+                return;
+            }
+
+            try {
+                if (OnAdvance.HasDelegate) {
+                    await OnAdvance.InvokeAsync(CurrentStep);
+                }
+                CurrentStep = requested.Value;
+            } catch (Exception ex) {
+                ToastService.Error(ex.Message);
+                SyncUrl(replace: true);
+            }
+            StateHasChanged();
+        });
     }
 
     private enum BusyKind { None, Next, Submit, SaveDraft, Jump }

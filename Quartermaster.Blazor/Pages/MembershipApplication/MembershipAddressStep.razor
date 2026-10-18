@@ -1,0 +1,72 @@
+@using Quartermaster.Api.I18n
+
+<div class="d-grid gap-2 mb-3" role="radiogroup">
+    <ChoiceCard Name="address-country" Selected="@(State.CountrySelected && State.IsGermany)" OnSelect="() => SelectCountry(true)">
+        @I18n[I18nKey.Ui.CountrySelection.LivesInGermany]
+    </ChoiceCard>
+    <ChoiceCard Name="address-country" Selected="@(State.CountrySelected && !State.IsGermany)" OnSelect="() => SelectCountry(false)">
+        @I18n[I18nKey.Ui.CountrySelection.LivesElsewhere]
+    </ChoiceCard>
+</div>
+
+@if (State.CountrySelected) {
+    <hr />
+    @if (ShowMunicipalitySearch()) {
+        <MunicipalityPicker @ref="_picker" OnSelect="SelectDivision" />
+        <div class="mt-3">
+            <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="EnterManually">
+                @I18n[I18nKey.Ui.MunicipalitySearch.EnterManuallyLink]
+            </a>
+        </div>
+    } else {
+        @if (!State.IsGermany) {
+            <div class="mb-3">
+                <label for="addressCountry" class="form-label">@I18n[I18nKey.Ui.AddressDetails.CountryLabel] <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressCountry" autocomplete="country-name" @bind="State.AddressCountry" @bind:event="oninput" />
+            </div>
+        }
+
+        <div class="row g-3 mb-3">
+            <div class="col-sm-auto">
+                <label for="addressPostCode" class="form-label">@I18n[I18nKey.Ui.AddressDetails.PostCodeLabel] <RequiredStar /></label>
+                <input type="text" class="form-control" style="max-width: 10em;" id="addressPostCode" autocomplete="postal-code"
+                       readonly="@FromMunicipality()" disabled="@FromMunicipality()" @bind="State.AddressPostCode" @bind:event="oninput" />
+            </div>
+            <div class="col-sm">
+                <label for="addressCity" class="form-label">@I18n[I18nKey.Ui.AddressDetails.CityLabel] <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressCity" autocomplete="address-level2"
+                       readonly="@FromMunicipality()" disabled="@FromMunicipality()" @bind="State.AddressCity" @bind:event="oninput" />
+            </div>
+        </div>
+        @if (FromMunicipality()) {
+            <p class="text-secondary small mb-3">@I18n[I18nKey.Ui.AddressDetails.FromMunicipalityHint]</p>
+        }
+        @if (State.IsGermany) {
+            <p class="small mb-3">
+                <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="SearchAgain">
+                    @I18n[I18nKey.Ui.PublicFormWizard.SearchMunicipalityAgain]
+                </a>
+            </p>
+        }
+
+        <div class="mb-3 d-flex flex-row">
+            <div class="flex-grow-1 pe-3">
+                <label for="addressStreet" class="form-label">@I18n[I18nKey.Ui.AddressDetails.StreetLabel] <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressStreet" autocomplete="address-line1" @bind="State.AddressStreet" @bind:event="oninput" />
+            </div>
+            <div style="width: 8em;">
+                <label for="addressHouseNbr" class="form-label">@I18n[I18nKey.Ui.AddressDetails.HouseNumberLabel] <RequiredStar /></label>
+                <input type="text" class="form-control" id="addressHouseNbr" @bind="State.AddressHouseNbr" @bind:event="oninput" />
+            </div>
+        </div>
+
+        @if (State.ChapterName != null) {
+            <div class="card border-success">
+                <div class="card-body">
+                    <h5>@I18n[I18nKey.Ui.AddressDetails.AssignedChapterTitle]</h5>
+                    <p class="card-text mb-0">@State.ChapterName</p>
+                </div>
+            </div>
+        }
+    }
+}

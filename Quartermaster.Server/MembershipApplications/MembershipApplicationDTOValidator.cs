@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Server.DueSelector;
 
 namespace Quartermaster.Server.MembershipApplications;
 
@@ -68,5 +69,9 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
         RuleFor(x => x.ConformityDeclarationAccepted)
             .Equal(true)
             .WithMessage(I18nKey.Error.Admin.Application.DeclarationRequired);
+
+        RuleFor(x => x.DueSelection!)
+            .SetValidator(new DirectDebitValidator())
+            .When(x => x.DueSelection != null);
     }
 }

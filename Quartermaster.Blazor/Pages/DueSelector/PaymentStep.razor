@@ -1,0 +1,37 @@
+@using Quartermaster.Api.DueSelector
+@using Quartermaster.Api.I18n
+
+<div class="mb-3">
+    <p>@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositInstruction]</p>
+    <Checkbox @bind-Value="State.IsDirectDeposit">@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositMandate]</Checkbox>
+</div>
+
+<Collapsable Collapsed="!State.IsDirectDeposit">
+    <div class="mb-2">
+        <label for="accountHolder" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.AccountHolderLabel] <RequiredStar /></label>
+        @if (FullName() != State.AccountHolder) {
+            <span> - </span>
+            <a href="#" class="btn-link" @onclick="UseNameAsAccountHolder" @onclick:preventDefault>
+                @I18n[I18nParams.With(I18nKey.Ui.PaymentOptionSelection.UseFullNameLink, ("name", FullName()))]
+            </a>
+        }
+        <input type="text" class="form-control" id="accountHolder" autocomplete="name" @bind="State.AccountHolder" @bind:event="oninput" />
+    </div>
+
+    <div class="mb-3">
+        <label for="iban" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.IbanLabel] <RequiredStar /></label>
+        <input type="text" class="form-control @(IbanInvalid() ? "is-invalid" : "")" id="iban" autocomplete="off" spellcheck="false"
+               @bind="State.IBAN" @bind:event="oninput" />
+        @if (IbanInvalid()) {
+            <div class="invalid-feedback">@I18n[I18nKey.Ui.PaymentOptionSelection.IbanInvalid]</div>
+        }
+    </div>
+
+    <hr />
+</Collapsable>
+
+<div class="mb-0">
+    <h5>@I18n[I18nKey.Ui.PaymentOptionSelection.PaymentScheduleHeader]</h5>
+    <RadioGroup E="PaymentSchedule" @bind-Value="State.PaymentSchedule" ToStringFunc="TextForPaymentSchedule"
+                DisabledValueFunc="IsScheduleDisabled" ExcludeValueFunc="IsScheduleExcluded" />
+</div>

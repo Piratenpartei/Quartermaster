@@ -322,6 +322,8 @@ public static class I18nKey {
                 public const string AmountNotNegative = "error.admin.due_selection.amount_not_negative";
                 public const string AccountHolderMaxLength = "error.admin.due_selection.account_holder_max_length";
                 public const string IbanMaxLength = "error.admin.due_selection.iban_max_length";
+                public const string IbanInvalid = "error.admin.due_selection.iban_invalid";
+                public const string AccountHolderRequired = "error.admin.due_selection.account_holder_required";
                 public const string JustificationMaxLength = "error.admin.due_selection.justification_max_length";
             }
 
@@ -777,7 +779,6 @@ public static class I18nKey {
         }
 
         public static class PersonalData {
-            public const string PageTitle = "ui.personal_data.page_title";
             public const string ProxyApplicationNotice = "ui.personal_data.proxy_application_notice";
             public const string FirstNameLabel = "ui.personal_data.first_name_label";
             public const string LastNameLabel = "ui.personal_data.last_name_label";
@@ -789,19 +790,16 @@ public static class I18nKey {
         }
 
         public static class CountrySelection {
-            public const string PageTitle = "ui.country_selection.page_title";
             public const string LivesInGermany = "ui.country_selection.lives_in_germany";
             public const string LivesElsewhere = "ui.country_selection.lives_elsewhere";
             public const string GermanyCountryName = "ui.country_selection.germany_country_name";
         }
 
         public static class MunicipalitySearch {
-            public const string PageTitle = "ui.municipality_search.page_title";
             public const string EnterManuallyLink = "ui.municipality_search.enter_manually_link";
         }
 
         public static class AddressDetails {
-            public const string PageTitle = "ui.address_details.page_title";
             public const string CountryLabel = "ui.address_details.country_label";
             public const string PostCodeLabel = "ui.address_details.post_code_label";
             public const string CityLabel = "ui.address_details.city_label";
@@ -812,7 +810,6 @@ public static class I18nKey {
         }
 
         public static class DuesTypeSelection {
-            public const string PageTitle = "ui.dues_type_selection.page_title";
             public const string Instruction = "ui.dues_type_selection.instruction";
             public const string OnePercentLabel = "ui.dues_type_selection.one_percent_label";
             public const string RecommendedBadge = "ui.dues_type_selection.recommended_badge";
@@ -823,7 +820,6 @@ public static class I18nKey {
         }
 
         public static class Declarations {
-            public const string PageTitle = "ui.declarations.page_title";
             public const string ConformityHeader = "ui.declarations.conformity_header";
             public const string ConformityBody = "ui.declarations.conformity_body";
             public const string NoPriorDeclinedLabel = "ui.declarations.no_prior_declined_label";
@@ -835,7 +831,6 @@ public static class I18nKey {
         }
 
         public static class ApplicationSummary {
-            public const string PageTitle = "ui.application_summary.page_title";
             public const string DirectSubmittedNotice = "ui.application_summary.direct_submitted_notice";
             public const string PersonalDataSection = "ui.application_summary.personal_data_section";
             public const string NameLabel = "ui.application_summary.name_label";
@@ -845,9 +840,6 @@ public static class I18nKey {
             public const string PhoneLabel = "ui.application_summary.phone_label";
             public const string AddressSection = "ui.application_summary.address_section";
             public const string ChapterLabel = "ui.application_summary.chapter_label";
-            public const string DuesSection = "ui.application_summary.dues_section";
-            public const string YearlyDue = "ui.application_summary.yearly_due";
-            public const string DueNotSet = "ui.application_summary.due_not_set";
             public const string DeclarationsSection = "ui.application_summary.declarations_section";
             public const string ConformityAccepted = "ui.application_summary.conformity_accepted";
             public const string ConformityNotAccepted = "ui.application_summary.conformity_not_accepted";
@@ -934,23 +926,18 @@ public static class I18nKey {
         }
 
         public static class DueSelectorUserData {
-            public const string PageTitle = "ui.due_selector_user_data.page_title";
             public const string EmailLabel = "ui.due_selector_user_data.email_label";
             public const string MemberNumberLabel = "ui.due_selector_user_data.member_number_label";
             public const string PrefillNotice = "ui.due_selector_user_data.prefill_notice";
         }
 
-        public static class DueTypeSelector {
-            public const string PageTitle = "ui.due_type_selector.page_title";
-        }
-
         public static class PaymentOptionSelection {
-            public const string PageTitle = "ui.payment_option_selection.page_title";
             public const string DirectDepositInstruction = "ui.payment_option_selection.direct_deposit_instruction";
             public const string DirectDepositMandate = "ui.payment_option_selection.direct_deposit_mandate";
             public const string AccountHolderLabel = "ui.payment_option_selection.account_holder_label";
             public const string UseFullNameLink = "ui.payment_option_selection.use_full_name_link";
             public const string IbanLabel = "ui.payment_option_selection.iban_label";
+            public const string IbanInvalid = "ui.payment_option_selection.iban_invalid";
             public const string PaymentScheduleHeader = "ui.payment_option_selection.payment_schedule_header";
             public const string ScheduleAnnual = "ui.payment_option_selection.schedule.annual";
             public const string ScheduleQuarterly = "ui.payment_option_selection.schedule.quarterly";
@@ -958,13 +945,11 @@ public static class I18nKey {
         }
 
         public static class SelectByMonthlyPay {
-            public const string PageTitle = "ui.select_by_monthly_pay.page_title";
             public const string IncomeGroupLabel = "ui.select_by_monthly_pay.income_group_label";
             public const string CalculatedDueText = "ui.select_by_monthly_pay.calculated_due_text";
         }
 
         public static class SelectOnePercentYearlyPay {
-            public const string PageTitle = "ui.select_one_percent_yearly_pay.page_title";
             public const string YearlyIncomeLabel = "ui.select_one_percent_yearly_pay.yearly_income_label";
             public const string IncomeTooLowLine1 = "ui.select_one_percent_yearly_pay.income_too_low_line1";
             public const string IncomeTooLowLine2 = "ui.select_one_percent_yearly_pay.income_too_low_line2";
@@ -973,7 +958,6 @@ public static class I18nKey {
         }
 
         public static class SelectReduced {
-            public const string PageTitle = "ui.select_reduced.page_title";
             public const string JustificationLabel = "ui.select_reduced.justification_label";
             public const string YearlyAmountLabel = "ui.select_reduced.yearly_amount_label";
             public const string AmountTooLowFeedback = "ui.select_reduced.amount_too_low_feedback";
@@ -987,7 +971,6 @@ public static class I18nKey {
         }
 
         public static class DueSelectorSummary {
-            public const string PageTitle = "ui.due_selector_summary.page_title";
             public const string SubmittedDirect = "ui.due_selector_summary.submitted_direct";
             public const string YourChosenDueHeader = "ui.due_selector_summary.your_chosen_due_header";
             public const string MonthlyPayAmountLine = "ui.due_selector_summary.monthly_pay_amount_line";
@@ -2401,13 +2384,21 @@ public static class I18nKey {
             public const string PostizOk = "ui.settings_check.postiz_ok";
         }
 
-        public static class PublicFormStepper {
-            public const string PersonalData = "ui.public_form_stepper.personal_data";
-            public const string Address = "ui.public_form_stepper.address";
-            public const string Dues = "ui.public_form_stepper.dues";
-            public const string Payment = "ui.public_form_stepper.payment";
-            public const string Declarations = "ui.public_form_stepper.declarations";
-            public const string Summary = "ui.public_form_stepper.summary";
+        public static class PublicFormWizard {
+            public const string MembershipApplicationTitle = "ui.public_form_wizard.membership_application_title";
+            public const string DueSelectionTitle = "ui.public_form_wizard.due_selection_title";
+            public const string StepPersonalData = "ui.public_form_wizard.step.personal_data";
+            public const string StepAddress = "ui.public_form_wizard.step.address";
+            public const string StepDues = "ui.public_form_wizard.step.dues";
+            public const string StepPayment = "ui.public_form_wizard.step.payment";
+            public const string StepDeclarations = "ui.public_form_wizard.step.declarations";
+            public const string StepSummary = "ui.public_form_wizard.step.summary";
+            public const string PersonalDataRequired = "ui.public_form_wizard.personal_data_required";
+            public const string AddressRequired = "ui.public_form_wizard.address_required";
+            public const string DuesRequired = "ui.public_form_wizard.dues_required";
+            public const string PaymentRequired = "ui.public_form_wizard.payment_required";
+            public const string DeclarationsRequired = "ui.public_form_wizard.declarations_required";
+            public const string SearchMunicipalityAgain = "ui.public_form_wizard.search_municipality_again";
         }
 
         public static class PublicFormsSetup {
