@@ -41,6 +41,22 @@ public static class SsoLoginHelper {
         TokenRepository tokenRepo,
         ChapterOfficerRepository officerRepo) {
 
+        var (result, user) = EnsureUser(member, email, memberRepo, userRepo, officerRepo);
+        if (result != SsoLoginResult.Success)
+            return (result, null);
+
+        var token = tokenRepo.LoginUser(user!.Id, issuedIp, issuedUserAgent);
+        return (SsoLoginResult.Success, token);
+    }
+
+    /// <summary>The user linked to the member, created and linked on the first call the same way a first login does.</summary>
+    public static (SsoLoginResult Result, User? User) EnsureUser(
+        Member member,
+        string email,
+        MemberRepository memberRepo,
+        UserRepository userRepo,
+        ChapterOfficerRepository officerRepo) {
+
         if (member.IsExited(DateTime.UtcNow))
             return (SsoLoginResult.MemberExited, null);
 
@@ -69,7 +85,6 @@ public static class SsoLoginHelper {
         if (isNewLink)
             officerRepo.GrantDefaultPermissionsForAllChapters(member.Id, user.Id);
 
-        var token = tokenRepo.LoginUser(user.Id, issuedIp, issuedUserAgent);
-        return (SsoLoginResult.Success, token);
+        return (SsoLoginResult.Success, user);
     }
 }

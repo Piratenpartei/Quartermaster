@@ -84,6 +84,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Adresse | Address | |
 | Gliederung | Chapter | Organizational unit within the party |
 | Zugeordnete Gliederung | Assigned Chapter | |
+| Keycloak-Gliederung | Keycloak department | Value of the Keycloak attribute `ekklesia_department` that maps a member to a chapter |
 | Straße | Street | |
 | Hausnr. | House Number | Abbreviated in UI |
 | PLZ | Post Code | Abbreviation of Postleitzahl |

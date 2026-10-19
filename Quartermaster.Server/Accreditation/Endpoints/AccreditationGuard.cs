@@ -9,13 +9,7 @@ public static class AccreditationGuard {
     public const string InvalidMemberNumberMessage = "Bitte eine gültige Mitgliedsnummer eingeben.";
 
     public static int? Check(PermissionContext perms, KeycloakSettings settings) {
-        if (perms.UserId == null)
-            return 401;
-        if (!perms.HasGlobal(PermissionIdentifier.ManageAccreditation))
-            return 403;
-        if (!settings.IsConfigured)
-            return 503;
-        return null;
+        return KeycloakGuard.Check(perms, settings, PermissionIdentifier.ManageAccreditation);
     }
 
     public static bool IsValidMemberNumber(string? value) {

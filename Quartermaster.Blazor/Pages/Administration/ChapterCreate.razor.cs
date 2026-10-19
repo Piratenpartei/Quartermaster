@@ -25,6 +25,7 @@ public partial class ChapterCreate {
 
     private string Name = "";
     private string ShortCode = "";
+    private string KeycloakDepartment = "";
     private List<string> ExternalCodes = [];
     private List<Guid> AdministrativeDivisionIds = [];
     private string ParentChapterId = "";
@@ -58,6 +59,7 @@ public partial class ChapterCreate {
             var req = new ChapterCreateRequest {
                 Name = Name.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(ShortCode) ? null : ShortCode.Trim(),
+                KeycloakDepartment = string.IsNullOrWhiteSpace(KeycloakDepartment) ? null : KeycloakDepartment.Trim(),
                 ExternalCodes = ExternalCodes,
                 AdministrativeDivisionIds = AdministrativeDivisionIds,
                 ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null

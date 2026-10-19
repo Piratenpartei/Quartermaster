@@ -80,9 +80,13 @@ public class M006 : MigrationBase {
         Create.Index("IX_TravelExpenseReimbursements_OwnerUserId")
             .OnTable(TravelExpenseReimbursement.TableName)
             .OnColumn(nameof(TravelExpenseReimbursement.OwnerUserId));
+
+        Alter.Table(Chapter.TableName)
+            .AddColumn(nameof(Chapter.KeycloakDepartment)).AsString(Chapter.KeycloakDepartmentMaxLength).Nullable();
     }
 
     public override void Down() {
+        Delete.Column(nameof(Chapter.KeycloakDepartment)).FromTable(Chapter.TableName);
         DropTableIfExists(TravelExpenseReimbursement.TableName);
         DropTableIfExists(UserReceipt.TableName);
         DropTableIfExists(TravelExpenseRuleSet.TableName);

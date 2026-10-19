@@ -224,6 +224,8 @@ public partial class Program {
         builder.Services.AddSingleton<Receipts.ReceiptStorage>();
         builder.Services.AddScoped<Receipts.ReceiptLimits>();
         builder.Services.AddScoped<TravelExpenses.TravelExpenseService>();
+        builder.Services.AddScoped<Users.KeycloakDepartmentChapterAssigner>();
+        builder.Services.AddScoped<Users.KeycloakUserImporter>();
         builder.Services.AddScoped<TravelExpenses.TravelExpensePdfService>();
         builder.Services.AddSingleton<TravelExpenses.ReceiptAppender>();
         builder.Services.AddSingleton<Forms.PdfTemplating.IFormMockData, TravelExpenses.TravelExpenseMockData>();

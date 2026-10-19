@@ -45,7 +45,8 @@ public class FakeKeycloakAdminClient : IKeycloakAdminClient {
         failNextFind = false;
     }
 
-    public static KeycloakUserRepresentation AddUser(string id, string username, string memberNumber, bool enabled = true, string eligible = "false", bool closed = false) {
+    public static KeycloakUserRepresentation AddUser(string id, string username, string memberNumber, bool enabled = true, string eligible = "false", bool closed = false,
+        string firstName = "Vor", string lastName = "Nach", string? email = null, string? department = null) {
         var attributes = new Dictionary<string, List<string>> {
             ["member_number"] = [memberNumber],
             ["ekklesia_eligible"] = [eligible],
@@ -53,7 +54,9 @@ public class FakeKeycloakAdminClient : IKeycloakAdminClient {
         };
         if (closed)
             attributes["closed_time"] = ["2026-10-01T02:00:00.000000+00:00"];
-        var user = new KeycloakUserRepresentation(id, username, "Vor", "Nach", null, enabled, attributes);
+        if (department != null)
+            attributes["ekklesia_department"] = [department];
+        var user = new KeycloakUserRepresentation(id, username, firstName, lastName, email, enabled, attributes);
         Users.Add(user);
         return user;
     }
@@ -67,6 +70,20 @@ public class FakeKeycloakAdminClient : IKeycloakAdminClient {
             throw exception;
         }
         return Task.FromResult(Users.Where(u => u.Attribute("member_number") == memberNumber.Trim()).ToList());
+    }
+
+    public Task<List<KeycloakUserRepresentation>> SearchAsync(string text, int max, CancellationToken ct) {
+        ThrowIfFailing();
+        var value = text.Trim();
+        return Task.FromResult(Users
+            .Where(u => new[] { u.Username, u.FirstName, u.LastName, u.Email }.Any(f => f != null && f.Contains(value, StringComparison.OrdinalIgnoreCase)))
+            .Take(max)
+            .ToList());
+    }
+
+    public Task<KeycloakUserRepresentation?> GetUserAsync(string userId, CancellationToken ct) {
+        ThrowIfFailing();
+        return Task.FromResult(Users.FirstOrDefault(u => u.Id == userId));
     }
 
     public Task<bool> UsernameExistsAsync(string username, CancellationToken ct) {

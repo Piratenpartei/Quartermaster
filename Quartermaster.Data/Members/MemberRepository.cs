@@ -37,6 +37,14 @@ public class MemberRepository {
             .Update();
     }
 
+    public void SetChapterId(Guid memberId, Guid? oldChapterId, Guid chapterId) {
+        _context.Members
+            .Where(m => m.Id == memberId)
+            .Set(m => m.ChapterId, chapterId)
+            .Update();
+        _auditLog.LogFieldChange("Member", memberId, "ChapterId", oldChapterId?.ToString(), chapterId.ToString());
+    }
+
     public List<Member> GetByChapterIds(List<Guid> chapterIds) {
         return _context.Members
             .Where(m => m.MemberNumber != null && m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))

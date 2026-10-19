@@ -66,6 +66,11 @@
                                       Placeholder="@I18n[I18nKey.Ui.ChipsInput.ExternalCodePlaceholder]" />
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</label>
+                    <input type="text" class="form-control" maxlength="200" @bind="EditKeycloakDepartment" @bind:event="oninput" />
+                    <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentHint]</div>
+                </div>
+                <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</label>
                     <ChapterPicker Value="@EditParentChapterId" ValueChanged="OnParentChanged"
                                    AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterDetail.ParentEmptyLabel]"
@@ -95,6 +100,7 @@
                         <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Name]</th><td>@Detail.Chapter.Name</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "—" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</th><td>@(Detail.Chapter.KeycloakDepartment ?? "---")</td></tr>
                         <tr>
                             <th>@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</th>
                             <td>

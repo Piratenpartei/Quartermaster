@@ -77,10 +77,23 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
             return;
         }
 
+        var keycloakDepartment = string.IsNullOrWhiteSpace(req.KeycloakDepartment) ? null : req.KeycloakDepartment.Trim();
+        if (keycloakDepartment?.Length > Chapter.KeycloakDepartmentMaxLength) {
+            AddError(r => r.KeycloakDepartment, I18nKey.Error.Chapter.KeycloakDepartmentTooLong);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (keycloakDepartment != null && _chapterRepo.GetByKeycloakDepartment(keycloakDepartment, req.Id) != null) {
+            AddError(r => r.KeycloakDepartment, I18nKey.Error.Chapter.KeycloakDepartmentNotUnique);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         var divisionIds = req.AdministrativeDivisionIds.Distinct().ToList();
 
         chapter.Name = name;
         chapter.ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim();
+        chapter.KeycloakDepartment = keycloakDepartment;
         chapter.ParentChapterId = req.ParentChapterId;
         _chapterRepo.Update(chapter);
         _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);

@@ -28,8 +28,18 @@ public class ChapterRepository {
             .Where(c => c.Id == chapter.Id)
             .Set(c => c.Name, chapter.Name)
             .Set(c => c.ShortCode, chapter.ShortCode)
+            .Set(c => c.KeycloakDepartment, chapter.KeycloakDepartment)
             .Set(c => c.ParentChapterId, chapter.ParentChapterId)
             .Update();
+    }
+
+    /// <summary>The chapter whose Keycloak department equals <paramref name="department"/>, ignoring case and surrounding spaces.</summary>
+    public Chapter? GetByKeycloakDepartment(string department, Guid? excludeChapterId = null) {
+        var value = department.Trim().ToLowerInvariant();
+        return _context.Chapters
+            .Where(c => c.DeletedAt == null && c.KeycloakDepartment != null && c.KeycloakDepartment.ToLower() == value)
+            .Where(c => excludeChapterId == null || c.Id != excludeChapterId)
+            .FirstOrDefault();
     }
 
     /// <summary>Replaces the chapter's external-code set with the supplied list (deduped); caller owns trim/empty-drop.</summary>

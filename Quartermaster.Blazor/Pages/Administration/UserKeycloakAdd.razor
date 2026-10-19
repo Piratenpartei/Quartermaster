@@ -1,0 +1,73 @@
+@page "/Administration/Users/AddFromKeycloak"
+@using Quartermaster.Api
+@using Quartermaster.Api.Accreditation
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.Users
+
+<PageTitle>@I18n[I18nKey.Ui.UserKeycloakAdd.PageTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.CreateUser">
+    <PageBackLink Href="/Administration/Users" Text="@I18n[I18nKey.Ui.UserKeycloakAdd.Back]" />
+    <h3 class="mb-3">@I18n[I18nKey.Ui.UserKeycloakAdd.PageTitle]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.UserKeycloakAdd.Intro]</p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <KeycloakAccountSearch IdPrefix="user-add" Busy="@SearchBusy" OnSearch="SearchAsync" />
+
+            @if (NotConfigured) {
+                <div class="alert alert-warning mb-0">@I18n[I18nKey.Ui.UserKeycloakAdd.NotConfigured]</div>
+            } else if (Candidates != null && Candidates.Count == 0) {
+                <div class="alert alert-info mb-0">@I18n[I18nKey.Ui.UserKeycloakAdd.NoAccount]</div>
+            } else if (Candidates != null) {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                                <th>@I18n[I18nKey.Ui.UserKeycloakAdd.Username]</th>
+                                <th>@I18n[I18nKey.Ui.Common.Email]</th>
+                                <th>@I18n[I18nKey.Ui.UserKeycloakAdd.MemberNumber]</th>
+                                <th>@I18n[I18nKey.Ui.UserKeycloakAdd.Chapter]</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var candidate in Candidates) {
+                                var account = candidate.Account;
+                                <tr>
+                                    <td>@account.FirstName @account.LastName</td>
+                                    <td>@account.Username</td>
+                                    <td>@(account.Email ?? "---")</td>
+                                    <td>@account.MemberNumber</td>
+                                    <td>@ChapterText(candidate)</td>
+                                    <td class="text-end">
+                                        @if (candidate.ExistingUserId.HasValue) {
+                                            <a class="btn btn-sm btn-outline-secondary" href="/Administration/Users/@candidate.ExistingUserId">
+                                                <i class="bi bi-person-check me-1"></i>@I18n[I18nKey.Ui.UserKeycloakAdd.OpenUser]
+                                            </a>
+                                        } else if (candidate.Problem != null) {
+                                            <span class="small text-secondary">@I18n[candidate.Problem]</span>
+                                        } else {
+                                            <button type="button" class="btn btn-sm btn-primary" disabled="@(AddingId != null)" @onclick="() => AddAsync(candidate)">
+                                                @if (AddingId == account.KeycloakUserId) {
+                                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                                } else {
+                                                    <i class="bi bi-person-plus me-1"></i>
+                                                }
+                                                @I18n[I18nKey.Ui.UserKeycloakAdd.Add]
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Candidates.Count >= KeycloakAccountQuery.MaxResults) {
+                    <div class="form-text">@I18n[I18nKey.Ui.UserKeycloakAdd.MoreResults]</div>
+                }
+            }
+        </div>
+    </div>
+</RequirePermission>

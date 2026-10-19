@@ -182,6 +182,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "member_number",
             description: "Name des SAML-Attributs, das die Mitgliedsnummer enthält. Benutzer werden über die Mitgliedsnummer mit Mitgliedern verknüpft; fehlt ein Mitglied, wird es mit Vorname, Nachname, E-Mail und Mitgliedsnummer angelegt.");
 
+        AddDefinitionIfNotExists("auth.saml.department_attribute",
+            "SAML: Attribut für Gliederung",
+            OptionDataType.String, false, "", "ekklesia_department",
+            description: "Name des SAML-Attributs mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
+
         AddDefinitionIfNotExists("auth.sso.support_contact",
             "SSO: Support-Kontakt",
             OptionDataType.String, false, "", "",
@@ -207,6 +212,11 @@ public class OptionRepository {
             "OIDC: Claim für Mitgliedsnummer",
             OptionDataType.String, false, "", "member_number",
             description: "Name des Claims im ID-Token, der die Mitgliedsnummer enthält. Benutzer werden über die Mitgliedsnummer mit Mitgliedern verknüpft; fehlt ein Mitglied, wird es mit Vorname, Nachname, E-Mail und Mitgliedsnummer angelegt.");
+
+        AddDefinitionIfNotExists("auth.oidc.department_claim",
+            "OIDC: Claim für Gliederung",
+            OptionDataType.String, false, "", "ekklesia_department",
+            description: "Name des Claims im ID-Token mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
             "OIDC: Login-Button Text",

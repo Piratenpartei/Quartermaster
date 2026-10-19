@@ -109,6 +109,7 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.saml.expected_audience` | Required `<Audience>` value in the assertion. Empty = skip check (not recommended) |
 | `auth.saml.expected_destination` | Required `<Destination>` URL — usually `<public_base_url>/api/users/SamlConsume`. Empty = skip check |
 | `auth.saml.member_number_attribute` | SAML attribute carrying the member number (default: `member_number`). Users are linked to members by this number; when no member exists yet, one is created from first name, last name, email and member number, and the next member import fills in the rest |
+| `auth.saml.department_attribute` | SAML attribute carrying the account's Keycloak department (default: `ekklesia_department`). See [Keycloak departments](#keycloak-departments) |
 
 ### OpenID Connect (optional)
 
@@ -119,6 +120,13 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.oidc.client_secret` | OIDC client secret (stored masked) |
 | `auth.oidc.button_text` | Login button label (default: `OpenID Login`) |
 | `auth.oidc.member_number_claim` | ID-token claim carrying the member number (default: `member_number`). Linking and member creation work as for SAML; first and last name come from `given_name` / `family_name` |
+| `auth.oidc.department_claim` | ID-token claim carrying the account's Keycloak department (default: `ekklesia_department`). See [Keycloak departments](#keycloak-departments) |
+
+### Keycloak departments
+
+MemberDataImport writes the state group of every account into the Keycloak attribute `ekklesia_department`. A chapter's "Keycloak department" field (on the chapter's edit form) takes that value, which is the state name, e.g. `Niedersachsen` (copy it from an account in Keycloak); each value can belong to one chapter only, compared ignoring case. At every SSO login, and when a user is added from Keycloak, the member is placed in the chapter with the matching value, unless the member already belongs to that chapter or one below it, so a district chapter from the member import is never replaced by the state.
+
+For the login to see the department, the Keycloak client needs a "User Attribute" mapper for `ekklesia_department`, added to the ID token (OIDC) or as a SAML attribute, the same way as for `member_number`. Without it, logins work as before and only "Add from Keycloak" maps departments.
 
 ### News Posts (optional)
 
@@ -144,7 +152,7 @@ Optional. When enabled, the app polls the configured news feeds, matches items a
 
 ### Keycloak (Akkreditierung)
 
-Optional. Lets delegates at Bundesparteitage look up member accounts in Keycloak by member number, set voting eligibility, and create temporary accounts for walk-in members.
+Optional. Lets delegates at Bundesparteitage look up member accounts in Keycloak by member number or name, set voting eligibility, and create temporary accounts for walk-in members. The same connection serves "Add from Keycloak" on the users page (permission `users_create`), which creates the user of an account before its first login so permissions can be granted in advance; accounts without an email address, closed accounts and members who have left are refused.
 
 | Identifier | Default | Purpose |
 |---|---|---|

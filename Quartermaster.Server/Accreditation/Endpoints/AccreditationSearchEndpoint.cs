@@ -9,7 +9,7 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Accreditation.Endpoints;
 
-public class AccreditationSearchEndpoint : EndpointWithoutRequest<List<AccreditationAccountDTO>> {
+public class AccreditationSearchEndpoint : Endpoint<KeycloakAccountQuery, List<AccreditationAccountDTO>> {
     private readonly PermissionContext _perms;
     private readonly KeycloakSettings _settings;
     private readonly IKeycloakAdminClient _keycloak;
@@ -21,10 +21,10 @@ public class AccreditationSearchEndpoint : EndpointWithoutRequest<List<Accredita
     }
 
     public override void Configure() {
-        Get("/api/accreditation/members/{MemberNumber}");
+        Get("/api/accreditation/accounts");
     }
 
-    public override async Task HandleAsync(CancellationToken ct) {
+    public override async Task HandleAsync(KeycloakAccountQuery req, CancellationToken ct) {
         var status = AccreditationGuard.Check(_perms, _settings);
         if (status == 401) {
             await SendUnauthorizedAsync(ct);
@@ -40,18 +40,18 @@ public class AccreditationSearchEndpoint : EndpointWithoutRequest<List<Accredita
             return;
         }
 
-        var memberNumber = Route<string>("MemberNumber") ?? "";
-        if (!AccreditationGuard.IsValidMemberNumber(memberNumber)) {
-            AddError(AccreditationGuard.InvalidMemberNumberMessage);
+        var problem = KeycloakAccountFinder.Problem(req);
+        if (problem != null) {
+            AddError(problem);
             await SendErrorsAsync(400, ct);
             return;
         }
 
         try {
-            var users = await _keycloak.FindByMemberNumberAsync(memberNumber, ct);
+            var users = await KeycloakAccountFinder.FindAsync(_keycloak, req, ct);
             await SendAsync(users.Select(KeycloakAccountMapper.ToDto).ToList(), cancellation: ct);
         } catch (KeycloakException ex) {
-            Logger.LogWarning(ex, "Searching Keycloak accounts for member {MemberNumber} failed", memberNumber);
+            Logger.LogWarning(ex, "Searching Keycloak accounts for {MemberNumber} / {Query} failed", req.MemberNumber, req.Query);
             AddError(KeycloakErrorMessages.For(ex));
             await SendErrorsAsync(502, ct);
         }

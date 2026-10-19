@@ -34,6 +34,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
+    private readonly KeycloakDepartmentChapterAssigner _departments;
 
     public OidcCallbackEndpoint(
         OptionRepository optionRepo,
@@ -42,7 +43,8 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         TokenRepository tokenRepo,
         ChapterOfficerRepository officerRepo,
         IHttpClientFactory httpClientFactory,
-        IMemoryCache cache) {
+        IMemoryCache cache,
+        KeycloakDepartmentChapterAssigner departments) {
         _optionRepo = optionRepo;
         _userRepo = userRepo;
         _memberRepo = memberRepo;
@@ -50,6 +52,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         _officerRepo = officerRepo;
         _httpClientFactory = httpClientFactory;
         _cache = cache;
+        _departments = departments;
     }
 
     public override void Configure() {
@@ -177,9 +180,14 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             return;
         }
 
+        var departmentClaim = _optionRepo.GetGlobalValue("auth.oidc.department_claim")?.Value;
+        if (string.IsNullOrEmpty(departmentClaim))
+            departmentClaim = "ekklesia_department";
+
         var identity = new SsoIdentity(email, memberNumber,
             FindClaim(principal, "given_name", ClaimTypes.GivenName),
-            FindClaim(principal, "family_name", ClaimTypes.Surname));
+            FindClaim(principal, "family_name", ClaimTypes.Surname),
+            FindClaim(principal, departmentClaim, departmentClaim));
 
         Logger.LogInformation("OIDC login attempt for member number {MemberNumber}", memberNumber);
 
@@ -198,6 +206,7 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
                 return;
         }
 
+        _departments.Assign(member, identity.Department);
         AuthCookie.Set(HttpContext, token!.Content, token.Expires);
         await SendRedirectAsync("/", allowRemoteRedirects: false);
     }

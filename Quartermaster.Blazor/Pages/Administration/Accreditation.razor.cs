@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Quartermaster.Api.Accreditation;
 using Quartermaster.Api.I18n;
@@ -26,11 +25,11 @@ public partial class Accreditation {
     public required IJSRuntime JS { get; set; }
 
     private string usernameSeparator = ".";
-    private string memberNumberQuery = "";
     private bool searchBusy;
     private bool setEligibleBusy;
     private bool notConfigured;
     private List<AccreditationAccountDTO>? searchResults;
+    private AccreditationAccountDTO? selectedAccount;
     private ConfirmDialog? setEligibleConfirm;
 
     private string newFirstName = "";
@@ -61,20 +60,14 @@ public partial class Accreditation {
         }
     }
 
-    private async Task OnMemberNumberKeyDown(KeyboardEventArgs e) {
-        if (e.Key == "Enter")
-            await SearchAsync();
-    }
-
-    private async Task SearchAsync() {
-        if (string.IsNullOrWhiteSpace(memberNumberQuery))
-            return;
-
+    private async Task SearchAsync(KeycloakAccountQuery query) {
         searchBusy = true;
         notConfigured = false;
         searchResults = null;
+        selectedAccount = null;
         try {
-            var response = await Http.GetAsync($"/api/accreditation/members/{Uri.EscapeDataString(memberNumberQuery.Trim())}");
+            var url = $"/api/accreditation/accounts?memberNumber={Uri.EscapeDataString(query.MemberNumber ?? "")}&query={Uri.EscapeDataString(query.Query ?? "")}";
+            var response = await Http.GetAsync(url);
             if (response.StatusCode == HttpStatusCode.ServiceUnavailable) {
                 notConfigured = true;
                 return;
@@ -84,6 +77,8 @@ public partial class Accreditation {
                 return;
             }
             searchResults = await response.Content.ReadFromJsonAsync<List<AccreditationAccountDTO>>() ?? [];
+            if (searchResults.Count == 1)
+                selectedAccount = searchResults[0];
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         } finally {
@@ -110,7 +105,7 @@ public partial class Accreditation {
             }
             var updated = await response.Content.ReadFromJsonAsync<AccreditationAccountDTO>();
             if (updated != null)
-                searchResults = [updated];
+                ReplaceAccount(account, updated);
             ToastService.ToastKey(I18nKey.Ui.Accreditation.SetEligibleDone);
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -240,6 +235,18 @@ public partial class Accreditation {
         } catch (JSException ex) {
             ToastService.Error(ex);
         }
+    }
+
+    private void ReplaceAccount(AccreditationAccountDTO old, AccreditationAccountDTO updated) {
+        var index = searchResults?.IndexOf(old) ?? -1;
+        if (index >= 0)
+            searchResults![index] = updated;
+        selectedAccount = updated;
+    }
+
+    /// <summary>The eligibility endpoint works by member number, so it refuses numbers that more than one account carries.</summary>
+    private bool SharesMemberNumber(AccreditationAccountDTO account) {
+        return searchResults != null && searchResults.Count(a => a.MemberNumber == account.MemberNumber) > 1;
     }
 
     private string AccountStatusLabel(AccreditationAccountDTO account) {

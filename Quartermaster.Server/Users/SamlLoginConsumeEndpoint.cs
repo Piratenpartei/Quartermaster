@@ -40,6 +40,7 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
     private readonly TokenRepository _tokenRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly UsedSamlAssertionRepository _assertionRepo;
+    private readonly KeycloakDepartmentChapterAssigner _departments;
 
     public SamlLoginConsumeEndpoint(
         OptionRepository optionRepo,
@@ -47,13 +48,15 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
         MemberRepository memberRepo,
         TokenRepository tokenRepo,
         ChapterOfficerRepository officerRepo,
-        UsedSamlAssertionRepository assertionRepo) {
+        UsedSamlAssertionRepository assertionRepo,
+        KeycloakDepartmentChapterAssigner departments) {
         _optionRepo = optionRepo;
         _userRepo = userRepo;
         _memberRepo = memberRepo;
         _tokenRepo = tokenRepo;
         _officerRepo = officerRepo;
         _assertionRepo = assertionRepo;
+        _departments = departments;
     }
 
     public override void Configure() {
@@ -160,9 +163,14 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
             return;
         }
 
+        var departmentAttribute = _optionRepo.GetGlobalValue("auth.saml.department_attribute")?.Value;
+        if (string.IsNullOrEmpty(departmentAttribute))
+            departmentAttribute = "ekklesia_department";
+
         var identity = new SsoIdentity(email, memberNumber,
             FirstAttribute(samlResponse, FirstNameAttributes),
-            FirstAttribute(samlResponse, LastNameAttributes));
+            FirstAttribute(samlResponse, LastNameAttributes),
+            FirstAttribute(samlResponse, [departmentAttribute]));
 
         Logger.LogInformation("SAML login attempt for member number {MemberNumber}", memberNumber);
 
@@ -181,6 +189,7 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
                 return;
         }
 
+        _departments.Assign(member, identity.Department);
         AuthCookie.Set(HttpContext, token!.Content, token.Expires);
         await SendRedirectAsync("/", allowRemoteRedirects: false);
     }

@@ -9,11 +9,15 @@ namespace Quartermaster.Data.Chapters;
 [Table(TableName, IsColumnAttributeRequired = false)]
 public class Chapter {
     public const string TableName = "Chapters";
+    public const int KeycloakDepartmentMaxLength = 200;
 
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
     public Guid? ParentChapterId { get; set; }
     public string? ShortCode { get; set; }
+
+    /// <summary>The value of the Keycloak attribute <c>ekklesia_department</c> that places a person in this chapter at login.</summary>
+    public string? KeycloakDepartment { get; set; }
     public DateTime? ArchivedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 
@@ -21,6 +25,7 @@ public class Chapter {
         Id = Id,
         Name = Name,
         ShortCode = ShortCode,
+        KeycloakDepartment = KeycloakDepartment,
         ParentChapterId = ParentChapterId,
         ExternalCodes = [.. externalCodes],
         AdministrativeDivisionIds = [.. administrativeDivisionIds],

@@ -45,6 +45,7 @@ public partial class ChapterDetail {
     private string EditName = "";
     private string EditShortCode = "";
     private List<string> EditExternalCodes = [];
+    private string EditKeycloakDepartment = "";
     private List<Guid> EditAdministrativeDivisionIds = [];
     private List<string> EditAdministrativeDivisionNames = [];
     private string EditParentChapterId = "";
@@ -75,6 +76,7 @@ public partial class ChapterDetail {
         EditName = Detail.Chapter.Name;
         EditShortCode = Detail.Chapter.ShortCode ?? "";
         EditExternalCodes = [.. Detail.Chapter.ExternalCodes];
+        EditKeycloakDepartment = Detail.Chapter.KeycloakDepartment ?? "";
         EditAdministrativeDivisionIds = [.. Detail.Chapter.AdministrativeDivisionIds];
         EditAdministrativeDivisionNames = [.. Detail.AdministrativeDivisionNames];
         EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
@@ -107,6 +109,7 @@ public partial class ChapterDetail {
             var req = new ChapterUpdateRequest {
                 Name = EditName.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
+                KeycloakDepartment = string.IsNullOrWhiteSpace(EditKeycloakDepartment) ? null : EditKeycloakDepartment.Trim(),
                 ExternalCodes = EditExternalCodes,
                 AdministrativeDivisionIds = EditAdministrativeDivisionIds,
                 ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null

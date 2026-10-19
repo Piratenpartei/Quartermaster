@@ -13,32 +13,34 @@
             <h5>@I18n[I18nKey.Ui.Accreditation.EligibilityTitle]</h5>
             <p class="text-secondary">@I18n[I18nKey.Ui.Accreditation.EligibilityIntro]</p>
 
-            <div class="d-flex gap-2 align-items-end mb-3 flex-wrap">
-                <div>
-                    <label class="form-label" for="eligibility-member-number">@I18n[I18nKey.Ui.Accreditation.MemberNumber]</label>
-                    <input id="eligibility-member-number" class="form-control" @bind="memberNumberQuery" @bind:event="oninput"
-                           @onkeydown="OnMemberNumberKeyDown" />
-                </div>
-                <button type="button" class="btn btn-primary" disabled="@searchBusy" @onclick="SearchAsync">@I18n[I18nKey.Ui.Accreditation.Search]</button>
-            </div>
+            <KeycloakAccountSearch IdPrefix="eligibility" Busy="@searchBusy" OnSearch="SearchAsync" />
 
             @if (notConfigured) {
                 <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.NotConfigured]</div>
             } else if (searchResults != null) {
                 @if (searchResults.Count == 0) {
                     <div class="alert alert-info">@I18n[I18nKey.Ui.Accreditation.NoAccount]</div>
-                } else if (searchResults.Count > 1) {
-                    <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.MultipleAccounts]</div>
-                    <ul class="list-group">
+                }
+                @if (searchResults.Count > 1) {
+                    <div class="list-group mb-3">
                         @foreach (var account in searchResults) {
-                            <li class="list-group-item">
-                                <span class="fw-semibold">@account.Username</span> - @account.FirstName @account.LastName - @AccountStatusLabel(account)
-                            </li>
+                            <button type="button" class="list-group-item list-group-item-action @(account == selectedAccount ? "active" : "")"
+                                    @onclick="() => selectedAccount = account">
+                                <span class="fw-semibold">@account.FirstName @account.LastName</span>
+                                <span class="ms-2">@account.Username</span>
+                                <span class="ms-2">@I18n[I18nKey.Ui.Accreditation.MemberNumber] @account.MemberNumber</span>
+                                <span class="ms-2">@AccountStatusLabel(account)</span>
+                            </button>
                         }
-                    </ul>
-                } else {
-                    var account = searchResults[0];
+                    </div>
+                }
+                @if (selectedAccount != null) {
+                    var account = selectedAccount;
+                    @if (SharesMemberNumber(account)) {
+                        <div class="alert alert-warning">@I18n[I18nKey.Ui.Accreditation.MultipleAccounts]</div>
+                    }
                     <div class="mb-2">
+                        <div><strong>@I18n[I18nKey.Ui.Accreditation.MemberNumber]:</strong> @account.MemberNumber</div>
                         <div><strong>@I18n[I18nKey.Ui.Accreditation.Username]:</strong> @account.Username</div>
                         <div><strong>@I18n[I18nKey.Ui.Accreditation.Name]:</strong> @account.FirstName @account.LastName</div>
                         <div><strong>@I18n[I18nKey.Ui.Accreditation.Email]:</strong> @account.Email</div>
@@ -52,7 +54,7 @@
                     }
                     @if (account.Eligible) {
                         <div class="text-secondary">@I18n[I18nKey.Ui.Accreditation.AlreadyEligible]</div>
-                    } else {
+                    } else if (!SharesMemberNumber(account)) {
                         <button type="button" class="btn btn-success" disabled="@setEligibleBusy" @onclick="() => SetEligibleAsync(account)">
                             @I18n[I18nKey.Ui.Accreditation.SetEligible]
                         </button>

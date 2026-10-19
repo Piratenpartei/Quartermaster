@@ -45,6 +45,34 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Stores_the_keycloak_department_trimmed() {
+        var department = $"Landesverband {Guid.NewGuid():N}";
+        var chapter = Builder.SeedChapter("LV");
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", KeycloakDepartment = $"  {department} " });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.Chapters.Single(c => c.Id == chapter.Id).KeycloakDepartment).IsEqualTo(department);
+    }
+
+    [Test]
+    public async Task Refuses_a_keycloak_department_another_chapter_has_ignoring_case() {
+        var department = $"Landesverband {Guid.NewGuid():N}";
+        var other = Builder.SeedChapter("Other", keycloakDepartment: department);
+        var chapter = Builder.SeedChapter("LV");
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var conflict = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", KeycloakDepartment = department.ToUpperInvariant() });
+        var own = await client.PutAsJsonAsync($"/api/chapters/{other.Id}", new ChapterUpdateRequest { Name = "Other", KeycloakDepartment = department });
+
+        await Assert.That(conflict.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(own.StatusCode).IsEqualTo(HttpStatusCode.OK);
+    }
+
+    [Test]
     public async Task Updates_administrative_division_link() {
         var divA = Builder.SeedAdminDivision("Niedersachsen");
         var divB = Builder.SeedAdminDivision("Hannover");

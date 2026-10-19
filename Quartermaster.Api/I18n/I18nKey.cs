@@ -23,6 +23,19 @@ public static class I18nKey {
             public const string RulesChapterChanged = "error.travel_expense.rules_chapter_changed";
         }
 
+        public static class KeycloakAccount {
+            public const string QueryRequired = "error.keycloak_account.query_required";
+            public const string QueryTooShort = "error.keycloak_account.query_too_short";
+            public const string InvalidMemberNumber = "error.keycloak_account.invalid_member_number";
+            public const string NotFound = "error.keycloak_account.not_found";
+            public const string NoMemberNumber = "error.keycloak_account.no_member_number";
+            public const string NoEmail = "error.keycloak_account.no_email";
+            public const string Closed = "error.keycloak_account.closed";
+            public const string MemberExited = "error.keycloak_account.member_exited";
+            public const string UserExists = "error.keycloak_account.user_exists";
+            public const string UserDeleted = "error.keycloak_account.user_deleted";
+        }
+
         public static class Receipt {
             public const string NoFile = "error.receipt.no_file";
             public const string TooLarge = "error.receipt.too_large";
@@ -66,6 +79,8 @@ public static class I18nKey {
             public const string ParentNotFound = "error.chapter.parent_not_found";
             public const string ParentSelfReference = "error.chapter.parent_self_reference";
             public const string ExternalCodeNotUnique = "error.chapter.external_code_not_unique";
+            public const string KeycloakDepartmentNotUnique = "error.chapter.keycloak_department_not_unique";
+            public const string KeycloakDepartmentTooLong = "error.chapter.keycloak_department_too_long";
             public const string HasChildren = "error.chapter.has_children";
             public const string Archived = "error.chapter.archived";
 
@@ -1584,6 +1599,8 @@ public static class I18nKey {
             public const string DeleteTooltip = "ui.chapter_detail.delete_tooltip";
             public const string ShortCodeLabel = "ui.chapter_detail.short_code_label";
             public const string ExternalCodeLabel = "ui.chapter_detail.external_code_label";
+            public const string KeycloakDepartmentLabel = "ui.chapter_detail.keycloak_department_label";
+            public const string KeycloakDepartmentHint = "ui.chapter_detail.keycloak_department_hint";
             public const string ParentChapterLabel = "ui.chapter_detail.parent_chapter_label";
             public const string ParentEmptyLabel = "ui.chapter_detail.parent_empty_label";
             public const string AdminDivisionLabel = "ui.chapter_detail.admin_division_label";
@@ -1614,6 +1631,8 @@ public static class I18nKey {
             public const string PageTitle = "ui.chapter_create.page_title";
             public const string ShortCodeLabel = "ui.chapter_create.short_code_label";
             public const string ExternalCodeLabel = "ui.chapter_create.external_code_label";
+            public const string KeycloakDepartmentLabel = "ui.chapter_create.keycloak_department_label";
+            public const string KeycloakDepartmentHint = "ui.chapter_create.keycloak_department_hint";
             public const string ParentLabel = "ui.chapter_create.parent_label";
             public const string ParentEmptyLabel = "ui.chapter_create.parent_empty_label";
             public const string ParentHint = "ui.chapter_create.parent_hint";
@@ -1703,6 +1722,30 @@ public static class I18nKey {
             public const string PageTitle = "ui.user_list.page_title";
             public const string TotalCount = "ui.user_list.total_count";
             public const string UsernameColumn = "ui.user_list.username_column";
+            public const string AddFromKeycloak = "ui.user_list.add_from_keycloak";
+        }
+
+        public static class UserKeycloakAdd {
+            public const string PageTitle = "ui.user_keycloak_add.page_title";
+            public const string Back = "ui.user_keycloak_add.back";
+            public const string Intro = "ui.user_keycloak_add.intro";
+            public const string NotConfigured = "ui.user_keycloak_add.not_configured";
+            public const string NoAccount = "ui.user_keycloak_add.no_account";
+            public const string Username = "ui.user_keycloak_add.username";
+            public const string MemberNumber = "ui.user_keycloak_add.member_number";
+            public const string Chapter = "ui.user_keycloak_add.chapter";
+            public const string UnmappedDepartment = "ui.user_keycloak_add.unmapped_department";
+            public const string OpenUser = "ui.user_keycloak_add.open_user";
+            public const string Add = "ui.user_keycloak_add.add";
+            public const string Added = "ui.user_keycloak_add.added";
+            public const string MoreResults = "ui.user_keycloak_add.more_results";
+        }
+
+        public static class KeycloakAccountSearch {
+            public const string MemberNumber = "ui.keycloak_account_search.member_number";
+            public const string Query = "ui.keycloak_account_search.query";
+            public const string QueryPlaceholder = "ui.keycloak_account_search.query_placeholder";
+            public const string Search = "ui.keycloak_account_search.search";
         }
 
         public static class UserDetail {
@@ -2847,7 +2890,6 @@ public static class I18nKey {
             public const string EligibilityTitle = "ui.accreditation.eligibility_title";
             public const string EligibilityIntro = "ui.accreditation.eligibility_intro";
             public const string MemberNumber = "ui.accreditation.member_number";
-            public const string Search = "ui.accreditation.search";
             public const string NoAccount = "ui.accreditation.no_account";
             public const string MultipleAccounts = "ui.accreditation.multiple_accounts";
             public const string Username = "ui.accreditation.username";

@@ -47,7 +47,8 @@ public sealed class TestDataBuilder {
         _db = db;
     }
 
-    private static int NextMemberNumber() => System.Threading.Interlocked.Increment(ref _nextMemberNumber);
+    /// <summary>A member number no other seeded member or user of this run carries.</summary>
+    public static int NextMemberNumber() => System.Threading.Interlocked.Increment(ref _nextMemberNumber);
 
     /// <summary>
     /// Returns (or creates) the "Null Island" admin division used to satisfy FK constraints
@@ -94,12 +95,14 @@ public sealed class TestDataBuilder {
         Guid? parentChapterId = null,
         Guid? adminDivisionId = null,
         string? shortCode = null,
-        string? externalCode = null) {
+        string? externalCode = null,
+        string? keycloakDepartment = null) {
         var chapter = new Chapter {
             Id = Guid.NewGuid(),
             Name = name,
             ParentChapterId = parentChapterId,
-            ShortCode = shortCode
+            ShortCode = shortCode,
+            KeycloakDepartment = keycloakDepartment
         };
         _db.Insert(chapter);
         var code = externalCode ?? "EC_" + Guid.NewGuid().ToString("N")[..6];

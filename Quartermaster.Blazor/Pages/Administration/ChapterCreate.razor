@@ -30,6 +30,12 @@
     </div>
 
     <div class="mb-3">
+        <label for="keycloakDepartment" class="form-label">@I18n[I18nKey.Ui.ChapterCreate.KeycloakDepartmentLabel]</label>
+        <input type="text" class="form-control" id="keycloakDepartment" maxlength="200" @bind="KeycloakDepartment" @bind:event="oninput" />
+        <div class="form-text">@I18n[I18nKey.Ui.ChapterCreate.KeycloakDepartmentHint]</div>
+    </div>
+
+    <div class="mb-3">
         <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.ParentLabel]</label>
         <ChapterPicker Value="@ParentChapterId" ValueChanged="OnParentChanged"
                        AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterCreate.ParentEmptyLabel]" />

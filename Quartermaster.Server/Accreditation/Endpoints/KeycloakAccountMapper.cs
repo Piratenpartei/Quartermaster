@@ -11,6 +11,7 @@ public static class KeycloakAccountMapper {
             LastName = user.LastName ?? "",
             Email = user.Email,
             MemberNumber = user.Attribute("member_number") ?? "",
+            Department = user.Attribute(KeycloakUserRepresentation.DepartmentAttribute),
             Enabled = user.Enabled,
             Closed = user.Attribute("closed_time") != null,
             Eligible = user.Attribute("ekklesia_eligible") == "true",

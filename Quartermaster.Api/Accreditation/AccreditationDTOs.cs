@@ -9,10 +9,21 @@ public class AccreditationAccountDTO {
     public string LastName { get; set; } = "";
     public string? Email { get; set; }
     public string MemberNumber { get; set; } = "";
+
+    /// <summary>The <c>ekklesia_department</c> attribute: the state group MemberDataImport placed the account in.</summary>
+    public string? Department { get; set; }
     public bool Enabled { get; set; }
     public bool Closed { get; set; }
     public bool Eligible { get; set; }
     public bool Verified { get; set; }
+}
+
+/// <summary>A Keycloak account search: an exact member number, a name matched word by word against username, first and last name, or both.</summary>
+public class KeycloakAccountQuery {
+    public const int MaxResults = 25;
+
+    public string? MemberNumber { get; set; }
+    public string? Query { get; set; }
 }
 
 public class AccreditationConfigDTO {

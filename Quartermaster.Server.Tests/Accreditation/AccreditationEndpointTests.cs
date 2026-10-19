@@ -77,7 +77,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    [Arguments("GET", "/api/accreditation/members/4711")]
+    [Arguments("GET", "/api/accreditation/accounts?memberNumber=4711")]
     [Arguments("POST", "/api/accreditation/members/4711/eligible")]
     [Arguments("POST", "/api/accreditation/temporary-accounts/check")]
     [Arguments("POST", "/api/accreditation/temporary-accounts")]
@@ -92,7 +92,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    [Arguments("GET", "/api/accreditation/members/4711")]
+    [Arguments("GET", "/api/accreditation/accounts?memberNumber=4711")]
     [Arguments("POST", "/api/accreditation/members/4711/eligible")]
     [Arguments("POST", "/api/accreditation/temporary-accounts/check")]
     [Arguments("POST", "/api/accreditation/temporary-accounts")]
@@ -112,7 +112,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     public async Task Search_with_no_matches_returns_empty_list() {
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync("/api/accreditation/members/4711");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4711");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var accounts = await response.Content.ReadFromJsonAsync<List<AccreditationAccountDTO>>();
@@ -124,7 +124,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
         FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "erika.mustermann", "4711");
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync("/api/accreditation/members/4711");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4711");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var account = (await response.Content.ReadFromJsonAsync<List<AccreditationAccountDTO>>())!.Single();
@@ -135,11 +135,46 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Search_by_name_matches_every_word_in_username_first_or_last_name() {
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "erika.mustermann", "4711", firstName: "Erika", lastName: "Mustermann");
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "max.mustermann", "4712", firstName: "Max", lastName: "Mustermann");
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "erika.pirat", "4713", firstName: "Erika", lastName: "Pirat");
+        using var client = await ClientAsync();
+
+        var both = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/accounts?query=mustermann");
+        var one = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/accounts?query=erika%20muster");
+
+        await Assert.That(both!.Select(a => a.MemberNumber).OrderBy(n => n).ToList()).IsEquivalentTo(new List<string> { "4711", "4712" });
+        await Assert.That(one!.Single().MemberNumber).IsEqualTo("4711");
+    }
+
+    [Test]
+    public async Task Search_by_member_number_and_name_needs_both_to_match() {
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "erika.mustermann", "4711", firstName: "Erika", lastName: "Mustermann");
+        using var client = await ClientAsync();
+
+        var match = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/accounts?memberNumber=4711&query=erika");
+        var mismatch = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/accounts?memberNumber=4711&query=max");
+
+        await Assert.That(match!.Count).IsEqualTo(1);
+        await Assert.That(mismatch!).IsEmpty();
+    }
+
+    [Test]
+    public async Task Search_with_a_one_letter_name_returns_400() {
+        using var client = await ClientAsync();
+
+        var response = await client.GetAsync("/api/accreditation/accounts?query=e");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
+
+    [Test]
     public async Task Search_shows_closed_disabled_account() {
         FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "old.member", "4712", enabled: false, eligible: "false", closed: true);
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync("/api/accreditation/members/4712");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4712");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var account = (await response.Content.ReadFromJsonAsync<List<AccreditationAccountDTO>>())!.Single();
@@ -536,7 +571,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
         using var client = await ClientAsync();
         FakeKeycloakAdminClient.FailNext = new KeycloakException(500, "boom");
 
-        var response = await client.GetAsync("/api/accreditation/members/4711");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4711");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadGateway);
         var body = await response.Content.ReadAsStringAsync();
@@ -549,7 +584,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
         using var client = await ClientAsync();
         FakeKeycloakAdminClient.FailNext = new KeycloakException(403, "forbidden");
 
-        var response = await client.GetAsync("/api/accreditation/members/4711");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4711");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadGateway);
         var body = await response.Content.ReadAsStringAsync();
@@ -583,7 +618,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
         UnsetKeycloakOptions();
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync("/api/accreditation/members/4711");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=4711");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.ServiceUnavailable);
     }
@@ -597,7 +632,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     public async Task Search_with_invalid_member_number_returns_400(string memberNumber) {
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync($"/api/accreditation/members/{memberNumber}");
+        var response = await client.GetAsync($"/api/accreditation/accounts?memberNumber={memberNumber}");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }
@@ -608,7 +643,7 @@ public class AccreditationEndpointTests : IntegrationTestBase {
         FakeKeycloakAdminClient.AddUser(id, "neg.member", "-4711", eligible: "false");
         using var client = await ClientAsync();
 
-        var search = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/members/-4711");
+        var search = await client.GetFromJsonAsync<List<AccreditationAccountDTO>>("/api/accreditation/accounts?memberNumber=-4711");
         var setResponse = await client.PostAsync("/api/accreditation/members/-4711/eligible", null);
 
         await Assert.That(search!.Single().MemberNumber).IsEqualTo("-4711");
@@ -633,10 +668,10 @@ public class AccreditationEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Search_with_blank_member_number_returns_400() {
+    public async Task Search_with_blank_query_returns_400() {
         using var client = await ClientAsync();
 
-        var response = await client.GetAsync("/api/accreditation/members/%20");
+        var response = await client.GetAsync("/api/accreditation/accounts?memberNumber=%20");
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
     }

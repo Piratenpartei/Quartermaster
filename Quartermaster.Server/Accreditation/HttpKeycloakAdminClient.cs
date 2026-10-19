@@ -35,6 +35,28 @@ public class HttpKeycloakAdminClient : IKeycloakAdminClient {
             .ToList();
     }
 
+    public async Task<List<KeycloakUserRepresentation>> SearchAsync(string text, int max, CancellationToken ct) {
+        var url = $"{AdminBase}/users?search={Uri.EscapeDataString("*" + text.Trim() + "*")}&briefRepresentation=false&max={max}";
+        return ParseUsersOrThrow(await SendAsync(HttpMethod.Get, url, null, ct));
+    }
+
+    public async Task<KeycloakUserRepresentation?> GetUserAsync(string userId, CancellationToken ct) {
+        var url = $"{AdminBase}/users/{Uri.EscapeDataString(userId)}";
+        using var response = await SendWithRetryAsync(HttpMethod.Get, url, null, ct);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+        if (!response.IsSuccessStatusCode)
+            throw await ErrorAsync(response, "get user", ct);
+
+        var body = await response.Content.ReadAsStringAsync(ct);
+        try {
+            using var doc = JsonDocument.Parse(body);
+            return ParseUser(doc.RootElement);
+        } catch (Exception ex) when (ex is JsonException || ex is KeyNotFoundException || ex is InvalidOperationException) {
+            throw new KeycloakException(null, "Keycloak returned an unexpected answer", ex);
+        }
+    }
+
     public async Task<bool> UsernameExistsAsync(string username, CancellationToken ct) {
         var url = $"{AdminBase}/users?username={Uri.EscapeDataString(username)}&exact=true";
         var body = await SendAsync(HttpMethod.Get, url, null, ct);
