@@ -170,6 +170,10 @@ public partial class Program {
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("wiki"),
             sp.GetRequiredService<ILogger<AssemblyMotions.Wiki.HttpWikiBotClient>>()));
 
+        builder.Services.AddScoped(sp => AssemblyMotions.Forum.DiscourseSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddSingleton<AssemblyMotions.Forum.IDiscourseClient>(sp => new AssemblyMotions.Forum.HttpDiscourseClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("discourse"),
+            sp.GetRequiredService<ILogger<AssemblyMotions.Forum.HttpDiscourseClient>>()));
         builder.Services.AddScoped(sp => AssemblyMotions.OpenSlides.OpenSlidesSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
         builder.Services.AddSingleton<AssemblyMotions.OpenSlides.IOpenSlidesClient>(sp => new AssemblyMotions.OpenSlides.HttpOpenSlidesClient(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("openslides"),
@@ -204,6 +208,9 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiReconcile>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
+        builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumSync>();
+        builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumConnectionCheck>();
+        builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumResync>();
         builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
 
         builder.Services.AddSingleton<AssemblyAssistant.Mumble.IMumbleConnectionFactory, AssemblyAssistant.Mumble.MumbleConnectionFactory>();
@@ -216,6 +223,7 @@ public partial class Program {
         builder.Services.AddHostedService(sp => sp.GetRequiredService<AssemblyAssistant.Session.AssemblySessionHost>());
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
+        builder.Services.AddHostedService<AssemblyMotions.Forum.AssemblyMotionForumSyncHostedService>();
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
@@ -235,6 +243,7 @@ public partial class Program {
         builder.Services.AddScoped<ISettingsCheck, KeycloakSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, WikiSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, OpenSlidesSettingsCheck>();
+        builder.Services.AddScoped<ISettingsCheck, ForumSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, MistralSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, PostizSettingsCheck>();
 
@@ -280,6 +289,12 @@ public partial class Program {
         builder.Services.AddHttpClient();
         builder.Services.AddHttpClient("wiki")
             .ConfigurePrimaryHttpMessageHandler(AssemblyMotions.Wiki.HttpWikiBotClient.CreateHandler);
+        builder.Services.AddHttpClient("discourse")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
+                AllowAutoRedirect = false,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                UseCookies = false
+            });
         builder.Services.AddHttpClient("openslides")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
                 AllowAutoRedirect = false,

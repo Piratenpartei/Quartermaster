@@ -56,6 +56,8 @@ public class AssemblyMotionPortalRepository {
             .Set(p => p.WikiPagePrefix, portal.WikiPagePrefix)
             .Set(p => p.WikiAssemblyLabel, portal.WikiAssemblyLabel)
             .Set(p => p.OpenSlidesMeetingId, portal.OpenSlidesMeetingId)
+            .Set(p => p.ForumMirrorEnabled, portal.ForumMirrorEnabled)
+            .Set(p => p.ForumCategoryId, portal.ForumCategoryId)
             .Update();
 
         if (existing == null)

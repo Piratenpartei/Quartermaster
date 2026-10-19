@@ -217,6 +217,20 @@ public partial class AssemblyMotionCommissionDetail {
         return !string.IsNullOrEmpty(Detail.DisplayNumber);
     }
 
+    private bool CanResyncForum() {
+        if (Detail?.Commission == null)
+            return false;
+        if (!Detail.Commission.ForumMirrorEnabled)
+            return false;
+        if (Detail.Commission.ForumSyncState == ForumSyncState.Deleted)
+            return false;
+        return !string.IsNullOrEmpty(Detail.DisplayNumber);
+    }
+
+    private async Task ResyncForum() {
+        await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/forum/resync", new { }), I18nKey.Ui.AssemblyMotion.ToastForumResync);
+    }
+
     private async Task ResyncWiki() {
         await RunAsync(() => Http.PostAsJsonAsync($"/api/assemblymotions/motions/{Id}/wiki/resync", new { }), I18nKey.Ui.AssemblyMotion.ToastWikiResync);
     }

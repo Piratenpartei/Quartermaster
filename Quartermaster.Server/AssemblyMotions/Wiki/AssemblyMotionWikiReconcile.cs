@@ -59,7 +59,7 @@ public class AssemblyMotionWikiReconcile {
                 if (content == null) {
                     _motions.MarkWikiPendingAsNeverSynced(motion.Id, nowUtc);
                 } else {
-                    _motions.MarkWikiPending(motion.Id, nowUtc);
+                    _motions.MarkMirrorsPending(motion.Id, nowUtc);
                 }
                 queued++;
             } catch (Exception ex) when (!ct.IsCancellationRequested) {

@@ -176,6 +176,18 @@ public static class SettingsAssistantCatalog {
         RequiredKeys = ["wiki.api_url", "wiki.bot_username", "wiki.bot_password"]
     };
 
+    public static readonly SettingsAssistant Forum = new("Forum", SettingsGroup.Integrations, "bi-chat-square-text", I18nKey.Ui.Settings.ForumTitle, I18nKey.Ui.Settings.ForumDescription) {
+        Sections = [
+            new([
+                new("discourse.base_url") { FullWidth = true },
+                new("discourse.api_username"),
+                new("discourse.api_key"),
+                new("discourse.max_post_length")
+            ]) { Check = SettingsCheckKind.Forum }
+        ],
+        RequiredKeys = ["discourse.base_url", "discourse.api_username", "discourse.api_key"]
+    };
+
     public static readonly SettingsAssistant OpenSlides = new("OpenSlides", SettingsGroup.Integrations, "bi-easel", I18nKey.Ui.Settings.OpenSlidesTitle, I18nKey.Ui.Settings.OpenSlidesDescription) {
         Sections = [
             new([
@@ -263,7 +275,7 @@ public static class SettingsAssistantCatalog {
     };
 
     public static readonly IReadOnlyList<SettingsAssistant> All = [
-        General, PublicForms, TravelExpenses, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, OpenSlides, SocialMedia,
+        General, PublicForms, TravelExpenses, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, Forum, OpenSlides, SocialMedia,
         AssemblyAssistant, AssemblyProcedure
     ];
 

@@ -173,7 +173,7 @@ public class AssemblyMotionService {
         }
 
         if (locked.Status != AssemblyMotionStatus.Draft && locked.Number != null)
-            _motions.MarkWikiPending(locked.Id, nowUtc);
+            _motions.MarkMirrorsPending(locked.Id, nowUtc);
 
         _db.AssemblyMotionSubmitters
             .Where(s => s.MotionId == locked.Id && s.IsAuthor)
@@ -347,6 +347,8 @@ public class AssemblyMotionService {
         });
 
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
+        if (motion.WasSubmitted)
+            _motions.MarkForumPending(motion.Id, nowUtc);
 
         if (submitters.Count + 1 >= type.MinSubmitters) {
             Submit(motion, nowUtc, notifications);
@@ -387,6 +389,8 @@ public class AssemblyMotionService {
 
         _motions.RemoveSubmitter(motion.Id, member.Id);
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterLeft");
+        if (motion.WasSubmitted)
+            _motions.MarkForumPending(motion.Id, nowUtc);
 
         tx.Commit();
         return AssemblyMotionOutcome.Ok(motion);
@@ -442,7 +446,7 @@ public class AssemblyMotionService {
         _motions.Update(motion);
 
         if (motion.WasSubmitted)
-            _motions.MarkWikiPending(motion.Id, nowUtc);
+            _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn");
 
@@ -511,7 +515,7 @@ public class AssemblyMotionService {
             _motions.Update(motion);
 
             if (motion.WasSubmitted)
-                _motions.MarkWikiPending(motion.Id, nowUtc);
+                _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
             _auditLog.Log("AssemblyMotion", motion.Id, "Lapsed");
 
@@ -568,7 +572,7 @@ public class AssemblyMotionService {
             .ToList();
 
         foreach (var numberedId in numberedIds)
-            _motions.MarkWikiPending(numberedId, nowUtc);
+            _motions.MarkMirrorsPending(numberedId, nowUtc);
     }
 
     private static void RunAll(List<Action> notifications) {
@@ -586,7 +590,7 @@ public class AssemblyMotionService {
         motion.Status = AssemblyMotionStatus.Submitted;
         motion.SubmittedAt = nowUtc;
         _motions.Update(motion);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
         _auditLog.Log("AssemblyMotion", motion.Id, "Submitted", "Number", null, motion.Number.ToString());
     }
 }

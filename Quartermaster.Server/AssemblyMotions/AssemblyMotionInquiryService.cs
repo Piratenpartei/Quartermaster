@@ -51,7 +51,7 @@ public class AssemblyMotionInquiryService {
             ResponseDueAt = responseDueAt
         };
         _inquiries.Insert(inquiry);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log(EntityType, inquiry.Id, "Asked", nameof(AssemblyMotionInquiry.QuestionMarkdown), null, questionMarkdown);
 
@@ -122,7 +122,7 @@ public class AssemblyMotionInquiryService {
         inquiry.ClosedAt = nowUtc;
         inquiry.ClosedByUserId = userId;
         _inquiries.Update(inquiry);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log(EntityType, inquiry.Id, "Closed");
 

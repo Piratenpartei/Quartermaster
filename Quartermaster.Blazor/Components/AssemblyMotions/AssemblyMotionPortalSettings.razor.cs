@@ -34,6 +34,7 @@ public partial class AssemblyMotionPortalSettings {
     private AssemblyMotionPortalSettingsDTO? Settings;
     private AssemblyMotionConnectionCheckDTO? ConnectionCheck;
     private AssemblyMotionConnectionCheckDTO? OpenSlidesConnectionCheck;
+    private AssemblyMotionConnectionCheckDTO? ForumConnectionCheck;
     private TypeEdit? Editing;
     private ConfirmDialog DeleteTypeDialog = default!;
     private bool Loading = true;
@@ -53,6 +54,8 @@ public partial class AssemblyMotionPortalSettings {
     private string WikiPagePrefix = "";
     private string WikiAssemblyLabel = "";
     private int? OpenSlidesMeetingId;
+    private bool ForumMirrorEnabled;
+    private int? ForumCategoryId;
 
     private bool CanEdit => AuthService.HasPermission(ChapterId, PermissionIdentifier.EditEvents);
 
@@ -99,6 +102,8 @@ public partial class AssemblyMotionPortalSettings {
         WikiPagePrefix = settings.WikiPagePrefix ?? "";
         WikiAssemblyLabel = settings.WikiAssemblyLabel ?? "";
         OpenSlidesMeetingId = settings.OpenSlidesMeetingId;
+        ForumMirrorEnabled = settings.ForumMirrorEnabled;
+        ForumCategoryId = settings.ForumCategoryId;
     }
 
     private async Task EnableAsync() {
@@ -140,6 +145,7 @@ public partial class AssemblyMotionPortalSettings {
         Busy = true;
         ConnectionCheck = null;
         OpenSlidesConnectionCheck = null;
+        ForumConnectionCheck = null;
         try {
             var response = await Http.PutAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}", new AssemblyMotionPortalUpdateRequest {
                 Id = Settings.Id,
@@ -152,11 +158,21 @@ public partial class AssemblyMotionPortalSettings {
                 WikiMirrorEnabled = WikiMirrorEnabled,
                 WikiPagePrefix = WikiMirrorEnabled ? WikiPagePrefix : null,
                 WikiAssemblyLabel = WikiMirrorEnabled ? WikiAssemblyLabel : null,
-                OpenSlidesMeetingId = OpenSlidesMeetingId
+                OpenSlidesMeetingId = OpenSlidesMeetingId,
+                ForumMirrorEnabled = ForumMirrorEnabled,
+                ForumCategoryId = ForumCategoryId
             });
             if (response.IsSuccessStatusCode) {
-                Apply(await response.Content.ReadFromJsonAsync<AssemblyMotionPortalSettingsDTO>());
+                var saved = await response.Content.ReadFromJsonAsync<AssemblyMotionPortalSettingsDTO>();
+                Apply(saved);
                 ToastService.ToastKey(I18nKey.Ui.AssemblyMotion.ToastPortalSaved);
+                if (saved != null && saved.ForumWarnings.Count > 0) {
+                    ForumConnectionCheck = new AssemblyMotionConnectionCheckDTO {
+                        Ok = true,
+                        Message = I18n[I18nKey.Ui.AssemblyMotion.ForumSavedWithWarnings],
+                        Warnings = saved.ForumWarnings
+                    };
+                }
             } else {
                 await ToastService.ErrorAsync(response);
             }
@@ -177,6 +193,35 @@ public partial class AssemblyMotionPortalSettings {
             var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}/wiki/validate", new { });
             if (response.IsSuccessStatusCode) {
                 ConnectionCheck = await response.Content.ReadFromJsonAsync<AssemblyMotionConnectionCheckDTO>();
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
+    }
+
+    private string ForumCheckAlertClass() {
+        if (ForumConnectionCheck == null || !ForumConnectionCheck.Ok)
+            return "alert-danger";
+        return ForumConnectionCheck.Warnings.Count > 0 ? "alert-warning" : "alert-success";
+    }
+
+    private async Task CheckForumConnectionAsync() {
+        if (Settings == null)
+            return;
+
+        Busy = true;
+        ForumConnectionCheck = null;
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Settings.Id}/forum/validate", new AssemblyMotionForumValidateRequest {
+                PortalId = Settings.Id,
+                CategoryId = ForumCategoryId
+            });
+            if (response.IsSuccessStatusCode) {
+                ForumConnectionCheck = await response.Content.ReadFromJsonAsync<AssemblyMotionConnectionCheckDTO>();
             } else {
                 await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
             }

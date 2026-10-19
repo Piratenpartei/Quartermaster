@@ -13,7 +13,7 @@ How to get Quartermaster running on a server from scratch. For tuning the runnin
 
 The published app is self-contained: it brings its own .NET runtime, so the server needs no .NET installation, and there is no Node.js, Redis or Elasticsearch. Generated PDFs and (optionally) member-import CSVs live on the local filesystem.
 
-The examples below assume the domain `quartermaster.example.de`, the install directory `/opt/quartermaster` and Caddy as the reverse proxy.
+The examples below assume the domain `quartermaster.example.de`, the install directory `/var/www/quartermaster` and Caddy as the reverse proxy.
 
 ## 1. Database
 
@@ -48,19 +48,19 @@ Create a system user with a real home directory. ASP.NET Core stores its data pr
 ```bash
 useradd --system --create-home --home-dir /var/lib/quartermaster --shell /usr/sbin/nologin quartermaster
 
-mkdir -p /opt/quartermaster
-tar -xzf quartermaster-linux-x64.tar.gz -C /opt/quartermaster
-mkdir -p /opt/quartermaster/data
-chown -R root:root /opt/quartermaster
-chown -R quartermaster:quartermaster /opt/quartermaster/data
-chmod +x /opt/quartermaster/Quartermaster.Server
+mkdir -p /var/www/quartermaster
+tar -xzf quartermaster-linux-x64.tar.gz -C /var/www/quartermaster
+mkdir -p /var/www/quartermaster/data
+chown -R root:root /var/www/quartermaster
+chown -R quartermaster:quartermaster /var/www/quartermaster/data
+chmod +x /var/www/quartermaster/Quartermaster.Server
 ```
 
 The app files stay read-only for the service user; only `data/` is writable.
 
 ## 4. Configuration file
 
-Create `/opt/quartermaster/appsettings.Production.json`, using `appsettings.template.json` as the starting point:
+Create `/var/www/quartermaster/appsettings.Production.json`, using `appsettings.template.json` as the starting point:
 
 ```json
 {
@@ -84,8 +84,8 @@ Create `/opt/quartermaster/appsettings.Production.json`, using `appsettings.temp
 The file contains the database password, so restrict it to the service user:
 
 ```bash
-chown root:quartermaster /opt/quartermaster/appsettings.Production.json
-chmod 640 /opt/quartermaster/appsettings.Production.json
+chown root:quartermaster /var/www/quartermaster/appsettings.Production.json
+chmod 640 /var/www/quartermaster/appsettings.Production.json
 ```
 
 `ForwardedHeaders` **must** list every proxy IP (or CIDR network) you trust to set `X-Forwarded-For` / `X-Forwarded-Proto`. With both lists empty the headers are ignored entirely and the client IP collapses to the proxy address, so rate-limiting and audit logging will all blame the proxy. See [Configuration.md, Reverse proxy](Configuration.md#reverse-proxy) for details.
@@ -109,7 +109,7 @@ The working directory must also be the install directory: the daily administrati
 Schema and seed data are created on first start, but the first admin user must be created manually:
 
 ```bash
-cd /opt/quartermaster
+cd /var/www/quartermaster
 sudo -u quartermaster env ASPNETCORE_ENVIRONMENT=Production ./Quartermaster.Server init-admin
 ```
 
@@ -132,8 +132,8 @@ After=network.target mariadb.service
 Wants=mariadb.service
 
 [Service]
-WorkingDirectory=/opt/quartermaster
-ExecStart=/opt/quartermaster/Quartermaster.Server
+WorkingDirectory=/var/www/quartermaster
+ExecStart=/var/www/quartermaster/Quartermaster.Server
 Restart=always
 RestartSec=10
 KillSignal=SIGINT
@@ -236,8 +236,46 @@ mysqldump --single-transaction quartermaster | gzip > /var/backups/quartermaster
 
 ## Upgrading
 
-1. Stop the service.
-2. Replace the contents of `/opt/quartermaster` with the new publish output, keeping `appsettings.Production.json` and the `data/` directory in place.
-3. Start the service. Pending schema migrations apply automatically on startup.
+The new version goes into a fresh folder next to the running one. The old folder stays untouched and serves as the rollback.
+
+1. Copy the new archive to the server and compare its checksum with the one published for the release:
+
+   ```bash
+   sha256sum quartermaster-linux-x64.tar.gz
+   ```
+
+2. If the release contains a schema migration, back up the database first (see [Backups](#backups)).
+3. Unpack the archive into a new folder:
+
+   ```bash
+   mkdir -p /var/www/quartermaster-new
+   tar -xzf quartermaster-linux-x64.tar.gz -C /var/www/quartermaster-new
+   chown -R root:root /var/www/quartermaster-new
+   chmod +x /var/www/quartermaster-new/Quartermaster.Server
+   ```
+
+4. Stop the service and carry over the configuration and the data directory. `cp -a` keeps the ownership and permissions:
+
+   ```bash
+   systemctl stop quartermaster
+   cp -a /var/www/quartermaster/appsettings.Production.json /var/www/quartermaster-new/
+   cp -a /var/www/quartermaster/data /var/www/quartermaster-new/
+   ```
+
+5. Swap the folders, keeping the old one under its version number:
+
+   ```bash
+   mv /var/www/quartermaster /var/www/quartermaster-v6.0
+   mv /var/www/quartermaster-new /var/www/quartermaster
+   ```
+
+6. Start the service and check the log. Pending schema migrations apply automatically on startup:
+
+   ```bash
+   systemctl start quartermaster
+   journalctl -u quartermaster -f
+   ```
+
+To roll back, stop the service, move the old folder back to `/var/www/quartermaster` and start it again. If a migration ran, restore the database backup as well. Remove old folders once the new version runs fine.
 
 No separate downtime window is needed beyond the restart itself; migrations are designed to be backwards-compatible within a release line.

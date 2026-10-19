@@ -164,6 +164,10 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | konkurrierender Antrag | competing motion | A motion linked to an earlier submitted motion that excludes it; may have a later deadline |
 | Reihenfolge | order | The ranking of motions by prioritization, public after the prioritization window |
 | Ergebnis | result | The outcome of the assembly's vote on a motion, entered by the commission |
+| Forum-Spiegelung | forum mirror | Mirroring submitted motions as Discourse topics, switched on per portal |
+| Forum-Kategorie | forum category | The Discourse category a portal's topics are created in, by id |
+| Forum-Thema | forum topic | The Discourse topic of one motion; its first post is kept up to date |
+| Im Forum gelöscht | deleted in the forum | Forum sync state of a motion whose topic a moderator deleted; never recreated |
 
 ## Assembly Assistant (Versammlungsassistent)
 

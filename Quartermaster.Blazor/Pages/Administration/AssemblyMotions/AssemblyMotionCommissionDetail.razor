@@ -181,6 +181,38 @@
                 </div>
             </div>
         }
+        @if (Detail.Commission.ForumMirrorEnabled) {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5>@I18n[I18nKey.Ui.AssemblyMotion.ForumStateTitle]</h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.Common.Status]</dt>
+                            <dd class="col-sm-6">
+                                <span class="badge border @AssemblyMotionDisplay.ForumSyncBadgeClass(Detail.Commission.ForumSyncState)">@AssemblyMotionDisplay.ForumSyncLabel(I18n, Detail.Commission.ForumSyncState)</span>
+                            </dd>
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiSyncedRevision]</dt>
+                            <dd class="col-sm-6">@(Detail.Commission.ForumSyncedRevision == null ? "-" : Detail.Commission.ForumSyncedRevision.Value.ToString())</dd>
+                            <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.WikiLastSyncedAt]</dt>
+                            <dd class="col-sm-6">@(Detail.Commission.ForumLastSyncedAt == null ? "-" : AssemblyMotionDisplay.Berlin(Detail.Commission.ForumLastSyncedAt.Value))</dd>
+                            @if (!string.IsNullOrEmpty(Detail.Commission.ForumTopicUrl)) {
+                                <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.ForumTopic]</dt>
+                                <dd class="col-sm-6 text-break"><a href="@Detail.Commission.ForumTopicUrl" target="_blank" rel="noopener">@Detail.Commission.ForumTopicUrl</a></dd>
+                            }
+                            @if (!string.IsNullOrEmpty(Detail.Commission.ForumLastError)) {
+                                <dt class="col-sm-6">@I18n[I18nKey.Ui.AssemblyMotion.LastError]</dt>
+                                <dd class="col-sm-6 text-danger-emphasis text-break">@Detail.Commission.ForumLastError</dd>
+                            }
+                        </dl>
+                        @if (CanResyncForum()) {
+                            <button class="btn btn-sm btn-outline-primary mt-3" disabled="@Busy" @onclick="ResyncForum">
+                                <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumResync]
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
         <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-body">

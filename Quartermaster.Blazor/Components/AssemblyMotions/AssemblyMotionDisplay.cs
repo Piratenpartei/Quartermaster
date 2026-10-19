@@ -80,6 +80,26 @@ public static class AssemblyMotionDisplay {
         };
     }
 
+    public static string ForumSyncLabel(I18nService i18n, ForumSyncState state) {
+        return state switch {
+            ForumSyncState.Pending => i18n[I18nKey.Ui.AssemblyMotion.ForumStatePending],
+            ForumSyncState.Synced => i18n[I18nKey.Ui.AssemblyMotion.ForumStateSynced],
+            ForumSyncState.Failed => i18n[I18nKey.Ui.AssemblyMotion.ForumStateFailed],
+            ForumSyncState.Deleted => i18n[I18nKey.Ui.AssemblyMotion.ForumStateDeleted],
+            _ => i18n[I18nKey.Ui.AssemblyMotion.ForumStateNotMirrored]
+        };
+    }
+
+    public static string ForumSyncBadgeClass(ForumSyncState state) {
+        return state switch {
+            ForumSyncState.Pending => "border-info text-info-emphasis",
+            ForumSyncState.Synced => "border-success text-success-emphasis",
+            ForumSyncState.Failed => "border-danger text-danger-emphasis",
+            ForumSyncState.Deleted => "border-warning text-warning-emphasis",
+            _ => "border-secondary text-secondary-emphasis"
+        };
+    }
+
     public static readonly AssemblyMotionResult[] AllResults = [
         AssemblyMotionResult.None,
         AssemblyMotionResult.Accepted,

@@ -45,7 +45,7 @@ public class AssemblyMotionCommissionService {
         motion.CheckedAt = nowUtc;
         motion.CheckedByUserId = userId;
         _motions.Update(motion);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.LogFieldChange("AssemblyMotion", motion.Id, nameof(AssemblyMotion.Status), oldStatus.ToString(), decision.ToString());
         _auditLog.LogFieldChange("AssemblyMotion", motion.Id, nameof(AssemblyMotion.CheckNote), oldNote, note);
@@ -88,7 +88,7 @@ public class AssemblyMotionCommissionService {
         AssemblyMotionContent.Apply(motion, draft);
         motion.Revision += 1;
         _motions.Update(motion);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _motions.AddRevision(AssemblyMotionContent.ToRevision(motion, userId, nowUtc, true, note));
 
@@ -115,7 +115,7 @@ public class AssemblyMotionCommissionService {
         _motions.Update(motion);
 
         if (motion.WasSubmitted)
-            _motions.MarkWikiPending(motion.Id, nowUtc);
+            _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn", "ByCommission", null, "true");
 

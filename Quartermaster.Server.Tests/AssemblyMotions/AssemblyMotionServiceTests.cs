@@ -1002,4 +1002,71 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
 
         await Assert.That(numbers.Distinct().Count()).IsEqualTo(numbers.Count);
     }
+    private AssemblyMotion SeedNumberedCollectingMotion(DateTime now, Member author) {
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.ForumMirrorEnabled, true)
+            .Update();
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+        _service.Release(motion.Id, author, now);
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.Number, 1)
+            .Set(m => m.WikiSyncState, WikiSyncState.Synced)
+            .Set(m => m.ForumSyncState, ForumSyncState.Synced)
+            .Update();
+        return motion;
+    }
+
+    [Test]
+    public async Task Join_on_numbered_motion_queues_the_forum_only() {
+        var now = DateTime.UtcNow;
+        var motion = SeedNumberedCollectingMotion(now, SeedEligibleMember());
+
+        var outcome = _service.Join(motion.Id, SeedEligibleMember(), now);
+
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Synced);
+    }
+
+    [Test]
+    public async Task Leave_on_numbered_motion_queues_the_forum_only() {
+        var now = DateTime.UtcNow;
+        var motion = SeedNumberedCollectingMotion(now, SeedEligibleMember());
+        var coSubmitter = SeedEligibleMember();
+        _service.Join(motion.Id, coSubmitter, now);
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.ForumSyncState, ForumSyncState.Synced)
+            .Update();
+
+        var outcome = _service.Leave(motion.Id, coSubmitter, now);
+
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Synced);
+    }
+
+    [Test]
+    public async Task Join_before_submission_queues_nothing() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portal.Id)
+            .Set(p => p.ForumMirrorEnabled, true)
+            .Update();
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+        _service.Release(motion.Id, author, now);
+
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+
+        await Assert.That(_motionRepo.Get(motion.Id)!.ForumSyncState).IsEqualTo(ForumSyncState.NotMirrored);
+    }
 }

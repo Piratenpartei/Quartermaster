@@ -59,6 +59,16 @@ public class AssemblyMotion {
     public int? OpenSlidesPushedRevision { get; set; }
     public DateTime? OpenSlidesPushedAt { get; set; }
     public string? OpenSlidesLastError { get; set; }
+    public int? ForumTopicId { get; set; }
+    public int? ForumPostId { get; set; }
+    public ForumSyncState ForumSyncState { get; set; }
+    public int? ForumSyncedRevision { get; set; }
+    public string? ForumSyncedHash { get; set; }
+    public DateTime? ForumLastSyncedAt { get; set; }
+    public string? ForumLastError { get; set; }
+    public int ForumFailureCount { get; set; }
+    public DateTime? ForumNextAttemptAt { get; set; }
+    public DateTime? ForumSyncRequestedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 
     public AssemblyMotionExportItemDTO ToExportItemDto(AssemblyMotionType type, List<string> competingDisplayNumbers, List<string> submitters, int? rank, int? upvoteCount) {

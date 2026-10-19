@@ -26,6 +26,8 @@ public class AssemblyMotionPortal {
     public string? WikiPagePrefix { get; set; }
     public string? WikiAssemblyLabel { get; set; }
     public int? OpenSlidesMeetingId { get; set; }
+    public bool ForumMirrorEnabled { get; set; }
+    public int? ForumCategoryId { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public AssemblyMotionPortalDTO ToDto(string eventName, DateTime? eventDate, IEnumerable<AssemblyMotionType> types) {
@@ -61,6 +63,8 @@ public class AssemblyMotionPortal {
             WikiPagePrefix = WikiPagePrefix,
             WikiAssemblyLabel = WikiAssemblyLabel,
             OpenSlidesMeetingId = OpenSlidesMeetingId,
+            ForumMirrorEnabled = ForumMirrorEnabled,
+            ForumCategoryId = ForumCategoryId,
             Types = types.Select(t => t.ToSettingsDto(typeIdsWithMotions.Contains(t.Id))).ToList()
         };
     }

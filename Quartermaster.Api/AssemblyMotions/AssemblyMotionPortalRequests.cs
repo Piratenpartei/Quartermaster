@@ -28,6 +28,13 @@ public class AssemblyMotionPortalUpdateRequest {
     public string? WikiPagePrefix { get; set; }
     public string? WikiAssemblyLabel { get; set; }
     public int? OpenSlidesMeetingId { get; set; }
+    public bool ForumMirrorEnabled { get; set; }
+    public int? ForumCategoryId { get; set; }
+}
+
+public class AssemblyMotionForumValidateRequest {
+    public Guid PortalId { get; set; }
+    public int? CategoryId { get; set; }
 }
 
 public abstract class AssemblyMotionTypeFields {

@@ -44,6 +44,11 @@ public class AssemblyMotionPortalSettingsDTO {
     public string? WikiPagePrefix { get; set; }
     public string? WikiAssemblyLabel { get; set; }
     public int? OpenSlidesMeetingId { get; set; }
+    public bool ForumMirrorEnabled { get; set; }
+    public int? ForumCategoryId { get; set; }
+
+    /// <summary>Warnings of the forum check that ran while saving, such as a publicly readable category; empty otherwise.</summary>
+    public List<string> ForumWarnings { get; set; } = [];
     public List<AssemblyMotionTypeSettingsDTO> Types { get; set; } = [];
 }
 

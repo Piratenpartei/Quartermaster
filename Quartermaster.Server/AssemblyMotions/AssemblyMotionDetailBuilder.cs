@@ -7,6 +7,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Members;
+using Quartermaster.Server.AssemblyMotions.Forum;
 using Quartermaster.Server.AssemblyMotions.Wiki;
 
 namespace Quartermaster.Server.AssemblyMotions;
@@ -21,9 +22,11 @@ public class AssemblyMotionDetailBuilder {
     private readonly AssemblyMotionCompetitionViewBuilder _competitionViews;
     private readonly AssemblyMotionAccess _access;
     private readonly DbContext _db;
+    private readonly DiscourseSettings _forumSettings;
 
     public AssemblyMotionDetailBuilder(AssemblyMotionRepository motions, AssemblyMotionInquiryRepository inquiries,
-        AssemblyMotionUpvoteRepository upvotes, AssemblyMotionService service, AssemblyMotionCompetitionViewBuilder competitionViews, AssemblyMotionAccess access, DbContext db) {
+        AssemblyMotionUpvoteRepository upvotes, AssemblyMotionService service, AssemblyMotionCompetitionViewBuilder competitionViews, AssemblyMotionAccess access, DbContext db,
+        DiscourseSettings forumSettings) {
         _motions = motions;
         _inquiries = inquiries;
         _upvotes = upvotes;
@@ -31,6 +34,7 @@ public class AssemblyMotionDetailBuilder {
         _competitionViews = competitionViews;
         _access = access;
         _db = db;
+        _forumSettings = forumSettings;
     }
 
     public bool CanSee(AssemblyMotion motion, Event ev, EligibilityResult eligibility) {
@@ -66,6 +70,9 @@ public class AssemblyMotionDetailBuilder {
 
         if (viewer.IsCommission)
             dto.Commission = BuildCommissionInfo(motion, portal, type);
+
+        if (viewerMember != null || viewer.IsCommission)
+            dto.ForumTopicUrl = ForumTopicUrl(motion);
 
         if (viewerIsSubmitter || viewer.IsCommission)
             ApplyInquiries(dto, motion);
@@ -118,6 +125,15 @@ public class AssemblyMotionDetailBuilder {
         dto.HasUpvoted = _upvotes.Exists(motion.Id, viewerMember.Id);
     }
 
+    private string? ForumTopicUrl(AssemblyMotion motion) {
+        if (motion.ForumTopicId == null || motion.ForumSyncState == ForumSyncState.Deleted)
+            return null;
+        if (string.IsNullOrEmpty(_forumSettings.BaseUrl))
+            return null;
+
+        return _forumSettings.TopicUrl(motion.ForumTopicId.Value);
+    }
+
     private AssemblyMotionCommissionInfoDTO BuildCommissionInfo(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type) {
         return new() {
             CheckedAt = motion.CheckedAt.ToDtoUtc(),
@@ -128,6 +144,12 @@ public class AssemblyMotionDetailBuilder {
             WikiSyncedRevision = motion.WikiSyncedRevision,
             WikiLastSyncedAt = motion.WikiLastSyncedAt.ToDtoUtc(),
             WikiLastError = motion.WikiLastError,
+            ForumMirrorEnabled = portal.ForumMirrorEnabled,
+            ForumSyncState = motion.ForumSyncState,
+            ForumSyncedRevision = motion.ForumSyncedRevision,
+            ForumLastSyncedAt = motion.ForumLastSyncedAt.ToDtoUtc(),
+            ForumLastError = motion.ForumLastError,
+            ForumTopicUrl = ForumTopicUrl(motion),
             OpenSlidesMotionId = motion.OpenSlidesMotionId,
             OpenSlidesPushedRevision = motion.OpenSlidesPushedRevision,
             OpenSlidesPushedAt = motion.OpenSlidesPushedAt.ToDtoUtc(),

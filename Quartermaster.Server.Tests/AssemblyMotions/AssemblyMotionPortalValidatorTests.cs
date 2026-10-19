@@ -191,6 +191,28 @@ public class AssemblyMotionPortalUpdateRequestValidatorTests {
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Test]
+    public void ForumMirrorWithoutCategory_ShouldHaveError() {
+        var request = ValidRequest();
+        request.ForumMirrorEnabled = true;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.ForumCategoryId)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.Portal.ForumCategoryRequired);
+    }
+
+    [Test]
+    public void ForumMirrorWithCategory_ShouldHaveNoErrors() {
+        var request = ValidRequest();
+        request.ForumMirrorEnabled = true;
+        request.ForumCategoryId = 7;
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
 }
 
 public class AssemblyMotionPortalEnableRequestValidatorTests {

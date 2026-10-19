@@ -48,6 +48,12 @@ public class AssemblyMotionPortalUpdateRequestValidator : Validator<AssemblyMoti
                 .WithMessage(I18nKey.Error.AssemblyMotion.Portal.WikiAssemblyLabelRequired);
         });
 
+        When(x => x.ForumMirrorEnabled, () => {
+            RuleFor(x => x.ForumCategoryId)
+                .Must(id => id > 0)
+                .WithMessage(I18nKey.Error.AssemblyMotion.Portal.ForumCategoryRequired);
+        });
+
         When(x => x.OpenSlidesMeetingId != null, () => {
             RuleFor(x => x.OpenSlidesMeetingId)
                 .GreaterThan(0)

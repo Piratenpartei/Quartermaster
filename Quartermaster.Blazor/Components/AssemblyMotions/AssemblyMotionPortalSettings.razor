@@ -92,6 +92,36 @@
                     }
                 </div>
 
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="forumMirrorEnabled" @bind="ForumMirrorEnabled" />
+                    <label class="form-check-label" for="forumMirrorEnabled">@I18n[I18nKey.Ui.AssemblyMotion.ForumMirrorEnabled]</label>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label small text-secondary" for="forumCategoryId">@I18n[I18nKey.Ui.AssemblyMotion.ForumCategoryId]</label>
+                        <input type="number" min="1" class="form-control" id="forumCategoryId" @bind="ForumCategoryId"
+                               readonly="@(!ForumMirrorEnabled || !CanEdit)" disabled="@(!ForumMirrorEnabled || !CanEdit)" />
+                    </div>
+                    <div class="col-md-9 d-flex align-items-end">
+                        <span class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.ForumCategoryHint]</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || !CanEdit)" @onclick="CheckForumConnectionAsync">
+                        <i class="bi bi-plug"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumCheckConnection]
+                    </button>
+                    <span class="form-text ms-2">@I18n[I18nKey.Ui.AssemblyMotion.ForumCheckConnectionHint]</span>
+                    @if (ForumConnectionCheck != null) {
+                        <div class="alert @ForumCheckAlertClass() mt-2 mb-0" role="alert">
+                            @ForumConnectionCheck.Message
+                            @foreach (var warning in ForumConnectionCheck.Warnings) {
+                                <div class="text-warning-emphasis"><i class="bi bi-exclamation-triangle"></i> @warning</div>
+                            }
+                        </div>
+                    }
+                </div>
+
                 <div class="row g-3 mb-3">
                     <div class="col-md-3">
                         <label class="form-label small text-secondary" for="openSlidesMeetingId">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingId]</label>

@@ -62,6 +62,11 @@
                     <i class="bi bi-trash"></i> @I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]
                 </button>
             }
+            @if (!string.IsNullOrEmpty(Member.ForumTopicUrl)) {
+                <a href="@Member.ForumTopicUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+                    <i class="bi bi-chat-square-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumDiscussion]
+                </a>
+            }
         </div>
 
         @if (ShowEditLockedHint()) {

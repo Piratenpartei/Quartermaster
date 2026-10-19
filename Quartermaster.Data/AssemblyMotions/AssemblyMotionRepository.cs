@@ -220,6 +220,7 @@ public class AssemblyMotionRepository {
                 CreatedAt = m.CreatedAt,
                 SubmittedAt = m.SubmittedAt,
                 WikiSyncState = m.WikiSyncState,
+                ForumSyncState = m.ForumSyncState,
                 OpenSlidesPushedRevision = m.OpenSlidesPushedRevision
             })
             .ToList();
@@ -253,6 +254,12 @@ public class AssemblyMotionRepository {
                 .Update();
     }
 
+    /// <summary>Queues the motion for the wiki and the forum sync, each only while the motion's portal mirrors there.</summary>
+    public void MarkMirrorsPending(Guid motionId, DateTime nowUtc) {
+        MarkWikiPending(motionId, nowUtc);
+        MarkForumPending(motionId, nowUtc);
+    }
+
     /// <summary>Queues the motion for the wiki sync. Does nothing while the motion's portal has the wiki mirror disabled.</summary>
     public void MarkWikiPending(Guid motionId, DateTime nowUtc) {
         _context.AssemblyMotions
@@ -278,6 +285,109 @@ public class AssemblyMotionRepository {
                 .Set(m => m.WikiFailureCount, 0)
                 .Set(m => m.WikiSyncedHash, (string?)null)
                 .Set(m => m.WikiSyncedRevision, (int?)null)
+                .Update();
+        MarkForumPending(motionId, nowUtc);
+    }
+
+    /// <summary>Queues the motion for the forum sync and returns whether it was queued. Does nothing while the motion's portal has the forum mirror disabled or the motion's topic was deleted in the forum.</summary>
+    public bool MarkForumPending(Guid motionId, DateTime nowUtc) {
+        return _context.AssemblyMotions
+                .Where(m => m.Id == motionId
+                    && m.ForumSyncState != ForumSyncState.Deleted
+                    && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.ForumMirrorEnabled))
+                .Set(m => m.ForumSyncState, ForumSyncState.Pending)
+                .Set(m => m.ForumSyncRequestedAt, nowUtc)
+                .Set(m => m.ForumNextAttemptAt, (DateTime?)null)
+                .Set(m => m.ForumFailureCount, 0)
+                .Update() > 0;
+    }
+
+    public void ResetForumPendingToNotMirrored(Guid portalId) {
+        _context.AssemblyMotions
+                .Where(m => m.PortalId == portalId && m.ForumSyncState == ForumSyncState.Pending)
+                .Set(m => m.ForumSyncState, ForumSyncState.NotMirrored)
+                .Update();
+    }
+
+    /// <summary>Numbered motions of forum-mirrored portals whose topic needs work now, oldest request first. A motion that was never mirrored counts as due.</summary>
+    public List<AssemblyMotion> ListForumDue(DateTime nowUtc, int limit) {
+        return _context.AssemblyMotions
+            .InnerJoin(_context.AssemblyMotionPortals, (m, p) => m.PortalId == p.Id, (m, p) => new { Motion = m, Portal = p })
+            .Where(x => x.Portal.ForumMirrorEnabled
+                && x.Motion.Number != null
+                && x.Motion.DeletedAt == null
+                && (x.Motion.ForumSyncState == ForumSyncState.Pending
+                    || x.Motion.ForumSyncState == ForumSyncState.NotMirrored
+                    || (x.Motion.ForumSyncState == ForumSyncState.Failed && x.Motion.ForumNextAttemptAt <= nowUtc)))
+            .OrderBy(x => x.Motion.ForumSyncRequestedAt)
+            .Select(x => x.Motion)
+            .Take(limit)
+            .ToList();
+    }
+
+    public void SetForumTopic(Guid motionId, int topicId, int postId) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId)
+                .Set(m => m.ForumTopicId, (int?)topicId)
+                .Set(m => m.ForumPostId, (int?)postId)
+                .Update();
+    }
+
+    /// <summary>
+    /// Records a finished forum sync like <see cref="CompleteWikiSync"/>: the state only changes while the request timestamp is still the loaded one, otherwise only the facts about the written post are stored and false is returned.
+    /// </summary>
+    public bool CompleteForumSync(Guid motionId, DateTime? loadedRequestedAt, int revision, string hash, DateTime nowUtc) {
+        var applied = _context.AssemblyMotions
+            .Where(m => m.Id == motionId && m.ForumSyncRequestedAt == loadedRequestedAt)
+            .Set(m => m.ForumSyncState, ForumSyncState.Synced)
+            .Set(m => m.ForumSyncedRevision, revision)
+            .Set(m => m.ForumSyncedHash, hash)
+            .Set(m => m.ForumLastSyncedAt, nowUtc)
+            .Set(m => m.ForumLastError, (string?)null)
+            .Set(m => m.ForumFailureCount, 0)
+            .Set(m => m.ForumNextAttemptAt, (DateTime?)null)
+            .Update() > 0;
+
+        if (applied)
+            return true;
+
+        _context.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.ForumSyncedRevision, revision)
+            .Set(m => m.ForumSyncedHash, hash)
+            .Set(m => m.ForumLastSyncedAt, nowUtc)
+            .Update();
+        return false;
+    }
+
+    /// <summary>Records a failed forum sync like <see cref="FailWikiSync"/>.</summary>
+    public bool FailForumSync(Guid motionId, DateTime? loadedRequestedAt, string error, int failureCount, DateTime nextAttemptAt) {
+        var truncated = TruncateError(error);
+        var applied = _context.AssemblyMotions
+            .Where(m => m.Id == motionId && m.ForumSyncRequestedAt == loadedRequestedAt)
+            .Set(m => m.ForumSyncState, ForumSyncState.Failed)
+            .Set(m => m.ForumLastError, truncated)
+            .Set(m => m.ForumFailureCount, failureCount)
+            .Set(m => m.ForumNextAttemptAt, (DateTime?)nextAttemptAt)
+            .Update() > 0;
+
+        if (applied)
+            return true;
+
+        _context.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.ForumLastError, truncated)
+            .Update();
+        return false;
+    }
+
+    /// <summary>Marks the motion's topic as deleted in the forum; the motion is never synced or queued again.</summary>
+    public void MarkForumDeleted(Guid motionId, string error) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId)
+                .Set(m => m.ForumSyncState, ForumSyncState.Deleted)
+                .Set(m => m.ForumLastError, TruncateError(error))
+                .Set(m => m.ForumNextAttemptAt, (DateTime?)null)
                 .Update();
     }
 

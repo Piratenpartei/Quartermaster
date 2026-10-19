@@ -518,6 +518,27 @@ public class OptionRepository {
             OptionDataType.String, false, "", "Antrag",
             description: "Schutzstufe, mit der Antragsseiten im Wiki vor Bearbeitung geschützt werden.");
 
+        AddDefinitionIfNotExists("discourse.base_url",
+            "Forum: Basis-URL",
+            OptionDataType.String, false, "", "",
+            description: "Basis-URL des Discourse-Forums, in das eingereichte Anträge gespiegelt werden, zum Beispiel https://forum.piratenpartei.de.");
+
+        AddDefinitionIfNotExists("discourse.api_username",
+            "Forum: Bot-Benutzername",
+            OptionDataType.String, false, "", "",
+            description: "Benutzername des Bot-Kontos im Forum. Das Konto muss Moderator sein, sonst begrenzt Discourse Themen, Bearbeitungen und Links.");
+
+        AddDefinitionIfNotExists("discourse.api_key",
+            "Forum: API-Schlüssel",
+            OptionDataType.String, false, "", "",
+            description: "API-Schlüssel, der an das Bot-Konto gebunden ist.",
+            isSecret: true);
+
+        AddDefinitionIfNotExists("discourse.max_post_length",
+            "Forum: Maximale Beitragslänge",
+            OptionDataType.Number, false, "", "32000",
+            description: "Muss der Discourse-Einstellung max_post_length entsprechen. Passt der Antragstext nicht hinein, steht im Forum stattdessen ein Hinweis auf Antragsportal und Wiki.");
+
         AddDefinitionIfNotExists("openslides.url",
             "OpenSlides: Basis-URL",
             OptionDataType.String, false, "", "",

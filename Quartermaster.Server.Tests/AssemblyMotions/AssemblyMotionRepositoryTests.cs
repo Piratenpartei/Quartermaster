@@ -193,4 +193,101 @@ public class AssemblyMotionRepositoryTests : RepositoryTestBase {
         await Assert.That(rows[0].TextMarkdown).IsEqualTo("Volltext");
         await Assert.That(_motionRepo.ListNumberedIds(portal.Id).ToArray()).IsEquivalentTo(new[] { numbered.Id });
     }
+    private void SetMirrors(Guid portalId, bool wiki, bool forum) {
+        _context.AssemblyMotionPortals
+            .Where(p => p.Id == portalId)
+            .Set(p => p.WikiMirrorEnabled, wiki)
+            .Set(p => p.ForumMirrorEnabled, forum)
+            .Update();
+    }
+
+    private void SetForumState(Guid motionId, ForumSyncState state, DateTime? nextAttemptAt = null) {
+        _context.AssemblyMotions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.ForumSyncState, state)
+            .Set(m => m.ForumNextAttemptAt, nextAttemptAt)
+            .Update();
+    }
+
+    [Test]
+    public async Task MarkMirrorsPending_queues_only_enabled_mirrors() {
+        var portal = SeedPortal();
+        var type = _portalRepo.GetTypes(portal.Id).First();
+        var member = _builder.SeedMember();
+        var motion = InsertMotion(portal.Id, type.Id, member.Id, number: 1);
+        var now = DateTime.UtcNow;
+
+        SetMirrors(portal.Id, wiki: true, forum: false);
+        _motionRepo.MarkMirrorsPending(motion.Id, now);
+        var wikiOnly = _motionRepo.Get(motion.Id)!;
+
+        SetMirrors(portal.Id, wiki: true, forum: true);
+        _motionRepo.MarkMirrorsPending(motion.Id, now);
+        var both = _motionRepo.Get(motion.Id)!;
+
+        await Assert.That(wikiOnly.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(wikiOnly.ForumSyncState).IsEqualTo(ForumSyncState.NotMirrored);
+        await Assert.That(both.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
+        await Assert.That(both.ForumSyncRequestedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task MarkForumPending_leaves_deleted_motions_alone() {
+        var portal = SeedPortal();
+        SetMirrors(portal.Id, wiki: false, forum: true);
+        var type = _portalRepo.GetTypes(portal.Id).First();
+        var motion = InsertMotion(portal.Id, type.Id, _builder.SeedMember().Id, number: 1);
+        SetForumState(motion.Id, ForumSyncState.Deleted);
+
+        _motionRepo.MarkForumPending(motion.Id, DateTime.UtcNow);
+
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Deleted);
+        await Assert.That(reloaded.ForumSyncRequestedAt).IsNull();
+    }
+
+    [Test]
+    public async Task ListForumDue_includes_not_mirrored_and_due_failures() {
+        var portal = SeedPortal();
+        SetMirrors(portal.Id, wiki: false, forum: true);
+        var type = _portalRepo.GetTypes(portal.Id).First();
+        var member = _builder.SeedMember();
+        var now = DateTime.UtcNow;
+        var pending = InsertMotion(portal.Id, type.Id, member.Id, number: 1);
+        SetForumState(pending.Id, ForumSyncState.Pending);
+        var notMirrored = InsertMotion(portal.Id, type.Id, member.Id, number: 2);
+        var dueFailure = InsertMotion(portal.Id, type.Id, member.Id, number: 3);
+        SetForumState(dueFailure.Id, ForumSyncState.Failed, now.AddMinutes(-1));
+        var laterFailure = InsertMotion(portal.Id, type.Id, member.Id, number: 4);
+        SetForumState(laterFailure.Id, ForumSyncState.Failed, now.AddMinutes(5));
+        var synced = InsertMotion(portal.Id, type.Id, member.Id, number: 5);
+        SetForumState(synced.Id, ForumSyncState.Synced);
+        var deleted = InsertMotion(portal.Id, type.Id, member.Id, number: 6);
+        SetForumState(deleted.Id, ForumSyncState.Deleted);
+        InsertMotion(portal.Id, type.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft);
+        InsertMotion(portal.Id, type.Id, member.Id, number: 7, deletedAt: now);
+
+        var due = _motionRepo.ListForumDue(now, 20);
+
+        await Assert.That(due.Select(m => m.Id).ToArray()).IsEquivalentTo(new[] { pending.Id, notMirrored.Id, dueFailure.Id });
+    }
+
+    [Test]
+    public async Task CompleteForumSync_keeps_newer_request_pending() {
+        var portal = SeedPortal();
+        SetMirrors(portal.Id, wiki: false, forum: true);
+        var type = _portalRepo.GetTypes(portal.Id).First();
+        var motion = InsertMotion(portal.Id, type.Id, _builder.SeedMember().Id, number: 1);
+        var now = DateTime.UtcNow;
+        _motionRepo.MarkForumPending(motion.Id, now);
+        var loadedRequestedAt = _motionRepo.Get(motion.Id)!.ForumSyncRequestedAt;
+        _motionRepo.MarkForumPending(motion.Id, now.AddSeconds(5));
+
+        var applied = _motionRepo.CompleteForumSync(motion.Id, loadedRequestedAt, 1, "hash", now);
+
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(applied).IsFalse();
+        await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
+        await Assert.That(reloaded.ForumSyncedHash).IsEqualTo("hash");
+    }
 }

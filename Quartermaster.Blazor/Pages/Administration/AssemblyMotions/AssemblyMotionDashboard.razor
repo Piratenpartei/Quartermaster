@@ -32,6 +32,20 @@
                     <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAll]
                 </button>
             }
+            @if (ForumMirrorEnabled && FailedForumSyncCount > 0) {
+                <span class="badge text-bg-warning fs-6">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.FailedForumSyncs, ("count", FailedForumSyncCount.ToString()))]
+                </span>
+                <button class="btn btn-sm btn-outline-warning" @onclick="ShowFailedForumSyncsAsync">
+                    @I18n[I18nKey.Ui.AssemblyMotion.ShowFailedForumSyncs]
+                </button>
+            }
+            @if (ForumMirrorEnabled) {
+                <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || PushRunning)" @onclick="ResyncAllForumAsync">
+                    <i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumResyncAll]
+                </button>
+            }
             <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || PushRunning || !OpenSlidesMeetingConfigured)" @onclick="PushToOpenSlidesAsync"
                     title="@(OpenSlidesMeetingConfigured ? "" : I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesMeetingMissingHint])">
                 @if (PushRunning) {
@@ -114,6 +128,16 @@
                 </FormSelect>
             </div>
         }
+        @if (ForumMirrorEnabled) {
+            <div class="col-md-3">
+                <FormSelect Value="@FilterForum" ValueChanged="OnForumFilterChanged">
+                    <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterForumAny]</option>
+                    @foreach (var state in _forumStates) {
+                        <option value="@((int)state)">@AssemblyMotionDisplay.ForumSyncLabel(I18n, state)</option>
+                    }
+                </FormSelect>
+            </div>
+        }
         <div class="col-12">
             <div class="input-group">
                 <input type="search" class="form-control" value="@Search" @oninput="OnSearchInput" @onkeydown="OnSearchKeyDown"
@@ -143,6 +167,9 @@
                         <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
                         <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRevision]</th>
                         <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnWiki]</th>
+                        @if (ForumMirrorEnabled) {
+                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnForum]</th>
+                        }
                         <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnOpenSlides]</th>
                     </tr>
                 </thead>
@@ -174,6 +201,9 @@
                             </td>
                             <td>@item.Revision</td>
                             <td><span class="badge border @AssemblyMotionDisplay.WikiSyncBadgeClass(item.WikiSyncState)">@AssemblyMotionDisplay.WikiSyncLabel(I18n, item.WikiSyncState)</span></td>
+                            @if (ForumMirrorEnabled) {
+                                <td><span class="badge border @AssemblyMotionDisplay.ForumSyncBadgeClass(item.ForumSyncState)">@AssemblyMotionDisplay.ForumSyncLabel(I18n, item.ForumSyncState)</span></td>
+                            }
                             <td>@(item.OpenSlidesPushedRevision == null ? "-" : item.OpenSlidesPushedRevision.Value.ToString())</td>
                         </tr>
                     }
@@ -184,5 +214,6 @@
     }
 
     <ConfirmDialog @ref="ResyncAllDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAllTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.WikiResyncAll]" />
+    <ConfirmDialog @ref="ForumResyncAllDialog" Title="@I18n[I18nKey.Ui.AssemblyMotion.ForumResyncAllTitle]" ConfirmText="@I18n[I18nKey.Ui.AssemblyMotion.ForumResyncAll]" />
     <OpenSlidesPushDialog @ref="PushDialog" />
 }

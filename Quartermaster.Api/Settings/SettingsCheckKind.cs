@@ -7,5 +7,6 @@ public enum SettingsCheckKind {
     Wiki,
     OpenSlides,
     Mistral,
-    Postiz
+    Postiz,
+    Forum
 }

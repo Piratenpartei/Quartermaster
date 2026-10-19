@@ -221,7 +221,7 @@ public class AssemblyMotionCompetitionService {
 
     private void MarkChanged(AssemblyMotion motion, DateTime nowUtc, string action, string? oldValue, string? newValue) {
         if (motion.WasSubmitted)
-            _motions.MarkWikiPending(motion.Id, nowUtc);
+            _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log(EntityType, motion.Id, action, "OtherMotionId", oldValue, newValue);
     }

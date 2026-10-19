@@ -114,7 +114,7 @@ public class AssemblyMotionResultService {
         var before = motion.Result;
         motion.Result = result;
         _motions.Update(motion);
-        _motions.MarkWikiPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.LogFieldChange(EntityType, motion.Id, nameof(AssemblyMotion.Result), before.ToString(), result.ToString());
     }

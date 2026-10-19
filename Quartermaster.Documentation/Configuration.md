@@ -252,6 +252,55 @@ What the client assumes about the wiki, to confirm while doing the above:
 - Request bodies of up to several hundred KB are accepted (`post_max_size` and the 2 MB article size limit).
 - The abuse filter does not block the bot account on its first page creations.
 
+### Forum mirror for the motion portal
+
+Optional. When "Enable forum mirror" is switched on in the portal settings, every motion that was submitted at least once gets a topic in a Discourse category of the forum, and the first post of the topic is kept up to date. Replies in the forum are never touched. Unlike the wiki, the post carries the submitters' names, since forum and portal share the same members through SSO.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `discourse.base_url` | _empty_ | Base URL of the forum, for example `https://forum.piratenpartei.de`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `discourse.api_username` | _empty_ | User name of the bot account in the forum |
+| `discourse.api_key` | _empty_ | API key bound to the bot account (stored masked, never logged) |
+| `discourse.max_post_length` | `32000` | Must match the forum's site setting `max_post_length` |
+
+Prerequisites outside Quartermaster:
+
+- A dedicated forum account for the bot with **moderator** rights. Discourse limits ordinary accounts to 20 new topics and 30 edits per day, to editing their own posts for 24 hours and, for new users, to two links per post. Moderators are exempt from these limits; without them the mirror stops working during a submission deadline or a day after a topic was created.
+- An API key created by a forum admin under Admin > API, with "Single User" set to the bot account and no scope restriction. Besides creating and editing it reads the current session, categories, topics and posts; a granular key that lacks one of these makes Discourse treat the request as anonymous, and the connection check then fails with a misleading message.
+- The category the motions go to. Its id is the number in its address, for example `12` in `/c/antraege/12`. The bot account must be allowed to create topics there.
+- `system.public_base_url` must be set, because every post links back to the motion in the portal.
+
+"Check forum connection" in the portal settings checks the key and the account, warns when the account is no moderator, checks that the category exists and that the bot may create topics there, and warns when the category is publicly readable. It never creates or edits anything. Switching "Enable forum mirror" on, or changing the category while it is on, runs the same check first and refuses to save when it fails; the warnings do not block saving. On success all numbered motions of the portal are queued, so motions submitted before the mirror was switched on get a topic as well. The "Forum (Discourse)" assistant under `/Administration/Settings` has the same check without a category.
+
+The topic:
+
+- Title `<number>: <title> (<event name>)`, for example `PA001: Titel des Antrags (Bundesparteitag 2026.2)`. The event name keeps titles unique across assemblies, as Discourse refuses duplicate titles. Titles longer than 255 characters are shortened with `...`; the number and the event name always stay.
+- The first post holds type, number and title, the submitters, status, result and section, a notice while the motion is in revision, the summary (or a note that there is none), the motion text and the reason as collapsed blocks, and links to the motion in the portal and, when the portal mirrors to the wiki, to the wiki page.
+- When the post would be longer than `discourse.max_post_length`, the motion text and then the reason are replaced by a notice that the full text is in the portal and the wiki. Texts are never cut short. If the forum still refuses the post as too long, it is sent again right away with both notices.
+- An `@name` in a motion text does not notify forum users.
+- The topic is created in the category set at that moment. Moderators may move it; the portal never moves it back, and changing the category in the portal only affects new topics.
+
+When the post is updated:
+
+- On the same changes that update the wiki page, and also when co-submitters join or leave a motion in revision.
+- A background job writes queued motions about once a minute, at most 10 per run, after first checking that the forum accepts the key. A user action never waits for the forum. Failures are retried with a growing delay of up to six hours; a rejected key, a missing category or a missing `system.public_base_url` wait six hours right away. When the forum rate-limits requests the run stops and the motions are tried again in the next run.
+- When nothing visible changed, nothing is sent. When a moderator edited the first post, the next update overwrites it and the audit log records it.
+- When the forum answers "not found" for a stored topic, the motion shows "Failed" with a six hour retry delay. Discourse gives the same answer for a hard-deleted topic and for one the bot can no longer see, for example after the category's permissions changed or a moderator moved the topic into a category the bot cannot read. Restore the bot's access and use "Resync".
+- "Resync" on a motion and "Forum: resync all" on the dashboard only queue motions and reset their retry delay.
+
+A topic that a moderator deleted in the forum is never created again: the motion shows "Deleted in the forum", no longer syncs and "Resync" is refused. Discourse also refuses to reuse the motion's external id after a deletion. To take a topic out of view without losing the mirror, move or close it instead of deleting it. Switching "Enable forum mirror" off writes nothing to the forum; existing topics stay as they are and are no longer updated.
+
+Each motion's topic carries the external id `qm-motion-<motion id>`. If the server stops between creating a topic and storing its id, the next run finds the topic by that id and takes it over instead of creating a second one.
+
+Logged-in visitors of a motion in the portal see a "Discussion in the forum" button once the topic exists. Anonymous visitors do not see it, and the wiki has no link to the forum, because not every reader of the wiki has access to the forum.
+
+First run checklist:
+
+1. Set the options in the "Forum (Discourse)" assistant and run its check.
+2. Test on a separate test event with its own portal, never on the real portal: switching the mirror on queues every numbered motion of the portal, and a topic deleted afterwards can never be mirrored again. Use a test category that only the commission can read and submit a test motion.
+3. Check the topic: title, names, links, the collapsed blocks, and that test texts containing `@<your forum name>`, `\\@<your forum name>`, `[/details]`, `[details="x"]`, `</details>` and a URL such as `https://piraten.social/@piratenpartei` render as typed, stay inside their block and notify nobody.
+4. Only then switch the mirror on for the real portal with the real category.
+
 ### OpenSlides push for the motion portal
 
 Optional. The commission can push the motions of a portal to an OpenSlides 4.3 meeting with "Push to OpenSlides" on the motion dashboard. The push is started by hand and never runs in the background. The same dashboard offers "Export JSON", which downloads the numbered motions of the portal as a JSON file and needs no configuration. Drafts and motions that never had a number are not part of the file. Status, result and required majority are written as names, for example `Admitted`, `AcceptedModified` and `TwoThirds`.

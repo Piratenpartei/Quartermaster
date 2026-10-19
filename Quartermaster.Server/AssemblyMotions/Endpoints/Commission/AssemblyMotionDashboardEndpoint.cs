@@ -65,6 +65,8 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             .Where(m => req.HasOpenInquiry == null || (openInquiries.GetValueOrDefault(m.Id) > 0) == req.HasOpenInquiry)
             .Where(m => req.WikiSyncState == null || m.WikiSyncState == req.WikiSyncState)
             .Where(m => req.WikiFailed != true || IsWikiFailure(m))
+            .Where(m => req.ForumSyncState == null || m.ForumSyncState == req.ForumSyncState)
+            .Where(m => req.ForumFailed != true || m.ForumSyncState == ForumSyncState.Failed)
             .Where(m => AssemblyMotionSearch.Matches(m, types[m.TypeId], search))
             .OrderBy(m => types[m.TypeId].SortOrder)
             .ThenBy(m => m.Number == null)
@@ -87,6 +89,8 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             PageSize = req.PageSize,
             FailedWikiSyncCount = all.Count(IsWikiFailure),
             WikiMirrorEnabled = portal.WikiMirrorEnabled,
+            FailedForumSyncCount = all.Count(m => m.ForumSyncState == ForumSyncState.Failed),
+            ForumMirrorEnabled = portal.ForumMirrorEnabled,
             OpenSlidesMeetingConfigured = portal.OpenSlidesMeetingId != null
         }, cancellation: ct);
     }
@@ -112,6 +116,7 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
             EffectiveDeadline = deadline.ToDtoUtc(),
             DeadlinePassed = AssemblyMotionDeadlines.IsPast(deadline, nowUtc),
             WikiSyncState = motion.WikiSyncState,
+            ForumSyncState = motion.ForumSyncState,
             Revision = motion.Revision,
             OpenSlidesPushedRevision = motion.OpenSlidesPushedRevision
         };

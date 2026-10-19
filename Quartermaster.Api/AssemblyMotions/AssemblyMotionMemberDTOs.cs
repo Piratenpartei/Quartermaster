@@ -60,6 +60,7 @@ public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
     public bool CanUpvote { get; set; }
     public bool HasUpvoted { get; set; }
     public AssemblyMotionCommissionInfoDTO? Commission { get; set; }
+    public string? ForumTopicUrl { get; set; }
     public List<AssemblyMotionInquiryDTO> Inquiries { get; set; } = [];
     public List<AssemblyMotionCompetitionDTO> CompetitionLinks { get; set; } = [];
     public int OpenInquiryCount { get; set; }

@@ -16,6 +16,7 @@ public class AssemblyMotionDashboardItemDTO {
     public DateTimeOffset EffectiveDeadline { get; set; }
     public bool DeadlinePassed { get; set; }
     public WikiSyncState WikiSyncState { get; set; }
+    public ForumSyncState ForumSyncState { get; set; }
     public bool IsInRevision { get; set; }
     public int Revision { get; set; }
     public int? OpenSlidesPushedRevision { get; set; }
@@ -28,6 +29,8 @@ public class AssemblyMotionDashboardResponse : IPaginatedResponse<AssemblyMotion
     public int PageSize { get; set; }
     public int FailedWikiSyncCount { get; set; }
     public bool WikiMirrorEnabled { get; set; }
+    public int FailedForumSyncCount { get; set; }
+    public bool ForumMirrorEnabled { get; set; }
     public bool OpenSlidesMeetingConfigured { get; set; }
 }
 
@@ -40,6 +43,12 @@ public class AssemblyMotionCommissionInfoDTO {
     public int? WikiSyncedRevision { get; set; }
     public DateTimeOffset? WikiLastSyncedAt { get; set; }
     public string? WikiLastError { get; set; }
+    public bool ForumMirrorEnabled { get; set; }
+    public ForumSyncState ForumSyncState { get; set; }
+    public int? ForumSyncedRevision { get; set; }
+    public DateTimeOffset? ForumLastSyncedAt { get; set; }
+    public string? ForumLastError { get; set; }
+    public string? ForumTopicUrl { get; set; }
     public int? OpenSlidesMotionId { get; set; }
     public int? OpenSlidesPushedRevision { get; set; }
     public DateTimeOffset? OpenSlidesPushedAt { get; set; }

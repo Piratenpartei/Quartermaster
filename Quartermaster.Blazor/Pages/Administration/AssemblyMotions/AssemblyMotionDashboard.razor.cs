@@ -35,6 +35,14 @@ public partial class AssemblyMotionDashboard {
         WikiSyncState.ProtectionFailed
     ];
 
+    private static readonly ForumSyncState[] _forumStates = [
+        ForumSyncState.NotMirrored,
+        ForumSyncState.Pending,
+        ForumSyncState.Synced,
+        ForumSyncState.Failed,
+        ForumSyncState.Deleted
+    ];
+
     [Inject]
     public required HttpClient Http { get; set; }
 
@@ -54,6 +62,7 @@ public partial class AssemblyMotionDashboard {
     private List<AssemblyMotionDashboardItemDTO> Items = [];
     private bool Loading = true;
     private ConfirmDialog ResyncAllDialog = default!;
+    private ConfirmDialog ForumResyncAllDialog = default!;
     private OpenSlidesPushDialog PushDialog = default!;
     private OpenSlidesPushResultDTO? PushResult;
     private bool PushRunning;
@@ -65,6 +74,10 @@ public partial class AssemblyMotionDashboard {
     private int FailedWikiSyncCount;
     private bool WikiMirrorEnabled;
     private bool FilterWikiFailed;
+    private int FailedForumSyncCount;
+    private bool ForumMirrorEnabled;
+    private bool FilterForumFailed;
+    private string FilterForum = "";
     private string FilterTypeId = "";
     private string FilterStatus = "";
     private string FilterInquiry = "";
@@ -102,6 +115,10 @@ public partial class AssemblyMotionDashboard {
                 query += $"&WikiSyncState={FilterWiki}";
             if (FilterWikiFailed)
                 query += "&WikiFailed=true";
+            if (FilterForum != "")
+                query += $"&ForumSyncState={FilterForum}";
+            if (FilterForumFailed)
+                query += "&ForumFailed=true";
             if (!string.IsNullOrWhiteSpace(Search))
                 query += $"&Search={Uri.EscapeDataString(Search.Trim())}";
 
@@ -111,6 +128,8 @@ public partial class AssemblyMotionDashboard {
                 Items = result?.Items ?? [];
                 FailedWikiSyncCount = result?.FailedWikiSyncCount ?? 0;
                 WikiMirrorEnabled = result?.WikiMirrorEnabled ?? false;
+                FailedForumSyncCount = result?.FailedForumSyncCount ?? 0;
+                ForumMirrorEnabled = result?.ForumMirrorEnabled ?? false;
                 OpenSlidesMeetingConfigured = result?.OpenSlidesMeetingConfigured ?? false;
                 TotalPages = result == null ? 0 : (int)Math.Ceiling(result.TotalCount / (double)PageSize);
             } else {
@@ -141,6 +160,12 @@ public partial class AssemblyMotionDashboard {
     private async Task OnWikiFilterChanged(string value) {
         FilterWiki = value;
         FilterWikiFailed = false;
+        await ReloadFromStartAsync();
+    }
+
+    private async Task OnForumFilterChanged(string value) {
+        FilterForum = value;
+        FilterForumFailed = false;
         await ReloadFromStartAsync();
     }
 
@@ -183,6 +208,42 @@ public partial class AssemblyMotionDashboard {
             if (response.IsSuccessStatusCode) {
                 var result = await response.Content.ReadFromJsonAsync<AssemblyMotionWikiResyncAllDTO>();
                 ToastService.Toast(I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.ToastWikiResyncAll, ("count", (result?.Queued ?? 0).ToString()))], "success");
+                await LoadAsync();
+            } else {
+                await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } catch (TaskCanceledException ex) {
+            ToastService.Error(ex);
+        } catch (JsonException ex) {
+            ToastService.Error(ex);
+        } finally {
+            Busy = false;
+        }
+    }
+
+    private async Task ShowFailedForumSyncsAsync() {
+        FilterForum = "";
+        FilterForumFailed = true;
+        await ReloadFromStartAsync();
+    }
+
+    private async Task ResyncAllForumAsync() {
+        if (Portal == null)
+            return;
+        if (Busy || PushRunning)
+            return;
+        if (!await ForumResyncAllDialog.ShowAsync(I18n[I18nKey.Ui.AssemblyMotion.ForumResyncAllMessage]))
+            return;
+
+        Busy = true;
+        StateHasChanged();
+        try {
+            var response = await Http.PostAsJsonAsync($"/api/assemblymotions/portals/{Portal.Id}/forum/resync", new { });
+            if (response.IsSuccessStatusCode) {
+                var result = await response.Content.ReadFromJsonAsync<AssemblyMotionForumResyncAllDTO>();
+                ToastService.Toast(I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.ToastForumResyncAll, ("count", (result?.Queued ?? 0).ToString()))], "success");
                 await LoadAsync();
             } else {
                 await AssemblyMotionErrorHandler.ShowAsync(response, I18n, ToastService);
