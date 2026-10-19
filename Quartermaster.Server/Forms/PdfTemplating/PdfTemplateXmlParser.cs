@@ -14,7 +14,8 @@ public class PdfTemplateParseException : Exception {
 public static class PdfTemplateXmlParser {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
-    public static PageNode Parse(string xml) {
+    /// <summary>Accepts a single <c>&lt;page&gt;</c> root or a <c>&lt;document&gt;</c> root holding several pages.</summary>
+    public static DocumentNode Parse(string xml) {
         XDocument doc;
         try {
             doc = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
@@ -22,10 +23,25 @@ public static class PdfTemplateXmlParser {
             throw new PdfTemplateParseException("Template did not produce valid XML after Fluid rendering: " + ex.Message);
         }
         var root = doc.Root ?? throw new PdfTemplateParseException("Template produced empty document.");
-        if (root.Name.LocalName != "page") {
-            throw new PdfTemplateParseException($"Root element must be <page>, got <{root.Name.LocalName}>.");
+        var document = new DocumentNode();
+        if (root.Name.LocalName == "page") {
+            document.Pages.Add(ParsePage(root));
+            return document;
         }
-        return ParsePage(root);
+        if (root.Name.LocalName != "document") {
+            throw new PdfTemplateParseException($"Root element must be <page> or <document>, got <{root.Name.LocalName}>.");
+        }
+
+        foreach (var child in root.Elements()) {
+            if (child.Name.LocalName != "page") {
+                throw new PdfTemplateParseException($"<document> may only contain <page> elements, got <{child.Name.LocalName}>.");
+            }
+            document.Pages.Add(ParsePage(child));
+        }
+        if (document.Pages.Count == 0) {
+            throw new PdfTemplateParseException("<document> contains no <page>.");
+        }
+        return document;
     }
 
     private static PageNode ParsePage(XElement e) {

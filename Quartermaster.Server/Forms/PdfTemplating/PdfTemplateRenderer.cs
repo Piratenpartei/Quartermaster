@@ -10,14 +10,16 @@ namespace Quartermaster.Server.Forms.PdfTemplating;
 public delegate string? PdfTemplateAssetResolver(string path);
 
 public static class PdfTemplateRenderer {
-    public static byte[] Render(PageNode root, PdfTemplateAssetResolver assetResolver) {
+    public static byte[] Render(DocumentNode root, PdfTemplateAssetResolver assetResolver) {
         var document = Document.Create(container => {
-            container.Page(page => {
-                page.Margin((float)root.Margin);
-                page.Size(ResolvePageSize(root.Size));
-                page.DefaultTextStyle(x => x.FontSize((float)root.FontSize).FontFamily(root.FontFamily));
-                page.Content().Element(c => RenderChildren(c, root.Children, assetResolver));
-            });
+            foreach (var pageNode in root.Pages) {
+                container.Page(page => {
+                    page.Margin((float)pageNode.Margin);
+                    page.Size(ResolvePageSize(pageNode.Size));
+                    page.DefaultTextStyle(x => x.FontSize((float)pageNode.FontSize).FontFamily(pageNode.FontFamily));
+                    page.Content().Element(c => RenderChildren(c, pageNode.Children, assetResolver));
+                });
+            }
         });
         return document.GeneratePdf();
     }

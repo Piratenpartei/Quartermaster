@@ -1,0 +1,14 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.TravelExpenses
+
+<div class="trip-add-bar d-flex flex-wrap align-items-center gap-2">
+    <span class="small text-secondary">@I18n[I18nKey.Ui.TravelExpense.AddLabel]</span>
+    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnAdd.InvokeAsync(TripModuleKind.VehicleLeg)"><i class="bi bi-car-front me-1"></i>@I18n[I18nKey.Ui.TravelExpense.AddVehicle]</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnAdd.InvokeAsync(TripModuleKind.TransitLeg)"><i class="bi bi-train-front me-1"></i>@I18n[I18nKey.Ui.TravelExpense.AddTransit]</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnAdd.InvokeAsync(TripModuleKind.HotelStay)"><i class="bi bi-building me-1"></i>@I18n[I18nKey.Ui.TravelExpense.AddHotel]</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnAdd.InvokeAsync(TripModuleKind.ProvidedMeal)"><i class="bi bi-cup-hot me-1"></i>@I18n[I18nKey.Ui.TravelExpense.AddMeal]</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OnAdd.InvokeAsync(TripModuleKind.OtherCost)"><i class="bi bi-receipt me-1"></i>@I18n[I18nKey.Ui.TravelExpense.AddOther]</button>
+    @if (OnCancel.HasDelegate) {
+        <button type="button" class="btn btn-sm btn-link text-secondary" @onclick="OnCancel">@I18n[I18nKey.Ui.Common.Cancel]</button>
+    }
+</div>

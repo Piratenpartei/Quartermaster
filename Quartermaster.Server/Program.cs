@@ -221,6 +221,13 @@ public partial class Program {
         builder.Services.AddScoped<EmailService>();
         builder.Services.AddScoped<SmtpTestService>();
 
+        builder.Services.AddSingleton<Receipts.ReceiptStorage>();
+        builder.Services.AddScoped<Receipts.ReceiptLimits>();
+        builder.Services.AddScoped<TravelExpenses.TravelExpenseService>();
+        builder.Services.AddScoped<TravelExpenses.TravelExpensePdfService>();
+        builder.Services.AddSingleton<TravelExpenses.ReceiptAppender>();
+        builder.Services.AddSingleton<Forms.PdfTemplating.IFormMockData, TravelExpenses.TravelExpenseMockData>();
+
         builder.Services.AddScoped<ISettingsCheck, TelegramSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, MemberImportSettingsCheck>();
         builder.Services.AddScoped<ISettingsCheck, KeycloakSettingsCheck>();
@@ -361,7 +368,7 @@ public partial class Program {
 
     /// <summary>
     /// Per-IP fixed-window throttle shared across the anonymous POST endpoints
-    /// (MotionCreate, MembershipApplicationCreate, DueSelectionCreate). Sharing one bucket
+    /// (MotionCreate, MembershipApplicationCreate, DueSelectionCreate, ExpenseReimbursementRender, TravelExpenseRender). Sharing one bucket
     /// stops an attacker from multiplying their effective rate across endpoints. Values
     /// resolve from <c>OptionRepository</c> (admin-tunable at runtime — takes effect for
     /// new IP partitions immediately and for active partitions after their window resets).

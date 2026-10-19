@@ -1,0 +1,13 @@
+@using Quartermaster.Api.I18n
+
+<div class="trip-gap">
+    @if (Open) {
+        <div class="trip-indent py-2">
+            <TripAddBar OnAdd="OnAdd" OnCancel="OnCancel" />
+        </div>
+    } else {
+        <button type="button" class="trip-gap-button btn btn-sm btn-light border rounded-circle" title="@I18n[I18nKey.Ui.TravelExpense.InsertHere]" aria-label="@I18n[I18nKey.Ui.TravelExpense.InsertHere]" @onclick="OnOpen">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+    }
+</div>

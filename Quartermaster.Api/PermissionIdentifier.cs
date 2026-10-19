@@ -85,6 +85,9 @@ public static class PermissionIdentifier {
     public static readonly string AssemblyChair = "assembly_chair";
     public static readonly string AssemblyView = "assembly_view";
 
+    public static readonly string EditTravelExpenseRules = "travel_expense_rules_edit";
+    public static readonly string UnlimitedReceipts = "receipts_unlimited";
+
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
         ViewMotions, ViewApplications, ViewDueSelections,

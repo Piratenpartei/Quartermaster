@@ -13,6 +13,23 @@ namespace Quartermaster.Api.I18n;
 /// </summary>
 public static class I18nKey {
     public static class Error {
+        public static class TravelExpense {
+            public const string InputInvalid = "error.travel_expense.input_invalid";
+            public const string RulesInvalid = "error.travel_expense.rules_invalid";
+            public const string RulesVersionLabelRequired = "error.travel_expense.rules_version_label_required";
+            public const string RulesRateStepsInvalid = "error.travel_expense.rules_rate_steps_invalid";
+            public const string RulesDuplicateValidFrom = "error.travel_expense.rules_duplicate_valid_from";
+            public const string RulesLastGlobalVersion = "error.travel_expense.rules_last_global_version";
+            public const string RulesChapterChanged = "error.travel_expense.rules_chapter_changed";
+        }
+
+        public static class Receipt {
+            public const string NoFile = "error.receipt.no_file";
+            public const string TooLarge = "error.receipt.too_large";
+            public const string LimitReached = "error.receipt.limit_reached";
+            public const string UnsupportedType = "error.receipt.unsupported_type";
+        }
+
         public static class Validation {
             public const string PageMin = "error.validation.common.page_min";
             public const string PageSizeRange = "error.validation.common.page_size_range";
@@ -69,6 +86,7 @@ public static class I18nKey {
 
         public static class PublicForm {
             public const string Disabled = "error.public_form.disabled";
+            public const string PdfRateLimited = "error.public_form.pdf_rate_limited";
         }
 
         public static class Motion {
@@ -576,6 +594,7 @@ public static class I18nKey {
             public const string BoardWorkMailings = "ui.main_nav_bar.board_work.mailings";
             public const string BoardWorkNewsPosts = "ui.main_nav_bar.board_work.news_posts";
             public const string BoardWorkAccreditation = "ui.main_nav_bar.board_work.accreditation";
+            public const string BoardWorkTravelExpenseRules = "ui.main_nav_bar.board_work.travel_expense_rules";
             public const string BoardWorkAssemblyMotions = "ui.main_nav_bar.board_work.assembly_motions";
             public const string Administration = "ui.main_nav_bar.administration";
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
@@ -598,6 +617,8 @@ public static class I18nKey {
             public const string FormsCatalog = "ui.main_nav_bar.forms.catalog";
             public const string FormsMine = "ui.main_nav_bar.forms.mine";
             public const string FormsExpenseReimbursement = "ui.main_nav_bar.forms.expense_reimbursement";
+            public const string FormsReceipts = "ui.main_nav_bar.forms.receipts";
+            public const string FormsTravelExpense = "ui.main_nav_bar.forms.travel_expense";
             public const string MySessionsTitle = "ui.main_nav_bar.my_sessions_title";
             public const string NotificationsTitle = "ui.main_nav_bar.notifications_title";
             public const string Logout = "ui.main_nav_bar.logout";
@@ -2113,6 +2134,7 @@ public static class I18nKey {
             public const string ModelMember = "ui.template_field_palette.model_member";
             public const string ModelEvent = "ui.template_field_palette.model_event";
             public const string ModelExpenseReimbursement = "ui.template_field_palette.model_expense_reimbursement";
+            public const string ModelTravelExpense = "ui.template_field_palette.model_travel_expense";
             public const string ModelAssemblyMotionNotification = "ui.template_field_palette.model_assembly_motion_notification";
         }
 
@@ -2320,6 +2342,12 @@ public static class I18nKey {
             public const string UnitMinutes = "ui.settings.unit.minutes";
             public const string UnitHours = "ui.settings.unit.hours";
             public const string UnitDays = "ui.settings.unit.days";
+            public const string TravelExpensesTitle = "ui.settings.travel_expenses.title";
+            public const string TravelExpensesDescription = "ui.settings.travel_expenses.description";
+            public const string TravelExpensesReceiptsTitle = "ui.settings.travel_expenses.receipts_title";
+            public const string TravelExpensesReceiptsDescription = "ui.settings.travel_expenses.receipts_description";
+            public const string UnitMegabytes = "ui.settings.unit.megabytes";
+            public const string LinkTravelExpenseRules = "ui.settings.link.travel_expense_rules";
             public const string UnitMinutesSeconds = "ui.settings.unit.minutes_seconds";
             public const string LinkImportHistory = "ui.settings.link.import_history";
             public const string LinkNewsFeeds = "ui.settings.link.news_feeds";
@@ -2383,6 +2411,251 @@ public static class I18nKey {
             public const string LoginOk = "ui.settings_check.login_ok";
             public const string MistralOk = "ui.settings_check.mistral_ok";
             public const string PostizOk = "ui.settings_check.postiz_ok";
+        }
+
+        public static class Receipts {
+            public const string PageTitle = "ui.receipts.page_title";
+            public const string PageIntro = "ui.receipts.page_intro";
+            public const string UploadNew = "ui.receipts.upload_new";
+            public const string Usage = "ui.receipts.usage";
+            public const string UsageUnlimited = "ui.receipts.usage_unlimited";
+            public const string Empty = "ui.receipts.empty";
+            public const string LabelColumn = "ui.receipts.label_column";
+            public const string FileColumn = "ui.receipts.file_column";
+            public const string UploadedColumn = "ui.receipts.uploaded_column";
+            public const string AttachedLabel = "ui.receipts.attached_label";
+            public const string Choose = "ui.receipts.choose";
+            public const string Detach = "ui.receipts.detach";
+            public const string NoneAvailable = "ui.receipts.none_available";
+            public const string Missing = "ui.receipts.missing";
+            public const string AnonymousHint = "ui.receipts.anonymous_hint";
+        }
+
+        public static class TravelExpenseRules {
+            public const string PageTitle = "ui.travel_expense_rules.page_title";
+            public const string PageIntro = "ui.travel_expense_rules.page_intro";
+            public const string NoPermission = "ui.travel_expense_rules.no_permission";
+            public const string ScopeGlobal = "ui.travel_expense_rules.scope_global";
+            public const string ScopeChapter = "ui.travel_expense_rules.scope_chapter";
+            public const string ValidFromShort = "ui.travel_expense_rules.valid_from_short";
+            public const string NoVersions = "ui.travel_expense_rules.no_versions";
+            public const string InheritsHint = "ui.travel_expense_rules.inherits_hint";
+            public const string NewVersion = "ui.travel_expense_rules.new_version";
+            public const string Unsaved = "ui.travel_expense_rules.unsaved";
+            public const string NewFromNewest = "ui.travel_expense_rules.new_from_newest";
+            public const string NewFromPreset = "ui.travel_expense_rules.new_from_preset";
+            public const string EditWarning = "ui.travel_expense_rules.edit_warning";
+            public const string Saved = "ui.travel_expense_rules.saved";
+            public const string VersionLabel = "ui.travel_expense_rules.version_label";
+            public const string ValidFrom = "ui.travel_expense_rules.valid_from";
+            public const string TemplateKey = "ui.travel_expense_rules.template_key";
+            public const string TemplateKeyHint = "ui.travel_expense_rules.template_key_hint";
+            public const string HeaderLines = "ui.travel_expense_rules.header_lines";
+            public const string HeaderLinesHint = "ui.travel_expense_rules.header_lines_hint";
+            public const string CarRates = "ui.travel_expense_rules.car_rates";
+            public const string MotorcycleRates = "ui.travel_expense_rules.motorcycle_rates";
+            public const string StepUpToKm = "ui.travel_expense_rules.step_up_to_km";
+            public const string StepRate = "ui.travel_expense_rules.step_rate";
+            public const string StepOpenEnded = "ui.travel_expense_rules.step_open_ended";
+            public const string StepAdd = "ui.travel_expense_rules.step_add";
+            public const string MealsTitle = "ui.travel_expense_rules.meals_title";
+            public const string BreakfastReduction = "ui.travel_expense_rules.breakfast_reduction";
+            public const string LunchReduction = "ui.travel_expense_rules.lunch_reduction";
+            public const string DinnerReduction = "ui.travel_expense_rules.dinner_reduction";
+            public const string ReductionHint = "ui.travel_expense_rules.reduction_hint";
+            public const string AccommodationFlatRate = "ui.travel_expense_rules.accommodation_flat_rate";
+            public const string DeadlineDays = "ui.travel_expense_rules.deadline_days";
+            public const string Days = "ui.travel_expense_rules.days";
+            public const string Cutoff = "ui.travel_expense_rules.cutoff";
+            public const string CutoffDay = "ui.travel_expense_rules.cutoff_day";
+            public const string CutoffMonth = "ui.travel_expense_rules.cutoff_month";
+            public const string CutoffHint = "ui.travel_expense_rules.cutoff_hint";
+            public const string RulesText = "ui.travel_expense_rules.rules_text";
+            public const string RulesTextHint = "ui.travel_expense_rules.rules_text_hint";
+        }
+
+        public static class TravelExpense {
+            public const string PageTitle = "ui.travel_expense.page_title";
+            public const string StepPerson = "ui.travel_expense.step_person";
+            public const string StepChapter = "ui.travel_expense.step_chapter";
+            public const string StepTrip = "ui.travel_expense.step_trip";
+            public const string StepBuilder = "ui.travel_expense.step_builder";
+            public const string StepPayout = "ui.travel_expense.step_payout";
+            public const string StepOverview = "ui.travel_expense.step_overview";
+            public const string PersonRequired = "ui.travel_expense.person_required";
+            public const string TimesRequired = "ui.travel_expense.times_required";
+            public const string MemberNumberLabel = "ui.travel_expense.member_number_label";
+            public const string MemberNumberHint = "ui.travel_expense.member_number_hint";
+            public const string EmailLabel = "ui.travel_expense.email_label";
+            public const string StreetLabel = "ui.travel_expense.street_label";
+            public const string PostCodeLabel = "ui.travel_expense.post_code_label";
+            public const string CityLabel = "ui.travel_expense.city_label";
+            public const string MembershipChapterLabel = "ui.travel_expense.membership_chapter_label";
+            public const string TravelChapterLabel = "ui.travel_expense.travel_chapter_label";
+            public const string TravelChapterHint = "ui.travel_expense.travel_chapter_hint";
+            public const string FunctionLabel = "ui.travel_expense.function_label";
+            public const string FunctionSuggestions = "ui.travel_expense.function_suggestions";
+            public const string RulesTitle = "ui.travel_expense.rules_title";
+            public const string RulesVersion = "ui.travel_expense.rules_version";
+            public const string RulesCar = "ui.travel_expense.rules_car";
+            public const string RulesMotorcycle = "ui.travel_expense.rules_motorcycle";
+            public const string RulesNoMotorcycle = "ui.travel_expense.rules_no_motorcycle";
+            public const string RulesMeals = "ui.travel_expense.rules_meals";
+            public const string RulesAccommodation = "ui.travel_expense.rules_accommodation";
+            public const string RulesDeadline = "ui.travel_expense.rules_deadline";
+            public const string PurposeLabel = "ui.travel_expense.purpose_label";
+            public const string PurposeHint = "ui.travel_expense.purpose_hint";
+            public const string DestinationLabel = "ui.travel_expense.destination_label";
+            public const string ResolutionNumberLabel = "ui.travel_expense.resolution_number_label";
+            public const string ResolutionDateLabel = "ui.travel_expense.resolution_date_label";
+            public const string ResolutionHint = "ui.travel_expense.resolution_hint";
+            public const string AbsenceHint = "ui.travel_expense.absence_hint";
+            public const string StartTitle = "ui.travel_expense.start_title";
+            public const string EndTitle = "ui.travel_expense.end_title";
+            public const string PlaceLabel = "ui.travel_expense.place_label";
+            public const string StartAtLabel = "ui.travel_expense.start_at_label";
+            public const string EndAtLabel = "ui.travel_expense.end_at_label";
+            public const string Empty = "ui.travel_expense.empty";
+            public const string AddLabel = "ui.travel_expense.add_label";
+            public const string InsertHere = "ui.travel_expense.insert_here";
+            public const string AddVehicle = "ui.travel_expense.add_vehicle";
+            public const string AddTransit = "ui.travel_expense.add_transit";
+            public const string AddHotel = "ui.travel_expense.add_hotel";
+            public const string AddMeal = "ui.travel_expense.add_meal";
+            public const string AddOther = "ui.travel_expense.add_other";
+            public const string Remove = "ui.travel_expense.remove";
+            public const string VehicleCar = "ui.travel_expense.vehicle_car";
+            public const string VehicleMotorcycle = "ui.travel_expense.vehicle_motorcycle";
+            public const string TransitTrain = "ui.travel_expense.transit_train";
+            public const string TransitBus = "ui.travel_expense.transit_bus";
+            public const string TransitPlane = "ui.travel_expense.transit_plane";
+            public const string TransitOther = "ui.travel_expense.transit_other";
+            public const string FromLabel = "ui.travel_expense.from_label";
+            public const string ToLabel = "ui.travel_expense.to_label";
+            public const string DepartureLabel = "ui.travel_expense.departure_label";
+            public const string ArrivalLabel = "ui.travel_expense.arrival_label";
+            public const string KmLabel = "ui.travel_expense.km_label";
+            public const string KmHint = "ui.travel_expense.km_hint";
+            public const string TicketLabel = "ui.travel_expense.ticket_label";
+            public const string DescriptionLabel = "ui.travel_expense.description_label";
+            public const string CheckInLabel = "ui.travel_expense.check_in_label";
+            public const string CheckOutLabel = "ui.travel_expense.check_out_label";
+            public const string HotelReceiptOption = "ui.travel_expense.hotel_receipt_option";
+            public const string HotelFlatOption = "ui.travel_expense.hotel_flat_option";
+            public const string HotelAmountLabel = "ui.travel_expense.hotel_amount_label";
+            public const string BreakfastIncludedLabel = "ui.travel_expense.breakfast_included_label";
+            public const string BreakfastAmountLabel = "ui.travel_expense.breakfast_amount_label";
+            public const string BreakfastAmountHint = "ui.travel_expense.breakfast_amount_hint";
+            public const string MealHint = "ui.travel_expense.meal_hint";
+            public const string MealDayLabel = "ui.travel_expense.meal_day_label";
+            public const string MealBreakfast = "ui.travel_expense.meal_breakfast";
+            public const string MealLunch = "ui.travel_expense.meal_lunch";
+            public const string MealDinner = "ui.travel_expense.meal_dinner";
+            public const string DateLabel = "ui.travel_expense.date_label";
+            public const string AmountLabel = "ui.travel_expense.amount_label";
+            public const string TotalsTitle = "ui.travel_expense.totals_title";
+            public const string TotalCar = "ui.travel_expense.total_car";
+            public const string TotalMotorcycle = "ui.travel_expense.total_motorcycle";
+            public const string TotalTickets = "ui.travel_expense.total_tickets";
+            public const string TotalMeals = "ui.travel_expense.total_meals";
+            public const string TotalAccommodation = "ui.travel_expense.total_accommodation";
+            public const string TotalOther = "ui.travel_expense.total_other";
+            public const string TotalSum = "ui.travel_expense.total_sum";
+            public const string TotalDonation = "ui.travel_expense.total_donation";
+            public const string TotalPayout = "ui.travel_expense.total_payout";
+            public const string DonationTitle = "ui.travel_expense.donation_title";
+            public const string DonationHint = "ui.travel_expense.donation_hint";
+            public const string DonationNone = "ui.travel_expense.donation_none";
+            public const string DonationAll = "ui.travel_expense.donation_all";
+            public const string DonationParts = "ui.travel_expense.donation_parts";
+            public const string DonationAmount = "ui.travel_expense.donation_amount";
+            public const string DonateTravel = "ui.travel_expense.donate_travel";
+            public const string DonateMeals = "ui.travel_expense.donate_meals";
+            public const string DonateAccommodation = "ui.travel_expense.donate_accommodation";
+            public const string DonateOther = "ui.travel_expense.donate_other";
+            public const string BankTitle = "ui.travel_expense.bank_title";
+            public const string BicLabel = "ui.travel_expense.bic_label";
+            public const string AttachmentsTitle = "ui.travel_expense.attachments_title";
+            public const string PaperAttachmentsLabel = "ui.travel_expense.paper_attachments_label";
+            public const string PaperAttachmentsHint = "ui.travel_expense.paper_attachments_hint";
+            public const string PaperAttachmentsHintAnonymous = "ui.travel_expense.paper_attachments_hint_anonymous";
+            public const string FormDateLabel = "ui.travel_expense.form_date_label";
+            public const string NoChapter = "ui.travel_expense.no_chapter";
+            public const string NoMembershipChapter = "ui.travel_expense.no_membership_chapter";
+            public const string TimelineTitle = "ui.travel_expense.timeline_title";
+            public const string MealDaysTitle = "ui.travel_expense.meal_days_title";
+            public const string MealColumnAllowance = "ui.travel_expense.meal_column_allowance";
+            public const string MealColumnReduction = "ui.travel_expense.meal_column_reduction";
+            public const string MealColumnNet = "ui.travel_expense.meal_column_net";
+            public const string DownloadButton = "ui.travel_expense.download_button";
+            public const string DownloadAgain = "ui.travel_expense.download_again";
+            public const string CopyToDraft = "ui.travel_expense.copy_to_draft";
+            public const string DeleteDraft = "ui.travel_expense.delete_draft";
+            public const string SavedAt = "ui.travel_expense.saved_at";
+            public const string SubmittedNotice = "ui.travel_expense.submitted_notice";
+
+            public static class Module {
+                public const string VehicleCar = "ui.travel_expense.module.vehicle_car";
+                public const string VehicleMotorcycle = "ui.travel_expense.module.vehicle_motorcycle";
+                public const string TransitTrain = "ui.travel_expense.module.transit_train";
+                public const string TransitBus = "ui.travel_expense.module.transit_bus";
+                public const string TransitPlane = "ui.travel_expense.module.transit_plane";
+                public const string TransitOther = "ui.travel_expense.module.transit_other";
+                public const string HotelStay = "ui.travel_expense.module.hotel_stay";
+                public const string MealBreakfast = "ui.travel_expense.module.meal_breakfast";
+                public const string MealLunch = "ui.travel_expense.module.meal_lunch";
+                public const string MealDinner = "ui.travel_expense.module.meal_dinner";
+                public const string OtherCost = "ui.travel_expense.module.other_cost";
+                public const string Start = "ui.travel_expense.module.start";
+                public const string End = "ui.travel_expense.module.end";
+            }
+
+            public static class MealDay {
+                public const string DayTrip = "ui.travel_expense.meal_day.day_trip";
+                public const string ArrivalDeparture = "ui.travel_expense.meal_day.arrival_departure";
+                public const string FullDay = "ui.travel_expense.meal_day.full_day";
+                public const string None = "ui.travel_expense.meal_day.none";
+            }
+
+            public static class Severity {
+                public const string Problem = "ui.travel_expense.severity.problem";
+                public const string Warning = "ui.travel_expense.severity.warning";
+                public const string Info = "ui.travel_expense.severity.info";
+            }
+
+            public static class Pdf {
+                public const string MoreOtherCosts = "ui.travel_expense.pdf.more_other_costs";
+                public const string RateUpTo = "ui.travel_expense.pdf.rate_up_to";
+                public const string RateThen = "ui.travel_expense.pdf.rate_then";
+                public const string HotelReceiptNights = "ui.travel_expense.pdf.hotel_receipt_nights";
+                public const string HotelFlatNights = "ui.travel_expense.pdf.hotel_flat_nights";
+                public const string BreakfastDeducted = "ui.travel_expense.pdf.breakfast_deducted";
+                public const string OneNight = "ui.travel_expense.pdf.one_night";
+                public const string Nights = "ui.travel_expense.pdf.nights";
+                public const string AttachmentLabel = "ui.travel_expense.pdf.attachment_label";
+                public const string ReceiptMissing = "ui.travel_expense.pdf.receipt_missing";
+                public const string ReceiptNotMergeable = "ui.travel_expense.pdf.receipt_not_mergeable";
+            }
+
+            public static class Note {
+                public const string NameMissing = "ui.travel_expense.note.name_missing";
+                public const string AddressIncomplete = "ui.travel_expense.note.address_incomplete";
+                public const string MemberNumberMissing = "ui.travel_expense.note.member_number_missing";
+                public const string IbanMissing = "ui.travel_expense.note.iban_missing";
+                public const string IbanInvalid = "ui.travel_expense.note.iban_invalid";
+                public const string PurposeMissing = "ui.travel_expense.note.purpose_missing";
+                public const string ResolutionMissing = "ui.travel_expense.note.resolution_missing";
+                public const string NoCosts = "ui.travel_expense.note.no_costs";
+                public const string TimesMissing = "ui.travel_expense.note.times_missing";
+                public const string EndBeforeStart = "ui.travel_expense.note.end_before_start";
+                public const string DeadlinePassed = "ui.travel_expense.note.deadline_passed";
+                public const string CutoffPassed = "ui.travel_expense.note.cutoff_passed";
+                public const string MotorcycleNotReimbursed = "ui.travel_expense.note.motorcycle_not_reimbursed";
+                public const string VehicleLegWithoutKm = "ui.travel_expense.note.vehicle_leg_without_km";
+                public const string AmountMissing = "ui.travel_expense.note.amount_missing";
+                public const string ModuleOutsideTrip = "ui.travel_expense.note.module_outside_trip";
+                public const string LegsOverlap = "ui.travel_expense.note.legs_overlap";
+            }
         }
 
         public static class PublicFormWizard {
@@ -2473,6 +2746,7 @@ public static class I18nKey {
             public const string StartButton = "ui.form_catalog.start_button";
             public const string MyFormsLink = "ui.form_catalog.my_forms_link";
             public const string ExpenseReimbursementDescription = "ui.form_catalog.expense_reimbursement_description";
+            public const string TravelExpenseDescription = "ui.form_catalog.travel_expense_description";
         }
 
         public static class MyForms {

@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
+using Quartermaster.Api.Forms.ExpenseReimbursements;
 using Quartermaster.Api.Motions;
+using Quartermaster.Api.TravelExpenses;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.Security;
@@ -72,5 +74,26 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
             FirstName = "x", LastName = "y"
         });
         await Assert.That((int)third.StatusCode).IsEqualTo(429);
+    }
+
+    [Test]
+    public async Task Form_pdf_renders_share_the_bucket() {
+        var chapter = Builder.SeedChapter("RL-forms");
+        SetAnonymousCreatePermits("1");
+
+        using var strict = Factory.WithWebHostBuilder(_ => { });
+        using var client = strict.CreateClient();
+        await AttachAntiforgeryTokenAsync(client);
+
+        var motion = await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+            ChapterId = chapter.Id,
+            AuthorName = "A", AuthorEmail = "a@x.com", Title = "T1", Text = "x"
+        });
+        var expense = await client.PostAsJsonAsync("/api/forms/expense-reimbursement/render", new ExpenseReimbursementInputDTO());
+        var travel = await client.PostAsJsonAsync("/api/forms/travel-expense/render", new TravelExpenseInputDTO());
+
+        await Assert.That(motion.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That((int)expense.StatusCode).IsEqualTo(429);
+        await Assert.That((int)travel.StatusCode).IsEqualTo(429);
     }
 }

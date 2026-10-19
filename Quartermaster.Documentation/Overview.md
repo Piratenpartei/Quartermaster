@@ -66,6 +66,16 @@ Every shipped third-party package, vendored browser library and data source is c
 - Poll templates with procedural topics, election flow with candidate list, minutes aid export (CSV, Markdown)
 - Design and plan in `plans/2026-10-16-assembly-assistant-design.md` and `plans/2026-10-16-assembly-assistant-implementation.md`
 
+### Travel Expenses
+- Travel expense form at `/Forms/TravelExpense` replacing the separate travel expense tool; drafts on the server for logged-in users, in browser storage or in memory for anonymous users
+- Trip builder: start and end of the absence with any mix of own vehicle legs, tickets, hotel stays (with breakfast), meals provided by the party or organiser and other costs in between
+- Calculation after § 9 EStG and § 5 BRKG: mileage with per-chapter rate steps, meal allowance per day with reductions for provided meals, hotel breakfast deducted from the invoice
+- Rules per chapter as dated versions (`/Administration/TravelExpenseRules`, permission `travel_expense_rules_edit`), resolved up the chapter tree to the federal default
+- Notes instead of hard stops: missing data, late submission and rule problems are listed for the applicant and the treasurer
+- PDF in the layout of the official form through the template engine (template key `travel-expense`), with the rules text, an itinerary appendix and the uploaded receipts appended
+- Receipt cache per user at `/Forms/Receipts` with a configurable limit
+- Plan in `plans/2026-10-18-travel-expenses.md`
+
 ## Architecture
 
 ### API Layer (FastEndpoints)

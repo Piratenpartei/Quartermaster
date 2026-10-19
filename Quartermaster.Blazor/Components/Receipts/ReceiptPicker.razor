@@ -1,0 +1,46 @@
+@using Quartermaster.Api.I18n
+
+<div class="receipt-picker mt-3">
+    @if (!Enabled) {
+        <p class="small text-secondary mb-0"><i class="bi bi-paperclip me-1"></i>@I18n[I18nKey.Ui.Receipts.AnonymousHint]</p>
+    } else {
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small text-secondary"><i class="bi bi-paperclip me-1"></i>@I18n[I18nKey.Ui.Receipts.AttachedLabel]</span>
+            @foreach (var receipt in Selected()) {
+                <span class="badge rounded-pill text-bg-secondary d-inline-flex align-items-center gap-1">
+                    @receipt.Label
+                    <button type="button" class="btn-close btn-close-white receipt-chip-close" aria-label="@I18n[I18nKey.Ui.Receipts.Detach]" title="@I18n[I18nKey.Ui.Receipts.Detach]" @onclick="() => Detach(receipt.Id)"></button>
+                </span>
+            }
+            @if (MissingCount() > 0) {
+                <span class="badge text-bg-warning">@I18n[I18nParams.With(I18nKey.Ui.Receipts.Missing, ("count", MissingCount().ToString()))]</span>
+            }
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" @onclick="ToggleMenu">
+                    @I18n[I18nKey.Ui.Receipts.Choose]
+                </button>
+                @if (MenuOpen) {
+                    <div class="menu-backdrop" @onclick="ToggleMenu"></div>
+                    <div class="dropdown-menu show p-2" style="min-width: 18rem; max-height: 20rem; overflow-y: auto">
+                        @foreach (var receipt in Available()) {
+                            <button type="button" class="dropdown-item small" @onclick="() => Attach(receipt.Id)">
+                                <i class="bi @(receipt.ContentType == "application/pdf" ? "bi-file-earmark-pdf" : "bi-file-earmark-image") me-1"></i>@receipt.Label
+                            </button>
+                        }
+                        @if (!Available().Any()) {
+                            <div class="small text-secondary px-2 pb-2">@I18n[I18nKey.Ui.Receipts.NoneAvailable]</div>
+                        }
+                        <div class="dropdown-divider"></div>
+                        <label class="btn btn-sm btn-outline-primary w-100 mb-0">
+                            <i class="bi bi-upload me-1"></i>@I18n[I18nKey.Ui.Receipts.UploadNew]
+                            <InputFile class="d-none" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" OnChange="Upload" />
+                        </label>
+                    </div>
+                }
+            </div>
+            @if (Uploading) {
+                <span class="spinner-border spinner-border-sm text-secondary"></span>
+            }
+        </div>
+    }
+</div>

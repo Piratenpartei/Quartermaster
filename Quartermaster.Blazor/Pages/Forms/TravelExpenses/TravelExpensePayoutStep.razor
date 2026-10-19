@@ -1,0 +1,70 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.TravelExpenses
+
+<h6 class="fw-semibold">@I18n[I18nKey.Ui.TravelExpense.DonationTitle]</h6>
+<p class="small text-secondary">@I18n[I18nKey.Ui.TravelExpense.DonationHint]</p>
+<div class="d-grid gap-2 mb-3">
+    <ChoiceCard Name="te-donation" Selected="@(Input.DonationMode == TravelDonationMode.None)" OnSelect="() => SetMode(TravelDonationMode.None)">
+        @I18n[I18nKey.Ui.TravelExpense.DonationNone]
+    </ChoiceCard>
+    <ChoiceCard Name="te-donation" Selected="@(Input.DonationMode == TravelDonationMode.All)" OnSelect="() => SetMode(TravelDonationMode.All)">
+        @I18n[I18nKey.Ui.TravelExpense.DonationAll]
+    </ChoiceCard>
+    <ChoiceCard Name="te-donation" Selected="@(Input.DonationMode == TravelDonationMode.Parts)" OnSelect="() => SetMode(TravelDonationMode.Parts)">
+        @I18n[I18nKey.Ui.TravelExpense.DonationParts]
+        @if (Input.DonationMode == TravelDonationMode.Parts) {
+            <div class="d-grid gap-1 mt-2" @onclick:stopPropagation="true">
+                <Checkbox Value="@Input.DonateTravel" ValueChanged="v => SetPart(() => Input.DonateTravel = v)">@I18n[I18nKey.Ui.TravelExpense.DonateTravel]</Checkbox>
+                <Checkbox Value="@Input.DonateMealAllowance" ValueChanged="v => SetPart(() => Input.DonateMealAllowance = v)">@I18n[I18nKey.Ui.TravelExpense.DonateMeals]</Checkbox>
+                <Checkbox Value="@Input.DonateAccommodation" ValueChanged="v => SetPart(() => Input.DonateAccommodation = v)">@I18n[I18nKey.Ui.TravelExpense.DonateAccommodation]</Checkbox>
+                <Checkbox Value="@Input.DonateOther" ValueChanged="v => SetPart(() => Input.DonateOther = v)">@I18n[I18nKey.Ui.TravelExpense.DonateOther]</Checkbox>
+            </div>
+        }
+    </ChoiceCard>
+    <ChoiceCard Name="te-donation" Selected="@(Input.DonationMode == TravelDonationMode.Amount)" OnSelect="() => SetMode(TravelDonationMode.Amount)">
+        @I18n[I18nKey.Ui.TravelExpense.DonationAmount]
+        @if (Input.DonationMode == TravelDonationMode.Amount) {
+            <div class="input-group mt-2" style="max-width: 14rem" @onclick:stopPropagation="true">
+                <input type="number" min="0" step="0.01" class="form-control" @bind="Input.DonationAmount" @bind:after="Changed" />
+                <span class="input-group-text">€</span>
+            </div>
+        }
+    </ChoiceCard>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <TravelExpenseTotals Calculation="@Calculation" />
+    </div>
+</div>
+
+@if (Calculation.Payout > 0) {
+    <h6 class="fw-semibold mt-4">@I18n[I18nKey.Ui.TravelExpense.BankTitle]</h6>
+    <div class="row g-3 mb-3">
+        <div class="col-md-8">
+            <label for="te-iban" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.IbanLabel]</label>
+            <input type="text" class="form-control @(IbanInvalid() ? "is-invalid" : "")" id="te-iban" autocomplete="off" spellcheck="false"
+                   @bind="Input.Iban" @bind:event="oninput" @bind:after="Changed" />
+            @if (IbanInvalid()) {
+                <div class="invalid-feedback">@I18n[I18nKey.Ui.PaymentOptionSelection.IbanInvalid]</div>
+            }
+        </div>
+        <div class="col-md-4">
+            <label for="te-bic" class="form-label">@I18n[I18nKey.Ui.TravelExpense.BicLabel]</label>
+            <input type="text" class="form-control" id="te-bic" autocomplete="off" spellcheck="false" maxlength="11" @bind="Input.Bic" />
+        </div>
+    </div>
+}
+
+<h6 class="fw-semibold mt-4">@I18n[I18nKey.Ui.TravelExpense.AttachmentsTitle]</h6>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="te-paper" class="form-label">@I18n[I18nKey.Ui.TravelExpense.PaperAttachmentsLabel]</label>
+        <input type="number" min="0" class="form-control" id="te-paper" @bind="Input.PaperAttachmentCount" />
+        <div class="form-text">@I18n[CanUseReceipts ? I18nKey.Ui.TravelExpense.PaperAttachmentsHint : I18nKey.Ui.TravelExpense.PaperAttachmentsHintAnonymous]</div>
+    </div>
+    <div class="col-md-6">
+        <label for="te-form-date" class="form-label">@I18n[I18nKey.Ui.TravelExpense.FormDateLabel]</label>
+        <input type="date" class="form-control" id="te-form-date" @bind="Input.FormDate" @bind:after="Changed" />
+    </div>
+</div>

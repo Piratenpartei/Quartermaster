@@ -44,6 +44,8 @@ public static class Program {
         builder.Services.AddScoped<MeetingHubClient>();
         builder.Services.AddScoped<AssemblyHubClient>();
         builder.Services.AddScoped<MeetingsApi>();
+        builder.Services.AddScoped<ReceiptService>();
+        builder.Services.AddScoped<ChapterNames>();
 
         await builder.Build().RunAsync();
     }

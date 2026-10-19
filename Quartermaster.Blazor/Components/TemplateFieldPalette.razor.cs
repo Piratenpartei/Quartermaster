@@ -16,6 +16,7 @@ using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Options;
 using Quartermaster.Api.Templates;
+using Quartermaster.Api.TravelExpenses;
 
 namespace Quartermaster.Blazor.Components;
 
@@ -57,6 +58,7 @@ public partial class TemplateFieldPalette {
         ["MemberDetailDTO"] = ("member", I18nKey.Ui.TemplateFieldPalette.ModelMember, typeof(MemberDetailDTO)),
         ["EventDetailDTO"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEvent, typeof(EventDetailDTO)),
         ["ExpenseReimbursementInputDTO"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelExpenseReimbursement, typeof(ExpenseReimbursementInputDTO)),
+        ["TravelExpensePdfModel"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelTravelExpense, typeof(TravelExpensePdfModel)),
         ["AssemblyMotionNotificationModel"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelAssemblyMotionNotification, typeof(AssemblyMotionNotificationModel))
     };
 

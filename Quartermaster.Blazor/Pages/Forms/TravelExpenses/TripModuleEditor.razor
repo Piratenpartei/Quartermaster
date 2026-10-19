@@ -1,0 +1,119 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.TravelExpenses
+@using Quartermaster.Blazor.Components.Receipts
+
+<div class="card trip-module mb-2 @(HasProblem() ? "border-danger" : "")">
+    <div class="card-header d-flex align-items-center gap-2 py-2">
+        <i class="bi @Icon()"></i>
+        <span class="fw-semibold">@I18n[TitleKey()]</span>
+        <span class="ms-auto fw-semibold small">@AmountText()</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" title="@I18n[I18nKey.Ui.TravelExpense.Remove]" @onclick="OnRemove">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+    <div class="card-body">
+        @switch (Module.Kind) {
+            case TripModuleKind.VehicleLeg:
+                <div class="btn-group btn-group-sm mb-3" role="radiogroup">
+                    <input type="radio" class="btn-check" name="@($"vehicle-{Module.Id}")" id="@($"car-{Module.Id}")" checked="@(Module.Vehicle == TripVehicle.Car)" @onchange="() => SetVehicle(TripVehicle.Car)" />
+                    <label class="btn btn-outline-secondary" for="@($"car-{Module.Id}")">@I18n[I18nKey.Ui.TravelExpense.VehicleCar]</label>
+                    @if (OffersMotorcycle()) {
+                        <input type="radio" class="btn-check" name="@($"vehicle-{Module.Id}")" id="@($"motorcycle-{Module.Id}")" checked="@(Module.Vehicle == TripVehicle.Motorcycle)" @onchange="() => SetVehicle(TripVehicle.Motorcycle)" />
+                        <label class="btn btn-outline-secondary" for="@($"motorcycle-{Module.Id}")">@I18n[I18nKey.Ui.TravelExpense.VehicleMotorcycle]</label>
+                    }
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.FromLabel]</label><input class="form-control" maxlength="256" @bind="Module.From" @bind:after="Changed" /></div>
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.ToLabel]</label><input class="form-control" maxlength="256" @bind="Module.To" @bind:after="Changed" /></div>
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.DepartureLabel]</label><input type="datetime-local" class="form-control" @bind="Module.At" @bind:after="Changed" /></div>
+                    <div class="col-md-6">
+                        <label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.KmLabel]</label>
+                        <div class="input-group"><input type="number" min="0" step="0.1" class="form-control" @bind="Module.Km" @bind:after="Changed" /><span class="input-group-text">km</span></div>
+                    </div>
+                </div>
+                <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.KmHint]</div>
+                break;
+            case TripModuleKind.TransitLeg:
+                <div class="btn-group btn-group-sm mb-3 flex-wrap" role="radiogroup">
+                    @foreach (var mode in TransitModes) {
+                        <input type="radio" class="btn-check" name="@($"transit-{Module.Id}")" id="@($"transit-{mode}-{Module.Id}")" checked="@(Module.TransitMode == mode)" @onchange="() => SetTransit(mode)" />
+                        <label class="btn btn-outline-secondary" for="@($"transit-{mode}-{Module.Id}")">@I18n[TransitKey(mode)]</label>
+                    }
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.FromLabel]</label><input class="form-control" maxlength="256" @bind="Module.From" @bind:after="Changed" /></div>
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.ToLabel]</label><input class="form-control" maxlength="256" @bind="Module.To" @bind:after="Changed" /></div>
+                    <div class="col-md-4"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.DepartureLabel]</label><input type="datetime-local" class="form-control" @bind="Module.At" @bind:after="Changed" /></div>
+                    <div class="col-md-4"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.ArrivalLabel]</label><input type="datetime-local" class="form-control" @bind="Module.Until" @bind:after="Changed" /></div>
+                    <div class="col-md-4">
+                        <label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.TicketLabel]</label>
+                        <div class="input-group"><input type="number" min="0" step="0.01" class="form-control" @bind="Module.Amount" @bind:after="Changed" /><span class="input-group-text">€</span></div>
+                    </div>
+                </div>
+                break;
+            case TripModuleKind.HotelStay:
+                <div class="row g-2">
+                    <div class="col-12"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.DescriptionLabel]</label><input class="form-control" maxlength="500" @bind="Module.Description" @bind:after="Changed" /></div>
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.CheckInLabel]</label><input type="datetime-local" class="form-control" @bind="Module.At" @bind:after="Changed" /></div>
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.CheckOutLabel]</label><input type="datetime-local" class="form-control" @bind="Module.Until" @bind:after="Changed" /></div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-3 my-3">
+                    <div class="btn-group btn-group-sm" role="radiogroup">
+                        <input type="radio" class="btn-check" name="@($"hotel-{Module.Id}")" id="@($"receipt-{Module.Id}")" checked="@Module.HotelByReceipt" @onchange="() => SetByReceipt(true)" />
+                        <label class="btn btn-outline-secondary" for="@($"receipt-{Module.Id}")">@I18n[I18nKey.Ui.TravelExpense.HotelReceiptOption]</label>
+                        <input type="radio" class="btn-check" name="@($"hotel-{Module.Id}")" id="@($"flat-{Module.Id}")" checked="@(!Module.HotelByReceipt)" @onchange="() => SetByReceipt(false)" />
+                        <label class="btn btn-outline-secondary" for="@($"flat-{Module.Id}")">@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.HotelFlatOption, ("rate", Money(Rules.AccommodationFlatRate)))]</label>
+                    </div>
+                    @if (Module.HotelByReceipt) {
+                        <div class="form-check form-switch mb-0">
+                            <input type="checkbox" role="switch" class="form-check-input" id="@($"breakfast-{Module.Id}")" @bind="Module.BreakfastIncluded" @bind:after="Changed" />
+                            <label class="form-check-label" for="@($"breakfast-{Module.Id}")">@I18n[I18nKey.Ui.TravelExpense.BreakfastIncludedLabel]</label>
+                        </div>
+                    }
+                </div>
+                @if (Module.HotelByReceipt) {
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.HotelAmountLabel]</label>
+                            <div class="input-group"><input type="number" min="0" step="0.01" class="form-control" @bind="Module.Amount" @bind:after="Changed" /><span class="input-group-text">€</span></div>
+                        </div>
+                        @if (Module.BreakfastIncluded) {
+                            <div class="col-md-6">
+                                <label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.BreakfastAmountLabel]</label>
+                                <div class="input-group"><input type="number" min="0" step="0.01" class="form-control" @bind="Module.BreakfastAmountPerNight" @bind:after="Changed" /><span class="input-group-text">€</span></div>
+                                <div class="form-text">@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.BreakfastAmountHint, ("amount", Money(BreakfastShare())))]</div>
+                            </div>
+                        }
+                    </div>
+                }
+                break;
+            case TripModuleKind.ProvidedMeal:
+                <div class="btn-group btn-group-sm mb-3" role="radiogroup">
+                    @foreach (var meal in Meals) {
+                        <input type="radio" class="btn-check" name="@($"meal-{Module.Id}")" id="@($"meal-{meal}-{Module.Id}")" checked="@(Module.Meal == meal)" @onchange="() => SetMeal(meal)" />
+                        <label class="btn btn-outline-secondary" for="@($"meal-{meal}-{Module.Id}")">@I18n[MealKey(meal)]</label>
+                    }
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.MealDayLabel]</label><input type="date" class="form-control" @bind="Module.At" @bind:after="Changed" /></div>
+                </div>
+                <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.MealHint]</div>
+                break;
+            default:
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.DescriptionLabel]</label><input class="form-control" maxlength="500" @bind="Module.Description" @bind:after="Changed" /></div>
+                    <div class="col-md-3"><label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.DateLabel]</label><input type="date" class="form-control" @bind="Module.At" @bind:after="Changed" /></div>
+                    <div class="col-md-3">
+                        <label class="form-label small">@I18n[I18nKey.Ui.TravelExpense.AmountLabel]</label>
+                        <div class="input-group"><input type="number" min="0" step="0.01" class="form-control" @bind="Module.Amount" @bind:after="Changed" /><span class="input-group-text">€</span></div>
+                    </div>
+                </div>
+                break;
+        }
+
+        @if (Module.Kind != TripModuleKind.ProvidedMeal) {
+            <ReceiptPicker SelectedIds="@Module.ReceiptIds" Enabled="@CanUseReceipts" OnChanged="Changed" />
+        }
+        <TravelExpenseNoteList Notes="@ModuleNotes()" Compact="true" />
+    </div>
+</div>

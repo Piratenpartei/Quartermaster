@@ -1,0 +1,53 @@
+@page "/Forms/TravelExpense"
+@page "/Forms/TravelExpense/{Id:guid}"
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Forms
+@using Quartermaster.Blazor.Pages.Forms.TravelExpenses
+
+<PageTitle>@I18n[I18nKey.Ui.TravelExpense.PageTitle]</PageTitle>
+
+<AnonymousFormGate @ref="Gate" />
+<ConfirmDialog @ref="DeleteConfirm" />
+
+@if (GateBlocked) {
+    <div class="alert alert-info">@I18n[I18nKey.Ui.AnonymousFormGate.IntroParagraph]</div>
+} else if (Loading) {
+    <LoadingSpinner />
+} else {
+    <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.TravelExpense.PageTitle]</h3>
+        @if (LastSavedAt != null && !IsSubmitted) {
+            <span class="small text-secondary"><i class="bi bi-cloud-check me-1"></i>@SavedText()</span>
+        }
+    </div>
+
+    @if (IsSubmitted) {
+        <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-check2-circle me-2"></i>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.SubmittedNotice, ("date", SubmittedText()))]</span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" @onclick="DownloadAgain" disabled="@Busy">
+                    <i class="bi bi-download me-1"></i>@I18n[I18nKey.Ui.TravelExpense.DownloadAgain]
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="CopyToDraft" disabled="@Busy">
+                    <i class="bi bi-files me-1"></i>@I18n[I18nKey.Ui.TravelExpense.CopyToDraft]
+                </button>
+            </div>
+        </div>
+        <TravelExpenseOverviewStep Input="@Input" Rules="@CurrentRules()" Calculation="@Calculation" />
+    } else {
+        <FormWizard Steps="Steps"
+                    ShowSaveDraftButton="@HasPersistentBacking"
+                    ResumeStep="@Input.ResumeStep"
+                    SubmitLabel="@I18n[I18nKey.Ui.TravelExpense.DownloadButton]"
+                    OnAdvance="OnAdvance"
+                    OnSaveDraft="SaveDraft"
+                    OnSubmit="Submit" />
+        @if (HasPersistentBacking) {
+            <div class="text-end">
+                <button class="btn btn-outline-danger btn-sm" @onclick="DeleteDraft" disabled="@Busy">
+                    <i class="bi bi-trash me-1"></i>@I18n[I18nKey.Ui.TravelExpense.DeleteDraft]
+                </button>
+            </div>
+        }
+    }
+}

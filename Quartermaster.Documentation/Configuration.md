@@ -400,13 +400,26 @@ The public membership application, due selection and motion form ship switched o
 - The browser reads the switches once when the app loads; visitors see a change after reloading.
 - The "Public forms" assistant saves each switch at once. Its chapter list sets a chapter to open or closed; "Inherit" removes the chapter's own value (`DELETE /api/options/{identifier}/overrides/{chapterId}`), so the chapter follows its parent again.
 
+### Travel expenses
+
+The travel expense form at `/Forms/TravelExpense` is open to everyone. Anonymous applicants keep their draft in the browser and attach receipts to the printout by hand; logged-in users keep drafts on the server and upload receipts, which are appended to the PDF. Receipts stay stored until their owner deletes them on `/Forms/Receipts`, so a route map can be reused for years.
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `forms.receipts.max_per_user` | `100` | Receipts one person can keep at the same time; holders of the global permission `receipts_unlimited` are exempt |
+| `forms.receipts.max_file_mb` | `10` | Largest receipt file (JPEG, PNG or PDF) in megabytes |
+
+- Rates, deadlines, header lines and the printed rules text are kept per chapter as versions with a valid-from date at `/Administration/TravelExpenseRules`. An application uses the newest version valid at the start of the trip, from the chapter travelled for up to the root chapter, then the global default (the federal rules, seeded on first start). Presets for the federal, Bavarian, Baden-Württemberg and Lower Saxony forms are available as starting points; chapters without own rules, such as Hessen, use the federal rules.
+- Editing a chapter's rules needs `travel_expense_rules_edit` on exactly that chapter; the global default needs it granted globally.
+- The submission deadline and the cut-off date of the following year never block an application; a late application only carries a note for the chapter's treasurer.
+
 ### Rate limiting (anonymous endpoints)
 
 Shared bucket across all anonymous POST endpoints (motion create, membership application create, due-selection create). Hot-reloaded — takes effect for new IP buckets immediately and for active buckets after their current window expires.
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `auth.ratelimit.anonymous_create_permits` | `5` | Max anonymous create requests per IP per window |
+| `auth.ratelimit.anonymous_create_permits` | `5` | Max anonymous create requests per IP per window, shared by motions, membership applications, dues selections and the PDFs of the expense and travel expense forms |
 | `auth.ratelimit.anonymous_create_window_minutes` | `10` | Window length in minutes |
 
 ### Member import

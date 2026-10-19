@@ -1,0 +1,36 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label">@I18n[I18nKey.Ui.TravelExpense.TravelChapterLabel]</label>
+        <ChapterPicker Value="@(Input.TravelChapterId?.ToString() ?? "")" ValueChanged="OnChapterPicked" AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.TravelExpense.NoChapter]" />
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.TravelChapterHint]</div>
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="te-function">@I18n[I18nKey.Ui.TravelExpense.FunctionLabel]</label>
+        <input id="te-function" class="form-control" list="te-function-suggestions" @bind="Input.Function" />
+        <datalist id="te-function-suggestions">
+            @foreach (var suggestion in FunctionSuggestions()) {
+                <option value="@suggestion"></option>
+            }
+        </datalist>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h6 class="card-title">@I18n[I18nKey.Ui.TravelExpense.RulesTitle]</h6>
+        <p class="small text-secondary mb-2">@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesVersion, ("version", Rules.VersionLabel), ("date", Rules.ValidFrom.ToString("dd.MM.yyyy")))]</p>
+        <ul class="small mb-0">
+            <li>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesCar, ("rate", RateText(Rules.CarRates)))]</li>
+            @if (Rules.MotorcycleRates.Count > 0) {
+                <li>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesMotorcycle, ("rate", RateText(Rules.MotorcycleRates)))]</li>
+            } else {
+                <li>@I18n[I18nKey.Ui.TravelExpense.RulesNoMotorcycle]</li>
+            }
+            <li>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesMeals, ("daytrip", Money(Rules.MealDayTripRate)), ("arrival", Money(Rules.MealArrivalDepartureRate)), ("full", Money(Rules.MealFullDayRate)))]</li>
+            <li>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesAccommodation, ("flat", Money(Rules.AccommodationFlatRate)))]</li>
+            <li>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesDeadline, ("days", Rules.SubmissionDeadlineDays.ToString()), ("cutoff", $"{Rules.CutoffDay:00}.{Rules.CutoffMonth:00}."))]</li>
+        </ul>
+    </div>
+</div>

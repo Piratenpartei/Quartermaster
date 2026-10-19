@@ -51,6 +51,13 @@ public partial class FormWizard : IDisposable {
     [Parameter]
     public EventCallback OnSaveDraft { get; set; }
 
+    /// <summary>
+    /// Step to reopen a draft at when the URL names none. Without it the wizard opens at the first incomplete step, which
+    /// skips past steps that only hold optional fields.
+    /// </summary>
+    [Parameter]
+    public int? ResumeStep { get; set; }
+
     private int CurrentStep;
     private bool Busy;
     private BusyKind BusyAction;
@@ -77,18 +84,19 @@ public partial class FormWizard : IDisposable {
             .ToList();
     }
 
-    /// <summary>First step whose <see cref="WizardStep.IsValid"/> returns false; if every step validates, the last step (typically the overview/submit step). Lets a loaded draft drop the user where they left off instead of always at step 1.</summary>
+    /// <summary>First step whose <see cref="WizardStep.IsValid"/> returns false, up to <see cref="ResumeStep"/> or else the last step (typically the overview/submit step). Lets a loaded draft drop the user where they left off instead of always at step 1.</summary>
     private int ResolveInitialStep() {
         if (Steps == null || Steps.Count == 0) {
             return 0;
         }
-        for (var i = 0; i < Steps.Count; i++) {
+        var last = ResumeStep == null ? Steps.Count - 1 : Math.Clamp(ResumeStep.Value, 0, Steps.Count - 1);
+        for (var i = 0; i < last; i++) {
             var step = Steps[i];
             if (step.IsValid != null && !step.IsValid()) {
                 return i;
             }
         }
-        return Steps.Count - 1;
+        return last;
     }
 
     private bool IsLastStep => Steps != null && CurrentStep == Steps.Count - 1;

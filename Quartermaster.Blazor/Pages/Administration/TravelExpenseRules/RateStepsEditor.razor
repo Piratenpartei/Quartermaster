@@ -1,0 +1,39 @@
+@using Quartermaster.Api.I18n
+
+@if (Steps.Count > 0) {
+    <table class="table table-sm align-middle mb-1">
+        <thead>
+            <tr>
+                <th class="small fw-normal text-secondary rate-step-limit">@I18n[I18nKey.Ui.TravelExpenseRules.StepUpToKm]</th>
+                <th class="small fw-normal text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.StepRate]</th>
+                <th class="rate-step-action"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < Steps.Count; i++) {
+                var step = Steps[i];
+                var isLast = i == Steps.Count - 1;
+                <tr>
+                    <td>
+                        @if (isLast) {
+                            <span class="small text-secondary text-nowrap">@I18n[I18nKey.Ui.TravelExpenseRules.StepOpenEnded]</span>
+                        } else {
+                            <div class="input-group input-group-sm"><input type="number" min="0" step="1" class="form-control" @bind="step.UpToKm" /><span class="input-group-text">km</span></div>
+                        }
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm"><input type="number" min="0" step="0.01" class="form-control" @bind="step.RatePerKm" /><span class="input-group-text">€/km</span></div>
+                    </td>
+                    <td class="text-end">
+                        @if (Steps.Count > 1 || AllowEmpty) {
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="@I18n[I18nKey.Ui.Common.Delete]" @onclick="() => Remove(step)"><i class="bi bi-trash"></i></button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+} else {
+    <p class="small text-secondary mb-1">@EmptyText</p>
+}
+<button type="button" class="btn btn-sm btn-outline-secondary" @onclick="Add"><i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.TravelExpenseRules.StepAdd]</button>

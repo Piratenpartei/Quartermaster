@@ -3,7 +3,7 @@ using Quartermaster.Api.I18n;
 
 namespace Quartermaster.Api.Forms;
 
-/// <summary>One PDF form the wizard engine knows how to fill, surfaced on the public <c>/Formulare</c> catalog page.</summary>
+/// <summary>One PDF form the wizard engine knows how to fill, surfaced on the public <c>/Forms</c> catalog page.</summary>
 public record FormCatalogEntry(
     string FormKey,
     string DisplayNameI18nKey,
@@ -26,8 +26,16 @@ public static class FormCatalog {
             DisplayNameI18nKey: I18nKey.Ui.ExpenseReimbursement.PageTitle,
             DescriptionI18nKey: I18nKey.Ui.FormCatalog.ExpenseReimbursementDescription,
             Icon: "bi-receipt",
-            Route: "/Formulare/auslagenerstattung",
+            Route: "/Forms/ExpenseReimbursement",
             PaletteModels: "ExpenseReimbursementInputDTO"
+        ),
+        new FormCatalogEntry(
+            FormKey: "travel-expense",
+            DisplayNameI18nKey: I18nKey.Ui.TravelExpense.PageTitle,
+            DescriptionI18nKey: I18nKey.Ui.FormCatalog.TravelExpenseDescription,
+            Icon: "bi-suitcase-lg",
+            Route: "/Forms/TravelExpense",
+            PaletteModels: "TravelExpensePdfModel"
         )
     };
 }

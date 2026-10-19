@@ -8,6 +8,11 @@ public abstract class PdfContainerNode : PdfNode {
     public List<PdfNode> Children { get; } = new();
 }
 
+/// <summary>The template root: one or more pages, each starting on a new sheet.</summary>
+public sealed class DocumentNode : PdfNode {
+    public List<PageNode> Pages { get; } = [];
+}
+
 public sealed class PageNode : PdfContainerNode {
     public string Size { get; set; } = "A4";
     public double Margin { get; set; } = 36;

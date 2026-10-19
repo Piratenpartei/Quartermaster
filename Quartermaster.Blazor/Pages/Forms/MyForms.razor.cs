@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -10,6 +11,7 @@ using Microsoft.JSInterop;
 using Quartermaster.Api.Forms;
 using Quartermaster.Api.Forms.ExpenseReimbursements;
 using Quartermaster.Api.I18n;
+using Quartermaster.Api.TravelExpenses;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
@@ -32,7 +34,7 @@ public partial class MyForms {
     private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
 
     private List<LocalDraftEntry> LocalDrafts = new();
-    private List<ExpenseReimbursementListItemDTO> ServerItems = new();
+    private List<ServerFormRow> ServerItems = new();
     private bool LocalLoading = true;
     private bool ServerLoading;
     private ConfirmDialog DeleteConfirm = default!;
@@ -94,8 +96,13 @@ public partial class MyForms {
         ServerLoading = true;
         StateHasChanged();
         try {
-            ServerItems = await Http.GetFromJsonAsync<List<ExpenseReimbursementListItemDTO>>("/api/forms/expense-reimbursement")
-                ?? new();
+            var expenses = await Http.GetFromJsonAsync<List<ExpenseReimbursementListItemDTO>>("/api/forms/expense-reimbursement") ?? new();
+            var travels = await Http.GetFromJsonAsync<List<TravelExpenseListItemDTO>>("/api/forms/travel-expense") ?? new();
+            ServerItems = expenses
+                .Select(ServerFormRow.From)
+                .Concat(travels.Select(ServerFormRow.From))
+                .OrderByDescending(r => r.UpdatedAt)
+                .ToList();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -116,43 +123,43 @@ public partial class MyForms {
         }
     }
 
-    private async Task DownloadServer(ExpenseReimbursementListItemDTO item) {
+    private async Task DownloadServer(ServerFormRow item) {
         try {
-            var resp = await Http.GetAsync($"/api/forms/expense-reimbursement/{item.Id}/pdf");
+            var resp = await Http.GetAsync($"{item.ApiBase}/{item.Id}/pdf");
             if (!resp.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(resp);
                 return;
             }
             var bytes = await resp.Content.ReadAsByteArrayAsync();
-            await JS.InvokeVoidAsync("qmDownload.blob", bytes, "auslagenerstattung.pdf", "application/pdf");
+            await JS.InvokeVoidAsync("qmDownload.blob", bytes, item.PdfFileName, "application/pdf");
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
     }
 
-    private async Task CopyServer(ExpenseReimbursementListItemDTO item) {
+    private async Task CopyServer(ServerFormRow item) {
         try {
-            var resp = await Http.PostAsJsonAsync($"/api/forms/expense-reimbursement/{item.Id}/copy", new { });
+            var resp = await Http.PostAsJsonAsync($"{item.ApiBase}/{item.Id}/copy", new { });
             if (!resp.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(resp);
                 return;
             }
-            var created = await resp.Content.ReadFromJsonAsync<ExpenseReimbursementResponseDTO>();
+            var created = await resp.Content.ReadFromJsonAsync<CreatedForm>();
             if (created != null) {
-                Navigation.NavigateTo($"/Formulare/auslagenerstattung/{created.Id}");
+                Navigation.NavigateTo($"{item.Entry.Route}/{created.Id}");
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
     }
 
-    private async Task DeleteServer(ExpenseReimbursementListItemDTO item) {
+    private async Task DeleteServer(ServerFormRow item) {
         var ok = await DeleteConfirm.ShowAsync();
         if (!ok) {
             return;
         }
         try {
-            var resp = await Http.DeleteAsync($"/api/forms/expense-reimbursement/{item.Id}");
+            var resp = await Http.DeleteAsync($"{item.ApiBase}/{item.Id}");
             if (!resp.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(resp);
                 return;
@@ -161,6 +168,51 @@ public partial class MyForms {
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
+    }
+
+    /// <summary>A server-side form of any kind, flattened for the shared table.</summary>
+    private class ServerFormRow {
+        public required FormCatalogEntry Entry { get; init; }
+        public required Guid Id { get; init; }
+        public required bool IsSubmitted { get; init; }
+        public required string ChapterName { get; init; }
+        public required string Detail { get; init; }
+        public required decimal Total { get; init; }
+        public required DateTimeOffset UpdatedAt { get; init; }
+        public required string PdfFileName { get; init; }
+        public required string ApiBase { get; init; }
+
+        public static ServerFormRow From(ExpenseReimbursementListItemDTO item) {
+            return new ServerFormRow {
+                Entry = FormCatalog.Entries.First(e => e.FormKey == "expense-reimbursement"),
+                Id = item.Id,
+                IsSubmitted = item.Status == ExpenseReimbursementStatusDTO.Submitted,
+                ChapterName = item.ChapterName,
+                Detail = "",
+                Total = item.Total,
+                UpdatedAt = item.UpdatedAt,
+                PdfFileName = "auslagenerstattung.pdf",
+                ApiBase = "/api/forms/expense-reimbursement"
+            };
+        }
+
+        public static ServerFormRow From(TravelExpenseListItemDTO item) {
+            return new ServerFormRow {
+                Entry = FormCatalog.Entries.First(e => e.FormKey == "travel-expense"),
+                Id = item.Id,
+                IsSubmitted = item.Status == TravelExpenseStatusDTO.Submitted,
+                ChapterName = item.ChapterName,
+                Detail = item.Purpose,
+                Total = item.Total,
+                UpdatedAt = item.UpdatedAt,
+                PdfFileName = "reisekosten.pdf",
+                ApiBase = "/api/forms/travel-expense"
+            };
+        }
+    }
+
+    private class CreatedForm {
+        public Guid Id { get; set; }
     }
 
     private class LocalDraftEntry {

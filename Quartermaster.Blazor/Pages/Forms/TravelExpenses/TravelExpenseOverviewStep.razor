@@ -1,0 +1,92 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.TravelExpenses
+
+<TravelExpenseNoteList Notes="@Calculation.Notes" ModuleLabels="@ModuleLabels()" />
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body small">
+                <h6 class="card-title">@I18n[I18nKey.Ui.TravelExpense.StepPerson]</h6>
+                <div>@Input.FirstName @Input.LastName @(Input.MemberNumber == null ? "" : $"({Input.MemberNumber})")</div>
+                <div>@Input.Street</div>
+                <div>@Input.PostCode @Input.City</div>
+                <div class="text-secondary">@Input.Email</div>
+                <h6 class="card-title mt-3">@I18n[I18nKey.Ui.TravelExpense.StepChapter]</h6>
+                <div>@(string.IsNullOrWhiteSpace(Input.TravelChapterName) ? I18n[I18nKey.Ui.TravelExpense.NoChapter] : Input.TravelChapterName)</div>
+                <div class="text-secondary">@Input.Function</div>
+                <div class="text-secondary">@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.RulesVersion, ("version", Rules.VersionLabel), ("date", Rules.ValidFrom.ToString("dd.MM.yyyy")))]</div>
+                <h6 class="card-title mt-3">@I18n[I18nKey.Ui.TravelExpense.StepTrip]</h6>
+                <div>@Input.Purpose</div>
+                <div class="text-secondary">@Input.Destination</div>
+                @if (!string.IsNullOrWhiteSpace(Input.ResolutionNumber)) {
+                    <div class="text-secondary">@I18n[I18nKey.Ui.TravelExpense.ResolutionNumberLabel]: @Input.ResolutionNumber @(Input.ResolutionDate?.ToString("dd.MM.yyyy"))</div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="card-title">@I18n[I18nKey.Ui.TravelExpense.TotalsTitle]</h6>
+                <TravelExpenseTotals Calculation="@Calculation" />
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body small">
+                <h6 class="card-title">@I18n[I18nKey.Ui.TravelExpense.TimelineTitle]</h6>
+                <table class="table table-sm table-borderless mb-0 trip-summary">
+                    <tbody>
+                        <tr>
+                            <td><i class="bi bi-house-door"></i></td>
+                            <td>@DateAndTime(Input.Start.At)</td>
+                            <td>@Input.Start.Place</td>
+                            <td></td>
+                        </tr>
+                        @foreach (var module in Input.Modules.OrderBy(TripModuleOrder.SortKey)) {
+                            <tr>
+                                <td><i class="bi @TripModuleIcons.For(module) text-secondary"></i></td>
+                                <td>@When(module)</td>
+                                <td>@Describe(module)</td>
+                                <td class="text-end">@ModuleAmount(module)</td>
+                            </tr>
+                        }
+                        <tr>
+                            <td><i class="bi bi-flag"></i></td>
+                            <td>@DateAndTime(Input.End.At)</td>
+                            <td>@Input.End.Place</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                @if (Calculation.MealDays.Count > 0) {
+                    <h6 class="card-title mt-3">@I18n[I18nKey.Ui.TravelExpense.MealDaysTitle]</h6>
+                    <table class="table table-sm mb-0 meal-days">
+                        <thead>
+                            <tr class="small text-secondary">
+                                <th class="fw-normal">@I18n[I18nKey.Ui.TravelExpense.MealDayLabel]</th>
+                                <th class="fw-normal"></th>
+                                <th class="fw-normal text-end">@I18n[I18nKey.Ui.TravelExpense.MealColumnAllowance]</th>
+                                <th class="fw-normal text-end">@I18n[I18nKey.Ui.TravelExpense.MealColumnReduction]</th>
+                                <th class="fw-normal text-end">@I18n[I18nKey.Ui.TravelExpense.MealColumnNet]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Calculation.MealDays) {
+                                <tr>
+                                    <td>@day.Date.ToString("ddd dd.MM.yyyy", German)</td>
+                                    <td>@I18n[TripModuleLabels.MealDayKey(day.Kind)]</td>
+                                    <td class="text-end">@Money(day.Allowance)</td>
+                                    <td class="text-end text-secondary">@(day.Reduction > 0 ? "- " + Money(day.Reduction) : "")</td>
+                                    <td class="text-end fw-semibold">@Money(day.Net)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>

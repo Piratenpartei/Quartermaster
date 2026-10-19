@@ -1,0 +1,25 @@
+@using Quartermaster.Api.I18n
+
+<div class="small">
+    @if (Calculation.CarKm > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.TotalCar, ("km", Km(Calculation.CarKm)))]</span><span class="text-nowrap">@Money(Calculation.CarAmount)</span></div>
+    }
+    @if (Calculation.MotorcycleKm > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nParams.With(I18nKey.Ui.TravelExpense.TotalMotorcycle, ("km", Km(Calculation.MotorcycleKm)))]</span><span class="text-nowrap">@Money(Calculation.MotorcycleAmount)</span></div>
+    }
+    @if (Calculation.TicketsAmount > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nKey.Ui.TravelExpense.TotalTickets]</span><span class="text-nowrap">@Money(Calculation.TicketsAmount)</span></div>
+    }
+    <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nKey.Ui.TravelExpense.TotalMeals]</span><span class="text-nowrap">@Money(Calculation.MealAllowance)</span></div>
+    @if (Calculation.AccommodationAmount > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nKey.Ui.TravelExpense.TotalAccommodation]</span><span class="text-nowrap">@Money(Calculation.AccommodationAmount)</span></div>
+    }
+    @if (Calculation.OtherCostsAmount > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nKey.Ui.TravelExpense.TotalOther]</span><span class="text-nowrap">@Money(Calculation.OtherCostsAmount)</span></div>
+    }
+    <div class="d-flex justify-content-between gap-3 border-top pt-2 mt-1 fw-semibold"><span>@I18n[I18nKey.Ui.TravelExpense.TotalSum]</span><span class="text-nowrap">@Money(Calculation.Total)</span></div>
+    @if (Calculation.Donation > 0) {
+        <div class="d-flex justify-content-between gap-3 py-1"><span>@I18n[I18nKey.Ui.TravelExpense.TotalDonation]</span><span class="text-nowrap">- @Money(Calculation.Donation)</span></div>
+        <div class="d-flex justify-content-between gap-3 fw-semibold"><span>@I18n[I18nKey.Ui.TravelExpense.TotalPayout]</span><span class="text-nowrap">@Money(Calculation.Payout)</span></div>
+    }
+</div>

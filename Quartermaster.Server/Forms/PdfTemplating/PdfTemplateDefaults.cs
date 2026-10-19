@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Quartermaster.Server.Forms.ExpenseReimbursements;
+using Quartermaster.Server.TravelExpenses;
 
 namespace Quartermaster.Server.Forms.PdfTemplating;
 
@@ -10,6 +11,7 @@ namespace Quartermaster.Server.Forms.PdfTemplating;
 /// </summary>
 public static class PdfTemplateDefaults {
     public static readonly IReadOnlyDictionary<string, string> ByKey = new Dictionary<string, string> {
-        ["expense-reimbursement"] = ExpenseReimbursementDefaultTemplate.Body
+        ["expense-reimbursement"] = ExpenseReimbursementDefaultTemplate.Body,
+        ["travel-expense"] = TravelExpenseDefaultTemplate.Body
     };
 }

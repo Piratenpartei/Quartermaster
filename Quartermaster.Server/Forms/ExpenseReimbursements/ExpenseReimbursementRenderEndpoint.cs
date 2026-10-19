@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
 using Quartermaster.Api.Forms.ExpenseReimbursements;
 
 namespace Quartermaster.Server.Forms.ExpenseReimbursements;
@@ -20,6 +21,7 @@ public class ExpenseReimbursementRenderEndpoint : Endpoint<ExpenseReimbursementI
     public override void Configure() {
         Post("/api/forms/expense-reimbursement/render");
         AllowAnonymous();
+        Options(b => b.RequireRateLimiting(Program.AnonymousCreateRateLimitPolicy));
     }
 
     public override async Task HandleAsync(ExpenseReimbursementInputDTO req, CancellationToken ct) {

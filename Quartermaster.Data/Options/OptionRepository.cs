@@ -2,6 +2,7 @@ using LinqToDB;
 using Quartermaster.Api.Options;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Receipts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -353,7 +354,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_permits",
             "Rate-Limit: Anonyme Anfragen pro Fenster",
             OptionDataType.Number, false, "", "5",
-            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, Beitragseinstufungen) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
+            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, Beitragseinstufungen, PDFs der Auslagen- und Reisekostenerstattung) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
 
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_window_minutes",
             "Rate-Limit: Zeitfenster (Minuten)",
@@ -475,6 +476,16 @@ public class OptionRepository {
             "Keycloak: Trennzeichen im Benutzernamen",
             OptionDataType.String, false, "", ".",
             description: "Trennzeichen zwischen Vor- und Nachname, wie beim Mitgliederdatenimport.");
+
+        AddDefinitionIfNotExists(ReceiptOptions.MaxPerUser,
+            "Belege: Höchstzahl je Person",
+            OptionDataType.Number, false, "", "100",
+            description: "So viele Belege und Streckenbilder kann eine Person gleichzeitig gespeichert haben. Personen mit der Berechtigung \"Belege: unbegrenzt hochladen\" sind ausgenommen.");
+
+        AddDefinitionIfNotExists(ReceiptOptions.MaxFileMegabytes,
+            "Belege: Höchstgröße je Datei (MB)",
+            OptionDataType.Number, false, "", "10",
+            description: "Größte erlaubte Datei für Belege (JPEG, PNG oder PDF) in Megabyte.");
 
         AddDefinitionIfNotExists("wiki.api_url",
             "Wiki: API-URL",

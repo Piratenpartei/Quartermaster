@@ -71,6 +71,8 @@ public class PermissionRepository {
         AddIfNotExists(PermissionIdentifier.ManageAssemblyMotions, "Antragskommission (Versammlungsanträge)", false);
         AddIfNotExists(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
         AddIfNotExists(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);
+        AddIfNotExists(PermissionIdentifier.EditTravelExpenseRules, "Reisekostenordnung bearbeiten", false);
+        AddIfNotExists(PermissionIdentifier.UnlimitedReceipts, "Belege: unbegrenzt hochladen", true);
     }
 
     private void AddIfNotExists(string identifier, string displayName, bool global) {

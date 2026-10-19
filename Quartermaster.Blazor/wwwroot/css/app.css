@@ -386,3 +386,110 @@ code {
 .choice-card:has(.form-check-input:focus-visible) {
     box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
 }
+
+/* The trip builder draws its modules on a vertical line from the start card to the end card. */
+.trip-timeline {
+    position: relative;
+}
+
+.trip-timeline::before {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: 0.75rem;
+    border-left: 2px dashed var(--bs-border-color);
+}
+
+.trip-timeline .trip-module,
+.trip-timeline .trip-indent {
+    margin-left: 1.75rem;
+}
+
+.trip-timeline .trip-point {
+    position: relative;
+    border-color: var(--bs-primary-border-subtle);
+}
+
+/* Each gap holds a small insert button sitting on the timeline line. */
+.trip-gap {
+    position: relative;
+    min-height: 1.75rem;
+}
+
+/* Qualified with .btn so it outranks Bootstrap's own .btn and .btn-sm rules, which load later. */
+.trip-gap > .trip-gap-button.btn {
+    --bs-btn-padding-x: 0;
+    --bs-btn-padding-y: 0;
+    position: absolute;
+    top: 50%;
+    left: calc(0.75rem + 1px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    font-size: 0.75rem;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+}
+
+.trip-gap-button .bi::before {
+    vertical-align: 0;
+}
+
+/* Transparent layer behind a hand-rolled dropdown menu so a click anywhere else closes it. */
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+}
+
+.badge > .receipt-chip-close.btn-close {
+    width: 0.5em;
+    height: 0.5em;
+    font-size: 0.6rem;
+}
+
+/* Fixed columns keep the rows of the car and motorcycle step tables the same height. */
+.rate-step-limit {
+    width: 9rem;
+}
+
+.rate-step-action {
+    width: 2.75rem;
+}
+
+/* Amount columns of the meal allowance days stay narrow next to the date and kind. */
+.table.meal-days td:nth-child(n+3) {
+    width: 7rem;
+    white-space: nowrap;
+}
+
+/* Overview itinerary: icon, time and amount columns stay narrow, the description takes the rest. */
+.table.trip-summary td {
+    padding-left: 0;
+}
+
+.table.trip-summary td:first-child {
+    width: 1.75rem;
+}
+
+.table.trip-summary td:nth-child(2),
+.table.trip-summary td:last-child {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 1rem;
+}
+
+.table.trip-summary td:last-child,
+.table.meal-days td:last-child,
+.table.meal-days th:last-child {
+    padding-right: 0;
+}
+
+.table.meal-days td:first-child,
+.table.meal-days th:first-child {
+    padding-left: 0;
+}

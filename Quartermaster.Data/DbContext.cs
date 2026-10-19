@@ -13,6 +13,8 @@ using Quartermaster.Data.Collab;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Forms.ExpenseReimbursements;
+using Quartermaster.Data.Receipts;
+using Quartermaster.Data.TravelExpenses;
 using Quartermaster.Data.Forms.PdfTemplates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
@@ -72,6 +74,9 @@ public class DbContext : DataConnection {
     public ITable<UsedSamlAssertion> UsedSamlAssertions => this.GetTable<UsedSamlAssertion>();
     public ITable<ExpenseReimbursement> ExpenseReimbursements => this.GetTable<ExpenseReimbursement>();
     public ITable<ExpenseReimbursementLineItem> ExpenseReimbursementLineItems => this.GetTable<ExpenseReimbursementLineItem>();
+    public ITable<TravelExpenseRuleSet> TravelExpenseRuleSets => this.GetTable<TravelExpenseRuleSet>();
+    public ITable<UserReceipt> UserReceipts => this.GetTable<UserReceipt>();
+    public ITable<TravelExpenseReimbursement> TravelExpenseReimbursements => this.GetTable<TravelExpenseReimbursement>();
     public ITable<PdfTemplate> PdfTemplates => this.GetTable<PdfTemplate>();
     public ITable<ProgrammeSource> ProgrammeSources => this.GetTable<ProgrammeSource>();
     public ITable<ProgrammeSection> ProgrammeSections => this.GetTable<ProgrammeSection>();
@@ -121,6 +126,9 @@ public class DbContext : DataConnection {
         services.AddScoped<UsedSamlAssertionRepository>();
         services.AddScoped<ChapterMails.ChapterMailRepository>();
         services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementRepository>();
+        services.AddScoped<TravelExpenseRuleSetRepository>();
+        services.AddScoped<UserReceiptRepository>();
+        services.AddScoped<TravelExpenseReimbursementRepository>();
         services.AddScoped<Forms.PdfTemplates.PdfTemplateRepository>();
         services.AddScoped<ProgrammeRepository>();
         services.AddScoped<NewsFeedRepository>();
@@ -142,6 +150,7 @@ public class DbContext : DataConnection {
         scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
         scope.ServiceProvider.GetRequiredService<TemplateRepository>().SupplementDefaults();
+        scope.ServiceProvider.GetRequiredService<TravelExpenseRuleSetRepository>().SupplementDefaults();
         NewsPostsSeeder.Seed(
             scope.ServiceProvider.GetRequiredService<NewsFeedRepository>(),
             scope.ServiceProvider.GetRequiredService<ProgrammeRepository>());

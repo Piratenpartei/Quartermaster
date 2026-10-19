@@ -13,6 +13,7 @@ using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.TravelExpenses;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -44,6 +45,7 @@ public abstract class IntegrationTestBase : IDisposable {
             scope.ServiceProvider.GetRequiredService<PermissionRepository>().SupplementDefaults();
             scope.ServiceProvider.GetRequiredService<RoleRepository>().SupplementDefaults();
             scope.ServiceProvider.GetRequiredService<OptionRepository>().SupplementDefaults();
+            scope.ServiceProvider.GetRequiredService<TravelExpenseRuleSetRepository>().SupplementDefaults();
         }
         Db = Database.CreateDbContext();
         Builder = new TestDataBuilder(Db);

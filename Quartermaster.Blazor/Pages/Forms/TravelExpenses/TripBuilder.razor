@@ -1,0 +1,65 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Api.TravelExpenses
+
+<p class="text-secondary small">@I18n[I18nKey.Ui.TravelExpense.AbsenceHint]</p>
+
+<div class="trip-timeline">
+    <div class="card trip-point">
+        <div class="card-body">
+            <h6 class="card-title"><i class="bi bi-house-door me-2"></i>@I18n[I18nKey.Ui.TravelExpense.StartTitle]</h6>
+            <div class="row g-2">
+                <div class="col-md-7">
+                    <label class="form-label small" for="te-start-place">@I18n[I18nKey.Ui.TravelExpense.PlaceLabel]</label>
+                    <input id="te-start-place" class="form-control" maxlength="256" @bind="Input.Start.Place" @bind:after="Changed" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small" for="te-start-at">@I18n[I18nKey.Ui.TravelExpense.StartAtLabel] <RequiredStar /></label>
+                    <input id="te-start-at" type="datetime-local" class="form-control" @bind="Input.Start.At" @bind:after="Changed" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Input.Modules.Count == 0) {
+        <p class="text-secondary small trip-indent my-3">@I18n[I18nKey.Ui.TravelExpense.Empty]</p>
+    }
+    @{
+        var ordered = OrderedModules();
+    }
+    @for (var i = 0; i < ordered.Count; i++) {
+        var afterIndex = i - 1;
+        var module = ordered[i];
+        <TripGap Open="@(OpenGap == afterIndex)" OnOpen="() => OpenGapAt(afterIndex)" OnAdd="kind => Insert(kind, afterIndex)" OnCancel="CloseGap" />
+        <TripModuleEditor @key="module.Id" Module="@module" Rules="@Rules" Calculation="@Calculation" CanUseReceipts="@CanUseReceipts"
+                          OnChanged="Changed" OnRemove="() => Remove(module)" />
+    }
+
+    <div class="trip-indent my-3">
+        <TripAddBar OnAdd="kind => Insert(kind, ordered.Count - 1)" />
+    </div>
+
+    <div class="card trip-point mb-3">
+        <div class="card-body">
+            <h6 class="card-title"><i class="bi bi-flag me-2"></i>@I18n[I18nKey.Ui.TravelExpense.EndTitle]</h6>
+            <div class="row g-2">
+                <div class="col-md-7">
+                    <label class="form-label small" for="te-end-place">@I18n[I18nKey.Ui.TravelExpense.PlaceLabel]</label>
+                    <input id="te-end-place" class="form-control" maxlength="256" @bind="Input.End.Place" @bind:after="Changed" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small" for="te-end-at">@I18n[I18nKey.Ui.TravelExpense.EndAtLabel] <RequiredStar /></label>
+                    <input id="te-end-at" type="datetime-local" class="form-control" @bind="Input.End.At" @bind:after="Changed" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="card-title">@I18n[I18nKey.Ui.TravelExpense.TotalsTitle]</h6>
+        <TravelExpenseTotals Calculation="@Calculation" />
+    </div>
+</div>
+
+<TravelExpenseNoteList Notes="@GeneralNotes()" />

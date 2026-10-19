@@ -184,3 +184,23 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Abweisen | dismiss | The request is removed from the suggestions without moving the member |
 | Einblendung | overlay | Web page used as an OBS browser source |
 
+## Travel Expenses (Reisekostenerstattung)
+
+| German | English | Notes |
+|---|---|---|
+| Reisekostenerstattung | travel expense reimbursement | The form at `/Forms/TravelExpense`; code `TravelExpense` |
+| Reisekostenordnung (RKO) | travel expense rules | Rates, deadlines and rules text of a chapter; code `TravelExpenseRuleSet` |
+| Fassung | version | One dated version of the rules; `VersionLabel` holds e.g. "J2.0" |
+| Reiseverlauf | itinerary / trip builder | The timeline of the trip in the wizard and the PDF appendix |
+| Fahrt mit eigenem Fahrzeug | vehicle leg | Car or motorcycle, reimbursed per kilometre; code `VehicleLeg` |
+| Fahrkarte | ticket / transit leg | Train, bus, plane or other fare; code `TransitLeg` |
+| Übernachtung | hotel stay | By invoice or at the flat rate; code `HotelStay` |
+| Gestellte Mahlzeit | provided meal | Paid for by the party or the organiser, reduces the meal allowance; code `ProvidedMeal` |
+| Sonstige Kosten | other cost | Code `OtherCost` |
+| Verpflegungspauschale | meal allowance | § 9 Abs. 4a EStG |
+| An- und Abreisetag | arrival and departure day | Day of a multi-day trip that is not a full day |
+| Kilometerstaffel | mileage rate steps | Rates per km up to a limit, the last step open-ended; code `RateStepDTO` |
+| Stichtag | cut-off date | Day in the following year after which applications are late; never blocks |
+| Beleg | receipt | Uploaded file in the user's receipt cache; code `UserReceipt` |
+| Meine Belege | my receipts | `/Forms/Receipts` |
+| Hinweis | note | Calculator remark with severity Info, Warning or Problem; code `TravelExpenseNoteDTO` |

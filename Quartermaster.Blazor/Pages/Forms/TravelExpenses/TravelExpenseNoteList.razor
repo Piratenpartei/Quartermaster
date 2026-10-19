@@ -1,0 +1,12 @@
+@using Quartermaster.Api.TravelExpenses
+
+@if (Notes.Count > 0) {
+    <ul class="list-unstyled @(Compact ? "small mt-2 mb-0" : "mb-3")">
+        @foreach (var note in Notes) {
+            <li class="d-flex gap-2 @TextClass(note.Severity) @(Compact ? "" : "mb-1")">
+                <i class="bi @Icon(note.Severity)"></i>
+                <span>@Text(note)</span>
+            </li>
+        }
+    </ul>
+}

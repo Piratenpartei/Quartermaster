@@ -39,14 +39,18 @@
                     <NavMenuDropdown>
                         <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.Forms]</ButtonContent>
                         <DropdownContent>
-                            <li><a class="dropdown-item" href="/Formulare">@I18n[I18nKey.Ui.MainNavBar.FormsCatalog]</a></li>
-                            <li><a class="dropdown-item" href="/Formulare/meine">@I18n[I18nKey.Ui.MainNavBar.FormsMine]</a></li>
+                            <li><a class="dropdown-item" href="/Forms">@I18n[I18nKey.Ui.MainNavBar.FormsCatalog]</a></li>
+                            <li><a class="dropdown-item" href="/Forms/Mine">@I18n[I18nKey.Ui.MainNavBar.FormsMine]</a></li>
+                            @if (AuthService.IsAuthenticated) {
+                                <li><a class="dropdown-item" href="/Forms/Receipts">@I18n[I18nKey.Ui.MainNavBar.FormsReceipts]</a></li>
+                            }
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/Formulare/auslagenerstattung">@I18n[I18nKey.Ui.MainNavBar.FormsExpenseReimbursement]</a></li>
+                            <li><a class="dropdown-item" href="/Forms/ExpenseReimbursement">@I18n[I18nKey.Ui.MainNavBar.FormsExpenseReimbursement]</a></li>
+                            <li><a class="dropdown-item" href="/Forms/TravelExpense">@I18n[I18nKey.Ui.MainNavBar.FormsTravelExpense]</a></li>
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>
-                <RequirePermission AnyOfPermissions="@(new List<string>(PermissionIdentifier.BoardWorkPermissions) { PermissionIdentifier.ReviewNewsPosts, PermissionIdentifier.ManageAccreditation })">
+                <RequirePermission AnyOfPermissions="@(new List<string>(PermissionIdentifier.BoardWorkPermissions) { PermissionIdentifier.ReviewNewsPosts, PermissionIdentifier.ManageAccreditation, PermissionIdentifier.EditTravelExpenseRules })">
                     <li class="nav-item">
                         <NavMenuDropdown>
                             <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.BoardWork]</ButtonContent>
@@ -88,6 +92,10 @@
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageAccreditation">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/Akkreditierung">@I18n[I18nKey.Ui.MainNavBar.BoardWorkAccreditation]</a></li>
+                                </RequirePermission>
+                                <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditTravelExpenseRules">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/Administration/TravelExpenseRules">@I18n[I18nKey.Ui.MainNavBar.BoardWorkTravelExpenseRules]</a></li>
                                 </RequirePermission>
                             </DropdownContent>
                         </NavMenuDropdown>

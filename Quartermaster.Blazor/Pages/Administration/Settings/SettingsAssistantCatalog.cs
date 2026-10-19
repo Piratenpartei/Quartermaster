@@ -37,6 +37,16 @@ public static class SettingsAssistantCatalog {
         ToggleKeys = ["public_forms.membership_application.enabled", "public_forms.due_selection.enabled", "public_forms.motion.enabled"]
     };
 
+    public static readonly SettingsAssistant TravelExpenses = new("TravelExpenses", SettingsGroup.Basics, "bi-suitcase-lg", I18nKey.Ui.Settings.TravelExpensesTitle, I18nKey.Ui.Settings.TravelExpensesDescription) {
+        Sections = [
+            new([
+                new("forms.receipts.max_per_user", SettingsFieldKind.Number),
+                new("forms.receipts.max_file_mb", SettingsFieldKind.Number) { UnitKey = I18nKey.Ui.Settings.UnitMegabytes }
+            ]) { TitleKey = I18nKey.Ui.Settings.TravelExpensesReceiptsTitle, DescriptionKey = I18nKey.Ui.Settings.TravelExpensesReceiptsDescription }
+        ],
+        Links = [new("/Administration/TravelExpenseRules", I18nKey.Ui.Settings.LinkTravelExpenseRules)]
+    };
+
     public static readonly SettingsAssistant Saml = new("Saml", SettingsGroup.Login, "bi-shield-lock", I18nKey.Ui.Settings.SamlTitle, I18nKey.Ui.Settings.SamlDescription) {
         Sections = [
             new([
@@ -251,7 +261,7 @@ public static class SettingsAssistantCatalog {
     };
 
     public static readonly IReadOnlyList<SettingsAssistant> All = [
-        General, PublicForms, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, OpenSlides, SocialMedia,
+        General, PublicForms, TravelExpenses, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, OpenSlides, SocialMedia,
         AssemblyAssistant, AssemblyProcedure
     ];
 

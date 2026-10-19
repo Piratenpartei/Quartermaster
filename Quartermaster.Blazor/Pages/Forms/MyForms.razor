@@ -1,8 +1,7 @@
-@page "/Formulare/meine"
+@page "/Forms/Mine"
 @using System.Globalization
 @using Quartermaster.Api
 @using Quartermaster.Api.Forms
-@using Quartermaster.Api.Forms.ExpenseReimbursements
 @using Quartermaster.Api.I18n
 
 <PageTitle>@I18n[I18nKey.Ui.MyForms.PageTitle]</PageTitle>
@@ -45,9 +44,9 @@
                         <tbody>
                             @foreach (var item in ServerItems) {
                                 <tr>
-                                    <td>@I18n[FormCatalog.Entries[0].DisplayNameI18nKey]</td>
+                                    <td>@I18n[item.Entry.DisplayNameI18nKey] <span class="text-secondary small">@item.Detail</span></td>
                                     <td>
-                                        @if (item.Status == ExpenseReimbursementStatusDTO.Draft) {
+                                        @if (!item.IsSubmitted) {
                                             <span class="badge text-bg-secondary">@I18n[I18nKey.Ui.MyForms.StatusDraft]</span>
                                         } else {
                                             <span class="badge text-bg-success">@I18n[I18nKey.Ui.MyForms.StatusSubmitted]</span>
@@ -58,10 +57,10 @@
                                     <td>@item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a class="btn btn-outline-primary" href="/Formulare/auslagenerstattung/@item.Id" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                            <a class="btn btn-outline-primary" href="@($"{item.Entry.Route}/{item.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
-                                            @if (item.Status == ExpenseReimbursementStatusDTO.Submitted) {
+                                            @if (item.IsSubmitted) {
                                                 <button class="btn btn-outline-secondary" @onclick="() => DownloadServer(item)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]">
                                                     <i class="bi bi-download"></i>
                                                 </button>
@@ -69,7 +68,7 @@
                                             <button class="btn btn-outline-secondary" @onclick="() => CopyServer(item)" title="@I18n[I18nKey.Ui.MyForms.CopyAction]">
                                                 <i class="bi bi-files"></i>
                                             </button>
-                                            @if (item.Status == ExpenseReimbursementStatusDTO.Draft) {
+                                            @if (!item.IsSubmitted) {
                                                 <button class="btn btn-outline-danger" @onclick="() => DeleteServer(item)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
                                                     <i class="bi bi-trash"></i>
                                                 </button>

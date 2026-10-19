@@ -1,0 +1,22 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-3">
+    <div class="col-12">
+        <label class="form-label" for="te-purpose">@I18n[I18nKey.Ui.TravelExpense.PurposeLabel]</label>
+        <textarea id="te-purpose" class="form-control" rows="2" maxlength="1000" @bind="Input.Purpose"></textarea>
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.PurposeHint]</div>
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="te-destination">@I18n[I18nKey.Ui.TravelExpense.DestinationLabel]</label>
+        <input id="te-destination" class="form-control" maxlength="256" @bind="Input.Destination" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="te-resolution">@I18n[I18nKey.Ui.TravelExpense.ResolutionNumberLabel]</label>
+        <input id="te-resolution" class="form-control" maxlength="64" @bind="Input.ResolutionNumber" />
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.ResolutionHint]</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="te-resolution-date">@I18n[I18nKey.Ui.TravelExpense.ResolutionDateLabel]</label>
+        <input id="te-resolution-date" type="date" class="form-control" @bind="Input.ResolutionDate" />
+    </div>
+</div>

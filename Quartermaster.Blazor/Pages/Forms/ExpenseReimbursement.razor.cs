@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -13,6 +14,7 @@ using Quartermaster.Api.Forms;
 using Quartermaster.Api.Forms.ExpenseReimbursements;
 using Quartermaster.Api.Banking;
 using Quartermaster.Api.I18n;
+using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Components.Forms;
 using Quartermaster.Blazor.Services;
 
@@ -42,6 +44,7 @@ public partial class ExpenseReimbursement {
     private const string FormKey = "expense-reimbursement";
 
     private AnonymousFormGate Gate = default!;
+    private ConfirmDialog DeleteConfirm = default!;
     private ExpenseReimbursementInputDTO Input = NewEmptyInput();
     private List<WizardStep> Steps = new();
     private bool Loading = true;
@@ -151,7 +154,7 @@ public partial class ExpenseReimbursement {
             }
             var created = await resp.Content.ReadFromJsonAsync<ExpenseReimbursementResponseDTO>();
             if (created != null) {
-                Navigation.NavigateTo($"/Formulare/auslagenerstattung/{created.Id}", replace: true);
+                Navigation.NavigateTo($"/Forms/ExpenseReimbursement/{created.Id}", replace: true);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -170,7 +173,7 @@ public partial class ExpenseReimbursement {
             Data = Input
         };
         await SaveLocalEnvelope();
-        Navigation.NavigateTo($"/Formulare/auslagenerstattung?localId={newId}", replace: true);
+        Navigation.NavigateTo($"/Forms/ExpenseReimbursement?localId={newId}", replace: true);
     }
 
     private async Task LoadServerDraft() {
@@ -191,7 +194,7 @@ public partial class ExpenseReimbursement {
             var raw = await JS.InvokeAsync<string?>("qmStorage.load", LocalDraftKeys.For(FormKey, id));
             if (string.IsNullOrEmpty(raw)) {
                 ToastService.Error(I18n[I18nKey.Ui.MyForms.EmptyStateLocal]);
-                Navigation.NavigateTo("/Formulare/meine");
+                Navigation.NavigateTo("/Forms/Mine");
                 return;
             }
             _localEnvelope = JsonSerializer.Deserialize<LocalDraftEnvelope<ExpenseReimbursementInputDTO>>(raw);
@@ -386,6 +389,10 @@ public partial class ExpenseReimbursement {
 
     private async Task<byte[]> RenderAnonymous(ExpenseReimbursementInputDTO input) {
         var resp = await Http.PostAsJsonAsync("/api/forms/expense-reimbursement/render", input);
+        if (resp.StatusCode == HttpStatusCode.TooManyRequests) {
+            ToastService.ErrorKey(I18nKey.Error.PublicForm.PdfRateLimited);
+            return Array.Empty<byte>();
+        }
         if (!resp.IsSuccessStatusCode) {
             await ToastService.ErrorAsync(resp);
             return Array.Empty<byte>();
@@ -433,7 +440,7 @@ public partial class ExpenseReimbursement {
                     }
                     var created = await resp.Content.ReadFromJsonAsync<ExpenseReimbursementResponseDTO>();
                     if (created != null) {
-                        Navigation.NavigateTo($"/Formulare/auslagenerstattung/{created.Id}");
+                        Navigation.NavigateTo($"/Forms/ExpenseReimbursement/{created.Id}");
                     }
                     break;
                 case FormBackingMode.Local:
@@ -452,7 +459,7 @@ public partial class ExpenseReimbursement {
                     };
                     var json = JsonSerializer.Serialize(clone);
                     await JS.InvokeVoidAsync("qmStorage.save", LocalDraftKeys.For(FormKey, newId), json);
-                    Navigation.NavigateTo($"/Formulare/auslagenerstattung?localId={newId}");
+                    Navigation.NavigateTo($"/Forms/ExpenseReimbursement?localId={newId}");
                     break;
             }
         } catch (HttpRequestException ex) {
@@ -464,6 +471,9 @@ public partial class ExpenseReimbursement {
     }
 
     private async Task DeleteDraft() {
+        if (!await DeleteConfirm.ShowAsync()) {
+            return;
+        }
         Busy = true;
         StateHasChanged();
         try {
@@ -474,11 +484,11 @@ public partial class ExpenseReimbursement {
                         await ToastService.ErrorAsync(resp);
                         return;
                     }
-                    Navigation.NavigateTo("/Formulare/meine");
+                    Navigation.NavigateTo("/Forms/Mine");
                     break;
                 case FormBackingMode.Local when LocalId.HasValue:
                     await JS.InvokeVoidAsync("qmStorage.clear", LocalDraftKeys.For(FormKey, LocalId.Value));
-                    Navigation.NavigateTo("/Formulare/meine");
+                    Navigation.NavigateTo("/Forms/Mine");
                     break;
             }
         } catch (HttpRequestException ex) {

@@ -1,0 +1,82 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label" for="rules-label">@I18n[I18nKey.Ui.TravelExpenseRules.VersionLabel] <RequiredStar /></label>
+        <input id="rules-label" class="form-control" maxlength="64" @bind="Rules.VersionLabel" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="rules-valid-from">@I18n[I18nKey.Ui.TravelExpenseRules.ValidFrom] <RequiredStar /></label>
+        <input id="rules-valid-from" type="date" class="form-control" @bind="Rules.ValidFrom" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="rules-template">@I18n[I18nKey.Ui.TravelExpenseRules.TemplateKey]</label>
+        <input id="rules-template" class="form-control" maxlength="128" @bind="Rules.TemplateKey" />
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpenseRules.TemplateKeyHint]</div>
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="rules-header">@I18n[I18nKey.Ui.TravelExpenseRules.HeaderLines]</label>
+        <textarea id="rules-header" class="form-control" rows="3" maxlength="1024" @bind="Rules.HeaderLines"></textarea>
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpenseRules.HeaderLinesHint]</div>
+    </div>
+
+    <div class="col-md-6">
+        <h6>@I18n[I18nKey.Ui.TravelExpenseRules.CarRates]</h6>
+        <RateStepsEditor Steps="@Rules.CarRates" />
+    </div>
+    <div class="col-md-6">
+        <h6>@I18n[I18nKey.Ui.TravelExpenseRules.MotorcycleRates]</h6>
+        <RateStepsEditor Steps="@Rules.MotorcycleRates" AllowEmpty="true" EmptyText="@I18n[I18nKey.Ui.TravelExpense.RulesNoMotorcycle]" />
+    </div>
+
+    <div class="col-12"><h6 class="mb-0">@I18n[I18nKey.Ui.TravelExpenseRules.MealsTitle]</h6></div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-day-trip">@I18n[I18nKey.Ui.TravelExpense.MealDay.DayTrip]</label>
+        <div class="input-group"><input id="rules-day-trip" type="number" min="0" step="0.01" class="form-control" @bind="Rules.MealDayTripRate" /><span class="input-group-text">€</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-arrival">@I18n[I18nKey.Ui.TravelExpense.MealDay.ArrivalDeparture]</label>
+        <div class="input-group"><input id="rules-arrival" type="number" min="0" step="0.01" class="form-control" @bind="Rules.MealArrivalDepartureRate" /><span class="input-group-text">€</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-full-day">@I18n[I18nKey.Ui.TravelExpense.MealDay.FullDay]</label>
+        <div class="input-group"><input id="rules-full-day" type="number" min="0" step="0.01" class="form-control" @bind="Rules.MealFullDayRate" /><span class="input-group-text">€</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-breakfast">@I18n[I18nKey.Ui.TravelExpenseRules.BreakfastReduction]</label>
+        <div class="input-group"><input id="rules-breakfast" type="number" min="0" max="100" step="1" class="form-control" @bind="Rules.BreakfastReductionPercent" /><span class="input-group-text">%</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-lunch">@I18n[I18nKey.Ui.TravelExpenseRules.LunchReduction]</label>
+        <div class="input-group"><input id="rules-lunch" type="number" min="0" max="100" step="1" class="form-control" @bind="Rules.LunchReductionPercent" /><span class="input-group-text">%</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-dinner">@I18n[I18nKey.Ui.TravelExpenseRules.DinnerReduction]</label>
+        <div class="input-group"><input id="rules-dinner" type="number" min="0" max="100" step="1" class="form-control" @bind="Rules.DinnerReductionPercent" /><span class="input-group-text">%</span></div>
+    </div>
+    <div class="col-12"><div class="form-text mt-0">@I18n[I18nKey.Ui.TravelExpenseRules.ReductionHint]</div></div>
+
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-flat">@I18n[I18nKey.Ui.TravelExpenseRules.AccommodationFlatRate]</label>
+        <div class="input-group"><input id="rules-flat" type="number" min="0" step="0.01" class="form-control" @bind="Rules.AccommodationFlatRate" /><span class="input-group-text">€</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small" for="rules-deadline">@I18n[I18nKey.Ui.TravelExpenseRules.DeadlineDays]</label>
+        <div class="input-group"><input id="rules-deadline" type="number" min="1" step="1" class="form-control" @bind="Rules.SubmissionDeadlineDays" /><span class="input-group-text">@I18n[I18nKey.Ui.TravelExpenseRules.Days]</span></div>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label small">@I18n[I18nKey.Ui.TravelExpenseRules.Cutoff]</label>
+        <div class="input-group">
+            <input type="number" min="1" max="31" class="form-control" aria-label="@I18n[I18nKey.Ui.TravelExpenseRules.CutoffDay]" @bind="Rules.CutoffDay" />
+            <span class="input-group-text">.</span>
+            <input type="number" min="1" max="12" class="form-control" aria-label="@I18n[I18nKey.Ui.TravelExpenseRules.CutoffMonth]" @bind="Rules.CutoffMonth" />
+        </div>
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpenseRules.CutoffHint]</div>
+    </div>
+
+    <div class="col-12">
+        <label class="form-label" for="rules-text">@I18n[I18nKey.Ui.TravelExpenseRules.RulesText]</label>
+        <textarea id="rules-text" class="form-control font-monospace small" rows="12" @bind="Rules.RulesText"></textarea>
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpenseRules.RulesTextHint]</div>
+    </div>
+</div>

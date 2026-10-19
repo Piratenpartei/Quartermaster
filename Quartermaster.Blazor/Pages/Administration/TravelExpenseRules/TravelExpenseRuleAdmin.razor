@@ -1,0 +1,92 @@
+@page "/Administration/TravelExpenseRules"
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.TravelExpenseRules.PageTitle]</PageTitle>
+
+<h3 class="mb-2">@I18n[I18nKey.Ui.TravelExpenseRules.PageTitle]</h3>
+<p class="text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.PageIntro]</p>
+
+<ConfirmDialog @ref="DeleteConfirm" />
+
+@if (Scopes == null) {
+    <LoadingSpinner />
+} else if (!Scopes.CanEditGlobal && Scopes.ChapterIds?.Count == 0) {
+    <div class="alert alert-warning">@I18n[I18nKey.Ui.TravelExpenseRules.NoPermission]</div>
+} else {
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+        @if (Scopes.CanEditGlobal) {
+            <div class="btn-group" role="radiogroup">
+                <input type="radio" class="btn-check" name="rules-scope" id="scope-global" checked="@GlobalSelected" @onchange="SelectGlobal" />
+                <label class="btn btn-outline-primary" for="scope-global">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeGlobal]</label>
+                <input type="radio" class="btn-check" name="rules-scope" id="scope-chapter" checked="@(!GlobalSelected)" @onchange="SelectChapterScope" />
+                <label class="btn btn-outline-primary" for="scope-chapter">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeChapter]</label>
+            </div>
+        }
+        @if (!GlobalSelected) {
+            <div style="min-width: 18rem">
+                <ChapterPicker Value="@(ChapterId?.ToString() ?? "")" ValueChanged="OnChapterPicked" AllowEmpty="true" OnlyIds="@Scopes.ChapterIds" />
+            </div>
+        }
+    </div>
+
+    @if (GlobalSelected || ChapterId != null) {
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="list-group mb-2">
+                    @if (Editing?.Id == Guid.Empty) {
+                        <div class="list-group-item active">
+                            <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Editing.VersionLabel) ? I18n[I18nKey.Ui.TravelExpenseRules.NewVersion] : Editing.VersionLabel)</div>
+                            <div class="small">@I18n[I18nKey.Ui.TravelExpenseRules.Unsaved]</div>
+                        </div>
+                    }
+                    @foreach (var version in Versions) {
+                        <button type="button" class="list-group-item list-group-item-action @(Editing?.Id == version.Id ? "active" : "")" @onclick="() => Select(version)">
+                            <div class="fw-semibold">@version.VersionLabel</div>
+                            <div class="small">@I18n[I18nParams.With(I18nKey.Ui.TravelExpenseRules.ValidFromShort, ("date", version.ValidFrom.ToString("dd.MM.yyyy")))]</div>
+                        </button>
+                    }
+                </div>
+                @if (Versions.Count == 0) {
+                    <p class="small text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.NoVersions]</p>
+                }
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" @onclick="ToggleNewMenu">
+                        <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.TravelExpenseRules.NewVersion]
+                    </button>
+                    @if (NewMenuOpen) {
+                        <div class="menu-backdrop" @onclick="ToggleNewMenu"></div>
+                        <div class="dropdown-menu show">
+                            @if (Versions.Count > 0) {
+                                <button type="button" class="dropdown-item" @onclick="NewFromNewest">@I18n[I18nKey.Ui.TravelExpenseRules.NewFromNewest]</button>
+                                <div class="dropdown-divider"></div>
+                            }
+                            <h6 class="dropdown-header">@I18n[I18nKey.Ui.TravelExpenseRules.NewFromPreset]</h6>
+                            @foreach (var preset in Presets) {
+                                <button type="button" class="dropdown-item" @onclick="() => NewFromPreset(preset)">@preset.Name</button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                @if (Editing != null) {
+                    <TravelExpenseRuleForm Rules="@Editing" />
+                    @if (Editing.Id != Guid.Empty) {
+                        <div class="alert alert-info small mt-3">@I18n[I18nKey.Ui.TravelExpenseRules.EditWarning]</div>
+                    }
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-primary" @onclick="Save" disabled="@Busy"><i class="bi bi-check-lg me-1"></i>@I18n[I18nKey.Ui.Common.Save]</button>
+                        @if (Editing.Id != Guid.Empty) {
+                            <button type="button" class="btn btn-outline-danger ms-auto" @onclick="Delete" disabled="@Busy"><i class="bi bi-trash me-1"></i>@I18n[I18nKey.Ui.Common.Delete]</button>
+                        } else {
+                            <button type="button" class="btn btn-outline-secondary" @onclick="DiscardNew">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                        }
+                    </div>
+                } else if (!GlobalSelected) {
+                    <p class="text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.InheritsHint]</p>
+                }
+            </div>
+        </div>
+    }
+}

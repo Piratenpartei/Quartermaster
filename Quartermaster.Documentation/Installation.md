@@ -98,6 +98,7 @@ Generated artefacts are written under the app's working directory by default:
 |---|---|---|
 | `./data/printouts` | PDF print-outs of notifications | `messaging.pdf.output_dir` |
 | `./data/protocols` | Archived meeting protocol PDFs | `meetings.protocol.archive_dir` |
+| `data/receipts` beside the executable | Receipts uploaded by logged-in users for travel expense applications, one folder per user | none |
 
 Make sure the service user can write to these directories, or set the overrides to a location it can.
 

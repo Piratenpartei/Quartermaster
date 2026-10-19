@@ -1,5 +1,5 @@
-@page "/Formulare/auslagenerstattung"
-@page "/Formulare/auslagenerstattung/{Id:guid}"
+@page "/Forms/ExpenseReimbursement"
+@page "/Forms/ExpenseReimbursement/{Id:guid}"
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Forms.ExpenseReimbursements
@@ -9,6 +9,7 @@
 <PageTitle>@I18n[I18nKey.Ui.ExpenseReimbursement.PageTitle]</PageTitle>
 
 <AnonymousFormGate @ref="Gate" />
+<ConfirmDialog @ref="DeleteConfirm" />
 
 @if (GateBlocked) {
     <div class="alert alert-info">@I18n[I18nKey.Ui.AnonymousFormGate.IntroParagraph]</div>

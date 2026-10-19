@@ -1,0 +1,37 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label" for="te-first-name">@I18n[I18nKey.Ui.Common.FirstName] <RequiredStar /></label>
+        <input id="te-first-name" class="form-control" autocomplete="given-name" @bind="Input.FirstName" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="te-last-name">@I18n[I18nKey.Ui.Common.LastName] <RequiredStar /></label>
+        <input id="te-last-name" class="form-control" autocomplete="family-name" @bind="Input.LastName" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="te-member-number">@I18n[I18nKey.Ui.TravelExpense.MemberNumberLabel]</label>
+        <input id="te-member-number" type="number" class="form-control" @bind="Input.MemberNumber" />
+        <div class="form-text">@I18n[I18nKey.Ui.TravelExpense.MemberNumberHint]</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="te-email">@I18n[I18nKey.Ui.TravelExpense.EmailLabel]</label>
+        <input id="te-email" type="email" class="form-control" autocomplete="email" @bind="Input.Email" />
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="te-street">@I18n[I18nKey.Ui.TravelExpense.StreetLabel]</label>
+        <input id="te-street" class="form-control" autocomplete="street-address" @bind="Input.Street" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="te-post-code">@I18n[I18nKey.Ui.TravelExpense.PostCodeLabel]</label>
+        <input id="te-post-code" class="form-control" autocomplete="postal-code" @bind="Input.PostCode" />
+    </div>
+    <div class="col-md-8">
+        <label class="form-label" for="te-city">@I18n[I18nKey.Ui.TravelExpense.CityLabel]</label>
+        <input id="te-city" class="form-control" autocomplete="address-level2" @bind="Input.City" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">@I18n[I18nKey.Ui.TravelExpense.MembershipChapterLabel]</label>
+        <ChapterPicker Value="@(Input.MembershipChapterId?.ToString() ?? "")" ValueChanged="OnChapterPicked" AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.TravelExpense.NoMembershipChapter]" />
+    </div>
+</div>

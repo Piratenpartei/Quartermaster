@@ -141,6 +141,9 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE AssemblyMotions;
             TRUNCATE TABLE AssemblyMotionTypes;
             TRUNCATE TABLE AssemblyMotionPortals;
+            TRUNCATE TABLE TravelExpenseRuleSets;
+            TRUNCATE TABLE UserReceipts;
+            TRUNCATE TABLE TravelExpenseReimbursements;
             SET FOREIGN_KEY_CHECKS = 1;
             """;
         cmd.ExecuteNonQuery();
