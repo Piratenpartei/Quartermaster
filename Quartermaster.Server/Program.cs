@@ -30,6 +30,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.AdministrativeDivisions;
 using Quartermaster.Server.Antiforgery;
+using Quartermaster.Server.AssemblyMotions;
 using Quartermaster.Server.AssemblyMotions.Notifications;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Cli;
@@ -178,6 +179,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotionNotifier>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionAccess>();
+        builder.Services.AddScoped<AssemblyMotionPublicAccess>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionService>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionCommissionService>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionInquiryService>();
@@ -355,6 +357,7 @@ public partial class Program {
             ep.MapStaticAssets();
             ep.MapHub<MeetingHub>("/hubs/meeting");
             ep.MapHub<AssemblyAssistant.AssemblyHub>(Api.AssemblyAssistant.AssemblyHubMethods.HubPath);
+            ep.MapAssemblyMotionIndexPage();
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014
