@@ -15,19 +15,20 @@ public static partial class AssemblyMotionForumPost {
     private const string Ellipsis = "...";
     private const string Footer = "_Dieser Beitrag wird automatisch aus dem Antragsportal aktualisiert, Änderungen hier werden überschrieben._";
 
+    /// <summary>The number, title and event; a motion that has no number yet goes without it.</summary>
     public static string Title(AssemblyMotionForumInput input) {
-        var number = AssemblyMotionNumber.Format(input.Type.Code, input.Motion.Number!.Value);
+        var number = input.Motion.Number == null ? "" : AssemblyMotionNumber.Format(input.Type.Code, input.Motion.Number.Value) + ": ";
         var title = input.Motion.Title;
         var suffix = $" ({input.EventName})";
-        var full = $"{number}: {title}{suffix}";
+        var full = $"{number}{title}{suffix}";
         if (full.Length <= MaxTitleLength)
             return full;
 
-        var available = MaxTitleLength - number.Length - 2 - Ellipsis.Length - suffix.Length;
+        var available = MaxTitleLength - number.Length - Ellipsis.Length - suffix.Length;
         if (available < 1)
             return full[..(MaxTitleLength - Ellipsis.Length)] + Ellipsis;
 
-        return $"{number}: {title[..available]}{Ellipsis}{suffix}";
+        return $"{number}{title[..available]}{Ellipsis}{suffix}";
     }
 
     /// <summary>
@@ -69,10 +70,10 @@ public static partial class AssemblyMotionForumPost {
 
     private static string Build(AssemblyMotionForumInput input, bool withText, bool withReason) {
         var motion = input.Motion;
-        var number = AssemblyMotionNumber.Format(input.Type.Code, motion.Number!.Value);
+        var number = motion.Number == null ? "" : " " + AssemblyMotionNumber.Format(input.Type.Code, motion.Number.Value);
         var builder = new StringBuilder();
 
-        builder.Append($"{input.Type.Name} {number}: {DefuseMentions(motion.Title)}\n");
+        builder.Append($"{input.Type.Name}{number}: {DefuseMentions(motion.Title)}\n");
         if (input.SubmitterNames.Count > 0)
             builder.Append($"Antragsteller: {string.Join(", ", input.SubmitterNames.Select(DefuseMentions))}\n");
         builder.Append($"Status: {input.StatusLabel}\n");
@@ -81,8 +82,8 @@ public static partial class AssemblyMotionForumPost {
         if (!string.IsNullOrWhiteSpace(motion.Section))
             builder.Append($"Antragsgruppe: {DefuseMentions(motion.Section)}\n");
 
-        if (motion.IsInRevision)
-            builder.Append("\n**Dieser Antrag wird überarbeitet und sucht erneut Mitantragsteller.**\n");
+        if (motion.Status == AssemblyMotionStatus.CollectingCoSubmitters)
+            builder.Append($"\n**{CollectingNote(input)}**\n");
 
         builder.Append("\n### Zusammenfassung\n");
         builder.Append(string.IsNullOrWhiteSpace(motion.Summary)
@@ -100,6 +101,15 @@ public static partial class AssemblyMotionForumPost {
         builder.Append($"\n{Footer}\n");
 
         return WikiPageText.Normalize(builder.ToString());
+    }
+
+    private static string CollectingNote(AssemblyMotionForumInput input) {
+        var opening = input.Motion.IsInRevision
+            ? "Dieser Antrag wird überarbeitet und sucht erneut Mitantragsteller"
+            : "Dieser Antrag ist noch nicht eingereicht und sucht Mitantragsteller";
+        var needed = input.Type.MinSubmitters - 1;
+        return $"{opening}: Er braucht mindestens {needed} Mitantragsteller bis zum {BerlinTime.FormatDeadline(input.CollectingDeadline)}, "
+            + $"bisher hat er {input.CoSubmitterCount}. Mitantragsteller werden kannst du im Antragsportal.";
     }
 
     private static void AppendDetails(StringBuilder builder, string label, string body) {

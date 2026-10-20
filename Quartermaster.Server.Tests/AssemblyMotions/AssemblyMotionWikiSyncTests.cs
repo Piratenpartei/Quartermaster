@@ -647,7 +647,8 @@ public class AssemblyMotionWikiSyncTests : RepositoryTestBase {
         await Assert.That(FakeWikiBotClient.Pages[title]).DoesNotContain("wird überarbeitet");
 
         var type = TypeOf("SÄA");
-        var outcome = _service.UpdateByAuthor(Reload(motion.Id), author, Guid.NewGuid(), NewDraft(type.Id, "Neuer Titel"), baseRevision: 1, DateTime.UtcNow);
+        var outcome = _service.UpdateByAuthor(Reload(motion.Id), author, Guid.NewGuid(), NewDraft(type.Id, "Neuer Titel") with { TextMarkdown = "Neuer Antragstext" },
+            baseRevision: 1, DateTime.UtcNow);
         await Assert.That(outcome.Succeeded).IsTrue();
         await Assert.That(Reload(motion.Id).WikiSyncState).IsEqualTo(WikiSyncState.Pending);
 

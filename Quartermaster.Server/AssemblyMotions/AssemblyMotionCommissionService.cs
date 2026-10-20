@@ -113,9 +113,7 @@ public class AssemblyMotionCommissionService {
         motion.Status = AssemblyMotionStatus.Withdrawn;
         motion.WithdrawnAt = nowUtc;
         _motions.Update(motion);
-
-        if (motion.WasSubmitted)
-            _motions.MarkMirrorsPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn", "ByCommission", null, "true");
 

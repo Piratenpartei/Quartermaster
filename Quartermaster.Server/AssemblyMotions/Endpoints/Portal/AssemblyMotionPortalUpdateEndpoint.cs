@@ -107,7 +107,7 @@ public class AssemblyMotionPortalUpdateEndpoint : Endpoint<AssemblyMotionPortalU
         if (disablesMirror)
             _wikiResync.ResetPending(portal.Id);
         if (enablesForum)
-            _forumResync.QueueNumbered(portal.Id, DateTime.UtcNow);
+            _forumResync.QueueReleased(portal.Id, DateTime.UtcNow);
         if (disablesForum)
             _forumResync.ResetPending(portal.Id);
 

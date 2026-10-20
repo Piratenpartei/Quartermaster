@@ -120,7 +120,7 @@
   "error.assembly_motion.forum_not_configured": "Die Forum-Zugangsdaten sind nicht hinterlegt. Die Forum-Spiegelung kann erst aktiviert werden, wenn die Optionen discourse.base_url, discourse.api_username und discourse.api_key gesetzt sind.",
   "error.assembly_motion.forum_check_failed": "Die Prüfung der Forum-Verbindung ist fehlgeschlagen: {reason}",
   "error.assembly_motion.forum_mirror_disabled": "Die Forum-Spiegelung ist für dieses Portal nicht aktiviert.",
-  "error.assembly_motion.forum_motion_not_numbered": "Der Antrag hat noch keine Nummer und wird daher nicht ins Forum gespiegelt.",
+  "error.assembly_motion.forum_motion_not_released": "Der Antrag ist noch ein Entwurf und wird daher nicht ins Forum gespiegelt.",
   "error.assembly_motion.forum_topic_deleted": "Das Thema dieses Antrags wurde im Forum gelöscht und wird nicht neu angelegt.",
   "error.assembly_motion.openslides_not_configured": "Die OpenSlides-Zugangsdaten sind nicht hinterlegt.",
   "error.assembly_motion.openslides_meeting_missing": "Für dieses Portal ist keine OpenSlides-Meeting-ID hinterlegt.",

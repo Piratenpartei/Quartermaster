@@ -1117,7 +1117,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Join_before_submission_queues_nothing() {
+    public async Task Join_before_submission_queues_only_the_forum() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
         _context.AssemblyMotionPortals
@@ -1129,8 +1129,15 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
         _service.Release(motion.Id, author, now);
 
+        _context.AssemblyMotions
+            .Where(m => m.Id == motion.Id)
+            .Set(m => m.ForumSyncState, ForumSyncState.Synced)
+            .Update();
+
         _service.Join(motion.Id, SeedEligibleMember(), now);
 
-        await Assert.That(_motionRepo.Get(motion.Id)!.ForumSyncState).IsEqualTo(ForumSyncState.NotMirrored);
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.NotMirrored);
     }
 }

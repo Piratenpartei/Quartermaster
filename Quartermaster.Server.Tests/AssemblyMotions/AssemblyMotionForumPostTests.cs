@@ -8,6 +8,7 @@ namespace Quartermaster.Server.Tests.AssemblyMotions;
 public class AssemblyMotionForumPostTests {
     private const string PortalUrl = "https://qm.test/AssemblyMotions/1";
     private const string WikiUrl = "https://wiki.test/Antrag:PA001";
+    private static readonly DateTime Deadline = new(2026, 11, 21, 17, 0, 0, DateTimeKind.Utc);
 
     private static AssemblyMotionForumInput Input(Action<AssemblyMotion>? change = null, string? wikiUrl = WikiUrl, string? resultLabel = null) {
         var motion = new AssemblyMotion {
@@ -21,8 +22,9 @@ public class AssemblyMotionForumPostTests {
             Revision = 1
         };
         change?.Invoke(motion);
-        var type = new AssemblyMotionType { Code = "PA", Name = "Programmantrag" };
-        return new AssemblyMotionForumInput(motion, type, "Bundesparteitag 2026.2", ["Anna Pirat", "Bernd Beispiel"], "Eingereicht", resultLabel, PortalUrl, wikiUrl);
+        var type = new AssemblyMotionType { Code = "PA", Name = "Programmantrag", MinSubmitters = 5 };
+        return new AssemblyMotionForumInput(motion, type, "Bundesparteitag 2026.2", ["Anna Pirat", "Bernd Beispiel"], "Eingereicht", resultLabel, PortalUrl, wikiUrl,
+            1, Deadline);
     }
 
     private static async Task AssertInOrder(string text, params string[] parts) {
@@ -73,7 +75,50 @@ public class AssemblyMotionForumPostTests {
         var inRevision = AssemblyMotionForumPost.Raw(Input(m => m.Status = AssemblyMotionStatus.CollectingCoSubmitters), 32000);
 
         await Assert.That(submitted).DoesNotContain("überarbeitet");
-        await Assert.That(inRevision).Contains("**Dieser Antrag wird überarbeitet und sucht erneut Mitantragsteller.**");
+        await Assert.That(submitted).DoesNotContain("Mitantragsteller werden");
+        await Assert.That(inRevision).Contains("**Dieser Antrag wird überarbeitet und sucht erneut Mitantragsteller: Er braucht mindestens 4 Mitantragsteller "
+            + "bis zum 21.11. um 18:00 Uhr, bisher hat er 1. Mitantragsteller werden kannst du im Antragsportal.**");
+    }
+
+    [Test]
+    public async Task Motion_without_number_says_it_still_needs_cosubmitters() {
+        var input = Input(m => {
+            m.Number = null;
+            m.Status = AssemblyMotionStatus.CollectingCoSubmitters;
+        }, wikiUrl: null);
+
+        var raw = AssemblyMotionForumPost.Raw(input, 32000);
+
+        await AssertInOrder(raw,
+            "Programmantrag: Titel des Antrags",
+            "**Dieser Antrag ist noch nicht eingereicht und sucht Mitantragsteller: Er braucht mindestens 4 Mitantragsteller "
+                + "bis zum 21.11. um 18:00 Uhr, bisher hat er 1. Mitantragsteller werden kannst du im Antragsportal.**",
+            "### Zusammenfassung");
+        await Assert.That(raw).DoesNotContain("Antrag im Wiki");
+        await Assert.That(AssemblyMotionForumPost.Title(input)).IsEqualTo("Titel des Antrags (Bundesparteitag 2026.2)");
+    }
+
+    [Test]
+    public async Task Lapsed_motion_without_number_has_no_cosubmitter_note() {
+        var raw = AssemblyMotionForumPost.Raw(Input(m => {
+            m.Number = null;
+            m.Status = AssemblyMotionStatus.Lapsed;
+        }), 32000);
+
+        await Assert.That(raw).StartsWith("Programmantrag: Titel des Antrags");
+        await Assert.That(raw).DoesNotContain("sucht");
+    }
+
+    [Test]
+    public async Task Title_without_number_is_cut_to_255_keeping_the_event() {
+        var title = AssemblyMotionForumPost.Title(Input(m => {
+            m.Number = null;
+            m.Title = new string('x', 500);
+        }));
+
+        await Assert.That(title.Length).IsEqualTo(255);
+        await Assert.That(title).StartsWith("xxx");
+        await Assert.That(title).EndsWith("... (Bundesparteitag 2026.2)");
     }
 
     [Test]

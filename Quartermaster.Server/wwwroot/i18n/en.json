@@ -120,7 +120,7 @@
   "error.assembly_motion.forum_not_configured": "The forum credentials are not set. The forum mirror can only be enabled once the options discourse.base_url, discourse.api_username and discourse.api_key are set.",
   "error.assembly_motion.forum_check_failed": "Checking the forum connection failed: {reason}",
   "error.assembly_motion.forum_mirror_disabled": "The forum mirror is not enabled for this portal.",
-  "error.assembly_motion.forum_motion_not_numbered": "The motion has no number yet and is therefore not mirrored to the forum.",
+  "error.assembly_motion.forum_motion_not_released": "The motion is still a draft and is therefore not mirrored to the forum.",
   "error.assembly_motion.forum_topic_deleted": "The topic of this motion was deleted in the forum and is not created again.",
   "error.assembly_motion.openslides_not_configured": "The OpenSlides credentials are not configured.",
   "error.assembly_motion.openslides_meeting_missing": "No OpenSlides meeting id is set for this portal.",

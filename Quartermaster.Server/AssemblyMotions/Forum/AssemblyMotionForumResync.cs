@@ -28,8 +28,8 @@ public class AssemblyMotionForumResync {
             return AssemblyMotionOutcome.Fail(404, I18nKey.Error.AssemblyMotion.NotFound);
         if (!portal.ForumMirrorEnabled)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.ForumMirrorDisabled);
-        if (motion.Number == null)
-            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.ForumMotionNotNumbered);
+        if (motion.Status == AssemblyMotionStatus.Draft)
+            return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.ForumMotionNotReleased);
         if (motion.ForumSyncState == ForumSyncState.Deleted)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.ForumTopicDeleted);
 
@@ -38,16 +38,16 @@ public class AssemblyMotionForumResync {
         return AssemblyMotionOutcome.Ok(motion);
     }
 
-    /// <summary>Queues every numbered motion of the portal whose topic was not deleted and returns how many; writes one audit entry for the portal.</summary>
+    /// <summary>Queues every motion of the portal the forum mirrors whose topic was not deleted and returns how many; writes one audit entry for the portal.</summary>
     public int QueueAll(Guid portalId, DateTime nowUtc) {
-        var count = QueueNumbered(portalId, nowUtc);
+        var count = QueueReleased(portalId, nowUtc);
         _auditLog.Log("AssemblyMotionPortal", portalId, AuditAction, "Count", null, count.ToString());
         return count;
     }
 
-    public int QueueNumbered(Guid portalId, DateTime nowUtc) {
+    public int QueueReleased(Guid portalId, DateTime nowUtc) {
         var count = 0;
-        foreach (var id in _motions.ListNumberedIds(portalId)) {
+        foreach (var id in _motions.ListReleasedIds(portalId)) {
             if (_motions.MarkForumPending(id, nowUtc))
                 count++;
         }

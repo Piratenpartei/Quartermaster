@@ -260,7 +260,7 @@ What the client assumes about the wiki, to confirm while doing the above:
 
 ### Forum mirror for the motion portal
 
-Optional. When "Enable forum mirror" is switched on in the portal settings, every motion that was submitted at least once gets a topic in a Discourse category of the forum, and the first post of the topic is kept up to date. Replies in the forum are never touched. Unlike the wiki, the post carries the submitters' names, since forum and portal share the same members through SSO.
+Optional. When "Enable forum mirror" is switched on in the portal settings, every released motion gets a topic in a Discourse category of the forum, including motions that are still collecting co-submitters and have no number yet (the wiki only gets numbered motions), and the first post of the topic is kept up to date. Replies in the forum are never touched. Unlike the wiki, the post carries the submitters' names, since forum and portal share the same members through SSO.
 
 | Identifier | Default | Purpose |
 |---|---|---|
@@ -276,19 +276,19 @@ Prerequisites outside Quartermaster:
 - The category the motions go to. Its id is the number in its address, for example `12` in `/c/antraege/12`. The bot account must be allowed to create topics there.
 - `system.public_base_url` must be set, because every post links back to the motion in the portal.
 
-"Check forum connection" in the portal settings checks the key and the account, warns when the account is no moderator, checks that the category exists and that the bot may create topics there, and warns when the category is publicly readable. It never creates or edits anything. Switching "Enable forum mirror" on, or changing the category while it is on, runs the same check first and refuses to save when it fails; the warnings do not block saving. On success all numbered motions of the portal are queued, so motions submitted before the mirror was switched on get a topic as well. The "Forum (Discourse)" assistant under `/Administration/Settings` has the same check without a category.
+"Check forum connection" in the portal settings checks the key and the account, warns when the account is no moderator, checks that the category exists and that the bot may create topics there, and warns when the category is publicly readable. It never creates or edits anything. Switching "Enable forum mirror" on, or changing the category while it is on, runs the same check first and refuses to save when it fails; the warnings do not block saving. On success all mirrored motions of the portal are queued, so motions released before the mirror was switched on get a topic as well. A motion that lapsed or was withdrawn before it got a number never gets a new topic. The "Forum (Discourse)" assistant under `/Administration/Settings` has the same check without a category.
 
 The topic:
 
-- Title `<number>: <title> (<event name>)`, for example `PA001: Titel des Antrags (Bundesparteitag 2026.2)`. The event name keeps titles unique across assemblies, as Discourse refuses duplicate titles. Titles longer than 255 characters are shortened with `...`; the number and the event name always stay.
-- The first post holds type, number and title, the submitters, status, result and section, a notice while the motion is in revision, the summary (or a note that there is none), the motion text and the reason as collapsed blocks, and links to the motion in the portal and, when the portal mirrors to the wiki, to the wiki page. The wiki link follows the page address the wiki reports in its site info (for the Piratenwiki `https://wiki.piratenpartei.de/<title>`); when the wiki cannot be asked, the post goes out without it.
+- Title `<number>: <title> (<event name>)`, for example `PA001: Titel des Antrags (Bundesparteitag 2026.2)`; a motion without a number yet goes without it and gets the number once it is submitted. The event name keeps titles unique across assemblies, as Discourse refuses duplicate titles. Titles longer than 255 characters are shortened with `...`; the number and the event name always stay.
+- The first post holds type, number and title, the submitters, status, result and section, a notice while the motion collects co-submitters (how many it needs by when and how many it has), the summary (or a note that there is none), the motion text and the reason as collapsed blocks, and links to the motion in the portal and, when the portal mirrors to the wiki, to the wiki page. The wiki link follows the page address the wiki reports in its site info (for the Piratenwiki `https://wiki.piratenpartei.de/<title>`); when the wiki cannot be asked, the post goes out without it.
 - When the post would be longer than `discourse.max_post_length`, the motion text and then the reason are replaced by a notice that the full text is in the portal and the wiki. Texts are never cut short. If the forum still refuses the post as too long, it is sent again right away with both notices.
 - An `@name` in a motion text does not notify forum users.
 - The topic is created in the category set at that moment. Moderators may move it; the portal never moves it back, and changing the category in the portal only affects new topics.
 
 When the post is updated:
 
-- On the same changes that update the wiki page, and also when co-submitters join or leave a motion in revision.
+- On the same changes that update the wiki page, and also when co-submitters join or leave a motion that collects co-submitters.
 - A background job writes queued motions about once a minute, at most 10 per run, after first checking that the forum accepts the key. A user action never waits for the forum. Failures are retried with a growing delay of up to six hours; a rejected key, a missing category or a missing `system.public_base_url` wait six hours right away. When the forum rate-limits requests the run stops and the motions are tried again in the next run.
 - When nothing visible changed, nothing is sent. When a moderator edited the first post, the next update overwrites it and the audit log records it.
 - When the forum answers "not found" for a stored topic, the motion shows "Failed" with a six hour retry delay. Discourse gives the same answer for a hard-deleted topic and for one the bot can no longer see, for example after the category's permissions changed or a moderator moved the topic into a category the bot cannot read. Restore the bot's access and use "Resync".

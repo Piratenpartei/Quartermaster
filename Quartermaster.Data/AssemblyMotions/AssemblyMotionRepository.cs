@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using LinqToDB;
 using LinqToDB.Data;
 using Quartermaster.Api.AssemblyMotions;
@@ -14,6 +15,13 @@ public class AssemblyMotionRepository {
     public const int WikiLastErrorMaxLength = 4000;
     public const string ReleasedAuditAction = "Released";
     public const string ReleasedRevisionField = "Revision";
+
+    /// <summary>
+    /// The motions the forum mirrors: every numbered one, and one without a number while it collects co-submitters or once it has a topic,
+    /// so a motion that lapsed or was withdrawn before its number never gets a new topic.
+    /// </summary>
+    private static readonly Expression<Func<AssemblyMotion, bool>> _mirroredToForum = m => m.Status != AssemblyMotionStatus.Draft
+        && (m.Number != null || m.Status == AssemblyMotionStatus.CollectingCoSubmitters || m.ForumTopicId != null);
 
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
@@ -189,6 +197,13 @@ public class AssemblyMotionRepository {
                 .ToList();
     }
 
+    public List<Guid> ListReleasedIds(Guid portalId) {
+        return _context.AssemblyMotions
+                .Where(m => m.PortalId == portalId && m.DeletedAt == null && m.Status != AssemblyMotionStatus.Draft)
+                .Select(m => m.Id)
+                .ToList();
+    }
+
     public List<Guid> ListNumberedIds(Guid portalId) {
         return _context.AssemblyMotions
                 .Where(m => m.PortalId == portalId && m.DeletedAt == null && m.Number != null)
@@ -254,16 +269,18 @@ public class AssemblyMotionRepository {
                 .Update();
     }
 
-    /// <summary>Queues the motion for the wiki and the forum sync, each only while the motion's portal mirrors there.</summary>
+    /// <summary>Queues the motion for the wiki and the forum sync, each only while the motion's portal mirrors there. The wiki takes numbered motions only,
+    /// the forum also those still collecting co-submitters.</summary>
     public void MarkMirrorsPending(Guid motionId, DateTime nowUtc) {
         MarkWikiPending(motionId, nowUtc);
         MarkForumPending(motionId, nowUtc);
     }
 
-    /// <summary>Queues the motion for the wiki sync. Does nothing while the motion's portal has the wiki mirror disabled.</summary>
+    /// <summary>Queues the motion for the wiki sync. Does nothing while the motion has no number or its portal has the wiki mirror disabled.</summary>
     public void MarkWikiPending(Guid motionId, DateTime nowUtc) {
         _context.AssemblyMotions
                 .Where(m => m.Id == motionId
+                    && m.Number != null
                     && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.WikiMirrorEnabled))
                 .Set(m => m.WikiSyncState, WikiSyncState.Pending)
                 .Set(m => m.WikiSyncRequestedAt, nowUtc)
@@ -289,9 +306,11 @@ public class AssemblyMotionRepository {
         MarkForumPending(motionId, nowUtc);
     }
 
-    /// <summary>Queues the motion for the forum sync and returns whether it was queued. Does nothing while the motion's portal has the forum mirror disabled or the motion's topic was deleted in the forum.</summary>
+    /// <summary>Queues the motion for the forum sync and returns whether it was queued. Does nothing while the forum does not mirror the motion
+    /// (see <see cref="_mirroredToForum"/>), its portal has the forum mirror disabled or the motion's topic was deleted in the forum.</summary>
     public bool MarkForumPending(Guid motionId, DateTime nowUtc) {
         return _context.AssemblyMotions
+                .Where(_mirroredToForum)
                 .Where(m => m.Id == motionId
                     && m.ForumSyncState != ForumSyncState.Deleted
                     && _context.AssemblyMotionPortals.Any(p => p.Id == m.PortalId && p.ForumMirrorEnabled))
@@ -309,12 +328,12 @@ public class AssemblyMotionRepository {
                 .Update();
     }
 
-    /// <summary>Numbered motions of forum-mirrored portals whose topic needs work now, oldest request first. A motion that was never mirrored counts as due.</summary>
+    /// <summary>Mirrored motions (see <see cref="_mirroredToForum"/>) of forum-mirrored portals whose topic needs work now, oldest request first. A motion that was never mirrored counts as due.</summary>
     public List<AssemblyMotion> ListForumDue(DateTime nowUtc, int limit) {
         return _context.AssemblyMotions
+            .Where(_mirroredToForum)
             .InnerJoin(_context.AssemblyMotionPortals, (m, p) => m.PortalId == p.Id, (m, p) => new { Motion = m, Portal = p })
             .Where(x => x.Portal.ForumMirrorEnabled
-                && x.Motion.Number != null
                 && x.Motion.DeletedAt == null
                 && (x.Motion.ForumSyncState == ForumSyncState.Pending
                     || x.Motion.ForumSyncState == ForumSyncState.NotMirrored

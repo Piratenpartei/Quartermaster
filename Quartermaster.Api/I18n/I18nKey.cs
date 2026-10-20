@@ -183,7 +183,7 @@ public static class I18nKey {
             public const string ForumNotConfigured = "error.assembly_motion.forum_not_configured";
             public const string ForumCheckFailed = "error.assembly_motion.forum_check_failed";
             public const string ForumMirrorDisabled = "error.assembly_motion.forum_mirror_disabled";
-            public const string ForumMotionNotNumbered = "error.assembly_motion.forum_motion_not_numbered";
+            public const string ForumMotionNotReleased = "error.assembly_motion.forum_motion_not_released";
             public const string ForumTopicDeleted = "error.assembly_motion.forum_topic_deleted";
             public const string OpenSlidesNotConfigured = "error.assembly_motion.openslides_not_configured";
             public const string OpenSlidesMeetingMissing = "error.assembly_motion.openslides_meeting_missing";

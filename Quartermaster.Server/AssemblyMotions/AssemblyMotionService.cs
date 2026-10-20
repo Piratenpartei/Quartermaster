@@ -173,8 +173,7 @@ public class AssemblyMotionService {
             notifications.Add(() => _notifier.Submitted(locked));
         }
 
-        if (locked.Status != AssemblyMotionStatus.Draft && locked.Number != null)
-            _motions.MarkMirrorsPending(locked.Id, nowUtc);
+        _motions.MarkMirrorsPending(locked.Id, nowUtc);
 
         _db.AssemblyMotionSubmitters
             .Where(s => s.MotionId == locked.Id && s.IsAuthor)
@@ -277,6 +276,7 @@ public class AssemblyMotionService {
         } else {
             motion.Status = AssemblyMotionStatus.CollectingCoSubmitters;
             _motions.Update(motion);
+            _motions.MarkForumPending(motion.Id, nowUtc);
         }
 
         notifications.Add(() => NotifyDeclaredCompetitions(motion, declaredCompetitions));
@@ -348,8 +348,7 @@ public class AssemblyMotionService {
         });
 
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
-        if (motion.WasSubmitted)
-            _motions.MarkForumPending(motion.Id, nowUtc);
+        _motions.MarkForumPending(motion.Id, nowUtc);
 
         if (submitters.Count + 1 >= type.MinSubmitters) {
             Submit(motion, nowUtc, notifications);
@@ -390,8 +389,7 @@ public class AssemblyMotionService {
 
         _motions.RemoveSubmitter(motion.Id, member.Id);
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterLeft");
-        if (motion.WasSubmitted)
-            _motions.MarkForumPending(motion.Id, nowUtc);
+        _motions.MarkForumPending(motion.Id, nowUtc);
 
         tx.Commit();
         return AssemblyMotionOutcome.Ok(motion);
@@ -445,9 +443,7 @@ public class AssemblyMotionService {
         motion.Status = AssemblyMotionStatus.Withdrawn;
         motion.WithdrawnAt = nowUtc;
         _motions.Update(motion);
-
-        if (motion.WasSubmitted)
-            _motions.MarkMirrorsPending(motion.Id, nowUtc);
+        _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
         _auditLog.Log("AssemblyMotion", motion.Id, "Withdrawn");
 
@@ -514,9 +510,7 @@ public class AssemblyMotionService {
 
             motion.Status = AssemblyMotionStatus.Lapsed;
             _motions.Update(motion);
-
-            if (motion.WasSubmitted)
-                _motions.MarkMirrorsPending(motion.Id, nowUtc);
+            _motions.MarkMirrorsPending(motion.Id, nowUtc);
 
             _auditLog.Log("AssemblyMotion", motion.Id, "Lapsed");
 

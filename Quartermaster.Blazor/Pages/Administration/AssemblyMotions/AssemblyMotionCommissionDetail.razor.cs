@@ -224,7 +224,7 @@ public partial class AssemblyMotionCommissionDetail {
             return false;
         if (Detail.Commission.ForumSyncState == ForumSyncState.Deleted)
             return false;
-        return !string.IsNullOrEmpty(Detail.DisplayNumber);
+        return Detail.Status != AssemblyMotionStatus.Draft;
     }
 
     private async Task ResyncForum() {

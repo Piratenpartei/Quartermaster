@@ -95,6 +95,14 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
         return _service.Release(motion.Id, author, DateTime.UtcNow).Motion!;
     }
 
+    private AssemblyMotion Release(int minSubmitters, string title = "Sammelantrag") {
+        var type = _portalRepo.GetTypes(_portal.Id).First(t => t.MinSubmitters == minSubmitters);
+        var author = _builder.SeedMember(chapterId: _chapter.Id, firstName: "Anna", lastName: "Pirat");
+        var draft = new AssemblyMotionDraft(type.Id, title, null, "Antragstext", "Begründung", "Kurzfassung", null, null);
+        var motion = _service.CreateDraft(_portal, author, Guid.NewGuid(), draft, DateTime.UtcNow).Motion!;
+        return _service.Release(motion.Id, author, DateTime.UtcNow).Motion!;
+    }
+
     private AssemblyMotion Reload(Guid id) => _motionRepo.Get(id)!;
 
     private string Number() {
@@ -126,6 +134,53 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
         await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Synced);
         await Assert.That(reloaded.ForumTopicId).IsEqualTo(topic.TopicId);
         await Assert.That(reloaded.ForumPostId).IsEqualTo(topic.PostId);
+    }
+
+    [Test]
+    public async Task Motion_collecting_cosubmitters_gets_a_topic_without_number_and_no_wiki_link() {
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == _portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Set(p => p.WikiPagePrefix, "Antrag:BPT 2027.1")
+            .Update();
+        _portal = _portalRepo.Get(_portal.Id)!;
+        var motion = Release(5);
+
+        var synced = await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        var topic = FakeDiscourseClient.Topics.Values.Single();
+        var reloaded = Reload(motion.Id);
+        await Assert.That(synced).IsEqualTo(1);
+        await Assert.That(reloaded.Number).IsNull();
+        await Assert.That(reloaded.WikiSyncState).IsNotEqualTo(WikiSyncState.Pending);
+        await Assert.That(topic.Title).IsEqualTo("Sammelantrag (Bundesparteitag 2027.1)");
+        await Assert.That(topic.Raw).Contains("sucht Mitantragsteller");
+        await Assert.That(topic.Raw).DoesNotContain("Antrag im Wiki");
+    }
+
+    [Test]
+    public async Task Joining_a_collecting_motion_updates_its_topic() {
+        var motion = Release(5);
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+        var supporter = _builder.SeedMember(chapterId: _chapter.Id, firstName: "Bernd", lastName: "Beispiel");
+
+        _service.Join(motion.Id, supporter, DateTime.UtcNow);
+        await _sync.SyncDueAsync(_now.AddMinutes(1), CancellationToken.None);
+
+        await Assert.That(FakeDiscourseClient.Topics.Values.Single().Raw).Contains("Antragsteller: Anna Pirat, Bernd Beispiel");
+    }
+
+    [Test]
+    public async Task Draft_gets_no_topic() {
+        var type = _portalRepo.GetTypes(_portal.Id).First(t => t.MinSubmitters == 5);
+        var author = _builder.SeedMember(chapterId: _chapter.Id);
+        var draft = new AssemblyMotionDraft(type.Id, "Entwurf", null, "Antragstext", "Begründung", null, null, null);
+        var motion = _service.CreateDraft(_portal, author, Guid.NewGuid(), draft, DateTime.UtcNow).Motion!;
+        _motionRepo.MarkForumPending(motion.Id, _now);
+
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        await Assert.That(FakeDiscourseClient.Topics.Count).IsEqualTo(0);
     }
 
     [Test]

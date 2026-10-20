@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,7 +116,7 @@ public class AssemblyMotionForumSync {
 
     private async Task<bool> AttemptAsync(DiscourseSettings settings, Guid motionId, DateTime nowUtc, CancellationToken ct) {
         var motion = _motions.Get(motionId);
-        if (motion == null || !motion.WasSubmitted || motion.ForumSyncState == ForumSyncState.Deleted)
+        if (motion == null || motion.Status == AssemblyMotionStatus.Draft || motion.ForumSyncState == ForumSyncState.Deleted)
             return false;
 
         var portal = _portals.Get(motion.PortalId);
@@ -248,7 +249,9 @@ public class AssemblyMotionForumSync {
             StatusLabel(motion),
             ResultLabel(motion.Result),
             PortalUrl(motion),
-            await WikiUrlAsync(portal, type, motion, ct));
+            await WikiUrlAsync(portal, type, motion, ct),
+            _motions.GetSubmitters(motion.Id).Count(s => !s.IsAuthor),
+            AssemblyMotionDeadlines.Effective(portal, type, motion.IsCompetingMotion));
     }
 
     private string StatusLabel(AssemblyMotion motion) {
@@ -286,7 +289,7 @@ public class AssemblyMotionForumSync {
 
     /// <summary>Null when the wiki cannot say how it addresses pages; a missing link is better than one that leads nowhere.</summary>
     private async Task<string?> WikiUrlAsync(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, CancellationToken ct) {
-        if (!portal.WikiMirrorEnabled || string.IsNullOrWhiteSpace(portal.WikiPagePrefix))
+        if (!portal.WikiMirrorEnabled || string.IsNullOrWhiteSpace(portal.WikiPagePrefix) || !motion.WasSubmitted)
             return null;
 
         try {

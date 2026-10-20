@@ -114,7 +114,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         var first = JoinNew(motion);
         var second = JoinNew(motion);
 
-        var outcome = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel"), motion.Revision, DateTime.UtcNow);
+        var outcome = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel") with { TextMarkdown = "Neuer Antragstext" }, motion.Revision, DateTime.UtcNow);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         await Assert.That(_queue.Requests.Count).IsEqualTo(1);
@@ -145,7 +145,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         var joiners = new[] { JoinNew(motion), JoinNew(motion), JoinNew(motion), JoinNew(motion) };
         _queue.Requests.Clear();
 
-        var outcome = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel"), motion.Revision, DateTime.UtcNow);
+        var outcome = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel") with { TextMarkdown = "Neuer Antragstext" }, motion.Revision, DateTime.UtcNow);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         await Assert.That(outcome.Motion!.Status).IsEqualTo(AssemblyMotionStatus.CollectingCoSubmitters);
@@ -186,7 +186,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         var (motion, author, type) = Released(5, TimeSpan.FromHours(40));
         _service.SendCollectingReminders(DateTime.UtcNow);
 
-        _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel"), motion.Revision, DateTime.UtcNow);
+        _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel") with { TextMarkdown = "Neuer Antragstext" }, motion.Revision, DateTime.UtcNow);
         _service.SendCollectingReminders(DateTime.UtcNow);
 
         await Assert.That(_queue.Requests.Count(r => r.TriggerId == NotificationTriggers.AssemblyMotionCollectingReminder)).IsEqualTo(2);
