@@ -208,6 +208,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "ekklesia_department",
             description: "Name des SAML-Attributs mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
 
+        AddDefinitionIfNotExists("auth.saml.eligible_attribute",
+            "SAML: Attribut für Stimmberechtigung",
+            OptionDataType.String, false, "", "ekklesia_eligible",
+            description: "Name des SAML-Attributs mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jedem Login; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
+
         AddDefinitionIfNotExists("auth.sso.support_contact",
             "SSO: Support-Kontakt",
             OptionDataType.String, false, "", "",
@@ -238,6 +243,11 @@ public class OptionRepository {
             "OIDC: Claim für Gliederung",
             OptionDataType.String, false, "", "ekklesia_department",
             description: "Name des Claims im ID-Token mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
+
+        AddDefinitionIfNotExists("auth.oidc.eligible_claim",
+            "OIDC: Claim für Stimmberechtigung",
+            OptionDataType.String, false, "", "ekklesia_eligible",
+            description: "Name des Claims im ID-Token mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jedem Login; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
             "OIDC: Login-Button Text",

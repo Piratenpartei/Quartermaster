@@ -50,9 +50,10 @@ public class KeycloakUserImportEndpointTests : IntegrationTestBase {
         return client;
     }
 
-    private static string AddAccount(int memberNumber, string? email = "anna@example.org", bool closed = false, string? department = null) {
+    private static string AddAccount(int memberNumber, string? email = "anna@example.org", bool closed = false, string? department = null,
+        string eligible = "false") {
         var id = Guid.NewGuid().ToString();
-        FakeKeycloakAdminClient.AddUser(id, $"anna.pirat{memberNumber}", memberNumber.ToString(), closed: closed,
+        FakeKeycloakAdminClient.AddUser(id, $"anna.pirat{memberNumber}", memberNumber.ToString(), eligible: eligible, closed: closed,
             firstName: "Anna", lastName: "Pirat", email: email, department: department);
         return id;
     }
@@ -104,6 +105,18 @@ public class KeycloakUserImportEndpointTests : IntegrationTestBase {
         await Assert.That(member.UserId).IsEqualTo(userId);
         await Assert.That(member.ChapterId).IsEqualTo(state.Id);
         await Assert.That(Db.Users.Single(u => u.Id == userId).Email).IsEqualTo("anna@example.org");
+    }
+
+    [Test]
+    public async Task Import_of_a_new_member_takes_the_voting_rights_from_the_account() {
+        var number = TestDataBuilder.NextMemberNumber();
+        var id = AddAccount(number, eligible: "true");
+        using var client = await ClientAsync();
+
+        var response = await ImportAsync(client, id);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == number).HasVotingRights).IsTrue();
     }
 
     [Test]

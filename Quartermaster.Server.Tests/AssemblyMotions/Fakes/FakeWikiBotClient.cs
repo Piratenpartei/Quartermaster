@@ -14,6 +14,7 @@ public class FakeWikiBotClient : IWikiBotClient {
     public static bool Configured { get; set; } = true;
     public static int LoginCount { get; set; }
     public static int GetCount { get; set; }
+    public static string ArticlePath { get; set; } = "https://wiki.test/$1";
 
     /// <summary>Transforms the stored text before <see cref="GetContentAsync"/> returns it, e.g. to add CRLF and a trailing newline like a wiki might.</summary>
     public static Func<string, string>? TransformReturnedText { get; set; }
@@ -21,7 +22,7 @@ public class FakeWikiBotClient : IWikiBotClient {
     public static Func<string, Task>? OnEdit { get; set; }
     public static Func<string, Task>? OnGetContent { get; set; }
 
-    /// <summary>Exceptions thrown by method name (Login, GetContent, Edit, Protect) on every call.</summary>
+    /// <summary>Exceptions thrown by method name (Login, GetContent, Edit, Protect, ArticlePath) on every call.</summary>
     public static Dictionary<string, Exception> ThrowOn { get; } = [];
 
     public static void Reset() {
@@ -35,10 +36,16 @@ public class FakeWikiBotClient : IWikiBotClient {
             Configured = true;
             LoginCount = 0;
             GetCount = 0;
+            ArticlePath = "https://wiki.test/$1";
             TransformReturnedText = null;
             OnEdit = null;
             OnGetContent = null;
         }
+    }
+
+    public Task<string> GetArticlePathAsync(WikiBotSettings settings, CancellationToken ct) {
+        ThrowIfFaulted("ArticlePath");
+        return Task.FromResult(ArticlePath);
     }
 
     public Task LoginAsync(WikiBotSettings settings, CancellationToken ct) {

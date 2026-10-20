@@ -46,6 +46,9 @@ public class Member {
     public Guid? ResidenceAdministrativeDivisionId { get; set; }
     public Guid? UserId { get; set; }
     public DateTime LastImportedAt { get; set; }
+
+    /// <summary>True once the member import delivered this member. A member an SSO login created stays false until then.</summary>
+    public bool IsImported { get; set; }
     public DateTime? AnonymizedAt { get; set; }
 
     /// <summary>True when the member's exit date has arrived or passed; a future exit date does not yet count as exited.

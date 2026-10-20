@@ -235,6 +235,7 @@ public class TestDataSeeder {
                     LastName = lastName,
                     Email = user.Email,
                     UserId = user.Id,
+                    IsImported = true,
                     LastImportedAt = DateTime.UtcNow
                 };
                 _context.Insert(member);

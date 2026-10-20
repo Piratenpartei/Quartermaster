@@ -30,6 +30,7 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
 
     private (string ApiUrl, string Username, string Password)? loggedInAs;
     private string? csrfToken;
+    private (string ApiUrl, string Pattern)? articlePath;
 
     public HttpWikiBotClient(HttpMessageHandler handler, IHostEnvironment environment, ILogger<HttpWikiBotClient> logger)
         : this(new HttpClient(handler), environment, logger) { }
@@ -50,6 +51,39 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
             CookieContainer = new CookieContainer(),
             PooledConnectionLifetime = TimeSpan.FromMinutes(15)
         };
+    }
+
+    public async Task<string> GetArticlePathAsync(WikiBotSettings settings, CancellationToken ct) {
+        await _gate.WaitAsync(ct);
+        try {
+            if (articlePath != null && articlePath.Value.ApiUrl == settings.ApiUrl) {
+                return articlePath.Value.Pattern;
+            }
+
+            // Site info is public, so no login: the link also works while the bot account is broken.
+            using var doc = await SendAsync(settings, false, [
+                new("action", "query"),
+                new("meta", "siteinfo"),
+                new("siprop", "general")
+            ], ct);
+            ThrowIfError(doc);
+
+            var general = Member(doc.RootElement, "siteinfo", "query", "general");
+            var server = StringMember(general, "siteinfo", "server");
+            var path = StringMember(general, "siteinfo", "articlepath");
+            if (!path.Contains("$1")) {
+                throw Unexpected("siteinfo", "articlepath has no $1");
+            }
+
+            var pattern = (server.StartsWith("//") ? "https:" + server : server).TrimEnd('/') + path;
+            articlePath = (settings.ApiUrl, pattern);
+            return pattern;
+        } catch (Exception ex) when (ex is not OperationCanceledException) {
+            _logger.LogWarning(ex, "Wiki site info could not be read");
+            throw;
+        } finally {
+            _gate.Release();
+        }
     }
 
     public async Task LoginAsync(WikiBotSettings settings, CancellationToken ct) {

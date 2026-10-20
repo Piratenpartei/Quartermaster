@@ -55,7 +55,8 @@ public class KeycloakUserImporter {
 
         MemberNumberParser.TryParse(account.Attribute("member_number"), out var memberNumber);
         var department = account.Attribute(KeycloakUserRepresentation.DepartmentAttribute);
-        var identity = new SsoIdentity(account.Email!.Trim(), memberNumber, account.FirstName, account.LastName, department);
+        var eligible = SsoLoginHelper.ParseEligible(account.Attribute(KeycloakUserRepresentation.EligibleAttribute));
+        var identity = new SsoIdentity(account.Email!.Trim(), memberNumber, account.FirstName, account.LastName, department, eligible);
         member = SsoLoginHelper.ResolveOrCreateMember(identity, _members);
 
         var (result, user) = SsoLoginHelper.EnsureUser(member, identity.Email, _members, _users, _officers);

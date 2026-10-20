@@ -110,6 +110,7 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.saml.expected_destination` | Required `<Destination>` URL — usually `<public_base_url>/api/users/SamlConsume`. Empty = skip check |
 | `auth.saml.member_number_attribute` | SAML attribute carrying the member number (default: `member_number`). Users are linked to members by this number; when no member exists yet, one is created from first name, last name, email and member number, and the next member import fills in the rest |
 | `auth.saml.department_attribute` | SAML attribute carrying the account's Keycloak department (default: `ekklesia_department`). See [Keycloak departments](#keycloak-departments) |
+| `auth.saml.eligible_attribute` | SAML attribute carrying the account's voting rights (default: `ekklesia_eligible`). See [Keycloak voting rights](#keycloak-voting-rights) |
 
 ### OpenID Connect (optional)
 
@@ -121,12 +122,17 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.oidc.button_text` | Login button label (default: `OpenID Login`) |
 | `auth.oidc.member_number_claim` | ID-token claim carrying the member number (default: `member_number`). Linking and member creation work as for SAML; first and last name come from `given_name` / `family_name` |
 | `auth.oidc.department_claim` | ID-token claim carrying the account's Keycloak department (default: `ekklesia_department`). See [Keycloak departments](#keycloak-departments) |
+| `auth.oidc.eligible_claim` | ID-token claim carrying the account's voting rights (default: `ekklesia_eligible`). See [Keycloak voting rights](#keycloak-voting-rights) |
 
 ### Keycloak departments
 
 MemberDataImport writes the state group of every account into the Keycloak attribute `ekklesia_department`. A chapter's "Keycloak department" field (on the chapter's edit form) takes that value, which is the state name, e.g. `Niedersachsen` (copy it from an account in Keycloak); each value can belong to one chapter only, compared ignoring case. At every SSO login, and when a user is added from Keycloak, the member is placed in the chapter with the matching value, unless the member already belongs to that chapter or one below it, so a district chapter from the member import is never replaced by the state.
 
 For the login to see the department, the Keycloak client needs a "User Attribute" mapper for `ekklesia_department`, added to the ID token (OIDC) or as a SAML attribute, the same way as for `member_number`. Without it, logins work as before and only "Add from Keycloak" maps departments.
+
+### Keycloak voting rights
+
+As long as the member import has not delivered a member, the member's voting rights follow the Keycloak attribute `ekklesia_eligible` (`true` or `false`): an SSO login or "Add from Keycloak" sets them when it creates the member, and every later login updates them. A missing or other value creates the member without voting rights and leaves an existing value unchanged. Members from the member import keep the value of the import. The login needs a "User Attribute" mapper for `ekklesia_eligible`, added the same way as for `ekklesia_department`. Voting rights are shown on the member and do not limit the motion portal.
 
 ### News Posts (optional)
 
@@ -275,7 +281,7 @@ Prerequisites outside Quartermaster:
 The topic:
 
 - Title `<number>: <title> (<event name>)`, for example `PA001: Titel des Antrags (Bundesparteitag 2026.2)`. The event name keeps titles unique across assemblies, as Discourse refuses duplicate titles. Titles longer than 255 characters are shortened with `...`; the number and the event name always stay.
-- The first post holds type, number and title, the submitters, status, result and section, a notice while the motion is in revision, the summary (or a note that there is none), the motion text and the reason as collapsed blocks, and links to the motion in the portal and, when the portal mirrors to the wiki, to the wiki page.
+- The first post holds type, number and title, the submitters, status, result and section, a notice while the motion is in revision, the summary (or a note that there is none), the motion text and the reason as collapsed blocks, and links to the motion in the portal and, when the portal mirrors to the wiki, to the wiki page. The wiki link follows the page address the wiki reports in its site info (for the Piratenwiki `https://wiki.piratenpartei.de/<title>`); when the wiki cannot be asked, the post goes out without it.
 - When the post would be longer than `discourse.max_post_length`, the motion text and then the reason are replaced by a notice that the full text is in the portal and the wiki. Texts are never cut short. If the forum still refuses the post as too long, it is sent again right away with both notices.
 - An `@name` in a motion text does not notify forum users.
 - The topic is created in the category set at that moment. Moderators may move it; the portal never moves it back, and changing the category in the portal only affects new topics.

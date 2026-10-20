@@ -49,8 +49,12 @@
                             <tbody>
                                 <tr><th style="width:180px">@I18n[I18nKey.Ui.UserSettings.MemberNumber]</th><td>@Settings.Member.MemberNumber</td></tr>
                                 <tr><th>@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</td></tr>
-                                <tr><th>@I18n[I18nKey.Ui.UserSettings.EntryDate]</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
-                                <tr><th>@I18n[I18nKey.Ui.UserSettings.MembershipFee]</th><td>@Settings.Member.MembershipFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
+                                @if (Settings.Member.EntryDate.HasValue) {
+                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.EntryDate]</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
+                                }
+                                @if (Settings.Member.MembershipFee > 0) {
+                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.MembershipFee]</th><td>@Settings.Member.MembershipFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
+                                }
                                 @if (Settings.Member.ReducedFee > 0) {
                                     <tr><th>@I18n[I18nKey.Ui.UserSettings.ReducedFee]</th><td>@Settings.Member.ReducedFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
                                 }

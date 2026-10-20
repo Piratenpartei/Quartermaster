@@ -52,6 +52,14 @@ public class MemberRepository {
         _auditLog.LogFieldChange("Member", memberId, "ChapterId", oldChapterId?.ToString(), chapterId.ToString());
     }
 
+    public void SetVotingRights(Guid memberId, bool oldValue, bool newValue) {
+        _context.Members
+            .Where(m => m.Id == memberId)
+            .Set(m => m.HasVotingRights, newValue)
+            .Update();
+        _auditLog.LogFieldChange("Member", memberId, "HasVotingRights", oldValue.ToString(), newValue.ToString());
+    }
+
     public List<Member> GetByChapterIds(List<Guid> chapterIds) {
         return _context.Members
             .Where(m => m.MemberNumber != null && m.ChapterId != null && chapterIds.Contains(m.ChapterId.Value))
@@ -160,6 +168,7 @@ public class MemberRepository {
             .Set(m => m.PostBounce, member.PostBounce)
             .Set(m => m.ChapterId, member.ChapterId)
             .Set(m => m.ResidenceAdministrativeDivisionId, member.ResidenceAdministrativeDivisionId)
+            .Set(m => m.IsImported, member.IsImported)
             .Set(m => m.LastImportedAt, member.LastImportedAt)
             .Update();
 
@@ -200,7 +209,8 @@ public class MemberRepository {
         && a.ReceivesNewsletter == b.ReceivesNewsletter
         && a.PostBounce == b.PostBounce
         && a.ChapterId == b.ChapterId
-        && a.ResidenceAdministrativeDivisionId == b.ResidenceAdministrativeDivisionId;
+        && a.ResidenceAdministrativeDivisionId == b.ResidenceAdministrativeDivisionId
+        && a.IsImported == b.IsImported;
 
     private void LogMemberFieldChanges(Member old, Member updated) {
         _auditLog.LogFieldChange("Member", updated.Id, "MemberNumber", old.MemberNumber?.ToString(), updated.MemberNumber?.ToString());
@@ -233,6 +243,7 @@ public class MemberRepository {
         _auditLog.LogFieldChange("Member", updated.Id, "PostBounce", old.PostBounce.ToString(), updated.PostBounce.ToString());
         _auditLog.LogFieldChange("Member", updated.Id, "ChapterId", old.ChapterId?.ToString(), updated.ChapterId?.ToString());
         _auditLog.LogFieldChange("Member", updated.Id, "ResidenceAdministrativeDivisionId", old.ResidenceAdministrativeDivisionId?.ToString(), updated.ResidenceAdministrativeDivisionId?.ToString());
+        _auditLog.LogFieldChange("Member", updated.Id, "IsImported", old.IsImported.ToString(), updated.IsImported.ToString());
         _auditLog.LogFieldChange("Member", updated.Id, "LastImportedAt", old.LastImportedAt.ToString("o"), updated.LastImportedAt.ToString("o"));
     }
 

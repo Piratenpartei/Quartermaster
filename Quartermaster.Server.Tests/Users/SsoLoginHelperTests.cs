@@ -47,6 +47,7 @@ public class SsoLoginHelperTests : RepositoryTestBase {
             LastName = "Member",
             Email = email,
             Street = "Hauptstraße 1",
+            IsImported = true,
             LastImportedAt = DateTime.UtcNow
         };
         _memberRepo.Insert(member);
@@ -124,5 +125,52 @@ public class SsoLoginHelperTests : RepositoryTestBase {
 
         await Assert.That(result).IsEqualTo(SsoLoginResult.MemberExited);
         await Assert.That(token).IsNull();
+    }
+
+    [Test]
+    public async Task Unknown_member_number_takes_the_voting_rights_from_the_account() {
+        Login(new SsoIdentity("eligible@example.org", 4712, "Erika", "Mustermann", Eligible: true));
+        Login(new SsoIdentity("ineligible@example.org", 4713, "Max", "Mustermann", Eligible: false));
+        Login(new SsoIdentity("unknown@example.org", 4714, "Mia", "Mustermann"));
+
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == 4712).HasVotingRights).IsTrue();
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == 4713).HasVotingRights).IsFalse();
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == 4714).HasVotingRights).IsFalse();
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == 4712).IsImported).IsFalse();
+    }
+
+    [Test]
+    public async Task Member_not_yet_imported_follows_the_account_at_every_login() {
+        Login(new SsoIdentity("minimal@example.org", 4720, "Erika", "Mustermann", Eligible: false));
+
+        Login(new SsoIdentity("minimal@example.org", 4720, "Erika", "Mustermann", Eligible: true));
+        var afterGrant = Db.Members.Single(m => m.MemberNumber == 4720).HasVotingRights;
+        Login(new SsoIdentity("minimal@example.org", 4720, "Erika", "Mustermann"));
+        var afterMissingValue = Db.Members.Single(m => m.MemberNumber == 4720).HasVotingRights;
+        Login(new SsoIdentity("minimal@example.org", 4720, "Erika", "Mustermann", Eligible: false));
+
+        await Assert.That(afterGrant).IsTrue();
+        await Assert.That(afterMissingValue).IsTrue();
+        await Assert.That(Db.Members.Single(m => m.MemberNumber == 4720).HasVotingRights).IsFalse();
+    }
+
+    [Test]
+    public async Task Imported_member_keeps_the_voting_rights_of_the_import() {
+        var member = InsertMember(500, "imported@example.org");
+
+        Login(new SsoIdentity("imported@example.org", 500, "Imported", "Member", Eligible: true));
+
+        await Assert.That(Db.Members.Single(m => m.Id == member.Id).HasVotingRights).IsFalse();
+    }
+
+    [Test]
+    [Arguments("true", true)]
+    [Arguments("True", true)]
+    [Arguments("false", false)]
+    [Arguments("", null)]
+    [Arguments("ja", null)]
+    [Arguments(null, null)]
+    public async Task Eligible_value_is_parsed_and_anything_else_counts_as_unknown(string? value, bool? expected) {
+        await Assert.That(SsoLoginHelper.ParseEligible(value)).IsEqualTo(expected);
     }
 }

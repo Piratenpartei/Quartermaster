@@ -291,6 +291,7 @@ public class MemberImportService {
             ReceivesActions = ParseBool(record.USER_Aktionen),
             ReceivesNewsletter = ParseBool(record.USER_Newsletter),
             PostBounce = ParseBool(record.USER_Postbounce),
+            IsImported = true,
             LastImportedAt = importedAt
         };
 

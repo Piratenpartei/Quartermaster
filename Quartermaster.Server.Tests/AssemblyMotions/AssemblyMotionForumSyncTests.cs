@@ -12,13 +12,14 @@ using Quartermaster.Data.Options;
 using Quartermaster.Server.AssemblyMotions;
 using Quartermaster.Server.AssemblyMotions.Forum;
 using Quartermaster.Server.AssemblyMotions.Notifications;
+using Quartermaster.Server.AssemblyMotions.Wiki;
 using Quartermaster.Server.Notifications;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.AssemblyMotions;
 
-[NotInParallel("FakeDiscourseClient")]
+[NotInParallel(["FakeDiscourseClient", "FakeWikiBotClient"])]
 public class AssemblyMotionForumSyncTests : RepositoryTestBase {
     private const string BaseUrl = "https://qm.test";
     private static readonly I18nService I18n = new($$"""
@@ -43,6 +44,7 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
     [Before(Test)]
     public void Setup() {
         FakeDiscourseClient.Reset();
+        FakeWikiBotClient.Reset();
         AssemblyMotionForumSync.ResetUnconfiguredWarning();
         _builder = new TestDataBuilder(Db);
         _portalRepo = new AssemblyMotionPortalRepository(Db, AuditLog);
@@ -68,6 +70,7 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
             new EventRepository(context, auditLog),
             context,
             new FakeDiscourseClient(),
+            new FakeWikiBotClient(),
             new OptionRepository(context, auditLog),
             auditLog,
             I18n,
@@ -351,7 +354,25 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
 
         var raw = FakeDiscourseClient.Topics.Values.Single().Raw;
         await Assert.That(raw).Contains("Antragsteller: Anna Pirat");
-        await Assert.That(raw).Contains("Antrag im Wiki: https://wiki.piratenpartei.de/index.php?title=Antrag:BPT_2027.1/" + Number());
+        await Assert.That(raw).Contains("Antrag im Wiki: https://wiki.test/Antrag:BPT_2027.1/" + Number());
+        await Assert.That(raw).Contains("Antrag im Antragsportal: https://qm.test/AssemblyMotions/");
+    }
+
+    [Test]
+    public async Task Wiki_link_is_left_out_when_the_wiki_cannot_say_how_pages_are_addressed() {
+        Db.AssemblyMotionPortals
+            .Where(p => p.Id == _portal.Id)
+            .Set(p => p.WikiMirrorEnabled, true)
+            .Set(p => p.WikiPagePrefix, "Antrag:BPT 2027.1")
+            .Update();
+        _portal = _portalRepo.Get(_portal.Id)!;
+        FakeWikiBotClient.ThrowOn["ArticlePath"] = new WikiBotException("Das Wiki ist nicht erreichbar.", "http_error");
+        Submit();
+
+        await _sync.SyncDueAsync(_now, CancellationToken.None);
+
+        var raw = FakeDiscourseClient.Topics.Values.Single().Raw;
+        await Assert.That(raw).DoesNotContain("Antrag im Wiki");
         await Assert.That(raw).Contains("Antrag im Antragsportal: https://qm.test/AssemblyMotions/");
     }
 

@@ -57,6 +57,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
         await Assert.That(anna.FirstName).IsEqualTo("Anna");
         await Assert.That(anna.LastName).IsEqualTo("Mueller");
         await Assert.That(anna.Email).IsEqualTo("anna@example.com");
+        await Assert.That(anna.IsImported).IsTrue();
     }
 
     [Test]
@@ -77,6 +78,7 @@ public class MemberImportServiceTests : RepositoryTestBase {
         var updated = _context.Members.Where(m => m.MemberNumber == 1001).First();
         await Assert.That(updated.FirstName).IsEqualTo("Anna");
         await Assert.That(updated.Id).IsEqualTo(existingId);
+        await Assert.That(updated.IsImported).IsTrue();
     }
 
     [Test]

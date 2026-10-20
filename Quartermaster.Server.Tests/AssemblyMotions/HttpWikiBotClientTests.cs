@@ -568,4 +568,39 @@ public class HttpWikiBotClientTests {
         probe.Stop();
         return port;
     }
+    [Test]
+    public async Task Article_path_comes_from_siteinfo_without_login_and_is_cached() {
+        var handler = new RecordingWikiHandler();
+        handler.Enqueue("query", """{"batchcomplete":true,"query":{"general":{"server":"https://wiki.piratenpartei.de","articlepath":"/$1","script":"/wiki/index.php"}}}""");
+        using var client = Client(handler);
+
+        var first = await client.GetArticlePathAsync(Settings(), CancellationToken.None);
+        var second = await client.GetArticlePathAsync(Settings(), CancellationToken.None);
+
+        var request = handler.Requests.Single();
+        await Assert.That(first).IsEqualTo("https://wiki.piratenpartei.de/$1");
+        await Assert.That(second).IsEqualTo(first);
+        await Assert.That(request.Fields["meta"]).IsEqualTo("siteinfo");
+        await Assert.That(request.Fields.ContainsKey("lgname")).IsFalse();
+    }
+
+    [Test]
+    public async Task Protocol_relative_server_gets_https() {
+        var handler = new RecordingWikiHandler();
+        handler.Enqueue("query", """{"query":{"general":{"server":"//wiki.example.org","articlepath":"/wiki/$1"}}}""");
+        using var client = Client(handler);
+
+        var path = await client.GetArticlePathAsync(Settings(), CancellationToken.None);
+
+        await Assert.That(path).IsEqualTo("https://wiki.example.org/wiki/$1");
+    }
+
+    [Test]
+    public async Task Siteinfo_without_article_path_is_an_error() {
+        var handler = new RecordingWikiHandler();
+        handler.Enqueue("query", """{"query":{"general":{"server":"https://wiki.example.org"}}}""");
+        using var client = Client(handler);
+
+        await Assert.ThrowsAsync<WikiBotException>(() => client.GetArticlePathAsync(Settings(), CancellationToken.None));
+    }
 }

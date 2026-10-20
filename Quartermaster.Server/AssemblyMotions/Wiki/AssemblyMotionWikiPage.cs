@@ -13,16 +13,12 @@ public static class AssemblyMotionWikiPage {
         return $"{portal.WikiPagePrefix?.Trim().Trim('/')}/{AssemblyMotionNumber.Format(type.Code, motion.Number!.Value)}";
     }
 
-    /// <summary>The page URL next to the MediaWiki API, for example https://wiki.example.org/index.php?title=Antrag:PA001.</summary>
-    public static string Url(string apiUrl, string title) {
-        var trimmed = apiUrl.Trim();
-        var root = trimmed.EndsWith("api.php", StringComparison.OrdinalIgnoreCase)
-            ? trimmed[..^"api.php".Length]
-            : trimmed.TrimEnd('/') + "/";
+    /// <summary>The page URL from the wiki's article path (<see cref="IWikiBotClient.GetArticlePathAsync"/>), for example https://wiki.example.org/wiki/Antrag:PA001.</summary>
+    public static string Url(string articlePath, string title) {
         var escaped = Uri.EscapeDataString(title.Replace(' ', '_'))
             .Replace("%2F", "/")
             .Replace("%3A", ":");
-        return $"{root}index.php?title={escaped}";
+        return articlePath.Replace("$1", escaped);
     }
 
     /// <summary>A prefix is valid when it has no surrounding whitespace or slash, no wikitext/title-special characters, no double slash and fits the column.</summary>

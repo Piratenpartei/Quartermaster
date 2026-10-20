@@ -45,19 +45,21 @@ public class AssemblyMotionForumSync {
     private readonly EventRepository _events;
     private readonly DbContext _db;
     private readonly IDiscourseClient _forum;
+    private readonly IWikiBotClient _wiki;
     private readonly OptionRepository _options;
     private readonly AuditLogRepository _auditLog;
     private readonly I18nService _i18n;
     private readonly ILogger<AssemblyMotionForumSync> _logger;
 
     public AssemblyMotionForumSync(AssemblyMotionRepository motions, AssemblyMotionPortalRepository portals, EventRepository events,
-        DbContext db, IDiscourseClient forum, OptionRepository options, AuditLogRepository auditLog, I18nService i18n,
+        DbContext db, IDiscourseClient forum, IWikiBotClient wiki, OptionRepository options, AuditLogRepository auditLog, I18nService i18n,
         ILogger<AssemblyMotionForumSync> logger) {
         _motions = motions;
         _portals = portals;
         _events = events;
         _db = db;
         _forum = forum;
+        _wiki = wiki;
         _options = options;
         _auditLog = auditLog;
         _i18n = i18n;
@@ -128,7 +130,7 @@ public class AssemblyMotionForumSync {
         try {
             var categoryId = portal.ForumCategoryId
                 ?? throw new DiscourseException("Für das Portal ist keine Forum-Kategorie eingestellt.", CategoryMissingCode);
-            var input = BuildInput(portal, type, motion);
+            var input = await BuildInputAsync(portal, type, motion, ct);
             var title = AssemblyMotionForumPost.Title(input);
             var raw = AssemblyMotionForumPost.Raw(input, settings.MaxPostLength);
 
@@ -236,7 +238,7 @@ public class AssemblyMotionForumSync {
             : $"Antragsportal: Status aktualisiert (Revision {motion.Revision})";
     }
 
-    private AssemblyMotionForumInput BuildInput(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion) {
+    private async Task<AssemblyMotionForumInput> BuildInputAsync(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, CancellationToken ct) {
         var names = AssemblyMotionSubmitterNames.ForMotions(_db, _motions, [motion]);
         return new AssemblyMotionForumInput(
             motion,
@@ -246,7 +248,7 @@ public class AssemblyMotionForumSync {
             StatusLabel(motion),
             ResultLabel(motion.Result),
             PortalUrl(motion),
-            WikiUrl(portal, type, motion));
+            await WikiUrlAsync(portal, type, motion, ct));
     }
 
     private string StatusLabel(AssemblyMotion motion) {
@@ -282,11 +284,18 @@ public class AssemblyMotionForumSync {
         return $"{baseUrl}/AssemblyMotions/{motion.Id}";
     }
 
-    private string? WikiUrl(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion) {
+    /// <summary>Null when the wiki cannot say how it addresses pages; a missing link is better than one that leads nowhere.</summary>
+    private async Task<string?> WikiUrlAsync(AssemblyMotionPortal portal, AssemblyMotionType type, AssemblyMotion motion, CancellationToken ct) {
         if (!portal.WikiMirrorEnabled || string.IsNullOrWhiteSpace(portal.WikiPagePrefix))
             return null;
 
-        return AssemblyMotionWikiPage.Url(WikiBotSettings.ReadFrom(_options).ApiUrl, AssemblyMotionWikiPage.Title(portal, type, motion));
+        try {
+            var articlePath = await _wiki.GetArticlePathAsync(WikiBotSettings.ReadFrom(_options), ct);
+            return AssemblyMotionWikiPage.Url(articlePath, AssemblyMotionWikiPage.Title(portal, type, motion));
+        } catch (WikiBotException ex) {
+            _logger.LogWarning("Forum post of motion {MotionId} goes out without its wiki link: {Exception}", motion.Id, ex);
+            return null;
+        }
     }
 
     private void RecordFailure(AssemblyMotion motion, DateTime? requestedAt, Exception exception, DateTime nowUtc) {

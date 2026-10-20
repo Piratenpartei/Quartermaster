@@ -59,6 +59,7 @@ public static class SettingsAssistantCatalog {
                 new("auth.saml.expected_destination"),
                 new("auth.saml.member_number_attribute"),
                 new("auth.saml.department_attribute"),
+                new("auth.saml.eligible_attribute"),
                 new("auth.sso.support_contact")
             ])
         ],
@@ -74,6 +75,7 @@ public static class SettingsAssistantCatalog {
                 new("auth.oidc.button_text"),
                 new("auth.oidc.member_number_claim"),
                 new("auth.oidc.department_claim"),
+                new("auth.oidc.eligible_claim"),
                 new("auth.sso.support_contact")
             ])
         ],

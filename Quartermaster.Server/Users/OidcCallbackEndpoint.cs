@@ -184,10 +184,15 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         if (string.IsNullOrEmpty(departmentClaim))
             departmentClaim = "ekklesia_department";
 
+        var eligibleClaim = _optionRepo.GetGlobalValue("auth.oidc.eligible_claim")?.Value;
+        if (string.IsNullOrEmpty(eligibleClaim))
+            eligibleClaim = "ekklesia_eligible";
+
         var identity = new SsoIdentity(email, memberNumber,
             FindClaim(principal, "given_name", ClaimTypes.GivenName),
             FindClaim(principal, "family_name", ClaimTypes.Surname),
-            FindClaim(principal, departmentClaim, departmentClaim));
+            FindClaim(principal, departmentClaim, departmentClaim),
+            SsoLoginHelper.ParseEligible(FindClaim(principal, eligibleClaim, eligibleClaim)));
 
         Logger.LogInformation("OIDC login attempt for member number {MemberNumber}", memberNumber);
 

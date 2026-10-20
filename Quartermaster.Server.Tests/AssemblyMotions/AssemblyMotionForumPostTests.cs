@@ -7,7 +7,7 @@ namespace Quartermaster.Server.Tests.AssemblyMotions;
 
 public class AssemblyMotionForumPostTests {
     private const string PortalUrl = "https://qm.test/AssemblyMotions/1";
-    private const string WikiUrl = "https://wiki.test/index.php?title=Antrag:PA001";
+    private const string WikiUrl = "https://wiki.test/Antrag:PA001";
 
     private static AssemblyMotionForumInput Input(Action<AssemblyMotion>? change = null, string? wikiUrl = WikiUrl, string? resultLabel = null) {
         var motion = new AssemblyMotion {
@@ -180,10 +180,11 @@ public class AssemblyMotionForumPostTests {
     }
 
     [Test]
-    public async Task Wiki_page_url_is_built_from_api_url() {
-        var url = AssemblyMotionWikiPage.Url("https://wiki.piratenpartei.de/api.php", "Antrag:BPT 2026.2/PA001");
-
-        await Assert.That(url).IsEqualTo("https://wiki.piratenpartei.de/index.php?title=Antrag:BPT_2026.2/PA001");
+    [Arguments("https://wiki.piratenpartei.de/$1", "Antrag:BPT 2026.2/PA001", "https://wiki.piratenpartei.de/Antrag:BPT_2026.2/PA001")]
+    [Arguments("https://wiki.example.org/wiki/$1", "Antrag:PA001", "https://wiki.example.org/wiki/Antrag:PA001")]
+    [Arguments("https://wiki.example.org/wiki/$1", "Antrag:Was?/Ä&B#1", "https://wiki.example.org/wiki/Antrag:Was%3F/%C3%84%26B%231")]
+    public async Task Wiki_page_url_follows_the_article_path(string articlePath, string title, string expected) {
+        await Assert.That(AssemblyMotionWikiPage.Url(articlePath, title)).IsEqualTo(expected);
     }
     [Test]
     public async Task Escaped_backslash_before_mention_cannot_revive_it() {

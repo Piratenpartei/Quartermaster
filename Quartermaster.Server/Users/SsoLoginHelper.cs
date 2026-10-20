@@ -13,22 +13,41 @@ public enum SsoLoginResult {
 }
 
 public static class SsoLoginHelper {
-    /// <summary>Returns the member carrying <see cref="SsoIdentity.MemberNumber"/>, creating a minimal one (names, email, number)
-    /// when the member import hasn't delivered that person yet. The next import fills the remaining fields by member number.</summary>
+    /// <summary>Returns the member carrying <see cref="SsoIdentity.MemberNumber"/>, creating a minimal one (names, email, number, voting rights)
+    /// when the member import hasn't delivered that person yet. The next import fills the remaining fields by member number; until then
+    /// the voting rights follow the account at every login.</summary>
     public static Member ResolveOrCreateMember(SsoIdentity identity, MemberRepository memberRepo) {
         var member = memberRepo.GetByMemberNumber(identity.MemberNumber);
-        if (member != null)
+        if (member != null) {
+            FollowAccountVotingRights(member, identity.Eligible, memberRepo);
             return member;
+        }
 
         member = new Member {
             MemberNumber = identity.MemberNumber,
             FirstName = identity.FirstName ?? "",
             LastName = identity.LastName ?? "",
             Email = identity.Email,
+            HasVotingRights = identity.Eligible ?? false,
             LastImportedAt = DateTime.UtcNow
         };
         memberRepo.Insert(member);
         return member;
+    }
+
+    private static void FollowAccountVotingRights(Member member, bool? eligible, MemberRepository memberRepo) {
+        if (member.IsImported)
+            return;
+        if (eligible == null || member.HasVotingRights == eligible.Value)
+            return;
+
+        memberRepo.SetVotingRights(member.Id, member.HasVotingRights, eligible.Value);
+        member.HasVotingRights = eligible.Value;
+    }
+
+    /// <summary>The <c>ekklesia_eligible</c> value as Keycloak sends it ("true"/"false"); anything else is unknown.</summary>
+    public static bool? ParseEligible(string? value) {
+        return bool.TryParse(value, out var eligible) ? eligible : null;
     }
 
     public static (SsoLoginResult Result, Token? Token) ProcessSsoLogin(

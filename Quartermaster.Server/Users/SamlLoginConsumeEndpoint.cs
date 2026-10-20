@@ -167,10 +167,15 @@ public class SamlLoginConsumeEndpoint : Endpoint<SamlLoginRequest, EmptyResponse
         if (string.IsNullOrEmpty(departmentAttribute))
             departmentAttribute = "ekklesia_department";
 
+        var eligibleAttribute = _optionRepo.GetGlobalValue("auth.saml.eligible_attribute")?.Value;
+        if (string.IsNullOrEmpty(eligibleAttribute))
+            eligibleAttribute = "ekklesia_eligible";
+
         var identity = new SsoIdentity(email, memberNumber,
             FirstAttribute(samlResponse, FirstNameAttributes),
             FirstAttribute(samlResponse, LastNameAttributes),
-            FirstAttribute(samlResponse, [departmentAttribute]));
+            FirstAttribute(samlResponse, [departmentAttribute]),
+            SsoLoginHelper.ParseEligible(FirstAttribute(samlResponse, [eligibleAttribute])));
 
         Logger.LogInformation("SAML login attempt for member number {MemberNumber}", memberNumber);
 
