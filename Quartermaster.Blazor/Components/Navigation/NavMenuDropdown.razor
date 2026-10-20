@@ -1,4 +1,8 @@
-<div class="dropdown" @onfocusout=OnFocusOut>
+@if (!Collapsed) {
+    <div class="menu-backdrop" @onclick=Close></div>
+}
+
+<div class="dropdown @(Collapsed ? "" : "nav-dropdown-open")" @onfocusout=OnFocusOut>
     <button class="nav-link pe-auto" @onclick=ToggleDropdown>
         @ButtonContent
 
@@ -9,7 +13,7 @@
         }
     </button>
 
-    <ul class="dropdown-menu @(Collapsed ? "" : "show")">
+    <ul class="dropdown-menu @(Collapsed ? "" : "show")" @onclick=Close>
         @DropdownContent
     </ul>
 </div>

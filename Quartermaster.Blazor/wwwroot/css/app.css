@@ -446,6 +446,11 @@ code {
     z-index: 999;
 }
 
+/* Lifts an open navbar dropdown above its backdrop; in the collapsed mobile navbar the menu is static, so it cannot rise on its own. */
+.dropdown.nav-dropdown-open {
+    z-index: 1000;
+}
+
 .badge > .receipt-chip-close.btn-close {
     width: 0.5em;
     height: 0.5em;

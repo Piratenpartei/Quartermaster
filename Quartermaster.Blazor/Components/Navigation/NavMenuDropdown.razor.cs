@@ -13,6 +13,9 @@ public partial class NavMenuDropdown {
 
     private void ToggleDropdown() => Collapsed = !Collapsed;
 
+    private void Close() => Collapsed = true;
+
+    /// <summary>Closes the menu when the keyboard focus leaves it. Safari never focuses a clicked button, so mouse and touch users rely on the backdrop instead.</summary>
     private async Task OnFocusOut(FocusEventArgs e) {
         // Delay to allow click events on dropdown items to fire before the menu closes.
         // 200ms is enough for most click interactions.
