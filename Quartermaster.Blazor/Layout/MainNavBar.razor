@@ -161,7 +161,7 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 @if (AuthService.IsAuthenticated) {
-                    <a href="/Settings" class="btn btn-outline-secondary btn-sm btn-hover-scale1">
+                    <a href="/Settings" class="btn btn-outline-secondary btn-sm btn-hover-scale1 text-nowrap">
                         <i class="bi bi-person-fill"></i> @AuthService.CurrentUser?.DisplayName
                     </a>
                     <a href="/Sessions" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.MySessionsTitle]">

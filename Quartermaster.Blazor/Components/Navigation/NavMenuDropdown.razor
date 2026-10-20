@@ -3,7 +3,7 @@
 }
 
 <div class="dropdown @(Collapsed ? "" : "nav-dropdown-open")" @onfocusout=OnFocusOut>
-    <button class="nav-link pe-auto" @onclick=ToggleDropdown>
+    <button class="nav-link pe-auto text-nowrap" @onclick=ToggleDropdown>
         @ButtonContent
 
         @if (Collapsed) {
