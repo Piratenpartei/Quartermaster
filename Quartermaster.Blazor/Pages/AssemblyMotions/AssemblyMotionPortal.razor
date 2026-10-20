@@ -157,7 +157,7 @@
                     <tbody>
                         @foreach (var item in group) {
                             <tr>
-                                <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                                <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                                 <td>
                                     <a href="/AssemblyMotions/@item.Id">@item.Title</a>
                                     @if (UpvotedIds.Contains(item.Id)) {

@@ -84,18 +84,19 @@ public class AssemblyMotionForumPostTests {
     public async Task Motion_without_number_says_it_still_needs_cosubmitters() {
         var input = Input(m => {
             m.Number = null;
+            m.ReferenceNumber = 12;
             m.Status = AssemblyMotionStatus.CollectingCoSubmitters;
         }, wikiUrl: null);
 
         var raw = AssemblyMotionForumPost.Raw(input, 32000);
 
         await AssertInOrder(raw,
-            "Programmantrag: Titel des Antrags",
+            "Programmantrag #12: Titel des Antrags",
             "**Dieser Antrag ist noch nicht eingereicht und sucht Mitantragsteller: Er braucht mindestens 4 Mitantragsteller "
                 + "bis zum 21.11. um 18:00 Uhr, bisher hat er 1. Mitantragsteller werden kannst du im Antragsportal.**",
             "### Zusammenfassung");
         await Assert.That(raw).DoesNotContain("Antrag im Wiki");
-        await Assert.That(AssemblyMotionForumPost.Title(input)).IsEqualTo("Titel des Antrags (Bundesparteitag 2026.2)");
+        await Assert.That(AssemblyMotionForumPost.Title(input)).IsEqualTo("#12: Titel des Antrags (Bundesparteitag 2026.2)");
     }
 
     [Test]

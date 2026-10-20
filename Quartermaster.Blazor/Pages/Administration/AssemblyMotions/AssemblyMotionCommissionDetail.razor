@@ -18,8 +18,8 @@
         <div>
             <div class="text-secondary">
                 @Detail.TypeName (@Detail.TypeCode)
-                @if (!string.IsNullOrEmpty(Detail.DisplayNumber)) {
-                    <span> - @Detail.DisplayNumber</span>
+                @if (Detail.NumberLabel != null) {
+                    <span> - @Detail.NumberLabel</span>
                 }
             </div>
             <h2 class="mb-0">@Detail.Title</h2>

@@ -12,6 +12,7 @@ public static class AssemblyMotionPublicView {
             TypeCode = type.Code,
             TypeName = type.Name,
             DisplayNumber = motion.Number == null ? "" : AssemblyMotionNumber.Format(type.Code, motion.Number.Value),
+            NumberLabel = AssemblyMotionNumber.Label(type.Code, motion.Number, motion.ReferenceNumber),
             Title = motion.Title,
             Status = motion.Status,
             IsInRevision = motion.IsInRevision,
@@ -32,6 +33,7 @@ public static class AssemblyMotionPublicView {
         dto.TypeCode = item.TypeCode;
         dto.TypeName = item.TypeName;
         dto.DisplayNumber = item.DisplayNumber;
+        dto.NumberLabel = item.NumberLabel;
         dto.Title = item.Title;
         dto.Status = item.Status;
         dto.IsInRevision = item.IsInRevision;

@@ -17,6 +17,9 @@ public class AssemblyMotion {
     public Guid TypeId { get; set; }
     public int? Number { get; set; }
 
+    /// <summary>Counts up per portal across all types when a motion is released; drafts have none.</summary>
+    public int? ReferenceNumber { get; set; }
+
     [NotColumn]
     public bool WasSubmitted => Number.HasValue;
 

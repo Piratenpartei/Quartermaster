@@ -35,7 +35,7 @@
             <tbody>
                 @foreach (var item in Items) {
                     <tr>
-                        <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                        <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                         <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
                         <td>@(item.IsAuthor ? I18n[I18nKey.Ui.AssemblyMotion.RoleAuthor] : I18n[I18nKey.Ui.AssemblyMotion.RoleCoSubmitter])</td>
                         <td><AssemblyMotionStatusBadge Status="@item.Status" /></td>

@@ -105,6 +105,7 @@ public class AssemblyMotionDashboardEndpoint : Endpoint<AssemblyMotionDashboardR
         return new AssemblyMotionDashboardItemDTO {
             Id = motion.Id,
             DisplayNumber = motion.Number == null ? null : AssemblyMotionNumber.Format(type.Code, motion.Number.Value),
+            NumberLabel = AssemblyMotionNumber.Label(type.Code, motion.Number, motion.ReferenceNumber),
             Title = motion.Title,
             TypeCode = type.Code,
             Status = motion.Status,

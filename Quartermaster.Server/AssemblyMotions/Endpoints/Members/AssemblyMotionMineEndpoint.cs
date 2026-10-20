@@ -59,6 +59,7 @@ public class AssemblyMotionMineEndpoint : Endpoint<AssemblyMotionPortalIdRequest
             .Select(m => new AssemblyMotionMineItemDTO {
                 Id = m.Id,
                 DisplayNumber = m.Number == null ? null : AssemblyMotionNumber.Format(types[m.TypeId].Code, m.Number.Value),
+                NumberLabel = AssemblyMotionNumber.Label(types[m.TypeId].Code, m.Number, m.ReferenceNumber),
                 Title = m.Title,
                 Status = m.Status,
                 IsAuthor = m.CreatedByMemberId == member.Id,

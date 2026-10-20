@@ -263,6 +263,10 @@ public class AssemblyMotionService {
         if (problem != null)
             return problem;
 
+        // Taken before any write: Submit below locks the type next, and the type lock never waits for the portal lock elsewhere.
+        _motions.LockPortal(motion.PortalId);
+        motion.ReferenceNumber = _motions.NextReferenceNumber(motion.PortalId);
+
         _auditLog.Log("AssemblyMotion", motion.Id, AssemblyMotionRepository.ReleasedAuditAction, AssemblyMotionRepository.ReleasedRevisionField, null, motion.Revision.ToString());
 
         var declaredCompetitions = _db.AssemblyMotionCompetitions
@@ -278,6 +282,8 @@ public class AssemblyMotionService {
             _motions.Update(motion);
             _motions.MarkForumPending(motion.Id, nowUtc);
         }
+        _auditLog.Log("AssemblyMotion", motion.Id, AssemblyMotionRepository.ReleasedAuditAction, nameof(AssemblyMotion.ReferenceNumber), null,
+            motion.ReferenceNumber.ToString());
 
         notifications.Add(() => NotifyDeclaredCompetitions(motion, declaredCompetitions));
 

@@ -445,6 +445,30 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Release_numbers_motions_of_all_types_in_one_sequence_per_portal() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var collectingType = TypeWithMinSubmitters(portal.Id, 5);
+        var singleType = TypeWithMinSubmitters(portal.Id, 1);
+        var author = SeedEligibleMember();
+        var draft = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(collectingType.Id), now).Motion!;
+
+        var first = SeedReleased(portal, collectingType, author, now);
+        var second = SeedReleased(portal, singleType, author, now);
+        var third = SeedReleased(portal, collectingType, author, now);
+        var otherEvent = _builder.SeedEvent(_chapter.Id);
+        var otherPortal = _portalRepo.Create(otherEvent.Id, now.AddHours(-1), now.AddDays(7), now);
+        var otherPortalMotion = SeedReleased(otherPortal, TypeWithMinSubmitters(otherPortal.Id, 5), author, now);
+
+        await Assert.That(_motionRepo.Get(draft.Id)!.ReferenceNumber).IsNull();
+        await Assert.That(_motionRepo.Get(first.Id)!.ReferenceNumber).IsEqualTo(1);
+        await Assert.That(_motionRepo.Get(second.Id)!.ReferenceNumber).IsEqualTo(2);
+        await Assert.That(_motionRepo.Get(second.Id)!.Number).IsEqualTo(1);
+        await Assert.That(_motionRepo.Get(third.Id)!.ReferenceNumber).IsEqualTo(3);
+        await Assert.That(_motionRepo.Get(otherPortalMotion.Id)!.ReferenceNumber).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task Edit_while_collecting_removes_cosubmitters() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));

@@ -9,6 +9,9 @@ public class AssemblyMotionPublicListItemDTO {
     public string TypeCode { get; set; } = "";
     public string TypeName { get; set; } = "";
     public string DisplayNumber { get; set; } = "";
+
+    /// <summary>The official number, else the reference number; null for a draft.</summary>
+    public string? NumberLabel { get; set; }
     public string Title { get; set; } = "";
     public AssemblyMotionStatus Status { get; set; }
     public bool IsInRevision { get; set; }

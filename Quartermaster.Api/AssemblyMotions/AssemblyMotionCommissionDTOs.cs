@@ -6,6 +6,7 @@ namespace Quartermaster.Api.AssemblyMotions;
 public class AssemblyMotionDashboardItemDTO {
     public Guid Id { get; set; }
     public string? DisplayNumber { get; set; }
+    public string? NumberLabel { get; set; }
     public string Title { get; set; } = "";
     public string TypeCode { get; set; } = "";
     public AssemblyMotionStatus Status { get; set; }

@@ -176,7 +176,7 @@
                 <tbody>
                     @foreach (var item in Items) {
                         <tr>
-                            <td class="text-nowrap">@(string.IsNullOrEmpty(item.DisplayNumber) ? "-" : item.DisplayNumber)</td>
+                            <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                             <td><a href="/Administration/AssemblyMotions/@item.Id">@item.Title</a></td>
                             <td>@item.TypeCode</td>
                             <td class="text-nowrap">

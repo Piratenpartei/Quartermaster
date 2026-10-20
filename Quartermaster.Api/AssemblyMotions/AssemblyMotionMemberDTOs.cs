@@ -69,6 +69,7 @@ public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
 public class AssemblyMotionMineItemDTO {
     public Guid Id { get; set; }
     public string? DisplayNumber { get; set; }
+    public string? NumberLabel { get; set; }
     public string Title { get; set; } = "";
     public AssemblyMotionStatus Status { get; set; }
     public bool IsAuthor { get; set; }

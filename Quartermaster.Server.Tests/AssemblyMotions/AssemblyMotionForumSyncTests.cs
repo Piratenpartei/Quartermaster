@@ -153,7 +153,7 @@ public class AssemblyMotionForumSyncTests : RepositoryTestBase {
         await Assert.That(synced).IsEqualTo(1);
         await Assert.That(reloaded.Number).IsNull();
         await Assert.That(reloaded.WikiSyncState).IsNotEqualTo(WikiSyncState.Pending);
-        await Assert.That(topic.Title).IsEqualTo("Sammelantrag (Bundesparteitag 2027.1)");
+        await Assert.That(topic.Title).IsEqualTo("#1: Sammelantrag (Bundesparteitag 2027.1)");
         await Assert.That(topic.Raw).Contains("sucht Mitantragsteller");
         await Assert.That(topic.Raw).DoesNotContain("Antrag im Wiki");
     }

@@ -15,9 +15,10 @@ public static partial class AssemblyMotionForumPost {
     private const string Ellipsis = "...";
     private const string Footer = "_Dieser Beitrag wird automatisch aus dem Antragsportal aktualisiert, Änderungen hier werden überschrieben._";
 
-    /// <summary>The number, title and event; a motion that has no number yet goes without it.</summary>
+    /// <summary>The number (the reference number until the motion has its official one), title and event.</summary>
     public static string Title(AssemblyMotionForumInput input) {
-        var number = input.Motion.Number == null ? "" : AssemblyMotionNumber.Format(input.Type.Code, input.Motion.Number.Value) + ": ";
+        var label = AssemblyMotionNumber.Label(input.Type.Code, input.Motion.Number, input.Motion.ReferenceNumber);
+        var number = label == null ? "" : label + ": ";
         var title = input.Motion.Title;
         var suffix = $" ({input.EventName})";
         var full = $"{number}{title}{suffix}";
@@ -70,7 +71,8 @@ public static partial class AssemblyMotionForumPost {
 
     private static string Build(AssemblyMotionForumInput input, bool withText, bool withReason) {
         var motion = input.Motion;
-        var number = motion.Number == null ? "" : " " + AssemblyMotionNumber.Format(input.Type.Code, motion.Number.Value);
+        var label = AssemblyMotionNumber.Label(input.Type.Code, motion.Number, motion.ReferenceNumber);
+        var number = label == null ? "" : " " + label;
         var builder = new StringBuilder();
 
         builder.Append($"{input.Type.Name}{number}: {DefuseMentions(motion.Title)}\n");

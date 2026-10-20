@@ -52,6 +52,21 @@ public class AssemblyMotionRepository {
                 new DataParameter("id", typeId)).FirstOrDefault();
     }
 
+    public void LockPortal(Guid portalId) {
+        _context.Query<Guid>(
+                $"SELECT Id FROM {AssemblyMotionPortal.TableName} WHERE Id = @id FOR UPDATE",
+                new DataParameter("id", portalId)).FirstOrDefault();
+    }
+
+    public int NextReferenceNumber(Guid portalId) {
+        var maxNumber = _context.AssemblyMotions
+            .Where(m => m.PortalId == portalId && m.ReferenceNumber != null)
+            .Select(m => m.ReferenceNumber)
+            .Max();
+
+        return (maxNumber ?? 0) + 1;
+    }
+
     public int NextNumber(Guid portalId, Guid typeId) {
         var maxNumber = _context.AssemblyMotions
             .Where(m => m.PortalId == portalId && m.TypeId == typeId && m.Number != null)
@@ -75,6 +90,7 @@ public class AssemblyMotionRepository {
             .Where(m => m.Id == motion.Id)
             .Set(m => m.TypeId, motion.TypeId)
             .Set(m => m.Number, motion.Number)
+            .Set(m => m.ReferenceNumber, motion.ReferenceNumber)
             .Set(m => m.Title, motion.Title)
             .Set(m => m.Section, motion.Section)
             .Set(m => m.TextMarkdown, motion.TextMarkdown)
@@ -226,6 +242,7 @@ public class AssemblyMotionRepository {
                 PortalId = m.PortalId,
                 TypeId = m.TypeId,
                 Number = m.Number,
+                ReferenceNumber = m.ReferenceNumber,
                 Title = m.Title,
                 IsCompetingMotion = m.IsCompetingMotion,
                 Status = m.Status,

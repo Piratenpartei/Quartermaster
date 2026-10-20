@@ -16,8 +16,8 @@
         <div>
             <div class="text-secondary">
                 @Motion.TypeName (@Motion.TypeCode)
-                @if (!string.IsNullOrEmpty(Motion.DisplayNumber)) {
-                    <span> - @Motion.DisplayNumber</span>
+                @if (Motion.NumberLabel != null) {
+                    <span> - @Motion.NumberLabel</span>
                 }
             </div>
             <h2 class="mb-0">@Motion.Title</h2>

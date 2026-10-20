@@ -82,6 +82,7 @@ public class AssemblyMotionCollectingListEndpoint : Endpoint<AssemblyMotionColle
             TypeCode = item.TypeCode,
             TypeName = item.TypeName,
             DisplayNumber = item.DisplayNumber,
+            NumberLabel = item.NumberLabel,
             Title = item.Title,
             Status = item.Status,
             IsInRevision = item.IsInRevision,

@@ -208,10 +208,7 @@ public class AssemblyMotionNotifier {
     }
 
     private static string DisplayNumber(AssemblyMotion motion, AssemblyMotionType type) {
-        if (motion.Number == null)
-            return "Entwurf";
-
-        return AssemblyMotionNumber.Format(type.Code, motion.Number.Value);
+        return AssemblyMotionNumber.Label(type.Code, motion.Number, motion.ReferenceNumber) ?? "Entwurf";
     }
 
     private static string StatusLabel(AssemblyMotion motion) {

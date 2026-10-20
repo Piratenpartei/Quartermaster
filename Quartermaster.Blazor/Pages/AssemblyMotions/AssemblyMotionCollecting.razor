@@ -25,6 +25,7 @@
         <table class="table table-hover">
             <thead>
                 <tr>
+                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
                     <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
                     <th>@I18n[I18nKey.Ui.Common.Title]</th>
                     <th>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</th>
@@ -34,6 +35,7 @@
             <tbody>
                 @foreach (var item in Items) {
                     <tr>
+                        <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                         <td>@item.TypeName (@item.TypeCode)</td>
                         <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
                         <td>@item.SubmitterCount / @item.MinSubmitters</td>
