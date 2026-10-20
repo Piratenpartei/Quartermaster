@@ -21,7 +21,7 @@ public class MembershipApplicationLinkDivisionEndpointTests : IntegrationTestBas
         AddressHouseNbr = "1",
         AddressPostCode = "30159",
         AddressCity = "Hannover",
-        ChapterId = chapterId,
+        AddressAdministrativeDivisionId = chapterId == null ? null : Builder.SeedDivisionFor(chapterId.Value),
         ConformityDeclarationAccepted = true,
         ApplicationText = "Join.",
         EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)

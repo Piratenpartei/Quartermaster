@@ -176,7 +176,7 @@ Optional. When "Enable wiki mirror" is switched on in the portal settings ("Moti
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `wiki.api_url` | `https://wiki.piratenpartei.de/api.php` | URL of the MediaWiki Action API. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `wiki.api_url` | `https://wiki.piratenpartei.de/api.php` | URL of the MediaWiki Action API. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]`, and only on a development build |
 | `wiki.bot_username` | _empty_ | Wiki login of the bot, for a bot password in the form `User@BotName` |
 | `wiki.bot_password` | _empty_ | Bot password (stored masked) |
 | `wiki.protection_level` | `Antrag` | Protection level applied to created pages (edit and move) |
@@ -258,7 +258,7 @@ Optional. When "Enable forum mirror" is switched on in the portal settings, ever
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `discourse.base_url` | _empty_ | Base URL of the forum, for example `https://forum.piratenpartei.de`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `discourse.base_url` | _empty_ | Base URL of the forum, for example `https://forum.piratenpartei.de`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]`, and only on a development build |
 | `discourse.api_username` | _empty_ | User name of the bot account in the forum |
 | `discourse.api_key` | _empty_ | API key bound to the bot account (stored masked, never logged) |
 | `discourse.max_post_length` | `32000` | Must match the forum's site setting `max_post_length` |
@@ -301,13 +301,57 @@ First run checklist:
 3. Check the topic: title, names, links, the collapsed blocks, and that test texts containing `@<your forum name>`, `\\@<your forum name>`, `[/details]`, `[details="x"]`, `</details>` and a URL such as `https://piraten.social/@piratenpartei` render as typed, stay inside their block and notify nobody.
 4. Only then switch the mirror on for the real portal with the real category.
 
+### Redmine forwarding of applications and due selections
+
+Optional. Membership applications and due selections can be forwarded as Redmine tickets: the federal level always gets a ticket for documentation, and each chapter decides either in Quartermaster (board motion) or in its own Redmine. Chapters that set up nothing receive their cases through the federal ticket, passed down inside Redmine.
+
+Options (global, in the "Forwarding of applications" assistant):
+
+| Identifier | Default | Purpose |
+|---|---|---|
+| `forwarding.membership_application.enabled` | `false` | Forward membership applications |
+| `forwarding.due_selection.enabled` | `false` | Forward due selections |
+| `dues.regular_minimum` | `72` | Yearly amount from which a due selection needs no decision |
+| `dues.state_decision_minimum` | `12` | Reductions below this yearly amount are decided by the federal level |
+
+A switch can only be turned on once the federal level has a Redmine connection and the targets it uses (applications: membership application; due selections: due selection and reduction); the switches are set in the assistant only, the general options API refuses them. The threshold for state decisions must be above 0 and below the regular minimum. While a switch is off, no tickets are created and every chapter counts as deciding in Quartermaster: applications are handled in their own chapter as before, and a due selection at or above the regular minimum is stored as auto-approved.
+
+Routing:
+
+- **Due selections** (login required, no email confirmation; with a linked member record the person data comes from that record):
+  - At or above `dues.regular_minimum`: a ticket in the federal "due selection" target project. No decision.
+  - Below it (a reduction): a ticket in the federal "reduction" target project first. The state chapter of the member decides when the amount is at or above `dues.state_decision_minimum`, otherwise the federal level; a member without a state chapter (for example abroad) goes to the federal level. The deciding chapter's reduction setting then applies: "decide in Quartermaster" creates a board motion and, after the vote, a note on the federal ticket; "handle in own Redmine" creates a ticket in that chapter's Redmine that links the federal ticket (at the federal level the federal ticket itself is the decision); unset passes it down inside Redmine.
+  - The 12 EUR rate for minors is not a reduction and needs no decision.
+  - The server refuses a due below what the chosen valuation requires (1 % of a yearly income of at least 7,200 EUR, at least 72 EUR by income group, 12 EUR for minors), so a low amount can only come in as a reduction.
+- **Membership applications** (anonymous with email confirmation as before): always a ticket in the federal "membership application" target project first. The handling chapter is the nearest chapter from the application's chapter upwards, excluding the federal level, with an application setting: "decide in Quartermaster" creates the application and its board motion there and, after the vote, a note on the federal ticket; "handle in own Redmine" creates a ticket there that links the federal ticket. Without such a chapter, an application from abroad follows the federal setting; one from a lower chapter is passed down inside Redmine. A reduction in an application is routed separately like a due selection, and the two cases reference each other.
+- **The application's chapter is determined by the server** from the address' administrative division; a chapter sent by the browser is ignored. When no chapter can be determined, the application gets its federal ticket and waits for its division to be linked, as before; a reduction in it is held back until then. Linking routes the application as if the chapter had been known on arrival: a handling chapter deciding in Quartermaster gets the application and its motion, one handling it in Redmine gets its chapter ticket (Quartermaster then deletes its own copy), and the held back reduction goes to its deciding chapter.
+
+Example: a member of a district chapter in Lower Saxony asks for a reduction to 36 EUR. The federal reduction project gets a ticket; the Lower Saxony state chapter decides. If it decides in Quartermaster, its board votes on a motion and the outcome is added as a note to the federal ticket, optionally with a new status and assignee so the federal membership administration can enter it. A reduction to 6 EUR is decided by the federal level instead.
+
+Setup:
+
+1. "Redmine" assistant (`/Administration/Setup/Redmine`): the federal Redmine (address and API key of a dedicated bot account; the key is write-only and never shown again, and changing the server or port of the address requires entering it again; the address must use https, plain http is only accepted for `localhost`, `127.0.0.1` and `[::1]` on a development build) and, for chapters with their own instance, their own connection. A chapter without one uses the nearest parent's connection, so a chapter can have its own project in the federal Redmine. "Check connection" logs in once and shows the account.
+2. "Forwarding of applications" assistant (`/Administration/Setup/Forwarding`): switches and thresholds, the federal settings and chapter overrides. Per chapter: application setting, reduction setting (federal level and state chapters only), the failure email address and a target project per purpose handled in Redmine. A target has project, tracker, optional priority and assignee, custom fields, and for the federal targets the status and assignee set by the outcome note. Projects, trackers, priorities and statuses are listed from Redmine; assignee and custom field ids are entered as numbers. Saving is refused when "handle in own Redmine" has no connection or no target.
+3. Custom fields map a Redmine custom field id to a template value, for example `{{ member.Number }}`; an empty value leaves the field out.
+4. Ticket texts come from the templates `forwarding.redmine.application`, `forwarding.redmine.due_selection`, `forwarding.redmine.reduction`, `forwarding.redmine.outcome_note` and `forwarding.failure.email` (subject and body; chapters can override them). Variables: `application.*`, `dues.*`, `member.*`, `submission.*`, `chapter.*`, `case.Reference`, `case.RelatedReference`, `federalTicket.Id`, `federalTicket.Url`, `outcome.*`. Every description ends with the reference line `Quartermaster-Vorgang QM-…`.
+
+Processing:
+
+- A background job creates the tickets about once a minute, federal ticket first, then the chapter ticket with the federal link. A case waiting for a retry does not hold back newer ones. A step gets three attempts (at once, after 5 and after 15 more minutes); a rejected API key or a ticket Redmine refuses (for example a wrong custom field id) fails at once.
+- A failed step sends the failure email (with the complete rendered ticket, so it can be created by hand) to the failure address of the target chapter or its nearest parent, and the case appears in `/Administration/Forwarding` ("Forwarded cases"). There, "Retry" queues it again and "Resolved by hand" closes it; a case resolved while the job is working on it stays resolved and sends no failure email. Application cases need the federal "process applications" permission, due selection cases the federal "process due selections" permission.
+- The outcome note is also added when an officer decides the due selection or application directly instead of through its motion; it then links the record. Only undecided records can be decided this way; a due selection handled in Redmine ("Decided in Redmine") is decided there. Its template comes from the federal level, like the federal ticket it goes on.
+- If a request was interrupted after Redmine created the ticket, the next attempt finds the ticket by its reference line and takes it over instead of creating a second one.
+- Data minimisation: the submitted data of a case is kept only until all its tickets exist (or the case is retried successfully or resolved by hand), and the bodies of the emails logged for it (failure emails, and the applicant's receipt when only Redmine keeps the application) are cleared from the notification log at the same time; afterwards only kind, chapters, ticket numbers and dates remain. A reduction decided in Redmine for an application handled in Quartermaster shows as "Decided in Redmine" in the due selection list. Applications, due selections and motions on the Quartermaster path follow the usual rules; when the retention sweep anonymizes an application or due selection, it also clears the bodies of the emails sent about it.
+
+First run checklist: set up a test project in the federal Redmine with the bot account, configure the federal targets against it, switch on one form, submit a test application and a test reduction, and check the tickets, the custom fields and the reference line. Then set up the real projects and the chapters.
+
 ### OpenSlides push for the motion portal
 
 Optional. The commission can push the motions of a portal to an OpenSlides 4.3 meeting with "Push to OpenSlides" on the motion dashboard. The push is started by hand and never runs in the background. The same dashboard offers "Export JSON", which downloads the numbered motions of the portal as a JSON file and needs no configuration. Drafts and motions that never had a number are not part of the file. Status, result and required majority are written as names, for example `Admitted`, `AcceptedModified` and `TwoThirds`.
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `openslides.url` | _empty_ | Base URL of the OpenSlides instance, for example `https://openslides.example.org`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]` |
+| `openslides.url` | _empty_ | Base URL of the OpenSlides instance, for example `https://openslides.example.org`. Must be `https`; plain `http` is only accepted for `localhost`, `127.0.0.1` and `[::1]`, and only on a development build |
 | `openslides.username` | _empty_ | Login of the account used for the push |
 | `openslides.password` | _empty_ | Password of that account (stored masked) |
 
@@ -470,14 +514,16 @@ The travel expense form at `/Forms/TravelExpense` is open to everyone. Anonymous
 - Editing a chapter's rules needs `travel_expense_rules_edit` on exactly that chapter; the global default needs it granted globally.
 - The submission deadline and the cut-off date of the following year never block an application; a late application only carries a note for the chapter's treasurer.
 
-### Rate limiting (anonymous endpoints)
+### Rate limiting
 
-Shared bucket across all anonymous POST endpoints (motion create, membership application create, due-selection create). Hot-reloaded — takes effect for new IP buckets immediately and for active buckets after their current window expires.
+Shared bucket across all anonymous POST endpoints (motion create, membership application create, the PDFs of the expense and travel expense forms), per IP. Due selections require login and have their own bucket per account, because each one creates a federal Redmine ticket while forwarding is on. Both are hot-reloaded: a change takes effect for new buckets immediately and for active buckets after their current window expires.
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `auth.ratelimit.anonymous_create_permits` | `5` | Max anonymous create requests per IP per window, shared by motions, membership applications, dues selections and the PDFs of the expense and travel expense forms |
+| `auth.ratelimit.anonymous_create_permits` | `5` | Max anonymous create requests per IP per window, shared by motions, membership applications and the PDFs of the expense and travel expense forms |
 | `auth.ratelimit.anonymous_create_window_minutes` | `10` | Window length in minutes |
+| `auth.ratelimit.due_selection_permits` | `5` | Max due selections per logged-in account per window |
+| `auth.ratelimit.due_selection_window_minutes` | `1440` | Window length in minutes (one day) |
 
 ### Member import
 

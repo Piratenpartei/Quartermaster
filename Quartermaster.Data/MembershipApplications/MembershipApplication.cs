@@ -1,6 +1,7 @@
 using System;
 using LinqToDB.Mapping;
 using Quartermaster.Api;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
 
@@ -76,6 +77,27 @@ public class MembershipApplication {
         EntryDate = dto.EntryDate.ToStorage(),
         SubmittedAt = nowUtc,
         Status = dto.ChapterId.HasValue ? ApplicationStatus.Pending : ApplicationStatus.PendingDivisionLinking
+    };
+
+    public MembershipApplicationDTO ToDto(DueSelectionDTO? dueSelection) => new() {
+        FirstName = FirstName,
+        LastName = LastName,
+        DateOfBirth = DateOfBirth.ToDtoDate(),
+        Citizenship = Citizenship,
+        Email = Email,
+        PhoneNumber = PhoneNumber,
+        AddressStreet = AddressStreet,
+        AddressHouseNbr = AddressHouseNbr,
+        AddressPostCode = AddressPostCode,
+        AddressCity = AddressCity,
+        AddressAdministrativeDivisionId = AddressAdministrativeDivisionId,
+        ChapterId = ChapterId,
+        DueSelection = dueSelection,
+        ConformityDeclarationAccepted = ConformityDeclarationAccepted,
+        HasPriorDeclinedApplication = HasPriorDeclinedApplication,
+        IsMemberOfAnotherParty = IsMemberOfAnotherParty,
+        ApplicationText = ApplicationText,
+        EntryDate = EntryDate.ToDtoDate()
     };
 
     public MembershipApplicationDetailDTO ToDetailDto(string chapterName, bool hasReducedDueSelection) => new() {

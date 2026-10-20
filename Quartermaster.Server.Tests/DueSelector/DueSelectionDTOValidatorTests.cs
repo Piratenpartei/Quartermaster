@@ -103,6 +103,7 @@ public class DueSelectionDTOValidatorTests {
     [Test]
     public void ZeroSelectedDue_ShouldHaveNoError() {
         var selection = ValidDueSelection();
+        selection.SelectedValuation = SelectedValuation.Reduced;
         selection.SelectedDue = 0m;
 
         var result = _validator.TestValidate(selection);
@@ -259,5 +260,37 @@ public class DueSelectionDTOValidatorTests {
 
         result.ShouldNotHaveValidationErrorFor(x => x.IBAN);
         result.ShouldNotHaveValidationErrorFor(x => x.AccountHolder);
+    }
+    [Test]
+    [Arguments(SelectedValuation.OnePercentYearlyPay, 5000, 50)]
+    [Arguments(SelectedValuation.OnePercentYearlyPay, 10000, 50)]
+    [Arguments(SelectedValuation.MonthlyPayGroup, 0, 50)]
+    [Arguments(SelectedValuation.Underage, 0, 0)]
+    public void Due_below_the_valuation_rate_ShouldHaveError(SelectedValuation valuation, int yearlyIncome, int due) {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = valuation;
+        selection.YearlyIncome = yearlyIncome;
+        selection.SelectedDue = due;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.SelectedDue)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.DueBelowRate);
+    }
+
+    [Test]
+    [Arguments(SelectedValuation.OnePercentYearlyPay, 10000, 100)]
+    [Arguments(SelectedValuation.MonthlyPayGroup, 0, 72)]
+    [Arguments(SelectedValuation.Underage, 0, 12)]
+    [Arguments(SelectedValuation.Reduced, 0, 0)]
+    public void Due_at_the_valuation_rate_ShouldHaveNoError(SelectedValuation valuation, int yearlyIncome, int due) {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = valuation;
+        selection.YearlyIncome = yearlyIncome;
+        selection.SelectedDue = due;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.SelectedDue);
     }
 }

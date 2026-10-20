@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,14 +43,15 @@ public class MembershipApplicationMailService {
         _logger = logger;
     }
 
-    public async Task SendApplicationReceivedAsync(MembershipApplication application, bool isReduced, CancellationToken ct) {
+    /// <param name="logSource">Where the notification log files the mail; defaults to the application, which an application only Redmine keeps does not have.</param>
+    public async Task SendApplicationReceivedAsync(MembershipApplication application, bool isReduced, (string Type, Guid Id)? logSource, CancellationToken ct) {
         var chapter = ResolveChapter(application);
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
             ["application"] = application.ToDetailDto(chapter?.Name ?? "", isReduced),
             ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
         };
-        await SendAsync(ReceivedTriggerId, ReceivedTemplateId, application, application.Email, model, ct);
+        await SendAsync(ReceivedTriggerId, ReceivedTemplateId, application, application.Email, model, ct, logSource);
     }
 
     public async Task SendWelcomeAsync(MembershipApplication application, int memberNumber, CancellationToken ct) {
@@ -83,7 +85,7 @@ public class MembershipApplicationMailService {
         => application.ChapterId.HasValue ? _chapterRepo.Get(application.ChapterId.Value) : null;
 
     private async Task SendAsync(string triggerId, string templateIdentifier,
-        MembershipApplication application, string email, Dictionary<string, object> model, CancellationToken ct) {
+        MembershipApplication application, string email, Dictionary<string, object> model, CancellationToken ct, (string Type, Guid Id)? logSource = null) {
         if (string.IsNullOrWhiteSpace(email)) {
             _logger.LogWarning("Applicant mail '{TriggerId}' skipped: empty email for application {Id}", triggerId, application.Id);
             return;
@@ -106,8 +108,8 @@ public class MembershipApplicationMailService {
             ChannelAddress: email,
             Subject: subject ?? template.Subject ?? "",
             Body: body ?? template.Body,
-            SourceEntityType: "MembershipApplication",
-            SourceEntityId: application.Id,
+            SourceEntityType: logSource?.Type ?? "MembershipApplication",
+            SourceEntityId: logSource?.Id ?? application.Id,
             Metadata: metadata), ct);
     }
 }

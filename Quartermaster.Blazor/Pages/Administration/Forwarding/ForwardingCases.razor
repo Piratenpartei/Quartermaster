@@ -1,0 +1,77 @@
+@page "/Administration/Forwarding"
+@using Quartermaster.Api
+@using Quartermaster.Api.Forwarding
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.ForwardingCases.Title]</PageTitle>
+
+<RequirePermission AnyOfPermissions="@([PermissionIdentifier.ProcessApplications, PermissionIdentifier.ProcessDueSelections])">
+    <h3 class="mb-1"><i class="bi bi-signpost-split me-2"></i>@I18n[I18nKey.Ui.ForwardingCases.Title]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.ForwardingCases.Intro]</p>
+
+    <div class="mb-3" style="max-width: 16rem">
+        <FormSelect Value="@Filter" ValueChanged="OnFilterChanged">
+            <option value="@((int)ForwardingCaseStatus.Failed)">@I18n[I18nKey.Ui.ForwardingCases.FilterFailed]</option>
+            <option value="@((int)ForwardingCaseStatus.Open)">@I18n[I18nKey.Ui.ForwardingCases.FilterOpen]</option>
+            <option value="">@I18n[I18nKey.Ui.ForwardingCases.FilterAll]</option>
+        </FormSelect>
+    </div>
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (Forbidden) {
+        <div class="alert alert-secondary">@I18n[I18nKey.Ui.ForwardingCases.NoPermission]</div>
+    } else if (Cases.Count == 0) {
+        <p class="text-secondary">@I18n[I18nKey.Ui.ForwardingCases.Empty]</p>
+    } else {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.ForwardingCases.Reference]</th>
+                        <th>@I18n[I18nKey.Ui.ForwardingCases.Kind]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                        <th>@I18n[I18nKey.Ui.ForwardingCases.Created]</th>
+                        <th>@I18n[I18nKey.Ui.ForwardingCases.Steps]</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Cases) {
+                        <tr>
+                            <td class="text-nowrap"><code>@item.Reference</code><div><span class="badge border @StatusClass(item.Status)">@StatusLabel(item.Status)</span></div></td>
+                            <td>@KindLabel(item.Kind)</td>
+                            <td>@item.ChapterName</td>
+                            <td class="text-nowrap">@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                @foreach (var step in item.Steps) {
+                                    <div class="small mb-1">
+                                        <span class="badge border @StepClass(step.State)">@StepLabel(step.State)</span>
+                                        @StepTitle(step) · @step.TargetChapterName
+                                        @if (!string.IsNullOrEmpty(step.TicketUrl)) {
+                                            <a href="@step.TicketUrl" target="_blank" rel="noopener" class="ms-1"><i class="bi bi-box-arrow-up-right"></i></a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(step.LastError)) {
+                                            <div class="text-danger-emphasis text-break">@step.LastError <span class="text-secondary">(@I18n[I18nParams.With(I18nKey.Ui.ForwardingCases.Attempts, ("count", step.Attempts.ToString()))])</span></div>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                            <td class="text-nowrap">
+                                @if (item.Status == ForwardingCaseStatus.Failed) {
+                                    <button class="btn btn-sm btn-outline-primary mb-1" disabled="@Busy" @onclick="() => RetryAsync(item.Id)"><i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.ForwardingCases.Retry]</button>
+                                }
+                                @if (item.Status == ForwardingCaseStatus.Failed || item.Status == ForwardingCaseStatus.Open) {
+                                    <button class="btn btn-sm btn-outline-secondary mb-1" disabled="@Busy" @onclick="() => ResolveAsync(item.Id)"><i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.ForwardingCases.Resolve]</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+    }
+</RequirePermission>
+
+<ConfirmDialog @ref="ResolveDialog" Title="@I18n[I18nKey.Ui.ForwardingCases.Resolve]" ConfirmText="@I18n[I18nKey.Ui.ForwardingCases.Resolve]" />

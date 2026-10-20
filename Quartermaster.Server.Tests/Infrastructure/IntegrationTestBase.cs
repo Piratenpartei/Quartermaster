@@ -53,7 +53,7 @@ public abstract class IntegrationTestBase : IDisposable {
         // Bump per-worker rate-limit bucket so unrelated tests don't drain each other.
         // Direct write to skip audit-log noise. Rate-limit tests override via WithWebHostBuilder.
         Db.SystemOptions
-            .Where(o => o.Identifier == "auth.ratelimit.anonymous_create_permits" && o.ChapterId == null)
+            .Where(o => (o.Identifier == "auth.ratelimit.anonymous_create_permits" || o.Identifier == "auth.ratelimit.due_selection_permits") && o.ChapterId == null)
             .Set(o => o.Value, "10000")
             .Update();
 

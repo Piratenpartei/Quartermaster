@@ -12,8 +12,11 @@ public record WikiBotSettings(string ApiUrl, string Username, string Password, s
         return !string.IsNullOrWhiteSpace(Password);
     }
 
-    /// <summary>True for https URLs, and for http only on localhost, 127.0.0.1 and [::1].</summary>
-    public static bool IsSecureUrl(string apiUrl) {
+    /// <summary>
+    /// True for https URLs. Plain http only on localhost, 127.0.0.1 and [::1], and only with <paramref name="allowLoopbackHttp"/> (development builds):
+    /// on a production server those addresses are its own services, which must not receive the credentials.
+    /// </summary>
+    public static bool IsSecureUrl(string apiUrl, bool allowLoopbackHttp) {
         if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out var uri)) {
             return false;
         }
@@ -22,7 +25,7 @@ public record WikiBotSettings(string ApiUrl, string Username, string Password, s
             return true;
         }
 
-        if (uri.Scheme != Uri.UriSchemeHttp) {
+        if (uri.Scheme != Uri.UriSchemeHttp || !allowLoopbackHttp) {
             return false;
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Settings;
@@ -13,9 +14,11 @@ public class OpenSlidesSettingsCheck : ISettingsCheck {
     private readonly IOpenSlidesClient _client;
     private readonly OptionRepository _options;
     private readonly ILogger<OpenSlidesSettingsCheck> _logger;
+    private readonly bool _allowLoopbackHttp;
 
-    public OpenSlidesSettingsCheck(IOpenSlidesClient client, OptionRepository options, ILogger<OpenSlidesSettingsCheck> logger) {
+    public OpenSlidesSettingsCheck(IOpenSlidesClient client, OptionRepository options, IHostEnvironment environment, ILogger<OpenSlidesSettingsCheck> logger) {
         _client = client;
+        _allowLoopbackHttp = environment.IsDevelopment();
         _options = options;
         _logger = logger;
     }
@@ -26,7 +29,7 @@ public class OpenSlidesSettingsCheck : ISettingsCheck {
         var settings = OpenSlidesSettings.ReadFrom(_options);
         if (!settings.IsConfigured())
             return SettingsCheckResults.NotConfigured();
-        if (!OpenSlidesSettings.IsSecureUrl(settings.Url))
+        if (!OpenSlidesSettings.IsSecureUrl(settings.Url, _allowLoopbackHttp))
             return SettingsCheckResults.Failed(I18nKey.Ui.SettingsCheck.InsecureUrl);
 
         try {

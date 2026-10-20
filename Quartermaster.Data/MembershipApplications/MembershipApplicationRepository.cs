@@ -70,10 +70,9 @@ public class MembershipApplicationRepository {
 
     /// <summary>
     /// Assigns the administrative division + chapter to an application that was waiting in
-    /// PendingDivisionLinking and moves it to Pending so normal review can begin.
+    /// PendingDivisionLinking and moves it to Pending so normal review can begin. Runs inside the caller's transaction.
     /// </summary>
     public void LinkDivisionAndChapter(Guid id, Guid? divisionId, Guid? chapterId) {
-        using var tx = _context.BeginTransaction();
         var existing = Get(id);
         _context.MembershipApplications
             .Where(a => a.Id == id)
@@ -83,7 +82,12 @@ public class MembershipApplicationRepository {
             .Update();
         if (existing != null)
             _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId?.ToString());
-        tx.Commit();
+    }
+
+    /// <summary>Removes the row for good; for data that only Redmine keeps from now on.</summary>
+    public void Delete(Guid id) {
+        _context.MembershipApplications.Where(a => a.Id == id).Delete();
+        _auditLog.LogDeleted("MembershipApplication", id);
     }
 
     public void SetMemberNumberAndWelcome(Guid id, int memberNumber, DateTime sentAt) {

@@ -146,6 +146,7 @@ public partial class MembershipApplicationDetail {
         DueSelectionStatus.Approved => I18n[I18nKey.Ui.ApplicationDetail.DueStatusApproved],
         DueSelectionStatus.Rejected => I18n[I18nKey.Ui.ApplicationDetail.DueStatusRejected],
         DueSelectionStatus.AutoApproved => I18n[I18nKey.Ui.ApplicationDetail.DueStatusAutoApproved],
+        DueSelectionStatus.Forwarded => I18n[I18nKey.Ui.ApplicationDetail.DueStatusForwarded],
         _ => I18n[I18nKey.Ui.ApplicationDetail.DueStatusUnknown]
     };
 }

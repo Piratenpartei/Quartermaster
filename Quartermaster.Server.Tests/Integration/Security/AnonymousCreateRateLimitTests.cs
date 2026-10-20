@@ -70,7 +70,7 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
         await Assert.That(second.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         // Third request on a *different* anonymous endpoint shares the same bucket → 429.
-        var third = await client.PostAsJsonAsync("/api/dueselector", new {
+        var third = await client.PostAsJsonAsync("/api/membershipapplications", new {
             FirstName = "x", LastName = "y"
         });
         await Assert.That((int)third.StatusCode).IsEqualTo(429);

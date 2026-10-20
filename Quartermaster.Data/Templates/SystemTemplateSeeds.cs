@@ -14,6 +14,36 @@ internal record SystemTemplateSeed(
 internal static class SystemTemplateSeeds {
     public static readonly IReadOnlyList<SystemTemplateSeed> All = new[] {
         new SystemTemplateSeed(
+            "forwarding.redmine.application",
+            "Redmine-Ticket: Mitgliedsantrag",
+            "Mitgliedsantrag: {{ application.FirstName }} {{ application.LastName }} ({{ application.ChapterName }})",
+            "**Mitgliedsantrag** von {{ application.FirstName }} {{ application.LastName }}\n\n- Geburtsdatum: {{ application.DateOfBirth }}\n- Staatsangehörigkeit: {{ application.Citizenship }}\n- E-Mail: {{ application.Email }}\n- Telefon: {{ application.PhoneNumber }}\n- Anschrift: {{ application.Street }} {{ application.HouseNumber }}, {{ application.PostCode }} {{ application.City }}\n- Gliederung: {{ application.ChapterName }}\n- Gewünschtes Eintrittsdatum: {{ application.EntryDate }}\n- Mitglied einer anderen Partei: {% if application.IsMemberOfAnotherParty %}ja{% else %}nein{% endif %}\n- Früher abgelehnter Mitgliedsantrag: {% if application.HasPriorDeclinedApplication %}ja{% else %}nein{% endif %}\n{% if application.ApplicationText != \"\" %}\n**Anmerkungen:** {{ application.ApplicationText }}\n{% endif %}\n**Beitrag**\n\n- Einstufung: {{ dues.Valuation }}\n- Jahresbeitrag: {{ dues.YearlyAmount }} €\n{% if dues.Reduced %}- Beantragte Minderung auf {{ dues.ReducedAmount }} € ({{ dues.ReducedTimeSpan }}), Begründung: {{ dues.Justification }}{% if case.RelatedReference != \"\" %} (eigener Vorgang {{ case.RelatedReference }}){% endif %}\n{% endif %}- Zahlweise: {{ dues.PaymentSchedule }}\n{% if dues.IsDirectDeposit %}- Lastschrift: {{ dues.AccountHolder }}, IBAN {{ dues.Iban }}\n{% else %}- Zahlung per Überweisung\n{% endif %}{% if federalTicket.Url != \"\" %}\nTicket der Bundesebene: {{ federalTicket.Url }}\n{% endif %}\nEingegangen am {{ submission.SubmittedAt }}\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "forwarding.redmine.due_selection",
+            "Redmine-Ticket: Beitragseinstufung",
+            "Beitragseinstufung: {{ member.FirstName }} {{ member.LastName }} ({{ member.Number }})",
+            "**Beitragseinstufung** von {{ member.FirstName }} {{ member.LastName }}\n\n- Mitgliedsnummer: {{ member.Number }}\n- E-Mail: {{ member.Email }}\n- Einstufung: {{ dues.Valuation }}\n- Jahresbeitrag: {{ dues.YearlyAmount }} €\n- Zahlweise: {{ dues.PaymentSchedule }}\n{% if dues.IsDirectDeposit %}- Lastschrift: {{ dues.AccountHolder }}, IBAN {{ dues.Iban }}\n{% else %}- Zahlung per Überweisung\n{% endif %}\nEingereicht am {{ submission.SubmittedAt }}{% if submission.SubmittedBy != \"\" %} über das Konto {{ submission.SubmittedBy }}{% endif %}\n{% if submission.EnteredByHand %}\nDie Personendaten wurden von Hand eingegeben, das Konto ist mit keinem Mitglied verknüpft.\n{% endif %}",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "forwarding.redmine.reduction",
+            "Redmine-Ticket: Beitragsminderung",
+            "Beitragsminderung: {{ member.FirstName }} {{ member.LastName }} auf {{ dues.ReducedAmount }} €",
+            "**Antrag auf Beitragsminderung** von {{ member.FirstName }} {{ member.LastName }}\n\n- Mitgliedsnummer: {{ member.Number }}\n- E-Mail: {{ member.Email }}\n- Gewünschter Jahresbeitrag: {{ dues.ReducedAmount }} € ({{ dues.ReducedTimeSpan }})\n- Begründung: {{ dues.Justification }}\n- Zahlweise: {{ dues.PaymentSchedule }}\n{% if dues.IsDirectDeposit %}- Lastschrift: {{ dues.AccountHolder }}, IBAN {{ dues.Iban }}\n{% else %}- Zahlung per Überweisung\n{% endif %}- Entscheidet: {{ chapter.DecidingName }}\n{% if case.RelatedReference != \"\" %}- Gehört zum Mitgliedsantrag {{ case.RelatedReference }}\n{% endif %}{% if federalTicket.Url != \"\" %}\nTicket der Bundesebene: {{ federalTicket.Url }}\n{% endif %}\nEingereicht am {{ submission.SubmittedAt }}{% if submission.SubmittedBy != \"\" %} über das Konto {{ submission.SubmittedBy }}{% endif %}\n{% if submission.EnteredByHand %}\nDie Personendaten wurden von Hand eingegeben, das Konto ist mit keinem Mitglied verknüpft.\n{% endif %}",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "forwarding.redmine.outcome_note",
+            "Redmine-Notiz: Entscheidung in Quartermaster",
+            null,
+            "Entscheidung in Quartermaster: **{{ outcome.Result }}** durch {{ outcome.DecidedBy }} am {{ outcome.Date }}.\n\nBeschluss: {{ outcome.MotionUrl }}\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "forwarding.failure.email",
+            "E-Mail: Weiterleitung fehlgeschlagen",
+            "Weiterleitung fehlgeschlagen: {{ case.Reference }}",
+            "Für den Vorgang **{{ case.Reference }}** ({{ case.Kind }}) konnte das Ticket \"{{ failure.Purpose }}\" bei **{{ failure.TargetChapter }}** nicht angelegt werden.\n\n**Fehler:** {{ failure.Error }}\n\nBitte das Ticket von Hand anlegen und den Vorgang danach unter {{ failure.CasesUrl }} als erledigt markieren, oder die Ursache beheben und dort erneut versuchen.\n\n---\n\n**Betreff:** {{ failure.TicketSubject }}\n\n{{ failure.TicketDescription }}\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "templates.membershipapplication.approved.email",
             "E-Mail: Mitgliedsantrag genehmigt",
             "Dein Mitgliedsantrag wurde genehmigt",

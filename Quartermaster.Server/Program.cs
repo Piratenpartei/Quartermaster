@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartermaster.Api.I18n;
@@ -168,15 +169,22 @@ public partial class Program {
         builder.Services.AddScoped(sp => AssemblyMotions.Wiki.WikiBotSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
         builder.Services.AddSingleton<AssemblyMotions.Wiki.IWikiBotClient>(sp => new AssemblyMotions.Wiki.HttpWikiBotClient(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("wiki"),
+            sp.GetRequiredService<IHostEnvironment>(),
             sp.GetRequiredService<ILogger<AssemblyMotions.Wiki.HttpWikiBotClient>>()));
 
         builder.Services.AddScoped(sp => AssemblyMotions.Forum.DiscourseSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
+        builder.Services.AddSingleton<Forwarding.Redmine.IRedmineClient>(sp => new Forwarding.Redmine.HttpRedmineClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("redmine"),
+            sp.GetRequiredService<IHostEnvironment>(),
+            sp.GetRequiredService<ILogger<Forwarding.Redmine.HttpRedmineClient>>()));
         builder.Services.AddSingleton<AssemblyMotions.Forum.IDiscourseClient>(sp => new AssemblyMotions.Forum.HttpDiscourseClient(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("discourse"),
+            sp.GetRequiredService<IHostEnvironment>(),
             sp.GetRequiredService<ILogger<AssemblyMotions.Forum.HttpDiscourseClient>>()));
         builder.Services.AddScoped(sp => AssemblyMotions.OpenSlides.OpenSlidesSettings.ReadFrom(sp.GetRequiredService<OptionRepository>()));
         builder.Services.AddSingleton<AssemblyMotions.OpenSlides.IOpenSlidesClient>(sp => new AssemblyMotions.OpenSlides.HttpOpenSlidesClient(
             sp.GetRequiredService<IHttpClientFactory>().CreateClient("openslides"),
+            sp.GetRequiredService<IHostEnvironment>(),
             sp.GetRequiredService<ILogger<AssemblyMotions.OpenSlides.HttpOpenSlidesClient>>()));
 
         builder.Services.AddScoped<AssemblyMotionNotifier>();
@@ -209,6 +217,13 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumSync>();
+        builder.Services.AddScoped<Forwarding.ForwardingSettingsResolver>();
+        builder.Services.AddScoped<Forwarding.ForwardingTicketRenderer>();
+        builder.Services.AddScoped<Forwarding.ForwardingIntake>();
+        builder.Services.AddScoped<Forwarding.ForwardingOutcomeHook>();
+        builder.Services.AddScoped<Forwarding.ForwardingFailureMailer>();
+        builder.Services.AddScoped<Forwarding.ForwardingCaseActions>();
+        builder.Services.AddScoped<Forwarding.ForwardingJob>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumResync>();
         builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
@@ -224,6 +239,7 @@ public partial class Program {
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Forum.AssemblyMotionForumSyncHostedService>();
+        builder.Services.AddHostedService<Forwarding.ForwardingJobHostedService>();
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
         builder.Services.AddScoped<EmailService>();
@@ -289,6 +305,12 @@ public partial class Program {
         builder.Services.AddHttpClient();
         builder.Services.AddHttpClient("wiki")
             .ConfigurePrimaryHttpMessageHandler(AssemblyMotions.Wiki.HttpWikiBotClient.CreateHandler);
+        builder.Services.AddHttpClient("redmine")
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
+                AllowAutoRedirect = false,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                UseCookies = false
+            });
         builder.Services.AddHttpClient("discourse")
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
                 AllowAutoRedirect = false,
@@ -343,7 +365,6 @@ public partial class Program {
         });
 
         app.UseRouting();
-        app.UseRateLimiter();
 
         app.UseAuthentication();
         app.Use(async (context, next) => {
@@ -356,6 +377,9 @@ public partial class Program {
             }
             await next();
         });
+
+        // After authentication, so the per-account due selection limit can see who is calling.
+        app.UseRateLimiter();
 
         // Antiforgery validation must run after authentication so identity-bound CSRF tokens
         // match the user the cookie identifies (anonymous-context validation false-rejects).
@@ -376,16 +400,20 @@ public partial class Program {
     }
 
     public const string AnonymousCreateRateLimitPolicy = "anonymous-create";
+    public const string DueSelectionRateLimitPolicy = "due-selection";
 
     // Safety fallbacks if the Option is missing, unparseable, or non-positive — the
     // resolver guards against a fat-fingered admin saving "" or "0" and silently
     // disabling all anonymous signups.
     private const int FallbackAnonymousCreatePermits = 5;
     private const int FallbackAnonymousCreateWindowMinutes = 10;
+    private const int FallbackDueSelectionPermits = 5;
+    private const int FallbackDueSelectionWindowMinutes = 1440;
 
     /// <summary>
     /// Per-IP fixed-window throttle shared across the anonymous POST endpoints
-    /// (MotionCreate, MembershipApplicationCreate, DueSelectionCreate, ExpenseReimbursementRender, TravelExpenseRender). Sharing one bucket
+    /// (MotionCreate, MembershipApplicationCreate, ExpenseReimbursementRender, TravelExpenseRender), and a per-account one for
+    /// DueSelectionCreate, which requires login and creates a federal Redmine ticket per submission. Sharing one bucket
     /// stops an attacker from multiplying their effective rate across endpoints. Values
     /// resolve from <c>OptionRepository</c> (admin-tunable at runtime — takes effect for
     /// new IP partitions immediately and for active partitions after their window resets).
@@ -403,14 +431,32 @@ public partial class Program {
                     "auth.ratelimit.anonymous_create_window_minutes", FallbackAnonymousCreateWindowMinutes);
 
                 var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions {
-                    PermitLimit = permits,
-                    Window = TimeSpan.FromMinutes(windowMinutes),
-                    QueueLimit = 0,
-                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                    AutoReplenishment = true
-                });
+                return FixedWindow(key, permits, windowMinutes);
             });
+            options.AddPolicy(DueSelectionRateLimitPolicy, httpContext => {
+                var optionRepo = httpContext.RequestServices.GetRequiredService<OptionRepository>();
+                var chapterRepo = httpContext.RequestServices.GetRequiredService<ChapterRepository>();
+
+                var permits = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.due_selection_permits", FallbackDueSelectionPermits);
+                var windowMinutes = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.due_selection_window_minutes", FallbackDueSelectionWindowMinutes);
+
+                // The endpoint answers anonymous callers with 401; they still share one per-IP bucket so they cannot flood it.
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var key = userId != null ? $"user:{userId}" : $"ip:{httpContext.Connection.RemoteIpAddress}";
+                return FixedWindow(key, permits, windowMinutes);
+            });
+        });
+    }
+
+    private static RateLimitPartition<string> FixedWindow(string key, int permits, int windowMinutes) {
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions {
+            PermitLimit = permits,
+            Window = TimeSpan.FromMinutes(windowMinutes),
+            QueueLimit = 0,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            AutoReplenishment = true
         });
     }
 

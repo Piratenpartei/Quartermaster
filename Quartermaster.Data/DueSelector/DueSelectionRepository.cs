@@ -41,7 +41,9 @@ public class DueSelectionRepository {
                     && allowedChapterIds.Contains(a.ChapterId.Value))
                 .Select(a => a.DueSelectionId!.Value)
                 .ToList();
-            q = q.Where(d => applicationDueSelectionIds.Contains(d.Id));
+            // The deciding chapter owns the selection; older rows without one belong to their application's chapter.
+            q = q.Where(d => (d.ChapterId != null && allowedChapterIds.Contains(d.ChapterId.Value))
+                || (d.ChapterId == null && applicationDueSelectionIds.Contains(d.Id)));
         }
 
         var totalCount = q.Count();
@@ -65,6 +67,23 @@ public class DueSelectionRepository {
         if (existing != null)
             _auditLog.LogFieldChange("DueSelection", id, "Status", existing.Status.ToString(), status.ToString());
         tx.Commit();
+    }
+
+    /// <summary>Sets who decides on a selection that waited for its application's chapter, and its state once that is known.</summary>
+    public void SetDecidingChapter(Guid id, Guid? chapterId, DueSelectionStatus status, DateTime? processedAt) {
+        _context.DueSelections
+            .Where(d => d.Id == id)
+            .Set(d => d.ChapterId, chapterId)
+            .Set(d => d.Status, status)
+            .Set(d => d.ProcessedAt, processedAt)
+            .Update();
+        _auditLog.LogFieldChange("DueSelection", id, "ChapterId", null, chapterId?.ToString());
+    }
+
+    /// <summary>Removes the row for good; for data that only Redmine keeps from now on.</summary>
+    public void Delete(Guid id) {
+        _context.DueSelections.Where(d => d.Id == id).Delete();
+        _auditLog.LogDeleted("DueSelection", id);
     }
 
     public void SoftDelete(Guid id) {

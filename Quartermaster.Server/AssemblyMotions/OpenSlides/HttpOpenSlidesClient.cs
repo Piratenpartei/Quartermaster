@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Quartermaster.Server.AssemblyMotions.OpenSlides;
@@ -20,6 +21,7 @@ public class HttpOpenSlidesClient : IOpenSlidesClient, IDisposable {
     private const string RefreshCookieName = "refreshId";
 
     private readonly HttpClient _http;
+    private readonly bool _allowLoopbackHttp;
     private readonly ILogger<HttpOpenSlidesClient> _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
@@ -27,8 +29,9 @@ public class HttpOpenSlidesClient : IOpenSlidesClient, IDisposable {
     private string? accessToken;
     private string? refreshId;
 
-    public HttpOpenSlidesClient(HttpClient http, ILogger<HttpOpenSlidesClient> logger) {
+    public HttpOpenSlidesClient(HttpClient http, IHostEnvironment environment, ILogger<HttpOpenSlidesClient> logger) {
         _http = http;
+        _allowLoopbackHttp = environment.IsDevelopment();
         _http.Timeout = TimeSpan.FromSeconds(30);
         _logger = logger;
     }
@@ -281,10 +284,10 @@ public class HttpOpenSlidesClient : IOpenSlidesClient, IDisposable {
         return value;
     }
 
-    private static void EnsureUsable(OpenSlidesSettings settings) {
+    private void EnsureUsable(OpenSlidesSettings settings) {
         if (!settings.IsConfigured())
             throw new OpenSlidesException("Anmeldung an OpenSlides fehlgeschlagen: Zugang ist nicht konfiguriert.", "login_failed");
-        if (!OpenSlidesSettings.IsSecureUrl(settings.Url))
+        if (!OpenSlidesSettings.IsSecureUrl(settings.Url, _allowLoopbackHttp))
             throw new OpenSlidesException("Die OpenSlides-URL muss https verwenden.", "insecure_url");
     }
 

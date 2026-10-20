@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.MembershipApplications;
@@ -93,5 +94,19 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
             Status = ApplicationStatus.Rejected
         });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+    }
+    [Test]
+    public async Task Decided_application_cannot_be_processed_again() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id);
+        Db.MembershipApplications.Where(a => a.Id == app.Id).Set(a => a.Status, ApplicationStatus.Approved).Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Rejected });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.admin.application.already_decided");
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.Approved);
     }
 }

@@ -23,6 +23,11 @@ public class DueSelectionDTOValidator : Validator<DueSelectionDTO> {
             .GreaterThanOrEqualTo(0)
             .WithMessage(I18nKey.Error.Admin.DueSelection.AmountNotNegative);
 
+        // The browser enforces the same rates; without this check a low amount under a non-reduced valuation would skip the reduction decision.
+        RuleFor(x => x.SelectedDue)
+            .Must((dto, due) => due >= DueSelectionRates.MinimumDue(dto))
+            .WithMessage(I18nKey.Error.Admin.DueSelection.DueBelowRate);
+
         RuleFor(x => x.AccountHolder)
             .MaximumLength(256)
             .WithMessage(I18nKey.Error.Admin.DueSelection.AccountHolderMaxLength);

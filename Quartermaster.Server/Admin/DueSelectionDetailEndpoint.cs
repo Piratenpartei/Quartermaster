@@ -47,9 +47,10 @@ public class DueSelectionDetailEndpoint
             return;
         }
 
-        var application = _applicationRepo.GetByDueSelectionId(ds.Id);
-        if (application?.ChapterId.HasValue == true) {
-            if (!_perms.Has(application.ChapterId.Value, PermissionIdentifier.ViewDueSelections)) {
+        // The deciding chapter owns the selection; older rows without one belong to their application's chapter.
+        var chapterId = ds.ChapterId ?? _applicationRepo.GetByDueSelectionId(ds.Id)?.ChapterId;
+        if (chapterId.HasValue) {
+            if (!_perms.Has(chapterId.Value, PermissionIdentifier.ViewDueSelections)) {
                 await SendForbiddenAsync(ct);
                 return;
             }

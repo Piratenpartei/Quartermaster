@@ -9,7 +9,7 @@ using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Authentication;
-using Quartermaster.Server.MembershipApplications;
+using Quartermaster.Server.Forwarding;
 
 namespace Quartermaster.Server.Admin;
 
@@ -25,26 +25,25 @@ public class MembershipApplicationLinkDivisionRequest {
 
 /// <summary>
 /// Assigns a chapter (and, for German addresses, an administrative division) to an application
-/// stuck in <see cref="ApplicationStatus.PendingDivisionLinking"/>, then moves it to Pending and
-/// kicks off the normal officer-review flow.
+/// stuck in <see cref="ApplicationStatus.PendingDivisionLinking"/>, then routes it like a new one (<see cref="ForwardingIntake.LinkApplication"/>).
 /// </summary>
 public class MembershipApplicationLinkDivisionEndpoint : Endpoint<MembershipApplicationLinkDivisionRequest> {
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
-    private readonly ApplicationReviewService _reviewService;
+    private readonly ForwardingIntake _intake;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationLinkDivisionEndpoint(
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
         AdministrativeDivisionRepository adminDivRepo,
-        ApplicationReviewService reviewService,
+        ForwardingIntake intake,
         PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
-        _reviewService = reviewService;
+        _intake = intake;
         _perms = perms;
     }
 
@@ -100,13 +99,7 @@ public class MembershipApplicationLinkDivisionEndpoint : Endpoint<MembershipAppl
             chapterId = chapter.Id;
         }
 
-        _applicationRepo.LinkDivisionAndChapter(application.Id, divisionId, chapterId);
-
-        var linked = _applicationRepo.Get(application.Id);
-        if (linked != null) {
-            _reviewService.CreateReviewMotionAndNotify(linked);
-        }
-
+        _intake.LinkApplication(application, divisionId, chapterId.Value, DateTime.UtcNow);
         await SendOkAsync(ct);
     }
 }

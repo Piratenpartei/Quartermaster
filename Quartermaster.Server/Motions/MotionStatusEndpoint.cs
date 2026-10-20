@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -5,16 +6,19 @@ using Quartermaster.Api;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Forwarding;
 
 namespace Quartermaster.Server.Motions;
 
 public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
     private readonly MotionRepository _motionRepo;
     private readonly PermissionContext _perms;
+    private readonly ForwardingOutcomeHook _forwarding;
 
-    public MotionStatusEndpoint(MotionRepository motionRepo, PermissionContext perms) {
+    public MotionStatusEndpoint(MotionRepository motionRepo, PermissionContext perms, ForwardingOutcomeHook forwarding) {
         _motionRepo = motionRepo;
         _perms = perms;
+        _forwarding = forwarding;
     }
 
     public override void Configure() {
@@ -44,6 +48,7 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
                 return;
             }
             _motionRepo.UpdateApprovalStatus(req.MotionId, status);
+            _forwarding.OnMotionResolved(req.MotionId, DateTime.UtcNow);
         }
 
         if (req.IsRealized.HasValue)

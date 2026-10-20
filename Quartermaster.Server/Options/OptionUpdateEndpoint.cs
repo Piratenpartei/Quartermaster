@@ -2,6 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Forwarding;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.Authentication;
@@ -38,6 +40,12 @@ public class OptionUpdateEndpoint : Endpoint<OptionUpdateRequest> {
         }
 
         if (req.ChapterId.HasValue && !def.IsOverridable) {
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+        // Turning forwarding on needs the federal setup checked first (ForwardingSwitchEndpoint).
+        if (ForwardingOptionKeys.IsSwitch(req.Identifier)) {
+            AddError(I18nKey.Error.Forwarding.SwitchViaAssistant);
             await SendErrorsAsync(400, ct);
             return;
         }

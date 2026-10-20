@@ -5,8 +5,8 @@ using Quartermaster.Blazor.Abstract;
 namespace Quartermaster.Blazor.Pages.DueSelector;
 
 public class DueSelectorEntryState : EntryStateBase {
-    public const decimal MinimumOnePercentIncome = 7200;
-    public const decimal UnderageDue = 12;
+    public const decimal MinimumOnePercentIncome = DueSelectionRates.MinimumOnePercentIncome;
+    public const decimal UnderageDue = DueSelectionRates.UnderageDue;
     /// <summary>Below this yearly amount monthly payment is not offered.</summary>
     public const decimal MinimumMonthlyPaymentDue = 36;
 
@@ -14,6 +14,9 @@ public class DueSelectorEntryState : EntryStateBase {
     public string LastName { get; set; } = "";
     public string Email { get; set; } = "";
     public int MemberNumber { get; set; }
+
+    /// <summary>False for a floating member: linked to the account, accepted, but without a member number yet.</summary>
+    public bool MemberNumberRequired { get; set; } = true;
 
     public SelectedValuation SelectedValuation { get; set; }
 
@@ -41,7 +44,7 @@ public class DueSelectorEntryState : EntryStateBase {
         if (string.IsNullOrWhiteSpace(Email))
             return false;
 
-        return MemberNumber != 0;
+        return !MemberNumberRequired || MemberNumber != 0;
     }
 
     public bool IsDuesComplete() {
@@ -82,7 +85,7 @@ public class DueSelectorEntryState : EntryStateBase {
             MonthlyIncomeGroup = 0;
 
         SelectedDue = SelectedValuation switch {
-            SelectedValuation.OnePercentYearlyPay => YearlyIncome * 0.01m,
+            SelectedValuation.OnePercentYearlyPay => YearlyIncome * DueSelectionRates.OnePercent,
             SelectedValuation.MonthlyPayGroup => DueForIncomeGroup(MonthlyIncomeGroup),
             SelectedValuation.Underage => UnderageDue,
             SelectedValuation.Reduced => ReducedIncomeFallback ? DueForIncomeGroup(MonthlyIncomeGroup) : 0,
@@ -98,7 +101,7 @@ public class DueSelectorEntryState : EntryStateBase {
             >= 3000 => 240,
             >= 2500 => 180,
             >= 2000 => 120,
-            _ => 72
+            _ => DueSelectionRates.LowestIncomeGroupDue
         };
     }
 

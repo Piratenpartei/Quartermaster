@@ -30,6 +30,13 @@ public class MemberRepository {
     public Member? GetByUserId(Guid userId)
         => _context.Members.Where(m => m.MemberNumber != null && m.UserId == userId).FirstOrDefault();
 
+    /// <summary>Like <see cref="GetByUserId"/>, but also finds a floating member (accepted, no member number yet).</summary>
+    public Member? GetByUserIdIncludingFloating(Guid userId)
+        => _context.Members
+            .Where(m => m.UserId == userId)
+            .OrderBy(m => m.MemberNumber == null)
+            .FirstOrDefault();
+
     public void SetUserId(Guid memberId, Guid userId) {
         _context.Members
             .Where(m => m.Id == memberId)

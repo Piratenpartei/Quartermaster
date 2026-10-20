@@ -13,6 +13,9 @@ public class DueSelection {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? UserId { get; set; }
 
+    /// <summary>The chapter deciding on the selection; null for selections from before V7 and for regular ones stored by the federal level.</summary>
+    public Guid? ChapterId { get; set; }
+
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
     public string? Email { get; set; }
@@ -56,6 +59,24 @@ public class DueSelection {
         AccountHolder = dto.AccountHolder,
         IBAN = dto.IBAN,
         PaymentSchedule = dto.PaymentSchedule
+    };
+
+    public DueSelectionDTO ToDto() => new() {
+        FirstName = FirstName,
+        LastName = LastName,
+        Email = Email ?? "",
+        MemberNumber = MemberNumber ?? 0,
+        SelectedValuation = SelectedValuation,
+        YearlyIncome = YearlyIncome,
+        MonthlyIncomeGroup = MonthlyIncomeGroup,
+        ReducedAmount = ReducedAmount,
+        SelectedDue = SelectedDue,
+        ReducedJustification = ReducedJustification,
+        ReducedTimeSpan = ReducedTimeSpan,
+        IsDirectDeposit = IsDirectDeposit,
+        AccountHolder = AccountHolder,
+        IBAN = IBAN,
+        PaymentSchedule = PaymentSchedule
     };
 
     public DueSelectionAdminDTO ToAdminDto() => new() {

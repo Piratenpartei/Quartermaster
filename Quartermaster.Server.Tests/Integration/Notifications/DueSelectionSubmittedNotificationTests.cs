@@ -30,23 +30,26 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
             PaymentSchedule = PaymentSchedule.Annual
         };
 
-    private async Task<HttpResponseMessage> Submit(DueSelectionDTO dto) {
-        using var client = AnonymousClient();
-        await AttachAntiforgeryTokenAsync(client);
-        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
-        await ConfirmAllPendingSubmissionsAsync();
-        return response;
+    private async Task<HttpResponseMessage> Submit(DueSelectionDTO dto, Guid? memberUserId = null, string? token = null) {
+        if (token == null) {
+            var (_, ownToken) = Builder.SeedAuthenticatedUser();
+            token = ownToken;
+        }
+
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        return await client.PostAsJsonAsync("/api/dueselector", dto);
     }
 
     [Test]
     public async Task Notifies_ProcessDueSelections_holders_when_member_resolves_to_chapter() {
         var chapter = Builder.SeedChapter("C");
-        var member = Builder.SeedMember(chapterId: chapter.Id, memberNumber: 42_001);
+        var (submitter, submitterToken) = Builder.SeedAuthenticatedUser();
+        var member = Builder.SeedMember(chapterId: chapter.Id, memberNumber: 42_001, userId: submitter.Id);
         var (intake, _) = Builder.SeedAuthenticatedUser(
             email: "intake@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.ProcessDueSelections } });
 
-        var response = await Submit(Dto(memberNumber: member.MemberNumber!.Value));
+        var response = await Submit(Dto(memberNumber: member.MemberNumber!.Value), token: submitterToken);
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "due_selection_submitted").ToList();
@@ -56,9 +59,9 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Skips_dispatch_when_member_number_unknown() {
+    public async Task Reduction_without_member_notifies_the_federal_board_that_votes() {
         var chapter = Builder.SeedChapter("C");
-        Builder.SeedAuthenticatedUser(
+        var (intake, _) = Builder.SeedAuthenticatedUser(
             email: "intake@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.ProcessDueSelections } });
 
@@ -66,7 +69,8 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "due_selection_submitted").ToList();
-        await Assert.That(logs.Count).IsEqualTo(0);
+        await Assert.That(logs.Single().RecipientUserId).IsEqualTo(intake.Id);
+        await Assert.That(Db.Motions.Single().ChapterId).IsEqualTo(chapter.Id);
     }
 
     [Test]
@@ -74,9 +78,10 @@ public class DueSelectionSubmittedNotificationTests : IntegrationTestBase {
         Builder.SeedAuthenticatedUser(
             email: "global@test.local",
             globalPermissions: new[] { PermissionIdentifier.ProcessDueSelections });
-        var member = Builder.SeedMember(chapterId: null, memberNumber: 42_002);
+        var (submitter, submitterToken) = Builder.SeedAuthenticatedUser();
+        var member = Builder.SeedMember(chapterId: null, memberNumber: 42_002, userId: submitter.Id);
 
-        await Submit(Dto(memberNumber: member.MemberNumber!.Value));
+        await Submit(Dto(memberNumber: member.MemberNumber!.Value), token: submitterToken);
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "due_selection_submitted").ToList();
         await Assert.That(logs.Count).IsEqualTo(0);

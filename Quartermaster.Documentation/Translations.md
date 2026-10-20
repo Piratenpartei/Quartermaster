@@ -169,6 +169,18 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Forum-Thema | forum topic | The Discourse topic of one motion; its first post is kept up to date |
 | Im Forum gelöscht | deleted in the forum | Forum sync state of a motion whose topic a moderator deleted; never recreated |
 
+## Forwarding (Weiterleitung)
+
+| German (UI) | English (code) | Meaning |
+|---|---|---|
+| Weiterleitung | forwarding | Sending membership applications and due selections as Redmine tickets |
+| Vorgang | case | One forwarded submission with its tickets (`ForwardingCase`) |
+| Zielprojekt | target | Redmine project, tracker and fields a chapter's tickets of one kind go to |
+| Beitragsminderung | reduction | A due selection below the regular minimum that needs a decision |
+| Regelbeitrag | regular minimum | Yearly amount from which a due selection needs no decision |
+| in Quartermaster entscheiden / im eigenen Redmine bearbeiten | handling mode Quartermaster / Redmine | A chapter's setting for applications or reductions |
+| Manuell erledigt | resolved by hand | A failed case closed after the ticket was created by hand |
+
 ## Assembly Assistant (Versammlungsassistent)
 
 | German | English | Notes |

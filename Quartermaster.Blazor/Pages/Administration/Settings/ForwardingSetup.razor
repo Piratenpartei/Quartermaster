@@ -1,0 +1,120 @@
+@page "/Administration/Setup/Forwarding"
+@using Quartermaster.Api
+@using Quartermaster.Api.Forwarding
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Forwarding
+
+<PageTitle>@I18n[SettingsAssistantCatalog.Forwarding.TitleKey]</PageTitle>
+
+<PageBackLink Href="/Administration/Settings" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-1"><i class="bi @SettingsAssistantCatalog.Forwarding.Icon me-2"></i>@I18n[SettingsAssistantCatalog.Forwarding.TitleKey]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.ForwardingSetup.Intro]</p>
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">@I18n[I18nKey.Ui.ForwardingSetup.SwitchesTitle]</h5>
+                <div class="form-check form-switch mb-2">
+                    <input id="forwarding-applications" type="checkbox" class="form-check-input" role="switch" disabled="@Busy"
+                           checked="@ApplicationsEnabled" @onchange="e => SetSwitchAsync(ForwardingOptionKeys.MembershipApplicationEnabled, (bool)e.Value!)" />
+                    <label class="form-check-label" for="forwarding-applications">@I18n[I18nKey.Ui.ForwardingSetup.ApplicationsSwitch]</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input id="forwarding-dues" type="checkbox" class="form-check-input" role="switch" disabled="@Busy"
+                           checked="@DuesEnabled" @onchange="e => SetSwitchAsync(ForwardingOptionKeys.DueSelectionEnabled, (bool)e.Value!)" />
+                    <label class="form-check-label" for="forwarding-dues">@I18n[I18nKey.Ui.ForwardingSetup.DuesSwitch]</label>
+                </div>
+                <div class="form-text mb-3">@I18n[I18nKey.Ui.ForwardingSetup.SwitchesHint]</div>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary" for="forwarding-regular-minimum">@I18n[I18nKey.Ui.ForwardingSetup.RegularMinimum]</label>
+                        <input id="forwarding-regular-minimum" type="number" min="1" step="1" class="form-control" @bind="RegularMinimum" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-secondary" for="forwarding-state-minimum">@I18n[I18nKey.Ui.ForwardingSetup.StateMinimum]</label>
+                        <input id="forwarding-state-minimum" type="number" min="1" step="1" class="form-control" @bind="StateMinimum" />
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-outline-primary" disabled="@Busy" @onclick="SaveThresholdsAsync"><i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Federal != null) {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">@I18n[I18nKey.Ui.ForwardingSetup.FederalTitle] <span class="text-secondary small">(@Federal.ChapterName)</span></h5>
+                    <ForwardingChapterEditor Setting="@Federal" OnSaved="ReloadAsync" IdPrefix="federal" />
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">@I18n[I18nKey.Ui.ForwardingSetup.ChaptersTitle]</h5>
+                @if (Chapters.Count == 0) {
+                    <p class="text-secondary small">@I18n[I18nKey.Ui.ForwardingSetup.NoChapters]</p>
+                }
+                @foreach (var chapter in Chapters) {
+                    <div class="border rounded p-3 mb-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <strong>@chapter.ChapterName</strong>
+                                <div class="small text-secondary">
+                                    @I18n[I18nKey.Ui.ForwardingSetup.ApplicationMode]: @ModeLabel(chapter.ApplicationMode)
+                                    @if (chapter.IsStateChapter) {
+                                        <span> · @I18n[I18nKey.Ui.ForwardingSetup.ReductionMode]: @ModeLabel(chapter.ReductionMode)</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" disabled="@Busy" @onclick="() => EditingChapterId = chapter.ChapterId"><i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.ForwardingSetup.Edit]</button>
+                                <button class="btn btn-sm btn-outline-danger" disabled="@Busy" @onclick="() => RemoveAsync(chapter.ChapterId)"><i class="bi bi-trash"></i> @I18n[I18nKey.Ui.ForwardingSetup.Remove]</button>
+                            </div>
+                        </div>
+                        @if (EditingChapterId == chapter.ChapterId) {
+                            <div class="mt-3">
+                                <ForwardingChapterEditor Setting="@chapter" OnSaved="SavedAsync" OnCancel="() => EditingChapterId = null" IdPrefix="@($"chapter-{chapter.ChapterId:N}")" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (NewChapter != null) {
+                    <div class="border rounded p-3 mb-3 border-primary">
+                        <strong>@NewChapter.ChapterName</strong>
+                        <div class="mt-3">
+                            <ForwardingChapterEditor Setting="@NewChapter" OnSaved="SavedAsync" OnCancel="() => NewChapter = null" IdPrefix="new-chapter" />
+                        </div>
+                    </div>
+                } else {
+                    <h6 class="mt-3">@I18n[I18nKey.Ui.ForwardingSetup.AddChapter]</h6>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-6">
+                            <ChapterPicker @bind-Value="NewChapterId" ExcludeIds="@ConfiguredChapterIds()" AllowEmpty="true" />
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-primary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="StartNewAsync"
+                                    title="@I18n[I18nKey.Ui.ForwardingSetup.AddChapter]" aria-label="@I18n[I18nKey.Ui.ForwardingSetup.AddChapter]"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <p class="text-secondary small mb-2">@I18n[I18nKey.Ui.ForwardingSetup.TemplatesHint]</p>
+                <a href="/Administration/Templates" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.ForwardingSetup.TemplatesLink]</a>
+                <a href="/Administration/Forwarding" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-check"></i> @I18n[I18nKey.Ui.Settings.LinkForwardingCases]</a>
+            </div>
+        </div>
+    }
+</RequirePermission>
+
+<ConfirmDialog @ref="RemoveDialog" Title="@I18n[I18nKey.Ui.ForwardingSetup.Remove]" ConfirmText="@I18n[I18nKey.Ui.ForwardingSetup.Remove]" />

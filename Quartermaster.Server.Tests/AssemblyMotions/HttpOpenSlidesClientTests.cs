@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Hosting.Internal;
 using Quartermaster.Server.AssemblyMotions.OpenSlides;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 
@@ -12,8 +13,8 @@ public class HttpOpenSlidesClientTests {
     private static OpenSlidesSettings Settings(string user = "bot", string url = "https://openslides.invalid")
         => new(url, user, Password);
 
-    private static HttpOpenSlidesClient Client(RecordingOpenSlidesHandler handler, CapturingLogger<HttpOpenSlidesClient>? logger = null)
-        => new(new HttpClient(handler), logger ?? new CapturingLogger<HttpOpenSlidesClient>());
+    private static HttpOpenSlidesClient Client(RecordingOpenSlidesHandler handler, CapturingLogger<HttpOpenSlidesClient>? logger = null, string environment = "Production")
+        => new(new HttpClient(handler), new HostingEnvironment { EnvironmentName = environment }, logger ?? new CapturingLogger<HttpOpenSlidesClient>());
 
     private static OpenSlidesMotionCreate Motion(string? reason = "<p>Begruendung</p>")
         => new(1, "Titel", "A1", "<p>Text</p>", reason, 7, "Max Muster");
@@ -267,14 +268,28 @@ public class HttpOpenSlidesClientTests {
     [Arguments("http://localhost:8000")]
     [Arguments("http://127.0.0.1:8000")]
     [Arguments("http://[::1]:8000")]
-    public async Task Http_is_allowed_for_loopback(string url) {
+    public async Task Http_is_allowed_for_loopback_in_development(string url) {
         var handler = new RecordingOpenSlidesHandler();
         handler.EnqueueLogin();
-        using var client = Client(handler);
+        using var client = Client(handler, environment: "Development");
 
         await client.LoginAsync(Settings(url: url), CancellationToken.None);
 
         await Assert.That(handler.Requests.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    [Arguments("http://localhost:8000")]
+    [Arguments("http://127.0.0.1:8000")]
+    [Arguments("http://[::1]:8000")]
+    public async Task Http_to_loopback_is_refused_outside_development(string url) {
+        var handler = new RecordingOpenSlidesHandler();
+        using var client = Client(handler);
+
+        var ex = await Capture(() => client.LoginAsync(Settings(url: url), CancellationToken.None));
+
+        await Assert.That(ex.Code).IsEqualTo("insecure_url");
+        await Assert.That(handler.Requests.Count).IsEqualTo(0);
     }
 
     [Test]
@@ -350,7 +365,7 @@ public class HttpOpenSlidesClientTests {
     [Test]
     public async Task Caller_cancellation_in_flight_propagates_and_releases_the_gate() {
         var handler = new BlockingHandler();
-        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new CapturingLogger<HttpOpenSlidesClient>());
+        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new HostingEnvironment { EnvironmentName = "Production" }, new CapturingLogger<HttpOpenSlidesClient>());
         using var cts = new CancellationTokenSource();
 
         var pending = client.LoginAsync(Settings(), cts.Token);
@@ -386,7 +401,7 @@ public class HttpOpenSlidesClientTests {
     [Test]
     public async Task Refresh_id_uses_later_valid_cookie_after_clearing_cookie() {
         var handler = new MultiCookieHandler(["refreshId=; Max-Age=0", "other=x", "refreshId=\"quoted\"; Path=/", "refreshId=; Max-Age=0"]);
-        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new CapturingLogger<HttpOpenSlidesClient>());
+        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new HostingEnvironment { EnvironmentName = "Production" }, new CapturingLogger<HttpOpenSlidesClient>());
 
         await client.CreateMotionAsync(Settings(), Motion(), CancellationToken.None);
 
@@ -400,7 +415,7 @@ public class HttpOpenSlidesClientTests {
     [Arguments("\u00e4")]
     public async Task Unsafe_refresh_id_is_treated_as_absent(string value) {
         var handler = new MultiCookieHandler([$"refreshId={value}; Path=/"]);
-        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new CapturingLogger<HttpOpenSlidesClient>());
+        using var client = new HttpOpenSlidesClient(new HttpClient(handler), new HostingEnvironment { EnvironmentName = "Production" }, new CapturingLogger<HttpOpenSlidesClient>());
 
         await client.CreateMotionAsync(Settings(), Motion(), CancellationToken.None);
 

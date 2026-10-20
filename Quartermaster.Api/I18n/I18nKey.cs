@@ -99,6 +99,25 @@ public static class I18nKey {
             }
         }
 
+        public static class Forwarding {
+            public const string ChapterNotFound = "error.forwarding.chapter_not_found";
+            public const string ReductionModeNotAllowed = "error.forwarding.reduction_mode_not_allowed";
+            public const string RedmineConnectionMissing = "error.forwarding.redmine_connection_missing";
+            public const string TargetMissing = "error.forwarding.target_missing";
+            public const string TargetInvalid = "error.forwarding.target_invalid";
+            public const string CustomFieldTemplateInvalid = "error.forwarding.custom_field_template_invalid";
+            public const string ThresholdsInvalid = "error.forwarding.thresholds_invalid";
+            public const string SwitchViaAssistant = "error.forwarding.switch_via_assistant";
+            public const string FailureEmailInvalid = "error.forwarding.failure_email_invalid";
+            public const string BaseUrlInvalid = "error.forwarding.base_url_invalid";
+            public const string ApiKeyRequired = "error.forwarding.api_key_required";
+            public const string ConnectionNotFound = "error.forwarding.connection_not_found";
+            public const string CaseNotFound = "error.forwarding.case_not_found";
+            public const string CaseActionNotPossible = "error.forwarding.case_action_not_possible";
+            public const string FederalSetupIncomplete = "error.forwarding.federal_setup_incomplete";
+            public const string TargetIncomplete = "error.forwarding.target_incomplete";
+        }
+
         public static class PublicForm {
             public const string Disabled = "error.public_form.disabled";
             public const string PdfRateLimited = "error.public_form.pdf_rate_limited";
@@ -323,6 +342,7 @@ public static class I18nKey {
         public static class Admin {
             public static class Application {
                 public const string IdRequired = "error.admin.application.id_required";
+                public const string AlreadyDecided = "error.admin.application.already_decided";
                 public const string StatusInvalid = "error.admin.application.status_invalid";
                 public const string FirstNameRequired = "error.admin.application.first_name_required";
                 public const string FirstNameMaxLength = "error.admin.application.first_name_max_length";
@@ -364,6 +384,8 @@ public static class I18nKey {
                 public const string IbanInvalid = "error.admin.due_selection.iban_invalid";
                 public const string AccountHolderRequired = "error.admin.due_selection.account_holder_required";
                 public const string JustificationMaxLength = "error.admin.due_selection.justification_max_length";
+                public const string DueBelowRate = "error.admin.due_selection.due_below_rate";
+                public const string AlreadyDecided = "error.admin.due_selection.already_decided";
             }
 
             public static class Option {
@@ -609,6 +631,7 @@ public static class I18nKey {
             public const string BoardWorkMeetings = "ui.main_nav_bar.board_work.meetings";
             public const string BoardWorkApplications = "ui.main_nav_bar.board_work.applications";
             public const string BoardWorkDueSelections = "ui.main_nav_bar.board_work.due_selections";
+            public const string BoardWorkForwarding = "ui.main_nav_bar.board_work.forwarding";
             public const string BoardWorkMembers = "ui.main_nav_bar.board_work.members";
             public const string BoardWorkEvents = "ui.main_nav_bar.board_work.events";
             public const string BoardWorkEventTemplates = "ui.main_nav_bar.board_work.event_templates";
@@ -964,6 +987,7 @@ public static class I18nKey {
             public const string DueStatusApproved = "ui.application_detail.due_status.approved";
             public const string DueStatusRejected = "ui.application_detail.due_status.rejected";
             public const string DueStatusAutoApproved = "ui.application_detail.due_status.auto_approved";
+            public const string DueStatusForwarded = "ui.application_detail.due_status.forwarded";
             public const string DueStatusUnknown = "ui.application_detail.due_status.unknown";
         }
 
@@ -971,6 +995,8 @@ public static class I18nKey {
             public const string EmailLabel = "ui.due_selector_user_data.email_label";
             public const string MemberNumberLabel = "ui.due_selector_user_data.member_number_label";
             public const string PrefillNotice = "ui.due_selector_user_data.prefill_notice";
+            public const string MemberPrefillNotice = "ui.due_selector_user_data.member_prefill_notice";
+            public const string ManualEntryNotice = "ui.due_selector_user_data.manual_entry_notice";
         }
 
         public static class PaymentOptionSelection {
@@ -1047,6 +1073,7 @@ public static class I18nKey {
             public const string StatusApproved = "ui.due_selection_admin.status_approved";
             public const string StatusRejected = "ui.due_selection_admin.status_rejected";
             public const string StatusAutoApproved = "ui.due_selection_admin.status_auto_approved";
+            public const string StatusForwarded = "ui.due_selection_admin.status_forwarded";
             public const string StatusAutoBadge = "ui.due_selection_admin.status_auto_badge";
             public const string TotalCount = "ui.due_selection_admin.total_count";
             public const string SelectedDueColumn = "ui.due_selection_admin.selected_due_column";
@@ -1061,6 +1088,7 @@ public static class I18nKey {
             public const string StatusApproved = "ui.due_selection_detail.status_approved";
             public const string StatusRejected = "ui.due_selection_detail.status_rejected";
             public const string StatusAutoApproved = "ui.due_selection_detail.status_auto_approved";
+            public const string StatusForwarded = "ui.due_selection_detail.status_forwarded";
             public const string PersonSection = "ui.due_selection_detail.person_section";
             public const string MemberNumberLabel = "ui.due_selection_detail.member_number_label";
             public const string ClassificationSection = "ui.due_selection_detail.classification_section";
@@ -2427,6 +2455,11 @@ public static class I18nKey {
             public const string WikiDescription = "ui.settings.wiki.description";
             public const string ForumTitle = "ui.settings.forum.title";
             public const string ForumDescription = "ui.settings.forum.description";
+            public const string RedmineTitle = "ui.settings.redmine.title";
+            public const string RedmineDescription = "ui.settings.redmine.description";
+            public const string ForwardingTitle = "ui.settings.forwarding.title";
+            public const string ForwardingDescription = "ui.settings.forwarding.description";
+            public const string LinkForwardingCases = "ui.settings.link_forwarding_cases";
             public const string OpenSlidesTitle = "ui.settings.openslides.title";
             public const string OpenSlidesDescription = "ui.settings.openslides.description";
             public const string SocialMediaTitle = "ui.settings.social_media.title";
@@ -2712,6 +2745,8 @@ public static class I18nKey {
         public static class PublicFormWizard {
             public const string MembershipApplicationTitle = "ui.public_form_wizard.membership_application_title";
             public const string DueSelectionTitle = "ui.public_form_wizard.due_selection_title";
+            public const string DueSelectionLoginRequired = "ui.public_form_wizard.due_selection_login_required";
+            public const string LoginButton = "ui.public_form_wizard.login_button";
             public const string StepPersonalData = "ui.public_form_wizard.step.personal_data";
             public const string StepAddress = "ui.public_form_wizard.step.address";
             public const string StepDues = "ui.public_form_wizard.step.dues";
@@ -2724,6 +2759,102 @@ public static class I18nKey {
             public const string PaymentRequired = "ui.public_form_wizard.payment_required";
             public const string DeclarationsRequired = "ui.public_form_wizard.declarations_required";
             public const string SearchMunicipalityAgain = "ui.public_form_wizard.search_municipality_again";
+        }
+
+        public static class RedmineSetup {
+            public const string Intro = "ui.redmine_setup.intro";
+            public const string FederalTitle = "ui.redmine_setup.federal_title";
+            public const string BaseUrl = "ui.redmine_setup.base_url";
+            public const string ApiKey = "ui.redmine_setup.api_key";
+            public const string ApiKeyStored = "ui.redmine_setup.api_key_stored";
+            public const string ApiKeyHint = "ui.redmine_setup.api_key_hint";
+            public const string Check = "ui.redmine_setup.check";
+            public const string ChaptersTitle = "ui.redmine_setup.chapters_title";
+            public const string NoChapters = "ui.redmine_setup.no_chapters";
+            public const string Add = "ui.redmine_setup.add";
+            public const string Remove = "ui.redmine_setup.remove";
+            public const string RemoveConfirm = "ui.redmine_setup.remove_confirm";
+            public const string NoFederalChapter = "ui.redmine_setup.no_federal_chapter";
+        }
+
+        public static class ForwardingSetup {
+            public const string Intro = "ui.forwarding_setup.intro";
+            public const string SwitchesTitle = "ui.forwarding_setup.switches_title";
+            public const string ApplicationsSwitch = "ui.forwarding_setup.applications_switch";
+            public const string DuesSwitch = "ui.forwarding_setup.dues_switch";
+            public const string SwitchesHint = "ui.forwarding_setup.switches_hint";
+            public const string RegularMinimum = "ui.forwarding_setup.regular_minimum";
+            public const string StateMinimum = "ui.forwarding_setup.state_minimum";
+            public const string FederalTitle = "ui.forwarding_setup.federal_title";
+            public const string ApplicationMode = "ui.forwarding_setup.application_mode";
+            public const string ReductionMode = "ui.forwarding_setup.reduction_mode";
+            public const string ModeUnset = "ui.forwarding_setup.mode_unset";
+            public const string ModeQuartermaster = "ui.forwarding_setup.mode_quartermaster";
+            public const string ModeRedmine = "ui.forwarding_setup.mode_redmine";
+            public const string FederalModeHint = "ui.forwarding_setup.federal_mode_hint";
+            public const string FailureEmail = "ui.forwarding_setup.failure_email";
+            public const string FailureEmailHint = "ui.forwarding_setup.failure_email_hint";
+            public const string TargetRegular = "ui.forwarding_setup.target_regular";
+            public const string TargetReduction = "ui.forwarding_setup.target_reduction";
+            public const string TargetApplication = "ui.forwarding_setup.target_application";
+            public const string TargetEnabled = "ui.forwarding_setup.target_enabled";
+            public const string Project = "ui.forwarding_setup.project";
+            public const string Tracker = "ui.forwarding_setup.tracker";
+            public const string Priority = "ui.forwarding_setup.priority";
+            public const string Assignee = "ui.forwarding_setup.assignee";
+            public const string NoteStatus = "ui.forwarding_setup.note_status";
+            public const string NoteAssignee = "ui.forwarding_setup.note_assignee";
+            public const string DefaultOption = "ui.forwarding_setup.default_option";
+            public const string CustomFields = "ui.forwarding_setup.custom_fields";
+            public const string CustomFieldId = "ui.forwarding_setup.custom_field_id";
+            public const string CustomFieldTemplate = "ui.forwarding_setup.custom_field_template";
+            public const string AddCustomField = "ui.forwarding_setup.add_custom_field";
+            public const string NoConnection = "ui.forwarding_setup.no_connection";
+            public const string LookupFailed = "ui.forwarding_setup.lookup_failed";
+            public const string ChaptersTitle = "ui.forwarding_setup.chapters_title";
+            public const string NoChapters = "ui.forwarding_setup.no_chapters";
+            public const string Edit = "ui.forwarding_setup.edit";
+            public const string Remove = "ui.forwarding_setup.remove";
+            public const string RemoveConfirm = "ui.forwarding_setup.remove_confirm";
+            public const string AddChapter = "ui.forwarding_setup.add_chapter";
+            public const string StateOnlyHint = "ui.forwarding_setup.state_only_hint";
+            public const string TemplatesLink = "ui.forwarding_setup.templates_link";
+            public const string TemplatesHint = "ui.forwarding_setup.templates_hint";
+            public const string Cancel = "ui.forwarding_setup.cancel";
+        }
+
+        public static class ForwardingCases {
+            public const string Title = "ui.forwarding_cases.title";
+            public const string Intro = "ui.forwarding_cases.intro";
+            public const string FilterFailed = "ui.forwarding_cases.filter_failed";
+            public const string FilterOpen = "ui.forwarding_cases.filter_open";
+            public const string FilterAll = "ui.forwarding_cases.filter_all";
+            public const string Empty = "ui.forwarding_cases.empty";
+            public const string Reference = "ui.forwarding_cases.reference";
+            public const string Kind = "ui.forwarding_cases.kind";
+            public const string Created = "ui.forwarding_cases.created";
+            public const string Steps = "ui.forwarding_cases.steps";
+            public const string Retry = "ui.forwarding_cases.retry";
+            public const string Resolve = "ui.forwarding_cases.resolve";
+            public const string ResolveConfirm = "ui.forwarding_cases.resolve_confirm";
+            public const string KindApplication = "ui.forwarding_cases.kind_application";
+            public const string KindDueSelection = "ui.forwarding_cases.kind_due_selection";
+            public const string StatusOpen = "ui.forwarding_cases.status_open";
+            public const string StatusDone = "ui.forwarding_cases.status_done";
+            public const string StatusFailed = "ui.forwarding_cases.status_failed";
+            public const string StatusResolved = "ui.forwarding_cases.status_resolved";
+            public const string StepWaiting = "ui.forwarding_cases.step_waiting";
+            public const string StepPending = "ui.forwarding_cases.step_pending";
+            public const string StepInFlight = "ui.forwarding_cases.step_in_flight";
+            public const string StepDone = "ui.forwarding_cases.step_done";
+            public const string StepFailed = "ui.forwarding_cases.step_failed";
+            public const string StepSkipped = "ui.forwarding_cases.step_skipped";
+            public const string PurposeRegular = "ui.forwarding_cases.purpose_regular";
+            public const string PurposeReduction = "ui.forwarding_cases.purpose_reduction";
+            public const string PurposeApplication = "ui.forwarding_cases.purpose_application";
+            public const string NoteStep = "ui.forwarding_cases.note_step";
+            public const string Attempts = "ui.forwarding_cases.attempts";
+            public const string NoPermission = "ui.forwarding_cases.no_permission";
         }
 
         public static class PublicFormsSetup {

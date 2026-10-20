@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using Microsoft.Extensions.Hosting.Internal;
 using Quartermaster.Server.AssemblyMotions.Wiki;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 
@@ -12,8 +13,8 @@ public class HttpWikiBotClientTests {
     private static WikiBotSettings Settings(string user = "Bot@Quartermaster", string apiUrl = "https://wiki.test/api.php")
         => new(apiUrl, user, Password, "Antrag");
 
-    private static HttpWikiBotClient Client(RecordingWikiHandler handler, CapturingLogger<HttpWikiBotClient>? logger = null)
-        => new(handler, logger ?? new CapturingLogger<HttpWikiBotClient>());
+    private static HttpWikiBotClient Client(RecordingWikiHandler handler, CapturingLogger<HttpWikiBotClient>? logger = null, string environment = "Production")
+        => new(handler, new HostingEnvironment { EnvironmentName = environment }, logger ?? new CapturingLogger<HttpWikiBotClient>());
 
     [Test]
     public async Task Login_runs_token_login_csrf_sequence() {
@@ -470,14 +471,28 @@ public class HttpWikiBotClientTests {
     [Arguments("http://localhost:8080/api.php")]
     [Arguments("http://127.0.0.1/api.php")]
     [Arguments("http://[::1]/api.php")]
-    public async Task Http_is_allowed_for_loopback(string apiUrl) {
+    public async Task Http_is_allowed_for_loopback_in_development(string apiUrl) {
         var handler = new RecordingWikiHandler();
         handler.EnqueueLogin();
-        using var client = Client(handler);
+        using var client = Client(handler, environment: "Development");
 
         await client.LoginAsync(Settings(apiUrl: apiUrl), CancellationToken.None);
 
         await Assert.That(handler.Requests.Count).IsEqualTo(3);
+    }
+
+    [Test]
+    [Arguments("http://localhost:8080/api.php")]
+    [Arguments("http://127.0.0.1/api.php")]
+    [Arguments("http://[::1]/api.php")]
+    public async Task Http_to_loopback_is_refused_outside_development(string apiUrl) {
+        var handler = new RecordingWikiHandler();
+        using var client = Client(handler);
+
+        var ex = await Assert.ThrowsAsync<WikiBotException>(() => client.LoginAsync(Settings(apiUrl: apiUrl), CancellationToken.None));
+
+        await Assert.That(ex!.Code).IsEqualTo("insecure_url");
+        await Assert.That(handler.Requests.Count).IsEqualTo(0);
     }
 
     [Test]
@@ -535,7 +550,7 @@ public class HttpWikiBotClientTests {
             }
         });
         using var http = new HttpClient(HttpWikiBotClient.CreateHandler());
-        using var client = new HttpWikiBotClient(http, new CapturingLogger<HttpWikiBotClient>());
+        using var client = new HttpWikiBotClient(http, new HostingEnvironment { EnvironmentName = "Development" }, new CapturingLogger<HttpWikiBotClient>());
 
         var ex = await Assert.ThrowsAsync<WikiBotException>(() => client.LoginAsync(Settings(apiUrl: prefix + "api.php"), CancellationToken.None));
         listener.Stop();

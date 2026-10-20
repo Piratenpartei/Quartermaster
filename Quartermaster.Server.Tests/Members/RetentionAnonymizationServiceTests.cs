@@ -9,6 +9,7 @@ using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Notifications;
 using Quartermaster.Server.Members;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -24,7 +25,7 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         var memberRepo = new MemberRepository(_context, AuditLog);
         var applicationRepo = new MembershipApplicationRepository(_context, AuditLog);
         var selectionRepo = new DueSelectionRepository(_context, AuditLog);
-        _svc = new RetentionAnonymizationService(memberRepo, applicationRepo, selectionRepo, _context,
+        _svc = new RetentionAnonymizationService(memberRepo, applicationRepo, selectionRepo, new NotificationLogRepository(_context), _context,
             NullLogger<RetentionAnonymizationService>.Instance);
     }
 
@@ -112,6 +113,22 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         await Assert.That(summary.ApplicationsAnonymized).IsEqualTo(1);
         var app = _context.MembershipApplications.Where(a => a.Id == appId).First();
         await Assert.That(app.AnonymizedAt).IsNotNull();
+    }
+
+    [Test]
+    public async Task Anonymizing_an_application_clears_the_mails_sent_about_it() {
+        var appId = SeedApplication(processedAt: new DateTime(2010, 1, 1), firstName: "Mail", lastName: "Person", dob: new DateTime(1990, 1, 1));
+        var log = new NotificationLog {
+            ChannelId = "email", Recipient = "mail@example.com", Status = "Sent", Body = "Ihr Antrag mit IBAN",
+            SourceEntityType = "MembershipApplication", SourceEntityId = appId, CreatedAt = new DateTime(2010, 1, 1)
+        };
+        _context.Insert(log);
+
+        _svc.RunOnce(new DateTime(2035, 1, 2));
+
+        var stored = _context.NotificationLogs.Single(l => l.Id == log.Id);
+        await Assert.That(stored.Body).IsNull();
+        await Assert.That(stored.Recipient).IsEqualTo("mail@example.com");
     }
 
     private Guid SeedMember(

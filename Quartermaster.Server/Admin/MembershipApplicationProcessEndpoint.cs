@@ -3,9 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.Forwarding;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.MembershipApplications;
 
 namespace Quartermaster.Server.Admin;
@@ -18,12 +21,14 @@ public class MembershipApplicationProcessRequest {
 public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicationProcessRequest> {
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly MembershipApplicationMailService _mailService;
+    private readonly ForwardingOutcomeHook _outcomeHook;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationProcessEndpoint(MembershipApplicationRepository applicationRepo,
-        MembershipApplicationMailService mailService, PermissionContext perms) {
+        MembershipApplicationMailService mailService, ForwardingOutcomeHook outcomeHook, PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _mailService = mailService;
+        _outcomeHook = outcomeHook;
         _perms = perms;
     }
 
@@ -59,8 +64,15 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             await SendErrorsAsync(400, ct);
             return;
         }
+        // A second decision would send the applicant a contradicting mail.
+        if (application.Status != ApplicationStatus.Pending && application.Status != ApplicationStatus.PendingDivisionLinking) {
+            AddError(I18nKey.Error.Admin.Application.AlreadyDecided);
+            await SendErrorsAsync(409, ct);
+            return;
+        }
 
         _applicationRepo.UpdateStatus(req.Id, req.Status, null);
+        _outcomeHook.OnRecordDecided(ForwardingCaseKind.Application, req.Id, DateTime.UtcNow);
 
         var updated = _applicationRepo.Get(req.Id);
         if (updated != null) {

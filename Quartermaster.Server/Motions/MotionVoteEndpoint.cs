@@ -11,6 +11,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Forwarding;
 
 namespace Quartermaster.Server.Motions;
 
@@ -20,16 +21,18 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
     private readonly ChapterRepository _chapterRepo;
     private readonly MemberRepository _memberRepo;
     private readonly MotionResolutionDecisionMailer _decisionMailer;
+    private readonly ForwardingOutcomeHook _forwarding;
     private readonly PermissionContext _perms;
 
     public MotionVoteEndpoint(MotionRepository motionRepo, ChapterOfficerRepository officerRepo,
         ChapterRepository chapterRepo, MemberRepository memberRepo,
-        MotionResolutionDecisionMailer decisionMailer, PermissionContext perms) {
+        MotionResolutionDecisionMailer decisionMailer, PermissionContext perms, ForwardingOutcomeHook forwarding) {
         _motionRepo = motionRepo;
         _officerRepo = officerRepo;
         _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
         _decisionMailer = decisionMailer;
+        _forwarding = forwarding;
         _perms = perms;
     }
 
@@ -89,6 +92,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
 
         if (_motionRepo.TryAutoResolve(req.MotionId, _officerRepo)) {
             await _decisionMailer.NotifyAsync(req.MotionId, ct);
+            _forwarding.OnMotionResolved(req.MotionId, DateTime.UtcNow);
         }
 
         await SendOkAsync(ct);

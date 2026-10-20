@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Quartermaster.Server.AssemblyMotions.Forum;
@@ -17,10 +18,12 @@ namespace Quartermaster.Server.AssemblyMotions.Forum;
 /// </summary>
 public class HttpDiscourseClient : IDiscourseClient, IDisposable {
     private readonly HttpClient _http;
+    private readonly bool _allowLoopbackHttp;
     private readonly ILogger<HttpDiscourseClient> _logger;
 
-    public HttpDiscourseClient(HttpClient http, ILogger<HttpDiscourseClient> logger) {
+    public HttpDiscourseClient(HttpClient http, IHostEnvironment environment, ILogger<HttpDiscourseClient> logger) {
         _http = http;
+        _allowLoopbackHttp = environment.IsDevelopment();
         _http.Timeout = TimeSpan.FromSeconds(30);
         _logger = logger;
     }
@@ -117,7 +120,7 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
     }
 
     private async Task<HttpResponseMessage> SendRawAsync(DiscourseSettings settings, HttpMethod method, Uri url, object? body, CancellationToken ct) {
-        if (!DiscourseSettings.IsSecureUrl(settings.BaseUrl))
+        if (!DiscourseSettings.IsSecureUrl(settings.BaseUrl, _allowLoopbackHttp))
             throw new DiscourseException("Die Forum-URL muss https verwenden.", DiscourseException.InsecureUrl);
 
         using var request = new HttpRequestMessage(method, url);

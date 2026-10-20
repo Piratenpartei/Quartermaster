@@ -1,0 +1,81 @@
+@using Quartermaster.Api.I18n
+
+<div class="border rounded p-3 mb-3">
+    <h6 class="mb-3">@Title</h6>
+    <div class="row g-2">
+        <div class="col-md-4">
+            <label class="form-label small text-secondary" for="@($"{IdPrefix}-project")">@I18n[I18nKey.Ui.ForwardingSetup.Project]</label>
+            @if (Lookups != null) {
+                <select id="@($"{IdPrefix}-project")" class="form-select form-select-sm" @bind="Target.ProjectId">
+                    <option value="0">-</option>
+                    @foreach (var project in Lookups.Projects) {
+                        <option value="@project.Id">@project.Name (@project.Id)</option>
+                    }
+                </select>
+            } else {
+                <input id="@($"{IdPrefix}-project")" type="number" min="1" class="form-control form-control-sm" @bind="Target.ProjectId" />
+            }
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-secondary" for="@($"{IdPrefix}-tracker")">@I18n[I18nKey.Ui.ForwardingSetup.Tracker]</label>
+            @if (Lookups != null) {
+                <select id="@($"{IdPrefix}-tracker")" class="form-select form-select-sm" @bind="Target.TrackerId">
+                    <option value="0">-</option>
+                    @foreach (var tracker in Lookups.Trackers) {
+                        <option value="@tracker.Id">@tracker.Name (@tracker.Id)</option>
+                    }
+                </select>
+            } else {
+                <input id="@($"{IdPrefix}-tracker")" type="number" min="1" class="form-control form-control-sm" @bind="Target.TrackerId" />
+            }
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-secondary" for="@($"{IdPrefix}-priority")">@I18n[I18nKey.Ui.ForwardingSetup.Priority]</label>
+            @if (Lookups != null) {
+                <select id="@($"{IdPrefix}-priority")" class="form-select form-select-sm" @bind="Target.PriorityId">
+                    <option value="">@I18n[I18nKey.Ui.ForwardingSetup.DefaultOption]</option>
+                    @foreach (var priority in Lookups.Priorities) {
+                        <option value="@priority.Id">@priority.Name</option>
+                    }
+                </select>
+            } else {
+                <input id="@($"{IdPrefix}-priority")" type="number" min="1" class="form-control form-control-sm" @bind="Target.PriorityId" />
+            }
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-secondary" for="@($"{IdPrefix}-assignee")">@I18n[I18nKey.Ui.ForwardingSetup.Assignee]</label>
+            <input id="@($"{IdPrefix}-assignee")" type="number" min="1" class="form-control form-control-sm" @bind="Target.AssigneeId" />
+        </div>
+        @if (ShowNoteFields) {
+            <div class="col-md-4">
+                <label class="form-label small text-secondary" for="@($"{IdPrefix}-note-status")">@I18n[I18nKey.Ui.ForwardingSetup.NoteStatus]</label>
+                @if (Lookups != null) {
+                    <select id="@($"{IdPrefix}-note-status")" class="form-select form-select-sm" @bind="Target.NoteStatusId">
+                        <option value="">@I18n[I18nKey.Ui.ForwardingSetup.DefaultOption]</option>
+                        @foreach (var status in Lookups.Statuses) {
+                            <option value="@status.Id">@status.Name</option>
+                        }
+                    </select>
+                } else {
+                    <input id="@($"{IdPrefix}-note-status")" type="number" min="1" class="form-control form-control-sm" @bind="Target.NoteStatusId" />
+                }
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-secondary" for="@($"{IdPrefix}-note-assignee")">@I18n[I18nKey.Ui.ForwardingSetup.NoteAssignee]</label>
+                <input id="@($"{IdPrefix}-note-assignee")" type="number" min="1" class="form-control form-control-sm" @bind="Target.NoteAssigneeId" />
+            </div>
+        }
+    </div>
+
+    <div class="mt-3">
+        <div class="small text-secondary mb-1">@I18n[I18nKey.Ui.ForwardingSetup.CustomFields]</div>
+        @foreach (var field in Target.CustomFields) {
+            <div class="d-flex gap-2 mb-2">
+                <input type="number" min="1" class="form-control form-control-sm" style="max-width: 7rem" @bind="field.FieldId" aria-label="@I18n[I18nKey.Ui.ForwardingSetup.CustomFieldId]" placeholder="@I18n[I18nKey.Ui.ForwardingSetup.CustomFieldId]" />
+                <input type="text" class="form-control form-control-sm font-monospace" @bind="field.Template" @bind:event="oninput" aria-label="@I18n[I18nKey.Ui.ForwardingSetup.CustomFieldTemplate]" placeholder="@I18n[I18nKey.Ui.ForwardingSetup.CustomFieldTemplate]" />
+                <button class="btn btn-sm btn-outline-danger" @onclick="() => Target.CustomFields.Remove(field)" title="@I18n[I18nKey.Ui.ForwardingSetup.Remove]" aria-label="@I18n[I18nKey.Ui.ForwardingSetup.Remove]"><i class="bi bi-x-lg"></i></button>
+            </div>
+        }
+        <button class="btn btn-sm btn-outline-secondary" @onclick="AddField"><i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.ForwardingSetup.AddCustomField]</button>
+    </div>
+</div>

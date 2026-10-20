@@ -31,6 +31,7 @@ using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
+using Quartermaster.Data.Forwarding;
 
 namespace Quartermaster.Data;
 
@@ -76,6 +77,11 @@ public class DbContext : DataConnection {
     public ITable<ExpenseReimbursementLineItem> ExpenseReimbursementLineItems => this.GetTable<ExpenseReimbursementLineItem>();
     public ITable<TravelExpenseRuleSet> TravelExpenseRuleSets => this.GetTable<TravelExpenseRuleSet>();
     public ITable<UserReceipt> UserReceipts => this.GetTable<UserReceipt>();
+    public ITable<RedmineConnection> RedmineConnections => this.GetTable<RedmineConnection>();
+    public ITable<ForwardingTarget> ForwardingTargets => this.GetTable<ForwardingTarget>();
+    public ITable<ForwardingChapterSetting> ForwardingChapterSettings => this.GetTable<ForwardingChapterSetting>();
+    public ITable<ForwardingCase> ForwardingCases => this.GetTable<ForwardingCase>();
+    public ITable<ForwardingStep> ForwardingSteps => this.GetTable<ForwardingStep>();
     public ITable<TravelExpenseReimbursement> TravelExpenseReimbursements => this.GetTable<TravelExpenseReimbursement>();
     public ITable<PdfTemplate> PdfTemplates => this.GetTable<PdfTemplate>();
     public ITable<ProgrammeSource> ProgrammeSources => this.GetTable<ProgrammeSource>();
@@ -128,6 +134,9 @@ public class DbContext : DataConnection {
         services.AddScoped<Forms.ExpenseReimbursements.ExpenseReimbursementRepository>();
         services.AddScoped<TravelExpenseRuleSetRepository>();
         services.AddScoped<UserReceiptRepository>();
+        services.AddScoped<RedmineConnectionRepository>();
+        services.AddScoped<ForwardingSettingsRepository>();
+        services.AddScoped<ForwardingCaseRepository>();
         services.AddScoped<TravelExpenseReimbursementRepository>();
         services.AddScoped<Forms.PdfTemplates.PdfTemplateRepository>();
         services.AddScoped<ProgrammeRepository>();

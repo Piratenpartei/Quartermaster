@@ -7,14 +7,19 @@ using Quartermaster.Data;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Notifications;
 
 namespace Quartermaster.Server.Members;
 
-/// <summary>10-year contractual retention sweep. Applications/Selections defer while a name+DOB-matching Member is still in retention.</summary>
+/// <summary>
+/// 10-year contractual retention sweep. Applications/Selections defer while a name+DOB-matching Member is still in retention. Anonymizing one also
+/// drops the texts of the mails sent about it, which repeat its data.
+/// </summary>
 public class RetentionAnonymizationService {
     private readonly MemberRepository _memberRepo;
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly DueSelectionRepository _selectionRepo;
+    private readonly NotificationLogRepository _notificationLogs;
     private readonly DbContext _context;
     private readonly ILogger<RetentionAnonymizationService> _logger;
 
@@ -22,11 +27,13 @@ public class RetentionAnonymizationService {
         MemberRepository memberRepo,
         MembershipApplicationRepository applicationRepo,
         DueSelectionRepository selectionRepo,
+        NotificationLogRepository notificationLogs,
         DbContext context,
         ILogger<RetentionAnonymizationService> logger) {
         _memberRepo = memberRepo;
         _applicationRepo = applicationRepo;
         _selectionRepo = selectionRepo;
+        _notificationLogs = notificationLogs;
         _context = context;
         _logger = logger;
     }
@@ -42,6 +49,7 @@ public class RetentionAnonymizationService {
             if (LinkedMemberStillInRetention(app, now))
                 continue;
             _applicationRepo.Anonymize(app.Id);
+            _notificationLogs.ClearBodies("MembershipApplication", app.Id);
             applicationIdsAnonymized.Add(app.Id);
         }
 
@@ -54,6 +62,7 @@ public class RetentionAnonymizationService {
             if (liveApplicationDueSelectionIds.Contains(sel.Id))
                 continue;
             _selectionRepo.Anonymize(sel.Id);
+            _notificationLogs.ClearBodies("DueSelection", sel.Id);
         }
 
         var summary = new AnonymizationRunSummary(

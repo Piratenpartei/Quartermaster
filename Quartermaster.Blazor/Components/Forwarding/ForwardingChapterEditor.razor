@@ -1,0 +1,51 @@
+@using Quartermaster.Api.Forwarding
+@using Quartermaster.Api.I18n
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <label class="form-label small text-secondary" for="@($"{IdPrefix}-application-mode")">@I18n[I18nKey.Ui.ForwardingSetup.ApplicationMode]</label>
+        <select id="@($"{IdPrefix}-application-mode")" class="form-select" @bind="ApplicationMode">
+            <option value="">@I18n[I18nKey.Ui.ForwardingSetup.ModeUnset]</option>
+            <option value="@((int)ForwardingMode.Quartermaster)">@I18n[I18nKey.Ui.ForwardingSetup.ModeQuartermaster]</option>
+            <option value="@((int)ForwardingMode.Redmine)">@I18n[I18nKey.Ui.ForwardingSetup.ModeRedmine]</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label small text-secondary" for="@($"{IdPrefix}-reduction-mode")">@I18n[I18nKey.Ui.ForwardingSetup.ReductionMode]</label>
+        <select id="@($"{IdPrefix}-reduction-mode")" class="form-select" @bind="ReductionMode" disabled="@(!DecidesOnReductions)">
+            <option value="">@I18n[I18nKey.Ui.ForwardingSetup.ModeUnset]</option>
+            <option value="@((int)ForwardingMode.Quartermaster)">@I18n[I18nKey.Ui.ForwardingSetup.ModeQuartermaster]</option>
+            <option value="@((int)ForwardingMode.Redmine)">@I18n[I18nKey.Ui.ForwardingSetup.ModeRedmine]</option>
+        </select>
+        @if (!DecidesOnReductions) {
+            <div class="form-text">@I18n[I18nKey.Ui.ForwardingSetup.StateOnlyHint]</div>
+        }
+    </div>
+    @if (Setting.IsFederal) {
+        <div class="col-12"><div class="form-text">@I18n[I18nKey.Ui.ForwardingSetup.FederalModeHint]</div></div>
+    }
+    <div class="col-md-6">
+        <label class="form-label small text-secondary" for="@($"{IdPrefix}-failure-email")">@I18n[I18nKey.Ui.ForwardingSetup.FailureEmail]</label>
+        <input id="@($"{IdPrefix}-failure-email")" type="email" class="form-control" @bind="FailureEmail" @bind:event="oninput" />
+        <div class="form-text">@I18n[I18nKey.Ui.ForwardingSetup.FailureEmailHint]</div>
+    </div>
+</div>
+
+@if (VisiblePurposes().Count > 0) {
+    @if (!Setting.HasConnection) {
+        <div class="alert alert-warning small">@I18n[I18nKey.Ui.ForwardingSetup.NoConnection]</div>
+    } else if (LookupFailed) {
+        <div class="alert alert-warning small">@I18n[I18nKey.Ui.ForwardingSetup.LookupFailed]</div>
+    }
+    @foreach (var purpose in VisiblePurposes()) {
+        <ForwardingTargetEditor Target="@Targets[purpose]" Lookups="@Lookups" Title="@TargetTitle(purpose)"
+                                ShowNoteFields="@(Setting.IsFederal && purpose != ForwardingPurpose.Regular)" IdPrefix="@($"{IdPrefix}-{purpose}")" />
+    }
+}
+
+<div class="d-flex gap-2">
+    <button class="btn btn-primary btn-sm" disabled="@Busy" @onclick="SaveAsync"><i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]</button>
+    @if (OnCancel.HasDelegate) {
+        <button class="btn btn-outline-secondary btn-sm" disabled="@Busy" @onclick="() => OnCancel.InvokeAsync()">@I18n[I18nKey.Ui.ForwardingSetup.Cancel]</button>
+    }
+</div>

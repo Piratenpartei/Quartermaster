@@ -1,0 +1,122 @@
+@page "/Administration/Setup/Redmine"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[SettingsAssistantCatalog.Redmine.TitleKey]</PageTitle>
+
+<PageBackLink Href="/Administration/Settings" />
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
+    <h3 class="mb-1"><i class="bi @SettingsAssistantCatalog.Redmine.Icon me-2"></i>@I18n[SettingsAssistantCatalog.Redmine.TitleKey]</h3>
+    <p class="text-secondary">@I18n[I18nKey.Ui.RedmineSetup.Intro]</p>
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (FederalChapterId == null) {
+        <div class="alert alert-warning">@I18n[I18nKey.Ui.RedmineSetup.NoFederalChapter]</div>
+    } else {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">@I18n[I18nKey.Ui.RedmineSetup.FederalTitle] <span class="text-secondary small">(@FederalChapterName)</span></h5>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-7">
+                        <label class="form-label small text-secondary" for="redmine-federal-url">@I18n[I18nKey.Ui.RedmineSetup.BaseUrl]</label>
+                        <input id="redmine-federal-url" type="url" class="form-control" placeholder="https://redmine.example.org" @bind="FederalUrl" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small text-secondary" for="redmine-federal-key">@I18n[I18nKey.Ui.RedmineSetup.ApiKey]</label>
+                        <input id="redmine-federal-key" type="password" class="form-control" autocomplete="new-password" @bind="FederalKey" @bind:event="oninput"
+                               placeholder="@(FederalHasKey ? I18n[I18nKey.Ui.RedmineSetup.ApiKeyStored] : "")" />
+                    </div>
+                </div>
+                <div class="form-text mb-3">@I18n[I18nKey.Ui.RedmineSetup.ApiKeyHint]</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary btn-sm" disabled="@Busy" @onclick="() => SaveAsync(FederalChapterId.Value, FederalUrl, FederalKey)">
+                        <i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" disabled="@(Busy || !FederalHasKey)" @onclick="() => CheckAsync(FederalChapterId.Value)">
+                        <i class="bi bi-plug"></i> @I18n[I18nKey.Ui.RedmineSetup.Check]
+                    </button>
+                </div>
+                @if (CheckResults.TryGetValue(FederalChapterId.Value, out var federalCheck)) {
+                    <div class="alert @(federalCheck.Ok ? "alert-success" : "alert-danger") mt-3 mb-0" role="alert">@federalCheck.Message</div>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">@I18n[I18nKey.Ui.RedmineSetup.ChaptersTitle]</h5>
+                @if (ChapterConnections.Count == 0) {
+                    <p class="text-secondary small">@I18n[I18nKey.Ui.RedmineSetup.NoChapters]</p>
+                } else {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                                    <th>@I18n[I18nKey.Ui.RedmineSetup.BaseUrl]</th>
+                                    <th>@I18n[I18nKey.Ui.RedmineSetup.ApiKey]</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var connection in ChapterConnections) {
+                                    <tr>
+                                        <td>@connection.ChapterName</td>
+                                        <td class="text-break">
+                                            <input type="url" class="form-control form-control-sm" @bind="EditUrls[connection.ChapterId]" @bind:event="oninput" aria-label="@I18n[I18nKey.Ui.RedmineSetup.BaseUrl]" />
+                                        </td>
+                                        <td>
+                                            <input type="password" class="form-control form-control-sm" autocomplete="new-password" @bind="EditKeys[connection.ChapterId]" @bind:event="oninput"
+                                                   placeholder="@(connection.HasApiKey ? I18n[I18nKey.Ui.RedmineSetup.ApiKeyStored] : "")" aria-label="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" />
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button class="btn btn-sm btn-outline-primary" disabled="@Busy" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]"
+                                                    @onclick="() => SaveAsync(connection.ChapterId, EditUrls[connection.ChapterId], EditKeys[connection.ChapterId])">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Check]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Check]" @onclick="() => CheckAsync(connection.ChapterId)">
+                                                <i class="bi bi-plug"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Remove]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Remove]" @onclick="() => RemoveAsync(connection.ChapterId)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @if (CheckResults.TryGetValue(connection.ChapterId, out var check)) {
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="alert @(check.Ok ? "alert-success" : "alert-danger") mb-0 py-1 small" role="alert">@check.Message</div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <h6 class="mt-3">@I18n[I18nKey.Ui.RedmineSetup.Add]</h6>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <ChapterPicker @bind-Value="NewChapterId" ExcludeIds="@ConfiguredChapterIds()" AllowEmpty="true" />
+                    </div>
+                    <div class="col-md-4">
+                        <input type="url" class="form-control" placeholder="https://redmine.example.org" @bind="NewUrl" @bind:event="oninput" aria-label="@I18n[I18nKey.Ui.RedmineSetup.BaseUrl]" />
+                    </div>
+                    <div class="col-md-3">
+                        <input type="password" class="form-control" autocomplete="new-password" @bind="NewKey" @bind:event="oninput" placeholder="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" />
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-primary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="AddAsync" title="@I18n[I18nKey.Ui.RedmineSetup.Add]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Add]">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</RequirePermission>
+
+<ConfirmDialog @ref="RemoveDialog" Title="@I18n[I18nKey.Ui.RedmineSetup.Remove]" ConfirmText="@I18n[I18nKey.Ui.RedmineSetup.Remove]" />

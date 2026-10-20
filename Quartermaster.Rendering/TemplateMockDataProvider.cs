@@ -4,6 +4,7 @@ using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
@@ -24,6 +25,9 @@ public static class TemplateMockDataProvider {
 
         foreach (var model in models) {
             switch (model) {
+                case "ForwardingTemplateModel":
+                    AddForwardingMockData(data);
+                    break;
                 case "TemplateConfirmationDTO":
                     data["confirm"] = new TemplateConfirmationDTO {
                         Url = "https://quartermaster.example.local/Confirm/abc123"
@@ -146,5 +150,54 @@ public static class TemplateMockDataProvider {
         }
 
         return data;
+    }
+
+    private static void AddForwardingMockData(Dictionary<string, object> data) {
+        data["application"] = new ForwardingApplicationModel {
+            FirstName = "Max",
+            LastName = "Mustermann",
+            DateOfBirth = "15.01.1990",
+            Citizenship = "deutsch",
+            Email = "max.mustermann@example.com",
+            PhoneNumber = "0170 1234567",
+            Street = "Musterstraße",
+            HouseNumber = "42",
+            PostCode = "30159",
+            City = "Hannover",
+            ChapterName = "Kreisverband Hannover",
+            EntryDate = "01.11.2026",
+            ApplicationText = "Ich möchte mich für digitale Bürgerrechte engagieren."
+        };
+        data["dues"] = new ForwardingDuesModel {
+            Valuation = "Beitragsminderung",
+            YearlyAmount = "36,00",
+            Reduced = true,
+            ReducedAmount = "36,00",
+            Justification = "Studium ohne Einkommen",
+            ReducedTimeSpan = "für ein Jahr",
+            PaymentSchedule = "jährlich",
+            IsDirectDeposit = true,
+            AccountHolder = "Max Mustermann",
+            Iban = "DE02120300000000202051"
+        };
+        data["member"] = new ForwardingMemberModel { Number = "4711", FirstName = "Max", LastName = "Mustermann", Email = "max.mustermann@example.com" };
+        data["submission"] = new ForwardingSubmissionModel { SubmittedAt = "20.10.2026 10:00 Uhr", SubmittedBy = "max.mustermann" };
+        data["chapter"] = new ForwardingChapterModel { Name = "Landesverband Niedersachsen", DecidingName = "Landesverband Niedersachsen", StateName = "Landesverband Niedersachsen" };
+        data["case"] = new ForwardingCaseModel { Reference = "QM-0A1B2C3D", RelatedReference = "QM-9F8E7D6C", Kind = "Beitragseinstufung" };
+        data["federalTicket"] = new ForwardingTicketModel { Id = "815", Url = "https://redmine.example.local/issues/815" };
+        data["outcome"] = new ForwardingOutcomeModel {
+            Result = "angenommen",
+            DecidedBy = "Vorstand Landesverband Niedersachsen",
+            Date = "27.10.2026",
+            MotionUrl = "https://quartermaster.example.local/Administration/Motions/00000000-0000-0000-0000-000000000000"
+        };
+        data["failure"] = new ForwardingFailureModel {
+            Error = "Redmine ist nicht erreichbar.",
+            Purpose = "Beitragsminderung",
+            TargetChapter = "Landesverband Niedersachsen",
+            TicketSubject = "Beitragsminderung: Max Mustermann auf 36,00 €",
+            TicketDescription = "**Antrag auf Beitragsminderung** von Max Mustermann",
+            CasesUrl = "https://quartermaster.example.local/Administration/Forwarding"
+        };
     }
 }

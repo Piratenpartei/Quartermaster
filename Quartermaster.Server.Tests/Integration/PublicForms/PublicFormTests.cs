@@ -28,7 +28,7 @@ public class PublicFormTests : IntegrationTestBase {
         return client;
     }
 
-    private static MembershipApplicationDTO Application(Guid chapterId) {
+    private MembershipApplicationDTO Application(Guid chapterId) {
         return new MembershipApplicationDTO {
             FirstName = "Alice",
             LastName = "Applicant",
@@ -40,7 +40,7 @@ public class PublicFormTests : IntegrationTestBase {
             AddressHouseNbr = "1",
             AddressPostCode = "12345",
             AddressCity = "Testcity",
-            ChapterId = chapterId,
+            AddressAdministrativeDivisionId = Builder.SeedDivisionFor(chapterId),
             ConformityDeclarationAccepted = true,
             ApplicationText = "I want to join.",
             EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
@@ -56,7 +56,7 @@ public class PublicFormTests : IntegrationTestBase {
             SelectedValuation = SelectedValuation.OnePercentYearlyPay,
             YearlyIncome = 30000m,
             MonthlyIncomeGroup = 2500m,
-            SelectedDue = 25m,
+            SelectedDue = 300m,
             ReducedAmount = 12m,
             ReducedJustification = "",
             ReducedTimeSpan = ReducedTimeSpan.OneYear,
@@ -104,7 +104,8 @@ public class PublicFormTests : IntegrationTestBase {
     [Test]
     public async Task Due_selection_refused_while_switched_off() {
         SetOption(PublicFormOptions.DueSelection, null, "false");
-        using var client = await AnonymousWithCsrfAsync();
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
 
         var response = await client.PostAsJsonAsync("/api/dueselector", DueSelection());
 

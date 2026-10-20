@@ -20,7 +20,7 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
             AddressHouseNbr = "1",
             AddressPostCode = "12345",
             AddressCity = "Testcity",
-            ChapterId = chapterId,
+            AddressAdministrativeDivisionId = chapterId == null ? null : Builder.SeedDivisionFor(chapterId.Value),
             ConformityDeclarationAccepted = true,
             ApplicationText = "I want to join.",
             EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)

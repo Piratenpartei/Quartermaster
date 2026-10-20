@@ -16,6 +16,7 @@
         <option value="1">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusApproved]</option>
         <option value="2">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusRejected]</option>
         <option value="3">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusAutoApproved]</option>
+        <option value="4">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusForwarded]</option>
     </select>
 </div>
 
@@ -61,6 +62,8 @@
                             <span class="badge border border-success text-success-emphasis">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusApproved]</span>
                         } else if (ds.Status == DueSelectionStatus.Rejected) {
                             <span class="badge border border-danger text-danger-emphasis">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusRejected]</span>
+                        } else if (ds.Status == DueSelectionStatus.Forwarded) {
+                            <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusForwarded]</span>
                         } else {
                             <span class="badge border border-info text-info-emphasis">@I18n[I18nKey.Ui.DueSelectionAdmin.StatusAutoBadge]</span>
                         }

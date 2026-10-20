@@ -67,6 +67,9 @@
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewDueSelections">
                                     <li><a class="dropdown-item" href="/Administration/DueSelections">@I18n[I18nKey.Ui.MainNavBar.BoardWorkDueSelections]</a></li>
                                 </RequirePermission>
+                                @if (CanSeeForwardingCases) {
+                                    <li><a class="dropdown-item" href="/Administration/Forwarding">@I18n[I18nKey.Ui.MainNavBar.BoardWorkForwarding]</a></li>
+                                }
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewMembers">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/Members">@I18n[I18nKey.Ui.MainNavBar.BoardWorkMembers]</a></li>

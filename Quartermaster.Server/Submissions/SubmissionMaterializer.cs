@@ -4,18 +4,19 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Quartermaster.Api;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
+using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.DueSelector;
+using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Rendering;
+using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.MembershipApplications;
 using Quartermaster.Server.Notifications;
 
@@ -28,33 +29,33 @@ namespace Quartermaster.Server.Submissions;
 /// </summary>
 public class SubmissionMaterializer {
     private readonly MotionRepository _motionRepo;
-    private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly MemberRepository _memberRepo;
     private readonly INotificationDispatchQueue _notifications;
     private readonly MembershipApplicationMailService _applicantMail;
-    private readonly ApplicationReviewService _reviewService;
+    private readonly ForwardingIntake _forwardingIntake;
+    private readonly AdministrativeDivisionRepository _divisionRepo;
     private readonly ILogger<SubmissionMaterializer> _logger;
 
     public SubmissionMaterializer(
         MotionRepository motionRepo,
-        DueSelectionRepository dueSelectionRepo,
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
         MemberRepository memberRepo,
         INotificationDispatchQueue notifications,
         MembershipApplicationMailService applicantMail,
-        ApplicationReviewService reviewService,
+        ForwardingIntake forwardingIntake,
+        AdministrativeDivisionRepository divisionRepo,
         ILogger<SubmissionMaterializer> logger) {
         _motionRepo = motionRepo;
-        _dueSelectionRepo = dueSelectionRepo;
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
         _notifications = notifications;
         _applicantMail = applicantMail;
-        _reviewService = reviewService;
+        _forwardingIntake = forwardingIntake;
+        _divisionRepo = divisionRepo;
         _logger = logger;
     }
 
@@ -81,9 +82,6 @@ public class SubmissionMaterializer {
     /// referenced a missing chapter and was dropped.
     /// </summary>
     public Guid? MaterializeMotionDirect(MotionCreateRequest req) => MaterializeMotion(req);
-
-    /// <summary>Direct-path overload for authenticated callers — see <see cref="MaterializeMotionDirect"/>.</summary>
-    public Guid MaterializeDueSelectionDirect(DueSelectionDTO req) => MaterializeDueSelection(req);
 
     /// <summary>Direct-path overload for authenticated callers — see <see cref="MaterializeMotionDirect"/>.</summary>
     public Task<Guid> MaterializeApplicationDirectAsync(MembershipApplicationDTO req, CancellationToken ct = default)
@@ -120,59 +118,33 @@ public class SubmissionMaterializer {
         return motion.Id;
     }
 
-    private Guid MaterializeDueSelection(DueSelectionDTO req) {
-        var dueSelection = DueSelection.FromDto(req);
-        _dueSelectionRepo.Create(dueSelection);
-
-        if (req.MemberNumber > 0) {
-            var member = _memberRepo.GetByMemberNumber(req.MemberNumber);
-            if (member?.ChapterId != null) {
-                var chapterId = member.ChapterId.Value;
-                var chapter = _chapterRepo.Get(chapterId);
-                var chapterName = chapter?.Name ?? "";
-                var payload = new DueSelectionSubmittedPayload(
-                    dueSelection.Id, chapterId, chapterName,
-                    dueSelection.FirstName, dueSelection.LastName, dueSelection.SelectedDue);
-                _notifications.Enqueue(new NotificationDispatchRequest(
-                    NotificationTriggers.DueSelectionSubmitted,
-                    payload,
-                    _ => new Dictionary<string, object> {
-                        ["selection"] = dueSelection.ToDetailDto(),
-                        ["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName }
-                    },
-                    SourceEntityType: "DueSelection",
-                    SourceEntityId: dueSelection.Id));
-            }
-        }
-        return dueSelection.Id;
+    /// <summary>
+    /// Confirms a due selection that was submitted anonymously before V7 made the form login-only. Routed like a logged-in submission without a linked account:
+    /// the chapter comes from the member number, the person data counts as entered by hand.
+    /// </summary>
+    private void MaterializeDueSelection(DueSelectionDTO req) {
+        var member = req.MemberNumber != 0 ? _memberRepo.GetByMemberNumber(req.MemberNumber) : null;
+        _forwardingIntake.IntakeDueSelection(req, member?.ChapterId, null, null, true, DateTime.UtcNow);
     }
 
+    /// <summary>
+    /// The chapter comes from the address' administrative division, never from the client. The receipt mail always goes out, also when the application is only
+    /// forwarded to Redmine; returns the stored application id, or the forwarding case id when Quartermaster keeps no application.
+    /// </summary>
     private async Task<Guid> MaterializeApplicationAsync(MembershipApplicationDTO req, CancellationToken ct) {
-        Guid? dueSelectionId = null;
-        var isReduced = false;
-        if (req.DueSelection != null) {
-            var dueSelection = DueSelection.FromDto(req.DueSelection);
-            isReduced = dueSelection.SelectedValuation == SelectedValuation.Reduced;
-            dueSelection.Status = isReduced
-                ? DueSelectionStatus.Pending
-                : DueSelectionStatus.AutoApproved;
-            _dueSelectionRepo.Create(dueSelection);
-            dueSelectionId = dueSelection.Id;
-        }
+        var chapterId = req.AddressAdministrativeDivisionId == null
+            ? null
+            : _chapterRepo.FindForDivision(req.AddressAdministrativeDivisionId.Value, _divisionRepo)?.Id;
+        req.ChapterId = chapterId;
 
-        var application = MembershipApplication.FromDto(req, dueSelectionId, DateTime.UtcNow);
-        _applicationRepo.Create(application);
+        var result = _forwardingIntake.IntakeApplication(req, chapterId, DateTime.UtcNow);
+        var application = result.ApplicationId == null ? null : _applicationRepo.Get(result.ApplicationId.Value);
+        // Without a stored application the mail is filed under the case, so its text is deleted together with the case's data.
+        (string Type, Guid Id)? logSource = application == null && result.CaseId != null ? (ForwardingCaseRepository.MailSourceType, result.CaseId.Value) : null;
+        application ??= MembershipApplication.FromDto(req, null, DateTime.UtcNow);
+        await _applicantMail.SendApplicationReceivedAsync(application, result.IsReduced, logSource, ct);
 
-        await _applicantMail.SendApplicationReceivedAsync(application, isReduced, ct);
-
-        // Without a chapter the application waits in PendingDivisionLinking (set above) — no review
-        // motion, no officer notification — until someone assigns a chapter via the linking endpoint.
-        if (!application.ChapterId.HasValue) {
-            return application.Id;
-        }
-
-        _reviewService.CreateReviewMotionAndNotify(application);
-        return application.Id;
+        return result.ApplicationId ?? result.CaseId ?? application.Id;
     }
 
     private static T Deserialize<T>(string json) {

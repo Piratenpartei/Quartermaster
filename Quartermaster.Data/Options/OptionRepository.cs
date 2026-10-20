@@ -1,4 +1,5 @@
 using LinqToDB;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.Options;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
@@ -122,6 +123,26 @@ public class OptionRepository {
             "Öffentliche Formulare: Beitragseinstufung",
             OptionDataType.String, false, "", "false",
             description: "Wenn 'true', ist die Beitragseinstufung öffentlich erreichbar und im Menü sichtbar.");
+
+        AddDefinitionIfNotExists(ForwardingOptionKeys.RegularMinimum,
+            "Beiträge: Regelbeitrag ab (EUR/Jahr)",
+            OptionDataType.Number, false, "", "72",
+            description: "Beitragseinstufungen ab diesem Jahresbetrag brauchen keine Entscheidung. Darunter ist es eine Beitragsminderung, über die eine Gliederung entscheidet.");
+
+        AddDefinitionIfNotExists(ForwardingOptionKeys.StateDecisionMinimum,
+            "Beiträge: Entscheidung durch Bundesebene unter (EUR/Jahr)",
+            OptionDataType.Number, false, "", "12",
+            description: "Beitragsminderungen unter diesem Jahresbetrag entscheidet die Bundesebene, ab diesem Betrag der Landesverband.");
+
+        AddDefinitionIfNotExists(ForwardingOptionKeys.MembershipApplicationEnabled,
+            "Weiterleitung: Mitgliedsanträge an Redmine",
+            OptionDataType.String, false, "", "false",
+            description: "Wenn 'true', erzeugen Mitgliedsanträge Tickets im Redmine der Bundesebene und, je nach Einstellung, der Gliederung.");
+
+        AddDefinitionIfNotExists(ForwardingOptionKeys.DueSelectionEnabled,
+            "Weiterleitung: Beitragseinstufungen an Redmine",
+            OptionDataType.String, false, "", "false",
+            description: "Wenn 'true', erzeugen Beitragseinstufungen Tickets im Redmine der Bundesebene und, je nach Einstellung, des Landesverbands.");
 
         AddDefinitionIfNotExists(PublicFormOptions.Motion,
             "Öffentliche Formulare: Antrag einreichen",
@@ -364,12 +385,22 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_permits",
             "Rate-Limit: Anonyme Anfragen pro Fenster",
             OptionDataType.Number, false, "", "5",
-            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, Beitragseinstufungen, PDFs der Auslagen- und Reisekostenerstattung) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
+            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, PDFs der Auslagen- und Reisekostenerstattung) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
 
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_window_minutes",
             "Rate-Limit: Zeitfenster (Minuten)",
             OptionDataType.Number, false, "", "10",
             description: "Länge des Zeitfensters für das Rate-Limit anonymer Anfragen, in Minuten. Standard: 10.");
+
+        AddDefinitionIfNotExists("auth.ratelimit.due_selection_permits",
+            "Rate-Limit: Beitragseinstufungen pro Konto und Fenster",
+            OptionDataType.Number, false, "", "5",
+            description: "Maximale Anzahl Beitragseinstufungen, die ein angemeldetes Konto innerhalb des Zeitfensters abschicken kann. Jede erzeugt bei eingeschalteter Weiterleitung ein Ticket im Redmine der Bundesebene. Standard: 5.");
+
+        AddDefinitionIfNotExists("auth.ratelimit.due_selection_window_minutes",
+            "Rate-Limit: Zeitfenster für Beitragseinstufungen (Minuten)",
+            OptionDataType.Number, false, "", "1440",
+            description: "Länge des Zeitfensters für das Rate-Limit der Beitragseinstufungen, in Minuten. Standard: 1440 (ein Tag).");
 
         AddDefinitionIfNotExists("meetings.protocol.archive_dir",
             "Sitzungen: Protokoll-Archivpfad",

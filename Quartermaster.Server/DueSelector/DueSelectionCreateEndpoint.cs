@@ -1,78 +1,69 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.RateLimiting;
-using Quartermaster.Api.DueSelector;
 using Quartermaster.Api;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Submissions;
-using Quartermaster.Data.Submissions;
+using Quartermaster.Data.Members;
+using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.PublicForms;
-using Quartermaster.Server.Submissions;
-#if DEBUG
-using Quartermaster.Data.Options;
-using Quartermaster.Server.Email;
-#endif
 
 namespace Quartermaster.Server.DueSelector;
 
 /// <summary>
-/// Due-selection submission. Authenticated callers create directly; anonymous callers go
-/// through the email-confirm pending flow. While the public form is switched off, only holders of
-/// dueselections_process may still submit.
+/// Due-selection submission, for logged-in users only; it takes effect at once without an email confirmation. With a linked member record the person data
+/// comes from that record, whatever the form sent. While the public form is switched off, only holders of dueselections_process may still submit.
 /// </summary>
 public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO, SubmissionAcceptedResponse> {
-    private readonly SubmissionIntakeService _intake;
-    private readonly SubmissionMaterializer _materializer;
+    private readonly ForwardingIntake _intake;
+    private readonly MemberRepository _members;
+    private readonly UserRepository _users;
     private readonly PermissionContext _perms;
     private readonly PublicFormSettings _publicForms;
-#if DEBUG
-    private readonly OptionRepository _optionRepo;
-#endif
 
-    public DueSelectionCreateEndpoint(SubmissionIntakeService intake,
-        SubmissionMaterializer materializer, PermissionContext perms, PublicFormSettings publicForms
-#if DEBUG
-        , OptionRepository optionRepo
-#endif
-    ) {
+    public DueSelectionCreateEndpoint(ForwardingIntake intake, MemberRepository members, UserRepository users, PermissionContext perms, PublicFormSettings publicForms) {
         _intake = intake;
-        _materializer = materializer;
+        _members = members;
+        _users = users;
         _perms = perms;
         _publicForms = publicForms;
-#if DEBUG
-        _optionRepo = optionRepo;
-#endif
     }
 
     public override void Configure() {
         Post("/api/dueselector");
-        AllowAnonymous();
-        Options(b => b.RequireRateLimiting(Program.AnonymousCreateRateLimitPolicy));
+        Options(b => b.RequireRateLimiting(Program.DueSelectionRateLimitPolicy));
     }
 
     public override async Task HandleAsync(DueSelectionDTO req, CancellationToken ct) {
+        if (_perms.UserId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
         if (!_publicForms.IsDueSelectionEnabled() && !_perms.HasInAnyChapter(PermissionIdentifier.ProcessDueSelections))
             ThrowError(I18nKey.Error.PublicForm.Disabled, 403);
 
-        var skipConfirmation = false;
-#if DEBUG
-        skipConfirmation = SmtpConfig.ReadFrom(_optionRepo) == null;
-#endif
-
-        if (_perms.UserId != null || skipConfirmation) {
-            var id = _materializer.MaterializeDueSelectionDirect(req);
-            await SendAsync(new SubmissionAcceptedResponse {
-                Email = req.Email,
-                RequiresConfirmation = false,
-                CreatedEntityId = id
-            }, cancellation: ct);
-            return;
+        var userId = _perms.UserId.Value;
+        var user = _users.Get(userId);
+        var member = _members.GetByUserIdIncludingFloating(userId);
+        if (member != null) {
+            // A floating member (accepted, no number yet) sends no number; the client's value is never trusted for a linked member.
+            req.MemberNumber = member.MemberNumber ?? 0;
+            req.FirstName = member.FirstName;
+            req.LastName = member.LastName;
+            req.Email = string.IsNullOrWhiteSpace(member.Email) ? user?.Email ?? req.Email : member.Email;
         }
 
-        await _intake.AcceptAsync(PendingSubmissionKind.DueSelection, req, req.Email, ct);
-        await SendAsync(new SubmissionAcceptedResponse { Email = req.Email }, cancellation: ct);
+        var userName = user == null ? null : user.Username ?? $"{user.FirstName} {user.LastName}".Trim();
+        var result = _intake.IntakeDueSelection(req, member?.ChapterId, userId, userName, member == null, DateTime.UtcNow);
+        await SendAsync(new SubmissionAcceptedResponse {
+            Email = req.Email,
+            RequiresConfirmation = false,
+            CreatedEntityId = result.DueSelectionId ?? result.CaseId
+        }, cancellation: ct);
     }
 }

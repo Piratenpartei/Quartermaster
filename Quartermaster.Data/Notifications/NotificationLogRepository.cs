@@ -30,6 +30,14 @@ public class NotificationLogRepository {
             .Update();
     }
 
+    /// <summary>Drops the stored message texts sent about one record, keeping the delivery log.</summary>
+    public void ClearBodies(string entityType, Guid entityId) {
+        _context.NotificationLogs
+            .Where(l => l.SourceEntityType == entityType && l.SourceEntityId == entityId)
+            .Set(l => l.Body, (string?)null)
+            .Update();
+    }
+
     public List<NotificationLog> GetForSource(string entityType, Guid entityId) {
         return _context.NotificationLogs
             .Where(l => l.SourceEntityType == entityType && l.SourceEntityId == entityId)

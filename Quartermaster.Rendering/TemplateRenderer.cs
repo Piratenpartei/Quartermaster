@@ -13,6 +13,11 @@ public static class TemplateRenderer {
         return parser;
     }
 
+    /// <summary>True when the template parses; for checking templates when they are saved rather than when they are first rendered.</summary>
+    public static bool IsValid(string template) {
+        return Parser.TryParse(template, out _, out _);
+    }
+
     public static async Task<(string? Text, string? Error)> RenderTextAsync(
         string template, Dictionary<string, object> model) {
         var (text, error, _) = await RenderTextWithContextAsync(template, model);

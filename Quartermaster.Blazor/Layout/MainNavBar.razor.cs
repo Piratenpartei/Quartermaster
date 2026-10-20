@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
@@ -58,6 +59,10 @@ public partial class MainNavBar : IDisposable {
         AuthState.OnTokenExpired += OnTokenExpired;
         AuthState.OnStateChanged += OnAuthStateChanged;
     }
+
+    // The case list needs a global permission; RequirePermission only knows "any of" across chapters.
+    private bool CanSeeForwardingCases => AuthService.HasGlobalPermission(PermissionIdentifier.ProcessApplications)
+        || AuthService.HasGlobalPermission(PermissionIdentifier.ProcessDueSelections);
 
     private void OnAuthStateChanged() {
         InvokeAsync(StateHasChanged);

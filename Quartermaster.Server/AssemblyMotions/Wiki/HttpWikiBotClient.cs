@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Rendering;
 
@@ -22,6 +23,7 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
     private const int MaxBodyExcerpt = 200;
 
     private readonly HttpClient _http;
+    private readonly bool _allowLoopbackHttp;
     private readonly ILogger<HttpWikiBotClient> _logger;
     // One gate for the whole of every public call: login and token state are never raced, and the sync service handles pages one by one anyway.
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -29,11 +31,12 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
     private (string ApiUrl, string Username, string Password)? loggedInAs;
     private string? csrfToken;
 
-    public HttpWikiBotClient(HttpMessageHandler handler, ILogger<HttpWikiBotClient> logger)
-        : this(new HttpClient(handler), logger) { }
+    public HttpWikiBotClient(HttpMessageHandler handler, IHostEnvironment environment, ILogger<HttpWikiBotClient> logger)
+        : this(new HttpClient(handler), environment, logger) { }
 
-    public HttpWikiBotClient(HttpClient http, ILogger<HttpWikiBotClient> logger) {
+    public HttpWikiBotClient(HttpClient http, IHostEnvironment environment, ILogger<HttpWikiBotClient> logger) {
         _http = http;
+        _allowLoopbackHttp = environment.IsDevelopment();
         _http.Timeout = TimeSpan.FromSeconds(30);
         _logger = logger;
     }
@@ -415,8 +418,8 @@ public class HttpWikiBotClient : IWikiBotClient, IDisposable {
         return doc;
     }
 
-    private static void EnsureSecureUrl(string apiUrl) {
-        if (!WikiBotSettings.IsSecureUrl(apiUrl)) {
+    private void EnsureSecureUrl(string apiUrl) {
+        if (!WikiBotSettings.IsSecureUrl(apiUrl, _allowLoopbackHttp)) {
             throw new WikiBotException("Die Wiki-API-URL muss https verwenden.", "insecure_url");
         }
     }

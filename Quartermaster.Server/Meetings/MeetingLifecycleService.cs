@@ -12,6 +12,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.Motions;
 
 namespace Quartermaster.Server.Meetings;
@@ -28,6 +29,7 @@ public class MeetingLifecycleService {
     private readonly ChapterRepository _chapterRepo;
     private readonly OptionRepository _optionRepo;
     private readonly MotionResolutionDecisionMailer _decisionMailer;
+    private readonly ForwardingOutcomeHook _forwarding;
     private readonly ILogger<MeetingLifecycleService> _logger;
 
     public MeetingLifecycleService(
@@ -37,6 +39,7 @@ public class MeetingLifecycleService {
         ChapterRepository chapterRepo,
         OptionRepository optionRepo,
         MotionResolutionDecisionMailer decisionMailer,
+        ForwardingOutcomeHook forwarding,
         ILogger<MeetingLifecycleService> logger) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
@@ -44,6 +47,7 @@ public class MeetingLifecycleService {
         _chapterRepo = chapterRepo;
         _optionRepo = optionRepo;
         _decisionMailer = decisionMailer;
+        _forwarding = forwarding;
         _logger = logger;
     }
 
@@ -70,6 +74,7 @@ public class MeetingLifecycleService {
             var newStatus = DetermineApprovalStatus(approve, deny, abstain);
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
             await _decisionMailer.NotifyAsync(motion.Id, ct);
+            _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);
 
             if (string.IsNullOrWhiteSpace(item.Resolution)) {
                 var resolutionText = BuildResolutionText(newStatus, approve, deny, abstain);
@@ -99,6 +104,7 @@ public class MeetingLifecycleService {
         if (motion.ApprovalStatus == MotionApprovalStatus.Pending) {
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
             await _decisionMailer.NotifyAsync(motion.Id, ct);
+            _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);
         }
 
         _agendaRepo.UpdateResolution(item.Id, BuildResolutionText(newStatus, approve, deny, abstain));

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Hosting.Internal;
 using Quartermaster.Server.AssemblyMotions.Forum;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 
@@ -11,8 +12,8 @@ public class HttpDiscourseClientTests {
     private static DiscourseSettings Settings(string url = "https://forum.invalid")
         => new(url, "antragsbot", Key, 32000);
 
-    private static HttpDiscourseClient Client(RecordingDiscourseHandler handler, CapturingLogger<HttpDiscourseClient>? logger = null)
-        => new(new HttpClient(handler), logger ?? new CapturingLogger<HttpDiscourseClient>());
+    private static HttpDiscourseClient Client(RecordingDiscourseHandler handler, CapturingLogger<HttpDiscourseClient>? logger = null, string environment = "Production")
+        => new(new HttpClient(handler), new HostingEnvironment { EnvironmentName = environment }, logger ?? new CapturingLogger<HttpDiscourseClient>());
 
     private static async Task<DiscourseException> Capture(Func<Task> action) {
         try {
@@ -229,5 +230,26 @@ public class HttpDiscourseClientTests {
         await Capture(() => client.GetCurrentUserAsync(Settings(), CancellationToken.None));
 
         await Assert.That(logger.Entries.Any(e => e.Contains(Key))).IsFalse();
+    }
+    [Test]
+    public async Task Http_to_localhost_is_allowed_in_development() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"current_user":{"id":3,"username":"antragsbot","moderator":true,"admin":false}}""");
+        using var client = Client(handler, environment: "Development");
+
+        var user = await client.GetCurrentUserAsync(Settings("http://localhost:3000"), CancellationToken.None);
+
+        await Assert.That(user.Username).IsEqualTo("antragsbot");
+    }
+
+    [Test]
+    public async Task Http_to_localhost_is_refused_outside_development() {
+        var handler = new RecordingDiscourseHandler();
+        using var client = Client(handler);
+
+        var ex = await Capture(() => client.GetCurrentUserAsync(Settings("http://localhost:3000"), CancellationToken.None));
+
+        await Assert.That(ex.Code).IsEqualTo(DiscourseException.InsecureUrl);
+        await Assert.That(handler.Requests.Count).IsEqualTo(0);
     }
 }

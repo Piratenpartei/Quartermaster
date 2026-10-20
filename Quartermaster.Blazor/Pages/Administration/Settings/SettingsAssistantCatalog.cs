@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Settings;
 
@@ -90,7 +91,9 @@ public static class SettingsAssistantCatalog {
             ]) { TitleKey = I18nKey.Ui.Settings.SecurityLockoutTitle },
             new([
                 new("auth.ratelimit.anonymous_create_permits", SettingsFieldKind.Number),
-                new("auth.ratelimit.anonymous_create_window_minutes", SettingsFieldKind.Number) { UnitKey = I18nKey.Ui.Settings.UnitMinutes }
+                new("auth.ratelimit.anonymous_create_window_minutes", SettingsFieldKind.Number) { UnitKey = I18nKey.Ui.Settings.UnitMinutes },
+                new("auth.ratelimit.due_selection_permits", SettingsFieldKind.Number),
+                new("auth.ratelimit.due_selection_window_minutes", SettingsFieldKind.Number) { UnitKey = I18nKey.Ui.Settings.UnitMinutes }
             ]) { TitleKey = I18nKey.Ui.Settings.SecurityRateLimitTitle }
         ]
     };
@@ -188,6 +191,19 @@ public static class SettingsAssistantCatalog {
         RequiredKeys = ["discourse.base_url", "discourse.api_username", "discourse.api_key"]
     };
 
+    public static readonly SettingsAssistant Redmine = new("Redmine", SettingsGroup.Integrations, "bi-ticket-detailed", I18nKey.Ui.Settings.RedmineTitle, I18nKey.Ui.Settings.RedmineDescription);
+
+    public static readonly SettingsAssistant Forwarding = new("Forwarding", SettingsGroup.Integrations, "bi-signpost-split", I18nKey.Ui.Settings.ForwardingTitle, I18nKey.Ui.Settings.ForwardingDescription) {
+        ManagedKeys = [
+            ForwardingOptionKeys.MembershipApplicationEnabled,
+            ForwardingOptionKeys.DueSelectionEnabled,
+            ForwardingOptionKeys.RegularMinimum,
+            ForwardingOptionKeys.StateDecisionMinimum
+        ],
+        ToggleKeys = [ForwardingOptionKeys.MembershipApplicationEnabled, ForwardingOptionKeys.DueSelectionEnabled],
+        Links = [new("/Administration/Forwarding", I18nKey.Ui.Settings.LinkForwardingCases)]
+    };
+
     public static readonly SettingsAssistant OpenSlides = new("OpenSlides", SettingsGroup.Integrations, "bi-easel", I18nKey.Ui.Settings.OpenSlidesTitle, I18nKey.Ui.Settings.OpenSlidesDescription) {
         Sections = [
             new([
@@ -275,7 +291,7 @@ public static class SettingsAssistantCatalog {
     };
 
     public static readonly IReadOnlyList<SettingsAssistant> All = [
-        General, PublicForms, TravelExpenses, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, Forum, OpenSlides, SocialMedia,
+        General, PublicForms, TravelExpenses, Saml, Oidc, Security, Smtp, Imap, Telegram, MemberImport, Keycloak, Wiki, Forum, Redmine, Forwarding, OpenSlides, SocialMedia,
         AssemblyAssistant, AssemblyProcedure
     ];
 

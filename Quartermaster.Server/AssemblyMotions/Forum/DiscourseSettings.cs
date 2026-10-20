@@ -16,9 +16,9 @@ public record DiscourseSettings(string BaseUrl, string ApiUsername, string ApiKe
         return !string.IsNullOrWhiteSpace(ApiKey);
     }
 
-    /// <summary>True for https URLs, and for http only on localhost, 127.0.0.1 and [::1].</summary>
-    public static bool IsSecureUrl(string url) {
-        return WikiBotSettings.IsSecureUrl(url);
+    /// <inheritdoc cref="WikiBotSettings.IsSecureUrl"/>
+    public static bool IsSecureUrl(string url, bool allowLoopbackHttp) {
+        return WikiBotSettings.IsSecureUrl(url, allowLoopbackHttp);
     }
 
     public string TopicUrl(int topicId) {

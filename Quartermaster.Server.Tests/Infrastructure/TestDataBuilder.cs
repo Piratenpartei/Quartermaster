@@ -116,6 +116,14 @@ public sealed class TestDataBuilder {
         return chapter;
     }
 
+    /// <summary>Seeds an administrative division covered by <paramref name="chapterId"/>, so an application with this division routes to that chapter.</summary>
+    public Guid SeedDivisionFor(Guid chapterId, string name = "Testgemeinde") {
+        var division = new AdministrativeDivision { Id = Guid.NewGuid(), Name = name, Depth = 0 };
+        _db.Insert(division);
+        _db.Insert(new ChapterAdministrativeDivision { ChapterId = chapterId, AdministrativeDivisionId = division.Id });
+        return division.Id;
+    }
+
     /// <summary>
     /// Seeds a chain of chapters: root → child → grandchild, etc.
     /// Returns the chain in order from root to leaf.

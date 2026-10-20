@@ -7,7 +7,12 @@
 <PublicFormGate Forms="@([PublicFormKind.DueSelection])">
     <h3 class="mb-3">@I18n[I18nKey.Ui.PublicFormWizard.DueSelectionTitle]</h3>
 
-    @if (SubmittedDirect) {
+    @if (!AuthService.IsAuthenticated) {
+        <div class="alert alert-info d-flex flex-wrap align-items-center gap-3">
+            <span><i class="bi bi-person-lock me-2"></i>@I18n[I18nKey.Ui.PublicFormWizard.DueSelectionLoginRequired]</span>
+            <button class="btn btn-primary btn-sm" @onclick="LoginAsync">@I18n[I18nKey.Ui.PublicFormWizard.LoginButton]</button>
+        </div>
+    } else if (SubmittedDirect) {
         <div class="alert alert-success">
             <i class="bi bi-check-circle me-2"></i>@I18n[I18nKey.Ui.DueSelectorSummary.SubmittedDirect]
         </div>

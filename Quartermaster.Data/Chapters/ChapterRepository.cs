@@ -254,6 +254,19 @@ public class ChapterRepository {
         return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
     }
 
+    /// <summary>Like <see cref="GetAncestorChainIds"/>, but walks through deleted chapters too, for work a chapter left behind when it was deleted.</summary>
+    public List<Guid> GetAncestorChainIdsIncludingDeleted(Guid chapterId) {
+        var cte = _context.GetCte<ChapterTreeRow>(self =>
+            _context.Chapters
+                .Where(c => c.Id == chapterId)
+                .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = 0 })
+                .Concat(self.SelectMany(prev => _context.Chapters
+                    .InnerJoin(c => c.Id == prev.ParentChapterId && c.Id != prev.Id)
+                    .Select(c => new ChapterTreeRow { Id = c.Id, ParentChapterId = c.ParentChapterId, Depth = prev.Depth + 1 }))));
+
+        return cte.OrderBy(r => r.Depth).Select(r => r.Id).ToList();
+    }
+
     public List<Chapter> GetAncestorChain(Guid chapterId) {
         var orderedIds = GetAncestorChainIds(chapterId);
         if (orderedIds.Count == 0)

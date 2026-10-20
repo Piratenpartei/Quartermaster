@@ -19,6 +19,8 @@
             <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusApproved]</span>
         } else if (Selection.Status == DueSelectionStatus.Rejected) {
             <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusRejected]</span>
+        } else if (Selection.Status == DueSelectionStatus.Forwarded) {
+            <span class="badge border border-secondary text-secondary-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusForwarded]</span>
         } else {
             <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.DueSelectionDetail.StatusAutoApproved]</span>
         }

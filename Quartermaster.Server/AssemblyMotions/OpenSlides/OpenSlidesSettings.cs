@@ -12,13 +12,16 @@ public record OpenSlidesSettings(string Url, string Username, string Password) {
         return !string.IsNullOrWhiteSpace(Password);
     }
 
-    /// <summary>True for https URLs, and for http only on localhost, 127.0.0.1 and [::1].</summary>
-    public static bool IsSecureUrl(string url) {
+    /// <summary>
+    /// True for https URLs. Plain http only on localhost, 127.0.0.1 and [::1], and only with <paramref name="allowLoopbackHttp"/> (development builds):
+    /// on a production server those addresses are its own services, which must not receive the credentials.
+    /// </summary>
+    public static bool IsSecureUrl(string url, bool allowLoopbackHttp) {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             return false;
         if (uri.Scheme == Uri.UriSchemeHttps)
             return true;
-        if (uri.Scheme != Uri.UriSchemeHttp)
+        if (uri.Scheme != Uri.UriSchemeHttp || !allowLoopbackHttp)
             return false;
 
         return IsLoopbackHost(uri.Host);
