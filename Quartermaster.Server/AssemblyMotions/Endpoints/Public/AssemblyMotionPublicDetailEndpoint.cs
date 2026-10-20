@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Data.AssemblyMotions;
-using Quartermaster.Data.Events;
-using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.AssemblyMotions.Endpoints.Public;
 
@@ -13,23 +11,20 @@ public class AssemblyMotionPublicDetailEndpoint : Endpoint<AssemblyMotionPublicD
     private readonly AssemblyMotionPortalRepository _portals;
     private readonly AssemblyMotionRepository _motions;
     private readonly AssemblyMotionUpvoteRepository _upvotes;
-    private readonly EventRepository _events;
     private readonly AssemblyMotionCompetitionViewBuilder _competitionViews;
-    private readonly PermissionContext _perms;
+    private readonly AssemblyMotionPublicAccess _access;
 
     public AssemblyMotionPublicDetailEndpoint(
         AssemblyMotionPortalRepository portals,
         AssemblyMotionRepository motions,
-        EventRepository events,
         AssemblyMotionUpvoteRepository upvotes,
         AssemblyMotionCompetitionViewBuilder competitionViews,
-        PermissionContext perms) {
+        AssemblyMotionPublicAccess access) {
         _portals = portals;
         _motions = motions;
-        _events = events;
         _upvotes = upvotes;
         _competitionViews = competitionViews;
-        _perms = perms;
+        _access = access;
     }
 
     public override void Configure() {
@@ -40,7 +35,7 @@ public class AssemblyMotionPublicDetailEndpoint : Endpoint<AssemblyMotionPublicD
     public override async Task HandleAsync(AssemblyMotionPublicDetailRequest req, CancellationToken ct) {
         var motion = _motions.Get(req.Id);
         var type = motion == null ? null : _portals.GetType(motion.TypeId);
-        var portal = motion == null ? null : GetAccessiblePortal(motion);
+        var portal = motion == null ? null : _access.GetPortal(motion);
         if (motion == null || type == null || portal == null) {
             await SendNotFoundAsync(ct);
             return;
@@ -53,20 +48,5 @@ public class AssemblyMotionPublicDetailEndpoint : Endpoint<AssemblyMotionPublicD
         if (AssemblyMotionUpvoteService.IsCountPublic(portal, motion, DateTime.UtcNow))
             dto.UpvoteCount = _upvotes.CountForMotion(motion.Id);
         await SendAsync(dto, cancellation: ct);
-    }
-
-    private AssemblyMotionPortal? GetAccessiblePortal(AssemblyMotion motion) {
-        if (!AssemblyMotionVisibility.IsPublic(motion))
-            return null;
-
-        var portal = _portals.Get(motion.PortalId);
-        if (portal == null)
-            return null;
-
-        var ev = _events.Get(portal.EventId);
-        if (ev == null)
-            return null;
-
-        return AssemblyMotionEventVisibility.IsVisible(ev, _perms) ? portal : null;
     }
 }

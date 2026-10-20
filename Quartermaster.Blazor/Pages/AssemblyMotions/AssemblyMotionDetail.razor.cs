@@ -52,6 +52,17 @@ public partial class AssemblyMotionDetail {
 
     private string BackHref => Motion == null ? "/Events" : $"/Events/{Motion.EventId}/Motions";
 
+    private string PageTitleText {
+        get {
+            var suffix = I18n[I18nKey.Ui.AssemblyMotion.DetailPageTitle];
+            if (Motion == null)
+                return suffix;
+            if (string.IsNullOrEmpty(Motion.DisplayNumber))
+                return $"{Motion.Title} - {suffix}";
+            return $"{Motion.DisplayNumber}: {Motion.Title} - {suffix}";
+        }
+    }
+
     private AssemblyMotionInquiryDTO? OpenInquiry => Member?.Inquiries.FirstOrDefault(i => i.ClosedAt == null);
 
     private List<AssemblyMotionTypeDTO> PortalTypes => Portal?.Types ?? [];

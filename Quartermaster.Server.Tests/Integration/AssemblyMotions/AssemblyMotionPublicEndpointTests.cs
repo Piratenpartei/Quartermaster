@@ -109,6 +109,33 @@ public class AssemblyMotionPublicEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Index_page_renders_public_motion_title() {
+        var (portal, type) = SeedPortal();
+        var motion = SeedMotion(portal, type, "Mehr <Grün>", AssemblyMotionStatus.Submitted, 1);
+        using var client = AnonymousClient();
+
+        var response = await client.GetAsync($"/AssemblyMotions/{motion.Id}");
+        var body = await response.Content.ReadAsStringAsync();
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(body).Contains("<title>SÄA001: Mehr &lt;Grün&gt; - Antrag</title>");
+    }
+
+    [Test]
+    public async Task Index_page_does_not_leak_draft_title() {
+        var (portal, type) = SeedPortal();
+        var motion = SeedMotion(portal, type, "Geheimer Entwurf", AssemblyMotionStatus.Draft, null);
+        using var client = AnonymousClient();
+
+        var response = await client.GetAsync($"/AssemblyMotions/{motion.Id}");
+        var body = await response.Content.ReadAsStringAsync();
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(body).Contains("<title>Quartermaster</title>");
+        await Assert.That(body).DoesNotContain("Geheimer Entwurf");
+    }
+
+    [Test]
     public async Task Edited_motion_shows_current_text_in_revision_anonymously() {
         var (portal, type) = SeedPortal();
         var motion = SeedMotion(portal, type, "Antrag", AssemblyMotionStatus.Submitted, 1, text: "Alt");
