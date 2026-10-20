@@ -244,6 +244,7 @@ public static class I18nKey {
                 public const string MinSubmittersInvalid = "error.assembly_motion.type.min_submitters_invalid";
                 public const string CompetingDeadlineInvalid = "error.assembly_motion.type.competing_deadline_invalid";
                 public const string HasMotions = "error.assembly_motion.type.has_motions";
+                public const string DefaultTextMaxLength = "error.assembly_motion.type.default_text_max_length";
             }
         }
 
@@ -3088,6 +3089,8 @@ public static class I18nKey {
             public const string DatesRequired = "ui.assembly_motion.dates_required";
             public const string DeadlinesTitle = "ui.assembly_motion.deadlines_title";
             public const string DeleteConfirmMessage = "ui.assembly_motion.delete_confirm_message";
+            public const string DefaultText = "ui.assembly_motion.default_text";
+            public const string DefaultTextHelp = "ui.assembly_motion.default_text_help";
             public const string DeleteConfirmTitle = "ui.assembly_motion.delete_confirm_title";
             public const string DeleteDraft = "ui.assembly_motion.delete_draft";
             public const string DeleteTypeMessage = "ui.assembly_motion.delete_type_message";

@@ -176,6 +176,10 @@ In the target realm, set Realm settings > General > Unmanaged attributes to Enab
 
 Deadlines (portal closing time, per-type and competing-motion deadlines, inquiry response times) are stored as the instant they end, in Berlin time. Enter a deadline that should cover a whole day as 00:00 of the following day: the portal shows "28.11.2026 00:00 (up to and including 27.11.2026 23:59:59)", so submitters see the last valid second while the stored value stays a plain instant.
 
+### Default text per motion type
+
+Each motion type in the portal settings has a "Default text for the motion text" (Markdown, up to 2,000 characters, the same rules as the motion text). A new motion of that type starts with it in its text, for example "Der Bundesparteitag möge beschließen:" for statute amendments. When the author switches the type while the text is still empty or still the previous type's default, the text switches to the new type's default; anything the author wrote stays. The text is only a starting point and is never enforced. Empty means no default; new portals start without one.
+
 ### Wiki mirror for the motion portal
 
 Optional. When "Enable wiki mirror" is switched on in the portal settings ("Motion portal" on the event), every motion that was submitted at least once is written to the Piratenwiki as a page and kept up to date. The pages are protected against manual edits. The wiki receives no names and no member numbers: the `autor` parameter is a fixed text pointing to the motion in the portal.

@@ -26,6 +26,9 @@ public class AssemblyMotionTypeDTO {
     public DateTimeOffset? Deadline { get; set; }
     public DateTimeOffset? CompetingDeadline { get; set; }
     public RequiredMajority RequiredMajority { get; set; }
+
+    /// <summary>Markdown a new motion of this type starts with in its text; empty for none.</summary>
+    public string DefaultText { get; set; } = "";
 }
 
 public class AssemblyMotionPortalSettingsDTO {
@@ -62,5 +65,6 @@ public class AssemblyMotionTypeSettingsDTO {
     public DateTimeOffset? CompetingDeadline { get; set; }
     public RequiredMajority RequiredMajority { get; set; }
     public string WikiTemplate { get; set; } = "";
+    public string DefaultText { get; set; } = "";
     public bool HasMotions { get; set; }
 }

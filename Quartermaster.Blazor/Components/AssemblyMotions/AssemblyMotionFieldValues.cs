@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Quartermaster.Api.AssemblyMotions;
 
 namespace Quartermaster.Blazor.Components.AssemblyMotions;
@@ -12,6 +14,33 @@ public class AssemblyMotionFieldValues {
     public string Summary { get; set; } = "";
     public string Keywords { get; set; } = "";
     public string PriorDiscussion { get; set; } = "";
+
+    /// <summary>
+    /// Switches to the type with <paramref name="typeId"/>. A text that is still empty or still the previous type's default text
+    /// is replaced by the new type's default text; anything the author wrote stays.
+    /// </summary>
+    public void ChangeType(string typeId, IReadOnlyList<AssemblyMotionTypeDTO> types) {
+        var previous = types.FirstOrDefault(t => t.Id.ToString() == TypeId);
+        var next = types.FirstOrDefault(t => t.Id.ToString() == typeId);
+        var isUntouched = IsUntouchedText(previous);
+        TypeId = typeId;
+
+        if (next != null && isUntouched)
+            TextMarkdown = next.DefaultText;
+    }
+
+    private bool IsUntouchedText(AssemblyMotionTypeDTO? previous) {
+        if (string.IsNullOrWhiteSpace(TextMarkdown))
+            return true;
+        if (previous == null)
+            return false;
+
+        return Comparable(TextMarkdown) == Comparable(previous.DefaultText);
+    }
+
+    private static string Comparable(string text) {
+        return text.ReplaceLineEndings("\n").Trim();
+    }
 
     public void Fill(AssemblyMotionDetailDTO detail) {
         TypeId = detail.TypeId.ToString();

@@ -25,7 +25,7 @@ public partial class AssemblyMotionFieldsForm {
     private AssemblyMotionTypeDTO? SelectedType => Portal.Types.FirstOrDefault(t => t.Id.ToString() == Values.TypeId);
 
     private async Task OnTypeChanged(string value) {
-        Values.TypeId = value;
+        Values.ChangeType(value, Portal.Types);
         await TypeChanged.InvokeAsync();
     }
 }

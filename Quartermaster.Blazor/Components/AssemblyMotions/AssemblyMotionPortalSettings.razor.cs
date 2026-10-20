@@ -270,6 +270,7 @@ public partial class AssemblyMotionPortalSettings {
             CompetingDeadline = AssemblyMotionDisplay.ToInput(type.CompetingDeadline),
             Majority = (int)type.RequiredMajority,
             WikiTemplate = type.WikiTemplate,
+            DefaultText = type.DefaultText,
             HasMotions = type.HasMotions
         };
     }
@@ -340,6 +341,7 @@ public partial class AssemblyMotionPortalSettings {
         public string CompetingDeadline { get; set; } = "";
         public int Majority { get; set; }
         public string WikiTemplate { get; set; } = "";
+        public string DefaultText { get; set; } = "";
         public bool HasMotions { get; set; }
 
         public AssemblyMotionTypeCreateRequest ToCreateRequest(Guid portalId) {
@@ -367,6 +369,7 @@ public partial class AssemblyMotionPortalSettings {
             fields.CompetingDeadline = AssemblyMotionDisplay.FromInput(CompetingDeadline);
             fields.RequiredMajority = (RequiredMajority)Majority;
             fields.WikiTemplate = WikiTemplate;
+            fields.DefaultText = DefaultText;
         }
     }
 }

@@ -281,6 +281,28 @@ public class AssemblyMotionPortalEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Type_default_text_is_saved_and_offered_with_the_portal() {
+        var (_, eventId, client) = await SeedEditorAsync();
+        using var _ = client;
+        var portal = SeedPortal(eventId);
+        var type = SeedType(portal.Id, "AB");
+
+        var response = await client.PutAsJsonAsync($"/api/assemblymotions/types/{type.Id}", new AssemblyMotionTypeUpdateRequest {
+            Id = type.Id,
+            Code = "AB",
+            Name = type.Name,
+            MinSubmitters = 1,
+            DefaultText = "Der Bundesparteitag möge beschließen:"
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That((await response.Content.ReadFromJsonAsync<AssemblyMotionTypeSettingsDTO>())!.DefaultText)
+            .IsEqualTo("Der Bundesparteitag möge beschließen:");
+        await Assert.That(Db.AssemblyMotionTypes.First(t => t.Id == type.Id).DefaultText).IsEqualTo("Der Bundesparteitag möge beschließen:");
+        await Assert.That(Db.AssemblyMotionTypes.First(t => t.Id == type.Id).ToDto().DefaultText).IsEqualTo("Der Bundesparteitag möge beschließen:");
+    }
+
+    [Test]
     public async Task Type_delete_refused_when_motions_exist() {
         var (_, eventId, client) = await SeedEditorAsync();
         using var _ = client;

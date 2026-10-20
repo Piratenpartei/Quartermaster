@@ -14,6 +14,7 @@ public static class AssemblyMotionContent {
     public const int PriorDiscussionMaxLength = 2000;
     public const int CheckNoteMaxLength = 4000;
     public const int ChangeNoteMaxLength = 2000;
+    public const int TypeDefaultTextMaxLength = 2000;
 
     /// <summary>
     /// Returns the refusal for a normalized draft whose single-line fields are empty or too long after normalisation, or null when they may be stored.

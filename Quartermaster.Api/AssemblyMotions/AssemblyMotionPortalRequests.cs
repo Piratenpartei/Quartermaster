@@ -46,6 +46,7 @@ public abstract class AssemblyMotionTypeFields {
     public DateTimeOffset? CompetingDeadline { get; set; }
     public RequiredMajority RequiredMajority { get; set; }
     public string WikiTemplate { get; set; } = "";
+    public string DefaultText { get; set; } = "";
 }
 
 public class AssemblyMotionTypeCreateRequest : AssemblyMotionTypeFields {

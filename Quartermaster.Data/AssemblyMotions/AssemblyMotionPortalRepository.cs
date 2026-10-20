@@ -116,6 +116,7 @@ public class AssemblyMotionPortalRepository {
             .Set(t => t.CompetingDeadline, type.CompetingDeadline)
             .Set(t => t.RequiredMajority, type.RequiredMajority)
             .Set(t => t.WikiTemplate, type.WikiTemplate)
+            .Set(t => t.DefaultText, type.DefaultText)
             .Set(t => t.OpenSlidesCategoryId, type.OpenSlidesCategoryId)
             .Update();
 
@@ -136,6 +137,8 @@ public class AssemblyMotionPortalRepository {
             existing.RequiredMajority.ToString(), type.RequiredMajority.ToString());
         _auditLog.LogFieldChange("AssemblyMotionType", type.Id, nameof(AssemblyMotionType.WikiTemplate),
             existing.WikiTemplate, type.WikiTemplate);
+        _auditLog.LogFieldChange("AssemblyMotionType", type.Id, nameof(AssemblyMotionType.DefaultText),
+            existing.DefaultText, type.DefaultText);
     }
 
     /// <summary>Whether any motion row references the type, soft-deleted ones included.</summary>

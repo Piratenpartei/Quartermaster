@@ -176,6 +176,9 @@
                             <td colspan="8">
                                 <label class="form-label small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.WikiTemplate]</label>
                                 <textarea class="form-control form-control-sm font-monospace" rows="4" @bind="EditModel.WikiTemplate" @bind:event="oninput"></textarea>
+                                <label class="form-label small text-secondary mt-2">@I18n[I18nKey.Ui.AssemblyMotion.DefaultText]</label>
+                                <textarea class="form-control form-control-sm" rows="2" @bind="EditModel.DefaultText" @bind:event="oninput"></textarea>
+                                <div class="form-text">@I18n[I18nKey.Ui.AssemblyMotion.DefaultTextHelp]</div>
                             </td>
                         </tr>
                     </text>;

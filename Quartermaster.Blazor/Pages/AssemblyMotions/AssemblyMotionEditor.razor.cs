@@ -124,7 +124,7 @@ public partial class AssemblyMotionEditor {
             if (Portal != null && !IsExisting) {
                 Context = await Http.GetFromJsonAsync<AssemblyMotionPortalContextDTO>($"/api/assemblymotions/portals/{Portal.Id}/context");
                 if (Fields.TypeId == "" && Portal.Types.Count > 0)
-                    Fields.TypeId = Portal.Types[0].Id.ToString();
+                    Fields.ChangeType(Portal.Types[0].Id.ToString(), Portal.Types);
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);

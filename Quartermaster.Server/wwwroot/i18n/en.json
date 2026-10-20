@@ -177,6 +177,7 @@
   "error.assembly_motion.type.min_submitters_invalid": "The minimum number of submitters must be at least 1.",
   "error.assembly_motion.type.competing_deadline_invalid": "The deadline for competing motions must be after the submission deadline.",
   "error.assembly_motion.type.has_motions": "The motion type already has motions and cannot be changed or deleted.",
+  "error.assembly_motion.type.default_text_max_length": "The default text may be at most 2,000 characters long.",
 
   "error.meeting.chapter_required": "Chapter must be selected.",
   "error.meeting.title_required": "Title must not be empty.",
@@ -2781,6 +2782,8 @@
   "ui.assembly_motion.wiki_mirror_enabled": "Enable wiki mirror",
   "ui.assembly_motion.wiki_page_prefix": "Wiki page prefix",
   "ui.assembly_motion.wiki_template": "Wiki template (Fluid)",
+  "ui.assembly_motion.default_text": "Default text for the motion text",
+  "ui.assembly_motion.default_text_help": "Already in the motion text when someone creates a motion of this type, for example \"Der Bundesparteitag möge beschließen:\". Leave empty for none.",
   "ui.assembly_motion.withdraw": "Withdraw",
   "ui.assembly_motion.withdraw_confirm_message": "A withdrawn motion cannot be reopened.",
   "ui.assembly_motion.withdraw_confirm_title": "Withdraw motion",

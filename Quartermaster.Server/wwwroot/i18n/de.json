@@ -177,6 +177,7 @@
   "error.assembly_motion.type.min_submitters_invalid": "Die Mindestanzahl an Antragstellern muss mindestens 1 betragen.",
   "error.assembly_motion.type.competing_deadline_invalid": "Die Frist für konkurrierende Anträge muss nach der Antragsfrist liegen.",
   "error.assembly_motion.type.has_motions": "Die Antragsart hat bereits Anträge und kann nicht geändert oder gelöscht werden.",
+  "error.assembly_motion.type.default_text_max_length": "Der Vorgabetext darf maximal 2.000 Zeichen lang sein.",
 
   "error.meeting.chapter_required": "Die Gliederung muss ausgewählt werden.",
   "error.meeting.title_required": "Der Titel darf nicht leer sein.",
@@ -2781,6 +2782,8 @@
   "ui.assembly_motion.wiki_mirror_enabled": "Wiki-Spiegelung aktivieren",
   "ui.assembly_motion.wiki_page_prefix": "Wiki-Seitenpräfix",
   "ui.assembly_motion.wiki_template": "Wiki-Vorlage (Fluid)",
+  "ui.assembly_motion.default_text": "Vorgabetext für den Antragstext",
+  "ui.assembly_motion.default_text_help": "Steht schon im Antragstext, wenn jemand einen Antrag dieser Art anlegt, zum Beispiel „Der Bundesparteitag möge beschließen:“. Leer lassen, wenn es keinen gibt.",
   "ui.assembly_motion.withdraw": "Zurückziehen",
   "ui.assembly_motion.withdraw_confirm_message": "Ein zurückgezogener Antrag kann nicht wieder geöffnet werden.",
   "ui.assembly_motion.withdraw_confirm_title": "Antrag zurückziehen",

@@ -21,6 +21,9 @@ public class AssemblyMotionType {
     public DateTime? CompetingDeadline { get; set; }
     public RequiredMajority RequiredMajority { get; set; }
     public string WikiTemplate { get; set; } = "";
+
+    /// <summary>Markdown that a new motion of this type starts with in its text, e.g. "Der Bundesparteitag möge beschließen:"; empty for none.</summary>
+    public string DefaultText { get; set; } = "";
     public int? OpenSlidesCategoryId { get; set; }
 
     public void ApplyFrom(AssemblyMotionTypeFields fields) {
@@ -32,6 +35,7 @@ public class AssemblyMotionType {
         CompetingDeadline = fields.CompetingDeadline?.UtcDateTime;
         RequiredMajority = fields.RequiredMajority;
         WikiTemplate = fields.WikiTemplate;
+        DefaultText = fields.DefaultText;
     }
 
     public AssemblyMotionTypeDTO ToDto() {
@@ -43,7 +47,8 @@ public class AssemblyMotionType {
             MinSubmitters = MinSubmitters,
             Deadline = Deadline.ToDtoUtc(),
             CompetingDeadline = CompetingDeadline.ToDtoUtc(),
-            RequiredMajority = RequiredMajority
+            RequiredMajority = RequiredMajority,
+            DefaultText = DefaultText
         };
     }
 
@@ -58,6 +63,7 @@ public class AssemblyMotionType {
             CompetingDeadline = CompetingDeadline.ToDtoUtc(),
             RequiredMajority = RequiredMajority,
             WikiTemplate = WikiTemplate,
+            DefaultText = DefaultText,
             HasMotions = hasMotions
         };
     }

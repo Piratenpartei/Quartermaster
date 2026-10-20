@@ -281,6 +281,38 @@ public class AssemblyMotionTypeRequestValidatorTests {
     }
 
     [Test]
+    public void DefaultText_with_html_ShouldHaveTheMarkdownError() {
+        var request = ValidRequest();
+        request.DefaultText = "Der Bundesparteitag möge <b>beschließen</b>:";
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.DefaultText)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.MarkdownHtmlNotAllowed);
+    }
+
+    [Test]
+    public void DefaultText_too_long_ShouldHaveError() {
+        var request = ValidRequest();
+        request.DefaultText = new string('x', 2001);
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldHaveValidationErrorFor(x => x.DefaultText)
+            .WithErrorMessage(I18nKey.Error.AssemblyMotion.Type.DefaultTextMaxLength);
+    }
+
+    [Test]
+    public void DefaultText_plain_ShouldHaveNoErrors() {
+        var request = ValidRequest();
+        request.DefaultText = "Der Bundesparteitag möge beschließen:";
+
+        var result = _validator.TestValidate(request);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
     public void SixteenLetterCode_ShouldHaveNoErrors() {
         var request = ValidRequest();
         request.Code = "ABCDEFGHIJKLMNOP";
