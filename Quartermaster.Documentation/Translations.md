@@ -13,6 +13,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Beitragseinstufung | Dues Classification | The process of selecting/classifying membership dues |
 | Zusammenfassung | Summary | |
 | Quellen & Lizenzen | Sources & licenses | Attribution page for data, fonts and open source libraries |
+| Veranstaltung | Event | Code `Event`; the UI never says "Event" |
 
 ## Dues Selection (Beitragseinstufung)
 
@@ -24,7 +25,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Jahresnettoeinkommen | Annual Net Income | |
 | Jahreseinkommen | Annual Income | |
 | Einstufung nach Monatseinkommen | Classification by Monthly Income | |
-| Einstufung auf 1% des Jahreseinkommens | Classification at 1% of Annual Income | |
+| Einstufung auf 1 % des Jahreseinkommens | Classification at 1% of Annual Income | |
 | Geminderter Beitrag | Reduced Dues | |
 | Jahreswunschbeitrag | Desired Annual Dues | |
 | Begründung | Justification | |
@@ -52,14 +53,15 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 |---|---|---|
 | Vorname | First Name | |
 | Nachname | Last Name | |
-| E-Mail Adresse | Email Address | |
+| E-Mail-Adresse | Email Address | |
 | Mitgliedsnummer | Member Number | |
 
 ## Administrative Divisions (Gemeinden)
 
 | German | English | Notes |
 |---|---|---|
-| Gemeinde | Municipality / Administrative Division | Refers to the administrative unit, not just "community" |
+| Verwaltungsgebiet | Administrative Division | Any unit of the division tree (state, district, municipality, ...) |
+| Gemeinde | Municipality | Only where the unit is known to be a municipality, e.g. the municipality picker; otherwise Verwaltungsgebiet |
 | Gemeindedatenbank | Administrative Division Database | |
 
 ## General UI
@@ -67,6 +69,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | German | English | Notes |
 |---|---|---|
 | Weiter | Next / Continue | |
+| Abonnenten, Antragsteller, ... | subscribers, authors, ... | Person nouns use the generic masculine, no gender star |
 | Zurück | Back | |
 | Überspringen | Skip | |
 | Absenden | Submit | |
@@ -153,6 +156,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Antragsart | motion type | GP, WP, SÄA, SBA, PP, SO or whatever the event configures |
 | Antragsteller | author | The member who created the motion |
 | Mitantragsteller | co-submitter | A member who joined the motion; counts toward the required number of submitters |
+| Unterstützen / Unterstützung zurückziehen | join / leave | A co-submitter joins or leaves a motion; never "beitreten"/"austreten", which mean joining or leaving the party |
 | Antragskommission (AKO) | motion commission | Users holding `assemblymotions_manage` for the event's chapter |
 | Formprüfung | formal check | The commission's decision whether a motion is admitted |
 | Rückfrage | inquiry | A question from the commission to the submitters with a response deadline |

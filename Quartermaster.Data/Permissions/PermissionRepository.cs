@@ -22,62 +22,71 @@ public class PermissionRepository {
     public void Create(Permission permission) => _context.Insert(permission);
 
     public void SupplementDefaults() {
-        AddIfNotExists(PermissionIdentifier.CreateUser, "Benutzer Erstellen", true);
-        AddIfNotExists(PermissionIdentifier.ViewUsers, "Benutzer anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.DeleteUsers, "Benutzer löschen", true);
-        AddIfNotExists(PermissionIdentifier.CreateChapter, "Verband Erstellen", true);
-        AddIfNotExists(PermissionIdentifier.EditChapter, "Verband bearbeiten", true);
-        AddIfNotExists(PermissionIdentifier.DeleteChapter, "Verband löschen", true);
-        AddIfNotExists(PermissionIdentifier.ArchiveChapter, "Verband archivieren/wiederherstellen", true);
-        AddIfNotExists(PermissionIdentifier.ViewOptions, "Einstellungen anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
-        AddIfNotExists(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.ViewAudit, "Audit-Log anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.ViewNotificationLogs, "Benachrichtigungs-Log anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);
-        AddIfNotExists(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
-        AddIfNotExists(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
-        AddIfNotExists(PermissionIdentifier.EditPdfTemplates, "PDF-Vorlagen bearbeiten", true);
-        AddIfNotExists(PermissionIdentifier.ReviewNewsPosts, "Social-Media-Vorschläge prüfen und freigeben", true);
-        AddIfNotExists(PermissionIdentifier.ManageNewsPosts, "Social-Media-Quellen verwalten", true);
-        AddIfNotExists(PermissionIdentifier.AssignPermissionsGlobally, "Berechtigungen global vergeben", true);
-        AddIfNotExists(PermissionIdentifier.ManageAccreditation, "Akkreditierung durchführen", true);
-        AddIfNotExists(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
-        AddIfNotExists(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);
+        AddOrRename(PermissionIdentifier.CreateUser, "Benutzer erstellen", true);
+        AddOrRename(PermissionIdentifier.ViewUsers, "Benutzer anzeigen", true);
+        AddOrRename(PermissionIdentifier.DeleteUsers, "Benutzer löschen", true);
+        AddOrRename(PermissionIdentifier.CreateChapter, "Gliederung erstellen", true);
+        AddOrRename(PermissionIdentifier.EditChapter, "Gliederung bearbeiten", true);
+        AddOrRename(PermissionIdentifier.DeleteChapter, "Gliederung löschen", true);
+        AddOrRename(PermissionIdentifier.ArchiveChapter, "Gliederung archivieren/wiederherstellen", true);
+        AddOrRename(PermissionIdentifier.ViewOptions, "Einstellungen anzeigen", true);
+        AddOrRename(PermissionIdentifier.EditOptions, "Einstellungen bearbeiten", true);
+        AddOrRename(PermissionIdentifier.ViewOptionSecrets, "Einstellungen: Geheimnisse im Klartext anzeigen", true);
+        AddOrRename(PermissionIdentifier.ViewAudit, "Audit-Log anzeigen", true);
+        AddOrRename(PermissionIdentifier.ViewNotificationLogs, "Benachrichtigungs-Log anzeigen", true);
+        AddOrRename(PermissionIdentifier.TriggerMemberImport, "Mitgliederimport auslösen", true);
+        AddOrRename(PermissionIdentifier.ViewAllMembers, "Alle Mitglieder anzeigen", true);
+        AddOrRename(PermissionIdentifier.ManageRoles, "Rollen verwalten", true);
+        AddOrRename(PermissionIdentifier.EditPdfTemplates, "PDF-Vorlagen bearbeiten", true);
+        AddOrRename(PermissionIdentifier.ReviewNewsPosts, "Social-Media-Vorschläge prüfen und freigeben", true);
+        AddOrRename(PermissionIdentifier.ManageNewsPosts, "Social-Media-Quellen verwalten", true);
+        AddOrRename(PermissionIdentifier.AssignPermissionsGlobally, "Berechtigungen global vergeben", true);
+        AddOrRename(PermissionIdentifier.ManageAccreditation, "Akkreditierung durchführen", true);
+        AddOrRename(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
+        AddOrRename(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);
 
-        AddIfNotExists(PermissionIdentifier.ViewApplications, "Mitgliedsanträge Einsehen", false);
-        AddIfNotExists(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge Bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.ViewDueSelections, "Beitragseinstufungen Einsehen", false);
-        AddIfNotExists(PermissionIdentifier.ProcessDueSelections, "Beitragseinstufungen Bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.ViewEvents, "Events anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.CreateEvents, "Events erstellen", false);
-        AddIfNotExists(PermissionIdentifier.EditEvents, "Events bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.DeleteEvents, "Events löschen/archivieren", false);
-        AddIfNotExists(PermissionIdentifier.ViewMotions, "Anträge anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.EditMotions, "Anträge bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.VoteMotions, "Abstimmen", false);
-        AddIfNotExists(PermissionIdentifier.VoteDelegateMotions, "Stellvertretend Abstimmen", false);
-        AddIfNotExists(PermissionIdentifier.ViewMembers, "Mitglieder anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.EditMembers, "Mitglieder bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.ViewOfficers, "Vorstand anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.EditOfficers, "Vorstand bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.ViewTemplates, "Vorlagen anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.EditTemplates, "Vorlagen bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.ViewMeetings, "Sitzungen anzeigen", false);
-        AddIfNotExists(PermissionIdentifier.CreateMeetings, "Sitzungen erstellen", false);
-        AddIfNotExists(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
-        AddIfNotExists(PermissionIdentifier.ManageChapterMail, "Mailings verwalten", false);
-        AddIfNotExists(PermissionIdentifier.ManageAssemblyMotions, "Antragskommission (Versammlungsanträge)", false);
-        AddIfNotExists(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
-        AddIfNotExists(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);
-        AddIfNotExists(PermissionIdentifier.EditTravelExpenseRules, "Reisekostenordnung bearbeiten", false);
-        AddIfNotExists(PermissionIdentifier.UnlimitedReceipts, "Belege: unbegrenzt hochladen", true);
+        AddOrRename(PermissionIdentifier.ViewApplications, "Mitgliedsanträge einsehen", false);
+        AddOrRename(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ViewDueSelections, "Beitragseinstufungen einsehen", false);
+        AddOrRename(PermissionIdentifier.ProcessDueSelections, "Beitragseinstufungen bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ViewEvents, "Veranstaltungen anzeigen", false);
+        AddOrRename(PermissionIdentifier.CreateEvents, "Veranstaltungen erstellen", false);
+        AddOrRename(PermissionIdentifier.EditEvents, "Veranstaltungen bearbeiten", false);
+        AddOrRename(PermissionIdentifier.DeleteEvents, "Veranstaltungen löschen/archivieren", false);
+        AddOrRename(PermissionIdentifier.ViewMotions, "Anträge anzeigen", false);
+        AddOrRename(PermissionIdentifier.EditMotions, "Anträge bearbeiten", false);
+        AddOrRename(PermissionIdentifier.VoteMotions, "Abstimmen", false);
+        AddOrRename(PermissionIdentifier.VoteDelegateMotions, "Stellvertretend abstimmen", false);
+        AddOrRename(PermissionIdentifier.ViewMembers, "Mitglieder anzeigen", false);
+        AddOrRename(PermissionIdentifier.EditMembers, "Mitglieder bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ViewOfficers, "Vorstand anzeigen", false);
+        AddOrRename(PermissionIdentifier.EditOfficers, "Vorstand bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ViewTemplates, "Vorlagen anzeigen", false);
+        AddOrRename(PermissionIdentifier.EditTemplates, "Vorlagen bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ViewMeetings, "Sitzungen anzeigen", false);
+        AddOrRename(PermissionIdentifier.CreateMeetings, "Sitzungen erstellen", false);
+        AddOrRename(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
+        AddOrRename(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
+        AddOrRename(PermissionIdentifier.ManageChapterMail, "Mailings verwalten", false);
+        AddOrRename(PermissionIdentifier.ManageAssemblyMotions, "Antragskommission (Versammlungsanträge)", false);
+        AddOrRename(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
+        AddOrRename(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);
+        AddOrRename(PermissionIdentifier.EditTravelExpenseRules, "Reisekostenordnung bearbeiten", false);
+        AddOrRename(PermissionIdentifier.UnlimitedReceipts, "Belege: unbegrenzt hochladen", true);
     }
 
-    private void AddIfNotExists(string identifier, string displayName, bool global) {
-        if (GetByIdentifier(identifier) != null)
+    /// <summary>Adds the permission, or renames an existing one whose name differs, so text fixes reach installations that already have it.</summary>
+    private void AddOrRename(string identifier, string displayName, bool global) {
+        var existing = GetByIdentifier(identifier);
+        if (existing != null) {
+            if (existing.DisplayName != displayName) {
+                _context.Permissions
+                    .Where(p => p.Id == existing.Id)
+                    .Set(p => p.DisplayName, displayName)
+                    .Update();
+            }
             return;
+        }
 
         Create(new Permission {
             Identifier = identifier,

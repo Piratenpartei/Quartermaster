@@ -117,12 +117,12 @@ public class OptionRepository {
         AddDefinitionIfNotExists(PublicFormOptions.MembershipApplication,
             "Öffentliche Formulare: Mitgliedsantrag",
             OptionDataType.String, false, "", "false",
-            description: "Wenn 'true', ist der Mitgliedsantrag öffentlich erreichbar und im Menü sichtbar.");
+            description: "Bei „true“ ist der Mitgliedsantrag öffentlich erreichbar und im Menü sichtbar.");
 
         AddDefinitionIfNotExists(PublicFormOptions.DueSelection,
             "Öffentliche Formulare: Beitragseinstufung",
             OptionDataType.String, false, "", "false",
-            description: "Wenn 'true', ist die Beitragseinstufung öffentlich erreichbar und im Menü sichtbar.");
+            description: "Bei „true“ ist die Beitragseinstufung öffentlich erreichbar und im Menü sichtbar.");
 
         AddDefinitionIfNotExists(ForwardingOptionKeys.RegularMinimum,
             "Beiträge: Regelbeitrag ab (EUR/Jahr)",
@@ -132,35 +132,35 @@ public class OptionRepository {
         AddDefinitionIfNotExists(ForwardingOptionKeys.StateDecisionMinimum,
             "Beiträge: Entscheidung durch Bundesebene unter (EUR/Jahr)",
             OptionDataType.Number, false, "", "12",
-            description: "Beitragsminderungen unter diesem Jahresbetrag entscheidet die Bundesebene, ab diesem Betrag der Landesverband.");
+            description: "Über Beitragsminderungen unter diesem Jahresbetrag entscheidet die Bundesebene, ab diesem Betrag der Landesverband.");
 
         AddDefinitionIfNotExists(ForwardingOptionKeys.MembershipApplicationEnabled,
             "Weiterleitung: Mitgliedsanträge an Redmine",
             OptionDataType.String, false, "", "false",
-            description: "Wenn 'true', erzeugen Mitgliedsanträge Tickets im Redmine der Bundesebene und, je nach Einstellung, der Gliederung.");
+            description: "Bei „true“ erzeugen Mitgliedsanträge Tickets im Redmine der Bundesebene und, je nach Einstellung, der Gliederung.");
 
         AddDefinitionIfNotExists(ForwardingOptionKeys.DueSelectionEnabled,
             "Weiterleitung: Beitragseinstufungen an Redmine",
             OptionDataType.String, false, "", "false",
-            description: "Wenn 'true', erzeugen Beitragseinstufungen Tickets im Redmine der Bundesebene und, je nach Einstellung, des Landesverbands.");
+            description: "Bei „true“ erzeugen Beitragseinstufungen Tickets im Redmine der Bundesebene und, je nach Einstellung, des Landesverbands.");
 
         AddDefinitionIfNotExists(PublicFormOptions.Motion,
             "Öffentliche Formulare: Antrag einreichen",
             OptionDataType.String, true, "", "false",
-            description: "Wenn 'true', können Anträge an diese Gliederung über das öffentliche Formular eingereicht werden. Ein Wert an einer Gliederung gilt auch für ihre Untergliederungen, solange diese keinen eigenen setzen. Ist keine Gliederung freigeschaltet, verschwindet der Menüpunkt.");
+            description: "Bei „true“ können Anträge an diese Gliederung über das öffentliche Formular eingereicht werden. Ein Wert an einer Gliederung gilt auch für ihre Untergliederungen, solange diese keinen eigenen setzen. Ist keine Gliederung freigeschaltet, verschwindet der Menüpunkt.");
 
         AddDefinitionIfNotExists("general.chaptername.display",
             "Anzeigename der Gliederung",
             OptionDataType.String, true, "", "");
 
         AddDefinitionIfNotExists("general.contact.email",
-            "Kontakt E-Mail Adresse",
+            "Kontakt-E-Mail-Adresse",
             OptionDataType.String, true, "", "");
 
         AddDefinitionIfNotExists("member_import.file_path",
             "Mitgliederimport: Dateipfad",
             OptionDataType.String, false, "", "",
-            description: "Absoluter Pfad zur CSV-Exportdatei, z.B. /data/system_export.csv");
+            description: "Absoluter Pfad zur CSV-Exportdatei, z. B. /data/system_export.csv");
 
         AddDefinitionIfNotExists("member_import.polling_interval_minutes",
             "Mitgliederimport: Abfrageintervall",
@@ -170,7 +170,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.endpoint",
             "SAML: Endpunkt-URL",
             OptionDataType.String, false, "", "",
-            description: "SSO-Endpunkt des Identity Providers, z.B. https://keycloak.example.com/realms/master/protocol/saml");
+            description: "SSO-Endpunkt des Identity Providers, z. B. https://keycloak.example.com/realms/master/protocol/saml");
 
         AddDefinitionIfNotExists("auth.saml.client_id",
             "SAML: Client-ID",
@@ -180,23 +180,23 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.certificate",
             "SAML: Zertifikat",
             OptionDataType.String, false, "", "",
-            description: "Base64-kodiertes Signaturzertifikat des Identity Providers (ohne BEGIN/END CERTIFICATE Header). Zu finden unter Realm Settings > Keys > RS256 > Certificate.",
+            description: "Base64-kodiertes Signaturzertifikat des Identity Providers (ohne die Kopfzeilen BEGIN/END CERTIFICATE). Zu finden unter Realm Settings > Keys > RS256 > Certificate.",
             isSecret: true);
 
         AddDefinitionIfNotExists("auth.saml.button_text",
-            "SAML: Login-Button Text",
+            "SAML: Text des Anmeldebuttons",
             OptionDataType.String, false, "", "SSO Login",
-            description: "Text, der auf dem SSO-Login-Button auf der Anmeldeseite angezeigt wird.");
+            description: "Text des SSO-Buttons auf der Anmeldeseite.");
 
         AddDefinitionIfNotExists("auth.saml.expected_audience",
             "SAML: Erwarteter Audience-Wert",
             OptionDataType.String, false, "", "",
-            description: "Der SP-Entity-ID-Wert, den die SAML-Assertion im <Audience>-Element tragen muss. Wenn leer, wird die Audience-Prüfung übersprungen (nicht empfohlen für Produktion).");
+            description: "Der SP-Entity-ID-Wert, den die SAML-Assertion im <Audience>-Element tragen muss. Bleibt das Feld leer, wird die Audience-Prüfung übersprungen (für den Produktivbetrieb nicht empfohlen).");
 
         AddDefinitionIfNotExists("auth.saml.expected_destination",
             "SAML: Erwartete Destination-URL",
             OptionDataType.String, false, "", "",
-            description: "Die URL, an die der IdP die SAML-Antwort senden soll (z.B. https://quartermaster.example.de/api/users/SamlConsume). Muss mit dem <Destination>-Attribut der Antwort übereinstimmen. Wenn leer, wird die Destination-Prüfung übersprungen (nicht empfohlen für Produktion).");
+            description: "Die URL, an die der IdP die SAML-Antwort senden soll (z. B. https://quartermaster.example.de/api/users/SamlConsume). Muss mit dem <Destination>-Attribut der Antwort übereinstimmen. Bleibt das Feld leer, wird die Destination-Prüfung übersprungen (für den Produktivbetrieb nicht empfohlen).");
 
         AddDefinitionIfNotExists("auth.saml.member_number_attribute",
             "SAML: Attribut für Mitgliedsnummer",
@@ -206,22 +206,22 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.saml.department_attribute",
             "SAML: Attribut für Gliederung",
             OptionDataType.String, false, "", "ekklesia_department",
-            description: "Name des SAML-Attributs mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
+            description: "Name des SAML-Attributs mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied bei der Anmeldung dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
 
         AddDefinitionIfNotExists("auth.saml.eligible_attribute",
             "SAML: Attribut für Stimmberechtigung",
             OptionDataType.String, false, "", "ekklesia_eligible",
-            description: "Name des SAML-Attributs mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jedem Login; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
+            description: "Name des SAML-Attributs mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jeder Anmeldung; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
 
         AddDefinitionIfNotExists("auth.sso.support_contact",
             "SSO: Support-Kontakt",
             OptionDataType.String, false, "", "",
-            description: "Kontaktinformation, die angezeigt wird, wenn eine SSO-Anmeldung fehlschlägt (z.B. E-Mail-Adresse oder URL).");
+            description: "Kontaktinformation, die angezeigt wird, wenn eine SSO-Anmeldung fehlschlägt (z. B. E-Mail-Adresse oder URL).");
 
         AddDefinitionIfNotExists("auth.oidc.authority",
             "OIDC: Authority-URL",
             OptionDataType.String, false, "", "",
-            description: "OpenID Connect Authority-URL, z.B. https://keycloak.example.com/realms/master");
+            description: "OpenID Connect Authority-URL, z. B. https://keycloak.example.com/realms/master");
 
         AddDefinitionIfNotExists("auth.oidc.client_id",
             "OIDC: Client-ID",
@@ -242,17 +242,17 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.oidc.department_claim",
             "OIDC: Claim für Gliederung",
             OptionDataType.String, false, "", "ekklesia_department",
-            description: "Name des Claims im ID-Token mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied beim Login dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
+            description: "Name des Claims im ID-Token mit der Keycloak-Gliederung des Kontos. Passt der Wert zur Keycloak-Gliederung einer Gliederung, wird das Mitglied bei der Anmeldung dieser Gliederung zugeordnet, sofern es nicht schon einer Gliederung darunter angehört.");
 
         AddDefinitionIfNotExists("auth.oidc.eligible_claim",
             "OIDC: Claim für Stimmberechtigung",
             OptionDataType.String, false, "", "ekklesia_eligible",
-            description: "Name des Claims im ID-Token mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jedem Login; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
+            description: "Name des Claims im ID-Token mit der Stimmberechtigung des Kontos (true/false). Mitglieder, die der Mitgliederimport noch nicht geliefert hat, übernehmen diesen Wert bei jeder Anmeldung; bei Mitgliedern aus dem Import gilt der Wert des Imports.");
 
         AddDefinitionIfNotExists("auth.oidc.button_text",
-            "OIDC: Login-Button Text",
+            "OIDC: Text des Anmeldebuttons",
             OptionDataType.String, false, "", "OpenID Login",
-            description: "Text, der auf dem OpenID-Login-Button auf der Anmeldeseite angezeigt wird.");
+            description: "Text des OpenID-Buttons auf der Anmeldeseite.");
 
         AddDefinitionIfNotExists("general.error.contact",
             "Fehlerkontakt",
@@ -262,12 +262,12 @@ public class OptionRepository {
         AddDefinitionIfNotExists("general.error.show_details",
             "Fehlerdetails anzeigen",
             OptionDataType.String, false, "", "false",
-            description: "Wenn 'true', werden technische Fehlerdetails in der UI angezeigt. Nur für Administratoren empfohlen.");
+            description: "Bei „true“ werden technische Fehlerdetails in der Oberfläche angezeigt. Nur für Administratoren empfohlen.");
 
         AddDefinitionIfNotExists("email.smtp.host",
             "SMTP: Server",
             OptionDataType.String, false, "", "",
-            description: "Hostname des SMTP-Servers, z.B. smtp.example.com");
+            description: "Hostname des SMTP-Servers, z. B. smtp.example.com");
 
         AddDefinitionIfNotExists("email.smtp.port",
             "SMTP: Port",
@@ -298,12 +298,12 @@ public class OptionRepository {
         AddDefinitionIfNotExists("email.smtp.use_ssl",
             "SMTP: SSL verwenden",
             OptionDataType.String, false, "", "true",
-            description: "Wenn 'true', wird eine verschlüsselte Verbindung zum SMTP-Server verwendet.");
+            description: "Bei „true“ wird eine verschlüsselte Verbindung zum SMTP-Server verwendet.");
 
         AddDefinitionIfNotExists("email.smtp.batch_size",
-            "SMTP: Batch-Größe",
+            "SMTP: E-Mails pro Verbindung",
             OptionDataType.Number, false, "", "50",
-            description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl sofort verfügbarer weiterer Nachrichten mit, und sendet alle über eine einzige Verbindung. Standard: 50.");
+            description: "Maximale Anzahl an E-Mails, die pro SMTP-Verbindung gesendet werden. Der Server wartet auf eine Nachricht, nimmt dann bis zu dieser Anzahl weiterer, sofort verfügbarer Nachrichten mit und sendet alle über eine einzige Verbindung. Standard: 50.");
 
         AddDefinitionIfNotExists("email.imap.host",
             "IMAP: Server",
@@ -318,7 +318,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("email.imap.use_ssl",
             "IMAP: SSL verwenden",
             OptionDataType.String, false, "", "true",
-            description: "Wenn 'true', wird SSL/TLS direkt beim Verbindungsaufbau verwendet (Port 993). Bei 'false' STARTTLS auf Port 143.");
+            description: "Bei „true“ wird SSL/TLS direkt beim Verbindungsaufbau verwendet (Port 993), bei „false“ STARTTLS auf Port 143.");
 
         AddDefinitionIfNotExists("email.imap.username",
             "IMAP: Benutzername",
@@ -344,7 +344,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("email.mdn.request_default",
             "MDN: Lesebestätigung anfordern (Standard)",
             OptionDataType.String, false, "", "true",
-            description: "Wenn 'true', wird für jede ausgehende E-Mail standardmäßig eine Lesebestätigung angefordert. Empfänger können diese Anforderung in ihrem Mailprogramm ablehnen.");
+            description: "Bei „true“ wird für jede ausgehende E-Mail standardmäßig eine Lesebestätigung angefordert. Empfänger können diese Anforderung in ihrem Mailprogramm ablehnen.");
 
         AddDefinitionIfNotExists("email.mdn.receipt_address",
             "MDN: Empfangsadresse",
@@ -354,13 +354,13 @@ public class OptionRepository {
         AddDefinitionIfNotExists("messaging.telegram.bot_token",
             "Telegram: Bot-Token",
             OptionDataType.String, false, "", "",
-            description: "Telegram Bot API Token (von @BotFather). Wenn leer, ist der Telegram-Kanal deaktiviert.",
+            description: "Token der Telegram-Bot-API (von @BotFather). Wenn leer, ist der Telegram-Kanal deaktiviert.",
             isSecret: true);
 
         AddDefinitionIfNotExists("system.public_base_url",
             "System: Öffentliche Basis-URL",
             OptionDataType.String, false, "", "",
-            description: "Vollständige öffentliche URL der Anwendung ohne abschließenden Schrägstrich, z. B. https://quartermaster.example.de. Wird in Benachrichtigungen verwendet, um Direktlinks (z. B. zu Anträgen) aufzubauen. Leer ⇒ Links werden nicht generiert.");
+            description: "Vollständige öffentliche URL der Anwendung ohne abschließenden Schrägstrich, z. B. https://quartermaster.example.de. Wird in Benachrichtigungen verwendet, um Direktlinks (z. B. zu Anträgen) aufzubauen. Bleibt das Feld leer, werden keine Links erzeugt.");
 
         AddDefinitionIfNotExists("system.app_name",
             "System: Anzeigename",
@@ -370,32 +370,32 @@ public class OptionRepository {
         AddDefinitionIfNotExists("messaging.telegram.bot_username",
             "Telegram: Bot-Benutzername",
             OptionDataType.String, false, "", "",
-            description: "Telegram Bot-Benutzername ohne führendes @. Wird benötigt, um Deeplinks der Form https://t.me/<Benutzername>?start=<Token> aufzubauen, die Benutzer*innen zum Verknüpfen ihres Telegram-Accounts verwenden.");
+            description: "Telegram Bot-Benutzername ohne führendes @. Wird benötigt, um Deeplinks der Form https://t.me/<Benutzername>?start=<Token> aufzubauen, mit denen Benutzer ihr Telegram-Konto verknüpfen.");
 
         AddDefinitionIfNotExists("messaging.pdf.output_dir",
             "PDF-Ausdruck: Ausgabeverzeichnis",
             OptionDataType.String, false, "", "",
-            description: "Absoluter Pfad zum Ordner, in dem generierte PDF-Briefe abgelegt werden. Leer ⇒ Standard 'data/printouts' relativ zum Anwendungsverzeichnis.");
+            description: "Absoluter Pfad zum Ordner, in dem generierte PDF-Briefe abgelegt werden. Bleibt das Feld leer, wird „data/printouts“ im Anwendungsverzeichnis verwendet.");
 
         AddDefinitionIfNotExists("auth.token.lifetime_days",
-            "Login-Token: Gültigkeitsdauer (Tage)",
+            "Anmeldetoken: Gültigkeitsdauer (Tage)",
             OptionDataType.Number, false, "", "7",
-            description: "Lebensdauer eines Login-Tokens in Tagen. Bei jeder erfolgreichen Verwendung wird die Gültigkeit um diesen Zeitraum verlängert (Sliding-Window). Standard: 7.");
+            description: "Gültigkeitsdauer eines Anmeldetokens in Tagen. Jede erfolgreiche Verwendung verlängert die Gültigkeit um diesen Zeitraum. Standard: 7.");
 
         AddDefinitionIfNotExists("auth.lockout.max_attempts",
-            "Login-Sperre: Max. Fehlversuche",
+            "Anmeldesperre: Max. Fehlversuche",
             OptionDataType.Number, false, "", "5",
-            description: "Anzahl fehlgeschlagener Login-Versuche (pro IP+Benutzer) innerhalb der Sperrdauer, bevor eine Sperre greift. Standard: 5.");
+            description: "Anzahl fehlgeschlagener Anmeldeversuche (je IP-Adresse und Benutzer) innerhalb der Sperrdauer, bevor eine Sperre greift. Standard: 5.");
 
         AddDefinitionIfNotExists("auth.lockout.duration_minutes",
-            "Login-Sperre: Sperrdauer (Minuten)",
+            "Anmeldesperre: Sperrdauer (Minuten)",
             OptionDataType.Number, false, "", "15",
             description: "Zeitfenster und Sperrdauer in Minuten: Fehlversuche werden in diesem Fenster gezählt, und die Sperre gilt so lange nach dem letzten Fehlversuch. Standard: 15.");
 
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_permits",
             "Rate-Limit: Anonyme Anfragen pro Fenster",
             OptionDataType.Number, false, "", "5",
-            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, PDFs der Auslagen- und Reisekostenerstattung) pro IP innerhalb des Zeitfensters. Standard: 5. Greift bei neuen IPs sofort, bei aktiven IPs nach Ablauf ihres aktuellen Fensters.");
+            description: "Maximale Anzahl anonymer Erstell-Anfragen (Anträge, Mitgliedsanträge, PDFs der Auslagen- und Reisekostenerstattung) je IP-Adresse innerhalb des Zeitfensters. Standard: 5. Eine Änderung gilt für neue IP-Adressen sofort, für aktive nach Ablauf ihres aktuellen Fensters.");
 
         AddDefinitionIfNotExists("auth.ratelimit.anonymous_create_window_minutes",
             "Rate-Limit: Zeitfenster (Minuten)",
@@ -405,7 +405,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("auth.ratelimit.due_selection_permits",
             "Rate-Limit: Beitragseinstufungen pro Konto und Fenster",
             OptionDataType.Number, false, "", "5",
-            description: "Maximale Anzahl Beitragseinstufungen, die ein angemeldetes Konto innerhalb des Zeitfensters abschicken kann. Jede erzeugt bei eingeschalteter Weiterleitung ein Ticket im Redmine der Bundesebene. Standard: 5.");
+            description: "Maximale Anzahl an Beitragseinstufungen, die ein angemeldetes Konto innerhalb des Zeitfensters abschicken kann. Jede erzeugt bei eingeschalteter Weiterleitung ein Ticket im Redmine der Bundesebene. Standard: 5.");
 
         AddDefinitionIfNotExists("auth.ratelimit.due_selection_window_minutes",
             "Rate-Limit: Zeitfenster für Beitragseinstufungen (Minuten)",
@@ -422,12 +422,12 @@ public class OptionRepository {
             OptionDataType.String, true,
             "MotionDTO",
             "**Antrag:** {{ motion.Title }}\n\n**Antragsteller:** {{ motion.AuthorName }}\n\n{{ motion.Text }}\n\n---\n\n**Diskussion:**\n",
-            description: "Fluid-Template für vorausgefüllte Notizen bei Antrag-Tagesordnungspunkten. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEmail, motion.Text");
+            description: "Fluid-Vorlage für vorausgefüllte Notizen bei Tagesordnungspunkten zu Anträgen. Verfügbare Variablen: motion.Title, motion.AuthorName, motion.AuthorEmail, motion.Text");
 
         AddDefinitionIfNotExists("meetings.collab.save_interval_seconds",
-            "Sitzungen: Kollaborative Notizen – Speicherintervall (Sekunden)",
+            "Sitzungen: Speicherintervall gemeinsamer Notizen (Sekunden)",
             OptionDataType.Number, false, "", "10",
-            description: "Intervall in Sekunden, in dem der Server einen Snapshot der kollaborativ bearbeiteten Notizen persistiert. Niedrigere Werte reduzieren den Datenverlust bei Verbindungsabbrüchen, erhöhen aber die DB-Last. Standard: 10.");
+            description: "Intervall in Sekunden, in dem der Server den Stand der gemeinsam bearbeiteten Notizen speichert. Niedrigere Werte verringern den Datenverlust bei Verbindungsabbrüchen, erhöhen aber die Datenbanklast. Standard: 10.");
 
         AddDefinitionIfNotExists("newsposts.enabled",
             "Social Media: Aktiviert",
@@ -442,7 +442,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("newsposts.max_item_age_hours",
             "Social Media: Maximales Meldungsalter",
             OptionDataType.Number, false, "", "48",
-            description: "Ältere Meldungen werden beim Abruf ignoriert (Stunden).");
+            description: "Höchstalter in Stunden; ältere Meldungen werden beim Abruf ignoriert.");
 
         AddDefinitionIfNotExists("newsposts.retention_days",
             "Social Media: Aufbewahrung",
@@ -450,12 +450,12 @@ public class OptionRepository {
             description: "Meldungen ohne Veröffentlichung werden nach so vielen Tagen ohne Änderung gelöscht.");
 
         AddDefinitionIfNotExists("newsposts.mistral.api_key",
-            "Social Media: Mistral API-Schlüssel",
+            "Social Media: Mistral-API-Schlüssel",
             OptionDataType.String, false, "", "",
             isSecret: true);
 
         AddDefinitionIfNotExists("newsposts.mistral.base_url",
-            "Social Media: Mistral API-URL",
+            "Social Media: Mistral-API-URL",
             OptionDataType.String, false, "", "https://api.mistral.ai");
 
         AddDefinitionIfNotExists("newsposts.mistral.triage_model",
@@ -485,12 +485,12 @@ public class OptionRepository {
             description: "Ton- und Stilregeln für die erzeugten Beiträge. Format- und Faktenregeln ergänzt die Anwendung selbst.");
 
         AddDefinitionIfNotExists("newsposts.postiz.base_url",
-            "Social Media: Postiz API-URL",
+            "Social Media: Postiz-API-URL",
             OptionDataType.String, false, "", "",
-            description: "Basis-URL der Postiz-Instanz inklusive /api, z.B. https://postiz.example.org/api");
+            description: "Basis-URL der Postiz-Instanz inklusive /api, z. B. https://postiz.example.org/api");
 
         AddDefinitionIfNotExists("newsposts.postiz.api_key",
-            "Social Media: Postiz API-Schlüssel",
+            "Social Media: Postiz-API-Schlüssel",
             OptionDataType.String, false, "", "",
             isSecret: true);
 
@@ -502,7 +502,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("keycloak.base_url",
             "Keycloak: Basis-URL",
             OptionDataType.String, false, "", "",
-            description: "Basis-URL des Keycloak-Servers, z.B. https://sso.piratenpartei.de (für die Akkreditierung).");
+            description: "Basis-URL des Keycloak-Servers, z. B. https://sso.piratenpartei.de (für die Akkreditierung).");
 
         AddDefinitionIfNotExists("keycloak.auth_realm",
             "Keycloak: Realm des Admin-Clients",
@@ -531,12 +531,12 @@ public class OptionRepository {
         AddDefinitionIfNotExists(ReceiptOptions.MaxPerUser,
             "Belege: Höchstzahl je Person",
             OptionDataType.Number, false, "", "100",
-            description: "So viele Belege und Streckenbilder kann eine Person gleichzeitig gespeichert haben. Personen mit der Berechtigung \"Belege: unbegrenzt hochladen\" sind ausgenommen.");
+            description: "So viele Belege und Streckenbilder kann eine Person gleichzeitig gespeichert haben. Personen mit der Berechtigung „Belege: unbegrenzt hochladen“ sind ausgenommen.");
 
         AddDefinitionIfNotExists(ReceiptOptions.MaxFileMegabytes,
             "Belege: Höchstgröße je Datei (MB)",
             OptionDataType.Number, false, "", "10",
-            description: "Größte erlaubte Datei für Belege (JPEG, PNG oder PDF) in Megabyte.");
+            description: "Höchstgröße einer Belegdatei (JPEG, PNG oder PDF) in Megabyte.");
 
         AddDefinitionIfNotExists("wiki.api_url",
             "Wiki: API-URL",
@@ -562,7 +562,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("discourse.base_url",
             "Forum: Basis-URL",
             OptionDataType.String, false, "", "",
-            description: "Basis-URL des Discourse-Forums, in das eingereichte Anträge gespiegelt werden, zum Beispiel https://forum.piratenpartei.de.");
+            description: "Basis-URL des Discourse-Forums, in das die Anträge gespiegelt werden, zum Beispiel https://forum.piratenpartei.de.");
 
         AddDefinitionIfNotExists("discourse.api_username",
             "Forum: Bot-Benutzername",
@@ -626,7 +626,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("mumble.server_certificate_sha256",
             "Mumble: Fingerabdruck des Serverzertifikats",
             OptionDataType.String, false, "", "",
-            description: "Leer = Systemvertrauen; gesetzt = nur ein Serverzertifikat mit diesem SHA-256-Fingerabdruck wird akzeptiert.");
+            description: "Bleibt das Feld leer, gilt das Vertrauen des Systems; sonst wird nur ein Serverzertifikat mit diesem SHA-256-Fingerabdruck akzeptiert.");
 
         AddDefinitionIfNotExists("mumble.channels.chair",
             "Mumble: Kanal Versammlungsleitung",
@@ -671,47 +671,47 @@ public class OptionRepository {
         AddDefinitionIfNotExists("assembly.times.presentation",
             "Versammlung: Redezeit Antragsvorstellung",
             OptionDataType.Number, false, "", "300",
-            description: "Standardredezeit in Sekunden für Antragsvorstellung.");
+            description: "Standardredezeit in Sekunden für die Antragsvorstellung.");
 
         AddDefinitionIfNotExists("assembly.times.speech",
             "Versammlung: Redezeit Redebeitrag",
             OptionDataType.Number, false, "", "180",
-            description: "Standardredezeit in Sekunden für Redebeitrag.");
+            description: "Standardredezeit in Sekunden für einen Redebeitrag.");
 
         AddDefinitionIfNotExists("assembly.times.question",
             "Versammlung: Redezeit Frage",
             OptionDataType.Number, false, "", "30",
-            description: "Standardredezeit in Sekunden für Frage.");
+            description: "Standardredezeit in Sekunden für eine Frage.");
 
         AddDefinitionIfNotExists("assembly.times.statement",
             "Versammlung: Redezeit Stellungnahme",
             OptionDataType.Number, false, "", "60",
-            description: "Standardredezeit in Sekunden für Stellungnahme.");
+            description: "Standardredezeit in Sekunden für eine Stellungnahme.");
 
         AddDefinitionIfNotExists("assembly.times.closing_word",
             "Versammlung: Redezeit Schlusswort",
             OptionDataType.Number, false, "", "180",
-            description: "Standardredezeit in Sekunden für Schlusswort.");
+            description: "Standardredezeit in Sekunden für das Schlusswort.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_presentation",
             "Versammlung: Redezeit Kandidatenvorstellung",
             OptionDataType.Number, false, "", "300",
-            description: "Standardredezeit in Sekunden für Kandidatenvorstellung.");
+            description: "Standardredezeit in Sekunden für die Kandidatenvorstellung.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_presentation_repeat",
             "Versammlung: Redezeit erneute Kandidatenvorstellung",
             OptionDataType.Number, false, "", "180",
-            description: "Standardredezeit in Sekunden für erneute Kandidatenvorstellung.");
+            description: "Standardredezeit in Sekunden für eine erneute Kandidatenvorstellung.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_question",
             "Versammlung: Redezeit Frage an Kandidierende",
             OptionDataType.Number, false, "", "30",
-            description: "Standardredezeit in Sekunden für Frage an Kandidierende.");
+            description: "Standardredezeit in Sekunden für eine Frage an Kandidierende.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_answer",
             "Versammlung: Redezeit Antwort von Kandidierenden",
             OptionDataType.Number, false, "", "120",
-            description: "Standardredezeit in Sekunden für Antwort von Kandidierenden.");
+            description: "Standardredezeit in Sekunden für eine Antwort von Kandidierenden.");
 
         AddDefinitionIfNotExists("assembly.grace_seconds",
             "Versammlung: Karenzzeit Wortmeldung",
@@ -726,7 +726,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("assembly.start_now_after_seconds",
             "Versammlung: Timer-Start anbieten nach",
             OptionDataType.Number, false, "", "20",
-            description: "Sekunden ohne Sprachpaket nach dem Rederecht, nach denen die Konsole Jetzt starten anbietet.");
+            description: "Sekunden ohne Sprachpaket nach dem Rederecht, nach denen die Konsole „Jetzt starten“ anbietet.");
 
         AddDefinitionIfNotExists("assembly.messages.warning",
             "Versammlung: Text Redezeitwarnung",
@@ -751,17 +751,17 @@ public class OptionRepository {
         AddDefinitionIfNotExists("assembly.poll.auto_start",
             "Versammlung: Abstimmung automatisch starten",
             OptionDataType.String, false, "", "true",
-            description: "true = vom Assistenten angelegte Abstimmungen starten sofort.");
+            description: "Bei „true“ starten vom Assistenten angelegte Abstimmungen sofort.");
 
         AddDefinitionIfNotExists("assembly.poll.auto_stop",
             "Versammlung: Abstimmung automatisch beenden",
             OptionDataType.String, false, "", "true",
-            description: "true = Abstimmung wird bei Ablauf des Countdowns beendet.");
+            description: "Bei „true“ wird die Abstimmung bei Ablauf des Countdowns beendet.");
 
         AddDefinitionIfNotExists("assembly.poll.project",
             "Versammlung: Abstimmung auf dem Beamer zeigen",
             OptionDataType.String, false, "", "false",
-            description: "true = eine gestartete Abstimmung wird auf den OpenSlides-Projektoren aus assembly.openslides.projector_ids gezeigt.");
+            description: "Bei „true“ wird eine gestartete Abstimmung auf den OpenSlides-Projektoren aus assembly.openslides.projector_ids gezeigt.");
 
         AddDefinitionIfNotExists("assembly.openslides.projector_ids",
             "Versammlung: OpenSlides-Projektoren",
@@ -771,7 +771,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("assembly.poll.auto_publish",
             "Versammlung: Ergebnis automatisch veröffentlichen",
             OptionDataType.String, false, "", "true",
-            description: "true = Ergebnis wird nach dem Beenden sofort veröffentlicht.");
+            description: "Bei „true“ wird das Ergebnis nach dem Beenden sofort veröffentlicht.");
     }
 
     private const string NewsPostsDefaultPrompt =
