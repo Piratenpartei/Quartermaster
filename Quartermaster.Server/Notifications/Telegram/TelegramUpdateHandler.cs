@@ -40,12 +40,12 @@ public class TelegramUpdateHandler {
         }
         if (text.StartsWith(StartCommand, StringComparison.Ordinal)) {
             await ReplyAsync(bot, chatId,
-                "Willkommen bei Quartermaster! Um deinen Telegram-Account zu verknüpfen, sende /link <Token>. Den Token findest du in deinem Quartermaster-Account unter Benachrichtigungen.",
+                "Willkommen bei Quartermaster! Um dein Telegram-Konto zu verknüpfen, sende /link <Token>. Den Token findest du in deinem Quartermaster-Konto unter Benachrichtigungen.",
                 ct);
             return;
         }
         await ReplyAsync(bot, chatId,
-            "Hallo! Benutze /link <Token>, um deinen Telegram-Account mit Quartermaster zu verknüpfen. Den Token findest du in deinem Account unter Benachrichtigungen.",
+            "Hallo! Benutze /link <Token>, um dein Telegram-Konto mit Quartermaster zu verknüpfen. Den Token findest du in deinem Konto unter Benachrichtigungen.",
             ct);
     }
 
@@ -55,7 +55,7 @@ public class TelegramUpdateHandler {
             : "";
         if (string.IsNullOrEmpty(token)) {
             await ReplyAsync(bot, chatId,
-                "Bitte einen Link-Token mitschicken: /link <Token>. Den findest du in deinem Quartermaster-Account unter Benachrichtigungen.",
+                "Bitte einen Link-Token mitschicken: /link <Token>. Den findest du in deinem Quartermaster-Konto unter Benachrichtigungen.",
                 ct);
             return;
         }
@@ -64,7 +64,7 @@ public class TelegramUpdateHandler {
         if (userId == null) {
             _logger.LogInformation("Telegram link token rejected (unknown, expired, or already consumed) chat={ChatId}", chatId);
             await ReplyAsync(bot, chatId,
-                "Dieser Link-Token ist ungültig, abgelaufen oder wurde bereits benutzt. Bitte erstelle in deinem Quartermaster-Account einen neuen Link.",
+                "Dieser Link-Token ist ungültig, abgelaufen oder wurde bereits benutzt. Bitte erstelle in deinem Quartermaster-Konto einen neuen Link.",
                 ct);
             return;
         }

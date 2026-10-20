@@ -95,7 +95,7 @@
                                 </RequirePermission>
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageAccreditation">
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/Administration/Akkreditierung">@I18n[I18nKey.Ui.MainNavBar.BoardWorkAccreditation]</a></li>
+                                    <li><a class="dropdown-item" href="/Administration/Accreditation">@I18n[I18nKey.Ui.MainNavBar.BoardWorkAccreditation]</a></li>
                                 </RequirePermission>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditTravelExpenseRules">
                                     <li><hr class="dropdown-divider"></li>
@@ -167,7 +167,7 @@
                     <a href="/Sessions" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.MySessionsTitle]">
                         <i class="bi bi-shield-lock"></i>
                     </a>
-                    <a href="/Account/Benachrichtigungen" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.NotificationsTitle]">
+                    <a href="/Account/Notifications" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.NotificationsTitle]">
                         <i class="bi bi-bell"></i>
                     </a>
                     <button class="btn btn-outline-secondary btn-sm btn-hover-scale1" @onclick=HandleLogout>

@@ -394,10 +394,20 @@ public partial class Program {
             ep.MapStaticAssets();
             ep.MapHub<MeetingHub>("/hubs/meeting");
             ep.MapHub<AssemblyAssistant.AssemblyHub>(Api.AssemblyAssistant.AssemblyHubMethods.HubPath);
+            foreach (var (legacy, current) in LegacyRoutes) {
+                ep.MapGet(legacy, (HttpContext context) => Results.Redirect(current + context.Request.QueryString, permanent: true))
+                    .AllowAnonymous();
+            }
             ep.MapFallbackToFile("index.html");
         });
 #pragma warning restore ASP0014
     }
+
+    /// <summary>Pages that used to live under German routes; the old addresses redirect so bookmarks keep working.</summary>
+    private static readonly (string Legacy, string Current)[] LegacyRoutes = [
+        ("/Account/Benachrichtigungen", "/Account/Notifications"),
+        ("/Administration/Akkreditierung", "/Administration/Accreditation")
+    ];
 
     public const string AnonymousCreateRateLimitPolicy = "anonymous-create";
     public const string DueSelectionRateLimitPolicy = "due-selection";
