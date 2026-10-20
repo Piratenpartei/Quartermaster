@@ -371,3 +371,6 @@ FodyWeavers.xsd
 
 # Local build config (SMB workaround)
 Directory.Build.props
+
+# Local dev state from flake.nix (MariaDB data, socket)
+/.devdata/
