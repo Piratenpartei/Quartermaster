@@ -24,6 +24,14 @@ public class AssemblyMotionFieldValues {
         PriorDiscussion = detail.PriorDiscussion ?? "";
     }
 
+    /// <summary>Mirrors the server: only a change of type, section, text or reason removes the co-submitters of a released motion.</summary>
+    public bool HasBindingChange(AssemblyMotionDetailDTO detail) {
+        return TypeId != detail.TypeId.ToString()
+            || NullIfBlank(Section) != detail.Section
+            || TextMarkdown != detail.TextMarkdown
+            || ReasonMarkdown != detail.ReasonMarkdown;
+    }
+
     public bool TryApplyTo(AssemblyMotionSaveRequest request) {
         if (!Guid.TryParse(TypeId, out var typeId))
             return false;

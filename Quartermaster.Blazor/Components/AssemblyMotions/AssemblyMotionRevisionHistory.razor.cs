@@ -34,8 +34,7 @@ public partial class AssemblyMotionRevisionHistory {
     private int SelectedRevision;
     private Guid loadedMotionId;
     private int loadedRevision = -1;
-    private List<TextDiffLine> TextDiffLines = [];
-    private List<TextDiffLine> ReasonDiffLines = [];
+    private List<(string LabelKey, List<TextDiffLine> Lines)> FieldDiffs = [];
 
     private AssemblyMotionRevisionDTO? Current => Revisions.FirstOrDefault(r => r.Revision == SelectedRevision);
 
@@ -83,12 +82,22 @@ public partial class AssemblyMotionRevisionHistory {
         SelectedRevision = revision;
         var current = Current;
         var previous = Previous;
-        if (current == null || previous == null) {
-            TextDiffLines = [];
-            ReasonDiffLines = [];
-        } else {
-            TextDiffLines = TextDiff.Lines(previous.TextMarkdown, current.TextMarkdown);
-            ReasonDiffLines = TextDiff.Lines(previous.ReasonMarkdown, current.ReasonMarkdown);
-        }
+        FieldDiffs = [];
+        if (current == null || previous == null)
+            return;
+
+        AddDiff(I18nKey.Ui.Common.Title, previous.Title, current.Title);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldSection, previous.Section, current.Section);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldText, previous.TextMarkdown, current.TextMarkdown);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldReason, previous.ReasonMarkdown, current.ReasonMarkdown);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldSummary, previous.Summary, current.Summary);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldKeywords, previous.Keywords, current.Keywords);
+        AddDiff(I18nKey.Ui.AssemblyMotion.FieldPriorDiscussion, previous.PriorDiscussion, current.PriorDiscussion);
+    }
+
+    private void AddDiff(string labelKey, string? previous, string? current) {
+        if ((previous ?? "") == (current ?? ""))
+            return;
+        FieldDiffs.Add((labelKey, TextDiff.Lines(previous ?? "", current ?? "")));
     }
 }

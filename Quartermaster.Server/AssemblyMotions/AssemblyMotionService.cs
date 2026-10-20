@@ -142,12 +142,13 @@ public class AssemblyMotionService {
         if (!AssemblyMotionContent.HasChange(locked, draft))
             return AssemblyMotionOutcome.Ok(locked);
 
+        var isBindingChange = AssemblyMotionContent.HasBindingChange(locked, draft);
         var before = AssemblyMotionContent.Snapshot(locked);
         AssemblyMotionContent.Apply(locked, draft);
         locked.Revision += 1;
 
         var removedCoSubmitterIds = new List<Guid>();
-        if (locked.Status != AssemblyMotionStatus.Draft) {
+        if (locked.Status != AssemblyMotionStatus.Draft && isBindingChange) {
             removedCoSubmitterIds = _motions.RemoveCoSubmitters(locked.Id);
             locked.CollectingReminderSentAt = null;
             if (locked.Status == AssemblyMotionStatus.Submitted) {

@@ -77,6 +77,17 @@ public static class AssemblyMotionContent {
             || motion.PriorDiscussion != draft.PriorDiscussion;
     }
 
+    /// <summary>
+    /// True when the draft changes what co-submitters back: the type, the section, the text or the reason. Title, summary, keywords
+    /// and prior discussion only describe the motion.
+    /// </summary>
+    public static bool HasBindingChange(AssemblyMotion motion, AssemblyMotionDraft draft) {
+        return motion.TypeId != draft.TypeId
+            || motion.Section != draft.Section
+            || motion.TextMarkdown != draft.TextMarkdown
+            || motion.ReasonMarkdown != draft.ReasonMarkdown;
+    }
+
     public static AssemblyMotionDraft Snapshot(AssemblyMotion motion) {
         return new(motion.TypeId, motion.Title, motion.Section, motion.TextMarkdown, motion.ReasonMarkdown,
                 motion.Summary, motion.Keywords, motion.PriorDiscussion);

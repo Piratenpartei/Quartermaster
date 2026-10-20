@@ -454,7 +454,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         _service.Join(motion.Id, SeedEligibleMember(), now);
         _service.Join(motion.Id, SeedEligibleMember(), now);
 
-        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now);
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "Neuer Text" }, baseRevision: 1, now);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         var reloaded = _motionRepo.Get(motion.Id)!;
@@ -462,6 +462,70 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         await Assert.That(reloaded.Revision).IsEqualTo(2);
         await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(1);
         await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "CoSubmittersReset")).IsEqualTo(1);
+    }
+
+    [Test]
+    [Arguments("Section")]
+    [Arguments("Reason")]
+    public async Task Edit_of_section_or_reason_removes_cosubmitters(string field) {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+        var draft = field == "Section"
+            ? NewDraft(type.Id) with { Section = "Kapitel 2" }
+            : NewDraft(type.Id) with { ReasonMarkdown = "Neue Begründung" };
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), draft, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Edit_of_title_and_descriptive_fields_keeps_cosubmitters() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+        _service.Join(motion.Id, SeedEligibleMember(), now);
+        var draft = NewDraft(type.Id) with { Title = "Neu", Summary = "Kurz", Keywords = "Schlagwort", PriorDiscussion = "Forum" };
+
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), draft, baseRevision: 1, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.Title).IsEqualTo("Neu");
+        await Assert.That(reloaded.Revision).IsEqualTo(2);
+        await Assert.That(_motionRepo.GetRevisions(motion.Id).Count).IsEqualTo(2);
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(3);
+        await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "CoSubmittersReset")).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Title_edit_of_submitted_motion_keeps_it_submitted() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        for (var i = 0; i < 4; i++)
+            _service.Join(motion.Id, SeedEligibleMember(), now);
+        var submitted = _motionRepo.Get(motion.Id)!;
+
+        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Neu" }, baseRevision: 1, now.AddMinutes(5));
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
+        await Assert.That(reloaded.SubmittedAt).IsEqualTo(submitted.SubmittedAt);
+        await Assert.That(reloaded.IsInRevision).IsFalse();
+        await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(5);
     }
 
     [Test]
@@ -602,9 +666,9 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         for (var i = 0; i < 4; i++)
             _service.Join(motion.Id, SeedEligibleMember(), now);
         var submitted = _motionRepo.Get(motion.Id)!;
-        _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Eins" }, baseRevision: 1, now);
+        _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "Eins" }, baseRevision: 1, now);
 
-        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { Title = "Zwei" }, baseRevision: 2, now);
+        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { TextMarkdown = "Zwei" }, baseRevision: 2, now);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         var reloaded = _motionRepo.Get(motion.Id)!;

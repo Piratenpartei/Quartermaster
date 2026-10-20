@@ -45,14 +45,15 @@
                     <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.DiffFirstRevision]</div>
                 } else {
                     <h6>@DiffTitle</h6>
-                    <div class="mb-3">
-                        <div class="fw-semibold">@I18n[I18nKey.Ui.AssemblyMotion.FieldText]</div>
-                        <AssemblyMotionDiffView Lines="@TextDiffLines" />
-                    </div>
-                    <div>
-                        <div class="fw-semibold">@I18n[I18nKey.Ui.AssemblyMotion.FieldReason]</div>
-                        <AssemblyMotionDiffView Lines="@ReasonDiffLines" />
-                    </div>
+                    @if (FieldDiffs.Count == 0) {
+                        <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.DiffNoChanges]</div>
+                    }
+                    @foreach (var diff in FieldDiffs) {
+                        <div class="mb-3">
+                            <div class="fw-semibold">@I18n[diff.LabelKey]</div>
+                            <AssemblyMotionDiffView Lines="@diff.Lines" />
+                        </div>
+                    }
                 }
             }
         </div>

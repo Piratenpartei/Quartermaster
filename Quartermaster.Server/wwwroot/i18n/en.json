@@ -2734,8 +2734,8 @@
   "ui.assembly_motion.result_accepted_modified": "Accepted with changes",
   "ui.assembly_motion.result_not_handled": "Not handled",
   "ui.assembly_motion.result_rejected": "Rejected",
-  "ui.assembly_motion.revision_warning_multi": "Warning: As soon as you save a change, the motion is back in revision and visible as such to everyone, including the wiki. All {count} co-submitters are removed and have to join again before the deadline on {deadline}.",
-  "ui.assembly_motion.revision_warning_multi_one": "Warning: As soon as you save a change, the motion is back in revision and visible as such to everyone, including the wiki. The co-submitter is removed and has to join again before the deadline on {deadline}.",
+  "ui.assembly_motion.revision_warning_multi": "Warning: Your change is visible to everyone immediately after saving, including the wiki. If you change the section, text or reason, the motion is back in revision and all {count} co-submitters are removed and have to join again before the deadline on {deadline}.",
+  "ui.assembly_motion.revision_warning_multi_one": "Warning: Your change is visible to everyone immediately after saving, including the wiki. If you change the section, text or reason, the motion is back in revision and the co-submitter is removed and has to join again before the deadline on {deadline}.",
   "ui.assembly_motion.deadline_up_to_including": "up to and including {date}",
   "ui.assembly_motion.revision_warning_single": "Warning: Your change is visible to everyone immediately after saving, including the wiki.",
   "ui.assembly_motion.revision_warning_title": "Change motion",
@@ -2786,7 +2786,7 @@
   "ui.assembly_motion.reload_confirm_title": "Reload motion",
   "ui.assembly_motion.save_failed": "Saving failed.",
   "ui.assembly_motion.commission_button": "Motion commission",
-  "ui.assembly_motion.revision_warning_multi_alone": "Warning: As soon as you save a change, the motion is back in revision and visible as such to everyone, including the wiki.",
+  "ui.assembly_motion.revision_warning_multi_alone": "Warning: Your change is visible to everyone immediately after saving, including the wiki. If you change the section, text or reason, the motion is back in revision.",
   "ui.assembly_motion.edit_locked_hint": "You can no longer edit this motion. Please contact the motion commission.",
   "ui.assembly_motion.edit_locked_inquiry_link": "Go to the open inquiry",
   "ui.assembly_motion.revisions_title": "Revision history",
@@ -2981,7 +2981,7 @@
   "ui.assembly_motion.join_not_eligible_title": "You cannot support this motion.",
   "ui.assembly_motion.upvote_count_text_one": "Prioritized by 1 member",
   "ui.assembly_motion.revision_warning_unnumbered_alone": "Warning: after saving, your change is immediately visible to everyone.",
-  "ui.assembly_motion.revision_warning_unnumbered_multi": "Warning: after saving, your change is immediately visible to everyone. All co-submitters are removed and have to join again before the deadline on {deadline}.",
+  "ui.assembly_motion.revision_warning_unnumbered_multi": "Warning: after saving, your change is immediately visible to everyone. If you change the type, section, text or reason, all co-submitters are removed and have to join again before the deadline on {deadline}.",
   "ui.main_nav_bar.board_work.assembly_motions": "Motion commission",
   "ui.template_field_palette.model_assembly_motion_notification": "Assembly motion (notification)"
 }

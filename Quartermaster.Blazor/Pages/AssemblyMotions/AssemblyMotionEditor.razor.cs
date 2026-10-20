@@ -134,7 +134,7 @@ public partial class AssemblyMotionEditor {
     }
 
     private async Task SaveDraft() {
-        if (IsRevisionEdit && !await RevisionDialog.ShowAsync(RevisionWarning))
+        if (IsRevisionEdit && Fields.HasBindingChange(Detail!) && !await RevisionDialog.ShowAsync(RevisionWarning))
             return;
 
         Saving = true;
