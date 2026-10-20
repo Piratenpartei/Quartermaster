@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
@@ -30,6 +31,9 @@ public partial class AssemblyMotionDetail {
     [Inject]
     public required I18nService I18n { get; set; }
 
+    [Inject]
+    public required IJSRuntime JS { get; set; }
+
     [Parameter]
     public Guid Id { get; set; }
 
@@ -39,6 +43,7 @@ public partial class AssemblyMotionDetail {
     private AssemblyMotionPortalContextDTO? Context;
     private bool Loading = true;
     private bool Busy;
+    private bool CanShare;
     private ConfirmDialog ReleaseDialog = default!;
     private ConfirmDialog JoinDialog = default!;
     private ConfirmDialog LeaveDialog = default!;
@@ -98,6 +103,31 @@ public partial class AssemblyMotionDetail {
 
     protected override async Task OnParametersSetAsync() {
         await LoadAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (!firstRender)
+            return;
+        CanShare = await JS.InvokeAsync<bool>("CanShare");
+        if (CanShare)
+            StateHasChanged();
+    }
+
+    private async Task CopyShareLinkAsync() {
+        try {
+            if (await JS.InvokeAsync<bool>("CopyToClipboard", ShareLink))
+                ToastService.ToastKey(I18nKey.Ui.AssemblyMotion.ToastLinkCopied);
+        } catch (JSException ex) {
+            ToastService.Error(ex);
+        }
+    }
+
+    private async Task ShareAsync() {
+        try {
+            await JS.InvokeVoidAsync("ShareLink", Motion?.Title ?? "", ShareLink);
+        } catch (JSException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task LoadAsync() {

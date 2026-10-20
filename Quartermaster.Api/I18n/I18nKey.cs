@@ -3084,6 +3084,7 @@ public static class I18nKey {
             public const string ColumnSortOrder = "ui.assembly_motion.column_sort_order";
             public const string ColumnType = "ui.assembly_motion.column_type";
             public const string Competitions = "ui.assembly_motion.competitions";
+            public const string CopyLink = "ui.assembly_motion.copy_link";
             public const string DatesRequired = "ui.assembly_motion.dates_required";
             public const string DeadlinesTitle = "ui.assembly_motion.deadlines_title";
             public const string DeleteConfirmMessage = "ui.assembly_motion.delete_confirm_message";
@@ -3162,6 +3163,7 @@ public static class I18nKey {
             public const string SectionHelp = "ui.assembly_motion.section_help";
             public const string SettingsNotEnabled = "ui.assembly_motion.settings_not_enabled";
             public const string SettingsTitle = "ui.assembly_motion.settings_title";
+            public const string Share = "ui.assembly_motion.share";
             public const string ShareHint = "ui.assembly_motion.share_hint";
             public const string SignInHint = "ui.assembly_motion.sign_in_hint";
             public const string SignInLink = "ui.assembly_motion.sign_in_link";
@@ -3177,6 +3179,7 @@ public static class I18nKey {
             public const string ToastDeleted = "ui.assembly_motion.toast_deleted";
             public const string ToastJoined = "ui.assembly_motion.toast_joined";
             public const string ToastLeft = "ui.assembly_motion.toast_left";
+            public const string ToastLinkCopied = "ui.assembly_motion.toast_link_copied";
             public const string ToastPortalEnabled = "ui.assembly_motion.toast_portal_enabled";
             public const string ToastPortalSaved = "ui.assembly_motion.toast_portal_saved";
             public const string ToastReleased = "ui.assembly_motion.toast_released";
