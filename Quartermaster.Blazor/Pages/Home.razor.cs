@@ -27,4 +27,11 @@ public partial class Home {
         }
         Loading = false;
     }
+
+    private bool HasOpenItems() {
+        if (Dashboard == null)
+            return false;
+
+        return Dashboard.OpenMotions != null || Dashboard.PendingApplications != null || Dashboard.PendingDueSelections != null;
+    }
 }

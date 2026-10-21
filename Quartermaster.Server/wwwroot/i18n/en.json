@@ -3145,5 +3145,19 @@
   "ui.support_signatures.add_rejection": "Another rejection reason",
   "ui.support_signatures.collected_count": "{collected} collected",
   "ui.support_signatures.collected_hint": "Collected, minus rejected forms",
-  "ui.support_signatures.form_short": "Form"
+  "ui.support_signatures.form_short": "Form",
+  "ui.home.section_events": "Events",
+  "ui.home.section_open_items": "Open items",
+  "ui.home.section_support_signatures": "Support signatures",
+  "ui.home.section_features": "What Quartermaster can do",
+  "ui.home.features_intro": "Among other things, Quartermaster currently offers:",
+  "ui.home.feature_membership": "Online membership applications and dues selection, processed by the board",
+  "ui.home.feature_motions": "Motion portal for party conventions: submit motions, collect supporters, motion committee, mirroring to the wiki and forum",
+  "ui.home.feature_meetings": "Board meetings with agenda and votes",
+  "ui.home.feature_events": "Events with checklists",
+  "ui.home.feature_expenses": "Expense and travel expense reimbursement with receipts and travel expense rules per chapter",
+  "ui.home.feature_mailings": "Mailings and social media posts",
+  "ui.home.feature_support_signatures": "UU assistant for support signatures",
+  "ui.home.feature_divisions": "Municipality database",
+  "ui.home.features_for_chapters": "Every chapter may use Quartermaster. If yours would like to, please contact the Bundes IT:"
 }

@@ -14,6 +14,7 @@
     <LoadingSpinner />
 } else if (Dashboard != null) {
     @if (Dashboard.UpcomingEvents != null && Dashboard.UpcomingEvents.Count > 0) {
+        <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionEvents]</h2>
         <DashboardCard Icon="bi-calendar-event"
                        Title="@I18n[I18nKey.Ui.Home.UpcomingEventsTitle]"
                        AllUrl="/Events"
@@ -55,6 +56,9 @@
         </DashboardCard>
     }
 
+    @if (HasOpenItems()) {
+        <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionOpenItems]</h2>
+    }
     @if (Dashboard.OpenMotions != null) {
         <DashboardCard Icon="bi-file-text"
                        Title="@I18n[I18nKey.Ui.Home.OpenMotionsTitle]"
@@ -143,7 +147,13 @@
         </DashboardCard>
     }
 
+    @if (Dashboard.SupportSignatureCampaigns?.Count > 0) {
+        <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionSupportSignatures]</h2>
+    }
     @foreach (var campaign in Dashboard.SupportSignatureCampaigns ?? []) {
         <SupportSignatureProgressCard Campaign="@campaign" />
     }
 }
+
+<h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionFeatures]</h2>
+<FeatureOverview />

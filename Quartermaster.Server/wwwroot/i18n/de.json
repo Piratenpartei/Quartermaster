@@ -3145,5 +3145,19 @@
   "ui.support_signatures.add_rejection": "Weiterer Ablehnungsgrund",
   "ui.support_signatures.collected_count": "{collected} gesammelt",
   "ui.support_signatures.collected_hint": "Gesammelt, abzüglich abgelehnter Formulare",
-  "ui.support_signatures.form_short": "Formular"
+  "ui.support_signatures.form_short": "Formular",
+  "ui.home.section_events": "Veranstaltungen",
+  "ui.home.section_open_items": "Offene Vorgänge",
+  "ui.home.section_support_signatures": "Unterstützungsunterschriften",
+  "ui.home.section_features": "Was Quartermaster kann",
+  "ui.home.features_intro": "Quartermaster bietet derzeit unter anderem:",
+  "ui.home.feature_membership": "Online-Mitgliedsanträge und Beitragseinstufung, mit Bearbeitung durch den Vorstand",
+  "ui.home.feature_motions": "Antragsportal für Parteitage: Anträge einreichen, Unterstützer sammeln, Antragskommission, Spiegelung ins Wiki und Forum",
+  "ui.home.feature_meetings": "Vorstandssitzungen mit Tagesordnung und Abstimmungen",
+  "ui.home.feature_events": "Veranstaltungen mit Checklisten",
+  "ui.home.feature_expenses": "Auslagen- und Reisekostenerstattung mit Belegen und eigener Reisekostenordnung je Gliederung",
+  "ui.home.feature_mailings": "Mailings und Social-Media-Beiträge",
+  "ui.home.feature_support_signatures": "UU-Assistent für Unterstützungsunterschriften",
+  "ui.home.feature_divisions": "Gemeindedatenbank",
+  "ui.home.features_for_chapters": "Alle Gliederungen können Quartermaster nutzen. Wer das möchte, meldet sich bitte bei der Bundes IT:"
 }

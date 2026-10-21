@@ -868,6 +868,20 @@ public static class I18nKey {
             public const string OpenMotionsEmpty = "ui.home.open_motions_empty";
             public const string UpcomingEventsTitle = "ui.home.upcoming_events_title";
             public const string UpcomingEventDateOpen = "ui.home.upcoming_event_date_open";
+            public const string SectionEvents = "ui.home.section_events";
+            public const string SectionOpenItems = "ui.home.section_open_items";
+            public const string SectionSupportSignatures = "ui.home.section_support_signatures";
+            public const string SectionFeatures = "ui.home.section_features";
+            public const string FeaturesIntro = "ui.home.features_intro";
+            public const string FeatureMembership = "ui.home.feature_membership";
+            public const string FeatureMotions = "ui.home.feature_motions";
+            public const string FeatureMeetings = "ui.home.feature_meetings";
+            public const string FeatureEvents = "ui.home.feature_events";
+            public const string FeatureExpenses = "ui.home.feature_expenses";
+            public const string FeatureMailings = "ui.home.feature_mailings";
+            public const string FeatureSupportSignatures = "ui.home.feature_support_signatures";
+            public const string FeatureDivisions = "ui.home.feature_divisions";
+            public const string FeaturesForChapters = "ui.home.features_for_chapters";
         }
 
         public static class ConfirmSubmission {
