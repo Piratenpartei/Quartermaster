@@ -62,7 +62,7 @@ public class CertificationOfficeWriter {
 
     /// <summary>Another office took one of the municipalities after our check; MariaDB reports that as a duplicate or, with snapshot isolation, as a changed record.</summary>
     private static bool IsTakenMeanwhile(MySqlException ex) {
-        return ex.ErrorCode is MySqlErrorCode.DuplicateKeyEntry or MySqlErrorCode.CheckRead or MySqlErrorCode.LockDeadlock;
+        return ex.ErrorCode == MySqlErrorCode.DuplicateKeyEntry || ex.ErrorCode == MySqlErrorCode.CheckRead || ex.ErrorCode == MySqlErrorCode.LockDeadlock;
     }
 
     private static string? Clean(string? value) {
