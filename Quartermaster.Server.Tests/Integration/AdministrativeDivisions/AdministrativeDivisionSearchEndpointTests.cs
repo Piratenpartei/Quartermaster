@@ -50,6 +50,48 @@ public class AdministrativeDivisionSearchEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Query_filters_by_postcode_prefix() {
+        Builder.SeedAdminDivision("Wiesbaden", depth: 7, postCodes: "65183,65185,65187");
+        Builder.SeedAdminDivision("Mainz", depth: 7, postCodes: "55116,55118");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync("/api/administrativedivisions/search?Query=6518");
+        var result = await response.Content.ReadFromJsonAsync<AdministrativeDivisionSearchResponse>();
+        await Assert.That(result!.Items.Count).IsEqualTo(1);
+        await Assert.That(result.Items[0].Name).IsEqualTo("Wiesbaden");
+    }
+
+    [Test]
+    public async Task Query_does_not_match_postcode_infix() {
+        Builder.SeedAdminDivision("Wiesbaden", depth: 7, postCodes: "65183,65185");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync("/api/administrativedivisions/search?Query=5183");
+        var result = await response.Content.ReadFromJsonAsync<AdministrativeDivisionSearchResponse>();
+        await Assert.That(result!.Items.Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Query_filters_by_admin_code() {
+        Builder.SeedAdminDivision("Wiesbaden", depth: 7, adminCode: "06414000");
+        Builder.SeedAdminDivision("Mainz", depth: 7, adminCode: "07315000");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync("/api/administrativedivisions/search?Query=06414000");
+        var result = await response.Content.ReadFromJsonAsync<AdministrativeDivisionSearchResponse>();
+        await Assert.That(result!.Items.Count).IsEqualTo(1);
+        await Assert.That(result.Items[0].Name).IsEqualTo("Wiesbaden");
+    }
+
+    [Test]
+    public async Task Query_filters_by_admin_code_prefix() {
+        Builder.SeedAdminDivision("Wiesbaden", depth: 7, adminCode: "06414000");
+        Builder.SeedAdminDivision("Darmstadt", depth: 7, adminCode: "06411000");
+        Builder.SeedAdminDivision("Mainz", depth: 7, adminCode: "07315000");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync("/api/administrativedivisions/search?Query=0641");
+        var result = await response.Content.ReadFromJsonAsync<AdministrativeDivisionSearchResponse>();
+        await Assert.That(result!.Items.Count).IsEqualTo(2);
+    }
+
+    [Test]
     public async Task Returns_empty_list_when_no_matches() {
         Builder.SeedAdminDivision("Hannover", depth: 1);
         using var client = AnonymousClient();

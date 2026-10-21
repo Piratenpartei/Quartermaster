@@ -48,9 +48,11 @@ public class AdministrativeDivisionRepository {
         var q = _context.AdministrativeDivisions.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query)) {
-            var bounded = "," + query + ",";
-            q = q.Where(ad => ad.Name.Contains(query)
-                || (ad.PostCodes != null && ("," + ad.PostCodes + ",").Contains(bounded)));
+            var trimmed = query.Trim();
+            var entryPrefix = "," + trimmed;
+            q = q.Where(ad => ad.Name.Contains(trimmed)
+                || (ad.AdminCode != null && ad.AdminCode.StartsWith(trimmed))
+                || (ad.PostCodes != null && ("," + ad.PostCodes).Contains(entryPrefix)));
         }
 
         var totalCount = q.Count();
