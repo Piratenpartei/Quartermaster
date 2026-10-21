@@ -3159,5 +3159,10 @@
   "ui.home.feature_mailings": "Mailings and social media posts",
   "ui.home.feature_support_signatures": "UU assistant for support signatures",
   "ui.home.feature_divisions": "Municipality database",
-  "ui.home.features_for_chapters": "Every chapter may use Quartermaster. If yours would like to, please contact the Bundes IT:"
+  "ui.home.features_for_chapters": "Every chapter may use Quartermaster. If yours would like to, please contact the Bundes IT:",
+  "ui.home.section_sign_in": "Sign in or join",
+  "ui.home.sign_in_intro": "Many of Quartermaster's features are only available after signing in. If you are a member of the Pirate Party, simply sign in with your Piratenlogin.",
+  "ui.home.sign_in_join": "Not a member yet? We would be glad to hear from you, and every helping hand is welcome. The way to the membership application is right next to this.",
+  "ui.home.join_title": "Join the party",
+  "ui.home.join_subtitle": "To the membership application"
 }

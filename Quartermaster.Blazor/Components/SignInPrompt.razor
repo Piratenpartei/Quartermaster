@@ -1,0 +1,48 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-column justify-content-center">
+                <p>@I18n[I18nKey.Ui.Home.SignInIntro]</p>
+                <p class="mb-0">@I18n[I18nKey.Ui.Home.SignInJoin]</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <a href="@JoinUrl()" target="@JoinTarget()" rel="noopener" class="card text-decoration-none h-100 btn-hover-scale1">
+            <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                <i class="bi bi-person-plus fs-1 mb-2"></i>
+                <h5 class="card-title">@I18n[I18nKey.Ui.Home.JoinTitle]</h5>
+                <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Home.JoinSubtitle]</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        @if (Config.OidcEnabled) {
+            <a href="/api/users/OidcLoginStart" class="card text-decoration-none h-100 btn-hover-scale1">
+                <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                    <i class="bi bi-key fs-1 mb-2"></i>
+                    <h5 class="card-title">@Config.OidcButtonText</h5>
+                    <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.OpenIdSubtitle]</p>
+                </div>
+            </a>
+        } else if (Config.SamlEnabled) {
+            <a href="/api/users/SamlLoginStart" class="card text-decoration-none h-100 btn-hover-scale1">
+                <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                    <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                    <h5 class="card-title">@Config.SamlButtonText</h5>
+                    <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.SsoSubtitle]</p>
+                </div>
+            </a>
+        } else {
+            <div class="card h-100 text-body-tertiary" title="@I18n[I18nKey.Ui.Login.SsoNotConfiguredTooltip]">
+                <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
+                    <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                    <h5 class="card-title">@I18n[I18nKey.Ui.Login.SsoTitle]</h5>
+                    <p class="card-text">@I18n[I18nKey.Ui.Login.NotAvailable]</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

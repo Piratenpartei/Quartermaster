@@ -3159,5 +3159,10 @@
   "ui.home.feature_mailings": "Mailings und Social-Media-Beiträge",
   "ui.home.feature_support_signatures": "UU-Assistent für Unterstützungsunterschriften",
   "ui.home.feature_divisions": "Gemeindedatenbank",
-  "ui.home.features_for_chapters": "Alle Gliederungen können Quartermaster nutzen. Wer das möchte, meldet sich bitte bei der Bundes IT:"
+  "ui.home.features_for_chapters": "Alle Gliederungen können Quartermaster nutzen. Wer das möchte, meldet sich bitte bei der Bundes IT:",
+  "ui.home.section_sign_in": "Anmelden oder Mitglied werden",
+  "ui.home.sign_in_intro": "Viele Funktionen von Quartermaster stehen erst nach der Anmeldung zur Verfügung. Bist du Mitglied der Piratenpartei, melde dich einfach mit deinem Piratenlogin an.",
+  "ui.home.sign_in_join": "Noch kein Mitglied? Wir freuen uns, von dir zu hören, und über jede helfende Hand. Den Weg zum Mitgliedsantrag findest du gleich nebenan.",
+  "ui.home.join_title": "Mitglied werden",
+  "ui.home.join_subtitle": "Zum Mitgliedsantrag"
 }

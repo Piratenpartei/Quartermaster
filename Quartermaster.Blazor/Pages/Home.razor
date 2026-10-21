@@ -157,3 +157,8 @@
 
 <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionFeatures]</h2>
 <FeatureOverview />
+
+@if (!Loading && !AuthService.IsAuthenticated) {
+    <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionSignIn]</h2>
+    <SignInPrompt />
+}

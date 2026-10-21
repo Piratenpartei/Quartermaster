@@ -882,6 +882,11 @@ public static class I18nKey {
             public const string FeatureSupportSignatures = "ui.home.feature_support_signatures";
             public const string FeatureDivisions = "ui.home.feature_divisions";
             public const string FeaturesForChapters = "ui.home.features_for_chapters";
+            public const string SectionSignIn = "ui.home.section_sign_in";
+            public const string SignInIntro = "ui.home.sign_in_intro";
+            public const string SignInJoin = "ui.home.sign_in_join";
+            public const string JoinTitle = "ui.home.join_title";
+            public const string JoinSubtitle = "ui.home.join_subtitle";
         }
 
         public static class ConfirmSubmission {
