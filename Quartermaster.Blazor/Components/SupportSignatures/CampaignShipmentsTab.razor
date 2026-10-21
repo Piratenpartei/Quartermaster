@@ -1,0 +1,192 @@
+@using Quartermaster.Api.I18n
+
+<ConfirmDialog @ref="DiscardConfirm" />
+
+@if (Plan == null || Shipments == null) {
+    <LoadingSpinner />
+} else {
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.SupportSignatures.PlanTitle]</h5>
+            @if (Plan.Offices.Count == 0 && Plan.Unassigned.Count == 0) {
+                <p class="text-secondary mb-0">@I18n[I18nKey.Ui.SupportSignatures.NothingWaiting]</p>
+            } else {
+                <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.PlanIntro]</p>
+                @foreach (var office in Plan.Offices) {
+                    <div class="border rounded p-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="plan-@office.OfficeId" checked="@SelectedOffices.Contains(office.OfficeId)"
+                                       @onchange="() => ToggleOffice(office.OfficeId)" />
+                                <label class="form-check-label fw-semibold" for="plan-@office.OfficeId">@office.OfficeName</label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartSingle(office)">@I18n[I18nKey.Ui.SupportSignatures.AdjustSingle]</button>
+                        </div>
+                        @if (SingleOfficeId == office.OfficeId) {
+                            <div class="mt-2">
+                                @foreach (var line in SingleLines) {
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="flex-grow-1">@line.Name</span>
+                                        <input type="number" min="0" max="@line.Max" class="form-control form-control-sm" style="width: 6em;" @bind="line.Count" />
+                                        <span class="small text-secondary">/ @line.Max</span>
+                                    </div>
+                                }
+                                <button class="btn btn-sm btn-primary mt-1" @onclick="CreateSingle" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.CreateSingle]</button>
+                                <button class="btn btn-sm btn-outline-secondary mt-1" @onclick="() => SingleOfficeId = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                            </div>
+                        } else {
+                            <div class="small text-secondary">
+                                @string.Join(", ", office.Lines.Select(l => $"{l.MunicipalityName}: {l.Count}"))
+                            </div>
+                        }
+                    </div>
+                }
+                @if (Plan.Unassigned.Count > 0) {
+                    <div class="alert alert-warning mt-3">
+                        <div class="fw-semibold mb-1">@I18n[I18nKey.Ui.SupportSignatures.UnassignedTitle]</div>
+                        @foreach (var line in Plan.Unassigned) {
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                <span>@line.MunicipalityName: @line.Count</span>
+                                <button class="btn btn-sm btn-outline-dark" @onclick="() => AssigningMunicipalityId = line.MunicipalityId">@I18n[I18nKey.Ui.SupportSignatures.AssignOffice]</button>
+                            </div>
+                            @if (AssigningMunicipalityId == line.MunicipalityId) {
+                                <OfficeAssignPanel MunicipalityId="@line.MunicipalityId" Assigned="OnOfficeAssigned" Cancelled="() => AssigningMunicipalityId = null" />
+                            }
+                        }
+                    </div>
+                }
+                <button class="btn btn-primary mt-2" @onclick="Prepare" disabled="@(Busy || SelectedOffices.Count == 0)">
+                    <i class="bi bi-envelope me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.Prepare]
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (Prepared.Count > 0) {
+        <div class="card mb-4 border-primary">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.SupportSignatures.PreparedTitle]</h5>
+                <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.PreparedIntro]</p>
+                <ul>
+                    @foreach (var shipment in Prepared) {
+                        <li>
+                            @shipment.OfficeName: @shipment.Lines.Sum(l => l.Sent)
+                            <button class="btn btn-sm btn-link text-danger p-0 ms-2" @onclick="() => Discard(shipment)">@I18n[I18nKey.Ui.SupportSignatures.Discard]</button>
+                        </li>
+                    }
+                </ul>
+                <div class="d-flex flex-wrap align-items-end gap-2">
+                    <button class="btn btn-outline-primary" @onclick="PrintPrepared" disabled="@Busy">
+                        <i class="bi bi-printer me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.PrintLetters]
+                    </button>
+                    <div>
+                        <label class="form-label small mb-0" for="sent-on">@I18n[I18nKey.Ui.SupportSignatures.SentOn]</label>
+                        <input id="sent-on" type="date" class="form-control form-control-sm" @bind="SentOn" />
+                    </div>
+                    <button class="btn btn-primary" @onclick="ConfirmPrepared" disabled="@Busy">
+                        <i class="bi bi-check2-all me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.ConfirmSent]
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <h5>@I18n[I18nKey.Ui.SupportSignatures.OpenShipmentsTitle]</h5>
+    @if (Sent.Count == 0) {
+        <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.NoShipmentsYet]</p>
+    }
+    @foreach (var shipment in Sent) {
+        <div class="border rounded p-2 mb-2 @(shipment.IsOverdue ? "border-warning" : "")">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <span class="fw-semibold">@shipment.OfficeName</span>
+                    <span class="small text-secondary ms-2">@I18n[I18nKey.Ui.SupportSignatures.SentOn] @shipment.SentOn?.ToString("dd.MM.yyyy")</span>
+                    @if (shipment.IsOverdue) {
+                        <span class="badge bg-warning text-dark ms-2">@I18n[I18nKey.Ui.SupportSignatures.Overdue]</span>
+                    }
+                    @if (shipment.Open == 0) {
+                        <span class="badge bg-success ms-2">@I18n[I18nKey.Ui.SupportSignatures.Complete]</span>
+                    }
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Signatures.DownloadLettersAsync(CampaignId, [shipment.Id], CampaignName)" title="@I18n[I18nKey.Ui.SupportSignatures.PrintLetters]"><i class="bi bi-printer"></i></button>
+                    @if (shipment.Open > 0) {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => StartReturn(shipment)">@I18n[I18nKey.Ui.SupportSignatures.RecordReturn]</button>
+                    }
+                </div>
+            </div>
+            <table class="table table-sm mb-0 mt-2">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.SupportSignatures.Municipality]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Sent]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Certified]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Rejected]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Open]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in shipment.Lines) {
+                        <tr>
+                            <td>@line.MunicipalityName</td>
+                            <td class="text-end">@line.Sent</td>
+                            <td class="text-end">@line.Certified</td>
+                            <td class="text-end">@line.Rejected</td>
+                            <td class="text-end">@line.Open</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (shipment.Returns.Count > 0) {
+                <div class="small mt-1">
+                    @foreach (var ret in shipment.Returns) {
+                        <div>
+                            @I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.ReturnLine, ("date", ret.ReturnedOn.ToString("dd.MM.yyyy")), ("certified", ret.Certified.ToString()), ("rejected", ret.Rejected.ToString()))]
+                            <button class="btn btn-sm btn-link p-0 ms-2" @onclick="() => StartEditReturn(shipment, ret)">@I18n[I18nKey.Ui.Common.Edit]</button>
+                            <button class="btn btn-sm btn-link text-danger p-0 ms-2" @onclick="() => DeleteReturn(ret.Id)">@I18n[I18nKey.Ui.Common.Delete]</button>
+                        </div>
+                    }
+                </div>
+            }
+            @if (ReturnFor == shipment.Id) {
+                <div class="mt-2 p-2 bg-body-tertiary rounded">
+                    <div class="mb-2">
+                        <label class="form-label small mb-0" for="returned-on">@I18n[I18nKey.Ui.SupportSignatures.ReturnedOn]</label>
+                        <input id="returned-on" type="date" class="form-control form-control-sm" style="max-width: 12em;" @bind="ReturnedOn" />
+                    </div>
+                    @foreach (var line in ReturnLines) {
+                        <div class="row g-2 align-items-start mb-2">
+                            <div class="col-12 col-md-3 small">@line.Name (@I18n[I18nKey.Ui.SupportSignatures.Open]: @line.Open)</div>
+                            <div class="col-4 col-md-2">
+                                <label class="form-label small mb-0">@I18n[I18nKey.Ui.SupportSignatures.Certified]</label>
+                                <input type="number" min="0" class="form-control form-control-sm" @bind="line.Certified" />
+                            </div>
+                            <div class="col-8 col-md-7">
+                                @foreach (var rejection in line.Rejections) {
+                                    <div class="row g-2 mb-1">
+                                        <div class="col-5">
+                                            <label class="form-label small mb-0">@I18n[I18nKey.Ui.SupportSignatures.Rejected]</label>
+                                            <input type="number" min="0" class="form-control form-control-sm" @bind="rejection.Count" />
+                                        </div>
+                                        <div class="col-7">
+                                            <label class="form-label small mb-0">@I18n[I18nKey.Ui.SupportSignatures.RejectionReason]</label>
+                                            <select class="form-select form-select-sm" @bind="rejection.Reason">
+                                                <option value="">@I18n[I18nKey.Ui.SupportSignatures.ReasonNone]</option>
+                                                @foreach (var reason in SupportSignatureDisplay.Reasons) {
+                                                    <option value="@reason">@SupportSignatureDisplay.ReasonLabel(I18n, reason)</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                }
+                                <button class="btn btn-sm btn-link p-0" @onclick="() => AddRejection(line)"><i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.AddRejection]</button>
+                            </div>
+                        </div>
+                    }
+                    <button class="btn btn-sm btn-primary mt-2" @onclick="SaveReturn" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+                    <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="CancelReturn">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                </div>
+            }
+        </div>
+    }
+}

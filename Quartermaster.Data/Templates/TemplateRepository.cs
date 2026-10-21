@@ -105,7 +105,8 @@ public class TemplateRepository {
                 Body = seed.Body,
                 AllowsMemberFields = seed.AllowsMemberFields,
                 AllowsEventFields = seed.AllowsEventFields,
-                AllowsChapterFields = seed.AllowsChapterFields
+                AllowsChapterFields = seed.AllowsChapterFields,
+                RenderMode = seed.RenderMode
             });
         }
     }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -14,7 +16,19 @@ public static class TemplateEnvelopePdfRenderer {
     private const float PageBottomMarginMm = 20f;
 
     public static byte[] Render(EnvelopeData envelope, string body) {
-        var document = Document.Create(container => {
+        return CreateDocument(envelope, body).GeneratePdf();
+    }
+
+    /// <summary>Several letters in one PDF, each with its own page numbering, e.g. all cover letters of one print run.</summary>
+    public static byte[] RenderMany(IReadOnlyList<(EnvelopeData Envelope, string Body)> letters) {
+        var documents = letters
+            .Select(l => CreateDocument(l.Envelope, l.Body))
+            .ToArray();
+        return Document.Merge(documents).UseOriginalPageNumbers().GeneratePdf();
+    }
+
+    private static IDocument CreateDocument(EnvelopeData envelope, string body) {
+        return Document.Create(container => {
             container.Page(page => {
                 page.Size(PageSizes.A4);
                 page.MarginTop(0, Unit.Millimetre);
@@ -63,7 +77,6 @@ public static class TemplateEnvelopePdfRenderer {
                 });
             });
         });
-        return document.GeneratePdf();
     }
 
     private static void AddLine(ColumnDescriptor col, string text) {
@@ -73,7 +86,7 @@ public static class TemplateEnvelopePdfRenderer {
     }
 
     private static string JoinNonEmpty(string separator, params string[] parts) {
-        var nonEmpty = new System.Collections.Generic.List<string>();
+        var nonEmpty = new List<string>();
         foreach (var part in parts) {
             if (!string.IsNullOrWhiteSpace(part))
                 nonEmpty.Add(part);

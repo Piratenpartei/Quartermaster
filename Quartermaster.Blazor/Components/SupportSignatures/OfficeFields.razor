@@ -1,0 +1,32 @@
+@using Quartermaster.Api.I18n
+
+<div class="row g-2">
+    <div class="col-12">
+        <label class="form-label small mb-0" for="office-name-@_id">@I18n[I18nKey.Ui.SupportSignatures.OfficeName]</label>
+        <input id="office-name-@_id" class="form-control form-control-sm" maxlength="200" @bind="Request.Name" />
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label small mb-0" for="office-street-@_id">@I18n[I18nKey.Ui.SupportSignatures.Street]</label>
+        <input id="office-street-@_id" class="form-control form-control-sm" maxlength="200" @bind="Request.Street" />
+    </div>
+    <div class="col-4 col-md-2">
+        <label class="form-label small mb-0" for="office-postcode-@_id">@I18n[I18nKey.Ui.SupportSignatures.PostCode]</label>
+        <input id="office-postcode-@_id" class="form-control form-control-sm" maxlength="200" @bind="Request.PostCode" />
+    </div>
+    <div class="col-8 col-md-4">
+        <label class="form-label small mb-0" for="office-city-@_id">@I18n[I18nKey.Ui.SupportSignatures.City]</label>
+        <input id="office-city-@_id" class="form-control form-control-sm" maxlength="200" @bind="Request.City" />
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label small mb-0" for="office-email-@_id">@I18n[I18nKey.Ui.SupportSignatures.Email]</label>
+        <input id="office-email-@_id" type="email" class="form-control form-control-sm" maxlength="254" @bind="Request.Email" />
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label small mb-0" for="office-phone-@_id">@I18n[I18nKey.Ui.SupportSignatures.Phone]</label>
+        <input id="office-phone-@_id" class="form-control form-control-sm" maxlength="64" @bind="Request.Phone" />
+    </div>
+    <div class="col-12">
+        <label class="form-label small mb-0" for="office-notes-@_id">@I18n[I18nKey.Ui.SupportSignatures.OfficeNotes]</label>
+        <textarea id="office-notes-@_id" class="form-control form-control-sm" rows="2" maxlength="1000" @bind="Request.Notes"></textarea>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+@using Quartermaster.Api.I18n
+
+<div class="mt-3">
+    <div class="d-flex justify-content-between small mb-1">
+        <span>
+            @I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.CertifiedOfTarget, ("certified", Certified.ToString("N0", German)), ("target", Target.ToString("N0", German)))]
+            <span class="text-secondary">· @I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.CollectedCount, ("collected", Collected.ToString("N0", German)))]</span>
+        </span>
+        <span class="text-secondary">@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.GoalWithMargin, ("goal", Goal.ToString("N0", German)))]</span>
+    </div>
+    <div class="support-signature-progress progress" role="progressbar" aria-valuenow="@Certified" aria-valuemin="0" aria-valuemax="@Goal">
+        <div class="progress-bar @(Certified >= Goal ? "bg-success" : "")" style="width: @Percent(Certified)%" title="@I18n[I18nKey.Ui.SupportSignatures.Certified]"></div>
+        <div class="progress-bar support-signature-progress-collected @(Certified >= Goal ? "bg-success" : "")" style="width: @Share(Collected - Certified)%" title="@I18n[I18nKey.Ui.SupportSignatures.CollectedHint]"></div>
+        <div class="support-signature-progress-target" style="left: @Percent(Target)%" title="@I18n[I18nKey.Ui.SupportSignatures.Target]"></div>
+    </div>
+</div>

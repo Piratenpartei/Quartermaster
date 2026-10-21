@@ -24,6 +24,9 @@ public static class TemplateModelLookup {
             models.Add("ChapterDTO");
         } else if (id.StartsWith("templates.submission.dueselection.")) {
             models.Add("DueSelectionDetailDTO");
+        } else if (id.StartsWith("templates.support_signatures.")) {
+            models.Add("SupportSignatureLetterModel");
+            models.Add("ChapterDTO");
         } else if (id.StartsWith("forwarding.")) {
             models.Add("ForwardingTemplateModel");
         } else if (id.StartsWith("templates.submission.membershipapplication.")) {

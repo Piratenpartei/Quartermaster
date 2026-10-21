@@ -1,0 +1,79 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<ConfirmDialog @ref="Confirm" />
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.SupportSignatures.SettingsTitle]</h5>
+        <div class="row g-2">
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="settings-name">@I18n[I18nKey.Ui.SupportSignatures.Name]</label>
+                <input id="settings-name" class="form-control" maxlength="200" @bind="Request.Name" />
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="settings-target">@I18n[I18nKey.Ui.SupportSignatures.Target]</label>
+                <input id="settings-target" type="number" min="1" class="form-control" @bind="Request.Target" />
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label" for="settings-margin">@I18n[I18nKey.Ui.SupportSignatures.Margin]</label>
+                <input id="settings-margin" type="number" min="0" max="100" class="form-control" @bind="Request.MarginPercent" />
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="settings-deadline">@I18n[I18nKey.Ui.SupportSignatures.Deadline]</label>
+                <BerlinDateTimeInput Id="settings-deadline" @bind-Value="Deadline" />
+                <div class="form-text">@I18n[I18nKey.Ui.SupportSignatures.DeadlineHint]</div>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label" for="settings-overdue">@I18n[I18nKey.Ui.SupportSignatures.OverdueDays]</label>
+                <input id="settings-overdue" type="number" min="1" max="365" class="form-control" @bind="Request.OverdueDays" />
+                <div class="form-text">@I18n[I18nKey.Ui.SupportSignatures.OverdueDaysHint]</div>
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input id="settings-visible" class="form-check-input" type="checkbox" @bind="Request.VisibleToMembers" />
+                    <label class="form-check-label" for="settings-visible">@I18n[I18nKey.Ui.SupportSignatures.VisibleToMembers]</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="settings-notice">@I18n[I18nKey.Ui.SupportSignatures.MemberNotice]</label>
+                <textarea id="settings-notice" class="form-control" rows="3" maxlength="2000" @bind="Request.MemberNotice"></textarea>
+                <div class="form-text">@I18n[I18nKey.Ui.SupportSignatures.MemberNoticeHint]</div>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-3" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.SupportSignatures.FormTitle]</h5>
+        <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.FormIntro]</p>
+        @if (Campaign.HasForm) {
+            <p>
+                <button class="btn btn-link p-0" @onclick="DownloadForm" title="@I18n[I18nKey.Ui.SupportSignatures.DownloadForm]">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>@Campaign.FormFileName
+                </button>
+            </p>
+        }
+        <div class="d-flex gap-2">
+            <label class="btn btn-outline-primary mb-0">
+                <i class="bi bi-upload me-1"></i>@(Campaign.HasForm ? I18n[I18nKey.Ui.SupportSignatures.ReplaceForm] : I18n[I18nKey.Ui.SupportSignatures.UploadForm])
+                <InputFile class="d-none" accept=".pdf,application/pdf" OnChange="Upload" />
+            </label>
+            @if (Campaign.HasForm) {
+                <button class="btn btn-outline-danger" @onclick="RemoveForm" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.RemoveForm]</button>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Campaign.ArchivedAt == null) {
+    <div class="card border-danger">
+        <div class="card-body">
+            <h5>@I18n[I18nKey.Ui.SupportSignatures.ArchiveTitle]</h5>
+            <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.ArchiveIntro]</p>
+            <button class="btn btn-outline-danger" @onclick="Archive" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.Archive]</button>
+        </div>
+    </div>
+}

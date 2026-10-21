@@ -1,0 +1,73 @@
+@using Quartermaster.Api.I18n
+
+@if (Overview == null) {
+    <LoadingSpinner />
+} else {
+    <div class="row g-2 mb-4">
+        @foreach (var (label, value, css) in Figures()) {
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card h-100">
+                    <div class="card-body py-2">
+                        <div class="small text-secondary">@label</div>
+                        <div class="fs-4 @css">@value.ToString("N0", German)</div>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <div class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.DaysLeft]</div>
+                    <div class="fs-4 @(Overview.DaysLeft < 14 ? "text-danger" : "")">@Overview.DaysLeft</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Overview.Rejections.Count > 0) {
+        <h5>@I18n[I18nKey.Ui.SupportSignatures.RejectionsTitle]</h5>
+        <ul class="mb-4">
+            @foreach (var rejection in Overview.Rejections) {
+                <li>@SupportSignatureDisplay.ReasonLabel(I18n, rejection.Reason): @rejection.Count</li>
+            }
+        </ul>
+    }
+
+    <h5>@I18n[I18nKey.Ui.SupportSignatures.RegionsTitle]</h5>
+    @if (Overview.Regions.Count == 0) {
+        <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.NoIntakesYet]</p>
+    } else {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.SupportSignatures.Region]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Received]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Certified]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.Rejected]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var region in Overview.Regions) {
+                        <tr class="fw-semibold" role="button" @onclick="() => Toggle(region.DivisionId)">
+                            <td><i class="bi @(Expanded.Contains(region.DivisionId) ? "bi-caret-down-fill" : "bi-caret-right-fill") me-1"></i>@region.Name</td>
+                            <td class="text-end">@region.Received</td>
+                            <td class="text-end">@region.Certified</td>
+                            <td class="text-end">@region.Rejected</td>
+                        </tr>
+                        @if (Expanded.Contains(region.DivisionId)) {
+                            @foreach (var municipality in region.Children) {
+                                <tr>
+                                    <td class="ps-4">@municipality.Name</td>
+                                    <td class="text-end">@municipality.Received</td>
+                                    <td class="text-end">@municipality.Certified</td>
+                                    <td class="text-end">@municipality.Rejected</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}

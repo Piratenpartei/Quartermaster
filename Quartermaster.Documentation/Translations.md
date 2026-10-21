@@ -148,7 +148,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 
 ## Motion Portal (Antragsportal)
 
-| German (UI) | English (code) | Meaning |
+| German | English | Notes |
 |---|---|---|
 | Versammlung | assembly | An `Event` with the motion portal enabled |
 | Antragsportal | motion portal | The motion portal of an event |
@@ -175,7 +175,7 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 
 ## Forwarding (Weiterleitung)
 
-| German (UI) | English (code) | Meaning |
+| German | English | Notes |
 |---|---|---|
 | Weiterleitung | forwarding | Sending membership applications and due selections as Redmine tickets |
 | Vorgang | case | One forwarded submission with its tickets (`ForwardingCase`) |
@@ -225,3 +225,19 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Beleg | receipt | Uploaded file in the user's receipt cache; code `UserReceipt` |
 | Meine Belege | my receipts | `/Forms/Receipts` |
 | Hinweis | note | Calculator remark with severity Info, Warning or Problem; code `TravelExpenseNoteDTO` |
+
+## UU-Assistent (Unterstützungsunterschriften)
+
+| German | English | Notes |
+|---|---|---|
+| UU-Assistent | support signatures | The module; the party calls the signatures "UUs" |
+| UU / Unterstützungsunterschrift | support signature | One signature on an official form |
+| Sammlung | campaign | One nomination with one target, e.g. the state list or a direct candidate |
+| Bestätigungsstelle | certification office | The office certifying the voting right, e.g. a Samtgemeinde administration |
+| Sendung | shipment | Forms sent to one office, with a cover letter |
+| Rücklauf | return | Forms coming back from an office, possibly in parts |
+| Wahlrecht schon bescheinigt | already certified | Forms the signer had certified before handing them in |
+| bestätigt / abgelehnt | certified / rejected | Outcome per form |
+| Kein Wahlrecht / Nicht dort wohnhaft / Unleserlich oder unvollständig / Mehrfach unterschrieben / Sonstiges | rejection reasons | `SignatureRejectionReason` |
+| Puffer | margin | Percent added to the target to cover rejections |
+

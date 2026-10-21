@@ -87,6 +87,7 @@ public static class PermissionIdentifier {
 
     public static readonly string EditTravelExpenseRules = "travel_expense_rules_edit";
     public static readonly string UnlimitedReceipts = "receipts_unlimited";
+    public static readonly string ManageSupportSignatures = "support_signatures_manage";
 
     // Permission groups for nav visibility
     public static readonly List<string> BoardWorkPermissions = [
@@ -118,6 +119,7 @@ public static class PermissionIdentifier {
         ViewOfficers,
         ViewTemplates, EditTemplates,
         ViewMeetings, CreateMeetings, EditMeetings,
-        ManageChapterMail
+        ManageChapterMail,
+        ManageSupportSignatures
     ];
 }

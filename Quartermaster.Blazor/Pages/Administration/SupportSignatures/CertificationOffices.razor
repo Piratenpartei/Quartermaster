@@ -1,0 +1,73 @@
+@page "/Administration/SupportSignatures/Offices"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Inputs
+@using Quartermaster.Blazor.Components.SupportSignatures
+
+<PageTitle>@I18n[I18nKey.Ui.SupportSignatures.OfficesTitle]</PageTitle>
+
+<RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageSupportSignatures">
+    <ConfirmDialog @ref="DeleteConfirm" />
+    <a href="/Administration/SupportSignatures" class="small"><i class="bi bi-arrow-left me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.BackToList]</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-2">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.SupportSignatures.OfficesTitle]</h3>
+        <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Editing != null)">
+            <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewOffice]
+        </button>
+    </div>
+    <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.OfficesIntro]</p>
+
+    @if (Editing != null) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <OfficeFields Request="@Editing" />
+                <div class="small mt-3 mb-1">@I18n[I18nKey.Ui.SupportSignatures.OfficeMunicipalities]</div>
+                <div class="d-flex flex-wrap gap-1 mb-2">
+                    @foreach (var municipality in EditingMunicipalities) {
+                        <span class="badge bg-secondary">
+                            @municipality.Name
+                            <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;" @onclick="() => RemoveMunicipality(municipality.Id)"
+                                    aria-label="@I18n[I18nKey.Ui.Common.Delete]"></button>
+                        </span>
+                    }
+                </div>
+                <MunicipalityPicker @key="PickerKey" OnSelect="AddMunicipality" />
+                <button class="btn btn-primary" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+                <button class="btn btn-outline-secondary" @onclick="() => Editing = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+            </div>
+        </div>
+    }
+
+    @if (Offices == null) {
+        <LoadingSpinner />
+    } else if (Offices.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.SupportSignatures.NoOffices]" />
+    } else {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.SupportSignatures.OfficeName]</th>
+                        <th>@I18n[I18nKey.Ui.SupportSignatures.Address]</th>
+                        <th>@I18n[I18nKey.Ui.SupportSignatures.OfficeMunicipalities]</th>
+                        <th class="text-end"><span class="visually-hidden">@I18n[I18nKey.Ui.Common.Action]</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var office in Offices) {
+                        <tr>
+                            <td>@office.Name</td>
+                            <td class="small">@office.Street, @office.PostCode @office.City</td>
+                            <td class="small">@string.Join(", ", office.Municipalities.Select(m => m.Name))</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(office)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(office)" disabled="@office.HasShipments"
+                                        title="@(office.HasShipments ? I18n[I18nKey.Ui.SupportSignatures.OfficeHasShipments] : I18n[I18nKey.Ui.Common.Delete])"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</RequirePermission>

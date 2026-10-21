@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Quartermaster.Api.Templates;
 
 namespace Quartermaster.Data.Templates;
 
@@ -9,10 +10,32 @@ internal record SystemTemplateSeed(
     string Body,
     bool AllowsChapterFields = true,
     bool AllowsMemberFields = false,
-    bool AllowsEventFields = false);
+    bool AllowsEventFields = false,
+    TemplateRenderMode RenderMode = TemplateRenderMode.Simple);
 
 internal static class SystemTemplateSeeds {
     public static readonly IReadOnlyList<SystemTemplateSeed> All = new[] {
+        new SystemTemplateSeed(
+            "templates.support_signatures.cover_letter",
+            "UU-Assistent: Anschreiben an die Bestätigungsstelle",
+            "Bitte um Bescheinigung des Wahlrechts",
+            "{% comment %}Die Absenderanschrift trägt jede Gliederung in ihrer eigenen Fassung dieser Vorlage ein: dort envelope_sender_street, envelope_sender_postcode und envelope_sender_city mit der Anschrift füllen, an die die Formblätter zurückgehen sollen.{% endcomment %}" +
+            "{% envelope_sender_name chapter.Name %}" +
+            "{% envelope_recipient_name letter.Office.Name %}" +
+            "{% envelope_recipient_street letter.Office.Street %}" +
+            "{% envelope_recipient_postcode letter.Office.PostCode %}" +
+            "{% envelope_recipient_city letter.Office.City %}" +
+            "{{ letter.Date }}\n\n" +
+            "**Bitte um Bescheinigung des Wahlrechts: {{ letter.Campaign.Name }}**\n\n" +
+            "Sehr geehrte Damen und Herren,\n\n" +
+            "anbei senden wir Ihnen {{ letter.Total }} Formblätter mit Unterstützungsunterschriften für den Wahlvorschlag „{{ letter.Campaign.Name }}“. " +
+            "Wir bitten Sie, das Wahlrecht der Unterzeichnenden zu bescheinigen und uns die Formblätter zurückzusenden.\n\n" +
+            "{% for line in letter.Lines %}- {{ line.Municipality }}: {{ line.Count }}\n{% endfor %}\n" +
+            "Die Unterlagen müssen bis zum {{ letter.Campaign.Deadline }} eingereicht werden; wir bitten daher um eine zügige Rücksendung.\n\n" +
+            "Vielen Dank für Ihre Unterstützung.\n\n" +
+            "Mit freundlichen Grüßen\n\n" +
+            "{{ chapter.Name }}\n",
+            RenderMode: TemplateRenderMode.Envelope),
         new SystemTemplateSeed(
             "forwarding.redmine.application",
             "Redmine-Ticket: Mitgliedsantrag",

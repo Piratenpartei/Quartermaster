@@ -8,6 +8,7 @@ using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.Members;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
+using Quartermaster.Api.SupportSignatures;
 using Quartermaster.Api.Templates;
 
 namespace Quartermaster.Rendering;
@@ -27,6 +28,18 @@ public static class TemplateMockDataProvider {
             switch (model) {
                 case "ForwardingTemplateModel":
                     AddForwardingMockData(data);
+                    break;
+                case "SupportSignatureLetterModel":
+                    data["letter"] = new SupportSignatureLetterModel {
+                        Campaign = new SupportSignatureLetterCampaign { Name = "Landesliste Landtagswahl 2027", Deadline = "31.05.2027" },
+                        Office = new SupportSignatureLetterOffice { Name = "Samtgemeinde Lachendorf", Street = "Oppershäuser Straße 1", PostCode = "29331", City = "Lachendorf" },
+                        Lines = [
+                            new SupportSignatureLetterLine { Municipality = "Ahnsbeck", Count = 12 },
+                            new SupportSignatureLetterLine { Municipality = "Lachendorf", Count = 7 }
+                        ],
+                        Total = 19,
+                        Date = "21.10.2026"
+                    };
                     break;
                 case "TemplateConfirmationDTO":
                     data["confirm"] = new TemplateConfirmationDTO {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Quartermaster.Api.SupportSignatures;
 
 namespace Quartermaster.Api.Dashboard;
 
@@ -8,6 +9,9 @@ public class DashboardDTO {
     public DashboardSection<DashboardDueSelectionDTO>? PendingDueSelections { get; set; }
     public DashboardSection<DashboardMotionDTO>? OpenMotions { get; set; }
     public List<DashboardEventDTO>? UpcomingEvents { get; set; }
+
+    /// <summary>The UU-Assistent campaigns the member sees; null without login.</summary>
+    public List<MemberSignatureCampaignDTO>? SupportSignatureCampaigns { get; set; }
 }
 
 public class DashboardSection<T> {

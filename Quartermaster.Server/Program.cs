@@ -226,6 +226,17 @@ public partial class Program {
         builder.Services.AddScoped<Forwarding.ForwardingJob>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumResync>();
+        builder.Services.AddScoped<SupportSignatures.SignatureCampaignAccess>();
+        builder.Services.AddScoped<SupportSignatures.SignatureCampaignDtoBuilder>();
+        builder.Services.AddScoped<SupportSignatures.SignatureIntakeService>();
+        builder.Services.AddScoped<SupportSignatures.SignatureOverviewBuilder>();
+        builder.Services.AddScoped<SupportSignatures.SignatureShipmentService>();
+        builder.Services.AddScoped<SupportSignatures.CoverLetterRenderer>();
+        builder.Services.AddScoped<SupportSignatures.MemberSignatureCampaigns>();
+        builder.Services.AddScoped<SupportSignatures.Endpoints.Shipments.ShipmentCampaignLookup>();
+        builder.Services.AddSingleton<SupportSignatures.SupportSignatureFormStorage>();
+        builder.Services.AddScoped<SupportSignatures.CertificationOfficeSuggester>();
+        builder.Services.AddScoped<SupportSignatures.Endpoints.Offices.CertificationOfficeWriter>();
         builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
 
         builder.Services.AddSingleton<AssemblyAssistant.Mumble.IMumbleConnectionFactory, AssemblyAssistant.Mumble.MumbleConnectionFactory>();

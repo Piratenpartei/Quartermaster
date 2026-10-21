@@ -99,6 +99,65 @@ public static class I18nKey {
             }
         }
 
+        public static class SupportSignatures {
+            public static class Office {
+                public const string NameRequired = "error.support_signatures.office.name_required";
+                public const string AddressRequired = "error.support_signatures.office.address_required";
+                public const string FieldTooLong = "error.support_signatures.office.field_too_long";
+                public const string EmailInvalid = "error.support_signatures.office.email_invalid";
+                public const string NotAMunicipality = "error.support_signatures.office.not_a_municipality";
+                public const string MunicipalityTaken = "error.support_signatures.office.municipality_taken";
+                public const string HasShipments = "error.support_signatures.office.has_shipments";
+            }
+
+            public static class Campaign {
+                public const string NameRequired = "error.support_signatures.campaign.name_required";
+                public const string NameTooLong = "error.support_signatures.campaign.name_too_long";
+                public const string TargetInvalid = "error.support_signatures.campaign.target_invalid";
+                public const string MarginInvalid = "error.support_signatures.campaign.margin_invalid";
+                public const string OverdueDaysInvalid = "error.support_signatures.campaign.overdue_days_invalid";
+                public const string NoticeTooLong = "error.support_signatures.campaign.notice_too_long";
+                public const string ChapterNotFound = "error.support_signatures.campaign.chapter_not_found";
+                public const string ChapterRequired = "error.support_signatures.campaign.chapter_required";
+                public const string DeadlineRequired = "error.support_signatures.campaign.deadline_required";
+            }
+
+            public static class Intake {
+                public const string NotAMunicipality = "error.support_signatures.intake.not_a_municipality";
+                public const string CountInvalid = "error.support_signatures.intake.count_invalid";
+                public const string NoteTooLong = "error.support_signatures.intake.note_too_long";
+                public const string AlreadySent = "error.support_signatures.intake.already_sent";
+                public const string NotFound = "error.support_signatures.intake.not_found";
+            }
+
+            public static class Shipment {
+                public const string NotFound = "error.support_signatures.shipment.not_found";
+                public const string OfficeNotFound = "error.support_signatures.shipment.office_not_found";
+                public const string Empty = "error.support_signatures.shipment.empty";
+                public const string WrongOffice = "error.support_signatures.shipment.wrong_office";
+                public const string ExceedsWaiting = "error.support_signatures.shipment.exceeds_waiting";
+                public const string AlreadySent = "error.support_signatures.shipment.already_sent";
+                public const string NegativeCount = "error.support_signatures.shipment.negative_count";
+            }
+
+            public static class Return {
+                public const string NotFound = "error.support_signatures.return.not_found";
+                public const string Empty = "error.support_signatures.return.empty";
+                public const string NotSent = "error.support_signatures.return.not_sent";
+                public const string NotInShipment = "error.support_signatures.return.not_in_shipment";
+                public const string ExceedsOpen = "error.support_signatures.return.exceeds_open";
+                public const string NegativeCount = "error.support_signatures.return.negative_count";
+                public const string EmptyLine = "error.support_signatures.return.empty_line";
+                public const string ReasonInvalid = "error.support_signatures.return.reason_invalid";
+            }
+
+            public static class Form {
+                public const string NoFile = "error.support_signatures.form.no_file";
+                public const string NotPdf = "error.support_signatures.form.not_pdf";
+                public const string TooLarge = "error.support_signatures.form.too_large";
+            }
+        }
+
         public static class Forwarding {
             public const string ChapterNotFound = "error.forwarding.chapter_not_found";
             public const string ReductionModeNotAllowed = "error.forwarding.reduction_mode_not_allowed";
@@ -2349,6 +2408,8 @@ public static class I18nKey {
             public const string PageTitle = "ui.attributions.page_title";
             public const string OwnLicense = "ui.attributions.own_license";
             public const string GeoNamesText = "ui.attributions.geonames_text";
+            public const string DestatisTitle = "ui.attributions.destatis_title";
+            public const string DestatisText = "ui.attributions.destatis_text";
             public const string CcByLicenseLink = "ui.attributions.cc_by_license_link";
             public const string FontsHeading = "ui.attributions.fonts_heading";
             public const string FontsText = "ui.attributions.fonts_text";
@@ -2496,6 +2557,124 @@ public static class I18nKey {
             public const string LoginOk = "ui.settings_check.login_ok";
             public const string MistralOk = "ui.settings_check.mistral_ok";
             public const string PostizOk = "ui.settings_check.postiz_ok";
+        }
+
+        public static class SupportSignatures {
+            public const string AddToExistingOffice = "ui.support_signatures.add_to_existing_office";
+            public const string AddToOffice = "ui.support_signatures.add_to_office";
+            public const string AddRejection = "ui.support_signatures.add_rejection";
+            public const string Address = "ui.support_signatures.address";
+            public const string AdjustSingle = "ui.support_signatures.adjust_single";
+            public const string AlreadyCertified = "ui.support_signatures.already_certified";
+            public const string AlreadyCertifiedBadge = "ui.support_signatures.already_certified_badge";
+            public const string Archive = "ui.support_signatures.archive";
+            public const string ArchiveConfirm = "ui.support_signatures.archive_confirm";
+            public const string ArchiveIntro = "ui.support_signatures.archive_intro";
+            public const string ArchiveTitle = "ui.support_signatures.archive_title";
+            public const string Archived = "ui.support_signatures.archived";
+            public const string AssignOffice = "ui.support_signatures.assign_office";
+            public const string AtOffices = "ui.support_signatures.at_offices";
+            public const string BackToList = "ui.support_signatures.back_to_list";
+            public const string CampaignNotFound = "ui.support_signatures.campaign_not_found";
+            public const string CardSubtitle = "ui.support_signatures.card_subtitle";
+            public const string Certified = "ui.support_signatures.certified";
+            public const string CertifiedOfTarget = "ui.support_signatures.certified_of_target";
+            public const string ChangeMunicipality = "ui.support_signatures.change_municipality";
+            public const string City = "ui.support_signatures.city";
+            public const string CollectedCount = "ui.support_signatures.collected_count";
+            public const string CollectedHint = "ui.support_signatures.collected_hint";
+            public const string Complete = "ui.support_signatures.complete";
+            public const string ConfirmSent = "ui.support_signatures.confirm_sent";
+            public const string CreateOffice = "ui.support_signatures.create_office";
+            public const string CreateSingle = "ui.support_signatures.create_single";
+            public const string DaysLeft = "ui.support_signatures.days_left";
+            public const string Deadline = "ui.support_signatures.deadline";
+            public const string DeadlineHint = "ui.support_signatures.deadline_hint";
+            public const string Details = "ui.support_signatures.details";
+            public const string Discard = "ui.support_signatures.discard";
+            public const string DownloadForm = "ui.support_signatures.download_form";
+            public const string Email = "ui.support_signatures.email";
+            public const string FormCount = "ui.support_signatures.form_count";
+            public const string FormIntro = "ui.support_signatures.form_intro";
+            public const string FormShort = "ui.support_signatures.form_short";
+            public const string FormTitle = "ui.support_signatures.form_title";
+            public const string GoalWithMargin = "ui.support_signatures.goal_with_margin";
+            public const string IntakeIntro = "ui.support_signatures.intake_intro";
+            public const string IntakeTitle = "ui.support_signatures.intake_title";
+            public const string LatestIntakes = "ui.support_signatures.latest_intakes";
+            public const string ListIntro = "ui.support_signatures.list_intro";
+            public const string Margin = "ui.support_signatures.margin";
+            public const string MemberNotice = "ui.support_signatures.member_notice";
+            public const string MemberNoticeHint = "ui.support_signatures.member_notice_hint";
+            public const string MemberPageHint = "ui.support_signatures.member_page_hint";
+            public const string Municipality = "ui.support_signatures.municipality";
+            public const string Name = "ui.support_signatures.name";
+            public const string NamePlaceholder = "ui.support_signatures.name_placeholder";
+            public const string NewCampaign = "ui.support_signatures.new_campaign";
+            public const string NewOffice = "ui.support_signatures.new_office";
+            public const string NewOfficeIntro = "ui.support_signatures.new_office_intro";
+            public const string NoCampaigns = "ui.support_signatures.no_campaigns";
+            public const string NoIntakesYet = "ui.support_signatures.no_intakes_yet";
+            public const string NoNamesHint = "ui.support_signatures.no_names_hint";
+            public const string NoOffices = "ui.support_signatures.no_offices";
+            public const string NoShipmentsYet = "ui.support_signatures.no_shipments_yet";
+            public const string Note = "ui.support_signatures.note";
+            public const string NothingWaiting = "ui.support_signatures.nothing_waiting";
+            public const string OfficeHasShipments = "ui.support_signatures.office_has_shipments";
+            public const string OfficeMunicipalities = "ui.support_signatures.office_municipalities";
+            public const string OfficeName = "ui.support_signatures.office_name";
+            public const string OfficeNotes = "ui.support_signatures.office_notes";
+            public const string OfficesIntro = "ui.support_signatures.offices_intro";
+            public const string OfficesLink = "ui.support_signatures.offices_link";
+            public const string OfficesTitle = "ui.support_signatures.offices_title";
+            public const string Open = "ui.support_signatures.open";
+            public const string OpenShipmentsTitle = "ui.support_signatures.open_shipments_title";
+            public const string Overdue = "ui.support_signatures.overdue";
+            public const string OverdueBadge = "ui.support_signatures.overdue_badge";
+            public const string OverdueDays = "ui.support_signatures.overdue_days";
+            public const string OverdueDaysHint = "ui.support_signatures.overdue_days_hint";
+            public const string PageTitle = "ui.support_signatures.page_title";
+            public const string Phone = "ui.support_signatures.phone";
+            public const string PlanIntro = "ui.support_signatures.plan_intro";
+            public const string PlanTitle = "ui.support_signatures.plan_title";
+            public const string PostCode = "ui.support_signatures.post_code";
+            public const string Prepare = "ui.support_signatures.prepare";
+            public const string PreparedIntro = "ui.support_signatures.prepared_intro";
+            public const string PreparedTitle = "ui.support_signatures.prepared_title";
+            public const string PrintLetters = "ui.support_signatures.print_letters";
+            public const string ReasonIllegible = "ui.support_signatures.reason_illegible";
+            public const string ReasonNoVotingRight = "ui.support_signatures.reason_no_voting_right";
+            public const string ReasonNone = "ui.support_signatures.reason_none";
+            public const string ReasonNotResident = "ui.support_signatures.reason_not_resident";
+            public const string ReasonOther = "ui.support_signatures.reason_other";
+            public const string ReasonSignedTwice = "ui.support_signatures.reason_signed_twice";
+            public const string Received = "ui.support_signatures.received";
+            public const string ReceivedOn = "ui.support_signatures.received_on";
+            public const string RecordReturn = "ui.support_signatures.record_return";
+            public const string Region = "ui.support_signatures.region";
+            public const string RegionsTitle = "ui.support_signatures.regions_title";
+            public const string Rejected = "ui.support_signatures.rejected";
+            public const string RejectionReason = "ui.support_signatures.rejection_reason";
+            public const string RejectionsTitle = "ui.support_signatures.rejections_title";
+            public const string RemoveForm = "ui.support_signatures.remove_form";
+            public const string ReplaceForm = "ui.support_signatures.replace_form";
+            public const string ReturnLine = "ui.support_signatures.return_line";
+            public const string ReturnedOn = "ui.support_signatures.returned_on";
+            public const string SaveIntake = "ui.support_signatures.save_intake";
+            public const string Sent = "ui.support_signatures.sent";
+            public const string SentOn = "ui.support_signatures.sent_on";
+            public const string SettingsTitle = "ui.support_signatures.settings_title";
+            public const string ShowArchived = "ui.support_signatures.show_archived";
+            public const string Street = "ui.support_signatures.street";
+            public const string TabIntake = "ui.support_signatures.tab_intake";
+            public const string TabOverview = "ui.support_signatures.tab_overview";
+            public const string TabSettings = "ui.support_signatures.tab_settings";
+            public const string TabShipments = "ui.support_signatures.tab_shipments";
+            public const string Target = "ui.support_signatures.target";
+            public const string UnassignedTitle = "ui.support_signatures.unassigned_title";
+            public const string UploadForm = "ui.support_signatures.upload_form";
+            public const string VisibleToMembers = "ui.support_signatures.visible_to_members";
+            public const string Waiting = "ui.support_signatures.waiting";
         }
 
         public static class Receipts {

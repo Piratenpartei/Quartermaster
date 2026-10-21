@@ -5,6 +5,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
+using Quartermaster.Data.SupportSignatures;
 using Quartermaster.Server.AdministrativeDivisions;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -97,6 +98,52 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
                 PostcodeLine("31079", "Sibbesse", 3254),
                 PostcodeLine("30900", "Goslar", 3257),
             ]);
+    }
+
+    private void WriteGv100Ad(params string[] lines) {
+        File.WriteAllText(Path.Combine(_tempDir, "GV100AD.txt"), string.Join("\r\n", lines));
+    }
+
+    // GV100AD record: type, date, region (Land+RB+Kreis), Gemeinde (blank on type 50), Gemeindeverband, name (50), seat (50), Textkennzeichen.
+    private static string Gv100Line(string type, string region, string municipality, string association, string name, int kind)
+        => $"{type}20260930{region}{municipality,3}{association}{name,-50}{"",-50}{kind:00}".PadRight(220);
+
+    [Test]
+    public async Task Import_links_municipalities_to_their_GV100AD_association() {
+        WriteInitialFiles();
+        WriteGv100Ad(
+            Gv100Line("50", "03254", "", "5401", "Sibbesse", 52),
+            Gv100Line("60", "03254", "001", "5401", "Sibbesse", 64));
+
+        var log = _service.Import(_tempDir);
+
+        var sibbesse = _context.AdministrativeDivisions.Single(d => d.AdminCode == "3254001");
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(sibbesse.MunicipalityAssociationKey).IsEqualTo("032545401");
+        await Assert.That(_context.MunicipalityAssociations.Single(a => a.Key == "032545401").Kind).IsEqualTo(52);
+        await Assert.That(log.Errors).Contains("GV100AD: 1 Gemeinden ohne Zuordnung");
+    }
+
+    [Test]
+    public async Task Import_without_GV100AD_file_still_imports_divisions() {
+        WriteInitialFiles();
+
+        var log = _service.Import(_tempDir);
+
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(_context.AdministrativeDivisions.Any(d => d.AdminCode == "3254001")).IsTrue();
+        await Assert.That(_context.MunicipalityAssociations.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Changed_GV100AD_file_triggers_a_new_import() {
+        WriteInitialFiles();
+        _service.Import(_tempDir);
+        WriteGv100Ad(Gv100Line("50", "03254", "", "5401", "Sibbesse", 52), Gv100Line("60", "03254", "001", "5401", "Sibbesse", 64));
+
+        _service.Import(_tempDir);
+
+        await Assert.That(_context.AdministrativeDivisions.Single(d => d.AdminCode == "3254001").MunicipalityAssociationKey).IsEqualTo("032545401");
     }
 
     [Test]
@@ -267,6 +314,55 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         var goslar = _context.AdministrativeDivisions
             .Where(d => d.AdminCode == "3257").First();
         await Assert.That(member.ResidenceAdministrativeDivisionId).IsEqualTo(goslar.Id);
+    }
+
+    [Test]
+    public async Task Import_RemappedDivision_MovesSupportSignatureCounts() {
+        WriteInitialFiles();
+        _service.Import(_tempDir);
+
+        // Wedemark (3255) merges into Goslar (3257), which is added by the same import
+        var wedemark = _context.AdministrativeDivisions
+            .Where(d => d.AdminCode == "3255").First();
+        WriteChangedFiles();
+        var goslarId = Guid.NewGuid();
+        _context.Insert(new AdministrativeDivision { Id = goslarId, Name = "Goslar", AdminCode = "3257", Depth = wedemark.Depth, ParentId = wedemark.ParentId });
+
+        var chapterId = Guid.NewGuid();
+        _context.Insert(new Chapter { Id = chapterId, Name = "Test Chapter" });
+        var campaign = new SignatureCampaign { ChapterId = chapterId, Name = "Liste", Target = 10, Deadline = DateTime.UtcNow.AddDays(30) };
+        _context.Insert(campaign);
+        var intakeId = Guid.NewGuid();
+        _context.Insert(new SignatureIntake { Id = intakeId, CampaignId = campaign.Id, AdministrativeDivisionId = wedemark.Id, Count = 3, ReceivedOn = DateTime.UtcNow.Date });
+        var wedemarkOffice = new CertificationOffice { Name = "Gemeinde Wedemark" };
+        var goslarOffice = new CertificationOffice { Name = "Stadt Goslar" };
+        _context.Insert(wedemarkOffice);
+        _context.Insert(goslarOffice);
+        _context.Insert(new CertificationOfficeMunicipality { OfficeId = wedemarkOffice.Id, AdministrativeDivisionId = wedemark.Id });
+        _context.Insert(new CertificationOfficeMunicipality { OfficeId = goslarOffice.Id, AdministrativeDivisionId = goslarId });
+        var shipment = new SignatureShipment { CampaignId = campaign.Id, OfficeId = goslarOffice.Id, SentOn = DateTime.UtcNow.Date };
+        _context.Insert(shipment);
+        _context.Insert(new SignatureShipmentLine { ShipmentId = shipment.Id, AdministrativeDivisionId = wedemark.Id, Count = 3 });
+        _context.Insert(new SignatureShipmentLine { ShipmentId = shipment.Id, AdministrativeDivisionId = goslarId, Count = 2 });
+        var signatureReturn = new SignatureReturn { ShipmentId = shipment.Id, ReturnedOn = DateTime.UtcNow.Date };
+        _context.Insert(signatureReturn);
+        _context.Insert(new SignatureReturnLine { ReturnId = signatureReturn.Id, AdministrativeDivisionId = wedemark.Id, Certified = 1 });
+
+        var log = _service.Import(_tempDir);
+
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(_context.AdministrativeDivisions.Any(d => d.Id == wedemark.Id)).IsFalse();
+        var intake = _context.SignatureIntakes.First(i => i.Id == intakeId);
+        await Assert.That(intake.AdministrativeDivisionId).IsEqualTo(goslarId);
+        var officeLinks = _context.CertificationOfficeMunicipalities.Where(m => m.OfficeId == wedemarkOffice.Id || m.OfficeId == goslarOffice.Id).ToList();
+        await Assert.That(officeLinks.Count).IsEqualTo(1);
+        await Assert.That(officeLinks[0].OfficeId).IsEqualTo(goslarOffice.Id);
+        var lines = _context.SignatureShipmentLines.Where(l => l.ShipmentId == shipment.Id).ToList();
+        await Assert.That(lines.Count).IsEqualTo(1);
+        await Assert.That(lines[0].AdministrativeDivisionId).IsEqualTo(goslarId);
+        await Assert.That(lines[0].Count).IsEqualTo(5);
+        var returnLine = _context.SignatureReturnLines.First(l => l.ReturnId == signatureReturn.Id);
+        await Assert.That(returnLine.AdministrativeDivisionId).IsEqualTo(goslarId);
     }
 
     [Test]

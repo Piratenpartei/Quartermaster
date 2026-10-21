@@ -17,6 +17,7 @@ using Quartermaster.Data.Motions;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Server.AssemblyMotions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.SupportSignatures;
 
 namespace Quartermaster.Server.Dashboard;
 
@@ -30,6 +31,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
     private readonly ChapterRepository _chapterRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly PermissionContext _perms;
+    private readonly MemberSignatureCampaigns _signatureCampaigns;
 
     public DashboardEndpoint(
         MembershipApplicationRepository applicationRepo,
@@ -38,7 +40,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         EventRepository eventRepo,
         ChapterRepository chapterRepo,
         UserChapterPermissionRepository chapterPermRepo,
-        PermissionContext perms) {
+        PermissionContext perms,
+        MemberSignatureCampaigns signatureCampaigns) {
         _applicationRepo = applicationRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
@@ -46,6 +49,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
         _chapterRepo = chapterRepo;
         _chapterPermRepo = chapterPermRepo;
         _perms = perms;
+        _signatureCampaigns = signatureCampaigns;
     }
 
     public override void Configure() {
@@ -62,6 +66,7 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
             dto.PendingApplications = FetchApplications(chapters);
             dto.PendingDueSelections = FetchDueSelections();
             dto.OpenMotions = FetchMotions(chapters);
+            dto.SupportSignatureCampaigns = _signatureCampaigns.Visible(DateTime.UtcNow);
         }
 
         dto.UpcomingEvents = FetchUpcomingEvents(userId, chapters);

@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="DE_Base.txt;DE_PostCodes.txt">
+    <Content Include="DE_Base.txt;DE_PostCodes.txt;GV100AD.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

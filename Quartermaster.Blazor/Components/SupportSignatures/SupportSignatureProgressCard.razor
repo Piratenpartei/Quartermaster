@@ -1,0 +1,21 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+            <div>
+                <h5 class="mb-0"><i class="bi bi-pen me-2"></i>@Campaign.Name</h5>
+                <div class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.CardSubtitle] · @Campaign.ChapterName</div>
+            </div>
+            <div class="d-flex gap-2">
+                @if (Campaign.HasForm) {
+                    <button class="btn btn-sm btn-primary" @onclick="DownloadForm"><i class="bi bi-download me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.DownloadForm]</button>
+                }
+                <a class="btn btn-sm btn-outline-secondary" href="/SupportSignatures/@Campaign.Id">@I18n[I18nKey.Ui.SupportSignatures.Details]</a>
+            </div>
+        </div>
+        <SupportSignatureProgress Certified="@Campaign.CertifiedTotal" Collected="@Campaign.CollectedTotal" Target="@Campaign.Target" Goal="@Campaign.Goal" />
+        <div class="small text-secondary mt-2">@I18n[I18nKey.Ui.SupportSignatures.Deadline]: <DeadlineText Value="@Campaign.Deadline" /></div>
+    </div>
+</div>

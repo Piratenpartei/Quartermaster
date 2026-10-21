@@ -1,0 +1,52 @@
+@page "/Administration/SupportSignatures/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.SupportSignatures
+
+<PageTitle>@(Campaign?.Name ?? I18n[I18nKey.Ui.SupportSignatures.PageTitle])</PageTitle>
+
+<RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageSupportSignatures">
+    <a href="/Administration/SupportSignatures" class="small"><i class="bi bi-arrow-left me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.BackToList]</a>
+
+    @if (Campaign == null) {
+        @if (Loading) {
+            <LoadingSpinner />
+        } else {
+            <div class="alert alert-warning mt-3">@I18n[I18nKey.Ui.SupportSignatures.CampaignNotFound]</div>
+        }
+    } else {
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-2">
+            <div>
+                <h3 class="mb-0">@Campaign.Name</h3>
+                <div class="text-secondary">@Campaign.ChapterName</div>
+            </div>
+            @if (Campaign.ArchivedAt != null) {
+                <span class="badge bg-secondary">@I18n[I18nKey.Ui.SupportSignatures.Archived]</span>
+            }
+        </div>
+        <SupportSignatureProgress Certified="@Campaign.Totals.Certified" Collected="@(Campaign.Totals.Received - Campaign.Totals.Rejected)" Target="@Campaign.Target" Goal="@Campaign.Totals.Goal" />
+
+        <ul class="nav nav-tabs mt-4 mb-3">
+            @foreach (var tab in Tabs) {
+                <li class="nav-item">
+                    <button class="nav-link @(ActiveTab == tab ? "active" : "")" @onclick="() => ActiveTab = tab">@TabLabel(tab)</button>
+                </li>
+            }
+        </ul>
+
+        @switch (ActiveTab) {
+            case CampaignTab.Overview:
+                <CampaignOverviewTab CampaignId="@Campaign.Id" />
+                break;
+            case CampaignTab.Intake:
+                <CampaignIntakeTab CampaignId="@Campaign.Id" Changed="ReloadAsync" />
+                break;
+            case CampaignTab.Shipments:
+                <CampaignShipmentsTab CampaignId="@Campaign.Id" CampaignName="@Campaign.Name" Changed="ReloadAsync" />
+                break;
+            case CampaignTab.Settings:
+                <CampaignSettingsTab Campaign="@Campaign" Changed="OnSettingsChanged" />
+                break;
+        }
+    }
+</RequirePermission>

@@ -306,7 +306,8 @@ public static class SettingsAssistantCatalog {
         "meetings.collab.save_interval_seconds",
         "meetings.motion_notes_template",
         "messaging.pdf.output_dir",
-        "meetings.protocol.archive_dir"
+        "meetings.protocol.archive_dir",
+        "support_signatures.form_max_megabytes"
     ];
 
     public static SettingsAssistant? BySlug(string slug) {

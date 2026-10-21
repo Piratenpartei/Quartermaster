@@ -17,4 +17,7 @@ public class AdministrativeDivision {
     public string? AdminCode { get; set; }
     public string? PostCodes { get; set; }
     public bool IsOrphaned { get; set; }
+
+    /// <summary>Key of the municipality's Gemeindeverband from the GV100AD file; only on municipalities.</summary>
+    public string? MunicipalityAssociationKey { get; set; }
 }

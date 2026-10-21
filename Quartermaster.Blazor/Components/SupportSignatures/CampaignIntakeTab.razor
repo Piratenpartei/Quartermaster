@@ -1,0 +1,103 @@
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Inputs
+
+<ConfirmDialog @ref="DeleteConfirm" />
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>@I18n[I18nKey.Ui.SupportSignatures.IntakeTitle]</h5>
+        <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.IntakeIntro]</p>
+
+        @if (Selected == null) {
+            <div id="intake-picker">
+                <MunicipalityPicker @key="PickerKey" OnSelect="Select" />
+            </div>
+        } else {
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="badge bg-primary fs-6">@Selected.Name</span>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="ClearSelection">@I18n[I18nKey.Ui.SupportSignatures.ChangeMunicipality]</button>
+            </div>
+            <div class="row g-2 align-items-end">
+                <div class="col-4 col-md-2">
+                    <label class="form-label" for="intake-count">@I18n[I18nKey.Ui.SupportSignatures.FormCount]</label>
+                    <input id="intake-count" type="number" min="1" class="form-control" @bind="Draft.Count" />
+                </div>
+                <div class="col-8 col-md-3">
+                    <label class="form-label" for="intake-date">@I18n[I18nKey.Ui.SupportSignatures.ReceivedOn]</label>
+                    <input id="intake-date" type="date" class="form-control" @bind="Draft.ReceivedOn" />
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="intake-note">@I18n[I18nKey.Ui.SupportSignatures.Note]</label>
+                    <input id="intake-note" class="form-control" maxlength="500" @bind="Draft.Note" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="form-check">
+                        <input id="intake-certified" class="form-check-input" type="checkbox" @bind="Draft.AlreadyCertified" />
+                        <label class="form-check-label" for="intake-certified">@I18n[I18nKey.Ui.SupportSignatures.AlreadyCertified]</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-text">@I18n[I18nKey.Ui.SupportSignatures.NoNamesHint]</div>
+            <button class="btn btn-primary mt-3" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.SaveIntake]</button>
+        }
+    </div>
+</div>
+
+<h5>@I18n[I18nKey.Ui.SupportSignatures.LatestIntakes]</h5>
+@if (Intakes == null) {
+    <LoadingSpinner />
+} else if (Intakes.Count == 0) {
+    <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.NoIntakesYet]</p>
+} else {
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>@I18n[I18nKey.Ui.SupportSignatures.Municipality]</th>
+                    <th class="text-end">@I18n[I18nKey.Ui.SupportSignatures.FormCount]</th>
+                    <th>@I18n[I18nKey.Ui.SupportSignatures.ReceivedOn]</th>
+                    <th>@I18n[I18nKey.Ui.SupportSignatures.Note]</th>
+                    <th class="text-end"><span class="visually-hidden">@I18n[I18nKey.Ui.Common.Action]</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var intake in Intakes) {
+                    @if (Editing?.Id == intake.Id) {
+                        <tr>
+                            <td>@intake.MunicipalityName</td>
+                            <td><input type="number" min="1" class="form-control form-control-sm" @bind="Editing.Count" /></td>
+                            <td><input type="date" class="form-control form-control-sm" @bind="Editing.ReceivedOn" /></td>
+                            <td>
+                                <input class="form-control form-control-sm" maxlength="500" @bind="Editing.Note" />
+                                <div class="form-check small">
+                                    <input id="edit-certified" class="form-check-input" type="checkbox" @bind="Editing.AlreadyCertified" />
+                                    <label class="form-check-label" for="edit-certified">@I18n[I18nKey.Ui.SupportSignatures.AlreadyCertified]</label>
+                                </div>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-primary" @onclick="SaveEdit" disabled="@Busy" title="@I18n[I18nKey.Ui.Common.Save]"><i class="bi bi-check-lg"></i></button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editing = null" title="@I18n[I18nKey.Ui.Common.Cancel]"><i class="bi bi-x-lg"></i></button>
+                            </td>
+                        </tr>
+                    } else {
+                        <tr>
+                            <td>
+                                @intake.MunicipalityName
+                                @if (intake.AlreadyCertified) {
+                                    <span class="badge bg-success ms-1">@I18n[I18nKey.Ui.SupportSignatures.AlreadyCertifiedBadge]</span>
+                                }
+                            </td>
+                            <td class="text-end">@intake.Count</td>
+                            <td>@intake.ReceivedOn.ToString("dd.MM.yyyy")</td>
+                            <td class="small text-secondary">@intake.Note</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(intake)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(intake)" title="@I18n[I18nKey.Ui.Common.Delete]"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}

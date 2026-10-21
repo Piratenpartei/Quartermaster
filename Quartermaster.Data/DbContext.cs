@@ -32,6 +32,7 @@ using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Data.Forwarding;
+using Quartermaster.Data.SupportSignatures;
 
 namespace Quartermaster.Data;
 
@@ -82,6 +83,15 @@ public class DbContext : DataConnection {
     public ITable<ForwardingChapterSetting> ForwardingChapterSettings => this.GetTable<ForwardingChapterSetting>();
     public ITable<ForwardingCase> ForwardingCases => this.GetTable<ForwardingCase>();
     public ITable<ForwardingStep> ForwardingSteps => this.GetTable<ForwardingStep>();
+    public ITable<MunicipalityAssociation> MunicipalityAssociations => this.GetTable<MunicipalityAssociation>();
+    public ITable<SignatureCampaign> SignatureCampaigns => this.GetTable<SignatureCampaign>();
+    public ITable<SignatureIntake> SignatureIntakes => this.GetTable<SignatureIntake>();
+    public ITable<CertificationOffice> CertificationOffices => this.GetTable<CertificationOffice>();
+    public ITable<CertificationOfficeMunicipality> CertificationOfficeMunicipalities => this.GetTable<CertificationOfficeMunicipality>();
+    public ITable<SignatureShipment> SignatureShipments => this.GetTable<SignatureShipment>();
+    public ITable<SignatureShipmentLine> SignatureShipmentLines => this.GetTable<SignatureShipmentLine>();
+    public ITable<SignatureReturn> SignatureReturns => this.GetTable<SignatureReturn>();
+    public ITable<SignatureReturnLine> SignatureReturnLines => this.GetTable<SignatureReturnLine>();
     public ITable<TravelExpenseReimbursement> TravelExpenseReimbursements => this.GetTable<TravelExpenseReimbursement>();
     public ITable<PdfTemplate> PdfTemplates => this.GetTable<PdfTemplate>();
     public ITable<ProgrammeSource> ProgrammeSources => this.GetTable<ProgrammeSource>();
@@ -137,6 +147,10 @@ public class DbContext : DataConnection {
         services.AddScoped<RedmineConnectionRepository>();
         services.AddScoped<ForwardingSettingsRepository>();
         services.AddScoped<ForwardingCaseRepository>();
+        services.AddScoped<CertificationOfficeRepository>();
+        services.AddScoped<SignatureCampaignRepository>();
+        services.AddScoped<SignatureIntakeRepository>();
+        services.AddScoped<SignatureShipmentRepository>();
         services.AddScoped<TravelExpenseReimbursementRepository>();
         services.AddScoped<Forms.PdfTemplates.PdfTemplateRepository>();
         services.AddScoped<ProgrammeRepository>();

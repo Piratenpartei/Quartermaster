@@ -4,6 +4,7 @@ using Quartermaster.Api.Options;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Receipts;
+using Quartermaster.Data.SupportSignatures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -537,6 +538,11 @@ public class OptionRepository {
             "Belege: Höchstgröße je Datei (MB)",
             OptionDataType.Number, false, "", "10",
             description: "Höchstgröße einer Belegdatei (JPEG, PNG oder PDF) in Megabyte.");
+
+        AddDefinitionIfNotExists(SupportSignatureOptions.FormMaxMegabytes,
+            "UU-Assistent: Höchstgröße des Formulars (MB)",
+            OptionDataType.Number, false, "", SupportSignatureOptions.DefaultFormMaxMegabytes.ToString(),
+            description: "Höchstgröße des Formulars einer UU-Sammlung (PDF) in Megabyte.");
 
         AddDefinitionIfNotExists("wiki.api_url",
             "Wiki: API-URL",

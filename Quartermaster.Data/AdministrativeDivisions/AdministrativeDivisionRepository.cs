@@ -7,6 +7,9 @@ using System.Linq;
 namespace Quartermaster.Data.AdministrativeDivisions;
 
 public class AdministrativeDivisionRepository {
+    /// <summary>Depth of municipalities (Gemeinden) in the division tree built from GeoNames.</summary>
+    public const int MunicipalityDepth = 7;
+
     private readonly DbContext _context;
 
     public AdministrativeDivisionRepository(DbContext context) {
@@ -28,6 +31,81 @@ public class AdministrativeDivisionRepository {
                 Name = "Null Island"
             });
         }
+    }
+
+    /// <summary>
+    /// Stores the Gemeindeverbände and links every municipality (depth 7) to its one by the official key; our <c>AdminCode</c> is that
+    /// key without its leading zero. Returns how many municipalities found no entry in the file.
+    /// </summary>
+    public int ApplyAssociations(Gv100AdData data, DateTime importedAt) {
+        foreach (var association in data.Associations) {
+            _context.InsertOrReplace(new MunicipalityAssociation {
+                Key = association.Key,
+                Name = association.Name,
+                Kind = association.Kind,
+                ImportedAt = importedAt
+            });
+        }
+
+        var keyByAgs = data.Municipalities
+            .GroupBy(m => m.Ags)
+            .ToDictionary(g => g.Key, g => g.First().AssociationKey);
+        var municipalities = _context.AdministrativeDivisions
+            .Where(d => d.Depth == MunicipalityDepth && d.AdminCode != null)
+            .Select(d => new { d.Id, d.AdminCode, d.MunicipalityAssociationKey })
+            .ToList();
+
+        var unmatched = 0;
+        var idsByNewKey = new Dictionary<string, List<Guid>>();
+        var idsToClear = new List<Guid>();
+        foreach (var municipality in municipalities) {
+            var found = keyByAgs.TryGetValue(municipality.AdminCode!.PadLeft(8, '0'), out var key);
+            if (!found)
+                unmatched++;
+            if (key == municipality.MunicipalityAssociationKey)
+                continue;
+
+            if (key == null) {
+                idsToClear.Add(municipality.Id);
+            } else {
+                if (!idsByNewKey.TryGetValue(key, out var ids))
+                    idsByNewKey[key] = ids = [];
+                ids.Add(municipality.Id);
+            }
+        }
+
+        foreach (var (key, ids) in idsByNewKey) {
+            _context.AdministrativeDivisions
+                .Where(d => ids.Contains(d.Id))
+                .Set(d => d.MunicipalityAssociationKey, key)
+                .Update();
+        }
+        if (idsToClear.Count > 0) {
+            _context.AdministrativeDivisions
+                .Where(d => idsToClear.Contains(d.Id))
+                .Set(d => d.MunicipalityAssociationKey, (string?)null)
+                .Update();
+        }
+
+        return unmatched;
+    }
+
+    public List<AdministrativeDivision> GetMany(IEnumerable<Guid> ids) {
+        var idList = ids.Distinct().ToList();
+        return _context.AdministrativeDivisions
+            .Where(d => idList.Contains(d.Id))
+            .ToList();
+    }
+
+    public MunicipalityAssociation? GetAssociation(string key) {
+        return _context.MunicipalityAssociations.FirstOrDefault(a => a.Key == key);
+    }
+
+    public List<AdministrativeDivision> GetMunicipalitiesOfAssociation(string key) {
+        return _context.AdministrativeDivisions
+            .Where(d => d.Depth == MunicipalityDepth && d.MunicipalityAssociationKey == key)
+            .OrderBy(d => d.Name)
+            .ToList();
     }
 
     public List<AdministrativeDivision> GetRoots()

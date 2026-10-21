@@ -11,10 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.SupportSignatures;
 
 namespace Quartermaster.Server.AdministrativeDivisions;
 
 public class AdminDivisionImportService {
+    /// <summary>The Destatis GV100AD file next to the GeoNames files; optional, it only adds the Gemeindeverbände.</summary>
+    public const string Gv100AdFileName = "GV100AD.txt";
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AdminDivisionImportService> _logger;
     private readonly TaskCompletionSource _initialLoadTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -30,14 +34,16 @@ public class AdminDivisionImportService {
         _logger = logger;
     }
 
-    public static string ComputeFileHash(string baseFilePath, string postcodeFilePath) {
+    public static string ComputeFileHash(string baseFilePath, string postcodeFilePath, string? gv100AdFilePath = null) {
         using var stream1 = File.OpenRead(baseFilePath);
         using var stream2 = File.OpenRead(postcodeFilePath);
         var hash1 = SHA256.HashData(stream1);
         var hash2 = SHA256.HashData(stream2);
-        var combined = new byte[hash1.Length + hash2.Length];
+        var hash3 = gv100AdFilePath == null ? [] : HashFile(gv100AdFilePath);
+        var combined = new byte[hash1.Length + hash2.Length + hash3.Length];
         hash1.CopyTo(combined, 0);
         hash2.CopyTo(combined, hash1.Length);
+        hash3.CopyTo(combined, hash1.Length + hash2.Length);
         return Convert.ToHexStringLower(SHA256.HashData(combined));
     }
 
@@ -61,7 +67,12 @@ public class AdminDivisionImportService {
             return PersistLog(context, CreateLog("", 0, new ChangeResult(), 1, "Admin division files not found", 0));
         }
 
-        var fileHash = ComputeFileHash(baseFile, postcodeFile);
+        var gv100AdFile = Path.Combine(dir, Gv100AdFileName);
+        var hasGv100Ad = File.Exists(gv100AdFile);
+        if (!hasGv100Ad)
+            _logger.LogWarning("GV100AD file not found at {Path}; municipalities get no Gemeindeverband", gv100AdFile);
+
+        var fileHash = ComputeFileHash(baseFile, postcodeFile, hasGv100Ad ? gv100AdFile : null);
         if (_lastFileHash == fileHash) {
             _logger.LogDebug("Admin division files unchanged, skipping import");
             _initialLoadTcs.TrySetResult();
@@ -87,6 +98,9 @@ public class AdminDivisionImportService {
             } else {
                 changes = ApplyChanges(context, adminDivRepo, parsed, notes);
             }
+
+            if (hasGv100Ad)
+                ApplyGv100Ad(adminDivRepo, gv100AdFile, notes);
         } catch (Exception ex) {
             sw.Stop();
             _logger.LogError(ex, "Admin division import write failed");
@@ -109,6 +123,18 @@ public class AdminDivisionImportService {
             errors.Count, sw.ElapsedMilliseconds);
 
         return log;
+    }
+
+    private static byte[] HashFile(string path) {
+        using var stream = File.OpenRead(path);
+        return SHA256.HashData(stream);
+    }
+
+    private static void ApplyGv100Ad(AdministrativeDivisionRepository adminDivRepo, string path, List<string> notes) {
+        using var reader = new StreamReader(path);
+        var data = Gv100AdParser.Parse(reader);
+        var unmatched = adminDivRepo.ApplyAssociations(data, DateTime.UtcNow);
+        notes.Add($"GV100AD: {unmatched} Gemeinden ohne Zuordnung");
     }
 
     // Remap and orphan notes go into the same text as errors, but only real failures count towards ErrorCount.
@@ -202,10 +228,12 @@ public class AdminDivisionImportService {
                     .Set(c => c.AdministrativeDivisionId, replacement.Id)
                     .Update();
 
+                var signatureRowsMoved = SupportSignatureDivisionRemap.Apply(context, ex.Id, replacement.Id);
+
                 toDelete.Add((ex, replacement));
                 result.Remapped++;
-                if (membersUpdated > 0 || chaptersUpdated > 0) {
-                    notes.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters moved");
+                if (membersUpdated > 0 || chaptersUpdated > 0 || signatureRowsMoved > 0) {
+                    notes.Add($"Remapped division '{ex.Name}' ({adminCode}) → '{replacement.Name}' ({replacement.AdminCode}): {membersUpdated} members, {chaptersUpdated} chapters, {signatureRowsMoved} support signature rows moved");
                 }
             } else {
                 // Mark as orphaned in DB

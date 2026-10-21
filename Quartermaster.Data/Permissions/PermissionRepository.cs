@@ -72,6 +72,7 @@ public class PermissionRepository {
         AddOrRename(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
         AddOrRename(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);
         AddOrRename(PermissionIdentifier.EditTravelExpenseRules, "Reisekostenordnung bearbeiten", false);
+        AddOrRename(PermissionIdentifier.ManageSupportSignatures, "UU-Assistent: Sammlungen verwalten", false);
         AddOrRename(PermissionIdentifier.UnlimitedReceipts, "Belege: unbegrenzt hochladen", true);
     }
 

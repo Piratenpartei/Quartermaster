@@ -524,6 +524,19 @@ The travel expense form at `/Forms/TravelExpense` is open to everyone. Anonymous
 - Editing a chapter's rules needs `travel_expense_rules_edit` on exactly that chapter; the global default needs it granted globally.
 - The submission deadline and the cut-off date of the following year never block an application; a late application only carries a note for the chapter's treasurer.
 
+### UU-Assistent (support signatures)
+
+"Vorstandsarbeit > UU-Assistent" tracks support signatures (Unterstützungsunterschriften) for nominations, for example the state list of a Landtag election or one direct candidate per collection. It stores counts only, never forms or anything about the signers; the note field on an intake tells users not to enter names.
+
+- Who: the chapter-scoped permission `support_signatures_manage` ("UU-Assistent: Sammlungen verwalten"), part of the board role and assignable to any role, for example for Beauftragte. It works on collections of that chapter and its sub-chapters. The office address book is shared and needs the permission in any chapter.
+- A collection has a target, a safety margin in percent (the goal is the target plus the margin, rounded up), a deadline, the days after which a shipment without a full return counts as overdue, an optional notice for members (Markdown) and an optional form PDF (`support_signatures.form_max_megabytes`, default 10). Archiving hides it from the list and the start page.
+- Forms are entered per municipality with the municipality picker. A form whose voting right the signer already had certified skips the shipments.
+- Shipments go to certifying offices (Bestätigungsstellen), each covering one or more municipalities. For a municipality without office the UI suggests one from the GV100AD file (see [Municipal associations](#municipal-associations-gv100ad)): the office a fellow member of its Samtgemeinde already has, or a new office for the Samtgemeinde with all its members, or the municipality itself. Addresses are entered once and reused by every collection.
+- "Prepare shipments" creates one shipment per selected office with all waiting forms of its municipalities and prints one PDF with all cover letters. A shipment counts as sent only after "Confirm as sent"; until then it can be discarded. Preparing locks the collection, so two people preparing at the same time never ship the same forms twice.
+- Returns are recorded per shipment and municipality (certified, rejected with optional reasons, several reasons per municipality), also in several parts; they can never exceed what was sent. A recorded return can be edited or deleted.
+- The cover letter is the template `templates.support_signatures.cover_letter` (envelope letter). Chapters have no postal address in Quartermaster, so each chapter adds its return address in its own version of the template (`envelope_sender_street`, `envelope_sender_postcode`, `envelope_sender_city`); the model is `letter` (Campaign.Name, Campaign.Deadline, Office.Name/Street/PostCode/City, Lines with Municipality and Count, Total, Date) plus `chapter`. Date is the day the shipment was confirmed as sent, or today for a shipment not yet sent.
+- Every signed-in user, with or without member data and whatever their chapter, sees a card per visible collection on the start page (certified against target and goal, with a lighter part for everything collected minus rejections, deadline, form download) until 30 days after the deadline, and a page with the notice at `/SupportSignatures/{id}`. Nothing is public without login.
+
 ### Rate limiting
 
 Shared bucket across all anonymous POST endpoints (motion create, membership application create, the PDFs of the expense and travel expense forms), per IP. Due selections require login and have their own bucket per account, because each one creates a federal Redmine ticket while forwarding is on. Both are hot-reloaded: a change takes effect for new buckets immediately and for active buckets after their current window expires.
@@ -574,6 +587,10 @@ Municipalities and postcodes come from GeoNames (CC BY 4.0) and ship as two file
 On startup and then daily the server hashes both files and imports them when they changed. Renamed units are updated in place; a removed unit is replaced by the unit that now holds its postcode (or its parent), and members and chapters pointing at it move along; units without a replacement are marked orphaned. The import history is under System, Import status. German municipal reforms mostly take effect on 1 January, so refresh the files early in the year.
 
 The license requires naming GeoNames as the source: the "Sources & licenses" page (`/Attributions#geonames`, linked from the footer) does that, and the municipality search links to it.
+
+### Municipal associations (GV100AD)
+
+A third file, `GV100AD.txt`, links every municipality to its Gemeindeverband (Samtgemeinde, Amt, Verbandsgemeinde, Verwaltungsgemeinschaft and so on); the UU-Assistent uses it to suggest the office that certifies for a member municipality. It is the text file from the quarterly GV100AD ZIP of Destatis (Gemeindeverzeichnis, Administrativ, GV100AD Quartalsausgabe), renamed to `GV100AD.txt`; the ZIP also contains the format description. It is imported together with the GeoNames files and whenever its hash changes; municipalities are matched by their official key (our `AdminCode` padded to 8 digits). The import log notes how many municipalities found no entry, for example after a merger that one dataset already knows and the other does not; those get their office by hand. Without the file the import works as before, only without associations. Destatis allows reproduction with source attribution, which the "Sources & licenses" page gives (`/Attributions#destatis`).
 
 ## Notification templates
 

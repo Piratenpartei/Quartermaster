@@ -498,3 +498,22 @@ code {
 .table.meal-days th:first-child {
     padding-left: 0;
 }
+
+/* Progress of a UU-Assistent campaign: the bar runs to the goal (target plus margin), the line marks the bare target. */
+.progress.support-signature-progress {
+    position: relative;
+    height: 0.9rem;
+    overflow: visible;
+}
+
+.support-signature-progress-target {
+    position: absolute;
+    top: -0.2rem;
+    bottom: -0.2rem;
+    width: 2px;
+    background-color: var(--bs-body-color);
+}
+
+.support-signature-progress .support-signature-progress-collected {
+    opacity: 0.4;
+}

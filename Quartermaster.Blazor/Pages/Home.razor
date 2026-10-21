@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.Dashboard
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.SupportSignatures
 @using System.Globalization
 
 <PageTitle>@I18n[I18nKey.Ui.Home.PageTitle]</PageTitle>
@@ -12,6 +13,78 @@
 @if (Loading) {
     <LoadingSpinner />
 } else if (Dashboard != null) {
+    @if (Dashboard.UpcomingEvents != null && Dashboard.UpcomingEvents.Count > 0) {
+        <DashboardCard Icon="bi-calendar-event"
+                       Title="@I18n[I18nKey.Ui.Home.UpcomingEventsTitle]"
+                       AllUrl="/Events"
+                       IsEmpty="false">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.Common.Name]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Date]</th>
+                        <th><span class="visually-hidden">@I18n[I18nKey.Ui.Common.Action]</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Dashboard.UpcomingEvents) {
+                        <tr>
+                            <td><a href="/Events/@ev.Id">@ev.PublicName</a></td>
+                            <td>@ev.ChapterName</td>
+                            <td>
+                                @if (ev.EventDate.HasValue) {
+                                    <LocalTime DateValue="ev.EventDate" />
+                                } else {
+                                    @I18n[I18nKey.Ui.Home.UpcomingEventDateOpen]
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (ev.HasMotionPortal) {
+                                    <a href="/Events/@ev.Id/Motions" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </DashboardCard>
+    }
+
+    @if (Dashboard.OpenMotions != null) {
+        <DashboardCard Icon="bi-file-text"
+                       Title="@I18n[I18nKey.Ui.Home.OpenMotionsTitle]"
+                       TotalCount="@Dashboard.OpenMotions.TotalCount"
+                       AllUrl="/Administration/Motions"
+                       IsEmpty="@(Dashboard.OpenMotions.Items.Count == 0)"
+                       EmptyMessage="@I18n[I18nKey.Ui.Home.OpenMotionsEmpty]">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Created]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in Dashboard.OpenMotions.Items) {
+                        <tr>
+                            <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
+                            <td>@m.ChapterName</td>
+                            <td><LocalTime Value="m.CreatedAt" Format="dd.MM.yyyy" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        </DashboardCard>
+    }
+
     @if (Dashboard.PendingApplications != null) {
         <DashboardCard Icon="bi-person-plus"
                        Title="@I18n[I18nKey.Ui.Home.PendingApplicationsTitle]"
@@ -70,75 +143,7 @@
         </DashboardCard>
     }
 
-    @if (Dashboard.OpenMotions != null) {
-        <DashboardCard Icon="bi-file-text"
-                       Title="@I18n[I18nKey.Ui.Home.OpenMotionsTitle]"
-                       TotalCount="@Dashboard.OpenMotions.TotalCount"
-                       AllUrl="/Administration/Motions"
-                       IsEmpty="@(Dashboard.OpenMotions.Items.Count == 0)"
-                       EmptyMessage="@I18n[I18nKey.Ui.Home.OpenMotionsEmpty]">
-            <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
-                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
-                        <th>@I18n[I18nKey.Ui.Common.Created]</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var m in Dashboard.OpenMotions.Items) {
-                        <tr>
-                            <td><a href="/Administration/Motions/@m.Id">@m.Title</a></td>
-                            <td>@m.ChapterName</td>
-                            <td><LocalTime Value="m.CreatedAt" Format="dd.MM.yyyy" /></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-        </DashboardCard>
-    }
-
-    @if (Dashboard.UpcomingEvents != null && Dashboard.UpcomingEvents.Count > 0) {
-        <DashboardCard Icon="bi-calendar-event"
-                       Title="@I18n[I18nKey.Ui.Home.UpcomingEventsTitle]"
-                       AllUrl="/Events"
-                       IsEmpty="false">
-            <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.Common.Name]</th>
-                        <th>@I18n[I18nKey.Ui.Common.Chapter]</th>
-                        <th>@I18n[I18nKey.Ui.Common.Date]</th>
-                        <th><span class="visually-hidden">@I18n[I18nKey.Ui.Common.Action]</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var ev in Dashboard.UpcomingEvents) {
-                        <tr>
-                            <td><a href="/Events/@ev.Id">@ev.PublicName</a></td>
-                            <td>@ev.ChapterName</td>
-                            <td>
-                                @if (ev.EventDate.HasValue) {
-                                    <LocalTime DateValue="ev.EventDate" />
-                                } else {
-                                    @I18n[I18nKey.Ui.Home.UpcomingEventDateOpen]
-                                }
-                            </td>
-                            <td class="text-end">
-                                @if (ev.HasMotionPortal) {
-                                    <a href="/Events/@ev.Id/Motions" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-        </DashboardCard>
+    @foreach (var campaign in Dashboard.SupportSignatureCampaigns ?? []) {
+        <SupportSignatureProgressCard Campaign="@campaign" />
     }
 }

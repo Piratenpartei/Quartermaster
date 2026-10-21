@@ -1,0 +1,95 @@
+@page "/Administration/SupportSignatures"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.AssemblyMotions
+@using Quartermaster.Blazor.Components.SupportSignatures
+
+<PageTitle>@I18n[I18nKey.Ui.SupportSignatures.PageTitle]</PageTitle>
+
+<RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageSupportSignatures">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.SupportSignatures.PageTitle]</h3>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="/Administration/SupportSignatures/Offices">
+                <i class="bi bi-building me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.OfficesLink]
+            </a>
+            <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Creating != null)">
+                <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewCampaign]
+            </button>
+        </div>
+    </div>
+    <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.ListIntro]</p>
+
+    @if (Creating != null) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.SupportSignatures.NewCampaign]</h5>
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
+                        <ChapterPicker @bind-Value="CreateChapterId" />
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label" for="campaign-name">@I18n[I18nKey.Ui.SupportSignatures.Name]</label>
+                        <input id="campaign-name" class="form-control" maxlength="200" @bind="Creating.Name" placeholder="@I18n[I18nKey.Ui.SupportSignatures.NamePlaceholder]" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="campaign-target">@I18n[I18nKey.Ui.SupportSignatures.Target]</label>
+                        <input id="campaign-target" type="number" min="1" class="form-control" @bind="Creating.Target" />
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label" for="campaign-deadline">@I18n[I18nKey.Ui.SupportSignatures.Deadline]</label>
+                        <BerlinDateTimeInput Id="campaign-deadline" @bind-Value="CreateDeadline" />
+                    </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-primary" @onclick="Create" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+                    <button class="btn btn-outline-secondary" @onclick="CancelCreate">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="show-archived" checked="@ShowArchived" @onchange="ToggleArchived" />
+        <label class="form-check-label" for="show-archived">@I18n[I18nKey.Ui.SupportSignatures.ShowArchived]</label>
+    </div>
+
+    @if (Campaigns == null) {
+        <LoadingSpinner />
+    } else if (Campaigns.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.SupportSignatures.NoCampaigns]" />
+    } else {
+        <div class="row g-3">
+            @foreach (var campaign in Campaigns) {
+                <div class="col-12 col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div>
+                                    <h5 class="mb-1">@campaign.Name</h5>
+                                    <div class="small text-secondary">@campaign.ChapterName</div>
+                                    @if (campaign.OverdueShipmentCount > 0) {
+                                        <span class="badge bg-warning text-dark mt-1">@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.OverdueBadge, ("count", campaign.OverdueShipmentCount.ToString()))]</span>
+                                    }
+                                </div>
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    @if (campaign.HasForm) {
+                                        <button class="btn btn-sm btn-outline-secondary text-nowrap" @onclick="() => DownloadForm(campaign)" title="@I18n[I18nKey.Ui.SupportSignatures.DownloadForm]">
+                                            <i class="bi bi-download me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.FormShort]
+                                        </button>
+                                    }
+                                    <a class="btn btn-sm btn-outline-primary text-nowrap" href="/Administration/SupportSignatures/@campaign.Id">@I18n[I18nKey.Ui.SupportSignatures.Details]</a>
+                                </div>
+                            </div>
+                            <SupportSignatureProgress Certified="@campaign.Totals.Certified" Collected="@(campaign.Totals.Received - campaign.Totals.Rejected)" Target="@campaign.Target" Goal="@campaign.Totals.Goal" />
+                            <div class="small text-secondary mt-2">
+                                @I18n[I18nKey.Ui.SupportSignatures.Deadline]: <DeadlineText Value="@campaign.Deadline" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</RequirePermission>

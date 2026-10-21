@@ -144,6 +144,15 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE TravelExpenseRuleSets;
             TRUNCATE TABLE UserReceipts;
             TRUNCATE TABLE TravelExpenseReimbursements;
+            TRUNCATE TABLE SignatureReturnLines;
+            TRUNCATE TABLE SignatureReturns;
+            TRUNCATE TABLE SignatureShipmentLines;
+            TRUNCATE TABLE SignatureShipments;
+            TRUNCATE TABLE SignatureIntakes;
+            TRUNCATE TABLE SignatureCampaigns;
+            TRUNCATE TABLE CertificationOfficeMunicipalities;
+            TRUNCATE TABLE CertificationOffices;
+            TRUNCATE TABLE MunicipalityAssociations;
             SET FOREIGN_KEY_CHECKS = 1;
             """;
         cmd.ExecuteNonQuery();
