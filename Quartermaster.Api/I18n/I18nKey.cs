@@ -2421,6 +2421,13 @@ public static class I18nKey {
         public static class Footer {
             public const string OpenSource = "ui.footer.open_source";
             public const string Attributions = "ui.footer.attributions";
+            public const string Changelog = "ui.footer.changelog";
+        }
+
+        public static class VersionHistory {
+            public const string PageTitle = "ui.version_history.page_title";
+            public const string Version = "ui.version_history.version";
+            public const string Empty = "ui.version_history.empty";
         }
 
         public static class Attributions {

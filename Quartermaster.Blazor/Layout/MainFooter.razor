@@ -2,7 +2,10 @@
 
 <footer class="border-top py-3 small text-secondary">
     <div class="@(Fluid ? "container-fluid" : "container") d-flex flex-wrap justify-content-between gap-2">
-        <span>@I18n[I18nKey.Ui.Footer.OpenSource]</span>
-        <a href="/Attributions" class="link-secondary">@I18n[I18nKey.Ui.Footer.Attributions]</a>
+        <a href="@RepositoryUrl" target="_blank" rel="noopener" class="link-secondary">@I18n[I18nKey.Ui.Footer.OpenSource]</a>
+        <span class="d-flex flex-wrap gap-3">
+            <a href="/Changelog" class="link-secondary">@I18n[I18nKey.Ui.Footer.Changelog]</a>
+            <a href="/Attributions" class="link-secondary">@I18n[I18nKey.Ui.Footer.Attributions]</a>
+        </span>
     </div>
 </footer>

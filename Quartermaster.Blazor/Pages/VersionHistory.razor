@@ -1,0 +1,19 @@
+@page "/Changelog"
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.VersionHistory.PageTitle]</PageTitle>
+
+<h1 class="mb-4">@I18n[I18nKey.Ui.VersionHistory.PageTitle]</h1>
+
+@if (Loading) {
+    <LoadingSpinner />
+} else if (Entries == null || Entries.Count == 0) {
+    <p class="text-secondary">@I18n[I18nKey.Ui.VersionHistory.Empty]</p>
+} else {
+    @foreach (var entry in Entries) {
+        <section class="version-history-entry mb-5">
+            <h2 class="h3 border-bottom pb-2 mb-3">@I18n[$"{I18nKey.Ui.VersionHistory.Version}?version={entry.Version}"]</h2>
+            @((MarkupString)entry.Html)
+        </section>
+    }
+}

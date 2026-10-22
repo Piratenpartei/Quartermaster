@@ -517,3 +517,8 @@ code {
 .support-signature-progress .support-signature-progress-collected {
     opacity: 0.4;
 }
+
+.version-history-entry h3 {
+    font-size: 1.15rem;
+    margin-top: 1.25rem;
+}

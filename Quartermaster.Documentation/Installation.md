@@ -239,6 +239,22 @@ mysqldump --single-transaction quartermaster | gzip > /var/backups/quartermaster
 
 The new version goes into a fresh folder next to the running one. The old folder stays untouched and serves as the rollback.
 
+### With the deploy script
+
+[`deploy-quartermaster.sh`](deploy-quartermaster.sh) runs all steps of the manual upgrade below in one go. Copy it to the server once and make it executable, then pass it the archive and the checksum published for the release:
+
+```bash
+sudo ./deploy-quartermaster.sh quartermaster-linux-x64.tar.gz <sha256> --backup
+journalctl -u quartermaster -f
+```
+
+- It refuses to run when the checksum does not match, when `quartermaster-new` is left over from an earlier attempt, or when the archive does not have `Quartermaster.Server` at its top level.
+- `--backup` writes a database dump to the home directory of the user calling `sudo` first. Use it for every release with a schema migration.
+- The old folder is named after the version it contains (the highest `Changelog/V*.md` in it), for example `/var/www/quartermaster-v8.0`.
+- If the service does not stay up after the start, the script prints the last log lines and the rollback command.
+
+### Manual upgrade
+
 1. Copy the new archive to the server and compare its checksum with the one published for the release:
 
    ```bash
