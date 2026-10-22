@@ -58,6 +58,10 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
 
 - [ ] **Store the country of membership applicants living abroad.** The membership application asks applicants abroad for their country (`MembershipApplicationEntryState.AddressCountry`), but `MembershipApplicationDTO` has no country field, so the value is dropped on submit and officers only see post code and city. Needs `AddressCountry` on `MembershipApplicationDTO`, the `MembershipApplication` entity (new release migration, V5 is in production), the validator (max length), the submit mapping in `MembershipApplicationWizard.Submit` and the application detail page.
 
+## Events
+
+- [ ] **Start time for events.** An event only has a date today (`EventDate`, passed to the client as a date). Add an optional start time (Berlin local time, stored as an instant like the other deadlines) and show it in the event lists, on the start page and in the date placeholders of event mails and checklist items. Places that compare against the event date, such as `AssemblyMotionResultService.IsEventReached`, should check whether they want the start time instead. The accreditation display for the oBPT counts from this start.
+
 ## Motion portal
 
 - [ ] **Follow-ups from the motion portal review.** Smaller changes left open when the motion portal (V4) was finished:
@@ -97,6 +101,11 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
   - [ ] Renaming the event or motion type, a member's name change, or a change of `system.public_base_url` or `wiki.api_url` does not requeue posts, and "Forum: alle neu synchronisieren" does not fix it because the hash of the motion is unchanged.
   - [ ] Check on the real forum whether `POST /posts.json` falls back to "Uncategorized" (possibly public) when the configured category was removed; the connection check reports a 403 on the category as a rejected API key, which is misleading.
   - [ ] The forum connection check names the category in its success message (`AssemblyMotionForumConnectionCheck`), so a chapter's event editor can probe category ids and learn the names of every category the bot can read, including staff-only ones a moderator bot sees. Only names, no content. Show the id instead of the name, or name the category only to global admins.
+
+## Assembly assistant
+
+- [ ] **Recording assemblies through the Mumble bot.** The assembly assistant's bot already sits in the assembly channel; let it record the session audio as well. To decide: format and storage, who can access the recordings, how long they are kept, and how participants are told that the session is recorded.
+- [ ] **Accreditation display for the oBPT.** A display (console and stream overlay) with the number of accredited participants in total and per state. Source is the OpenSlides meeting through the assistant's existing autoupdate subscription, extended to the meeting's participants. A participant counts once they are marked present at any time since the start of the event; leaving or being marked absent later does not lower the count. The state comes from the OpenSlides member number matched to the Quartermaster member and their chapter (the member data will be in Quartermaster by the next oBPT).
 
 ## Elections
 

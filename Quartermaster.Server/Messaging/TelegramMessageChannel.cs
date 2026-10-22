@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Data.Notifications;
 using Quartermaster.Server.Notifications.Telegram;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -19,6 +21,9 @@ namespace Quartermaster.Server.Messaging;
 /// </summary>
 public class TelegramMessageChannel : IMessageChannel {
     public const string ChannelId = "telegram";
+
+    /// <summary>Waits before each retry of a transient failure; its length is the number of retries.</summary>
+    public IReadOnlyList<TimeSpan> RetryDelays { get; init; } = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15)];
 
     private readonly TelegramBotClientFactory _factory;
     private readonly NotificationLogRepository _logRepo;
@@ -55,17 +60,36 @@ public class TelegramMessageChannel : IMessageChannel {
             : $"*{message.Subject}*\n\n{message.Body}";
         var chatId = ParseChatId(message.ChannelAddress);
 
-        try {
-            await bot.SendMessage(chatId, text, parseMode: ParseMode.Markdown, cancellationToken: ct);
-            _logRepo.IncrementAttempt(log.Id);
-            _logRepo.UpdateStatus(log.Id, "Sent", null, DateTime.UtcNow);
-            return ChannelDeliveryResult.Ok();
-        } catch (Exception ex) {
-            _logger.LogWarning(ex, "Telegram send failed for chat {ChatId}", message.ChannelAddress);
-            _logRepo.IncrementAttempt(log.Id);
-            _logRepo.UpdateStatus(log.Id, "Failed", ex.Message, null);
-            return ChannelDeliveryResult.Fail($"Telegram send failed: {ex.Message}");
+        for (var attempt = 0; ; attempt++) {
+            try {
+                await bot.SendMessage(chatId, text, parseMode: ParseMode.Markdown, cancellationToken: ct);
+                _logRepo.IncrementAttempt(log.Id);
+                _logRepo.UpdateStatus(log.Id, "Sent", null, DateTime.UtcNow);
+                return ChannelDeliveryResult.Ok();
+            } catch (Exception ex) {
+                _logRepo.IncrementAttempt(log.Id);
+                if (attempt < RetryDelays.Count && IsTransient(ex, ct)) {
+                    _logger.LogWarning(ex, "Telegram send to chat {ChatId} failed, retrying in {Delay}", message.ChannelAddress, RetryDelays[attempt]);
+                    await Task.Delay(RetryDelays[attempt], ct);
+                    continue;
+                }
+
+                _logger.LogWarning(ex, "Telegram send failed for chat {ChatId}", message.ChannelAddress);
+                _logRepo.UpdateStatus(log.Id, "Failed", ex.Message, null);
+                return ChannelDeliveryResult.Fail($"Telegram send failed: {ex.Message}");
+            }
         }
+    }
+
+    /// <summary>Telegram.Bot already waits out a short 429 by itself, so only timeouts, connection failures and 5xx get another attempt.</summary>
+    private static bool IsTransient(Exception ex, CancellationToken ct) {
+        if (ct.IsCancellationRequested)
+            return false;
+        if (ex is ApiRequestException apiError)
+            return apiError.ErrorCode >= 500;
+        if (ex is RequestException)
+            return true;
+        return ex is HttpRequestException;
     }
 
     private NotificationLog WritePendingLog(ChannelMessage message) {

@@ -339,6 +339,12 @@ public partial class Program {
                 AllowAutoRedirect = false,
                 UseCookies = false
             });
+        // The timeout must stay above the receiver's 25 second long poll.
+        builder.Services.AddHttpClient(TelegramBotClientFactory.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(40))
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler {
+                ConnectTimeout = TimeSpan.FromSeconds(10),
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+            });
         builder.Services.AddMemoryCache();
 
         builder.Services.AddValidatorsFromAssembly(typeof(LoginRequest).Assembly,
