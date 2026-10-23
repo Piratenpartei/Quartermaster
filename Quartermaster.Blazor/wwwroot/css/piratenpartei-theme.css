@@ -143,3 +143,7 @@
     --bs-table-active-bg: #e6d0b8;
     --bs-table-hover-bg: #ecd6bd;
 }
+
+.loading-progress circle:last-child {
+    stroke: var(--bs-primary);
+}
