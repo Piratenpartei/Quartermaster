@@ -721,14 +721,14 @@ public static class I18nKey {
             public const string Administration = "ui.main_nav_bar.administration";
             public const string AdministrationDivisionsSearch = "ui.main_nav_bar.administration.divisions_search";
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
+            public const string AdministrationChaptersList = "ui.main_nav_bar.administration.chapters_list";
+            public const string AdministrationChaptersTree = "ui.main_nav_bar.administration.chapters_tree";
             public const string System = "ui.main_nav_bar.system";
             public const string SystemSettings = "ui.main_nav_bar.system.settings";
             public const string SystemTemplates = "ui.main_nav_bar.system.templates";
             public const string SystemUsers = "ui.main_nav_bar.system.users";
             public const string SystemLoginLockouts = "ui.main_nav_bar.system.login_lockouts";
             public const string SystemRoles = "ui.main_nav_bar.system.roles";
-            public const string SystemChaptersList = "ui.main_nav_bar.system.chapters_list";
-            public const string SystemChaptersTree = "ui.main_nav_bar.system.chapters_tree";
             public const string SystemChapterOfficers = "ui.main_nav_bar.system.chapter_officers";
             public const string SystemMembers = "ui.main_nav_bar.system.members";
             public const string SystemMemberImport = "ui.main_nav_bar.system.member_import";

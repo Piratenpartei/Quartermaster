@@ -6649,6 +6649,16 @@
 5721642	2830829		Spangenberg						
 7106504	2830833		Spang						
 20088132	2830837	de	Spandowerhagen						
+1929467	2830841	de	Bezirk Spandau						
+1929468	2830841	en	Spandau						
+1929469	2830841	fr	Arrondissement de Spandau						
+1929470	2830841	pl	Spandau						
+1929472	2830841	it	Distretto di Spandau						
+1929473	2830841	no	Spandau						
+1929474	2830841	pt	Spandau						
+1929475	2830841	sv	Spandau						
+1998941	2830841	es	Spandau						
+1998942	2830841	nl	Spandau						
 5721643	2830851		Spaichingen						
 16779897	2830856	de	Spahnharrenstätte						
 20436404	2830857	de	Spahn						
@@ -7153,6 +7163,8 @@
 13825384	2833011		Sennfeld						
 15934204	2833012		Sennewitz						
 4210365	2833017		Sennelager						
+1262335	2833019	de	Senne 1				1		
+4210366	2833019	de	Senne Eins				1		
 6920993	2833037		Sengwarden						
 2432874	2833073	dsb	Zły Komorow						
 4210370	2833073		Senftenberg						
@@ -10111,6 +10123,9 @@
 10582505	2846018	de	Röderau						
 15936003	2846019		Roderath						
 15936005	2846028		Rodenroth						
+3074508	2846032	de	Rodenkirchen		1				
+9138961	2846032	de	Köln-Rodenkirchen	1					
+9138962	2846032	en	Rodenkirchen, Cologne	1					
 20160257	2846039	de	Rodenberg						
 4210787	2846040		Rodenberg						
 4210788	2846048		Rodenbek						
@@ -10806,6 +10821,13 @@
 1262732	2848745		Reinkenhagen						
 15936365	2848748		Reininghausen						
 20676834	2848751	de	Reiningen						
+2038342	2848755	de	Bezirk Reinickendorf						
+2038343	2848755	fr	Arrondissement de Reinickendorf						
+2038344	2848755	en	Reinickendorf						
+2038346	2848755	it	Distretto di Reinickendorf						
+2038347	2848755	nl	Reinickendorf						
+2038348	2848755	no	Reinickendorf						
+2038349	2848755	sv	Reinickendorf						
 4210881	2848757	de	Rheinholterode				1		
 5883776	2848757	nds	Rengerode						
 15936366	2848759		Reinholdshain						
@@ -12469,6 +12491,19 @@
 13601357	2855588		Pannewitz						
 1262899	2855593		Panneke						
 4211115	2855593		Pannecke						
+1262900	2855597		Bezirk Weißensee						
+1262901	2855597		Berlin-Pankow						
+1262902	2855597		Bezirk Prenzlauer Berg						
+1998360	2855597	de	Bezirk Pankow						
+1998361	2855597	fr	Arrondissement de Pankow						
+1998362	2855597	en	Pankow						
+1998363	2855597	es	Pankow						
+1998364	2855597	fi	Pankow						
+1998366	2855597	it	Distretto di Pankow						
+1998367	2855597	la	Pancovium						
+1998368	2855597	nl	Pankow						
+1998369	2855597	no	Pankow						
+1998371	2855597	sv	Pankow						
 4211116	2855602		Panker						
 20088308	2855604	de	Pankelow						
 20371322	2855622	de	Pamprin						
@@ -15328,6 +15363,14 @@
 8797893	2864679		Neu Kosenow						
 19979868	2864690	de	Neu Königsförde						
 19979869	2864690	de	Neukönigsförde						
+2016139	2864694	fr	Berlin-Neukölln						
+2016140	2864694	en	Neukölln						
+2016141	2864694	de	Berlin-Neukölln						
+2016143	2864694	it	Neukölln						
+2016144	2864694	la	Nova Colonia						
+2016145	2864694	nl	Neukölln						
+2016146	2864694	no	Neukölln						
+2016147	2864694	sv	Bezirk Neukölln						
 1263346	2864696		Neukölln						
 13137202	2864697	hsb	Nowy Chołmc						
 13143795	2864697		Neukollm						
@@ -17058,6 +17101,11 @@
 1263845	2870911		Grossefehn						
 4212067	2870911		Mittegroßefehn						
 10582344	2870911	de	Mittegroßefehn						
+1263846	2870912		Bezirk Tiergarten						
+1263847	2870912		Bezirk Wedding						
+1263848	2870912		Berlin-Mitte						
+1263849	2870912		Mitte						
+1263850	2870912		Verwaltungsbezirk Mitte						
 15938704	2870919		Mitlosheim						
 4212071	2870942		Missunde						
 15938706	2870946		Mißlareuth						
@@ -19508,6 +19556,20 @@
 15939545	2878085		Lichtendorf						
 4212649	2878087		Lichtenburg						
 15939546	2878092		Lichtenborn						
+1264420	2878100		Bezirk Hohenschönhausen						
+1264421	2878100		Verwaltungsbezirk Lichtenberg						
+1910386	2878100	de	Bezirk Lichtenberg						
+1910387	2878100	fr	Lichtenberg						
+1910388	2878100	en	Lichtenberg						
+1910389	2878100	pl	Lichtenberg						
+1910390	2878100	eo	Lichtenberg						
+1910391	2878100	it	Lichtenberg						
+1910392	2878100	it	Montechiaro						
+1910393	2878100	nl	Lichtenberg						
+1910394	2878100	no	Lichtenberg						
+1910395	2878100	pt	Lichtenberg						
+1910396	2878100	sv	Lichtenberg						
+1996486	2878100	ceb	Lichtenberg						
 20371647	2878104	de	Lichtenberg						
 20631557	2878105	de	Lichtenberg						
 11628650	2878109	et	Lichtenbergi vald						
@@ -45712,6 +45774,42 @@
 8521459	3305827		Gießen						
 8620229	3305827		Giessen						
 8620230	3305827		Landkreis Giessen						
+1381160	3336293		Bezirk Zehlendorf						
+1381161	3336293		Bezirk Steglitz						
+1381162	3336294		Bezirk Wilmersdorf						
+1381163	3336294		Bezirk Charlottenburg						
+2018210	3336294	de	Bezirk Charlottenburg-Wilmersdorf						
+2018211	3336294	en	Charlottenburg-Wilmersdorf						
+2018212	3336294	pl	Charlottenburg-Wilmersdorf						
+2018213	3336294	it	Distretto di Charlottenburg-Wilmersdorf						
+2018215	3336294	la	Carolaeburgum-Wilmersdorfium						
+2018216	3336294	nl	Charlottenburg-Wilmersdorf						
+2018217	3336294	no	Charlottenburg-Wilmersdorf						
+2018218	3336294	sv	Charlottenburg-Wilmersdorf						
+1381164	3336295		Bezirk Kreuzberg						
+1381165	3336295		Bezirk Friedrichshain						
+2031036	3336295	de	Bezirk Friedrichshain-Kreuzberg						
+2031037	3336295	en	Friedrichshain-Kreuzberg						
+2031038	3336295	it	Distretto di Friedrichshain-Kreuzberg						
+2031040	3336295	la	Lucus Fridericianus-Mons Crucis						
+2031041	3336295	nl	Friedrichshain-Kreuzberg						
+2031042	3336295	no	Friedrichshain-Kreuzberg						
+2031043	3336295	sv	Friedrichshain-Kreuzberg						
+1381166	3336296		Bezirk Hellersdorf						
+1381167	3336296		Bezirk Marzahn						
+2018366	3336296	de	Bezirk Marzahn-Hellersdorf						
+2018367	3336296	en	Marzahn-Hellersdorf						
+2018368	3336296	pl	Berlin Marzahn-Hellersdorf						
+2018369	3336296	et	Marzahn-Hellersdorf						
+2018370	3336296	id	Marzahn-Hellersdorf						
+2018371	3336296	it	Marzahn-Hellersdorf						
+2018372	3336296	nl	Marzahn-Hellersdorf						
+2018373	3336296	no	Marzahn-Hellersdorf						
+2018374	3336296	sv	Marzahn-Hellersdorf						
+1381168	3336297		Bezirk Schöneberg						
+1381169	3336297		Bezirk Tempelhof						
+1381170	3336298		Bezirk Köpenick						
+1381171	3336298		Bezirk Treptow						
 5726992	3336894		Butjadingen						
 9346299	3336894	fy	Bûtjadingen						
 16246472	3336894	de	Butjadingen						
@@ -134689,6 +134787,30 @@
 9484863	6690189	fr	Stuttgart	1					
 2426089	6691733	de	Busendorf		1				
 2697887	6930256	de	Gorgast Schäferei						
+3074504	6947478	de	Chorweiler		1				
+9138963	6947478	de	Köln-Chorweiler	1					
+9138964	6947478	en	Chorweiler, Cologne	1					
+8407271	6947479	de	Köln-Ehrenfeld						
+9138965	6947479	en	Ehrenfeld, Cologne	1					
+3074506	6947480	de	Kalk		1				
+8407273	6947480		Köln-Kalk						
+9138966	6947480	de	Köln-Kalk	1					
+9138967	6947480	en	Kalk, Cologne	1					
+3074509	6947481	de	Lindenthal		1				
+9138968	6947481	de	Köln-Lindenthal	1					
+9138969	6947481	en	Lindenthal, Cologne	1					
+3074505	6947482	de	Mülheim	1	1				
+9138970	6947482	en	Mülheim, Cologne	1					
+9138971	6947482	de	Köln-Mülheim	1					
+3074510	6947483	de	Nippes		1				
+9138972	6947483	de	Köln-Nippes	1					
+9138973	6947483	en	Nippes, Cologne	1					
+3074507	6947513	de	Porz		1				
+9138974	6947513	de	Köln-Porz	1					
+9138975	6947513	en	Porz, Cologne	1					
+2729095	6947544	en	Innenstadt, Cologne	1					
+9138959	6947544	de	Köln-Innenstadt	1					
+9138960	6947544	fr	Innenstadt, Cologne	1					
 7825601	7284571	de	Eisleben						
 10261789	7284571	de	Lutherstadt Eisleben	1					
 10261791	7284571	de	Eißleben [a. 1650]				1		
@@ -137187,10 +137309,44 @@
 16324647	12041346	hsb	Serbske Pawlecy						
 16324683	12041347	hsb	Čerwjene Noslicy						
 16324687	12041348	hsb	Nowe Město						
+16339628	12047199		Rödergrund/Egelmes						
 16385738	12069835		Alt-Lechtern						
 16388048	12070614		Ohrnbach						
 16388064	12070616		Schloss Philippseich						
 16388090	12070621		Schloss-Nauses						
+16558036	12136228	de	Stadtbezirk Mitte						
+16558037	12136228	de	Mitte	1					
+16558040	12136230	de	Stadtbezirk Süd						
+16558041	12136230	de	Süd						
+16558042	12136231	de	Stadtbezirk Ost						
+16558043	12136231	de	Ost						
+16558044	12136232	de	Stadtbezirk West						
+16558045	12136232	de	West						
+16558046	12136233	de	Stadtbezirk Nord						
+16558047	12136233	de	Nord						
+16571817	12144768	de	Burglesum						
+16571818	12144768	de	Stadtteil Burglesum						
+16581425	12144768	nds	Borgleessem						
+16571819	12144769	de	Findorff						
+16571820	12144769	de	Stadtteil Findorff						
+16571821	12144770	de	Häfen						
+16571822	12144770	de	Stadtteil Häfen						
+16571823	12144771	de	Mitte						
+16571824	12144771	de	Stadtteil Mitte						
+16571825	12144772	de	Obervieland						
+16571826	12144772	de	Stadtteil Obervieland						
+16571827	12144773	de	Östliche Vorstadt						
+16571828	12144773	de	Stadtteil Östliche Vorstadt						
+16571844	12144784	de	Mitte						
+16571845	12144784	de	Stadtteil Mitte						
+16571846	12144785	de	Schiffdorferdamm						
+16571847	12144785	de	Stadtteil Schiffdorferdamm						
+16571852	12144787	de	Fischereihafen						
+16571853	12144787	de	Stadtteil Fischereihafen						
+16571860	12144791	de	Stadtbezirk Nord						
+16571861	12144791	de	Nord						
+16571862	12144792	de	Stadtbezirk Süd						
+16571863	12144792	de	Süd						
 19247300	12166100	de	Siemz-Niendorf						
 19247301	12166100	sv	Siemz-Niendorf						
 19247302	12166100	nb	Siemz-Niendorf						
@@ -137219,6 +137375,9 @@
 20023930	12233393		Schöllenbach		1				
 16868600	12253549	de	Vossbäk						
 16869006	12253642	de	Drewelow Gut				1		
+19467039	12500859	de	Nordstadt						
+17799886	12501508	de	Münster-Mitte	1					
+17799887	12501508	de	Mitte		1				
 17507957	12534970	de	Groß Kiesow Meierei				1		
 19782793	13136465	de	Werder						
 19782801	13136473	de	Dorf Jörnstorf						

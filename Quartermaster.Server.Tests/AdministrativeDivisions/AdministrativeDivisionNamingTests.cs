@@ -11,7 +11,7 @@ public class AdministrativeDivisionNamingTests {
         var list = divisions
             .Select(d => new AdministrativeDivision { Name = d.Name, Depth = d.Depth, AdminCode = d.AdminCode })
             .ToList();
-        var origins = divisions.ToDictionary(d => d.AdminCode, d => new AdministrativeDivisionOrigin(d.GeoNameId, d.Name));
+        var origins = divisions.ToDictionary(d => d.AdminCode, d => new AdministrativeDivisionOrigin(d.GeoNameId, d.Name, false));
         return new AdministrativeDivisionParseResult(list, origins);
     }
 

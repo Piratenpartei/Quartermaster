@@ -125,6 +125,21 @@ public class AdministrativeDivisionSearchEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task City_district_is_found_by_its_name_and_told_apart_by_designator() {
+        Builder.SeedAdminDivision("Stadtbezirk Neustadt", depth: 8);
+        Builder.SeedAdminDivision("Bezirk Pankow", depth: 8);
+        Builder.SeedAdminDivision("Neustadt", depth: 8);
+
+        var plain = await Search("Neustadt");
+        var district = await Search("Stadtbezirk Neustadt");
+        var berlin = await Search("Pankow");
+
+        await Assert.That(plain.Items.Select(i => i.Name)).IsEquivalentTo(["Neustadt", "Stadtbezirk Neustadt"]);
+        await Assert.That(district.Items.Select(i => i.Name)).IsEquivalentTo(["Stadtbezirk Neustadt"]);
+        await Assert.That(berlin.Items.Select(i => i.Name)).IsEquivalentTo(["Bezirk Pankow"]);
+    }
+
+    [Test]
     public async Task Exact_matches_rank_before_typos_and_higher_levels_first() {
         Builder.SeedAdminDivision("Hildesheim", depth: 8);
         Builder.SeedAdminDivision("Hildesheim", depth: 7);

@@ -586,6 +586,8 @@ Municipalities and postcodes come from GeoNames (CC BY 4.0) and ship as three fi
 - `DE_PostCodes.txt`: `DE.txt` from https://download.geonames.org/export/zip/DE.zip
 - `DE_AlternateNames.txt`: `DE.txt` from https://download.geonames.org/export/dump/alternatenames/DE.zip (optional)
 
+The import takes the Länder, Regierungsbezirke, Kreise and Gemeinden, the city districts of the larger cities (GeoNames ADM5: the Berlin Bezirke and the Stadtbezirke of Dresden, Köln, München and others) and the localities of each Gemeinde. A city district is named "Stadtbezirk X" unless its GeoNames name already says "Bezirk", so it is told apart from a locality of the same name (Stadtbezirk Pieschen and the Ortsteil Pieschen).
+
 On startup and then daily the server hashes the files and imports them when they changed. Renamed units are updated in place; a removed unit is replaced by the unit that now holds its postcode (or its parent), and members and chapters pointing at it move along; units without a replacement are marked orphaned. The import history is under System, Import status. German municipal reforms mostly take effect on 1 January, so refresh the files early in the year.
 
 The license requires naming GeoNames as the source: the "Sources & licenses" page (`/Attributions#geonames`, linked from the footer) does that, and the municipality search links to it.

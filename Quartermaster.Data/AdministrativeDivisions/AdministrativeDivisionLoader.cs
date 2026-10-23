@@ -27,9 +27,9 @@ public static class AdministrativeDivisionLoader {
             if (adminDiv == null)
                 continue;
 
-            // Skip PPLs whose source row carries no Admin4 code: they'd be parented straight under the
+            // Skip places and city districts whose source row carries no Admin4 code: they'd be parented straight under the
             // state with an AdminCode like "-1+Name", and they have no postcode to be useful anywhere.
-            if (adminDiv.IsPPL && adminDiv.Admin4 == -1)
+            if (adminDiv.Level == AdminLevel.Other && adminDiv.Admin4 == -1)
                 continue;
 
             if (!loadedDivisions.ContainsKey(adminDiv.CountryCode)) {
@@ -113,7 +113,7 @@ public static class AdministrativeDivisionLoader {
         foreach (var adminDiv in loadedDivisions.Values.OrderBy(ad => ad.Level)) {
             loadedDivisions.TryGetValue(adminDiv.GetParentAdminCode(), out var parent);
             if (adminDiv.GeoNameId != 0)
-                origins[adminDiv.GetAdminCode()] = new AdministrativeDivisionOrigin(adminDiv.GeoNameId, adminDiv.Names[0]);
+                origins[adminDiv.GetAdminCode()] = new AdministrativeDivisionOrigin(adminDiv.GeoNameId, adminDiv.Names[0], adminDiv.IsDistrict);
 
             bulkData.Add(new AdministrativeDivision {
                 Id = adminDiv.Id,
@@ -158,6 +158,9 @@ public static class AdministrativeDivisionLoader {
 }
 
 internal class AdminDivision {
+    private const string DistrictCode = "ADM5";
+    private static readonly HashSet<string> AdminCodes = ["ADM1", "ADM2", "ADM3", "ADM4", DistrictCode];
+
     public static readonly AdminDivision World = new() {
         CountryCode = "World",
         Level = AdminLevel.World,
@@ -182,6 +185,7 @@ internal class AdminDivision {
     public int Admin4 { get; set; } = -1;
 
     public bool IsPPL { get; set; }
+    public bool IsDistrict { get; set; }
 
     internal string GetAdminCode(AdminLevel level) {
         return level switch {
@@ -202,14 +206,15 @@ internal class AdminDivision {
         var split = str.Split('\t');
         var code = split[7];
 
-        if (code != "ADM1" && code != "ADM2" && code != "ADM3" && code != "ADM4" && code != "PPL" && !code.StartsWith("PPLA"))
+        if (!IsLoadedFeature(code))
             return null;
 
         var adminDiv = new AdminDivision();
         if (int.TryParse(split[0], out var geoNameId))
             adminDiv.GeoNameId = geoNameId;
 
-        adminDiv.Names.Add(split[1]);
+        adminDiv.IsDistrict = code == DistrictCode;
+        adminDiv.Names.Add(adminDiv.IsDistrict ? DistrictName(split[1]) : split[1]);
         adminDiv.Names.AddRange(split[3].Split(',', StringSplitOptions.RemoveEmptyEntries));
 
         adminDiv.CountryCode = split[8];
@@ -256,12 +261,27 @@ internal class AdminDivision {
 
         adminDiv.IsPPL = code == "PPL" || code.StartsWith("PPLA");
 
-        if (adminDiv.IsPPL) {
+        if (adminDiv.IsPPL || adminDiv.IsDistrict) {
             adminDiv.ParentLevel = adminDiv.Level;
             adminDiv.Level = AdminLevel.Other;
         }
 
         return adminDiv;
+    }
+
+    private static bool IsLoadedFeature(string code) {
+        if (AdminCodes.Contains(code))
+            return true;
+
+        return code == "PPL" || code.StartsWith("PPLA");
+    }
+
+    /// <summary>A city district can share its name with a place in the same city (Stadtbezirk Pieschen, Ortsteil Pieschen).</summary>
+    private static string DistrictName(string name) {
+        if (name.Contains("bezirk", StringComparison.OrdinalIgnoreCase))
+            return name;
+
+        return "Stadtbezirk " + name;
     }
 }
 

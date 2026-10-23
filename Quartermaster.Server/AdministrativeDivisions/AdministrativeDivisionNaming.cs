@@ -8,7 +8,8 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 /// <summary>
 /// Collects every name of a division from GeoNames and GV100AD and picks the one shown. GeoNames gives some divisions an English
 /// or Sorbian main name ("Upper Franconia", "Wokrejs Sprjewja-Nysa"); its preferred German name, and for Regierungsbezirke the
-/// GV100AD name, replaces it. The Länder keep the short name the loader picked ("Hamburg" rather than "Freie und Hansestadt Hamburg").
+/// GV100AD name, replaces it. The Länder keep the short name the loader picked ("Hamburg" rather than "Freie und Hansestadt Hamburg"),
+/// city districts their "Stadtbezirk" name, so they are not shown like the place of the same name.
 /// </summary>
 public static class AdministrativeDivisionNaming {
     public const int StateDepth = 4;
@@ -32,7 +33,7 @@ public static class AdministrativeDivisionNaming {
 
             var own = alternatesById.GetValueOrDefault(origin.GeoNameId) ?? [];
             var official = officialNames.GetValueOrDefault((division.Depth, division.AdminCode.TrimStart('0')));
-            var shown = ShownName(division.Depth, own, official);
+            var shown = origin.IsDistrict ? null : ShownName(division.Depth, own, official);
             if (shown != null)
                 division.Name = shown;
 

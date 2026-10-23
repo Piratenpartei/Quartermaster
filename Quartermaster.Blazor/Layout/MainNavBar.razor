@@ -116,6 +116,9 @@
                             <DropdownContent>
                                 <li><a class="dropdown-item" href="/Administration/AdministrativeDivisions">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsSearch]</a></li>
                                 <li><a class="dropdown-item" href="/Administration/AdministrativeDivisionTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsTree]</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersList]</a></li>
+                                <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersTree]</a></li>
                             </DropdownContent>
                         </NavMenuDropdown>
                     </li>
@@ -138,9 +141,6 @@
                                 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageRoles">
                                     <li><a class="dropdown-item" href="/Administration/Roles">@I18n[I18nKey.Ui.MainNavBar.SystemRoles]</a></li>
                                 </RequirePermission>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.SystemChaptersList]</a></li>
-                                <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.SystemChaptersTree]</a></li>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ViewOfficers">
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="/Administration/ChapterOfficers">@I18n[I18nKey.Ui.MainNavBar.SystemChapterOfficers]</a></li>

@@ -160,6 +160,33 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Import_adds_city_districts_beside_places_of_the_same_name() {
+        WriteFiles(
+            [
+                BaseLine(1, "Sachsen", "", "ADM1", 13),
+                BaseLine(2, "Kreisfreie Stadt Dresden", "", "ADM3", 13, 0, 14612),
+                BaseLine(3, "Dresden", "", "ADM4", 13, 0, 14612, 14612000),
+                BaseLine(4, "Pieschen", "", "PPLX", 13, 0, 14612, 14612000),
+                BaseLine(5, "Pieschen", "", "PPL", 13, 0, 14612, 14612000),
+                BaseLine(6, "Pieschen", "", "ADM5", 13, 0, 14612, 14612000),
+                BaseLine(7, "Bezirk Neustadt", "", "ADM5", 13, 0, 14612, 14612000),
+            ],
+            [PostcodeLine("01127", "Dresden", 14612)]);
+        WriteAlternateNames(AlternateLine(6, "de", "Dresden-Pieschen", preferred: true));
+
+        var log = _service.Import(_tempDir);
+
+        var dresden = _context.AdministrativeDivisions.Single(d => d.AdminCode == "14612000");
+        var children = _context.AdministrativeDivisions
+            .Where(d => d.ParentId == dresden.Id)
+            .ToList();
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(children.Select(d => d.Name)).IsEquivalentTo(["Pieschen", "Stadtbezirk Pieschen", "Bezirk Neustadt"]);
+        await Assert.That(children.All(d => d.Depth == 8)).IsTrue();
+        await Assert.That(children.Single(d => d.Name == "Stadtbezirk Pieschen").PostCodes).IsEqualTo("1127");
+    }
+
+    [Test]
     public async Task Changed_alternate_names_replace_the_stored_ones() {
         WriteInitialFiles();
         WriteAlternateNames(AlternateLine(6, "hsb", "Wedemarkojce"));

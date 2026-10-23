@@ -27,6 +27,14 @@ public class DivisionNameTokenizerTests {
     }
 
     [Test]
+    public async Task City_district_words_are_designators() {
+        var tokens = DivisionNameTokenizer.Tokenize("Stadtbezirk Neustadt");
+
+        await Assert.That(tokens.Core).IsEquivalentTo(["neustadt"]);
+        await Assert.That(tokens.Designators).IsEquivalentTo(["stadtbezirk"]);
+    }
+
+    [Test]
     public async Task A_name_of_designators_only_keeps_them_as_its_name() {
         var tokens = DivisionNameTokenizer.Tokenize("Stadt");
 

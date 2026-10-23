@@ -9,7 +9,7 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 /// <summary>Splits division names and search terms into comparable words: lowercase, umlauts and accents dropped, punctuation ignored.</summary>
 public static class DivisionNameTokenizer {
     private static readonly HashSet<string> DesignatorWords = [
-        "landkreis", "kreis", "kreisfreie", "kreisstadt", "stadt", "stadtkreis", "regierungsbezirk", "region", "regionalverband",
+        "landkreis", "kreis", "kreisfreie", "kreisstadt", "stadt", "stadtkreis", "regierungsbezirk", "stadtbezirk", "bezirk", "region", "regionalverband",
         "samtgemeinde", "verbandsgemeinde", "verwaltungsgemeinschaft", "gemeinde", "amt", "markt", "flecken", "landeshauptstadt",
         "hansestadt", "hanse", "universitatsstadt", "wissenschaftsstadt", "freie", "und", "district", "municipality"
     ];

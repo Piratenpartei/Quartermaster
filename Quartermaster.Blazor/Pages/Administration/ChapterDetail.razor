@@ -126,9 +126,11 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">@I18n[I18nKey.Ui.ChapterDetail.BoardSection]</h5>
-                <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-success">
-                    <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.Common.Add]
-                </a>
+                <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditOfficers">
+                    <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.Common.Add]
+                    </a>
+                </RequirePermission>
             </div>
             @if (Detail.Officers.Count > 0) {
                 <div class="table-responsive">
