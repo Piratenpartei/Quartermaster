@@ -14,9 +14,5 @@
         </h5>
         <a href="@AllUrl" class="btn btn-sm btn-outline-secondary">@I18n[I18nKey.Ui.DashboardCard.ShowAll]</a>
     </div>
-    @if (IsEmpty) {
-        <div class="card-body text-secondary">@EmptyMessage</div>
-    } else {
-        @ChildContent
-    }
+    @ChildContent
 </div>

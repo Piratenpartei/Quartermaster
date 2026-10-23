@@ -609,13 +609,10 @@
   "ui.home.heading": "Quartermaster",
   "ui.home.intro": "Der Quartermaster ist ein Werkzeug der Piratenpartei für Verwaltungsaufgaben und allerlei andere Dinge rund um die Partei.",
   "ui.home.pending_applications_title": "Offene Mitgliedsanträge",
-  "ui.home.pending_applications_empty": "Keine offenen Anträge.",
   "ui.home.submitted_column": "Eingereicht",
   "ui.home.pending_due_selections_title": "Offene Beitragseinstufungen",
-  "ui.home.pending_due_selections_empty": "Keine offenen Einstufungen.",
   "ui.home.selected_fee_column": "Gewählter Beitrag",
   "ui.home.open_motions_title": "Offene Anträge",
-  "ui.home.open_motions_empty": "Keine offenen Anträge.",
   "ui.home.upcoming_events_title": "Kommende Veranstaltungen",
   "ui.home.upcoming_event_date_open": "Termin offen",
 

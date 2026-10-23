@@ -609,13 +609,10 @@
   "ui.home.heading": "Quartermaster",
   "ui.home.intro": "Quartermaster is a Pirate Party tool for administrative work and all sorts of other tasks around the party.",
   "ui.home.pending_applications_title": "Pending membership applications",
-  "ui.home.pending_applications_empty": "No pending applications.",
   "ui.home.submitted_column": "Submitted",
   "ui.home.pending_due_selections_title": "Pending due selections",
-  "ui.home.pending_due_selections_empty": "No pending selections.",
   "ui.home.selected_fee_column": "Selected fee",
   "ui.home.open_motions_title": "Open motions",
-  "ui.home.open_motions_empty": "No open motions.",
   "ui.home.upcoming_events_title": "Upcoming events",
   "ui.home.upcoming_event_date_open": "Date to be announced",
 

@@ -28,19 +28,7 @@ public partial class DashboardCard {
     public string AllUrl { get; set; } = "";
 
     /// <summary>
-    /// Whether the widget should show its empty state instead of the table content.
-    /// </summary>
-    [Parameter]
-    public bool IsEmpty { get; set; }
-
-    /// <summary>
-    /// Empty-state message shown when <see cref="IsEmpty"/> is true.
-    /// </summary>
-    [Parameter]
-    public string EmptyMessage { get; set; } = "";
-
-    /// <summary>
-    /// Table or other content rendered inside the card body when not empty.
+    /// Table or other content rendered inside the card body.
     /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

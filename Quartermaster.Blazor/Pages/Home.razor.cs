@@ -54,6 +54,6 @@ public partial class Home : IDisposable {
         if (Dashboard == null)
             return false;
 
-        return Dashboard.OpenMotions != null || Dashboard.PendingApplications != null || Dashboard.PendingDueSelections != null;
+        return Dashboard.OpenMotions?.Items.Count > 0 || Dashboard.PendingApplications?.Items.Count > 0 || Dashboard.PendingDueSelections?.Items.Count > 0;
     }
 }

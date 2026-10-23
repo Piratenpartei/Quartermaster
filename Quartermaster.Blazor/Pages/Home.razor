@@ -18,8 +18,7 @@
         <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionEvents]</h2>
         <DashboardCard Icon="bi-calendar-event"
                        Title="@I18n[I18nKey.Ui.Home.UpcomingEventsTitle]"
-                       AllUrl="/Events"
-                       IsEmpty="false">
+                       AllUrl="/Events">
             <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
                 <thead>
@@ -65,13 +64,11 @@
     @if (HasOpenItems()) {
         <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionOpenItems]</h2>
     }
-    @if (Dashboard.OpenMotions != null) {
+    @if (Dashboard.OpenMotions?.Items.Count > 0) {
         <DashboardCard Icon="bi-file-text"
                        Title="@I18n[I18nKey.Ui.Home.OpenMotionsTitle]"
                        TotalCount="@Dashboard.OpenMotions.TotalCount"
-                       AllUrl="/Administration/Motions"
-                       IsEmpty="@(Dashboard.OpenMotions.Items.Count == 0)"
-                       EmptyMessage="@I18n[I18nKey.Ui.Home.OpenMotionsEmpty]">
+                       AllUrl="/Administration/Motions">
             <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
                 <thead>
@@ -95,13 +92,11 @@
         </DashboardCard>
     }
 
-    @if (Dashboard.PendingApplications != null) {
+    @if (Dashboard.PendingApplications?.Items.Count > 0) {
         <DashboardCard Icon="bi-person-plus"
                        Title="@I18n[I18nKey.Ui.Home.PendingApplicationsTitle]"
                        TotalCount="@Dashboard.PendingApplications.TotalCount"
-                       AllUrl="/Administration/MembershipApplications"
-                       IsEmpty="@(Dashboard.PendingApplications.Items.Count == 0)"
-                       EmptyMessage="@I18n[I18nKey.Ui.Home.PendingApplicationsEmpty]">
+                       AllUrl="/Administration/MembershipApplications">
             <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
                 <thead>
@@ -125,13 +120,11 @@
         </DashboardCard>
     }
 
-    @if (Dashboard.PendingDueSelections != null) {
+    @if (Dashboard.PendingDueSelections?.Items.Count > 0) {
         <DashboardCard Icon="bi-currency-euro"
                        Title="@I18n[I18nKey.Ui.Home.PendingDueSelectionsTitle]"
                        TotalCount="@Dashboard.PendingDueSelections.TotalCount"
-                       AllUrl="/Administration/DueSelections"
-                       IsEmpty="@(Dashboard.PendingDueSelections.Items.Count == 0)"
-                       EmptyMessage="@I18n[I18nKey.Ui.Home.PendingDueSelectionsEmpty]">
+                       AllUrl="/Administration/DueSelections">
             <div class="table-responsive">
             <table class="table table-striped table-hover mb-0">
                 <thead>

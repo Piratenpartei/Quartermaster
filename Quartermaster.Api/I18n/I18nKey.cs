@@ -877,13 +877,10 @@ public static class I18nKey {
             public const string Heading = "ui.home.heading";
             public const string Intro = "ui.home.intro";
             public const string PendingApplicationsTitle = "ui.home.pending_applications_title";
-            public const string PendingApplicationsEmpty = "ui.home.pending_applications_empty";
             public const string SubmittedColumn = "ui.home.submitted_column";
             public const string PendingDueSelectionsTitle = "ui.home.pending_due_selections_title";
-            public const string PendingDueSelectionsEmpty = "ui.home.pending_due_selections_empty";
             public const string SelectedFeeColumn = "ui.home.selected_fee_column";
             public const string OpenMotionsTitle = "ui.home.open_motions_title";
-            public const string OpenMotionsEmpty = "ui.home.open_motions_empty";
             public const string UpcomingEventsTitle = "ui.home.upcoming_events_title";
             public const string UpcomingEventDateOpen = "ui.home.upcoming_event_date_open";
             public const string SectionEvents = "ui.home.section_events";
