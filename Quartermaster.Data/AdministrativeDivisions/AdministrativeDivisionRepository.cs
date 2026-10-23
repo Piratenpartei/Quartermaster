@@ -97,6 +97,20 @@ public class AdministrativeDivisionRepository {
             .ToList();
     }
 
+    /// <summary>Municipalities by their official key (AGS, 8 digits); our admin codes may lack the leading zero.</summary>
+    public Dictionary<string, AdministrativeDivision> GetMunicipalitiesByKey(IEnumerable<string> keys) {
+        var padded = keys.Distinct().ToList();
+        var codes = padded
+            .Concat(padded.Select(k => k.TrimStart('0')))
+            .Distinct()
+            .ToList();
+        return _context.AdministrativeDivisions
+            .Where(d => d.Depth == MunicipalityDepth && codes.Contains(d.AdminCode!))
+            .ToList()
+            .GroupBy(d => d.AdminCode!.PadLeft(8, '0'))
+            .ToDictionary(g => g.Key, g => g.First());
+    }
+
     public MunicipalityAssociation? GetAssociation(string key) {
         return _context.MunicipalityAssociations.FirstOrDefault(a => a.Key == key);
     }

@@ -54,6 +54,7 @@ public static class TemplateEnvelopePdfRenderer {
                         .PaddingLeft(AddressLeftMm, Unit.Millimetre)
                         .Column(rec => {
                             AddLine(rec, envelope.RecipientName);
+                            AddLine(rec, envelope.RecipientAddition);
                             AddLine(rec, envelope.RecipientStreet);
                             AddLine(rec, JoinNonEmpty(" ", envelope.RecipientPostcode, envelope.RecipientCity));
                             AddLine(rec, envelope.RecipientCountry);

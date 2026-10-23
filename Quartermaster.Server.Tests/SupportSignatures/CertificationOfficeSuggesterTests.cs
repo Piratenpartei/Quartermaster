@@ -33,6 +33,49 @@ public class CertificationOfficeSuggesterTests : RepositoryTestBase {
         return office;
     }
 
+    private AdministrativeDivision Coded(string name, string adminCode) {
+        var division = new AdministrativeDivision { Name = name, Depth = 7, AdminCode = adminCode, MunicipalityAssociationKey = "033515403" };
+        Db.Insert(division);
+        return division;
+    }
+
+    private void OfficialLachendorf(params string[] keys) {
+        OfficialOfficeSync.Apply(Db, [
+            new OfficialOfficeEntry("03351|Samtgemeinde Lachendorf", "Samtgemeinde Lachendorf", "Oppershäuser Straße 1", "29331", "Lachendorf", "info@lachendorf.de", keys)
+        ]);
+    }
+
+    [Test]
+    public async Task Official_directory_prefills_name_address_and_all_members() {
+        var ahnsbeck = Coded("Ahnsbeck", "3351002");
+        var lachendorf = Coded("Lachendorf", "3351016");
+        OfficialLachendorf("03351002", "03351016");
+
+        var suggestion = _suggester.Suggest(ahnsbeck.Id)!;
+
+        await Assert.That(suggestion.ExistingOfficeId).IsNull();
+        await Assert.That(suggestion.FromOfficialDirectory).IsTrue();
+        await Assert.That(suggestion.SuggestedName).IsEqualTo("Samtgemeinde Lachendorf");
+        await Assert.That(suggestion.Street).IsEqualTo("Oppershäuser Straße 1");
+        await Assert.That(suggestion.PostCode).IsEqualTo("29331");
+        await Assert.That(suggestion.Email).IsEqualTo("info@lachendorf.de");
+        await Assert.That(suggestion.Municipalities.Select(m => m.Id).ToList()).IsEquivalentTo([ahnsbeck.Id, lachendorf.Id]);
+    }
+
+    [Test]
+    public async Task Official_member_offers_the_custom_office_a_fellow_member_has() {
+        var ahnsbeck = Coded("Ahnsbeck", "3351002");
+        var lachendorf = Coded("Lachendorf", "3351016");
+        OfficialLachendorf("03351002", "03351016");
+        var custom = Office("Samtgemeinde Lachendorf", lachendorf.Id);
+
+        var suggestion = _suggester.Suggest(ahnsbeck.Id)!;
+
+        await Assert.That(suggestion.ExistingOfficeId).IsEqualTo(custom.Id);
+        await Assert.That(suggestion.FromOfficialDirectory).IsFalse();
+        await Assert.That(suggestion.Municipalities.Select(m => m.Id).ToList()).IsEquivalentTo([ahnsbeck.Id]);
+    }
+
     [Test]
     public async Task Municipality_with_office_returns_it() {
         var ahnsbeck = Municipality("Ahnsbeck", "033515403");

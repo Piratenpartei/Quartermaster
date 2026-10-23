@@ -8,6 +8,7 @@ public static class CertificationOfficeForm {
         return new CertificationOfficeSaveRequest {
             Id = office.Id,
             Name = office.Name,
+            AddressAddition = office.AddressAddition,
             Street = office.Street,
             PostCode = office.PostCode,
             City = office.City,

@@ -26,6 +26,9 @@ public class AdminDivisionImportService {
 
     public bool HasCompletedInitialLoad => _initialLoadTcs.Task.IsCompletedSuccessfully;
 
+    /// <summary>The hash of the files of the last successful import; null before it.</summary>
+    public string? LastFileHash => _lastFileHash;
+
     /// <summary>Completes when the first <see cref="Import"/> call returns (success or failure).</summary>
     public Task InitialLoadCompleted => _initialLoadTcs.Task;
 

@@ -32,7 +32,7 @@ public static class TemplateMockDataProvider {
                 case "SupportSignatureLetterModel":
                     data["letter"] = new SupportSignatureLetterModel {
                         Campaign = new SupportSignatureLetterCampaign { Name = "Landesliste Landtagswahl 2027", Deadline = "31.05.2027" },
-                        Office = new SupportSignatureLetterOffice { Name = "Samtgemeinde Lachendorf", Street = "Oppershäuser Straße 1", PostCode = "29331", City = "Lachendorf" },
+                        Office = new SupportSignatureLetterOffice { Name = "Samtgemeinde Lachendorf", Addition = "Wahlamt", Street = "Oppershäuser Straße 1", PostCode = "29331", City = "Lachendorf" },
                         Lines = [
                             new SupportSignatureLetterLine { Municipality = "Ahnsbeck", Count = 12 },
                             new SupportSignatureLetterLine { Municipality = "Lachendorf", Count = 7 }

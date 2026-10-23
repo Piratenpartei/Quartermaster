@@ -1,9 +1,14 @@
 @using Quartermaster.Api.I18n
 
 <div class="row g-2">
-    <div class="col-12">
+    <div class="col-12 col-md-6">
         <label class="form-label small mb-0" for="office-name-@_id">@I18n[I18nKey.Ui.SupportSignatures.OfficeName]</label>
         <input id="office-name-@_id" class="form-control form-control-sm" maxlength="200" @bind="Request.Name" />
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label small mb-0" for="office-addition-@_id">@I18n[I18nKey.Ui.SupportSignatures.AddressAddition]</label>
+        <input id="office-addition-@_id" class="form-control form-control-sm" maxlength="200" placeholder="@I18n[I18nKey.Ui.SupportSignatures.AddressAdditionPlaceholder]"
+               @bind="Request.AddressAddition" />
     </div>
     <div class="col-12 col-md-6">
         <label class="form-label small mb-0" for="office-street-@_id">@I18n[I18nKey.Ui.SupportSignatures.Street]</label>

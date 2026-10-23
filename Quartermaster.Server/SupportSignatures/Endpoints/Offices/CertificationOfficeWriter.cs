@@ -36,6 +36,7 @@ public class CertificationOfficeWriter {
         var office = new CertificationOffice {
             Id = existingId ?? Guid.NewGuid(),
             Name = request.Name.Trim(),
+            AddressAddition = Clean(request.AddressAddition),
             Street = request.Street.Trim(),
             PostCode = request.PostCode.Trim(),
             City = request.City.Trim(),

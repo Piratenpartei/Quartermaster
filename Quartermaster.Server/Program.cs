@@ -205,6 +205,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionExportBuilder>();
 
         builder.Services.AddSingleton<AdminDivisionImportService>();
+        builder.Services.AddSingleton<AdministrationAddressImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 
         builder.Services.AddSingleton<MemberImportService>();
@@ -238,6 +239,7 @@ public partial class Program {
         builder.Services.AddSingleton<SupportSignatures.SupportSignatureFormStorage>();
         builder.Services.AddScoped<SupportSignatures.CertificationOfficeSuggester>();
         builder.Services.AddScoped<SupportSignatures.Endpoints.Offices.CertificationOfficeWriter>();
+        builder.Services.AddScoped<SupportSignatures.CustomOfficeImporter>();
         builder.Services.AddScoped<AssemblyMotions.OpenSlides.AssemblyMotionOpenSlidesPush>();
 
         builder.Services.AddSingleton<AssemblyAssistant.Mumble.IMumbleConnectionFactory, AssemblyAssistant.Mumble.MumbleConnectionFactory>();

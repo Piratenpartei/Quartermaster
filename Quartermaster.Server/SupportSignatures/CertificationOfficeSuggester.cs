@@ -8,8 +8,9 @@ using Quartermaster.Data.SupportSignatures;
 namespace Quartermaster.Server.SupportSignatures;
 
 /// <summary>
-/// Suggests the office for a municipality: its own office, the office a fellow member of its Gemeindeverband already has,
-/// a new office for the Gemeindeverband with all members that have none yet, or else the municipality's own administration.
+/// Suggests the hand-entered office for a municipality: its own one, or the one a fellow municipality of the same administration
+/// already has, or else a new one. A new one is prefilled from the official address directory with all municipalities of that
+/// administration; without a directory entry it is named after the Gemeindeverband from GV100AD, or the municipality itself.
 /// </summary>
 public class CertificationOfficeSuggester {
     private static readonly Dictionary<int, string> _kindPrefixes = new() {
@@ -33,16 +34,41 @@ public class CertificationOfficeSuggester {
         if (municipality == null || municipality.Depth != AdministrativeDivisionRepository.MunicipalityDepth)
             return null;
 
-        var ownOffice = _offices.GetOfficeIdByMunicipality(municipalityId);
+        var ownOffice = _offices.GetCustomOfficeIdByMunicipality(municipalityId);
         if (ownOffice != null)
             return Suggestion(municipality, ownOffice, "", [municipality]);
+
+        var officialId = _offices.GetOfficialOfficeIdByMunicipality(municipalityId);
+        var official = officialId == null ? null : _offices.Get(officialId.Value);
+        if (official != null)
+            return FromOfficial(municipality, official);
 
         var association = AssociationCertifyingFor(municipality);
         if (association == null)
             return Suggestion(municipality, null, municipality.Name, [municipality]);
 
-        var members = _divisions.GetMunicipalitiesOfAssociation(association.Key);
-        var officeByMember = _offices.GetOfficeIdsByMunicipality(members.Select(m => m.Id));
+        return FromMembers(municipality, _divisions.GetMunicipalitiesOfAssociation(association.Key), OfficeName(association));
+    }
+
+    private OfficeSuggestionDTO FromOfficial(AdministrativeDivision municipality, CertificationOffice official) {
+        var members = _divisions.GetMany(_offices.GetOfficialMunicipalityIds(official.Id))
+            .OrderBy(d => d.Name)
+            .ToList();
+        var suggestion = FromMembers(municipality, members, official.Name);
+        if (suggestion.ExistingOfficeId != null)
+            return suggestion;
+
+        suggestion.Street = official.Street;
+        suggestion.PostCode = official.PostCode;
+        suggestion.City = official.City;
+        suggestion.Email = official.Email;
+        suggestion.FromOfficialDirectory = true;
+        return suggestion;
+    }
+
+    /// <summary>The hand-entered office the members already share, else a new one with all members that have none yet.</summary>
+    private OfficeSuggestionDTO FromMembers(AdministrativeDivision municipality, List<AdministrativeDivision> members, string name) {
+        var officeByMember = _offices.GetCustomOfficeIdsByMunicipality(members.Select(m => m.Id));
         var withoutOffice = members
             .Where(m => !officeByMember.ContainsKey(m.Id))
             .ToList();
@@ -50,7 +76,7 @@ public class CertificationOfficeSuggester {
 
         return siblingOffice.Count == 1
             ? Suggestion(municipality, siblingOffice[0], "", withoutOffice)
-            : Suggestion(municipality, null, OfficeName(association), withoutOffice);
+            : Suggestion(municipality, null, name, withoutOffice);
     }
 
     private MunicipalityAssociation? AssociationCertifyingFor(AdministrativeDivision municipality) {

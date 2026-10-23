@@ -192,7 +192,7 @@ public class SignatureShipmentService {
         var lines = _shipments.GetLines(shipments.Select(s => s.Id));
         var returns = _shipments.GetReturns(shipments.Select(s => s.Id));
         var returnLines = _shipments.GetReturnLines(returns.Select(r => r.Id));
-        var offices = _offices.List().ToDictionary(o => o.Id, o => o.Name);
+        var offices = _offices.GetMany(shipments.Select(s => s.OfficeId)).ToDictionary(o => o.Id, o => o.Name);
         var municipalityIds = lines
             .Select(l => l.AdministrativeDivisionId)
             .Distinct()

@@ -88,6 +88,7 @@ public class DbContext : DataConnection {
     public ITable<SignatureIntake> SignatureIntakes => this.GetTable<SignatureIntake>();
     public ITable<CertificationOffice> CertificationOffices => this.GetTable<CertificationOffice>();
     public ITable<CertificationOfficeMunicipality> CertificationOfficeMunicipalities => this.GetTable<CertificationOfficeMunicipality>();
+    public ITable<OfficialOfficeMunicipality> OfficialOfficeMunicipalities => this.GetTable<OfficialOfficeMunicipality>();
     public ITable<SignatureShipment> SignatureShipments => this.GetTable<SignatureShipment>();
     public ITable<SignatureShipmentLine> SignatureShipmentLines => this.GetTable<SignatureShipmentLine>();
     public ITable<SignatureReturn> SignatureReturns => this.GetTable<SignatureReturn>();

@@ -32,14 +32,24 @@ public class CoverLetterRendererTests : RepositoryTestBase {
         _renderer = new CoverLetterRenderer(_templates, new ChapterRepository(Db, AuditLog), Db);
     }
 
-    private Guid Shipment(string officeName, string municipalityName, int count) {
+    private Guid Shipment(string officeName, string municipalityName, int count, string? addition = null) {
         var municipality = new AdministrativeDivision { Name = municipalityName, Depth = 7 };
         Db.Insert(municipality);
-        var office = new CertificationOffice { Name = officeName, Street = "Am Markt 1", PostCode = "29331", City = "Lachendorf" };
+        var office = new CertificationOffice { Name = officeName, AddressAddition = addition, Street = "Am Markt 1", PostCode = "29331", City = "Lachendorf" };
         new CertificationOfficeRepository(Db).Create(office, [municipality.Id]);
         var shipment = new SignatureShipment { CampaignId = _campaign.Id, OfficeId = office.Id, CreatedAt = DateTime.UtcNow };
         new SignatureShipmentRepository(Db).Create(shipment, [new SignatureShipmentLine { AdministrativeDivisionId = municipality.Id, Count = count }]);
         return shipment.Id;
+    }
+
+    [Test]
+    public async Task Address_addition_goes_under_the_name() {
+        var shipment = Shipment("Stadt Salzgitter", "Salzgitter", 5, "Wahlbüro");
+
+        var (letters, _) = await _renderer.BuildAsync(_campaign, [shipment], CancellationToken.None);
+
+        await Assert.That(letters![0].Envelope.RecipientName).IsEqualTo("Stadt Salzgitter");
+        await Assert.That(letters[0].Envelope.RecipientAddition).IsEqualTo("Wahlbüro");
     }
 
     [Test]

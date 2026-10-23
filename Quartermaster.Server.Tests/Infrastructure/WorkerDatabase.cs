@@ -151,6 +151,7 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE SignatureIntakes;
             TRUNCATE TABLE SignatureCampaigns;
             TRUNCATE TABLE CertificationOfficeMunicipalities;
+            TRUNCATE TABLE OfficialOfficeMunicipalities;
             TRUNCATE TABLE CertificationOffices;
             TRUNCATE TABLE MunicipalityAssociations;
             SET FOREIGN_KEY_CHECKS = 1;

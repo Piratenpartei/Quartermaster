@@ -44,13 +44,14 @@ public class ShipmentPlanEndpoint : Endpoint<SignatureCampaignIdRequest, Shipmen
         var plan = _service.Plan(campaign.Id);
         var names = _divisions.GetMany(plan.Offices.SelectMany(o => o.Lines).Concat(plan.Unassigned).Select(l => l.MunicipalityId))
             .ToDictionary(d => d.Id, d => d.Name);
-        var officeNames = _offices.List().ToDictionary(o => o.Id, o => o.Name);
+        var offices = _offices.GetMany(plan.Offices.Select(o => o.OfficeId)).ToDictionary(o => o.Id);
 
         await SendAsync(new ShipmentPlanDTO {
             Offices = plan.Offices
                 .Select(o => new ShipmentPlanOfficeDTO {
                     OfficeId = o.OfficeId,
-                    OfficeName = officeNames.GetValueOrDefault(o.OfficeId, ""),
+                    OfficeName = offices.GetValueOrDefault(o.OfficeId)?.Name ?? "",
+                    IsOfficial = offices.GetValueOrDefault(o.OfficeId)?.IsOfficial == true,
                     Lines = o.Lines.Select(l => Line(l, names)).OrderBy(l => l.MunicipalityName).ToList()
                 })
                 .OrderBy(o => o.OfficeName)

@@ -236,6 +236,9 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | UU / Unterstützungsunterschrift | support signature | One signature on an official form |
 | Sammlung | campaign | One nomination with one target, e.g. the state list or a direct candidate |
 | Bestätigungsstelle | certification office | The office certifying the voting right, e.g. a Samtgemeinde administration |
+| Abweichende Anschrift | different address | A hand-entered office address that takes precedence over the official one |
+| Amtliche Anschrift | official address | The office address from the official address directory |
+| Zusatz | address addition | A line under the office name in the letter, e.g. "Wahlamt" |
 | Sendung | shipment | Forms sent to one office, with a cover letter |
 | Rücklauf | return | Forms coming back from an office, possibly in parts |
 | Wahlrecht schon bescheinigt | already certified | Forms the signer had certified before handing them in |

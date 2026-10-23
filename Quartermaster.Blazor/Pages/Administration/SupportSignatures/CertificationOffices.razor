@@ -11,15 +11,136 @@
     <a href="/Administration/SupportSignatures" class="small"><i class="bi bi-arrow-left me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.BackToList]</a>
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-2">
         <h3 class="mb-0">@I18n[I18nKey.Ui.SupportSignatures.OfficesTitle]</h3>
-        <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Editing != null)">
-            <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewOffice]
-        </button>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary" @onclick="OpenImport" disabled="@ImportOpen">
+                <i class="bi bi-upload me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.ImportCsv]
+            </button>
+            <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Editing != null)">
+                <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewOffice]
+            </button>
+        </div>
     </div>
     <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.OfficesIntro]</p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="fw-semibold mb-1">@I18n[I18nKey.Ui.SupportSignatures.LookupTitle]</div>
+            <MunicipalityPicker @key="LookupPickerKey" OnSelect="Lookup" />
+            @if (LookupMunicipality != null) {
+                <div class="mt-2">
+                    <div class="small text-secondary">@LookupMunicipality.Name</div>
+                    @if (LookupOffice == null) {
+                        <p class="mb-0">@I18n[I18nKey.Ui.SupportSignatures.LookupNone]</p>
+                    } else {
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                            <div>
+                                <span class="fw-semibold">@LookupOffice.Name</span>
+                                <span class="badge text-bg-light border ms-1">
+                                    @(LookupOffice.IsOfficial ? I18n[I18nKey.Ui.SupportSignatures.OfficialAddress] : I18n[I18nKey.Ui.SupportSignatures.CustomAddress])
+                                </span>
+                                @if (!string.IsNullOrEmpty(LookupOffice.AddressAddition)) {
+                                    <div>@LookupOffice.AddressAddition</div>
+                                }
+                                <div>@LookupOffice.Street, @LookupOffice.PostCode @LookupOffice.City</div>
+                                @if (!string.IsNullOrEmpty(LookupOffice.Email)) {
+                                    <div class="small text-secondary">@LookupOffice.Email</div>
+                                }
+                            </div>
+                            @if (LookupOffice.IsOfficial) {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="CreateFromLookup" disabled="@(Editing != null)">
+                                    <i class="bi bi-signpost-split me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.CreateCustomAddress]
+                                </button>
+                            } else {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="EditFromLookup" disabled="@(Editing != null)">
+                                    <i class="bi bi-pencil me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.EditOffice]
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ImportOpen) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="fw-semibold mb-1">@I18n[I18nKey.Ui.SupportSignatures.ImportCsv]</div>
+                <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.ImportIntro]</p>
+                <InputFile class="form-control form-control-sm mb-2" accept=".csv,text/csv" OnChange="SelectImportFile" disabled="@Busy" />
+                @if (ImportResult != null) {
+                    <div class="fw-semibold mt-3 mb-1">@I18n[I18nKey.Ui.SupportSignatures.ImportPreviewTitle]</div>
+                    <p class="mb-1">
+                        @I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.ImportSummary, ("rows", ImportResult.Rows.ToString()), ("same", ImportResult.SameAsOfficial.ToString()),
+                            ("entries", ImportResult.Entries.Count.ToString()), ("municipalities", ImportResult.Entries.Sum(e => e.Municipalities.Count).ToString()))]
+                    </p>
+                    @if (ImportResult.RemovedAssignments > 0) {
+                        <p class="mb-1">@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.ImportRemoved, ("count", ImportResult.RemovedAssignments.ToString()))]</p>
+                    }
+                    @if (ImportResult.Entries.Count > 0) {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle small">
+                                <thead>
+                                    <tr>
+                                        <th>@I18n[I18nKey.Ui.SupportSignatures.OfficeName]</th>
+                                        <th>@I18n[I18nKey.Ui.SupportSignatures.Address]</th>
+                                        <th>@I18n[I18nKey.Ui.SupportSignatures.OfficeMunicipalities]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var entry in ImportResult.Entries) {
+                                        <tr>
+                                            <td>
+                                                @entry.Name
+                                                @if (entry.IsNew) {
+                                                    <span class="badge text-bg-success ms-1">@I18n[I18nKey.Ui.SupportSignatures.ImportNew]</span>
+                                                }
+                                                @if (!string.IsNullOrEmpty(entry.AddressAddition)) {
+                                                    <div class="text-secondary">@entry.AddressAddition</div>
+                                                }
+                                            </td>
+                                            <td>@entry.Street, @entry.PostCode @entry.City</td>
+                                            <td>@string.Join(", ", entry.Municipalities)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    @if (ImportResult.UnknownKeys.Count > 0) {
+                        <div class="alert alert-warning small">
+                            <div class="fw-semibold">@I18n[I18nKey.Ui.SupportSignatures.ImportUnknownKeys]</div>
+                            @string.Join(", ", ImportResult.UnknownKeys)
+                        </div>
+                    }
+                    @if (ImportResult.Problems.Count > 0) {
+                        <div class="alert alert-warning small">
+                            <div class="fw-semibold">@I18n[I18nKey.Ui.SupportSignatures.ImportProblems]</div>
+                            <ul class="mb-0">
+                                @foreach (var problem in ImportResult.Problems) {
+                                    <li>@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.ImportLine, ("line", problem.Line.ToString()))]: @I18n[problem.ErrorKey]</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                }
+                <div class="mt-2">
+                    <button class="btn btn-primary" @onclick="ApplyImport" disabled="@(ImportResult == null || Busy)">@I18n[I18nKey.Ui.SupportSignatures.ImportApply]</button>
+                    <button class="btn btn-outline-secondary" @onclick="CloseImport">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (Editing != null) {
         <div class="card mb-3">
             <div class="card-body">
+                @if (Editing.Id == Guid.Empty) {
+                    <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.OfficePickFirstHint]</p>
+                }
+                @if (PrefilledFromOfficial) {
+                    <div class="alert alert-info small">@I18n[I18nKey.Ui.SupportSignatures.OfficialPrefillHint]</div>
+                }
                 <OfficeFields Request="@Editing" />
                 <div class="small mt-3 mb-1">@I18n[I18nKey.Ui.SupportSignatures.OfficeMunicipalities]</div>
                 <div class="d-flex flex-wrap gap-1 mb-2">
@@ -32,6 +153,12 @@
                     }
                 </div>
                 <MunicipalityPicker @key="PickerKey" OnSelect="AddMunicipality" />
+                @if (ResponsibleOffice != null) {
+                    <div class="alert alert-info small d-flex flex-wrap align-items-center gap-2">
+                        <span>@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.MunicipalityHasOffice, ("municipality", ResponsibleMunicipalityName), ("office", ResponsibleOffice.Name))]</span>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="EditResponsibleOffice">@I18n[I18nKey.Ui.SupportSignatures.EditOffice]</button>
+                    </div>
+                }
                 <button class="btn btn-primary" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
                 <button class="btn btn-outline-secondary" @onclick="() => Editing = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
             </div>
@@ -56,7 +183,12 @@
                 <tbody>
                     @foreach (var office in Offices) {
                         <tr>
-                            <td>@office.Name</td>
+                            <td>
+                                @office.Name
+                                @if (!string.IsNullOrEmpty(office.AddressAddition)) {
+                                    <div class="small text-secondary">@office.AddressAddition</div>
+                                }
+                            </td>
                             <td class="small">@office.Street, @office.PostCode @office.City</td>
                             <td class="small">@string.Join(", ", office.Municipalities.Select(m => m.Name))</td>
                             <td class="text-end text-nowrap">
@@ -70,4 +202,9 @@
             </table>
         </div>
     }
+
+    <p class="small text-secondary mt-3">
+        @I18n[I18nKey.Ui.SupportSignatures.DirectorySource]
+        <a href="/Attributions#destatis" class="link-secondary">@I18n[I18nKey.Ui.Footer.Attributions]</a>
+    </p>
 </RequirePermission>

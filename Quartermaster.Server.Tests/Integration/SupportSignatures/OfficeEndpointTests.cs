@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api;
@@ -120,5 +122,88 @@ public class OfficeEndpointTests : IntegrationTestBase {
         var suggestion = await holder.GetFromJsonAsync<OfficeSuggestionDTO>($"/api/support-signatures/offices/suggestion?municipalityId={ahnsbeck.Id}");
 
         await Assert.That(suggestion!.SuggestedName).IsEqualTo("Ahnsbeck");
+    }
+
+    private const string ImportFile =
+        "Gemeinde,Gemeindeschluessel,Amt,Zusatz,Strasse_HausNr,PLZ,Ort\n" +
+        "Salzgitter,03102000,Stadt Salzgitter,Wahlbüro,Joachim-Campe-Straße 6-8,38226,Salzgitter\n";
+
+    private CertificationOffice OfficialOffice(params Guid[] municipalityIds) {
+        var office = new CertificationOffice {
+            Name = "Kreisfreie Stadt Salzgitter",
+            Street = "Joachim-Campe-Straße 6 - 8",
+            PostCode = "38226",
+            City = "Salzgitter",
+            OfficialKey = "03102|Kreisfreie Stadt Salzgitter"
+        };
+        Db.Insert(office);
+        foreach (var municipalityId in municipalityIds) {
+            Db.Insert(new OfficialOfficeMunicipality { AdministrativeDivisionId = municipalityId, OfficeId = office.Id });
+        }
+        return office;
+    }
+
+    [Test]
+    public async Task Import_previews_first_and_stores_on_apply() {
+        using var holder = await HolderAsync();
+        Builder.SeedAdminDivision("Salzgitter", depth: 7, adminCode: "3102000");
+        var content = Encoding.UTF8.GetBytes(ImportFile);
+
+        var preview = await holder.PostAsJsonAsync("/api/support-signatures/offices/import", new OfficeImportRequest { Content = content });
+        var afterPreview = await holder.GetFromJsonAsync<List<CertificationOfficeDTO>>("/api/support-signatures/offices");
+        var applied = await holder.PostAsJsonAsync("/api/support-signatures/offices/import", new OfficeImportRequest { Content = content, Apply = true });
+        var afterApply = await holder.GetFromJsonAsync<List<CertificationOfficeDTO>>("/api/support-signatures/offices");
+
+        await Assert.That((await preview.Content.ReadFromJsonAsync<OfficeImportResultDTO>())!.Entries.Count).IsEqualTo(1);
+        await Assert.That(afterPreview).IsEmpty();
+        await Assert.That((await applied.Content.ReadFromJsonAsync<OfficeImportResultDTO>())!.Applied).IsTrue();
+        await Assert.That(afterApply!.Single().AddressAddition).IsEqualTo("Wahlbüro");
+    }
+
+    [Test]
+    public async Task Import_needs_the_permission_and_a_readable_file() {
+        var (_, plainToken) = Builder.SeedAuthenticatedUser();
+        using var plain = await AuthenticatedClientWithCsrfAsync(plainToken);
+        using var holder = await HolderAsync();
+
+        var forbidden = await plain.PostAsJsonAsync("/api/support-signatures/offices/import", new OfficeImportRequest { Content = Encoding.UTF8.GetBytes(ImportFile) });
+        var noColumns = await holder.PostAsJsonAsync("/api/support-signatures/offices/import", new OfficeImportRequest { Content = Encoding.UTF8.GetBytes("a,b\n1,2\n") });
+        var tooLarge = await holder.PostAsJsonAsync("/api/support-signatures/offices/import", new OfficeImportRequest { Content = new byte[OfficeImportRequest.MaxContentBytes + 1] });
+
+        await Assert.That(forbidden.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+        await Assert.That(noColumns.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await noColumns.Content.ReadAsStringAsync()).Contains(I18nKey.Error.SupportSignatures.OfficeImport.MissingColumns);
+        await Assert.That(tooLarge.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await tooLarge.Content.ReadAsStringAsync()).Contains(I18nKey.Error.SupportSignatures.OfficeImport.FileTooLarge);
+    }
+
+    [Test]
+    public async Task Official_office_is_read_only_and_not_listed() {
+        using var holder = await HolderAsync();
+        var office = OfficialOffice();
+
+        var update = await holder.PutAsJsonAsync($"/api/support-signatures/offices/{office.Id}", Request());
+        var delete = await holder.DeleteAsync($"/api/support-signatures/offices/{office.Id}");
+        var listed = await holder.GetFromJsonAsync<List<CertificationOfficeDTO>>("/api/support-signatures/offices");
+
+        await Assert.That(update.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await update.Content.ReadAsStringAsync()).Contains(I18nKey.Error.SupportSignatures.Office.Official);
+        await Assert.That(delete.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(listed).IsEmpty();
+    }
+
+    [Test]
+    public async Task Responsible_lookup_returns_the_office_forms_go_to() {
+        using var holder = await HolderAsync();
+        var salzgitter = Builder.SeedAdminDivision("Salzgitter", depth: 7);
+        var elsewhere = Builder.SeedAdminDivision("Nirgendwo", depth: 7);
+        OfficialOffice(salzgitter.Id);
+
+        var found = await holder.GetFromJsonAsync<CertificationOfficeDTO>($"/api/support-signatures/offices/responsible?municipalityId={salzgitter.Id}");
+        var missing = await holder.GetAsync($"/api/support-signatures/offices/responsible?municipalityId={elsewhere.Id}");
+
+        await Assert.That(found!.IsOfficial).IsTrue();
+        await Assert.That(found.Municipalities.Single().Name).IsEqualTo("Salzgitter");
+        await Assert.That(missing.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
 }

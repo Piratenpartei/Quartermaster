@@ -22,6 +22,7 @@ internal static class SystemTemplateSeeds {
             "{% comment %}Die Absenderanschrift trägt jede Gliederung in ihrer eigenen Fassung dieser Vorlage ein: dort envelope_sender_street, envelope_sender_postcode und envelope_sender_city mit der Anschrift füllen, an die die Formblätter zurückgehen sollen.{% endcomment %}" +
             "{% envelope_sender_name chapter.Name %}" +
             "{% envelope_recipient_name letter.Office.Name %}" +
+            "{% envelope_recipient_addition letter.Office.Addition %}" +
             "{% envelope_recipient_street letter.Office.Street %}" +
             "{% envelope_recipient_postcode letter.Office.PostCode %}" +
             "{% envelope_recipient_city letter.Office.City %}" +

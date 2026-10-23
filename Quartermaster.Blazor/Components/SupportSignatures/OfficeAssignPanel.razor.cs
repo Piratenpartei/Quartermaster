@@ -46,6 +46,10 @@ public partial class OfficeAssignPanel {
         }
         Request = new CertificationOfficeSaveRequest {
             Name = Suggestion.SuggestedName,
+            Street = Suggestion.Street,
+            PostCode = Suggestion.PostCode,
+            City = Suggestion.City,
+            Email = Suggestion.Email,
             MunicipalityIds = Suggestion.Municipalities.Select(m => m.Id).ToList()
         };
     }

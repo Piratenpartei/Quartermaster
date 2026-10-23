@@ -108,6 +108,17 @@ public static class I18nKey {
                 public const string NotAMunicipality = "error.support_signatures.office.not_a_municipality";
                 public const string MunicipalityTaken = "error.support_signatures.office.municipality_taken";
                 public const string HasShipments = "error.support_signatures.office.has_shipments";
+                public const string Official = "error.support_signatures.office.official";
+            }
+
+            public static class OfficeImport {
+                public const string Empty = "error.support_signatures.office_import.empty";
+                public const string FileTooLarge = "error.support_signatures.office_import.file_too_large";
+                public const string MissingColumns = "error.support_signatures.office_import.missing_columns";
+                public const string MissingField = "error.support_signatures.office_import.missing_field";
+                public const string FieldTooLong = "error.support_signatures.office_import.field_too_long";
+                public const string InvalidKey = "error.support_signatures.office_import.invalid_key";
+                public const string DuplicateKey = "error.support_signatures.office_import.duplicate_key";
             }
 
             public static class Campaign {
@@ -2445,6 +2456,7 @@ public static class I18nKey {
         }
 
         public static class Attributions {
+            public const string DestatisAddressesText = "ui.attributions.destatis_addresses_text";
             public const string PageTitle = "ui.attributions.page_title";
             public const string OwnLicense = "ui.attributions.own_license";
             public const string GeoNamesText = "ui.attributions.geonames_text";
@@ -2604,6 +2616,8 @@ public static class I18nKey {
             public const string AddToOffice = "ui.support_signatures.add_to_office";
             public const string AddRejection = "ui.support_signatures.add_rejection";
             public const string Address = "ui.support_signatures.address";
+            public const string AddressAddition = "ui.support_signatures.address_addition";
+            public const string AddressAdditionPlaceholder = "ui.support_signatures.address_addition_placeholder";
             public const string AdjustSingle = "ui.support_signatures.adjust_single";
             public const string AlreadyCertified = "ui.support_signatures.already_certified";
             public const string AlreadyCertifiedBadge = "ui.support_signatures.already_certified_badge";
@@ -2628,15 +2642,19 @@ public static class I18nKey {
             public const string ContactEmail = "ui.support_signatures.contact_email";
             public const string ContactEmailHint = "ui.support_signatures.contact_email_hint";
             public const string ContactLabel = "ui.support_signatures.contact_label";
+            public const string CreateCustomAddress = "ui.support_signatures.create_custom_address";
             public const string CreateOffice = "ui.support_signatures.create_office";
             public const string CreateSingle = "ui.support_signatures.create_single";
+            public const string CustomAddress = "ui.support_signatures.custom_address";
             public const string DaysLeft = "ui.support_signatures.days_left";
             public const string Deadline = "ui.support_signatures.deadline";
             public const string DeadlineHint = "ui.support_signatures.deadline_hint";
             public const string Details = "ui.support_signatures.details";
+            public const string DirectorySource = "ui.support_signatures.directory_source";
             public const string Discard = "ui.support_signatures.discard";
             public const string DownloadForm = "ui.support_signatures.download_form";
             public const string Email = "ui.support_signatures.email";
+            public const string EditOffice = "ui.support_signatures.edit_office";
             public const string FormCount = "ui.support_signatures.form_count";
             public const string FormIntro = "ui.support_signatures.form_intro";
             public const string FormShort = "ui.support_signatures.form_short";
@@ -2650,15 +2668,29 @@ public static class I18nKey {
             public const string HelpTitle = "ui.support_signatures.help_title";
             public const string HelpWhat = "ui.support_signatures.help_what";
             public const string HelpWho = "ui.support_signatures.help_who";
+            public const string ImportApplied = "ui.support_signatures.import_applied";
+            public const string ImportApply = "ui.support_signatures.import_apply";
+            public const string ImportCsv = "ui.support_signatures.import_csv";
+            public const string ImportIntro = "ui.support_signatures.import_intro";
+            public const string ImportLine = "ui.support_signatures.import_line";
+            public const string ImportNew = "ui.support_signatures.import_new";
+            public const string ImportPreviewTitle = "ui.support_signatures.import_preview_title";
+            public const string ImportProblems = "ui.support_signatures.import_problems";
+            public const string ImportRemoved = "ui.support_signatures.import_removed";
+            public const string ImportSummary = "ui.support_signatures.import_summary";
+            public const string ImportUnknownKeys = "ui.support_signatures.import_unknown_keys";
             public const string IntakeIntro = "ui.support_signatures.intake_intro";
             public const string IntakeTitle = "ui.support_signatures.intake_title";
             public const string LatestIntakes = "ui.support_signatures.latest_intakes";
             public const string ListIntro = "ui.support_signatures.list_intro";
+            public const string LookupNone = "ui.support_signatures.lookup_none";
+            public const string LookupTitle = "ui.support_signatures.lookup_title";
             public const string Margin = "ui.support_signatures.margin";
             public const string MemberNotice = "ui.support_signatures.member_notice";
             public const string MemberNoticeHint = "ui.support_signatures.member_notice_hint";
             public const string MemberPageHint = "ui.support_signatures.member_page_hint";
             public const string Municipality = "ui.support_signatures.municipality";
+            public const string MunicipalityHasOffice = "ui.support_signatures.municipality_has_office";
             public const string Name = "ui.support_signatures.name";
             public const string NamePlaceholder = "ui.support_signatures.name_placeholder";
             public const string NewCampaign = "ui.support_signatures.new_campaign";
@@ -2675,9 +2707,12 @@ public static class I18nKey {
             public const string OfficeMunicipalities = "ui.support_signatures.office_municipalities";
             public const string OfficeName = "ui.support_signatures.office_name";
             public const string OfficeNotes = "ui.support_signatures.office_notes";
+            public const string OfficePickFirstHint = "ui.support_signatures.office_pick_first_hint";
             public const string OfficesIntro = "ui.support_signatures.offices_intro";
             public const string OfficesLink = "ui.support_signatures.offices_link";
             public const string OfficesTitle = "ui.support_signatures.offices_title";
+            public const string OfficialAddress = "ui.support_signatures.official_address";
+            public const string OfficialPrefillHint = "ui.support_signatures.official_prefill_hint";
             public const string Open = "ui.support_signatures.open";
             public const string OpenShipmentsTitle = "ui.support_signatures.open_shipments_title";
             public const string Overdue = "ui.support_signatures.overdue";

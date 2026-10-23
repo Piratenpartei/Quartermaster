@@ -89,7 +89,13 @@ public class CoverLetterRenderer {
         Dictionary<Guid, string> municipalities, string date) {
         return new SupportSignatureLetterModel {
             Campaign = new SupportSignatureLetterCampaign { Name = campaign.Name, Deadline = LastDay(campaign.Deadline) },
-            Office = new SupportSignatureLetterOffice { Name = office.Name, Street = office.Street, PostCode = office.PostCode, City = office.City },
+            Office = new SupportSignatureLetterOffice {
+                Name = office.Name,
+                Addition = office.AddressAddition ?? "",
+                Street = office.Street,
+                PostCode = office.PostCode,
+                City = office.City
+            },
             Lines = lines
                 .Select(l => new SupportSignatureLetterLine { Municipality = municipalities.GetValueOrDefault(l.AdministrativeDivisionId, ""), Count = l.Count })
                 .OrderBy(l => l.Municipality)

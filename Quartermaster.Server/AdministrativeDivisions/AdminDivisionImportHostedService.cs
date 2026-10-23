@@ -8,12 +8,15 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 
 public class AdminDivisionImportHostedService : BackgroundService {
     private readonly AdminDivisionImportService _importService;
+    private readonly AdministrationAddressImportService _addressImport;
     private readonly ILogger<AdminDivisionImportHostedService> _logger;
 
     public AdminDivisionImportHostedService(
         AdminDivisionImportService importService,
+        AdministrationAddressImportService addressImport,
         ILogger<AdminDivisionImportHostedService> logger) {
         _importService = importService;
+        _addressImport = addressImport;
         _logger = logger;
     }
 
@@ -28,6 +31,12 @@ public class AdminDivisionImportHostedService : BackgroundService {
                 _importService.Import();
             } catch (Exception ex) {
                 _logger.LogError(ex, "Error in admin division import");
+            }
+
+            try {
+                _addressImport.Import();
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Error in address directory import");
             }
 
             // Poll daily

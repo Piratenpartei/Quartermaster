@@ -22,6 +22,10 @@ public class SupportSignatureLetterCampaign {
 
 public class SupportSignatureLetterOffice {
     public string Name { get; set; } = "";
+
+    /// <summary>A line under the name such as "Wahlamt"; empty when the office has none.</summary>
+    public string Addition { get; set; } = "";
+
     public string Street { get; set; } = "";
     public string PostCode { get; set; } = "";
     public string City { get; set; } = "";

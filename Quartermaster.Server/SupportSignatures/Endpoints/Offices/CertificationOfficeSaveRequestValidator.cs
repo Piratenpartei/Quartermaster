@@ -30,7 +30,7 @@ public class CertificationOfficeSaveRequestValidator : Validator<CertificationOf
     }
 
     private static bool FieldsFit(CertificationOfficeSaveRequest request) {
-        if (request.Name?.Length > CertificationOffice.NameMaxLength)
+        if (request.Name?.Length > CertificationOffice.NameMaxLength || request.AddressAddition?.Length > CertificationOffice.AddressFieldMaxLength)
             return false;
         if (request.Street?.Length > CertificationOffice.AddressFieldMaxLength || request.PostCode?.Length > CertificationOffice.AddressFieldMaxLength)
             return false;

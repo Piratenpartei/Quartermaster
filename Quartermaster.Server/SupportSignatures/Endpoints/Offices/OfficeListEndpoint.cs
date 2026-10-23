@@ -35,7 +35,7 @@ public class OfficeListEndpoint : EndpointWithoutRequest<List<CertificationOffic
             .ToDictionary(d => d.Id, d => d.Name);
         var withShipments = _offices.GetOfficeIdsWithShipments();
 
-        var offices = _offices.List()
+        var offices = _offices.ListCustom()
             .Select(o => o.ToDto(
                 municipalityIds.GetValueOrDefault(o.Id, [])
                     .Select(id => new OfficeMunicipalityDTO { Id = id, Name = names.GetValueOrDefault(id, "") })

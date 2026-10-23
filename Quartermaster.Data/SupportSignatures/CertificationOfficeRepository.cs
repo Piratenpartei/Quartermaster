@@ -27,7 +27,21 @@ public class CertificationOfficeRepository {
             .ToList();
     }
 
-    /// <summary>Municipality ids per office, for all offices.</summary>
+    public List<CertificationOffice> ListCustom() {
+        return _context.CertificationOffices
+            .Where(o => o.OfficialKey == null)
+            .OrderBy(o => o.Name)
+            .ToList();
+    }
+
+    public List<CertificationOffice> GetMany(IEnumerable<Guid> ids) {
+        var list = ids.Distinct().ToList();
+        return _context.CertificationOffices
+            .Where(o => list.Contains(o.Id))
+            .ToList();
+    }
+
+    /// <summary>Hand-entered municipality ids per office.</summary>
     public Dictionary<Guid, List<Guid>> GetMunicipalityIdsByOffice() {
         return _context.CertificationOfficeMunicipalities
             .ToList()
@@ -42,19 +56,50 @@ public class CertificationOfficeRepository {
             .ToList();
     }
 
-    public Guid? GetOfficeIdByMunicipality(Guid municipalityId) {
+    public List<Guid> GetOfficialMunicipalityIds(Guid officeId) {
+        return _context.OfficialOfficeMunicipalities
+            .Where(m => m.OfficeId == officeId)
+            .Select(m => m.AdministrativeDivisionId)
+            .ToList();
+    }
+
+    public Guid? GetCustomOfficeIdByMunicipality(Guid municipalityId) {
         return _context.CertificationOfficeMunicipalities
             .Where(m => m.AdministrativeDivisionId == municipalityId)
             .Select(m => (Guid?)m.OfficeId)
             .FirstOrDefault();
     }
 
-    /// <summary>The office of each given municipality that has one.</summary>
-    public Dictionary<Guid, Guid> GetOfficeIdsByMunicipality(IEnumerable<Guid> municipalityIds) {
+    public Guid? GetOfficialOfficeIdByMunicipality(Guid municipalityId) {
+        return _context.OfficialOfficeMunicipalities
+            .Where(m => m.AdministrativeDivisionId == municipalityId)
+            .Select(m => (Guid?)m.OfficeId)
+            .FirstOrDefault();
+    }
+
+    /// <summary>The hand-entered office of each given municipality that has one.</summary>
+    public Dictionary<Guid, Guid> GetCustomOfficeIdsByMunicipality(IEnumerable<Guid> municipalityIds) {
         var ids = municipalityIds.Distinct().ToList();
         return _context.CertificationOfficeMunicipalities
             .Where(m => ids.Contains(m.AdministrativeDivisionId))
             .ToDictionary(m => m.AdministrativeDivisionId, m => m.OfficeId);
+    }
+
+    public Dictionary<Guid, Guid> GetOfficialOfficeIdsByMunicipality(IEnumerable<Guid> municipalityIds) {
+        var ids = municipalityIds.Distinct().ToList();
+        return _context.OfficialOfficeMunicipalities
+            .Where(m => ids.Contains(m.AdministrativeDivisionId))
+            .ToDictionary(m => m.AdministrativeDivisionId, m => m.OfficeId);
+    }
+
+    /// <summary>The office forms of each given municipality go to: the hand-entered one, else the one of the official directory.</summary>
+    public Dictionary<Guid, Guid> GetOfficeIdsByMunicipality(IEnumerable<Guid> municipalityIds) {
+        var ids = municipalityIds.Distinct().ToList();
+        var offices = GetOfficialOfficeIdsByMunicipality(ids);
+        foreach (var (municipalityId, officeId) in GetCustomOfficeIdsByMunicipality(ids)) {
+            offices[municipalityId] = officeId;
+        }
+        return offices;
     }
 
     /// <summary>The given municipalities that already belong to an office other than <paramref name="exceptOfficeId"/>.</summary>
@@ -87,6 +132,7 @@ public class CertificationOfficeRepository {
         _context.CertificationOffices
             .Where(o => o.Id == office.Id)
             .Set(o => o.Name, office.Name)
+            .Set(o => o.AddressAddition, office.AddressAddition)
             .Set(o => o.Street, office.Street)
             .Set(o => o.PostCode, office.PostCode)
             .Set(o => o.City, office.City)
@@ -106,6 +152,21 @@ public class CertificationOfficeRepository {
             .Delete();
         _context.CertificationOffices
             .Where(o => o.Id == officeId)
+            .Delete();
+    }
+
+    /// <summary>Moves the municipalities to the office, away from any other hand-entered office.</summary>
+    public void Assign(Guid officeId, IEnumerable<Guid> municipalityIds) {
+        var ids = municipalityIds.Distinct().ToList();
+        RemoveAssignments(ids);
+        InsertMunicipalities(officeId, ids);
+    }
+
+    /// <summary>Drops the hand-entered office of the municipalities, so the official directory applies again.</summary>
+    public int RemoveAssignments(IEnumerable<Guid> municipalityIds) {
+        var ids = municipalityIds.Distinct().ToList();
+        return _context.CertificationOfficeMunicipalities
+            .Where(m => ids.Contains(m.AdministrativeDivisionId))
             .Delete();
     }
 

@@ -13,6 +13,10 @@ public class ShipmentPlanDTO {
 public class ShipmentPlanOfficeDTO {
     public Guid OfficeId { get; set; }
     public string OfficeName { get; set; } = "";
+
+    /// <summary>The address comes from the official directory, not from a hand-entered office.</summary>
+    public bool IsOfficial { get; set; }
+
     public List<PlanLineDTO> Lines { get; set; } = [];
 }
 

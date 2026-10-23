@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -146,6 +147,27 @@ public class SupportSignatureService {
 
     public Task<OfficeSuggestionDTO?> SuggestOfficeAsync(Guid municipalityId) {
         return GetAsync<OfficeSuggestionDTO>($"{Base}/offices/suggestion?municipalityId={municipalityId}");
+    }
+
+    /// <summary>The office forms of the municipality go to, or null (without a toast) when it has none.</summary>
+    public async Task<CertificationOfficeDTO?> ResponsibleOfficeAsync(Guid municipalityId) {
+        try {
+            var response = await _http.GetAsync($"{Base}/offices/responsible?municipalityId={municipalityId}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
+            if (!response.IsSuccessStatusCode) {
+                await _toasts.ErrorAsync(response);
+                return null;
+            }
+            return await response.Content.ReadFromJsonAsync<CertificationOfficeDTO>();
+        } catch (HttpRequestException ex) {
+            _toasts.Error(ex);
+            return null;
+        }
+    }
+
+    public Task<OfficeImportResultDTO?> ImportOfficesAsync(byte[] content, bool apply) {
+        return SendAsync<OfficeImportResultDTO>(_http.PostAsJsonAsync($"{Base}/offices/import", new OfficeImportRequest { Content = content, Apply = apply }));
     }
 
     public Task<MemberSignatureCampaignDTO?> MemberCampaignAsync(Guid campaignId) {

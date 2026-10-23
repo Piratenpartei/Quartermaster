@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.SupportSignatures;
 using Quartermaster.Data.SupportSignatures;
 
@@ -26,8 +27,14 @@ public class OfficeUpdateEndpoint : Endpoint<CertificationOfficeSaveRequest, Cer
             await SendForbiddenAsync(ct);
             return;
         }
-        if (_offices.Get(req.Id) == null) {
+        var existing = _offices.Get(req.Id);
+        if (existing == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+        if (existing.IsOfficial) {
+            AddError(I18nKey.Error.SupportSignatures.Office.Official);
+            await SendErrorsAsync(409, ct);
             return;
         }
 
