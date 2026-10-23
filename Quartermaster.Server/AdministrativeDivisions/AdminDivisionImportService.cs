@@ -19,6 +19,9 @@ public class AdminDivisionImportService {
     /// <summary>The Destatis GV100AD file next to the GeoNames files; optional, it only adds the Gemeindeverbände.</summary>
     public const string Gv100AdFileName = "GV100AD.txt";
 
+    /// <summary>Depth of the Regierungsbezirke (GeoNames ADM2).</summary>
+    private const int RegionDepth = 5;
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AdminDivisionImportService> _logger;
     private readonly TaskCompletionSource _initialLoadTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -83,8 +86,13 @@ public class AdminDivisionImportService {
         }
 
         List<AdministrativeDivision> parsed;
+        Gv100AdData? gv100Ad = null;
         try {
             parsed = AdministrativeDivisionLoader.Parse(baseFile, postcodeFile);
+            if (hasGv100Ad) {
+                gv100Ad = ReadGv100Ad(gv100AdFile);
+                ApplyRegionNames(parsed, gv100Ad.Regions);
+            }
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
             _initialLoadTcs.TrySetResult();
@@ -102,8 +110,8 @@ public class AdminDivisionImportService {
                 changes = ApplyChanges(context, adminDivRepo, parsed, notes);
             }
 
-            if (hasGv100Ad)
-                ApplyGv100Ad(adminDivRepo, gv100AdFile, notes);
+            if (gv100Ad != null)
+                ApplyGv100Ad(adminDivRepo, gv100Ad, notes);
         } catch (Exception ex) {
             sw.Stop();
             _logger.LogError(ex, "Admin division import write failed");
@@ -133,9 +141,23 @@ public class AdminDivisionImportService {
         return SHA256.HashData(stream);
     }
 
-    private static void ApplyGv100Ad(AdministrativeDivisionRepository adminDivRepo, string path, List<string> notes) {
+    private static Gv100AdData ReadGv100Ad(string path) {
         using var reader = new StreamReader(path);
-        var data = Gv100AdParser.Parse(reader);
+        return Gv100AdParser.Parse(reader);
+    }
+
+    /// <summary>GeoNames names some Regierungsbezirke in English ("Upper Franconia"); GV100AD has the German names under the same key.</summary>
+    public static void ApplyRegionNames(List<AdministrativeDivision> parsed, IReadOnlyList<Gv100AdRegion> regions) {
+        var nameByCode = regions
+            .GroupBy(r => r.Key.TrimStart('0'))
+            .ToDictionary(g => g.Key, g => g.First().Name);
+        foreach (var division in parsed.Where(d => d.Depth == RegionDepth && d.AdminCode != null)) {
+            if (nameByCode.TryGetValue(division.AdminCode!.TrimStart('0'), out var name))
+                division.Name = name;
+        }
+    }
+
+    private static void ApplyGv100Ad(AdministrativeDivisionRepository adminDivRepo, Gv100AdData data, List<string> notes) {
         var unmatched = adminDivRepo.ApplyAssociations(data, DateTime.UtcNow);
         notes.Add($"GV100AD: {unmatched} Gemeinden ohne Zuordnung");
     }

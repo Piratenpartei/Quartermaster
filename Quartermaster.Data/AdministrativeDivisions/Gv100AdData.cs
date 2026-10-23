@@ -9,4 +9,7 @@ public record Gv100AdAssociation(string Key, string Name, int Kind);
 /// <param name="Ags">The 8-digit Amtlicher Gemeindeschlüssel.</param>
 public record Gv100AdMunicipality(string Ags, string AssociationKey, string Name);
 
-public record Gv100AdData(IReadOnlyList<Gv100AdAssociation> Associations, IReadOnlyList<Gv100AdMunicipality> Municipalities);
+/// <param name="Key">Land and Regierungsbezirk digits, e.g. 094.</param>
+public record Gv100AdRegion(string Key, string Name);
+
+public record Gv100AdData(IReadOnlyList<Gv100AdAssociation> Associations, IReadOnlyList<Gv100AdMunicipality> Municipalities, IReadOnlyList<Gv100AdRegion> Regions);

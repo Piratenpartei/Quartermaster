@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Server.AdministrativeDivisions;
 
 namespace Quartermaster.Server.Tests.AdministrativeDivisions;
 
@@ -52,4 +53,41 @@ public class Gv100AdParserTests {
         await Assert.That(data.Municipalities.Count).IsEqualTo(0);
         await Assert.That(data.Associations.Count).IsEqualTo(0);
     }
+
+    [Test]
+    [Arguments("Oberfranken", "Regierungsbezirk Oberfranken")]
+    [Arguments("Reg.-Bez. Düsseldorf", "Regierungsbezirk Düsseldorf")]
+    public async Task Region_names_get_the_full_prefix(string name, string expected) {
+        await Assert.That(Gv100AdParser.RegionName(name)).IsEqualTo(expected);
+    }
+
+    [Test]
+    [Arguments("früher: Reg.-Bez. Koblenz")]
+    [Arguments("Statistische Region Hannover")]
+    public async Task Former_and_statistical_regions_are_skipped(string name) {
+        await Assert.That(Gv100AdParser.RegionName(name)).IsNull();
+    }
+
+    [Test]
+    public async Task Bundled_file_names_the_bavarian_regions_in_german() {
+        using var reader = new StreamReader(Path.Combine(AppContext.BaseDirectory, "GV100AD.txt"));
+
+        var regions = Gv100AdParser.Parse(reader).Regions;
+
+        await Assert.That(regions.Single(r => r.Key == "094").Name).IsEqualTo("Regierungsbezirk Oberfranken");
+        await Assert.That(regions.Single(r => r.Key == "051").Name).IsEqualTo("Regierungsbezirk Düsseldorf");
+        await Assert.That(regions.Any(r => r.Key == "071")).IsFalse();
+    }
+
+    [Test]
+    public async Task Import_renames_regions_by_their_code() {
+        var upperFranconia = new AdministrativeDivision { Name = "Upper Franconia", Depth = 5, AdminCode = "94" };
+        var county = new AdministrativeDivision { Name = "Landkreis Bamberg", Depth = 6, AdminCode = "94" };
+
+        AdminDivisionImportService.ApplyRegionNames([upperFranconia, county], [new Gv100AdRegion("094", "Regierungsbezirk Oberfranken")]);
+
+        await Assert.That(upperFranconia.Name).IsEqualTo("Regierungsbezirk Oberfranken");
+        await Assert.That(county.Name).IsEqualTo("Landkreis Bamberg");
+    }
 }
+
