@@ -122,6 +122,7 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE Users;
             TRUNCATE TABLE Chapters;
             TRUNCATE TABLE AdminDivisionImportLogs;
+            TRUNCATE TABLE AdministrativeDivisionNames;
             TRUNCATE TABLE AdministrativeDivisions;
             TRUNCATE TABLE UserRoleAssignments;
             TRUNCATE TABLE RolePermissions;

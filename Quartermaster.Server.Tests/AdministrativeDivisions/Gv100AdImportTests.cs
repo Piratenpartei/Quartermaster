@@ -25,6 +25,7 @@ public class Gv100AdImportTests : RepositoryTestBase {
                 new Gv100AdMunicipality("03351002", "033515403", "Ahnsbeck"),
                 new Gv100AdMunicipality("03351006", "033510006", "Celle, Stadt")
             ],
+            [],
             []);
     }
 
@@ -50,7 +51,7 @@ public class Gv100AdImportTests : RepositoryTestBase {
         var repository = new AdministrativeDivisionRepository(Db);
         SeedMunicipality("Lachendorf", "3351016");
         repository.ApplyAssociations(Data(), ImportedAt);
-        var renamed = new Gv100AdData([new Gv100AdAssociation("033515403", "Lachendorf (neu)", 52)], [], []);
+        var renamed = new Gv100AdData([new Gv100AdAssociation("033515403", "Lachendorf (neu)", 52)], [], [], []);
 
         repository.ApplyAssociations(renamed, ImportedAt.AddDays(1));
 

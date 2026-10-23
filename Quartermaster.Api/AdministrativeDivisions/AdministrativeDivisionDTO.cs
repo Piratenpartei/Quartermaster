@@ -16,4 +16,7 @@ public class AdministrativeDivisionDTO {
     /// same-named child locality; for leaf localities it's their own first code.
     /// </summary>
     public string? PrimaryPostCode { get; set; }
+
+    /// <summary>In search results: the other name the division was found by, e.g. its Sorbian one; null when the shown name matched.</summary>
+    public string? MatchedName { get; set; }
 }

@@ -12,4 +12,12 @@ public record Gv100AdMunicipality(string Ags, string AssociationKey, string Name
 /// <param name="Key">Land and Regierungsbezirk digits, e.g. 094.</param>
 public record Gv100AdRegion(string Key, string Name);
 
-public record Gv100AdData(IReadOnlyList<Gv100AdAssociation> Associations, IReadOnlyList<Gv100AdMunicipality> Municipalities, IReadOnlyList<Gv100AdRegion> Regions);
+/// <param name="Key">Land, Regierungsbezirk and Kreis digits, e.g. 12071.</param>
+/// <param name="Name">The bare name without "Landkreis", e.g. Spree-Neiße.</param>
+public record Gv100AdCounty(string Key, string Name);
+
+public record Gv100AdData(
+    IReadOnlyList<Gv100AdAssociation> Associations,
+    IReadOnlyList<Gv100AdMunicipality> Municipalities,
+    IReadOnlyList<Gv100AdRegion> Regions,
+    IReadOnlyList<Gv100AdCounty> Counties);

@@ -16,6 +16,9 @@
                 <button type="button" class="list-group-item list-group-item-action py-1 small"
                         @onclick="() => SelectDivision(div)">
                     <span>@div.Name</span>
+                    @if (!string.IsNullOrEmpty(div.MatchedName)) {
+                        <span class="small text-secondary ms-1">(@I18n[I18nParams.With(I18nKey.Ui.AdminDivisionSearch.AlsoKnownAs, ("name", div.MatchedName))])</span>
+                    }
                     @if (!string.IsNullOrEmpty(div.AdminCode)) {
                         <code class="small text-secondary ms-1">@div.AdminCode</code>
                     }

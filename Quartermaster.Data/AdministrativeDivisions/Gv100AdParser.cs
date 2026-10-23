@@ -5,7 +5,7 @@ using System.IO;
 namespace Quartermaster.Data.AdministrativeDivisions;
 
 /// <summary>
-/// Reads the fixed-width Destatis GV100AD file (format "Datensatzbeschreibung GV100AD", records of type 20, 50 and 60).
+/// Reads the fixed-width Destatis GV100AD file (format "Datensatzbeschreibung GV100AD", records of type 20, 40, 50 and 60).
 /// The format counts positions in bytes, but the file is UTF-8 and the positions only hold for characters: a name
 /// with an umlaut would shift every later byte column.
 /// </summary>
@@ -14,6 +14,7 @@ public static class Gv100AdParser {
     private const string AssociationRecord = "50";
     private const string RegionPrefix = "Regierungsbezirk ";
     private const string RegionAbbreviation = "Reg.-Bez. ";
+    private const string CountyRecord = "40";
     private const string MunicipalityRecord = "60";
     private const int KindColumnEnd = 124;
 
@@ -26,6 +27,7 @@ public static class Gv100AdParser {
         var associations = new List<Gv100AdAssociation>();
         var municipalities = new List<Gv100AdMunicipality>();
         var regions = new List<Gv100AdRegion>();
+        var counties = new List<Gv100AdCounty>();
 
         string? line;
         while ((line = reader.ReadLine()) != null) {
@@ -37,6 +39,8 @@ public static class Gv100AdParser {
                 var region = RegionName(Name(line));
                 if (region != null)
                     regions.Add(new Gv100AdRegion(line[10..13], region));
+            } else if (recordType == CountyRecord) {
+                counties.Add(new Gv100AdCounty(Region(line), Name(line)));
             } else if (recordType == AssociationRecord) {
                 associations.Add(new Gv100AdAssociation(Region(line) + Association(line), Name(line), Kind(line)));
             } else if (recordType == MunicipalityRecord) {
@@ -44,7 +48,7 @@ public static class Gv100AdParser {
             }
         }
 
-        return new Gv100AdData(associations, municipalities, regions);
+        return new Gv100AdData(associations, municipalities, regions, counties);
     }
 
     /// <summary>

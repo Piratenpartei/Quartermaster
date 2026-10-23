@@ -19,10 +19,11 @@ public class AdminDivisionImportService {
     /// <summary>The Destatis GV100AD file next to the GeoNames files; optional, it only adds the Gemeindeverbände.</summary>
     public const string Gv100AdFileName = "GV100AD.txt";
 
-    /// <summary>Depth of the Regierungsbezirke (GeoNames ADM2).</summary>
-    private const int RegionDepth = 5;
+    /// <summary>The GeoNames alternate names (alternatenames/DE.zip) cut down to our divisions; optional, it adds the German and other names.</summary>
+    public const string AlternateNamesFileName = "DE_AlternateNames.txt";
 
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly AdministrativeDivisionSearchIndex _searchIndex;
     private readonly ILogger<AdminDivisionImportService> _logger;
     private readonly TaskCompletionSource _initialLoadTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private string? _lastFileHash;
@@ -35,22 +36,20 @@ public class AdminDivisionImportService {
     /// <summary>Completes when the first <see cref="Import"/> call returns (success or failure).</summary>
     public Task InitialLoadCompleted => _initialLoadTcs.Task;
 
-    public AdminDivisionImportService(IServiceScopeFactory scopeFactory, ILogger<AdminDivisionImportService> logger) {
+    public AdminDivisionImportService(IServiceScopeFactory scopeFactory, AdministrativeDivisionSearchIndex searchIndex, ILogger<AdminDivisionImportService> logger) {
         _scopeFactory = scopeFactory;
+        _searchIndex = searchIndex;
         _logger = logger;
     }
 
-    public static string ComputeFileHash(string baseFilePath, string postcodeFilePath, string? gv100AdFilePath = null) {
-        using var stream1 = File.OpenRead(baseFilePath);
-        using var stream2 = File.OpenRead(postcodeFilePath);
-        var hash1 = SHA256.HashData(stream1);
-        var hash2 = SHA256.HashData(stream2);
-        var hash3 = gv100AdFilePath == null ? [] : HashFile(gv100AdFilePath);
-        var combined = new byte[hash1.Length + hash2.Length + hash3.Length];
-        hash1.CopyTo(combined, 0);
-        hash2.CopyTo(combined, hash1.Length);
-        hash3.CopyTo(combined, hash1.Length + hash2.Length);
-        return Convert.ToHexStringLower(SHA256.HashData(combined));
+    public static string ComputeFileHash(string baseFilePath, string postcodeFilePath, string? gv100AdFilePath = null, string? alternateNamesFilePath = null) {
+        var hashes = new List<byte[]> { HashFile(baseFilePath), HashFile(postcodeFilePath) };
+        if (gv100AdFilePath != null)
+            hashes.Add(HashFile(gv100AdFilePath));
+        if (alternateNamesFilePath != null)
+            hashes.Add(HashFile(alternateNamesFilePath));
+
+        return Convert.ToHexStringLower(SHA256.HashData(hashes.SelectMany(h => h).ToArray()));
     }
 
     public AdminDivisionImportLog Import(string? dataDirectory = null) {
@@ -78,7 +77,12 @@ public class AdminDivisionImportService {
         if (!hasGv100Ad)
             _logger.LogWarning("GV100AD file not found at {Path}; municipalities get no Gemeindeverband", gv100AdFile);
 
-        var fileHash = ComputeFileHash(baseFile, postcodeFile, hasGv100Ad ? gv100AdFile : null);
+        var alternateNamesFile = Path.Combine(dir, AlternateNamesFileName);
+        var hasAlternateNames = File.Exists(alternateNamesFile);
+        if (!hasAlternateNames)
+            _logger.LogWarning("GeoNames alternate names not found at {Path}; divisions keep their GeoNames main names", alternateNamesFile);
+
+        var fileHash = ComputeFileHash(baseFile, postcodeFile, hasGv100Ad ? gv100AdFile : null, hasAlternateNames ? alternateNamesFile : null);
         if (_lastFileHash == fileHash) {
             _logger.LogDebug("Admin division files unchanged, skipping import");
             _initialLoadTcs.TrySetResult();
@@ -86,13 +90,15 @@ public class AdminDivisionImportService {
         }
 
         List<AdministrativeDivision> parsed;
+        List<ParsedDivisionName> names;
         Gv100AdData? gv100Ad = null;
         try {
-            parsed = AdministrativeDivisionLoader.Parse(baseFile, postcodeFile);
-            if (hasGv100Ad) {
+            var parseResult = AdministrativeDivisionLoader.Parse(baseFile, postcodeFile);
+            if (hasGv100Ad)
                 gv100Ad = ReadGv100Ad(gv100AdFile);
-                ApplyRegionNames(parsed, gv100Ad.Regions);
-            }
+            var alternates = hasAlternateNames ? ReadAlternateNames(alternateNamesFile, parseResult) : [];
+            names = AdministrativeDivisionNaming.Apply(parseResult, alternates, gv100Ad);
+            parsed = parseResult.Divisions;
         } catch (Exception ex) {
             _logger.LogError(ex, "Failed to parse admin division files");
             _initialLoadTcs.TrySetResult();
@@ -112,6 +118,8 @@ public class AdminDivisionImportService {
 
             if (gv100Ad != null)
                 ApplyGv100Ad(adminDivRepo, gv100Ad, notes);
+
+            StoreNames(adminDivRepo, names, notes);
         } catch (Exception ex) {
             sw.Stop();
             _logger.LogError(ex, "Admin division import write failed");
@@ -123,6 +131,7 @@ public class AdminDivisionImportService {
 
         sw.Stop();
         _lastFileHash = fileHash;
+        _searchIndex.Invalidate();
         _initialLoadTcs.TrySetResult();
 
         var log = PersistLog(context, CreateLog(fileHash, parsed.Count, changes,
@@ -146,15 +155,30 @@ public class AdminDivisionImportService {
         return Gv100AdParser.Parse(reader);
     }
 
-    /// <summary>GeoNames names some Regierungsbezirke in English ("Upper Franconia"); GV100AD has the German names under the same key.</summary>
-    public static void ApplyRegionNames(List<AdministrativeDivision> parsed, IReadOnlyList<Gv100AdRegion> regions) {
-        var nameByCode = regions
-            .GroupBy(r => r.Key.TrimStart('0'))
-            .ToDictionary(g => g.Key, g => g.First().Name);
-        foreach (var division in parsed.Where(d => d.Depth == RegionDepth && d.AdminCode != null)) {
-            if (nameByCode.TryGetValue(division.AdminCode!.TrimStart('0'), out var name))
-                division.Name = name;
-        }
+    private static List<GeoNamesAlternateName> ReadAlternateNames(string path, AdministrativeDivisionParseResult parsed) {
+        var geoNameIds = parsed.OriginsByAdminCode.Values
+            .Select(o => o.GeoNameId)
+            .ToHashSet();
+        using var reader = new StreamReader(path);
+        return GeoNamesAlternateNameParser.Parse(reader, geoNameIds);
+    }
+
+    /// <summary>Stores the names under the ids the divisions have in the database, which differ from the parsed ones for existing divisions.</summary>
+    private static void StoreNames(AdministrativeDivisionRepository adminDivRepo, List<ParsedDivisionName> names, List<string> notes) {
+        var idByAdminCode = adminDivRepo.GetIdsByAdminCode();
+        var rows = names
+            .Where(n => idByAdminCode.ContainsKey(n.AdminCode))
+            .Select(n => new AdministrativeDivisionName {
+                AdministrativeDivisionId = idByAdminCode[n.AdminCode],
+                Name = n.Name,
+                Language = n.Language,
+                Source = n.Source,
+                IsPreferred = n.IsPreferred,
+                IsHistoric = n.IsHistoric
+            })
+            .ToList();
+        adminDivRepo.ReplaceNames(rows);
+        notes.Add($"{rows.Count} Namen gespeichert");
     }
 
     private static void ApplyGv100Ad(AdministrativeDivisionRepository adminDivRepo, Gv100AdData data, List<string> notes) {

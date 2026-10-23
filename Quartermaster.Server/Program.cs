@@ -204,6 +204,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionPortalSettingsBuilder>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionExportBuilder>();
 
+        builder.Services.AddSingleton<AdministrativeDivisionSearchIndex>();
         builder.Services.AddSingleton<AdminDivisionImportService>();
         builder.Services.AddSingleton<AdministrationAddressImportService>();
         builder.Services.AddHostedService<AdminDivisionImportHostedService>();

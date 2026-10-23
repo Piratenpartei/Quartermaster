@@ -46,6 +46,7 @@ public static class I18nKey {
         public static class Validation {
             public const string PageMin = "error.validation.common.page_min";
             public const string PageSizeRange = "error.validation.common.page_size_range";
+            public const string QueryMaxLength = "error.validation.common.query_max_length";
         }
 
         public static class User {
@@ -1917,6 +1918,7 @@ public static class I18nKey {
             public const string DepthDistrict = "ui.admin_division_search.depth_district";
             public const string DepthMunicipality = "ui.admin_division_search.depth_municipality";
             public const string DepthLocality = "ui.admin_division_search.depth_locality";
+            public const string AlsoKnownAs = "ui.admin_division_search.also_known_as";
         }
 
         public static class AdminDivisionTree {

@@ -11,9 +11,11 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 
 public class AdministrativeDivisionSearchEndpoint : Endpoint<AdministrativeDivisionSearchRequest, AdministrativeDivisionSearchResponse> {
     private readonly AdministrativeDivisionRepository _repository;
+    private readonly AdministrativeDivisionSearchIndex _searchIndex;
 
-    public AdministrativeDivisionSearchEndpoint(AdministrativeDivisionRepository repository) {
+    public AdministrativeDivisionSearchEndpoint(AdministrativeDivisionRepository repository, AdministrativeDivisionSearchIndex searchIndex) {
         _repository = repository;
+        _searchIndex = searchIndex;
     }
 
     public override void Configure() {
@@ -22,7 +24,7 @@ public class AdministrativeDivisionSearchEndpoint : Endpoint<AdministrativeDivis
     }
 
     public override async Task HandleAsync(AdministrativeDivisionSearchRequest req, CancellationToken ct) {
-        var (items, totalCount) = _repository.Search(req.Query, req.Page, req.PageSize);
+        var (items, matchedNames, totalCount) = Find(req);
 
         // A municipality's own PostCodes column is a Landkreis-wide aggregate (unusable as "the"
         // post code). Resolve a representative one from its child localities, batched in one query.
@@ -40,12 +42,29 @@ public class AdministrativeDivisionSearchEndpoint : Endpoint<AdministrativeDivis
                 Depth = ad.Depth,
                 AdminCode = ad.AdminCode,
                 PostCodes = ad.PostCodes,
-                PrimaryPostCode = ResolvePrimaryPostCode(ad, childrenByParent)
+                PrimaryPostCode = ResolvePrimaryPostCode(ad, childrenByParent),
+                MatchedName = matchedNames.GetValueOrDefault(ad.Id)
             }).ToList(),
             TotalCount = totalCount,
             Page = req.Page,
             PageSize = req.PageSize
         }, cancellation: ct);
+    }
+
+    /// <summary>Names go through the search index; an empty query or a post code still searches the database.</summary>
+    private (List<AdministrativeDivision> Items, Dictionary<Guid, string?> MatchedNames, int TotalCount) Find(AdministrativeDivisionSearchRequest req) {
+        if (string.IsNullOrWhiteSpace(req.Query) || !req.Query.Any(char.IsLetter)) {
+            var (found, count) = _repository.Search(req.Query, req.Page, req.PageSize);
+            return (found, [], count);
+        }
+
+        var result = _searchIndex.Search(req.Query, req.Page, req.PageSize);
+        var byId = _repository.GetMany(result.Items.Select(h => h.Id)).ToDictionary(d => d.Id);
+        var items = result.Items
+            .Where(h => byId.ContainsKey(h.Id))
+            .Select(h => byId[h.Id])
+            .ToList();
+        return (items, result.Items.ToDictionary(h => h.Id, h => h.MatchedName), result.TotalCount);
     }
 
     private static string? ResolvePrimaryPostCode(

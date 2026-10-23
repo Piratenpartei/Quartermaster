@@ -80,14 +80,12 @@ public class Gv100AdParserTests {
     }
 
     [Test]
-    public async Task Import_renames_regions_by_their_code() {
-        var upperFranconia = new AdministrativeDivision { Name = "Upper Franconia", Depth = 5, AdminCode = "94" };
-        var county = new AdministrativeDivision { Name = "Landkreis Bamberg", Depth = 6, AdminCode = "94" };
+    public async Task Bundled_file_lists_the_counties_by_their_bare_name() {
+        using var reader = new StreamReader(Path.Combine(AppContext.BaseDirectory, "GV100AD.txt"));
 
-        AdminDivisionImportService.ApplyRegionNames([upperFranconia, county], [new Gv100AdRegion("094", "Regierungsbezirk Oberfranken")]);
+        var counties = Gv100AdParser.Parse(reader).Counties;
 
-        await Assert.That(upperFranconia.Name).IsEqualTo("Regierungsbezirk Oberfranken");
-        await Assert.That(county.Name).IsEqualTo("Landkreis Bamberg");
+        await Assert.That(counties.Single(c => c.Key == "12071").Name).IsEqualTo("Spree-Neiße");
+        await Assert.That(counties.Single(c => c.Key == "03241").Name).IsEqualTo("Region Hannover");
     }
 }
-

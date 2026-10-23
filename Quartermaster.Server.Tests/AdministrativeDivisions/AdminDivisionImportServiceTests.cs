@@ -23,7 +23,8 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         _serviceProvider = Worker.CreateServiceProvider();
 
         var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
-        _service = new AdminDivisionImportService(scopeFactory, NullLogger<AdminDivisionImportService>.Instance);
+        var searchIndex = new AdministrativeDivisionSearchIndex(scopeFactory, NullLogger<AdministrativeDivisionSearchIndex>.Instance);
+        _service = new AdminDivisionImportService(scopeFactory, searchIndex, NullLogger<AdminDivisionImportService>.Instance);
 
         _tempDir = Path.Combine(Path.GetTempPath(), "qm_test_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_tempDir);
@@ -100,6 +101,15 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
             ]);
     }
 
+    private void WriteAlternateNames(params string[] lines) {
+        File.WriteAllText(Path.Combine(_tempDir, AdminDivisionImportService.AlternateNamesFileName), string.Join("\n", lines));
+    }
+
+    // GeoNames alternate names format: alternateNameId, geonameid, isolanguage, name, isPreferredName, isShortName, isColloquial, isHistoric, from, to
+    private static string AlternateLine(int geoNameId, string language, string name, bool preferred = false) {
+        return $"0\t{geoNameId}\t{language}\t{name}\t{(preferred ? "1" : "")}\t\t\t\t\t";
+    }
+
     private void WriteGv100Ad(params string[] lines) {
         File.WriteAllText(Path.Combine(_tempDir, "GV100AD.txt"), string.Join("\r\n", lines));
     }
@@ -122,6 +132,45 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         await Assert.That(sibbesse.MunicipalityAssociationKey).IsEqualTo("032545401");
         await Assert.That(_context.MunicipalityAssociations.Single(a => a.Key == "032545401").Kind).IsEqualTo(52);
         await Assert.That(log.Errors).Contains("GV100AD: 1 Gemeinden ohne Zuordnung");
+    }
+
+    [Test]
+    public async Task Import_shows_the_preferred_German_name_and_stores_the_others() {
+        WriteInitialFiles();
+        WriteAlternateNames(
+            AlternateLine(6, "de", "Gemeinde Wedemark", preferred: true),
+            AlternateLine(6, "hsb", "Wedemarkojce"),
+            AlternateLine(6, "link", "https://de.wikipedia.org/wiki/Wedemark"),
+            AlternateLine(6, "ru", "Ведемарк"),
+            AlternateLine(1, "de", "Land Niedersachsen", preferred: true));
+
+        var log = _service.Import(_tempDir);
+
+        var wedemark = _context.AdministrativeDivisions.Single(d => d.AdminCode == "3255");
+        var names = _context.AdministrativeDivisionNames
+            .Where(n => n.AdministrativeDivisionId == wedemark.Id)
+            .Select(n => n.Name)
+            .ToList();
+        await Assert.That(log.ErrorCount).IsEqualTo(0);
+        await Assert.That(wedemark.Name).IsEqualTo("Gemeinde Wedemark");
+        await Assert.That(names).Contains("Wedemark");
+        await Assert.That(names).Contains("Wedemarkojce");
+        await Assert.That(names.Count).IsEqualTo(3);
+        await Assert.That(_context.AdministrativeDivisions.Single(d => d.AdminCode == "3").Name).IsEqualTo("Niedersachsen");
+    }
+
+    [Test]
+    public async Task Changed_alternate_names_replace_the_stored_ones() {
+        WriteInitialFiles();
+        WriteAlternateNames(AlternateLine(6, "hsb", "Wedemarkojce"));
+        _service.Import(_tempDir);
+        WriteAlternateNames(AlternateLine(6, "nds", "Wedemaark"));
+
+        _service.Import(_tempDir);
+
+        var names = _context.AdministrativeDivisionNames.Select(n => n.Name).ToList();
+        await Assert.That(names).Contains("Wedemaark");
+        await Assert.That(names).DoesNotContain("Wedemarkojce");
     }
 
     [Test]

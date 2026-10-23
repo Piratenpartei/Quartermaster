@@ -9,10 +9,10 @@ public static class AdministrativeDivisionLoader {
     public static void Load(string baseFilePath, string postcodeFilePath,
         AdministrativeDivisionRepository adminDivRepo) {
         var data = Parse(baseFilePath, postcodeFilePath);
-        adminDivRepo.CreateBulk(data);
+        adminDivRepo.CreateBulk(data.Divisions);
     }
 
-    public static List<AdministrativeDivision> Parse(string baseFilePath, string postcodeFilePath) {
+    public static AdministrativeDivisionParseResult Parse(string baseFilePath, string postcodeFilePath) {
         if (!File.Exists(baseFilePath) || !File.Exists(postcodeFilePath))
             throw new InvalidOperationException($"Admin division files not found: {baseFilePath}, {postcodeFilePath}");
         var loadedDivisions = new Dictionary<string, AdminDivision>();
@@ -109,8 +109,11 @@ public static class AdministrativeDivisionLoader {
         }
 
         var bulkData = new List<AdministrativeDivision>();
+        var origins = new Dictionary<string, AdministrativeDivisionOrigin>();
         foreach (var adminDiv in loadedDivisions.Values.OrderBy(ad => ad.Level)) {
             loadedDivisions.TryGetValue(adminDiv.GetParentAdminCode(), out var parent);
+            if (adminDiv.GeoNameId != 0)
+                origins[adminDiv.GetAdminCode()] = new AdministrativeDivisionOrigin(adminDiv.GeoNameId, adminDiv.Names[0]);
 
             bulkData.Add(new AdministrativeDivision {
                 Id = adminDiv.Id,
@@ -122,7 +125,7 @@ public static class AdministrativeDivisionLoader {
             });
         }
 
-        return bulkData;
+        return new AdministrativeDivisionParseResult(bulkData, origins);
     }
 
     private static readonly char[] GermanChars = ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'];
@@ -163,6 +166,7 @@ internal class AdminDivision {
     };
 
     public Guid Id { get; set; } = Guid.NewGuid();
+    public int GeoNameId { get; set; }
 
     public List<string> Names { get; internal set; } = [];
     public HashSet<int> PostCodes { get; } = [];
@@ -202,6 +206,8 @@ internal class AdminDivision {
             return null;
 
         var adminDiv = new AdminDivision();
+        if (int.TryParse(split[0], out var geoNameId))
+            adminDiv.GeoNameId = geoNameId;
 
         adminDiv.Names.Add(split[1]);
         adminDiv.Names.AddRange(split[3].Split(',', StringSplitOptions.RemoveEmptyEntries));

@@ -34,7 +34,12 @@
         <tbody>
             @foreach (var division in Response.Items) {
                 <tr>
-                    <td>@division.Name</td>
+                    <td>
+                        @division.Name
+                        @if (!string.IsNullOrEmpty(division.MatchedName)) {
+                            <span class="small text-secondary ms-1">(@I18n[I18nParams.With(I18nKey.Ui.AdminDivisionSearch.AlsoKnownAs, ("name", division.MatchedName))])</span>
+                        }
+                    </td>
                     <td>@DepthLabel(division.Depth)</td>
                     <td><code>@division.AdminCode</code></td>
                     <td class="text-truncate" style="max-width: 300px;" title="@division.PostCodes">

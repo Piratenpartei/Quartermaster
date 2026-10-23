@@ -9,14 +9,17 @@ namespace Quartermaster.Server.AdministrativeDivisions;
 public class AdminDivisionImportHostedService : BackgroundService {
     private readonly AdminDivisionImportService _importService;
     private readonly AdministrationAddressImportService _addressImport;
+    private readonly AdministrativeDivisionSearchIndex _searchIndex;
     private readonly ILogger<AdminDivisionImportHostedService> _logger;
 
     public AdminDivisionImportHostedService(
         AdminDivisionImportService importService,
         AdministrationAddressImportService addressImport,
+        AdministrativeDivisionSearchIndex searchIndex,
         ILogger<AdminDivisionImportHostedService> logger) {
         _importService = importService;
         _addressImport = addressImport;
+        _searchIndex = searchIndex;
         _logger = logger;
     }
 
@@ -37,6 +40,12 @@ public class AdminDivisionImportHostedService : BackgroundService {
                 _addressImport.Import();
             } catch (Exception ex) {
                 _logger.LogError(ex, "Error in address directory import");
+            }
+
+            try {
+                _searchIndex.Warm();
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Error building the division search index");
             }
 
             // Poll daily

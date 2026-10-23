@@ -32,6 +32,9 @@
                         <span class="d-flex justify-content-between align-items-center">
                             <span>
                                 @div.Name
+                                @if (!string.IsNullOrEmpty(div.MatchedName)) {
+                                    <span class="small text-secondary ms-1">(@I18n[I18nParams.With(I18nKey.Ui.AdminDivisionSearch.AlsoKnownAs, ("name", div.MatchedName))])</span>
+                                }
                                 @if (!string.IsNullOrEmpty(div.AdminCode)) {
                                     <code class="small text-secondary ms-1">@div.AdminCode</code>
                                 }

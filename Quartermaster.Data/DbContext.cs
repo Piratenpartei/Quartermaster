@@ -84,6 +84,7 @@ public class DbContext : DataConnection {
     public ITable<ForwardingCase> ForwardingCases => this.GetTable<ForwardingCase>();
     public ITable<ForwardingStep> ForwardingSteps => this.GetTable<ForwardingStep>();
     public ITable<MunicipalityAssociation> MunicipalityAssociations => this.GetTable<MunicipalityAssociation>();
+    public ITable<AdministrativeDivisionName> AdministrativeDivisionNames => this.GetTable<AdministrativeDivisionName>();
     public ITable<SignatureCampaign> SignatureCampaigns => this.GetTable<SignatureCampaign>();
     public ITable<SignatureIntake> SignatureIntakes => this.GetTable<SignatureIntake>();
     public ITable<CertificationOffice> CertificationOffices => this.GetTable<CertificationOffice>();

@@ -90,6 +90,27 @@ public class AdministrativeDivisionRepository {
         return unmatched;
     }
 
+    public Dictionary<string, Guid> GetIdsByAdminCode() {
+        return _context.AdministrativeDivisions
+            .Where(d => d.AdminCode != null)
+            .Select(d => new { d.Id, d.AdminCode })
+            .ToList()
+            .GroupBy(d => d.AdminCode!)
+            .ToDictionary(g => g.Key, g => g.First().Id);
+    }
+
+    /// <summary>Replaces every stored name in one transaction, so searches never see a half-written set.</summary>
+    public void ReplaceNames(List<AdministrativeDivisionName> names) {
+        using var tx = _context.BeginTransaction();
+        _context.AdministrativeDivisionNames.Delete();
+        _context.BulkCopy(names);
+        tx.Commit();
+    }
+
+    public List<AdministrativeDivisionName> GetAllNames() {
+        return _context.AdministrativeDivisionNames.ToList();
+    }
+
     public List<AdministrativeDivision> GetMany(IEnumerable<Guid> ids) {
         var idList = ids.Distinct().ToList();
         return _context.AdministrativeDivisions
