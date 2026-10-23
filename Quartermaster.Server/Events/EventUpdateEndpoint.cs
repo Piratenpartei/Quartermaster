@@ -43,6 +43,8 @@ public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
             PublicName = req.PublicName,
             Description = req.Description,
             EventDate = req.EventDate.ToStorage(),
+            StartTime = req.StartTime.ToStorage(),
+            MeetingUrl = string.IsNullOrWhiteSpace(req.MeetingUrl) ? null : req.MeetingUrl.Trim(),
             Visibility = req.Visibility
         };
 

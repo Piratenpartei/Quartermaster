@@ -14,6 +14,8 @@ The frontend display language is German; all code (identifiers, comments, APIs) 
 | Zusammenfassung | Summary | |
 | Quellen & Lizenzen | Sources & licenses | Attribution page for data, fonts and open source libraries |
 | Veranstaltung | Event | Code `Event`; the UI never says "Event" |
+| Beginn | Start time | `Event.StartTime`, Berlin wall-clock time on the event date |
+| Link zur Online-Teilnahme | Online meeting link | `Event.MeetingUrl`, https only; button "Online teilnehmen" / "Join online" |
 
 ## Dues Selection (Beitragseinstufung)
 

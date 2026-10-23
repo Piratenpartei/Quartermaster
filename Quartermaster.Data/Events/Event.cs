@@ -8,6 +8,7 @@ namespace Quartermaster.Data.Events;
 [Table(TableName, IsColumnAttributeRequired = false)]
 public class Event {
     public const string TableName = "Events";
+    public const int MeetingUrlMaxLength = 500;
 
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -16,6 +17,10 @@ public class Event {
     public string PublicName { get; set; } = "";
     public string? Description { get; set; }
     public DateTime? EventDate { get; set; }
+
+    /// <summary>Berlin wall-clock time on <see cref="EventDate"/>; events are always local, so no instant is stored.</summary>
+    public TimeSpan? StartTime { get; set; }
+    public string? MeetingUrl { get; set; }
     public EventStatus Status { get; set; } = EventStatus.Draft;
     public EventVisibility Visibility { get; set; } = EventVisibility.Private;
     public Guid? EventTemplateId { get; set; }
@@ -28,6 +33,8 @@ public class Event {
         PublicName = req.PublicName,
         Description = req.Description,
         EventDate = req.EventDate.ToStorage(),
+        StartTime = req.StartTime.ToStorage(),
+        MeetingUrl = string.IsNullOrWhiteSpace(req.MeetingUrl) ? null : req.MeetingUrl.Trim(),
         Visibility = req.Visibility,
         CreatedAt = nowUtc
     };
@@ -40,6 +47,8 @@ public class Event {
         PublicName = PublicName,
         Description = Description,
         EventDate = EventDate.ToDtoDate(),
+        StartTime = StartTime.ToDtoTime(),
+        MeetingUrl = MeetingUrl,
         Status = Status,
         Visibility = Visibility,
         EventTemplateId = EventTemplateId,

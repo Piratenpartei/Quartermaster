@@ -225,6 +225,8 @@
   "error.event.internal_name_max_length": "Der interne Name darf maximal 512 Zeichen lang sein.",
   "error.event.public_name_required": "Der öffentliche Name darf nicht leer sein.",
   "error.event.public_name_max_length": "Der öffentliche Name darf maximal 512 Zeichen lang sein.",
+  "error.event.meeting_url_max_length": "Der Link zur Online-Teilnahme darf maximal 500 Zeichen lang sein.",
+  "error.event.meeting_url_invalid": "Der Link zur Online-Teilnahme muss mit https:// beginnen.",
   "error.event.status.transition_invalid": "Übergang von {from} zu {to} ist nicht erlaubt.",
 
   "error.event.template.template_required": "Die Vorlage muss ausgewählt werden.",
@@ -1008,6 +1010,8 @@
   "ui.event_visibility.public": "Öffentlich",
   "ui.event_visibility.members_only": "Mitglieder",
   "ui.event_visibility.private": "Intern",
+  "ui.events.start_time": "{time} Uhr",
+  "ui.events.join_online": "Online teilnehmen",
 
   "ui.event_list.page_title": "Veranstaltungen",
   "ui.event_list.new_event": "Neue Veranstaltung",
@@ -1017,6 +1021,9 @@
   "ui.event_list.public_name_column": "Öffentlicher Name",
   "ui.event_list.progress_column": "Fortschritt",
 
+  "ui.event_detail.start_time_label": "Beginn",
+  "ui.event_detail.meeting_url_label": "Link zur Online-Teilnahme",
+  "ui.event_detail.meeting_url_hint": "Z. B. ein Jitsi-Raum. Erscheint als Button „Online teilnehmen“ für alle, die die Veranstaltung sehen können; in Beschreibung und Mails als {{link}}. Beginn als {{uhrzeit}}.",
   "ui.event_detail.not_found": "Veranstaltung nicht gefunden.",
   "ui.event_detail.save_aria": "Speichern",
   "ui.event_detail.cancel_aria": "Abbrechen",

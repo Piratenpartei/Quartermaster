@@ -67,6 +67,20 @@ public partial class EventDetail {
         }
     }
 
+    private void OnStartTimeChanged(string value) {
+        if (Event != null) {
+            Event.StartTime = TimeOnly.TryParse(value, out var t) ? t : null;
+            _detailsForm?.MarkDirty();
+        }
+    }
+
+    private void OnMeetingUrlChanged(string value) {
+        if (Event != null) {
+            Event.MeetingUrl = value;
+            _detailsForm?.MarkDirty();
+        }
+    }
+
     private void OnVisibilityChanged(string value) {
         if (Event != null && int.TryParse(value, out var v)) {
             Event.Visibility = (EventVisibility)v;
@@ -82,22 +96,32 @@ public partial class EventDetail {
         StateHasChanged();
 
         try {
-            await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
-                Id = Id,
-                InternalName = Event.InternalName,
-                PublicName = Event.PublicName,
-                Description = Event.Description,
-                EventDate = Event.EventDate,
-                Visibility = Event.Visibility
-            });
-            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            var response = await Http.PutAsJsonAsync($"/api/events/{Id}", UpdateRequest(Event));
+            if (response.IsSuccessStatusCode) {
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                _detailsForm.Reset();
+            } else {
+                await ToastService.ErrorAsync(response);
+            }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
 
         Saving = false;
-        _detailsForm.Reset();
         StateHasChanged();
+    }
+
+    private EventUpdateRequest UpdateRequest(EventDetailDTO ev) {
+        return new EventUpdateRequest {
+            Id = Id,
+            InternalName = ev.InternalName,
+            PublicName = ev.PublicName,
+            Description = ev.Description,
+            EventDate = ev.EventDate,
+            StartTime = ev.StartTime,
+            MeetingUrl = ev.MeetingUrl,
+            Visibility = ev.Visibility
+        };
     }
 
     private async Task SaveTitleEdit() {
@@ -109,14 +133,12 @@ public partial class EventDetail {
     private async Task SaveIfDirty() {
         if (_detailsForm.IsDirty && Event != null) {
             try {
-                await Http.PutAsJsonAsync($"/api/events/{Id}", new EventUpdateRequest {
-                    Id = Id,
-                    InternalName = Event.InternalName,
-                    PublicName = Event.PublicName,
-                    Description = Event.Description,
-                    EventDate = Event.EventDate
-                });
-                _detailsForm.Reset();
+                var response = await Http.PutAsJsonAsync($"/api/events/{Id}", UpdateRequest(Event));
+                if (response.IsSuccessStatusCode) {
+                    _detailsForm.Reset();
+                } else {
+                    await ToastService.ErrorAsync(response);
+                }
             } catch (HttpRequestException ex) {
                 ToastService.Error(ex);
             }

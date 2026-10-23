@@ -1,0 +1,5 @@
+@using Quartermaster.Api.I18n
+
+@if (Date.HasValue) {
+    <span>@Date.Value.ToString("dd.MM.yyyy")@if (StartTime.HasValue) {<text>, @I18n[I18nParams.With(I18nKey.Ui.Events.StartTime, ("time", StartTime.Value.ToString("HH:mm")))]</text>}</span>
+}

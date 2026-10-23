@@ -33,9 +33,8 @@ public partial class PublicEventDetail {
             if (response.IsSuccessStatusCode) {
                 Event = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
                 if (Event != null && !string.IsNullOrEmpty(Event.Description)) {
-                    DescriptionHtml = ReplaceVariables(
-                        MarkdownService.ToHtml(Event.Description, SanitizationProfile.Standard),
-                        Event.EventDate);
+                    var description = EventPlaceholders.Apply(Event.Description, Event.EventDate, Event.StartTime, Event.MeetingUrl);
+                    DescriptionHtml = MarkdownService.ToHtml(description, SanitizationProfile.Standard);
                 }
                 var portalResponse = await Http.GetAsync($"/api/assemblymotions/portals/by-event/{Id}");
                 HasMotionPortal = portalResponse.IsSuccessStatusCode;
@@ -48,12 +47,5 @@ public partial class PublicEventDetail {
             NotFound = true;
         }
         Loading = false;
-    }
-
-    private static string ReplaceVariables(string html, DateOnly? eventDate) {
-        var dateStr = eventDate?.ToString("dd.MM.yyyy") ?? "";
-        return html
-            .Replace("{{date}}", dateStr)
-            .Replace("{{datum}}", dateStr);
     }
 }

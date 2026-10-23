@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -84,5 +85,29 @@ public class EventFromTemplateEndpointTests : IntegrationTestBase {
         await Assert.That(dto!.PublicName).IsEqualTo("Hello");
         await Assert.That(dto.EventTemplateId).IsEqualTo(template.Id);
         await Assert.That(Db.Events.Any(e => e.Id == dto.Id)).IsTrue();
+    }
+
+    [Test]
+    public async Task Fills_date_and_start_time_from_the_request() {
+        var chapter = Builder.SeedChapter("C");
+        var template = Builder.SeedEventTemplate(chapterId: chapter.Id, name: "Tpl");
+        Db.EventTemplates
+            .Where(t => t.Id == template.Id)
+            .Set(t => t.PublicNameTemplate, "Stammtisch {{datum}} um {{uhrzeit}}")
+            .Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.CreateEvents } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
+            TemplateId = template.Id,
+            ChapterId = chapter.Id,
+            EventDate = new DateOnly(2026, 12, 4),
+            StartTime = new TimeOnly(19, 30)
+        });
+        var dto = await response.Content.ReadFromJsonAsync<EventDetailDTO>();
+
+        await Assert.That(dto!.PublicName).IsEqualTo("Stammtisch 04.12.2026 um 19:30");
+        await Assert.That(dto.StartTime).IsEqualTo(new TimeOnly(19, 30));
     }
 }

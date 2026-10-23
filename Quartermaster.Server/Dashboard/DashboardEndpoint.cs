@@ -156,6 +156,8 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
             PublicName = e.PublicName,
             ChapterName = chapters.TryGetValue(e.ChapterId, out var name) ? name : "",
             EventDate = e.EventDate.ToDtoDate(),
+            StartTime = e.StartTime.ToDtoTime(),
+            MeetingUrl = e.MeetingUrl,
             HasMotionPortal = eventsWithPortal.Contains(e.Id)
         }).ToList();
     }

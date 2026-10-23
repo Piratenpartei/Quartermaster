@@ -11,6 +11,8 @@ public class EventDetailDTO {
     public string PublicName { get; set; } = "";
     public string? Description { get; set; }
     public DateOnly? EventDate { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public string? MeetingUrl { get; set; }
     public EventStatus Status { get; set; }
     public EventVisibility Visibility { get; set; }
     public Guid? EventTemplateId { get; set; }

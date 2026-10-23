@@ -8,6 +8,8 @@ public class EventDTO {
     public string ChapterName { get; set; } = "";
     public string PublicName { get; set; } = "";
     public DateOnly? EventDate { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public string? MeetingUrl { get; set; }
     public EventStatus Status { get; set; }
     public EventVisibility Visibility { get; set; }
     public int ChecklistTotal { get; set; }

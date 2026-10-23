@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.Events
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Events
 
 <PageHeader Title="@I18n[I18nKey.Ui.EventList.PageTitle]">
     <Actions>
@@ -52,7 +53,7 @@
                     <td>@e.ChapterName</td>
                     <td><EventStatusBadge Status="@e.Status" /></td>
                     <td><EventVisibilityBadge Visibility="@e.Visibility" /></td>
-                    <td><LocalTime DateValue="e.EventDate" /></td>
+                    <td><EventDateText Date="e.EventDate" StartTime="e.StartTime" /></td>
                     <td>
                         @if (e.ChecklistTotal > 0) {
                             <span>@e.ChecklistCompleted/@e.ChecklistTotal</span>

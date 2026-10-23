@@ -25,6 +25,12 @@
                            value="@(EventDate?.ToString("yyyy-MM-dd"))"
                            @onchange="(e) => EventDate = DateTime.TryParse(e.Value?.ToString(), out var d) ? d : null" />
                 </div>
+                <div class="col-md-3">
+                    <label for="eventStartTime" class="form-label">@I18n[I18nKey.Ui.EventDetail.StartTimeLabel]</label>
+                    <input type="time" class="form-control" id="eventStartTime"
+                           value="@(StartTime?.ToString("HH:mm"))"
+                           @onchange="(e) => StartTime = TimeOnly.TryParse(e.Value?.ToString(), out var t) ? t : null" />
+                </div>
             </div>
 
             @if (Variables.Count > 0) {

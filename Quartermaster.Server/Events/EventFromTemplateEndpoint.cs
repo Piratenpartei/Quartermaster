@@ -53,9 +53,12 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             return;
         }
 
-        var dateStr = req.EventDate?.ToString("dd.MM.yyyy") ?? "";
+        var dateStr = req.EventDate.HasValue ? EventPlaceholders.FormatDate(req.EventDate.Value) : "";
         req.VariableValues["date"] = dateStr;
         req.VariableValues["datum"] = dateStr;
+        var timeStr = req.StartTime.HasValue ? EventPlaceholders.FormatTime(req.StartTime.Value) : "";
+        req.VariableValues["time"] = timeStr;
+        req.VariableValues["uhrzeit"] = timeStr;
 
         var publicName = ReplaceVariables(template.PublicNameTemplate, req.VariableValues);
         var description = template.DescriptionTemplate != null
@@ -68,6 +71,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             PublicName = publicName,
             Description = description,
             EventDate = req.EventDate.ToStorage(),
+            StartTime = req.StartTime.ToStorage(),
             EventTemplateId = template.Id,
             CreatedAt = DateTime.UtcNow
         };

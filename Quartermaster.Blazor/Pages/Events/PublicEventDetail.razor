@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.Events
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Events
 
 <PageTitle>@I18n[I18nKey.Ui.PublicEventDetail.PageTitle]</PageTitle>
 
@@ -18,15 +19,22 @@
     <div class="text-secondary mb-4">
         @Event.ChapterName
         @if (Event.EventDate.HasValue) {
-            <span> &mdash; <LocalTime DateValue="Event.EventDate" /></span>
+            <span> &mdash; <EventDateText Date="Event.EventDate" StartTime="Event.StartTime" /></span>
         }
     </div>
 
-    @if (HasMotionPortal) {
-        <div class="mb-3">
-            <a href="/Events/@Id/Motions" class="btn btn-primary">
-                <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
-            </a>
+    @if (HasMotionPortal || !string.IsNullOrWhiteSpace(Event.MeetingUrl)) {
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            @if (!string.IsNullOrWhiteSpace(Event.MeetingUrl)) {
+                <a href="@Event.MeetingUrl" target="_blank" rel="noopener" class="btn btn-primary">
+                    <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
+                </a>
+            }
+            @if (HasMotionPortal) {
+                <a href="/Events/@Id/Motions" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
+                </a>
+            }
         </div>
     }
 

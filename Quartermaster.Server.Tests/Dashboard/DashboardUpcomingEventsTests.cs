@@ -32,6 +32,23 @@ public class DashboardUpcomingEventsTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Row_carries_start_time_and_meeting_link() {
+        var chapter = Builder.SeedChapter("C");
+        var ev = SeedDated(chapter.Id, EventVisibility.Public, 5);
+        Db.Events
+            .Where(e => e.Id == ev.Id)
+            .Set(e => e.StartTime, new TimeSpan(19, 0, 0))
+            .Set(e => e.MeetingUrl, "https://meet.jit.si/stammtisch")
+            .Update();
+        using var client = AnonymousClient();
+
+        var row = (await GetUpcoming(client)).Single(r => r.Id == ev.Id);
+
+        await Assert.That(row.StartTime).IsEqualTo(new TimeOnly(19, 0));
+        await Assert.That(row.MeetingUrl).IsEqualTo("https://meet.jit.si/stammtisch");
+    }
+
+    [Test]
     public async Task Event_dated_today_stays_listed_for_the_whole_berlin_day() {
         var chapter = Builder.SeedChapter("C");
         var today = Builder.SeedEvent(chapter.Id, publicName: "Heute", status: EventStatus.Active,
@@ -180,6 +197,8 @@ public class DashboardUpcomingEventsTests : IntegrationTestBase {
             nameof(DashboardEventDTO.PublicName),
             nameof(DashboardEventDTO.ChapterName),
             nameof(DashboardEventDTO.EventDate),
+            nameof(DashboardEventDTO.StartTime),
+            nameof(DashboardEventDTO.MeetingUrl),
             nameof(DashboardEventDTO.HasMotionPortal)
         });
     }

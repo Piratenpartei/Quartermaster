@@ -72,6 +72,8 @@ public class EventRepository {
             .Set(e => e.PublicName, ev.PublicName)
             .Set(e => e.Description, ev.Description)
             .Set(e => e.EventDate, ev.EventDate)
+            .Set(e => e.StartTime, ev.StartTime)
+            .Set(e => e.MeetingUrl, ev.MeetingUrl)
             .Set(e => e.Visibility, ev.Visibility)
             .Update();
 
@@ -80,6 +82,8 @@ public class EventRepository {
             _auditLog.LogFieldChange("Event", ev.Id, "PublicName", existing.PublicName, ev.PublicName);
             _auditLog.LogFieldChange("Event", ev.Id, "Description", existing.Description, ev.Description);
             _auditLog.LogFieldChange("Event", ev.Id, "EventDate", existing.EventDate?.ToString("o"), ev.EventDate?.ToString("o"));
+            _auditLog.LogFieldChange("Event", ev.Id, "StartTime", existing.StartTime?.ToString(@"hh\:mm"), ev.StartTime?.ToString(@"hh\:mm"));
+            _auditLog.LogFieldChange("Event", ev.Id, "MeetingUrl", existing.MeetingUrl, ev.MeetingUrl);
             _auditLog.LogFieldChange("Event", ev.Id, "Visibility", existing.Visibility.ToString(), ev.Visibility.ToString());
         }
     }

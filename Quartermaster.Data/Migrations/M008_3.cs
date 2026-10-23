@@ -1,5 +1,6 @@
 using FluentMigrator;
 using Quartermaster.Api.SupportSignatures;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.SupportSignatures;
 
 namespace Quartermaster.Data.Migrations;
@@ -17,9 +18,16 @@ public class M008_3 : MigrationBase {
             WHERE `{M008.VisibleToMembersColumn}` = 1");
 
         Delete.Column(M008.VisibleToMembersColumn).FromTable(SignatureCampaign.TableName);
+
+        Alter.Table(Event.TableName)
+            .AddColumn(nameof(Event.StartTime)).AsCustom("TIME").Nullable()
+            .AddColumn(nameof(Event.MeetingUrl)).AsString(Event.MeetingUrlMaxLength).Nullable();
     }
 
     public override void Down() {
+        Delete.Column(nameof(Event.StartTime)).FromTable(Event.TableName);
+        Delete.Column(nameof(Event.MeetingUrl)).FromTable(Event.TableName);
+
         Alter.Table(SignatureCampaign.TableName)
             .AddColumn(M008.VisibleToMembersColumn).AsBoolean().NotNullable().WithDefaultValue(false);
 

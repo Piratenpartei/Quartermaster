@@ -87,4 +87,47 @@ public class EventUpdateEndpointTests : IntegrationTestBase {
         await Assert.That(updated.PublicName).IsEqualTo("AfterPublic");
         await Assert.That(updated.Visibility).IsEqualTo(EventVisibility.Public);
     }
+
+    [Test]
+    public async Task Saves_start_time_and_meeting_link() {
+        var chapter = Builder.SeedChapter("C");
+        var ev = Builder.SeedEvent(chapter.Id, visibility: EventVisibility.Public);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditEvents } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/events/{ev.Id}", new EventUpdateRequest {
+            Id = ev.Id,
+            InternalName = "KPT",
+            PublicName = "Kreisparteitag",
+            EventDate = new DateOnly(2026, 11, 28),
+            StartTime = new TimeOnly(10, 30),
+            MeetingUrl = " https://meet.jit.si/kpt-celle ",
+            Visibility = EventVisibility.Public
+        });
+        using var anonymous = AnonymousClient();
+        var detail = await anonymous.GetFromJsonAsync<EventDetailDTO>($"/api/events/{ev.Id}");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(detail!.StartTime).IsEqualTo(new TimeOnly(10, 30));
+        await Assert.That(detail.MeetingUrl).IsEqualTo("https://meet.jit.si/kpt-celle");
+    }
+
+    [Test]
+    public async Task Returns_400_for_a_plain_http_meeting_link() {
+        var chapter = Builder.SeedChapter("C");
+        var ev = Builder.SeedEvent(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditEvents } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/events/{ev.Id}", new EventUpdateRequest {
+            Id = ev.Id,
+            InternalName = "KPT",
+            PublicName = "Kreisparteitag",
+            MeetingUrl = "http://meet.jit.si/kpt-celle"
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+    }
 }

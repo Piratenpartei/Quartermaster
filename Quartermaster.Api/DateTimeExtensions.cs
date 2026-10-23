@@ -22,4 +22,12 @@ public static class DateTimeExtensions {
     extension(DateOnly? value) {
         public DateTime? ToStorage() => value.HasValue ? value.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc) : null;
     }
+
+    extension(TimeSpan? stored) {
+        public TimeOnly? ToDtoTime() => stored.HasValue ? TimeOnly.FromTimeSpan(stored.Value) : null;
+    }
+
+    extension(TimeOnly? value) {
+        public TimeSpan? ToStorage() => value.HasValue ? value.Value.ToTimeSpan() : null;
+    }
 }

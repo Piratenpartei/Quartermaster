@@ -51,7 +51,7 @@
     <div class="text-secondary mb-3">
         @Event.ChapterName
         @if (Event.EventDate != null) {
-            <span> &mdash; <LocalTime DateValue="Event.EventDate" /></span>
+            <span> &mdash; <EventDateText Date="Event.EventDate" StartTime="Event.StartTime" /></span>
         }
         <span> &mdash; @I18n[I18nKey.Ui.EventDetail.CreatedPrefix] <LocalTime Value="Event.CreatedAt" Format="dd.MM.yyyy" /></span>
     </div>
@@ -70,6 +70,11 @@
                                    ValueChanged="OnDateChanged" CssClass="w-auto" />
                     </div>
                     <div class="col-auto">
+                        <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.StartTimeLabel]</label>
+                        <FormInput Type="time" Value="@(Event.StartTime?.ToString("HH:mm") ?? "")"
+                                   ValueChanged="OnStartTimeChanged" CssClass="w-auto" />
+                    </div>
+                    <div class="col-auto">
                         <label class="form-label small text-secondary">@I18n[I18nKey.Ui.Common.Visibility]</label>
                         <FormSelect Value="@(((int)Event.Visibility).ToString())" ValueChanged="OnVisibilityChanged" CssClass="w-auto">
                             <option value="0">@I18n[I18nKey.Ui.EventVisibility.Public]</option>
@@ -81,6 +86,11 @@
                         <FormSaveButton OnClick="SaveDetails" Saving="Saving"
                                         ButtonClass="btn-primary" Text="" SavingText="" />
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.MeetingUrlLabel]</label>
+                    <FormInput Type="url" Value="@(Event.MeetingUrl ?? "")" ValueChanged="OnMeetingUrlChanged" Placeholder="https://" />
+                    <div class="form-text">@I18n[I18nKey.Ui.EventDetail.MeetingUrlHint]</div>
                 </div>
                 <div class="row mb-1">
                     <div class="col-md-6">

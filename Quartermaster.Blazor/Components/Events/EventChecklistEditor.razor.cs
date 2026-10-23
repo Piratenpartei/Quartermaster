@@ -307,10 +307,7 @@ public partial class EventChecklistEditor {
     }
 
     private string ReplaceEventDateVariables(string text) {
-        var dateStr = Event.EventDate?.ToString("dd.MM.yyyy") ?? I18n[I18nKey.Ui.EventChecklistEditor.NoDateFallback];
-        text = text.Replace("{{date}}", dateStr);
-        text = text.Replace("{{datum}}", dateStr);
-        return text;
+        return EventPlaceholders.Apply(text, Event.EventDate, Event.StartTime, Event.MeetingUrl, I18n[I18nKey.Ui.EventChecklistEditor.NoDateFallback]);
     }
 
     private static string RenderMarkdown(string markdown)

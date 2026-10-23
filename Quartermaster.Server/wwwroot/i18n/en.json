@@ -225,6 +225,8 @@
   "error.event.internal_name_max_length": "Internal name must be at most 512 characters long.",
   "error.event.public_name_required": "Public name must not be empty.",
   "error.event.public_name_max_length": "Public name must be at most 512 characters long.",
+  "error.event.meeting_url_max_length": "The online meeting link may be at most 500 characters long.",
+  "error.event.meeting_url_invalid": "The online meeting link must start with https://.",
   "error.event.status.transition_invalid": "Transition from {from} to {to} is not allowed.",
 
   "error.event.template.template_required": "Template must be selected.",
@@ -1008,6 +1010,8 @@
   "ui.event_visibility.public": "Public",
   "ui.event_visibility.members_only": "Members only",
   "ui.event_visibility.private": "Internal",
+  "ui.events.start_time": "{time}",
+  "ui.events.join_online": "Join online",
 
   "ui.event_list.page_title": "Events",
   "ui.event_list.new_event": "New event",
@@ -1017,6 +1021,9 @@
   "ui.event_list.public_name_column": "Public name",
   "ui.event_list.progress_column": "Progress",
 
+  "ui.event_detail.start_time_label": "Start time",
+  "ui.event_detail.meeting_url_label": "Online meeting link",
+  "ui.event_detail.meeting_url_hint": "E.g. a Jitsi room. Shown as a “Join online” button to everyone who can see the event; in the description and mails as {{link}}. Start time as {{uhrzeit}}.",
   "ui.event_detail.not_found": "Event not found.",
   "ui.event_detail.save_aria": "Save",
   "ui.event_detail.cancel_aria": "Cancel",

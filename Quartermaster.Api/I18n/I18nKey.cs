@@ -365,6 +365,8 @@ public static class I18nKey {
             public const string InternalNameMaxLength = "error.event.internal_name_max_length";
             public const string PublicNameRequired = "error.event.public_name_required";
             public const string PublicNameMaxLength = "error.event.public_name_max_length";
+            public const string MeetingUrlMaxLength = "error.event.meeting_url_max_length";
+            public const string MeetingUrlInvalid = "error.event.meeting_url_invalid";
 
             public static class Status {
                 public const string TransitionInvalid = "error.event.status.transition_invalid";
@@ -1345,6 +1347,11 @@ public static class I18nKey {
             public const string Private = "ui.event_visibility.private";
         }
 
+        public static class Events {
+            public const string StartTime = "ui.events.start_time";
+            public const string JoinOnline = "ui.events.join_online";
+        }
+
         public static class EventList {
             public const string PageTitle = "ui.event_list.page_title";
             public const string NewEvent = "ui.event_list.new_event";
@@ -1356,6 +1363,9 @@ public static class I18nKey {
         }
 
         public static class EventDetail {
+            public const string StartTimeLabel = "ui.event_detail.start_time_label";
+            public const string MeetingUrlLabel = "ui.event_detail.meeting_url_label";
+            public const string MeetingUrlHint = "ui.event_detail.meeting_url_hint";
             public const string NotFound = "ui.event_detail.not_found";
             public const string SaveAria = "ui.event_detail.save_aria";
             public const string CancelAria = "ui.event_detail.cancel_aria";

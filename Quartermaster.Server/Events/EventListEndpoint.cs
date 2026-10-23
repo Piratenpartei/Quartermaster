@@ -48,6 +48,8 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
                 ChapterName = chapters.TryGetValue(e.ChapterId, out var name) ? name : "",
                 PublicName = e.PublicName,
                 EventDate = e.EventDate.ToDtoDate(),
+                StartTime = e.StartTime.ToDtoTime(),
+                MeetingUrl = e.MeetingUrl,
                 Status = e.Status,
                 Visibility = e.Visibility,
                 ChecklistTotal = counts.Total,

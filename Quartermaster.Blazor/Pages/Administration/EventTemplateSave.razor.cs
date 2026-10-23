@@ -63,15 +63,12 @@ public partial class EventTemplateSave {
             }
         }
 
-        // Built-in variables that map to event model fields — exclude from custom variables
-        var builtInVariables = new HashSet<string> { "date", "datum" };
-
         var variableNames = new HashSet<string>();
         var regex = new Regex(@"\{\{(\w+)\}\}");
         foreach (var text in allText) {
             foreach (Match match in regex.Matches(text)) {
                 var name = match.Groups[1].Value;
-                if (!builtInVariables.Contains(name))
+                if (!EventPlaceholders.BuiltInNames.Contains(name))
                     variableNames.Add(name);
             }
         }

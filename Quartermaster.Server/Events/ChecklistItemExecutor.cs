@@ -63,10 +63,8 @@ public class ChecklistItemExecutor {
 
         string? descriptionOverride = null;
         if (config.UseDescription && parentEvent != null) {
-            var desc = parentEvent.Description ?? "";
-            var dateStr = parentEvent.EventDate?.ToString("dd.MM.yyyy") ?? "";
-            desc = desc.Replace("{{date}}", dateStr).Replace("{{datum}}", dateStr);
-            descriptionOverride = desc;
+            descriptionOverride = EventPlaceholders.Apply(parentEvent.Description ?? "", parentEvent.EventDate.ToDtoDate(),
+                parentEvent.StartTime.ToDtoTime(), parentEvent.MeetingUrl);
         }
 
         var globalsBlock = _globals.Build();

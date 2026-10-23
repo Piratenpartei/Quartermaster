@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.Dashboard
 @using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Events
 @using Quartermaster.Blazor.Components.SupportSignatures
 @using System.Globalization
 
@@ -36,12 +37,17 @@
                             <td>@ev.ChapterName</td>
                             <td>
                                 @if (ev.EventDate.HasValue) {
-                                    <LocalTime DateValue="ev.EventDate" />
+                                    <EventDateText Date="ev.EventDate" StartTime="ev.StartTime" />
                                 } else {
                                     @I18n[I18nKey.Ui.Home.UpcomingEventDateOpen]
                                 }
                             </td>
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">
+                                @if (!string.IsNullOrWhiteSpace(ev.MeetingUrl)) {
+                                    <a href="@ev.MeetingUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
+                                    </a>
+                                }
                                 @if (ev.HasMotionPortal) {
                                     <a href="/Events/@ev.Id/Motions" class="btn btn-sm btn-primary">
                                         <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]

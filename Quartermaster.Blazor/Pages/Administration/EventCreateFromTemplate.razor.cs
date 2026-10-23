@@ -31,6 +31,7 @@ public partial class EventCreateFromTemplate {
     private bool Loading = true;
     private string ChapterId { get; set; } = "";
     private DateTime? EventDate { get; set; }
+    private TimeOnly? StartTime { get; set; }
     private List<TemplateVariable> Variables = new();
     private bool Submitting;
 
@@ -39,9 +40,8 @@ public partial class EventCreateFromTemplate {
             if (Template == null)
                 return "";
             var result = Template.PublicNameTemplate;
-            // Replace built-in date variables
-            var dateStr = EventDate?.ToString("dd.MM.yyyy") ?? "";
-            result = result.Replace("{{date}}", dateStr).Replace("{{datum}}", dateStr);
+            // Replace built-in event placeholders
+            result = EventPlaceholders.Apply(result, ToDate(EventDate), StartTime, null);
             // Replace custom variables
             foreach (var v in Variables) {
                 result = result.Replace($"{{{{{v.Name}}}}}", v.Value);
@@ -82,7 +82,8 @@ public partial class EventCreateFromTemplate {
             var response = await Http.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
                 TemplateId = TemplateId,
                 ChapterId = chapterId,
-                EventDate = EventDate.HasValue ? DateOnly.FromDateTime(EventDate.Value) : null,
+                EventDate = ToDate(EventDate),
+                StartTime = StartTime,
                 VariableValues = variableValues
             });
 
@@ -101,6 +102,10 @@ public partial class EventCreateFromTemplate {
 
         Submitting = false;
         StateHasChanged();
+    }
+
+    private static DateOnly? ToDate(DateTime? value) {
+        return value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
     }
 
     public class TemplateVariable {
