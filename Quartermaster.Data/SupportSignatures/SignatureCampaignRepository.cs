@@ -50,8 +50,10 @@ public class SignatureCampaignRepository {
             .Set(c => c.MarginPercent, campaign.MarginPercent)
             .Set(c => c.Deadline, campaign.Deadline)
             .Set(c => c.OverdueDays, campaign.OverdueDays)
-            .Set(c => c.VisibleToMembers, campaign.VisibleToMembers)
+            .Set(c => c.Visibility, campaign.Visibility)
             .Set(c => c.MemberNotice, campaign.MemberNotice)
+            .Set(c => c.PostalAddress, campaign.PostalAddress)
+            .Set(c => c.ContactEmail, campaign.ContactEmail)
             .Update();
     }
 

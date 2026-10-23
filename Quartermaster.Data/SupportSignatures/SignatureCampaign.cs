@@ -11,6 +11,8 @@ public class SignatureCampaign {
     public const string TableName = "SignatureCampaigns";
     public const int NameMaxLength = 200;
     public const int MemberNoticeMaxLength = 2000;
+    public const int PostalAddressMaxLength = 500;
+    public const int ContactEmailMaxLength = 254;
     public const int FormFileNameMaxLength = 255;
     public const int DefaultMarginPercent = 20;
     public const int DefaultOverdueDays = 21;
@@ -24,8 +26,10 @@ public class SignatureCampaign {
     public int MarginPercent { get; set; } = DefaultMarginPercent;
     public DateTime Deadline { get; set; }
     public int OverdueDays { get; set; } = DefaultOverdueDays;
-    public bool VisibleToMembers { get; set; }
+    public SignatureCampaignVisibility Visibility { get; set; } = SignatureCampaignVisibility.Private;
     public string? MemberNotice { get; set; }
+    public string? PostalAddress { get; set; }
+    public string? ContactEmail { get; set; }
     public bool HasForm { get; set; }
     public string? FormFileName { get; set; }
     public DateTime? ArchivedAt { get; set; }
@@ -41,8 +45,10 @@ public class SignatureCampaign {
             MarginPercent = MarginPercent,
             Deadline = Deadline.ToDtoUtc(),
             OverdueDays = OverdueDays,
-            VisibleToMembers = VisibleToMembers,
+            Visibility = Visibility,
             MemberNotice = MemberNotice,
+            PostalAddress = PostalAddress,
+            ContactEmail = ContactEmail,
             HasForm = HasForm,
             FormFileName = FormFileName,
             ArchivedAt = ArchivedAt.ToDtoUtc(),

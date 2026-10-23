@@ -82,6 +82,21 @@ public class CampaignEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Landesverband_holder_manages_campaigns_of_sub_chapters() {
+        var state = Builder.SeedChapter("Niedersachsen");
+        var celle = Builder.SeedChapter("Celle", parentChapterId: state.Id);
+        using var celleClient = await HolderAsync(celle);
+        using var stateClient = await HolderAsync(state);
+        var campaign = await CreateAsync(celleClient, celle.Id, "Celle");
+
+        var opened = await stateClient.GetAsync($"/api/support-signatures/campaigns/{campaign.Id}");
+        var updated = await stateClient.PutAsJsonAsync($"/api/support-signatures/campaigns/{campaign.Id}", Request(celle.Id, "Celle 2027"));
+
+        await Assert.That(opened.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(updated.StatusCode).IsEqualTo(HttpStatusCode.OK);
+    }
+
+    [Test]
     public async Task Create_needs_permission_on_the_chosen_chapter() {
         var state = Builder.SeedChapter("Niedersachsen");
         var celle = Builder.SeedChapter("Celle", parentChapterId: state.Id);
@@ -99,8 +114,10 @@ public class CampaignEndpointTests : IntegrationTestBase {
         var campaign = await CreateAsync(client, state.Id);
         var update = Request(state.Id, "Landesliste 2027");
         update.Target = 2000;
-        update.VisibleToMembers = true;
-        update.MemberNotice = "Formulare bitte an die Geschäftsstelle.";
+        update.Visibility = SignatureCampaignVisibility.Public;
+        update.MemberNotice = "Infostand jeden Samstag am Kröpcke.";
+        update.PostalAddress = "Piratenpartei Niedersachsen\nPostfach 1234\n30001 Hannover";
+        update.ContactEmail = " sammeln@piraten-nds.de ";
 
         var response = await client.PutAsJsonAsync($"/api/support-signatures/campaigns/{campaign.Id}", update);
         var reloaded = await client.GetFromJsonAsync<SignatureCampaignDTO>($"/api/support-signatures/campaigns/{campaign.Id}");
@@ -108,8 +125,10 @@ public class CampaignEndpointTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(reloaded!.Name).IsEqualTo("Landesliste 2027");
         await Assert.That(reloaded.Target).IsEqualTo(2000);
-        await Assert.That(reloaded.VisibleToMembers).IsTrue();
-        await Assert.That(reloaded.MemberNotice).IsEqualTo("Formulare bitte an die Geschäftsstelle.");
+        await Assert.That(reloaded.Visibility).IsEqualTo(SignatureCampaignVisibility.Public);
+        await Assert.That(reloaded.MemberNotice).IsEqualTo("Infostand jeden Samstag am Kröpcke.");
+        await Assert.That(reloaded.PostalAddress).IsEqualTo("Piratenpartei Niedersachsen\nPostfach 1234\n30001 Hannover");
+        await Assert.That(reloaded.ContactEmail).IsEqualTo("sammeln@piraten-nds.de");
     }
 
     [Test]

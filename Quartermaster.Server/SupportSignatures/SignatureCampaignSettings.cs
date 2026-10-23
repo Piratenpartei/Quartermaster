@@ -11,7 +11,13 @@ public static class SignatureCampaignSettings {
         campaign.MarginPercent = request.MarginPercent;
         campaign.Deadline = request.Deadline.UtcDateTime;
         campaign.OverdueDays = request.OverdueDays;
-        campaign.VisibleToMembers = request.VisibleToMembers;
-        campaign.MemberNotice = string.IsNullOrWhiteSpace(request.MemberNotice) ? null : request.MemberNotice.Trim();
+        campaign.Visibility = request.Visibility;
+        campaign.MemberNotice = TrimToNull(request.MemberNotice);
+        campaign.PostalAddress = TrimToNull(request.PostalAddress);
+        campaign.ContactEmail = TrimToNull(request.ContactEmail);
+    }
+
+    private static string? TrimToNull(string? value) {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

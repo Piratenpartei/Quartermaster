@@ -11,8 +11,10 @@ public class SignatureCampaignSaveRequest {
     public int MarginPercent { get; set; } = 20;
     public DateTimeOffset Deadline { get; set; }
     public int OverdueDays { get; set; } = 21;
-    public bool VisibleToMembers { get; set; }
+    public SignatureCampaignVisibility Visibility { get; set; } = SignatureCampaignVisibility.Private;
     public string? MemberNotice { get; set; }
+    public string? PostalAddress { get; set; }
+    public string? ContactEmail { get; set; }
 }
 
 public class SignatureCampaignListRequest {
@@ -32,8 +34,10 @@ public class SignatureCampaignDTO {
     public int MarginPercent { get; set; }
     public DateTimeOffset Deadline { get; set; }
     public int OverdueDays { get; set; }
-    public bool VisibleToMembers { get; set; }
+    public SignatureCampaignVisibility Visibility { get; set; }
     public string? MemberNotice { get; set; }
+    public string? PostalAddress { get; set; }
+    public string? ContactEmail { get; set; }
     public bool HasForm { get; set; }
     public string? FormFileName { get; set; }
     public DateTimeOffset? ArchivedAt { get; set; }

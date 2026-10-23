@@ -8,7 +8,7 @@ using Quartermaster.Rendering;
 
 namespace Quartermaster.Blazor.Pages.SupportSignatures;
 
-/// <summary>The members' view of a campaign: progress, notice and form download, but no regions or offices.</summary>
+/// <summary>The view of a campaign outside its management: progress, notice, contact and form download, but no regions or offices.</summary>
 public partial class SupportSignatureCampaignPublic {
     [Inject]
     public required SupportSignatureService Signatures { get; set; }
@@ -33,12 +33,12 @@ public partial class SupportSignatureCampaignPublic {
         Loading = true;
         try {
             await AuthService.WaitForInitializationAsync();
-            if (!AuthService.IsAuthenticated) {
+            Campaign = await Signatures.MemberCampaignAsync(Id);
+            if (Campaign == null && !AuthService.IsAuthenticated) {
                 Navigation.NavigateTo("/Login", replace: true);
                 return;
             }
 
-            Campaign = await Signatures.MemberCampaignAsync(Id);
             NoticeHtml = string.IsNullOrWhiteSpace(Campaign?.MemberNotice)
                 ? null
                 : new MarkupString(MarkdownService.ToHtml(Campaign.MemberNotice, SanitizationProfile.Strict));

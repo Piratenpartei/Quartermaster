@@ -69,7 +69,8 @@ public partial class Program {
 
         builder.Services.AddFluentMigratorCore()
             .ConfigureRunner(rb => {
-                rb.AddMySql8().WithGlobalConnectionString(builder.Configuration.GetValue<string>("DatabaseSettings:ConnectionString"))
+                // Read on first use: configuration overrides (the test hosts' own database) only apply once the app is built.
+                rb.AddMySql8().WithGlobalConnectionString(provider => provider.GetRequiredService<IConfiguration>().GetValue<string>("DatabaseSettings:ConnectionString")!)
                     .ScanIn(typeof(M001_InitialStructureMigration).Assembly).For.Migrations();
             });
 

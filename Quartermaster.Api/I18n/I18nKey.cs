@@ -120,6 +120,10 @@ public static class I18nKey {
                 public const string ChapterNotFound = "error.support_signatures.campaign.chapter_not_found";
                 public const string ChapterRequired = "error.support_signatures.campaign.chapter_required";
                 public const string DeadlineRequired = "error.support_signatures.campaign.deadline_required";
+                public const string VisibilityInvalid = "error.support_signatures.campaign.visibility_invalid";
+                public const string PostalAddressTooLong = "error.support_signatures.campaign.postal_address_too_long";
+                public const string ContactEmailTooLong = "error.support_signatures.campaign.contact_email_too_long";
+                public const string ContactEmailInvalid = "error.support_signatures.campaign.contact_email_invalid";
             }
 
             public static class Intake {
@@ -2611,6 +2615,9 @@ public static class I18nKey {
             public const string CollectedHint = "ui.support_signatures.collected_hint";
             public const string Complete = "ui.support_signatures.complete";
             public const string ConfirmSent = "ui.support_signatures.confirm_sent";
+            public const string ContactEmail = "ui.support_signatures.contact_email";
+            public const string ContactEmailHint = "ui.support_signatures.contact_email_hint";
+            public const string ContactLabel = "ui.support_signatures.contact_label";
             public const string CreateOffice = "ui.support_signatures.create_office";
             public const string CreateSingle = "ui.support_signatures.create_single";
             public const string DaysLeft = "ui.support_signatures.days_left";
@@ -2625,6 +2632,14 @@ public static class I18nKey {
             public const string FormShort = "ui.support_signatures.form_short";
             public const string FormTitle = "ui.support_signatures.form_title";
             public const string GoalWithMargin = "ui.support_signatures.goal_with_margin";
+            public const string HelpCertify = "ui.support_signatures.help_certify";
+            public const string HelpFill = "ui.support_signatures.help_fill";
+            public const string HelpPrint = "ui.support_signatures.help_print";
+            public const string HelpSend = "ui.support_signatures.help_send";
+            public const string HelpSteps = "ui.support_signatures.help_steps";
+            public const string HelpTitle = "ui.support_signatures.help_title";
+            public const string HelpWhat = "ui.support_signatures.help_what";
+            public const string HelpWho = "ui.support_signatures.help_who";
             public const string IntakeIntro = "ui.support_signatures.intake_intro";
             public const string IntakeTitle = "ui.support_signatures.intake_title";
             public const string LatestIntakes = "ui.support_signatures.latest_intakes";
@@ -2657,6 +2672,7 @@ public static class I18nKey {
             public const string OpenShipmentsTitle = "ui.support_signatures.open_shipments_title";
             public const string Overdue = "ui.support_signatures.overdue";
             public const string OverdueBadge = "ui.support_signatures.overdue_badge";
+            public const string OpenInAssistant = "ui.support_signatures.open_in_assistant";
             public const string OverdueDays = "ui.support_signatures.overdue_days";
             public const string OverdueDaysHint = "ui.support_signatures.overdue_days_hint";
             public const string PageTitle = "ui.support_signatures.page_title";
@@ -2664,6 +2680,8 @@ public static class I18nKey {
             public const string PlanIntro = "ui.support_signatures.plan_intro";
             public const string PlanTitle = "ui.support_signatures.plan_title";
             public const string PostCode = "ui.support_signatures.post_code";
+            public const string PostalAddress = "ui.support_signatures.postal_address";
+            public const string PostalAddressWarning = "ui.support_signatures.postal_address_warning";
             public const string Prepare = "ui.support_signatures.prepare";
             public const string PreparedIntro = "ui.support_signatures.prepared_intro";
             public const string PreparedTitle = "ui.support_signatures.prepared_title";
@@ -2687,6 +2705,7 @@ public static class I18nKey {
             public const string ReturnLine = "ui.support_signatures.return_line";
             public const string ReturnedOn = "ui.support_signatures.returned_on";
             public const string SaveIntake = "ui.support_signatures.save_intake";
+            public const string SendTo = "ui.support_signatures.send_to";
             public const string Sent = "ui.support_signatures.sent";
             public const string SentOn = "ui.support_signatures.sent_on";
             public const string SettingsTitle = "ui.support_signatures.settings_title";
@@ -2699,7 +2718,7 @@ public static class I18nKey {
             public const string Target = "ui.support_signatures.target";
             public const string UnassignedTitle = "ui.support_signatures.unassigned_title";
             public const string UploadForm = "ui.support_signatures.upload_form";
-            public const string VisibleToMembers = "ui.support_signatures.visible_to_members";
+            public const string VisibilityHint = "ui.support_signatures.visibility_hint";
             public const string Waiting = "ui.support_signatures.waiting";
         }
 

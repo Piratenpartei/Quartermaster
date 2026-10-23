@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LinqToDB;
 using Microsoft.Extensions.DependencyInjection;
+using Quartermaster.Api;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.SupportSignatures;
 using Quartermaster.Data.Chapters;
@@ -29,14 +31,15 @@ public class MemberCampaignEndpointTests : IntegrationTestBase {
         _hannover = Builder.SeedChapter("Hannover", parentChapterId: _state.Id);
     }
 
-    private SignatureCampaign Campaign(Chapter chapter, string name, bool visible = true, DateTime? deadline = null, DateTime? archivedAt = null) {
+    private SignatureCampaign Campaign(Chapter chapter, string name, SignatureCampaignVisibility visibility = SignatureCampaignVisibility.MembersOnly,
+        DateTime? deadline = null, DateTime? archivedAt = null) {
         var campaign = new SignatureCampaign {
             ChapterId = chapter.Id,
             Name = name,
             Target = 100,
             MarginPercent = 20,
             Deadline = deadline ?? DateTime.UtcNow.AddDays(30),
-            VisibleToMembers = visible,
+            Visibility = visibility,
             ArchivedAt = archivedAt,
             CreatedAt = DateTime.UtcNow
         };
@@ -70,7 +73,7 @@ public class MemberCampaignEndpointTests : IntegrationTestBase {
 
     [Test]
     public async Task Hidden_archived_and_long_past_campaigns_are_left_out() {
-        Campaign(_celle, "Versteckt", visible: false);
+        Campaign(_celle, "Versteckt", SignatureCampaignVisibility.Private);
         Campaign(_celle, "Archiviert", archivedAt: DateTime.UtcNow);
         Campaign(_celle, "Lange vorbei", deadline: DateTime.UtcNow.AddDays(-31));
         Campaign(_celle, "Gerade vorbei", deadline: DateTime.UtcNow.AddDays(-29));
@@ -117,20 +120,79 @@ public class MemberCampaignEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Anonymous_gets_401_and_no_cards() {
-        var campaign = Campaign(_celle, "Direktkandidatur Celle");
+    public async Task Anonymous_gets_only_public_campaigns() {
+        var membersOnly = Campaign(_celle, "Direktkandidatur Celle");
+        var open = Campaign(_hannover, "Direktkandidatur Hannover", SignatureCampaignVisibility.Public);
+        Campaign(_state, "Intern", SignatureCampaignVisibility.Private);
         using var client = AnonymousClient();
 
-        var page = await client.GetAsync($"/api/support-signatures/member-campaigns/{campaign.Id}");
+        var dashboard = await client.GetFromJsonAsync<DashboardDTO>("/api/dashboard");
+        var hiddenPage = await client.GetAsync($"/api/support-signatures/member-campaigns/{membersOnly.Id}");
+        var hiddenForm = await client.GetAsync($"/api/support-signatures/member-campaigns/{membersOnly.Id}/form");
+        var publicPage = await client.GetFromJsonAsync<MemberSignatureCampaignDTO>($"/api/support-signatures/member-campaigns/{open.Id}");
+
+        await Assert.That(dashboard!.SupportSignatureCampaigns!.Select(c => c.Name).ToList()).IsEquivalentTo(["Direktkandidatur Hannover"]);
+        await Assert.That(hiddenPage.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+        await Assert.That(hiddenForm.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+        await Assert.That(publicPage!.Name).IsEqualTo("Direktkandidatur Hannover");
+    }
+
+    [Test]
+    public async Task Signed_in_user_gets_public_and_members_only_campaigns() {
+        Campaign(_celle, "Direktkandidatur Celle");
+        Campaign(_hannover, "Direktkandidatur Hannover", SignatureCampaignVisibility.Public);
+        Campaign(_state, "Intern", SignatureCampaignVisibility.Private);
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = AuthenticatedClient(token);
+
         var dashboard = await client.GetFromJsonAsync<DashboardDTO>("/api/dashboard");
 
-        await Assert.That(page.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
-        await Assert.That(dashboard!.SupportSignatureCampaigns).IsNull();
+        await Assert.That(dashboard!.SupportSignatureCampaigns!.Select(c => c.Name).ToList())
+            .IsEquivalentTo(["Direktkandidatur Celle", "Direktkandidatur Hannover"]);
+    }
+
+    [Test]
+    public async Task Card_carries_address_and_contact() {
+        var campaign = Campaign(_celle, "Direktkandidatur Celle", SignatureCampaignVisibility.Public);
+        Db.SignatureCampaigns
+            .Where(c => c.Id == campaign.Id)
+            .Set(c => c.PostalAddress, "Postfach 1234\n29221 Celle")
+            .Set(c => c.ContactEmail, "celle@piraten-nds.de")
+            .Update();
+        using var client = AnonymousClient();
+
+        var page = await client.GetFromJsonAsync<MemberSignatureCampaignDTO>($"/api/support-signatures/member-campaigns/{campaign.Id}");
+
+        await Assert.That(page!.PostalAddress).IsEqualTo("Postfach 1234\n29221 Celle");
+        await Assert.That(page.ContactEmail).IsEqualTo("celle@piraten-nds.de");
+    }
+
+    [Test]
+    public async Task Detail_says_whether_the_caller_can_manage_the_campaign() {
+        var campaign = Campaign(_celle, "Direktkandidatur Celle", SignatureCampaignVisibility.Public);
+        var (_, stateToken) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [_state.Id] = [PermissionIdentifier.ManageSupportSignatures]
+        });
+        var (_, hannoverToken) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [_hannover.Id] = [PermissionIdentifier.ManageSupportSignatures]
+        });
+        using var stateClient = AuthenticatedClient(stateToken);
+        using var hannoverClient = AuthenticatedClient(hannoverToken);
+        using var anonymous = AnonymousClient();
+        var url = $"/api/support-signatures/member-campaigns/{campaign.Id}";
+
+        var state = await stateClient.GetFromJsonAsync<MemberSignatureCampaignDTO>(url);
+        var hannover = await hannoverClient.GetFromJsonAsync<MemberSignatureCampaignDTO>(url);
+        var visitor = await anonymous.GetFromJsonAsync<MemberSignatureCampaignDTO>(url);
+
+        await Assert.That(state!.CanManage).IsTrue();
+        await Assert.That(hannover!.CanManage).IsFalse();
+        await Assert.That(visitor!.CanManage).IsFalse();
     }
 
     [Test]
     public async Task Hidden_campaign_gives_404() {
-        var campaign = Campaign(_hannover, "Direktkandidatur Hannover", visible: false);
+        var campaign = Campaign(_hannover, "Direktkandidatur Hannover", SignatureCampaignVisibility.Private);
         using var client = MemberClient(_celle);
 
         var page = await client.GetAsync($"/api/support-signatures/member-campaigns/{campaign.Id}");

@@ -22,8 +22,10 @@ public class SignatureCampaignAccess {
         return CanManageChapter(campaign.ChapterId);
     }
 
+    /// <summary>Unlike <see cref="PermissionContext.Has(Guid, string)"/>, a holder in a parent chapter also manages the sub-chapters' campaigns.</summary>
     public bool CanManageChapter(Guid chapterId) {
-        return _perms.Has(chapterId, PermissionIdentifier.ManageSupportSignatures);
+        var permitted = ManageableChapterIds();
+        return permitted == null || permitted.Contains(chapterId);
     }
 
     /// <summary>Chapters whose campaigns the caller manages, including sub-chapters; null for all.</summary>

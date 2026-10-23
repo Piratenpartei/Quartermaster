@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.I18n;
@@ -43,5 +44,28 @@ public class SignatureCampaignSaveRequestValidator : Validator<SignatureCampaign
         RuleFor(x => x.MemberNotice)
             .Must(notice => notice == null || notice.Length <= SignatureCampaign.MemberNoticeMaxLength)
             .WithMessage(I18nKey.Error.SupportSignatures.Campaign.NoticeTooLong);
+
+        RuleFor(x => x.Visibility)
+            .IsInEnum()
+            .WithMessage(I18nKey.Error.SupportSignatures.Campaign.VisibilityInvalid);
+
+        RuleFor(x => x.PostalAddress)
+            .Must(address => address == null || address.Trim().Length <= SignatureCampaign.PostalAddressMaxLength)
+            .WithMessage(I18nKey.Error.SupportSignatures.Campaign.PostalAddressTooLong);
+
+        RuleFor(x => x.ContactEmail)
+            .Must(email => email == null || email.Trim().Length <= SignatureCampaign.ContactEmailMaxLength)
+            .WithMessage(I18nKey.Error.SupportSignatures.Campaign.ContactEmailTooLong);
+
+        RuleFor(x => x.ContactEmail)
+            .Must(IsValidEmail)
+            .WithMessage(I18nKey.Error.SupportSignatures.Campaign.ContactEmailInvalid);
+    }
+
+    private static bool IsValidEmail(string? email) {
+        if (string.IsNullOrWhiteSpace(email))
+            return true;
+        var trimmed = email.Trim();
+        return trimmed.Contains('@') && !trimmed.Any(char.IsWhiteSpace);
     }
 }

@@ -149,6 +149,9 @@
 
     @if (Dashboard.SupportSignatureCampaigns?.Count > 0) {
         <h2 class="h4 mt-4 mb-3">@I18n[I18nKey.Ui.Home.SectionSupportSignatures]</h2>
+        @if (!AuthService.IsAuthenticated) {
+            <SupportSignatureHelp />
+        }
     }
     @foreach (var campaign in Dashboard.SupportSignatureCampaigns ?? []) {
         <SupportSignatureProgressCard Campaign="@campaign" />

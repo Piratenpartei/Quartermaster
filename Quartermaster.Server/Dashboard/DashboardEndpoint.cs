@@ -66,10 +66,10 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
             dto.PendingApplications = FetchApplications(chapters);
             dto.PendingDueSelections = FetchDueSelections();
             dto.OpenMotions = FetchMotions(chapters);
-            dto.SupportSignatureCampaigns = _signatureCampaigns.Visible(DateTime.UtcNow);
         }
 
         dto.UpcomingEvents = FetchUpcomingEvents(userId, chapters);
+        dto.SupportSignatureCampaigns = _signatureCampaigns.Visible(DateTime.UtcNow, userId != null);
 
         await SendAsync(dto, cancellation: ct);
     }

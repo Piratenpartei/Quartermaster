@@ -1,0 +1,14 @@
+@using Quartermaster.Api.I18n
+
+@if (!string.IsNullOrWhiteSpace(PostalAddress)) {
+    <div class="small mb-2">
+        <div class="text-secondary"><i class="bi bi-envelope me-2"></i>@I18n[I18nKey.Ui.SupportSignatures.SendTo]</div>
+        <div class="postal-address">@PostalAddress</div>
+    </div>
+}
+@if (!string.IsNullOrWhiteSpace(ContactEmail)) {
+    <div class="small mb-2">
+        <div class="text-secondary"><i class="bi bi-question-circle me-2"></i>@I18n[I18nKey.Ui.SupportSignatures.ContactLabel]</div>
+        <a href="mailto:@ContactEmail">@ContactEmail</a>
+    </div>
+}

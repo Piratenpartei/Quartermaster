@@ -16,4 +16,9 @@ public class MemberSignatureCampaignDTO {
     public DateTimeOffset Deadline { get; set; }
     public bool HasForm { get; set; }
     public string? MemberNotice { get; set; }
+    public string? PostalAddress { get; set; }
+    public string? ContactEmail { get; set; }
+
+    /// <summary>Whether the caller may manage the campaign in the UU-Assistent; only set on the detail endpoint.</summary>
+    public bool CanManage { get; set; }
 }

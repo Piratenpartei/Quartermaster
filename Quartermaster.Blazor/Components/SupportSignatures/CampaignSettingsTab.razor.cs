@@ -43,8 +43,10 @@ public partial class CampaignSettingsTab {
             MarginPercent = Campaign.MarginPercent,
             Deadline = Campaign.Deadline,
             OverdueDays = Campaign.OverdueDays,
-            VisibleToMembers = Campaign.VisibleToMembers,
-            MemberNotice = Campaign.MemberNotice
+            Visibility = Campaign.Visibility,
+            MemberNotice = Campaign.MemberNotice,
+            PostalAddress = Campaign.PostalAddress,
+            ContactEmail = Campaign.ContactEmail
         };
         Deadline = AssemblyMotionDisplay.ToInput(Campaign.Deadline);
     }

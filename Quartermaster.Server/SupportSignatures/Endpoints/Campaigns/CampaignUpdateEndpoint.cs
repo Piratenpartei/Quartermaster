@@ -36,12 +36,16 @@ public class CampaignUpdateEndpoint : Endpoint<SignatureCampaignSaveRequest, Sig
             return;
         }
 
-        var before = $"{campaign.Name}|{campaign.Target}|{campaign.MarginPercent}|{campaign.Deadline:o}|{campaign.OverdueDays}|{campaign.VisibleToMembers}";
+        var before = AuditText(campaign);
         SignatureCampaignSettings.Apply(campaign, req);
         _campaigns.UpdateSettings(campaign);
-        var after = $"{campaign.Name}|{campaign.Target}|{campaign.MarginPercent}|{campaign.Deadline:o}|{campaign.OverdueDays}|{campaign.VisibleToMembers}";
+        var after = AuditText(campaign);
         _auditLog.Log("SignatureCampaign", campaign.Id, "Updated", "Settings", before, after);
 
         await SendAsync(_builder.Build(campaign), cancellation: ct);
+    }
+
+    private static string AuditText(SignatureCampaign campaign) {
+        return $"{campaign.Name}|{campaign.Target}|{campaign.MarginPercent}|{campaign.Deadline:o}|{campaign.OverdueDays}|{campaign.Visibility}|{campaign.PostalAddress}|{campaign.ContactEmail}";
     }
 }

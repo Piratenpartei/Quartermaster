@@ -95,4 +95,42 @@ public class SignatureCampaignValidatorTests {
         _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Deadline)
             .WithErrorMessage(I18nKey.Error.SupportSignatures.Campaign.DeadlineRequired);
     }
+
+    [Test]
+    public void Unknown_visibility_is_refused() {
+        var request = Valid();
+        request.Visibility = (SignatureCampaignVisibility)7;
+
+        _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Visibility)
+            .WithErrorMessage(I18nKey.Error.SupportSignatures.Campaign.VisibilityInvalid);
+    }
+
+    [Test]
+    public void Postal_address_too_long_is_refused() {
+        var request = Valid();
+        request.PostalAddress = new string('x', 501);
+
+        _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.PostalAddress)
+            .WithErrorMessage(I18nKey.Error.SupportSignatures.Campaign.PostalAddressTooLong);
+    }
+
+    [Test]
+    [Arguments("keine-adresse")]
+    [Arguments("sammeln @piraten-nds.de")]
+    public void Invalid_contact_email_is_refused(string email) {
+        var request = Valid();
+        request.ContactEmail = email;
+
+        _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.ContactEmail)
+            .WithErrorMessage(I18nKey.Error.SupportSignatures.Campaign.ContactEmailInvalid);
+    }
+
+    [Test]
+    public void Contact_email_and_address_are_optional() {
+        var request = Valid();
+        request.ContactEmail = " ";
+        request.PostalAddress = "";
+
+        _validator.TestValidate(request).ShouldNotHaveAnyValidationErrors();
+    }
 }

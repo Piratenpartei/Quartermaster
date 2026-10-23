@@ -275,6 +275,16 @@ code {
     white-space: pre-wrap;
 }
 
+.postal-address {
+    white-space: pre-line;
+}
+
+@media (min-width: 992px) {
+    .card .support-signature-card-side {
+        border-left: var(--bs-border-width) solid var(--bs-border-color);
+    }
+}
+
 /* Assembly assistant console. app.css loads before Bootstrap, so rules that override Bootstrap need a second class. */
 .assembly-label {
     font-size: 0.75rem;

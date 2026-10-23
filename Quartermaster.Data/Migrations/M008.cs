@@ -7,6 +7,9 @@ namespace Quartermaster.Data.Migrations;
 
 [Migration(013)]
 public class M008 : MigrationBase {
+    /// <summary>Replaced by <see cref="SignatureCampaign.Visibility"/> in <see cref="M008_3"/>.</summary>
+    public const string VisibleToMembersColumn = "VisibleToMembers";
+
     public override void Up() {
         Create.Table(MunicipalityAssociation.TableName)
             .WithColumn(nameof(MunicipalityAssociation.Key)).AsFixedLengthString(MunicipalityAssociation.KeyLength).PrimaryKey()
@@ -25,7 +28,7 @@ public class M008 : MigrationBase {
             .WithColumn(nameof(SignatureCampaign.MarginPercent)).AsInt32().NotNullable()
             .WithColumn(nameof(SignatureCampaign.Deadline)).AsCustom("DATETIME(6)").NotNullable()
             .WithColumn(nameof(SignatureCampaign.OverdueDays)).AsInt32().NotNullable()
-            .WithColumn(nameof(SignatureCampaign.VisibleToMembers)).AsBoolean().NotNullable().WithDefaultValue(false)
+            .WithColumn(VisibleToMembersColumn).AsBoolean().NotNullable().WithDefaultValue(false)
             .WithColumn(nameof(SignatureCampaign.MemberNotice)).AsCustom("TEXT").Nullable()
             .WithColumn(nameof(SignatureCampaign.HasForm)).AsBoolean().NotNullable().WithDefaultValue(false)
             .WithColumn(nameof(SignatureCampaign.FormFileName)).AsString(SignatureCampaign.FormFileNameMaxLength).Nullable()

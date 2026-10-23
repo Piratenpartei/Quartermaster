@@ -16,6 +16,10 @@ public partial class SupportSignatureProgressCard {
     [Parameter, EditorRequired]
     public MemberSignatureCampaignDTO Campaign { get; set; } = default!;
 
+    private bool HasContact() {
+        return !string.IsNullOrWhiteSpace(Campaign.PostalAddress) || !string.IsNullOrWhiteSpace(Campaign.ContactEmail);
+    }
+
     private async Task DownloadForm() {
         await Signatures.DownloadMemberFormAsync(Campaign.Id, Campaign.Name);
     }

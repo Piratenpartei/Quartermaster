@@ -61,6 +61,7 @@ Items without either tag are eligible for normal scheduling (ASAP). The current 
 ## Events
 
 - [ ] **Start time for events.** An event only has a date today (`EventDate`, passed to the client as a date). Add an optional start time (Berlin local time, stored as an instant like the other deadlines) and show it in the event lists, on the start page and in the date placeholders of event mails and checklist items. Places that compare against the event date, such as `AssemblyMotionResultService.IsEventReached`, should check whether they want the start time instead. The accreditation display for the oBPT counts from this start.
+- [ ] **Online meeting link for events.** An optional link per event to an online meeting (Jitsi or any other `https` URL), shown in the event lists, on the event detail page and as a quick "Teilnehmen" button in the start page listing, plus a placeholder for event mails and checklist items. The link follows the event's existing `Visibility` (Public, MembersOnly, Private); no separate setting. Pairs with the start time above.
 
 ## Motion portal
 
