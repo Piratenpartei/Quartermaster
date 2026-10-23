@@ -2,28 +2,16 @@
 @using Quartermaster.Api.AdministrativeDivisions
 @inject I18nService I18n
 
-<div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
-    <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.AdminDivisionPicker.Placeholder]"
-           value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
-           style="border-radius: 0;" />
-    @if (AllowClear && !string.IsNullOrEmpty(SearchText)) {
-        <button type="button" class="btn-close" aria-label="@I18n[I18nKey.Ui.AdminDivisionPicker.ClearAriaLabel]" @onclick="Clear"
-                style="position: absolute; top: 50%; right: 0.5rem; transform: translateY(-50%); z-index: 5;"></button>
-    }
-    @if (ShowDropdown && SearchResults != null && SearchResults.Count > 0) {
-        <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
-            @foreach (var div in SearchResults.Take(20)) {
-                <button type="button" class="list-group-item list-group-item-action py-1 small"
-                        @onclick="() => SelectDivision(div)">
-                    <span>@div.Name</span>
-                    @if (!string.IsNullOrEmpty(div.MatchedName)) {
-                        <span class="small text-secondary ms-1">(@I18n[I18nParams.With(I18nKey.Ui.AdminDivisionSearch.AlsoKnownAs, ("name", div.MatchedName))])</span>
-                    }
-                    @if (!string.IsNullOrEmpty(div.AdminCode)) {
-                        <code class="small text-secondary ms-1">@div.AdminCode</code>
-                    }
-                </button>
-            }
-        </div>
-    }
-</div>
+<SearchDropdown TItem="AdministrativeDivisionDTO" Items="@(SearchResults ?? [])" OnSelect="SelectDivision"
+                SearchText="@SearchText" SearchTextChanged="OnSearchInput" Placeholder="@I18n[I18nKey.Ui.AdminDivisionPicker.Placeholder]"
+                InputClass="@SizeClass" InInputGroup="InInputGroup">
+    <ItemTemplate Context="div">
+        <span>@div.Name</span>
+        @if (!string.IsNullOrEmpty(div.MatchedName)) {
+            <span class="small text-secondary ms-1">(@I18n[I18nParams.With(I18nKey.Ui.AdminDivisionSearch.AlsoKnownAs, ("name", div.MatchedName))])</span>
+        }
+        @if (!string.IsNullOrEmpty(div.AdminCode)) {
+            <code class="small text-secondary ms-1">@div.AdminCode</code>
+        }
+    </ItemTemplate>
+</SearchDropdown>

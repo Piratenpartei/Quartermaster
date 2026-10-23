@@ -10,6 +10,8 @@ using Quartermaster.Api.AdministrativeDivisions;
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class AdminDivisionPicker {
+    private const int MaxResults = 20;
+
     [Inject]
     public required HttpClient Http { get; set; }
 
@@ -34,12 +36,11 @@ public partial class AdminDivisionPicker {
     [Parameter]
     public string InitialDisplayText { get; set; } = "";
 
-    /// <summary>When true, shows a clear button so the selection can be reset to empty.</summary>
+    /// <summary>Set when the picker sits inside a surrounding input group.</summary>
     [Parameter]
-    public bool AllowClear { get; set; }
+    public bool InInputGroup { get; set; }
 
     private string SearchText = "";
-    private bool ShowDropdown;
     private List<AdministrativeDivisionDTO>? SearchResults;
     private CancellationTokenSource? _debounce;
 
@@ -49,21 +50,11 @@ public partial class AdminDivisionPicker {
         }
     }
 
-    private async Task Clear() {
-        Value = "";
-        SearchText = "";
-        SearchResults = null;
-        ShowDropdown = false;
-        await ValueChanged.InvokeAsync("");
-    }
-
-    private async Task OnSearchInput(ChangeEventArgs e) {
-        SearchText = e.Value?.ToString() ?? "";
-        ShowDropdown = true;
+    private async Task OnSearchInput(string text) {
+        SearchText = text;
 
         if (SearchText.Length < 2) {
             SearchResults = null;
-            StateHasChanged();
             return;
         }
 
@@ -74,7 +65,7 @@ public partial class AdminDivisionPicker {
         try {
             await Task.Delay(300, token);
             var response = await Http.GetFromJsonAsync<AdministrativeDivisionSearchResponse>(
-                $"/api/administrativedivisions/search?query={Uri.EscapeDataString(SearchText)}&page=1&pageSize=20");
+                $"/api/administrativedivisions/search?query={Uri.EscapeDataString(SearchText)}&page=1&pageSize={MaxResults}");
             SearchResults = response?.Items;
             StateHasChanged();
         } catch (TaskCanceledException) { }
@@ -83,7 +74,6 @@ public partial class AdminDivisionPicker {
     private async Task SelectDivision(AdministrativeDivisionDTO division) {
         Value = division.Id.ToString();
         SearchText = division.Name;
-        ShowDropdown = false;
         SearchResults = null;
         await ValueChanged.InvokeAsync(Value);
         await OnSelect.InvokeAsync(division);
@@ -92,11 +82,5 @@ public partial class AdminDivisionPicker {
             SearchText = "";
             await ValueChanged.InvokeAsync("");
         }
-    }
-
-    private async Task ScheduleClose() {
-        await Task.Delay(200);
-        ShowDropdown = false;
-        StateHasChanged();
     }
 }

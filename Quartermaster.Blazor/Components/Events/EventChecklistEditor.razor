@@ -25,7 +25,7 @@
                                 <input type="text" class="form-control"
                                        @bind="EditingItemLabel" @bind:event="oninput" />
                                 @if (item.ItemType == ChecklistItemType.SendEmail) {
-                                    <TemplatePicker @bind-Value="EditingTemplateId" SizeClass="form-control-sm"
+                                    <TemplatePicker @bind-Value="EditingTemplateId" SizeClass="form-control-sm" InInputGroup="true"
                                                     Disabled="EditingUseDescription" />
                                     <span class="input-group-text">
                                         <input type="checkbox" class="form-check-input mt-0 me-1" checked="@EditingUseDescription"
@@ -34,7 +34,7 @@
                                     </span>
                                 }
                                 @if (item.ItemType == ChecklistItemType.CreateMotion) {
-                                    <ChapterPicker @bind-Value="EditingMotionChapterId" Inline="true" SizeClass="form-control-sm" />
+                                    <ChapterPicker @bind-Value="EditingMotionChapterId" Inline="true" InInputGroup="true" SizeClass="form-control-sm" />
                                     <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.EventChecklistEditor.MotionTitlePlaceholder]"
                                            @bind="EditingMotionTitle" @bind:event="oninput" />
                                 }
@@ -54,9 +54,9 @@
                                         <option value="ManualAddresses">@I18n[I18nKey.Ui.EventChecklistEditor.TargetTypeManualAddresses]</option>
                                     </select>
                                     @if (EditingEmailTargetType == "Chapter") {
-                                        <ChapterPicker @bind-Value="EditingEmailTargetId" Inline="true" SizeClass="form-control-sm" />
+                                        <ChapterPicker @bind-Value="EditingEmailTargetId" Inline="true" InInputGroup="true" SizeClass="form-control-sm" />
                                     } else if (EditingEmailTargetType == "AdministrativeDivision") {
-                                        <AdminDivisionPicker @bind-Value="EditingEmailTargetId" SizeClass="form-control-sm" />
+                                        <AdminDivisionPicker @bind-Value="EditingEmailTargetId" SizeClass="form-control-sm" InInputGroup="true" />
                                     } else {
                                         <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.EventChecklistEditor.ManualAddressesPlaceholder]"
                                                @bind="EditingManualAddresses" @bind:event="oninput" />

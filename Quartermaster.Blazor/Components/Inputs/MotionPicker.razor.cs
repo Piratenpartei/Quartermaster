@@ -11,6 +11,8 @@ using Quartermaster.Api.Motions;
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class MotionPicker {
+    private const int MaxShown = 20;
+
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
@@ -33,7 +35,6 @@ public partial class MotionPicker {
 
     private List<MotionDTO>? Motions;
     private string SearchText = "";
-    private bool ShowDropdown;
     private bool Loading;
     private string? _loadedForChapterId;
 
@@ -47,6 +48,15 @@ public partial class MotionPicker {
                 m.Title.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || m.AuthorName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
             ).ToList();
+        }
+    }
+
+    private List<MotionDTO> ShownMotions {
+        get {
+            if (Loading)
+                return [];
+
+            return FilteredMotions.Take(MaxShown).ToList();
         }
     }
 
@@ -75,35 +85,20 @@ public partial class MotionPicker {
         StateHasChanged();
     }
 
-    private async Task OnFocus() {
-        ShowDropdown = true;
+    private async Task OnSearchInput(string text) {
+        SearchText = text;
         await EnsureLoaded();
-    }
-
-    private async Task OnSearchInput(ChangeEventArgs e) {
-        SearchText = e.Value?.ToString() ?? "";
-        ShowDropdown = true;
-        await EnsureLoaded();
-        StateHasChanged();
     }
 
     private async Task SelectMotion(MotionDTO motion) {
         Value = motion.Id.ToString();
         SearchText = motion.Title;
-        ShowDropdown = false;
         await ValueChanged.InvokeAsync(Value);
     }
 
     private async Task Clear() {
         Value = "";
         SearchText = "";
-        ShowDropdown = false;
         await ValueChanged.InvokeAsync(Value);
-    }
-
-    private async Task ScheduleClose() {
-        await Task.Delay(200);
-        ShowDropdown = false;
-        StateHasChanged();
     }
 }

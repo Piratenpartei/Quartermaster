@@ -1,23 +1,17 @@
 @using Quartermaster.Api.Notifications
 
-<div style="position: relative;" tabindex="-1" @onfocusout="ScheduleClose">
-    <input type="text" class="form-control" placeholder="@AllOptionLabel"
-           value="@SearchText" @oninput="OnSearchInput" @onfocus="OnFocus" />
-    @if (ShowDropdown) {
-        <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
-            <button type="button" class="list-group-item list-group-item-action py-1 small text-secondary"
-                    @onclick="ClearSelection">
-                <em>@AllOptionLabel</em>
-            </button>
-            @foreach (var item in FilteredItems.Take(20)) {
-                <button type="button" class="list-group-item list-group-item-action py-1 small"
-                        @onclick="() => SelectItem(item)">
-                    <span>@item.DisplayName</span>
-                    @if (!string.Equals(item.Value, item.DisplayName, System.StringComparison.Ordinal)) {
-                        <code class="small text-secondary ms-1">@item.Value</code>
-                    }
-                </button>
-            }
-        </div>
-    }
-</div>
+<SearchDropdown TItem="NotificationStatsFilterOptionDTO" Items="@ShownItems" OnSelect="SelectItem"
+                SearchText="@SearchText" SearchTextChanged="OnSearchInput" Placeholder="@AllOptionLabel" ShowWithoutItems="true">
+    <ListHeader>
+        <button type="button" class="list-group-item list-group-item-action py-1 small text-secondary" tabindex="-1"
+                @onclick="ClearSelection">
+            <em>@AllOptionLabel</em>
+        </button>
+    </ListHeader>
+    <ItemTemplate Context="item">
+        <span>@item.DisplayName</span>
+        @if (!string.Equals(item.Value, item.DisplayName, System.StringComparison.Ordinal)) {
+            <code class="small text-secondary ms-1">@item.Value</code>
+        }
+    </ItemTemplate>
+</SearchDropdown>

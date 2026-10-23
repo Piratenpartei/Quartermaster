@@ -1,0 +1,25 @@
+@typeparam TItem
+
+<div class="position-relative" style="@WrapperStyle" tabindex="-1" @onfocusout="ScheduleClose">
+    <div class="input-group @GroupClass">
+        @Prefix
+        <input @ref="_input" type="text" class="form-control @InputClass" placeholder="@Placeholder"
+               value="@SearchText" @oninput="OnInput" @onfocus="OnInputFocus" @onkeydown="OnKeyDown"
+               disabled="@Disabled" data-dropdown-open="@(IsOpen() ? "true" : "false")" style="@InputStyle" />
+        @Suffix
+    </div>
+    @if (IsOpen()) {
+        <div @ref="_list" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
+            @ListHeader
+            @for (var i = 0; i < Items.Count; i++) {
+                var item = Items[i];
+                var highlighted = i == Highlighted;
+                <button type="button" class="list-group-item list-group-item-action py-1 small @(highlighted ? "list-group-item-primary" : "")"
+                        tabindex="-1" aria-selected="@(highlighted ? "true" : "false")" @onclick="() => Select(item)">
+                    @ItemTemplate(item)
+                </button>
+            }
+            @ListFooter
+        </div>
+    }
+</div>

@@ -1,21 +1,13 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Templates
 
-<div style="position: relative; flex: 1 1 auto; min-width: 0;" tabindex="-1" @onfocusout="ScheduleClose">
-    <input type="text" class="form-control @SizeClass" placeholder="@I18n[I18nKey.Ui.TemplatePicker.Placeholder]"
-           value="@SearchText" @oninput="OnSearchInput" @onfocus="() => ShowDropdown = true"
-           disabled="@Disabled" style="border-radius: 0;" />
-    @if (ShowDropdown && FilteredTemplates.Count > 0) {
-        <div class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000; max-height: 250px; overflow-y: auto; top: 100%;">
-            @foreach (var tmpl in FilteredTemplates.Take(20)) {
-                <button type="button" class="list-group-item list-group-item-action py-1 small"
-                        @onclick="() => SelectTemplate(tmpl)">
-                    <span>@tmpl.DisplayName</span>
-                    @if (!string.IsNullOrEmpty(tmpl.Identifier)) {
-                        <code class="small text-secondary ms-1">@tmpl.Identifier</code>
-                    }
-                </button>
-            }
-        </div>
-    }
-</div>
+<SearchDropdown TItem="TemplateListItemDTO" Items="@ShownTemplates" OnSelect="SelectTemplate"
+                SearchText="@SearchText" SearchTextChanged="OnSearchInput" Placeholder="@I18n[I18nKey.Ui.TemplatePicker.Placeholder]"
+                InputClass="@SizeClass" Disabled="Disabled" InInputGroup="InInputGroup">
+    <ItemTemplate Context="tmpl">
+        <span>@tmpl.DisplayName</span>
+        @if (!string.IsNullOrEmpty(tmpl.Identifier)) {
+            <code class="small text-secondary ms-1">@tmpl.Identifier</code>
+        }
+    </ItemTemplate>
+</SearchDropdown>

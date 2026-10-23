@@ -11,6 +11,8 @@ using Quartermaster.Api.I18n;
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class ChapterPicker {
+    private const int MaxShown = 20;
+
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
@@ -36,6 +38,10 @@ public partial class ChapterPicker {
     [Parameter]
     public string SizeClass { get; set; } = "";
 
+    /// <summary>Set when the inline picker sits inside a surrounding input group.</summary>
+    [Parameter]
+    public bool InInputGroup { get; set; }
+
     /// <summary>Chapter ids to hide from the selectable list (e.g. the chapter being edited to prevent self-as-parent).</summary>
     [Parameter]
     public List<Guid>? ExcludeIds { get; set; }
@@ -50,7 +56,6 @@ public partial class ChapterPicker {
 
     private List<ChapterDTO>? Chapters;
     private string SearchText = "";
-    private bool ShowDropdown;
 
     private List<ChapterDTO> VisibleChapters {
         get {
@@ -84,6 +89,12 @@ public partial class ChapterPicker {
         }
     }
 
+    private List<ChapterDTO> ShownChapters {
+        get {
+            return FilteredChapters.Take(MaxShown).ToList();
+        }
+    }
+
     protected override async Task OnInitializedAsync() {
         Chapters = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters") ?? new();
 
@@ -100,29 +111,19 @@ public partial class ChapterPicker {
         await ValueChanged.InvokeAsync(Value);
     }
 
-    private void OnSearchInput(ChangeEventArgs e) {
-        SearchText = e.Value?.ToString() ?? "";
-        ShowDropdown = true;
-        StateHasChanged();
+    private void OnSearchInput(string text) {
+        SearchText = text;
     }
 
     private async Task SelectChapter(ChapterDTO chapter) {
         Value = chapter.Id.ToString();
         SearchText = chapter.Name;
-        ShowDropdown = false;
         await ValueChanged.InvokeAsync(Value);
     }
 
     private async Task Clear() {
         Value = "";
         SearchText = "";
-        ShowDropdown = false;
         await ValueChanged.InvokeAsync(Value);
-    }
-
-    private async Task ScheduleClose() {
-        await Task.Delay(200);
-        ShowDropdown = false;
-        StateHasChanged();
     }
 }

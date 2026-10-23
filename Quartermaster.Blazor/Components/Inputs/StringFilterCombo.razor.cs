@@ -8,6 +8,8 @@ using Quartermaster.Api.Notifications;
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class StringFilterCombo {
+    private const int MaxShown = 20;
+
     [Parameter]
     public required List<NotificationStatsFilterOptionDTO> Items { get; set; }
 
@@ -21,7 +23,6 @@ public partial class StringFilterCombo {
     public string AllOptionLabel { get; set; } = "";
 
     private string SearchText = "";
-    private bool ShowDropdown;
     private string? _lastValue;
 
     private List<NotificationStatsFilterOptionDTO> FilteredItems {
@@ -37,6 +38,12 @@ public partial class StringFilterCombo {
         }
     }
 
+    private List<NotificationStatsFilterOptionDTO> ShownItems {
+        get {
+            return FilteredItems.Take(MaxShown).ToList();
+        }
+    }
+
     protected override void OnParametersSet() {
         if (Value != _lastValue) {
             _lastValue = Value;
@@ -49,33 +56,19 @@ public partial class StringFilterCombo {
         }
     }
 
-    private void OnSearchInput(ChangeEventArgs e) {
-        SearchText = e.Value?.ToString() ?? "";
-        ShowDropdown = true;
-        StateHasChanged();
-    }
-
-    private void OnFocus() {
-        ShowDropdown = true;
+    private void OnSearchInput(string text) {
+        SearchText = text;
     }
 
     private async Task SelectItem(NotificationStatsFilterOptionDTO item) {
         SearchText = item.DisplayName;
-        ShowDropdown = false;
         _lastValue = item.Value;
         await ValueChanged.InvokeAsync(item.Value);
     }
 
     private async Task ClearSelection() {
         SearchText = "";
-        ShowDropdown = false;
         _lastValue = null;
         await ValueChanged.InvokeAsync(null);
-    }
-
-    private async Task ScheduleClose() {
-        await Task.Delay(200);
-        ShowDropdown = false;
-        StateHasChanged();
     }
 }

@@ -11,6 +11,8 @@ using Quartermaster.Api.Templates;
 namespace Quartermaster.Blazor.Components.Inputs;
 
 public partial class TemplatePicker {
+    private const int MaxShown = 20;
+
     [Inject]
     public required HttpClient Http { get; set; }
     [Inject]
@@ -28,9 +30,12 @@ public partial class TemplatePicker {
     [Parameter]
     public string SizeClass { get; set; } = "";
 
+    /// <summary>Set when the picker sits inside a surrounding input group.</summary>
+    [Parameter]
+    public bool InInputGroup { get; set; }
+
     private List<TemplateListItemDTO>? Templates;
     private string SearchText = "";
-    private bool ShowDropdown;
 
     private List<TemplateListItemDTO> FilteredTemplates {
         get {
@@ -42,6 +47,12 @@ public partial class TemplatePicker {
                 t.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
                 || (t.Identifier != null && t.Identifier.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
             ).ToList();
+        }
+    }
+
+    private List<TemplateListItemDTO> ShownTemplates {
+        get {
+            return FilteredTemplates.Take(MaxShown).ToList();
         }
     }
 
@@ -59,22 +70,13 @@ public partial class TemplatePicker {
         }
     }
 
-    private void OnSearchInput(ChangeEventArgs e) {
-        SearchText = e.Value?.ToString() ?? "";
-        ShowDropdown = true;
-        StateHasChanged();
+    private void OnSearchInput(string text) {
+        SearchText = text;
     }
 
     private async Task SelectTemplate(TemplateListItemDTO template) {
         Value = template.Id;
         SearchText = template.DisplayName;
-        ShowDropdown = false;
         await ValueChanged.InvokeAsync(Value);
-    }
-
-    private async Task ScheduleClose() {
-        await Task.Delay(200);
-        ShowDropdown = false;
-        StateHasChanged();
     }
 }
