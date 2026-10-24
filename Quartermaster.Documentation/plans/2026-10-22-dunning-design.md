@@ -17,6 +17,7 @@ Members who do not pay their dues can be struck from the membership (Finanzordnu
 - After a partial payment the officer either continues the case (earlier Mahnungen keep counting, the current periods become the new reference) or starts over (the case ends, a new one starts from zero).
 - The strike request is a Redmine ticket with all data in its text (no PDF, no attachments), created through the chapter's existing Redmine connection. Redmine is HTTPS-only and does not follow redirects; this stays so.
 - The Streichung notice is a letter rendered from a template, sent by the LV.
+- A Mahnstopp sits on the member, not on a case: while it runs, no Mahnung goes out to them and no case starts or moves on. It always ends 30 days after it was last set; setting it again at any time extends it to 30 days from that moment, and it can be lifted early. An optional reason stays internal to officers with `dunning_manage`; the member never sees it. There is no notice when it runs out, since a Mahnlauf only ever starts by hand.
 - The old Sage rule "more than 3 months without any dues booking" is dropped; the payment check below covers its purpose.
 - Released as V9.0 with migration `M009`. UI name "Mahnungen"; a dunning case is a "Mahnverfahren", a batch a "Mahnlauf". Code and routes stay English (`Dunning`).
 
@@ -25,7 +26,8 @@ Members who do not pay their dues can be struck from the membership (Finanzordnu
 All tables are new.
 
 - `MemberDuePeriods`: `Id`, `MemberId`, `Period` (label such as "2025" or "Q3/2025", max 50, unique per member), `DueDate` (date), `Amount` (> 0), `OpenAmount` (0 to `Amount`), `Source` (`Manual`, `Import`), `UpdatedAt`.
-- `DunningCases`: `Id`, `MemberId`, `ChapterId` (the chapter that runs it), `Status` (`Open`, `Stopped`, `Review`, `Paid`, `Requested`, `Struck`, `Cancelled`), `StopReason` (enum, nullable: `ReductionRequested`, `PaymentAnnounced`, `Other`), `StopNote` (max 500, optional), `EndReason` (enum, nullable: `Paid`, `PartialPayment`, `Exited`, `Manual`), `RedmineIssueId` (nullable), `RequestReference` (Guid, nullable), `CreatedAt`, `CreatedByUserId`, `ClosedAt` (nullable).
+- `MemberDunningStops`: `MemberId` (key, one row per member), `Until` (date, 30 days after it was last set), `Note` (max 500, optional, officers only), `SetAt`, `SetByUserId`. Lifting the stop deletes the row; an expired row counts as no stop.
+- `DunningCases`: `Id`, `MemberId`, `ChapterId` (the chapter that runs it), `Status` (`Open`, `Review`, `Paid`, `Requested`, `Struck`, `Cancelled`), `EndReason` (enum, nullable: `Paid`, `PartialPayment`, `Exited`, `Manual`), `RedmineIssueId` (nullable), `RequestReference` (Guid, nullable), `CreatedAt`, `CreatedByUserId`, `ClosedAt` (nullable).
 - `DunningCaseReferencePeriods`: `CaseId`, `Period`, `OpenAmount`. The periods as they stood when the case started, or when it was continued after a partial payment.
 - `DunningBatches`: `Id`, `ChapterId`, `Channel` (`Email`, `Letter`), `CreatedAt`, `CreatedByUserId`, `SentOn` (date; set at once for email, confirmed by hand for letters).
 - `DunningNotices`: `Id`, `CaseId`, `BatchId`, `Stage` (`First`, `Final`), `Channel`, `Address` (email address or the multi-line postal address used), `Subject`, `Body` (rendered text as sent), `TemplateIdentifier`, `PaymentDeadline` (date), `OpenTotal`, `NotificationLogId` (email only), `Result` (`Pending`, `Delivered`, `Bounced`, `Returned`, `Failed`), `ResultOn` (date, nullable), `ResultNote` (max 500, optional), `CreatedAt`.
@@ -37,17 +39,17 @@ The notice keeps its own copy of subject and body, so the evidence survives when
 
 - A notice counts when it was sent (`SentOn` of its batch set) and its result is neither `Bounced` nor `Failed`. A letter with result `Returned` counts.
 - The stage of the next notice is `First` with no counted notice and `Final` with one. A case with two counted notices gets no further notice.
-- A next notice is blocked when the case is `Stopped`, `Review` or closed; when the last counted notice was sent less than 30 days ago; when a letter of the case is not yet marked as sent; or when the chosen channel has no address (no email and no postal address: "nicht erreichbar").
+- A next notice is blocked when the member has a Mahnstopp running; when the case is in `Review` or closed; when the last counted notice was sent less than 30 days ago; when a letter of the case is not yet marked as sent; or when the chosen channel has no address (no email and no postal address: "nicht erreichbar").
 - A payment is detected when any reference period has a lower open amount now, or is gone. New periods with fresh dues do not hide a payment.
-- Re-evaluation runs after every change to a member's periods (manual or import): nothing open ends the case as `Paid`; a detected payment on an `Open` or `Stopped` case sets `Review`. From `Review` the officer continues (reference reset to the current periods, back to `Open`) or starts over (case ends with `PartialPayment`, a new `Open` case with a new reference starts).
-- A case is strikeable when all hold: status `Open`; more than 12 months in arrears; two counted notices, the second sent at least 30 days after the first and of stage `Final`; the payment deadline of the `Final` notice has passed; no payment detected. Following the CLAUDE.md rule, this is one method with guard clauses.
-- A member who exits (import sets `ExitDate`) while the case is `Open`, `Stopped` or `Review` ends it as `Cancelled` with `Exited`. In status `Requested` the exit date sets `Struck` instead.
+- Re-evaluation runs after every change to a member's periods (manual or import): nothing open ends the case as `Paid`; a detected payment on an `Open` case sets `Review`. From `Review` the officer continues (reference reset to the current periods, back to `Open`) or starts over (case ends with `PartialPayment`, a new `Open` case with a new reference starts).
+- A case is strikeable when all hold: status `Open`; no Mahnstopp running; more than 12 months in arrears; two counted notices, the second sent at least 30 days after the first and of stage `Final`; the payment deadline of the `Final` notice has passed; no payment detected. Following the CLAUDE.md rule, this is one method with guard clauses.
+- A member who exits (import sets `ExitDate`) while the case is `Open` or `Review` ends it as `Cancelled` with `Exited`. In status `Requested` the exit date sets `Struck` instead.
 - Floating members (no member number), exited and anonymized members are never offered for dunning.
 
 ## Flow and UI
 
-- Arrears list "Beitragsrückstände" (route `/Dunning`), per chapter in reach of the permission: member, member number, open total, oldest due date, months in arrears, case status, next channel; filters for months, amount and status; a hint where `OpenFeeTotal` and the sum of the periods differ. Members are selected here for a Mahnlauf.
-- Member detail: a section "Beiträge und Mahnungen" with the periods (add, edit, delete by hand) and the case as a timeline of notices and status changes, with the actions Mahnstopp, Mahnstopp aufheben, Fortsetzen, Neu beginnen, Abbrechen, Gestrichen.
+- Arrears list "Beitragsrückstände" (route `/Dunning`), per chapter in reach of the permission: member, member number, open total, oldest due date, months in arrears, case status, Mahnstopp end date, next channel; filters for months, amount and status; a hint where `OpenFeeTotal` and the sum of the periods differ. Members are selected here for a Mahnlauf.
+- Member detail: a section "Beiträge und Mahnungen" with the periods (add, edit, delete by hand) and the case as a timeline of notices and status changes, with the actions Fortsetzen, Neu beginnen, Abbrechen, Gestrichen. Beside it the Mahnstopp: its end date and internal reason, "Mahnstopp" (sets it, or extends it to 30 days from now) and "Mahnstopp aufheben"; the reason field is shown and returned only to officers with `dunning_manage`, never in the member's own views or API responses.
 - Mahnlauf: a check page lists each selected member with stage, channel, deadline and the reason when blocked. Confirming creates the cases where needed, one email batch and one letter batch. Emails go out through the existing email queue with a `NotificationLog` (source `DunningNotice`). Letters download as one PDF (DIN 5008 letter per member, rendered on demand, never written to disk) and count from the date confirmed with "Versendet am". An unconfirmed letter batch can be discarded.
 - Results: the DSN poller, after recording a bounce, marks the linked notice `Bounced`; the next notice of that case goes by letter. "Gebounced" and "Brief zurück" (date and note) can be set by hand.
 - Strike request: a view of strikeable cases, select, "Antrag in Redmine anlegen". One ticket per request in the chapter's project for strike requests, with the assurance (two Mahnungen, more than 12 months in arrears) and a Textile table: member number, name, chapter, open total, oldest due date, date and channel of both counted notices. The description carries the request reference, so a retry after a timeout finds the ticket instead of creating a second one. The cases move to `Requested` with the ticket number.
@@ -65,14 +67,14 @@ One row per member and period: member number, period, due date, amount, open amo
 ## Security and audit
 
 - Every endpoint checks `dunning_manage` on the member's chapter; a member outside the officer's reach answers 404.
-- The audit log records period changes, case start and status changes, Mahnstopp, notices created, results set, batches confirmed, and strike requests.
+- The audit log records period changes, case start and status changes, Mahnstopp set, extended and lifted, notices created, results set, batches confirmed, and strike requests.
 - Batches of member data leave Quartermaster only through Redmine (HTTPS-only). Letter PDFs are only served over the app itself.
 - How long cases and notices are kept after they end goes to the "Review data retention" todo; an FSG objection can come years after the Streichung.
 
 ## Testing
 
-- Unit: counting rules, stage and channel choice, blocking reasons, payment detection with new periods, strikeable check (each guard), re-evaluation transitions.
-- Integration: period entry and validation, Mahnlauf with mixed channels, letter batch confirmation and the 30-day spacing from `SentOn`, DSN bounce linked to its notice, strike request against a fake Redmine client including the retry by reference, import exit date to `Struck` and `Cancelled`, foreign chapter gets 404.
+- Unit: counting rules, stage and channel choice, blocking reasons (including a running and an expired Mahnstopp), payment detection with new periods, strikeable check (each guard), re-evaluation transitions.
+- Integration: period entry and validation, Mahnlauf with mixed channels, letter batch confirmation and the 30-day spacing from `SentOn`, DSN bounce linked to its notice, strike request against a fake Redmine client including the retry by reference, import exit date to `Struck` and `Cancelled`, foreign chapter gets 404, Mahnstopp extend and lift, the Mahnstopp reason absent from member-facing responses.
 - No contact with a real Redmine or mail server from tests.
 
 ## Out of scope

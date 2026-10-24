@@ -147,3 +147,11 @@
 .loading-progress circle:last-child {
     stroke: var(--bs-primary);
 }
+
+.spinner-border {
+    color: var(--bs-primary);
+}
+
+.btn .spinner-border {
+    color: inherit;
+}
