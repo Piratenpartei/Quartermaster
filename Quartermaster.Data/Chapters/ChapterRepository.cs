@@ -1,5 +1,7 @@
 using LinqToDB;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Data.AuditLog;
+using Quartermaster.Data.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,12 +25,34 @@ public class ChapterRepository {
 
     public void Create(Chapter chapter) => _context.Insert(chapter);
 
+    /// <summary>Templates get the chapter's own contact address, or the federal one when the chapter has none.</summary>
+    public ChapterDTO WithTemplateContact(ChapterDTO chapter) {
+        var own = chapter.Id == Guid.Empty
+            ? null
+            : _context.Chapters
+                .Where(c => c.Id == chapter.Id)
+                .Select(c => c.ContactEmail)
+                .FirstOrDefault();
+        chapter.ContactEmail = string.IsNullOrWhiteSpace(own) ? FederalContactEmail() : own;
+        return chapter;
+    }
+
+    /// <summary>The global value of <see cref="OptionRepository.ContactEmailKey"/>, or null when it is not set.</summary>
+    public string? FederalContactEmail() {
+        var value = _context.SystemOptions
+            .Where(o => o.Identifier == OptionRepository.ContactEmailKey && o.ChapterId == null)
+            .Select(o => o.Value)
+            .FirstOrDefault();
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
     public void Update(Chapter chapter) {
         _context.Chapters
             .Where(c => c.Id == chapter.Id)
             .Set(c => c.Name, chapter.Name)
             .Set(c => c.ShortCode, chapter.ShortCode)
             .Set(c => c.KeycloakDepartment, chapter.KeycloakDepartment)
+            .Set(c => c.ContactEmail, chapter.ContactEmail)
             .Set(c => c.ParentChapterId, chapter.ParentChapterId)
             .Update();
     }
@@ -84,16 +108,22 @@ public class ChapterRepository {
             .ToDictionary(g => g.Key, g => g.Select(c => c.Code).OrderBy(s => s).ToList());
     }
 
-    /// <summary>Builds DTOs with codes + divisions batch-loaded — two extra queries total regardless of list size.</summary>
-    public List<Api.Chapters.ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters) {
+    /// <summary>Builds DTOs with codes + divisions batch-loaded — two extra queries total regardless of list size.
+    /// Pass <paramref name="includeContactEmail"/> only for signed-in callers.</summary>
+    public List<ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters, bool includeContactEmail = false) {
         if (chapters.Count == 0)
             return [];
         var ids = chapters.Select(c => c.Id).ToList();
         var codesByChapter = LoadExternalCodesFor(ids);
         var divisionsByChapter = LoadAdministrativeDivisionsFor(ids);
-        return chapters.Select(c => c.ToDto(
-            codesByChapter.GetValueOrDefault(c.Id, []),
-            divisionsByChapter.GetValueOrDefault(c.Id, []))).ToList();
+        return chapters
+            .Select(c => {
+                var dto = c.ToDto(codesByChapter.GetValueOrDefault(c.Id, []), divisionsByChapter.GetValueOrDefault(c.Id, []));
+                if (includeContactEmail)
+                    dto.ContactEmail = c.ContactEmail;
+                return dto;
+            })
+            .ToList();
     }
 
     public Dictionary<Guid, List<Guid>> LoadAdministrativeDivisionsFor(IReadOnlyCollection<Guid> chapterIds) {

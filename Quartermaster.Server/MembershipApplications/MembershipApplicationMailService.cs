@@ -49,7 +49,7 @@ public class MembershipApplicationMailService {
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
             ["application"] = application.ToDetailDto(chapter?.Name ?? "", isReduced),
-            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
+            ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO())
         };
         await SendAsync(ReceivedTriggerId, ReceivedTemplateId, application, application.Email, model, ct, logSource);
     }
@@ -59,7 +59,7 @@ public class MembershipApplicationMailService {
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
             ["member"] = application.ToPendingMemberDto(memberNumber, chapter?.Name ?? ""),
-            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
+            ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO())
         };
         await SendAsync(WelcomeTriggerId, WelcomeTemplateId, application, application.Email, model, ct);
     }
@@ -73,7 +73,7 @@ public class MembershipApplicationMailService {
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
             ["application"] = application.ToDetailDto(chapter?.Name ?? "", hasReducedDueSelection: false),
-            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
+            ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO())
         };
         await SendAsync(
             approved ? ApprovedTriggerId : RejectedTriggerId,

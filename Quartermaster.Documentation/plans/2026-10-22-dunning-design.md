@@ -57,8 +57,8 @@ The notice keeps its own copy of subject and body, so the evidence survives when
 
 ## Templates and settings
 
-- Templates in the existing template system (per-chapter overrides): first Mahnung email and letter, final Mahnung email and letter (announcing the Streichung for the deadline), Streichung notice letter, Redmine ticket text. Variables: member, periods table, open total, payment deadline, payment details, Verwendungszweck, fee reduction link, contact address. The notice letter names the Föderales Schiedsgericht, not the LV Schiedsgericht. Wording is drafted with the feature and finalised by the user.
-- Chapter options (resolved up the chapter tree), in a new settings card "Mahnungen": `dunning.deadline_days.email` (14), `dunning.deadline_days.letter` (16), `dunning.bank.holder`, `dunning.bank.iban`, `dunning.bank.bic`, `dunning.reference_pattern` (with the member number placeholder), `dunning.reduction_form_url`, `dunning.contact_email`, `dunning.letter.sender_line`, `dunning.redmine.project_id`, `dunning.redmine.tracker_id`. The settings catalog test gets these entries.
+- Templates in the existing template system (per-chapter overrides): first Mahnung email and letter, final Mahnung email and letter (announcing the Streichung for the deadline), Streichung notice letter, Redmine ticket text. Variables: member, periods table, open total, payment deadline, payment details, Verwendungszweck, fee reduction link, contact address (the chapter's contact address, else the federal `general.contact.email`). The notice letter names the Föderales Schiedsgericht, not the LV Schiedsgericht. Wording is drafted with the feature and finalised by the user.
+- Chapter options (resolved up the chapter tree), in a new settings card "Mahnungen": `dunning.deadline_days.email` (14), `dunning.deadline_days.letter` (16), `dunning.bank.holder`, `dunning.bank.iban`, `dunning.bank.bic`, `dunning.reference_pattern` (with the member number placeholder), `dunning.reduction_form_url`, `dunning.letter.sender_line`, `dunning.redmine.project_id`, `dunning.redmine.tracker_id`. The settings catalog test gets these entries.
 
 ## Data interface for the importer
 

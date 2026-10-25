@@ -69,7 +69,7 @@ public class ApplicationReviewService {
             payload,
             _ => new Dictionary<string, object> {
                 ["application"] = application.ToDetailDto(chapterName, isReduced),
-                ["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = application.ChapterId.Value, Name = chapterName }
+                ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = application.ChapterId.Value, Name = chapterName })
             },
             SourceEntityType: "MembershipApplication",
             SourceEntityId: application.Id));

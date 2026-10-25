@@ -10,6 +10,7 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Chapters;
 
@@ -31,13 +32,15 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly DbContext _context;
+    private readonly PermissionContext _perms;
 
     public ChapterDetailEndpoint(ChapterRepository chapterRepo, ChapterOfficerRepository officerRepo,
-        AdministrativeDivisionRepository adminDivRepo, DbContext context) {
+        AdministrativeDivisionRepository adminDivRepo, DbContext context, PermissionContext perms) {
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
         _adminDivRepo = adminDivRepo;
         _context = context;
+        _perms = perms;
     }
 
     public override void Configure() {
@@ -75,7 +78,6 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
                 var member = members.FirstOrDefault(m => m.Id == o.MemberId);
                 return new ChapterOfficerDTO {
                     MemberId = o.MemberId,
-                    MemberNumber = member?.MemberNumber ?? 0,
                     MemberFirstName = member?.FirstName ?? "",
                     MemberLastName = member?.LastName ?? "",
                     ChapterId = o.ChapterId,
@@ -90,9 +92,12 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
 
         var chapterCodes = _chapterRepo.GetExternalCodes(chapter.Id);
         var children = _chapterRepo.GetChildren(chapter.Id);
+        var chapterDto = chapter.ToDto(chapterCodes, divisionIds);
+        if (_perms.UserId != null)
+            chapterDto.ContactEmail = chapter.ContactEmail;
 
         await SendAsync(new ChapterDetailResponse {
-            Chapter = chapter.ToDto(chapterCodes, divisionIds),
+            Chapter = chapterDto,
             ParentChapterId = chapter.ParentChapterId,
             ParentChapterName = parentName,
             AdministrativeDivisionNames = divisionNames,

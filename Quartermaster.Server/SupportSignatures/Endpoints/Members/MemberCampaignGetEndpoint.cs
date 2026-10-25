@@ -30,7 +30,7 @@ public class MemberCampaignGetEndpoint : Endpoint<SignatureCampaignIdRequest, Me
             return;
         }
 
-        var dto = _campaigns.ToDto(campaign);
+        var dto = _campaigns.ToDto(campaign, _perms.UserId != null);
         dto.CanManage = _access.CanManage(campaign);
         await SendAsync(dto, cancellation: ct);
     }

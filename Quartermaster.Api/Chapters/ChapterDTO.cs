@@ -13,5 +13,8 @@ public class ChapterDTO {
     public List<Guid> AdministrativeDivisionIds { get; set; } = [];
     public DateTimeOffset? ArchivedAt { get; set; }
 
+    /// <summary>Only filled for signed-in callers. In templates it falls back to the federal contact address.</summary>
+    public string? ContactEmail { get; set; }
+
     public bool IsArchived => ArchivedAt.HasValue;
 }

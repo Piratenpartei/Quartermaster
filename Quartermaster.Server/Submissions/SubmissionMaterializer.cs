@@ -111,7 +111,7 @@ public class SubmissionMaterializer {
             payload,
             _ => new Dictionary<string, object> {
                 ["motion"] = motion.ToDetailDto(chapterName),
-                ["chapter"] = chapter.ToDto()
+                ["chapter"] = _chapterRepo.WithTemplateContact(chapter.ToDto())
             },
             SourceEntityType: "Motion",
             SourceEntityId: motion.Id));

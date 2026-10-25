@@ -29,7 +29,6 @@ public class AssemblyMotionSubmitterDTO {
     public bool IsAuthor { get; set; }
     public DateTimeOffset JoinedAt { get; set; }
     public int JoinedRevision { get; set; }
-    public int? MemberNumber { get; set; }
 }
 
 public class AssemblyMotionCompetitionDTO {

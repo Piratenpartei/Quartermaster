@@ -26,7 +26,7 @@ public class MemberSignatureCampaigns {
 
     public List<MemberSignatureCampaignDTO> Visible(DateTime nowUtc, bool signedIn) {
         return VisibleCampaigns(nowUtc, signedIn)
-            .Select(ToDto)
+            .Select(c => ToDto(c, signedIn))
             .ToList();
     }
 
@@ -34,12 +34,13 @@ public class MemberSignatureCampaigns {
         return VisibleCampaigns(nowUtc, signedIn).FirstOrDefault(c => c.Id == campaignId);
     }
 
-    public MemberSignatureCampaignDTO ToDto(SignatureCampaign campaign) {
+    public MemberSignatureCampaignDTO ToDto(SignatureCampaign campaign, bool signedIn) {
         var totals = SignatureTally.Totals(SignatureTally.Load(_db, campaign.Id), campaign.Target, campaign.MarginPercent);
+        var chapter = _chapters.Get(campaign.ChapterId);
         return new MemberSignatureCampaignDTO {
             Id = campaign.Id,
             Name = campaign.Name,
-            ChapterName = _chapters.Get(campaign.ChapterId)?.Name ?? "",
+            ChapterName = chapter?.Name ?? "",
             Target = campaign.Target,
             Goal = totals.Goal,
             CertifiedTotal = totals.Certified,
@@ -48,8 +49,17 @@ public class MemberSignatureCampaigns {
             HasForm = campaign.HasForm,
             MemberNotice = campaign.MemberNotice,
             PostalAddress = campaign.PostalAddress,
-            ContactEmail = campaign.ContactEmail
+            ContactEmail = ContactEmail(campaign, chapter, signedIn)
         };
+    }
+
+    /// <summary>The campaign's own address, else the chapter's (signed-in viewers only), else the federal one.</summary>
+    private string? ContactEmail(SignatureCampaign campaign, Chapter? chapter, bool signedIn) {
+        if (!string.IsNullOrWhiteSpace(campaign.ContactEmail))
+            return campaign.ContactEmail;
+        if (signedIn && !string.IsNullOrWhiteSpace(chapter?.ContactEmail))
+            return chapter.ContactEmail;
+        return _chapters.FederalContactEmail();
     }
 
     private List<SignatureCampaign> VisibleCampaigns(DateTime nowUtc, bool signedIn) {

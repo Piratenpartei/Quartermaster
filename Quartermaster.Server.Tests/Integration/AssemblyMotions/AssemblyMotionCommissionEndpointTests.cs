@@ -173,7 +173,7 @@ public class AssemblyMotionCommissionEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Commission_detail_has_member_numbers() {
+    public async Task Commission_detail_only_for_commission() {
         var (chapter, portal, type) = SeedPortal();
         var author = SeedParticipant(chapter, "Anna", "Autor", memberNumber: 111111);
         var created = await CreateMotion(author, portal, type, release: true);
@@ -182,8 +182,7 @@ public class AssemblyMotionCommissionEndpointTests : IntegrationTestBase {
         var asCommission = await (await Get(commission, $"/api/assemblymotions/motions/{created.Id}")).Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>();
         var asAuthor = await (await Get(author.Token, $"/api/assemblymotions/motions/{created.Id}")).Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>();
 
-        await Assert.That(asCommission!.Submitters[0].MemberNumber).IsEqualTo(111111);
-        await Assert.That(asCommission.Commission).IsNotNull();
+        await Assert.That(asCommission!.Commission).IsNotNull();
         await Assert.That(asCommission.Commission!.WikiSyncState).IsEqualTo(WikiSyncState.Pending);
         await Assert.That(asAuthor!.Commission).IsNull();
     }

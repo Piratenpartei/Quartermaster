@@ -66,7 +66,7 @@ public class AssemblyMotionDetailBuilder {
         dto.CompetitionLinks = _competitionViews.BuildDetail(motion, viewerMember, viewer.IsCommission);
 
         if (AssemblyMotionVisibility.CanSeeNames(viewer, viewerIsSubmitter))
-            dto.Submitters = BuildSubmitters(submitters, viewer.IsCommission);
+            dto.Submitters = BuildSubmitters(submitters);
 
         if (viewer.IsCommission)
             dto.Commission = BuildCommissionInfo(motion, portal, type);
@@ -180,7 +180,7 @@ public class AssemblyMotionDetailBuilder {
         return name.Length > 0 ? name : user.Username;
     }
 
-    private List<AssemblyMotionSubmitterDTO> BuildSubmitters(List<AssemblyMotionSubmitter> submitters, bool includeMemberNumbers) {
+    private List<AssemblyMotionSubmitterDTO> BuildSubmitters(List<AssemblyMotionSubmitter> submitters) {
         var memberIds = submitters
             .Select(s => s.MemberId)
             .ToList();
@@ -196,8 +196,7 @@ public class AssemblyMotionDetailBuilder {
                     DisplayName = DisplayName(member),
                     IsAuthor = s.IsAuthor,
                     JoinedAt = s.JoinedAt.ToDtoUtc(),
-                    JoinedRevision = s.JoinedRevision,
-                    MemberNumber = includeMemberNumbers ? member?.MemberNumber : null
+                    JoinedRevision = s.JoinedRevision
                 };
             })
             .ToList();

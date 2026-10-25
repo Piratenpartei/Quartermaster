@@ -1,5 +1,6 @@
 using LinqToDB;
 using Quartermaster.Api.ChapterAssociates;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -9,6 +10,7 @@ using Quartermaster.Data.Members;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
+using Quartermaster.Data.Options;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -263,4 +265,24 @@ public class ChapterRepositoryTests : RepositoryTestBase {
         await Assert.That(_context.ChapterOfficers.Any(o => o.ChapterId == _lvId)).IsFalse();
     }
 
+    [Test]
+    public async Task Template_contact_is_the_chapters_own_address_else_the_federal_one() {
+        _context.Insert(new SystemOption { Identifier = OptionRepository.ContactEmailKey, Value = "info@piratenpartei.example" });
+        _context.Chapters.Where(c => c.Id == _lvId).Set(c => c.ContactEmail, "vorstand@nds.example").Update();
+
+        var own = _repo.WithTemplateContact(new ChapterDTO { Id = _lvId });
+        var withoutOwn = _repo.WithTemplateContact(new ChapterDTO { Id = _kreisId });
+        var withoutChapter = _repo.WithTemplateContact(new ChapterDTO());
+
+        await Assert.That(own.ContactEmail).IsEqualTo("vorstand@nds.example");
+        await Assert.That(withoutOwn.ContactEmail).IsEqualTo("info@piratenpartei.example");
+        await Assert.That(withoutChapter.ContactEmail).IsEqualTo("info@piratenpartei.example");
+    }
+
+    [Test]
+    public async Task Template_contact_is_empty_without_any_address() {
+        var dto = _repo.WithTemplateContact(new ChapterDTO { Id = _kreisId });
+
+        await Assert.That(dto.ContactEmail).IsNull();
+    }
 }

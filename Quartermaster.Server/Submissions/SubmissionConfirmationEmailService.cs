@@ -85,7 +85,7 @@ public class SubmissionConfirmationEmailService {
             case PendingSubmissionKind.Motion when request is MotionCreateRequest m: {
                 var chapter = _chapterRepo.Get(m.ChapterId);
                 model["motion"] = m.ToDetailDto(chapter?.Name ?? "");
-                model["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = m.ChapterId };
+                model["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = m.ChapterId });
                 return m.ChapterId;
             }
             case PendingSubmissionKind.DueSelection when request is DueSelectionDTO d: {
@@ -95,7 +95,7 @@ public class SubmissionConfirmationEmailService {
             case PendingSubmissionKind.MembershipApplication when request is MembershipApplicationDTO a: {
                 var chapter = a.ChapterId.HasValue ? _chapterRepo.Get(a.ChapterId.Value) : null;
                 model["application"] = a.ToDetailDto(chapter?.Name ?? "");
-                model["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = a.ChapterId ?? Guid.Empty };
+                model["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = a.ChapterId ?? Guid.Empty });
                 return a.ChapterId;
             }
         }

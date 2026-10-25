@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Quartermaster.Api.Accreditation;
 using Quartermaster.Server.Accreditation.Endpoints;
+using Quartermaster.Server.Validation;
 
 namespace Quartermaster.Server.Accreditation;
 
@@ -83,10 +84,7 @@ public class TemporaryAccountChecker {
     }
 
     private static bool IsValidEmail(string? email) {
-        if (string.IsNullOrWhiteSpace(email))
-            return true;
-        var trimmed = email.Trim();
-        return trimmed.Contains('@') && !trimmed.Any(char.IsWhiteSpace);
+        return string.IsNullOrWhiteSpace(email) || EmailAddressFormat.IsPlausible(email);
     }
 
     private static TemporaryAccountProblemDTO Problem(string field, string message) => new() { Field = field, Message = message };

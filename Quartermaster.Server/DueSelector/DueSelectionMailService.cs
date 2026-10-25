@@ -68,7 +68,7 @@ public class DueSelectionMailService {
         var model = new Dictionary<string, object> {
             ["globals"] = _globals.Build(),
             ["selection"] = selection.ToDetailDto(),
-            ["chapter"] = chapter?.ToDto() ?? new ChapterDTO()
+            ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO())
         };
 
         var (subject, _) = await TemplateRenderer.RenderTextAsync(template.Subject ?? "", model);

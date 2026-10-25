@@ -40,6 +40,9 @@
                 <th>@I18n[I18nKey.Ui.Common.Name]</th>
                 <th>@I18n[I18nKey.Ui.ChapterList.ShortCodeColumn]</th>
                 <th>@I18n[I18nKey.Ui.ChapterList.ExternalCodeColumn]</th>
+                @if (AuthService.IsAuthenticated) {
+                    <th>@I18n[I18nKey.Ui.ChapterList.ContactEmailColumn]</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -65,6 +68,15 @@
                             <span class="text-secondary">—</span>
                         }
                     </td>
+                    @if (AuthService.IsAuthenticated) {
+                        <td>
+                            @if (!string.IsNullOrEmpty(ch.ContactEmail)) {
+                                <a href="mailto:@ch.ContactEmail">@ch.ContactEmail</a>
+                            } else {
+                                <span class="text-secondary">-</span>
+                            }
+                        </td>
+                    }
                 </tr>
             }
         </tbody>

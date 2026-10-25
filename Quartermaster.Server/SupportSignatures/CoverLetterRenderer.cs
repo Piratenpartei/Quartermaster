@@ -41,7 +41,7 @@ public class CoverLetterRenderer {
             ct.ThrowIfCancellationRequested();
             var (body, error, context) = await TemplateRenderer.RenderTextWithContextAsync(template.Body, new Dictionary<string, object> {
                 ["letter"] = model,
-                ["chapter"] = chapter.ToDto()
+                ["chapter"] = _chapters.WithTemplateContact(chapter.ToDto())
             });
             if (error != null)
                 return (null, error);

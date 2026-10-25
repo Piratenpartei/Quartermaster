@@ -71,6 +71,11 @@
                     <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentHint]</div>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label" for="chapter-contact-email">@I18n[I18nKey.Ui.ChapterDetail.ContactEmailLabel]</label>
+                    <input id="chapter-contact-email" type="email" class="form-control" maxlength="254" @bind="EditContactEmail" @bind:event="oninput" />
+                    <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.ContactEmailHint]</div>
+                </div>
+                <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</label>
                     <ChapterPicker Value="@EditParentChapterId" ValueChanged="OnParentChanged"
                                    AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterDetail.ParentEmptyLabel]"
@@ -101,6 +106,18 @@
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "—" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</th><td>@(Detail.Chapter.KeycloakDepartment ?? "---")</td></tr>
+                        @if (AuthService.IsAuthenticated) {
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.ChapterDetail.ContactEmailLabel]</th>
+                                <td>
+                                    @if (string.IsNullOrEmpty(Detail.Chapter.ContactEmail)) {
+                                        <span>-</span>
+                                    } else {
+                                        <a href="mailto:@Detail.Chapter.ContactEmail">@Detail.Chapter.ContactEmail</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
                         <tr>
                             <th>@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</th>
                             <td>

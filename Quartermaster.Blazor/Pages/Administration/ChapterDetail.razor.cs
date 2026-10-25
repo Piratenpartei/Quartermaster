@@ -33,6 +33,8 @@ public partial class ChapterDetail {
     public required NavigationManager Navigation { get; set; }
     [Inject]
     public required I18nService I18n { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     [Parameter]
     public Guid Id { get; set; }
@@ -46,6 +48,7 @@ public partial class ChapterDetail {
     private string EditShortCode = "";
     private List<string> EditExternalCodes = [];
     private string EditKeycloakDepartment = "";
+    private string EditContactEmail = "";
     private List<Guid> EditAdministrativeDivisionIds = [];
     private List<string> EditAdministrativeDivisionNames = [];
     private string EditParentChapterId = "";
@@ -77,6 +80,7 @@ public partial class ChapterDetail {
         EditShortCode = Detail.Chapter.ShortCode ?? "";
         EditExternalCodes = [.. Detail.Chapter.ExternalCodes];
         EditKeycloakDepartment = Detail.Chapter.KeycloakDepartment ?? "";
+        EditContactEmail = Detail.Chapter.ContactEmail ?? "";
         EditAdministrativeDivisionIds = [.. Detail.Chapter.AdministrativeDivisionIds];
         EditAdministrativeDivisionNames = [.. Detail.AdministrativeDivisionNames];
         EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
@@ -110,6 +114,7 @@ public partial class ChapterDetail {
                 Name = EditName.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
                 KeycloakDepartment = string.IsNullOrWhiteSpace(EditKeycloakDepartment) ? null : EditKeycloakDepartment.Trim(),
+                ContactEmail = string.IsNullOrWhiteSpace(EditContactEmail) ? null : EditContactEmail.Trim(),
                 ExternalCodes = EditExternalCodes,
                 AdministrativeDivisionIds = EditAdministrativeDivisionIds,
                 ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null

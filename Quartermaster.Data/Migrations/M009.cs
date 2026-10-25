@@ -1,4 +1,5 @@
 using FluentMigrator;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Templates;
@@ -33,6 +34,9 @@ public class M009 : MigrationBase {
         Alter.Table(MembershipApplication.TableName)
             .AddColumn(nameof(MembershipApplication.AddressCountry)).AsString(MembershipApplication.AddressCountryMaxLength).Nullable()
             .AddColumn(nameof(MembershipApplication.OtherParties)).AsString(MembershipApplication.OtherPartiesMaxLength).Nullable();
+
+        Alter.Table(Chapter.TableName)
+            .AddColumn(nameof(Chapter.ContactEmail)).AsString(Chapter.ContactEmailMaxLength).Nullable();
 
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
@@ -78,5 +82,6 @@ public class M009 : MigrationBase {
         Delete.Column(nameof(ForwardingTarget.SageAwaitReassignment)).FromTable(ForwardingTarget.TableName);
         Delete.Column(nameof(MembershipApplication.AddressCountry)).FromTable(MembershipApplication.TableName);
         Delete.Column(nameof(MembershipApplication.OtherParties)).FromTable(MembershipApplication.TableName);
+        Delete.Column(nameof(Chapter.ContactEmail)).FromTable(Chapter.TableName);
     }
 }

@@ -50,7 +50,8 @@ public static class TemplateMockDataProvider {
                 case "ChapterDTO":
                     data["chapter"] = new ChapterDTO {
                         Id = Guid.NewGuid(),
-                        Name = "Piratenpartei Berlin"
+                        Name = "Piratenpartei Berlin",
+                        ContactEmail = "vorstand@berlin.piratenpartei.example"
                     };
                     break;
 

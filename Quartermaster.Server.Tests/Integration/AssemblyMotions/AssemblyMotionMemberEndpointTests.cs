@@ -74,6 +74,12 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
             : null;
     }
 
+    private async Task<string> GetDetailJson(string token, Guid motionId) {
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var response = await client.GetAsync($"/api/assemblymotions/motions/{motionId}");
+        return await response.Content.ReadAsStringAsync();
+    }
+
     [Test]
     public async Task Create_requires_eligibility() {
         var (_, portal, type) = SeedPortal();
@@ -149,7 +155,7 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Member_numbers_only_for_commission() {
+    public async Task Motion_detail_has_no_member_numbers() {
         var (chapter, portal, type) = SeedPortal(minSubmitters: 2);
         var author = SeedParticipant(chapter, "Anna", "Autor", memberNumber: 111111);
         var second = SeedParticipant(chapter, "Bert", "Zweiter", memberNumber: 222222);
@@ -160,13 +166,14 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
         await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
         await Post(second, $"/api/assemblymotions/motions/{created.Id}/join");
 
-        var asSubmitter = await GetDetail(second.Token, created.Id);
-        var asCommission = await GetDetail(commission.Token, created.Id);
+        var asSubmitter = await GetDetailJson(second.Token, created.Id);
+        var asCommission = await GetDetailJson(commission.Token, created.Id);
 
-        await Assert.That(asSubmitter!.Submitters.Count).IsEqualTo(2);
-        await Assert.That(asSubmitter.Submitters.All(s => s.MemberNumber == null)).IsTrue();
-        await Assert.That(asCommission!.Submitters.Select(s => s.MemberNumber).ToArray())
-            .IsEquivalentTo(new int?[] { 111111, 222222 });
+        await Assert.That(asSubmitter).Contains("Bert");
+        await Assert.That(asCommission).Contains("Bert");
+        await Assert.That(asSubmitter).DoesNotContain("222222");
+        await Assert.That(asCommission).DoesNotContain("111111");
+        await Assert.That(asCommission).DoesNotContain("222222");
     }
 
     [Test]

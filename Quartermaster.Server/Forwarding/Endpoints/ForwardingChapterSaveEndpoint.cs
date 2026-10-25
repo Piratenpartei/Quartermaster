@@ -11,6 +11,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Validation;
 
 namespace Quartermaster.Server.Forwarding.Endpoints;
 
@@ -151,10 +152,8 @@ public class ForwardingChapterSaveEndpoint : Endpoint<ForwardingChapterSaveReque
         if (string.IsNullOrWhiteSpace(email))
             return true;
 
-        var trimmed = email.Trim();
-        if (trimmed.Length > ForwardingChapterSetting.FailureEmailMaxLength)
+        if (email.Trim().Length > ForwardingChapterSetting.FailureEmailMaxLength)
             return false;
-        var at = trimmed.IndexOf('@');
-        return at > 0 && at < trimmed.Length - 1 && !trimmed.Contains(' ');
+        return EmailAddressFormat.IsPlausible(email);
     }
 }

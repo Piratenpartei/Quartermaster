@@ -13,6 +13,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.SupportSignatures;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Options;
 using Quartermaster.Data.SupportSignatures;
 using Quartermaster.Server.SupportSignatures;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -200,6 +201,42 @@ public class MemberCampaignEndpointTests : IntegrationTestBase {
 
         await Assert.That(page.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
         await Assert.That(form.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
+    }
+
+    [Test]
+    public async Task Contact_falls_back_to_the_chapter_for_members_and_to_the_federal_address_for_visitors() {
+        SetFederalContact("info@piratenpartei.example");
+        Db.Chapters.Where(c => c.Id == _celle.Id).Set(c => c.ContactEmail, "vorstand@celle.example").Update();
+        var campaign = Campaign(_celle, "Direktkandidatur Celle", SignatureCampaignVisibility.Public);
+        using var memberClient = MemberClient(_celle);
+        using var visitor = AnonymousClient();
+
+        var asMember = await memberClient.GetFromJsonAsync<MemberSignatureCampaignDTO>($"/api/support-signatures/member-campaigns/{campaign.Id}");
+        var asVisitorJson = await visitor.GetStringAsync($"/api/support-signatures/member-campaigns/{campaign.Id}");
+        var dashboardJson = await visitor.GetStringAsync("/api/dashboard");
+
+        await Assert.That(asMember!.ContactEmail).IsEqualTo("vorstand@celle.example");
+        await Assert.That(asVisitorJson).Contains("info@piratenpartei.example");
+        await Assert.That(asVisitorJson).DoesNotContain("vorstand@celle.example");
+        await Assert.That(dashboardJson).Contains("Direktkandidatur Celle");
+        await Assert.That(dashboardJson).DoesNotContain("vorstand@celle.example");
+    }
+
+    [Test]
+    public async Task Campaign_contact_comes_before_the_chapter_contact() {
+        Db.Chapters.Where(c => c.Id == _celle.Id).Set(c => c.ContactEmail, "vorstand@celle.example").Update();
+        var campaign = Campaign(_celle, "Direktkandidatur Celle");
+        Db.SignatureCampaigns.Where(c => c.Id == campaign.Id).Set(c => c.ContactEmail, "ukw@celle.example").Update();
+        using var client = MemberClient(_celle);
+
+        var page = await client.GetFromJsonAsync<MemberSignatureCampaignDTO>($"/api/support-signatures/member-campaigns/{campaign.Id}");
+
+        await Assert.That(page!.ContactEmail).IsEqualTo("ukw@celle.example");
+    }
+
+    private void SetFederalContact(string value) {
+        using var scope = Factory.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<OptionRepository>().SetValue(OptionRepository.ContactEmailKey, null, value);
     }
 
     [Test]

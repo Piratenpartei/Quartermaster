@@ -354,7 +354,7 @@ public class ForwardingIntake {
             payload,
             _ => new Dictionary<string, object> {
                 ["selection"] = record.ToDetailDto(),
-                ["chapter"] = chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName }
+                ["chapter"] = _chapters.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName })
             },
             SourceEntityType: "DueSelection",
             SourceEntityId: record.Id));

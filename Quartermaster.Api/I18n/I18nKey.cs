@@ -82,6 +82,8 @@ public static class I18nKey {
             public const string ExternalCodeNotUnique = "error.chapter.external_code_not_unique";
             public const string KeycloakDepartmentNotUnique = "error.chapter.keycloak_department_not_unique";
             public const string KeycloakDepartmentTooLong = "error.chapter.keycloak_department_too_long";
+            public const string ContactEmailTooLong = "error.chapter.contact_email_too_long";
+            public const string ContactEmailInvalid = "error.chapter.contact_email_invalid";
             public const string HasChildren = "error.chapter.has_children";
             public const string Archived = "error.chapter.archived";
 
@@ -1760,6 +1762,7 @@ public static class I18nKey {
             public const string TotalCount = "ui.chapter_list.total_count";
             public const string ShortCodeColumn = "ui.chapter_list.short_code_column";
             public const string ExternalCodeColumn = "ui.chapter_list.external_code_column";
+            public const string ContactEmailColumn = "ui.chapter_list.contact_email_column";
         }
 
         public static class ChapterDetail {
@@ -1770,6 +1773,8 @@ public static class I18nKey {
             public const string ExternalCodeLabel = "ui.chapter_detail.external_code_label";
             public const string KeycloakDepartmentLabel = "ui.chapter_detail.keycloak_department_label";
             public const string KeycloakDepartmentHint = "ui.chapter_detail.keycloak_department_hint";
+            public const string ContactEmailLabel = "ui.chapter_detail.contact_email_label";
+            public const string ContactEmailHint = "ui.chapter_detail.contact_email_hint";
             public const string ParentChapterLabel = "ui.chapter_detail.parent_chapter_label";
             public const string ParentEmptyLabel = "ui.chapter_detail.parent_empty_label";
             public const string AdminDivisionLabel = "ui.chapter_detail.admin_division_label";
@@ -3585,7 +3590,6 @@ public static class I18nKey {
             public const string CommissionOnly = "ui.assembly_motion.commission_only";
             public const string BackToDashboard = "ui.assembly_motion.back_to_dashboard";
             public const string PublicView = "ui.assembly_motion.public_view";
-            public const string MemberNumber = "ui.assembly_motion.member_number";
             public const string CheckTitle = "ui.assembly_motion.check_title";
             public const string CheckNoteLabel = "ui.assembly_motion.check_note_label";
             public const string CheckNoteRequired = "ui.assembly_motion.check_note_required";

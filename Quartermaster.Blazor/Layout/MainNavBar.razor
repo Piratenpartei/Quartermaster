@@ -109,20 +109,20 @@
                         </NavMenuDropdown>
                     </li>
                 </RequirePermission>
-                <RequirePermission RequireAuth="true">
-                    <li class="nav-item">
-                        <NavMenuDropdown>
-                            <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.Administration]</ButtonContent>
-                            <DropdownContent>
+                <li class="nav-item">
+                    <NavMenuDropdown>
+                        <ButtonContent>@I18n[I18nKey.Ui.MainNavBar.Administration]</ButtonContent>
+                        <DropdownContent>
+                            <RequirePermission RequireAuth="true">
                                 <li><a class="dropdown-item" href="/Administration/AdministrativeDivisions">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsSearch]</a></li>
                                 <li><a class="dropdown-item" href="/Administration/AdministrativeDivisionTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationDivisionsTree]</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersList]</a></li>
-                                <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersTree]</a></li>
-                            </DropdownContent>
-                        </NavMenuDropdown>
-                    </li>
-                </RequirePermission>
+                            </RequirePermission>
+                            <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersList]</a></li>
+                            <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersTree]</a></li>
+                        </DropdownContent>
+                    </NavMenuDropdown>
+                </li>
                 <RequirePermission AnyOfPermissions="@PermissionIdentifier.SystemPermissions">
                     <li class="nav-item">
                         <NavMenuDropdown>

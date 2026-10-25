@@ -69,7 +69,7 @@ public class ChecklistItemExecutor {
 
         var globalsBlock = _globals.Build();
         var chapter = parentEvent != null ? _chapterRepo.Get(parentEvent.ChapterId) : null;
-        var chapterBlock = chapter?.ToDto();
+        var chapterBlock = chapter == null ? null : _chapterRepo.WithTemplateContact(chapter.ToDto());
         var eventBlock = parentEvent?.ToDetailDto(chapter?.Name ?? "");
 
         Dictionary<string, object> ModelFor(Member? member) {

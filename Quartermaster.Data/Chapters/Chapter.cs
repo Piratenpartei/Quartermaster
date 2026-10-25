@@ -10,6 +10,7 @@ namespace Quartermaster.Data.Chapters;
 public class Chapter {
     public const string TableName = "Chapters";
     public const int KeycloakDepartmentMaxLength = 200;
+    public const int ContactEmailMaxLength = 254;
 
     public Guid Id { get; set; }
     public string Name { get; set; } = "";
@@ -18,6 +19,9 @@ public class Chapter {
 
     /// <summary>The value of the Keycloak attribute <c>ekklesia_department</c> that places a person in this chapter at login.</summary>
     public string? KeycloakDepartment { get; set; }
+
+    /// <summary>Shown to signed-in users only; never put it into a <see cref="ChapterDTO"/> for anonymous callers.</summary>
+    public string? ContactEmail { get; set; }
     public DateTime? ArchivedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 

@@ -8,9 +8,6 @@
                 @foreach (var submitter in Submitters) {
                     <li>
                         @submitter.DisplayName
-                        @if (submitter.MemberNumber != null) {
-                            <span class="text-secondary ms-1">(@MemberNumberLabel(submitter.MemberNumber.Value))</span>
-                        }
                         @if (submitter.IsAuthor) {
                             <span class="text-secondary ms-1">@I18n[I18nKey.Ui.AssemblyMotion.AuthorMarker]</span>
                         }

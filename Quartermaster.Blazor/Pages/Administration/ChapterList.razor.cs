@@ -17,6 +17,8 @@ public partial class ChapterList {
     public required ToastService ToastService { get; set; }
     [Inject]
     public required I18nService I18n { get; set; }
+    [Inject]
+    public required AuthService AuthService { get; set; }
 
     private string SearchQuery { get; set; } = "";
     private int CurrentPage = 1;

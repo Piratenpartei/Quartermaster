@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.SupportSignatures;
 using Quartermaster.Data.SupportSignatures;
+using Quartermaster.Server.Validation;
 
 namespace Quartermaster.Server.SupportSignatures.Endpoints.Campaigns;
 
@@ -63,9 +63,6 @@ public class SignatureCampaignSaveRequestValidator : Validator<SignatureCampaign
     }
 
     private static bool IsValidEmail(string? email) {
-        if (string.IsNullOrWhiteSpace(email))
-            return true;
-        var trimmed = email.Trim();
-        return trimmed.Contains('@') && !trimmed.Any(char.IsWhiteSpace);
+        return string.IsNullOrWhiteSpace(email) || EmailAddressFormat.IsPlausible(email);
     }
 }

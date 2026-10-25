@@ -12,6 +12,9 @@ using System.Linq;
 namespace Quartermaster.Data.Options;
 
 public class OptionRepository {
+    /// <summary>The federal contact address, the fallback wherever a chapter has no contact address of its own.</summary>
+    public const string ContactEmailKey = "general.contact.email";
+
     private readonly DbContext _context;
     private readonly AuditLogRepository _auditLog;
 
@@ -164,7 +167,7 @@ public class OptionRepository {
             "Anzeigename der Gliederung",
             OptionDataType.String, true, "", "");
 
-        AddDefinitionIfNotExists("general.contact.email",
+        AddDefinitionIfNotExists(ContactEmailKey,
             "Kontakt-E-Mail-Adresse",
             OptionDataType.String, true, "", "");
 

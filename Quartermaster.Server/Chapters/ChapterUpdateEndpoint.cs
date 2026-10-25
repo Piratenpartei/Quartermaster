@@ -9,6 +9,7 @@ using Quartermaster.Api.Chapters;
 using Quartermaster.Api.I18n;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Validation;
 
 namespace Quartermaster.Server.Chapters;
 
@@ -89,17 +90,32 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
             return;
         }
 
+        var contactEmail = string.IsNullOrWhiteSpace(req.ContactEmail) ? null : req.ContactEmail.Trim();
+        if (contactEmail?.Length > Chapter.ContactEmailMaxLength) {
+            AddError(r => r.ContactEmail, I18nKey.Error.Chapter.ContactEmailTooLong);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (contactEmail != null && !EmailAddressFormat.IsPlausible(contactEmail)) {
+            AddError(r => r.ContactEmail, I18nKey.Error.Chapter.ContactEmailInvalid);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         var divisionIds = req.AdministrativeDivisionIds.Distinct().ToList();
 
         chapter.Name = name;
         chapter.ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim();
         chapter.KeycloakDepartment = keycloakDepartment;
+        chapter.ContactEmail = contactEmail;
         chapter.ParentChapterId = req.ParentChapterId;
         _chapterRepo.Update(chapter);
         _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);
         _chapterRepo.ReplaceAdministrativeDivisions(chapter.Id, divisionIds);
 
-        await SendAsync(chapter.ToDto(externalCodes, divisionIds), cancellation: ct);
+        var dto = chapter.ToDto(externalCodes, divisionIds);
+        dto.ContactEmail = chapter.ContactEmail;
+        await SendAsync(dto, cancellation: ct);
     }
 
     private static List<string> NormaliseCodes(IEnumerable<string> raw)
