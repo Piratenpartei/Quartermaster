@@ -125,6 +125,11 @@ public class OptionRepository {
             OptionDataType.String, false, "", "false",
             description: "Bei „true“ ist die Beitragseinstufung öffentlich erreichbar und im Menü sichtbar.");
 
+        AddDefinitionIfNotExists(PublicFormOptions.PermanentReduction,
+            "Öffentliche Formulare: Dauerhafte Beitragsminderung",
+            OptionDataType.String, false, "", "false",
+            description: "Bei „true“ kann im Beitragsformular neben der Minderung für ein Jahr auch eine dauerhafte Minderung beantragt werden.");
+
         AddDefinitionIfNotExists(ForwardingOptionKeys.RegularMinimum,
             "Beiträge: Regelbeitrag ab (EUR/Jahr)",
             OptionDataType.Number, false, "", "72",

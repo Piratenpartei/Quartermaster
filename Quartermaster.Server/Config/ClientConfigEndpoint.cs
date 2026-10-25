@@ -40,6 +40,8 @@ public class ClientConfigEndpoint : EndpointWithoutRequest<ClientConfigDTO> {
             OidcButtonText = oidcButtonText,
             MembershipApplicationEnabled = _publicForms.IsMembershipApplicationEnabled(),
             DueSelectionEnabled = _publicForms.IsDueSelectionEnabled(),
+            PermanentReductionEnabled = _publicForms.IsPermanentReductionEnabled(),
+            ReducedDueMaximum = _publicForms.ReducedDueMaximum(),
             MotionFormChapterIds = _publicForms.MotionFormChapterIds(),
 #if DEBUG
             IsDebug = true

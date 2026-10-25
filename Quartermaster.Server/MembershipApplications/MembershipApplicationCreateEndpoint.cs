@@ -9,6 +9,7 @@ using Quartermaster.Api.I18n;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.DueSelector;
 using Quartermaster.Server.PublicForms;
 using Quartermaster.Server.Submissions;
 #if DEBUG
@@ -57,6 +58,13 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     public override async Task HandleAsync(MembershipApplicationDTO req, CancellationToken ct) {
         if (!_publicForms.IsMembershipApplicationEnabled() && !_perms.HasInAnyChapter(PermissionIdentifier.ProcessApplications))
             ThrowError(I18nKey.Error.PublicForm.Disabled, 403);
+
+        if (req.DueSelection != null) {
+            var reductionProblem = ReducedDueRules.Problem(req.DueSelection, _publicForms.ReducedDueMaximum(), _publicForms.IsPermanentReductionEnabled());
+            if (reductionProblem != null)
+                ThrowError(reductionProblem);
+            ReducedDueRules.ApplyRejectionDefault(req.DueSelection);
+        }
 
         var skipConfirmation = false;
 #if DEBUG

@@ -182,9 +182,11 @@ public class ForwardingTicketRenderer {
             HouseNumber = application.AddressHouseNbr,
             PostCode = application.AddressPostCode,
             City = application.AddressCity,
+            Country = application.AddressCountry,
             ChapterName = chapterId == null ? "" : ChapterName(chapterId.Value),
             EntryDate = application.EntryDate.ToString("dd.MM.yyyy", German),
             IsMemberOfAnotherParty = application.IsMemberOfAnotherParty,
+            OtherParties = application.IsMemberOfAnotherParty ? application.OtherParties : "",
             HasPriorDeclinedApplication = application.HasPriorDeclinedApplication,
             ApplicationText = application.ApplicationText
         };
@@ -198,6 +200,7 @@ public class ForwardingTicketRenderer {
             ReducedAmount = FormatAmount(dues.ReducedAmount),
             Justification = dues.ReducedJustification,
             ReducedTimeSpan = dues.ReducedTimeSpan == ReducedTimeSpan.Permanent ? "dauerhaft" : "für ein Jahr",
+            RejectedReductionAmount = FormatAmount(dues.SelectedDue),
             MonthlyIncomeGroup = FormatAmount(dues.MonthlyIncomeGroup),
             YearlyIncome = FormatAmount(dues.YearlyIncome),
             PaymentSchedule = ScheduleLabel(dues.PaymentSchedule),

@@ -16,7 +16,7 @@ public class DueSelectionDTOValidatorTests {
         MemberNumber = 12345,
         SelectedValuation = SelectedValuation.MonthlyPayGroup,
         YearlyIncome = 50000m,
-        MonthlyIncomeGroup = 4000m,
+        MonthlyIncomeGroup = 2000m,
         ReducedAmount = 12m,
         SelectedDue = 120m,
         ReducedJustification = "",
@@ -104,6 +104,7 @@ public class DueSelectionDTOValidatorTests {
     public void ZeroSelectedDue_ShouldHaveNoError() {
         var selection = ValidDueSelection();
         selection.SelectedValuation = SelectedValuation.Reduced;
+        selection.MonthlyIncomeGroup = 0;
         selection.SelectedDue = 0m;
 
         var result = _validator.TestValidate(selection);
@@ -261,6 +262,7 @@ public class DueSelectionDTOValidatorTests {
         result.ShouldNotHaveValidationErrorFor(x => x.IBAN);
         result.ShouldNotHaveValidationErrorFor(x => x.AccountHolder);
     }
+
     [Test]
     [Arguments(SelectedValuation.OnePercentYearlyPay, 5000, 50)]
     [Arguments(SelectedValuation.OnePercentYearlyPay, 10000, 50)]
@@ -270,6 +272,7 @@ public class DueSelectionDTOValidatorTests {
         var selection = ValidDueSelection();
         selection.SelectedValuation = valuation;
         selection.YearlyIncome = yearlyIncome;
+        selection.MonthlyIncomeGroup = 0;
         selection.SelectedDue = due;
 
         var result = _validator.TestValidate(selection);
@@ -287,10 +290,108 @@ public class DueSelectionDTOValidatorTests {
         var selection = ValidDueSelection();
         selection.SelectedValuation = valuation;
         selection.YearlyIncome = yearlyIncome;
+        selection.MonthlyIncomeGroup = 0;
         selection.SelectedDue = due;
 
         var result = _validator.TestValidate(selection);
 
         result.ShouldNotHaveValidationErrorFor(x => x.SelectedDue);
+    }
+
+    [Test]
+    [Arguments(SelectedValuation.MonthlyPayGroup, 120)]
+    [Arguments(SelectedValuation.Reduced, 72)]
+    public void Due_below_the_stated_income_group_ShouldHaveError(SelectedValuation valuation, int due) {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = valuation;
+        selection.ReducedJustification = "Studium";
+        selection.MonthlyIncomeGroup = 3000;
+        selection.SelectedDue = due;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.SelectedDue)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.DueBelowRate);
+    }
+
+    [Test]
+    public void NoValuation_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = SelectedValuation.None;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.SelectedValuation)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.ValuationRequired);
+    }
+
+    [Test]
+    public void UndefinedValuation_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = (SelectedValuation)42;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.SelectedValuation);
+    }
+
+    [Test]
+    public void ReductionWithoutJustification_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = SelectedValuation.Reduced;
+        selection.ReducedJustification = " ";
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.ReducedJustification)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.JustificationRequired);
+    }
+
+    [Test]
+    public void NegativeIncome_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.MonthlyIncomeGroup = -1;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.MonthlyIncomeGroup);
+    }
+
+    [Test]
+    public void UndefinedTimeSpan_ShouldHaveError() {
+        var selection = ValidDueSelection();
+        selection.ReducedTimeSpan = (ReducedTimeSpan)7;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.ReducedTimeSpan)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.TimeSpanInvalid);
+    }
+
+    [Test]
+    [Arguments(SelectedValuation.Underage, 0, PaymentSchedule.Monthly)]
+    [Arguments(SelectedValuation.Reduced, 35, PaymentSchedule.Monthly)]
+    [Arguments(SelectedValuation.MonthlyPayGroup, 0, PaymentSchedule.None)]
+    public void Schedule_not_offered_for_the_due_ShouldHaveError(SelectedValuation valuation, int reducedAmount, PaymentSchedule schedule) {
+        var selection = ValidDueSelection();
+        selection.SelectedValuation = valuation;
+        selection.ReducedAmount = reducedAmount;
+        selection.ReducedJustification = "Studium";
+        selection.PaymentSchedule = schedule;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldHaveValidationErrorFor(x => x.PaymentSchedule)
+            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.ScheduleNotAllowed);
+    }
+
+    [Test]
+    public void Monthly_schedule_for_a_regular_due_ShouldHaveNoError() {
+        var selection = ValidDueSelection();
+        selection.PaymentSchedule = PaymentSchedule.Monthly;
+
+        var result = _validator.TestValidate(selection);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.PaymentSchedule);
     }
 }

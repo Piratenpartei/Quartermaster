@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.MembershipApplications;
@@ -122,5 +123,77 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         await Assert.That(saved.Status).IsEqualTo(ApplicationStatus.Pending);
         await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
         await Assert.That(Db.Motions.Count(m => m.LinkedMembershipApplicationId == saved.Id)).IsEqualTo(1);
+    }
+
+    private static DueSelectionDTO ReducedDues(decimal amount) {
+        return new DueSelectionDTO {
+            FirstName = "Alice",
+            LastName = "Applicant",
+            Email = "alice@test.local",
+            SelectedValuation = SelectedValuation.Reduced,
+            ReducedAmount = amount,
+            ReducedJustification = "Studium",
+            ReducedTimeSpan = ReducedTimeSpan.OneYear,
+            PaymentSchedule = PaymentSchedule.Annual
+        };
+    }
+
+    [Test]
+    public async Task Stores_country_and_other_parties_on_confirm() {
+        var chapter = Builder.SeedChapter("C");
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        var dto = ValidDto(chapter.Id);
+        dto.AddressCountry = "Österreich";
+        dto.IsMemberOfAnotherParty = true;
+        dto.OtherParties = "Volt";
+
+        await client.PostAsJsonAsync("/api/membershipapplications", dto);
+        await ConfirmAllPendingSubmissionsAsync();
+
+        var saved = Db.MembershipApplications.Single();
+        await Assert.That(saved.AddressCountry).IsEqualTo("Österreich");
+        await Assert.That(saved.OtherParties).IsEqualTo("Volt");
+    }
+
+    [Test]
+    public async Task Address_in_germany_stores_no_country() {
+        var chapter = Builder.SeedChapter("C");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+
+        await Assert.That(Db.MembershipApplications.Single().AddressCountry).IsNull();
+    }
+
+    [Test]
+    public async Task Reduction_outside_the_range_is_rejected() {
+        var chapter = Builder.SeedChapter("C");
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        var dto = ValidDto(chapter.Id);
+        dto.DueSelection = ReducedDues(100);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", dto);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Reduction_without_classification_records_the_default_due() {
+        var chapter = Builder.SeedChapter("C");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var dto = ValidDto(chapter.Id);
+        dto.DueSelection = ReducedDues(24);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", dto);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var application = Db.MembershipApplications.Single();
+        var dues = Db.DueSelections.Single(d => d.Id == application.DueSelectionId);
+        await Assert.That(dues.SelectedDue).IsEqualTo(DueSelectionRates.RejectedReductionDue);
     }
 }

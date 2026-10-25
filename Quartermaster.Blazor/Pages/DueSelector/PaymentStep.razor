@@ -1,12 +1,18 @@
 @using Quartermaster.Api.DueSelector
 @using Quartermaster.Api.I18n
 
-<div class="mb-3">
-    <p>@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositInstruction]</p>
-    <Checkbox @bind-Value="State.IsDirectDeposit">@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositMandate]</Checkbox>
+<p>@I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositInstruction]</p>
+<div class="d-grid gap-2 mb-3" role="radiogroup">
+    <ChoiceCard Name="payment-method" Selected="@(State.IsDirectDeposit == true)" OnSelect="() => SetDirectDeposit(true)">
+        @I18n[I18nKey.Ui.PaymentOptionSelection.DirectDepositMandate]
+    </ChoiceCard>
+    <ChoiceCard Name="payment-method" Selected="@(State.IsDirectDeposit == false)" OnSelect="() => SetDirectDeposit(false)">
+        <div>@I18n[I18nKey.Ui.PaymentOptionSelection.ManualTransferOption]</div>
+        <div class="small text-secondary">@I18n[I18nKey.Ui.PaymentOptionSelection.ManualTransferHint]</div>
+    </ChoiceCard>
 </div>
 
-<Collapsable Collapsed="!State.IsDirectDeposit">
+<Collapsable Collapsed="@(State.IsDirectDeposit != true)">
     <div class="mb-2">
         <label for="accountHolder" class="form-label">@I18n[I18nKey.Ui.PaymentOptionSelection.AccountHolderLabel] <RequiredStar /></label>
         @if (FullName() != State.AccountHolder) {

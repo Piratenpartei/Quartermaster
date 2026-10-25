@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api.Config;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -93,5 +94,28 @@ public class ClientConfigEndpointTests : IntegrationTestBase {
         var response = await client.GetAsync("/api/config/client");
         var dto = await response.Content.ReadFromJsonAsync<ClientConfigDTO>();
         await Assert.That(dto!.ShowDetailedErrors).IsTrue();
+    }
+
+    [Test]
+    public async Task Dues_limits_default_to_no_permanent_reduction_and_the_regular_minimum() {
+        using var client = AnonymousClient();
+
+        var dto = await client.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
+
+        await Assert.That(dto!.PermanentReductionEnabled).IsFalse();
+        await Assert.That(dto.ReducedDueMaximum).IsEqualTo(ForwardingOptionKeys.DefaultRegularMinimum);
+    }
+
+    [Test]
+    public async Task Dues_limits_follow_the_settings() {
+        using var client = AnonymousClient();
+        await WarmUpAsync(client);
+        UpsertOption(PublicFormOptions.PermanentReduction, "true");
+        UpsertOption(ForwardingOptionKeys.RegularMinimum, "84");
+
+        var dto = await client.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
+
+        await Assert.That(dto!.PermanentReductionEnabled).IsTrue();
+        await Assert.That(dto.ReducedDueMaximum).IsEqualTo(84m);
     }
 }

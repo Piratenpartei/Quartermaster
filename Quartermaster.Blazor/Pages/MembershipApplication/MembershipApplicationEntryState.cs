@@ -30,6 +30,7 @@ public class MembershipApplicationEntryState : EntryStateBase {
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
+    public string OtherParties { get; set; } = "";
     public string ApplicationText { get; set; } = "";
 
     public DateTime EntryDate { get; set; } = DateTime.Today;
@@ -63,7 +64,10 @@ public class MembershipApplicationEntryState : EntryStateBase {
     }
 
     public bool AreDeclarationsComplete() {
-        return ConformityDeclarationAccepted;
+        if (!ConformityDeclarationAccepted)
+            return false;
+
+        return !IsMemberOfAnotherParty || !string.IsNullOrWhiteSpace(OtherParties);
     }
 
     /// <summary>Switching between Germany and abroad starts the address over, so no matched municipality or chapter is carried along.</summary>

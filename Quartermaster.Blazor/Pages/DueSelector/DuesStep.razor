@@ -47,7 +47,7 @@
     <MonthlyIncomeGroupInput State="@State" />
 } else if (State.SelectedValuation == SelectedValuation.Reduced) {
     var justificationMissing = string.IsNullOrWhiteSpace(State.ReducedJustification);
-    var amountInvalid = State.ReducedAmount < 1;
+    var amountInvalid = State.ReducedAmount != null && !State.IsReducedAmountValid();
     <hr />
     <div class="mb-3">
         <label for="reducedJustification" class="form-label">@I18n[I18nKey.Ui.SelectReduced.JustificationLabel] <RequiredStar /></label>
@@ -60,28 +60,42 @@
         <label for="reducedAmount" class="form-label">@I18n[I18nKey.Ui.SelectReduced.YearlyAmountLabel] <RequiredStar /></label>
         <div class="input-group @(amountInvalid ? "has-validation" : "")">
             <span class="input-group-text">€</span>
-            <input type="number" class="form-control @(amountInvalid ? "is-invalid" : "")" min="1" id="reducedAmount"
-                   @bind="State.ReducedAmount" @bind:event="oninput" />
+            <input type="number" class="form-control @(amountInvalid ? "is-invalid" : "")" id="reducedAmount"
+                   min="@MinimumAmountValue()" max="@MaximumAmountValue()" step="1" @bind="State.ReducedAmount" @bind:event="oninput" />
             @if (amountInvalid) {
-                <div class="invalid-feedback">@I18n[I18nKey.Ui.SelectReduced.AmountTooLowFeedback]</div>
+                <div class="invalid-feedback">@I18n[RangeText(I18nKey.Ui.SelectReduced.AmountOutOfRangeFeedback)]</div>
             }
         </div>
+        @if (!amountInvalid) {
+            <div class="form-text">@I18n[RangeText(I18nKey.Ui.SelectReduced.AmountRangeHint)]</div>
+        }
     </div>
     <div class="mb-3">
-        <RadioGroup E="ReducedTimeSpan" @bind-Value="State.ReducedTimeSpan" ToStringFunc="TextForReducedTimeSpan" />
+        @if (Config.PermanentReductionEnabled) {
+            <RadioGroup E="ReducedTimeSpan" @bind-Value="State.ReducedTimeSpan" ToStringFunc="TextForReducedTimeSpan" />
+        } else {
+            <p class="mb-0">@I18n[I18nKey.Ui.SelectReduced.OneYearOnlyNotice]</p>
+        }
     </div>
 
     <h5>@I18n[I18nKey.Ui.SelectReduced.ClassificationHeader]</h5>
     <p>@I18n[I18nKey.Ui.SelectReduced.ClassificationNotice]</p>
-    <div class="d-grid gap-2 mb-3" role="radiogroup">
-        <ChoiceCard Name="reduced-fallback" Selected="@State.ReducedIncomeFallback" OnSelect="() => SetIncomeFallback(true)">
-            @I18n[I18nKey.Ui.SelectReduced.MonthlyClassificationOption]
-        </ChoiceCard>
-        <ChoiceCard Name="reduced-fallback" Selected="@(!State.ReducedIncomeFallback)" OnSelect="() => SetIncomeFallback(false)">
-            @I18n[I18nKey.Ui.SelectReduced.SkipOption]
-        </ChoiceCard>
-    </div>
     @if (State.ReducedIncomeFallback) {
         <MonthlyIncomeGroupInput State="@State" />
+        <div class="mt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ConfirmSkipClassification">
+                @I18n[I18nKey.Ui.SelectReduced.SkipOption]
+            </button>
+        </div>
+    } else {
+        <div class="alert alert-warning mb-0">
+            <p>@I18n[I18nParams.With(I18nKey.Ui.SelectReduced.SkippedNotice, ("amount", FormatWholeAmount(DueSelectionRates.RejectedReductionDue)))]</p>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => SetIncomeFallback(true)">
+                @I18n[I18nKey.Ui.SelectReduced.ClassifyAgainButton]
+            </button>
+        </div>
     }
 }
+
+<ConfirmDialog @ref="SkipConfirm" Title="@I18n[I18nKey.Ui.SelectReduced.SkipConfirmTitle]"
+               ConfirmText="@I18n[I18nKey.Ui.SelectReduced.SkipConfirmButton]" />

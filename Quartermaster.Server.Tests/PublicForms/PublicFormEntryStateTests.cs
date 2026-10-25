@@ -43,11 +43,40 @@ public class DueSelectorEntryStateTests {
     }
 
     [Test]
-    public async Task Reduced_without_income_classification_has_no_fallback_due() {
+    public async Task New_form_starts_with_classification_slider_and_no_choices() {
+        var state = new DueSelectorEntryState();
+
+        await Assert.That(state.ReducedIncomeFallback).IsTrue();
+        await Assert.That(state.MonthlyIncomeGroup).IsEqualTo(1500m);
+        await Assert.That(state.ReducedAmount).IsNull();
+        await Assert.That(state.IsDirectDeposit).IsNull();
+    }
+
+    [Test]
+    public async Task Reduced_without_income_classification_records_the_default_due() {
         var state = new DueSelectorEntryState { SelectedValuation = SelectedValuation.Reduced, MonthlyIncomeGroup = 3000, ReducedIncomeFallback = false };
         state.RecalculateDue();
-        await Assert.That(state.SelectedDue).IsEqualTo(0m);
-        await Assert.That(state.MonthlyIncomeGroup).IsEqualTo(0m);
+
+        await Assert.That(state.SelectedDue).IsEqualTo(DueSelectionRates.RejectedReductionDue);
+        await Assert.That(state.ToDTO().MonthlyIncomeGroup).IsEqualTo(0m);
+    }
+
+    [Test]
+    public async Task Classifying_again_after_a_skip_keeps_the_slider_value() {
+        var state = new DueSelectorEntryState { SelectedValuation = SelectedValuation.Reduced, MonthlyIncomeGroup = 3000, ReducedIncomeFallback = false };
+        state.RecalculateDue();
+
+        state.ReducedIncomeFallback = true;
+        state.RecalculateDue();
+
+        await Assert.That(state.SelectedDue).IsEqualTo(240m);
+        await Assert.That(state.ToDTO().MonthlyIncomeGroup).IsEqualTo(3000m);
+    }
+
+    [Test]
+    public async Task Income_group_is_only_sent_when_it_classifies() {
+        var state = new DueSelectorEntryState { SelectedValuation = SelectedValuation.OnePercentYearlyPay, YearlyIncome = 45_000 };
+        await Assert.That(state.ToDTO().MonthlyIncomeGroup).IsEqualTo(0m);
     }
 
     [Test]
@@ -65,8 +94,24 @@ public class DueSelectorEntryStateTests {
         state.ReducedJustification = "Studium";
         await Assert.That(state.IsDuesComplete()).IsTrue();
 
-        state.ReducedAmount = 0;
+        state.ReducedAmount = null;
         await Assert.That(state.IsDuesComplete()).IsFalse();
+    }
+
+    [Test]
+    [Arguments(11, false)]
+    [Arguments(12, true)]
+    [Arguments(72, true)]
+    [Arguments(73, false)]
+    public async Task Reduced_amount_must_lie_within_the_range(int amount, bool valid) {
+        var state = new DueSelectorEntryState { SelectedValuation = SelectedValuation.Reduced, ReducedAmount = amount, ReducedJustification = "Studium" };
+        await Assert.That(state.IsDuesComplete()).IsEqualTo(valid);
+    }
+
+    [Test]
+    public async Task Reduced_amount_maximum_follows_the_server() {
+        var state = new DueSelectorEntryState { SelectedValuation = SelectedValuation.Reduced, ReducedAmount = 80, ReducedJustification = "Studium", ReducedMaximum = 84 };
+        await Assert.That(state.IsDuesComplete()).IsTrue();
     }
 
     [Test]
@@ -90,6 +135,13 @@ public class DueSelectorEntryStateTests {
     public async Task Manual_transfer_needs_no_bank_details() {
         var state = new DueSelectorEntryState { IsDirectDeposit = false };
         await Assert.That(state.IsPaymentComplete()).IsTrue();
+    }
+
+    [Test]
+    public async Task Payment_is_incomplete_until_a_method_is_chosen() {
+        var state = new DueSelectorEntryState();
+        await Assert.That(state.IsPaymentComplete()).IsFalse();
+        await Assert.That(state.ToDTO().IsDirectDeposit).IsFalse();
     }
 
     [Test]
@@ -166,6 +218,18 @@ public class MembershipApplicationEntryStateTests {
         await Assert.That(state.AddressAdministrativeDivisionId).IsNull();
         await Assert.That(state.ChapterId).IsNull();
         await Assert.That(state.AddressCountry).IsEqualTo("");
+    }
+
+    [Test]
+    public async Task Other_party_membership_needs_the_parties_named() {
+        var state = new MembershipApplicationEntryState { ConformityDeclarationAccepted = true };
+        await Assert.That(state.AreDeclarationsComplete()).IsTrue();
+
+        state.IsMemberOfAnotherParty = true;
+        await Assert.That(state.AreDeclarationsComplete()).IsFalse();
+
+        state.OtherParties = "Volt";
+        await Assert.That(state.AreDeclarationsComplete()).IsTrue();
     }
 
     [Test]

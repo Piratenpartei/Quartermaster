@@ -179,6 +179,8 @@ public static class TemplateMockDataProvider {
             City = "Hannover",
             ChapterName = "Kreisverband Hannover",
             EntryDate = "01.11.2026",
+            IsMemberOfAnotherParty = true,
+            OtherParties = "Wählergruppe Musterstadt",
             ApplicationText = "Ich möchte mich für digitale Bürgerrechte engagieren."
         };
         data["dues"] = new ForwardingDuesModel {
@@ -188,6 +190,7 @@ public static class TemplateMockDataProvider {
             ReducedAmount = "36,00",
             Justification = "Studium ohne Einkommen",
             ReducedTimeSpan = "für ein Jahr",
+            RejectedReductionAmount = "120,00",
             PaymentSchedule = "jährlich",
             IsDirectDeposit = true,
             AccountHolder = "Max Mustermann",

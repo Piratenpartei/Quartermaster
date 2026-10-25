@@ -15,6 +15,15 @@
 <div class="mb-3">
     <Checkbox @bind-Value="State.IsMemberOfAnotherParty">@I18n[I18nKey.Ui.Declarations.OtherPartyLabel]</Checkbox>
     <p class="text-secondary small ms-4">@I18n[I18nKey.Ui.Declarations.OtherPartyHint]</p>
+    @if (State.IsMemberOfAnotherParty) {
+        <div class="ms-4">
+            <label for="otherParties" class="form-label">@I18n[I18nKey.Ui.Declarations.OtherPartiesLabel] <RequiredStar /></label>
+            <input type="text" class="form-control" id="otherParties" maxlength="500" @bind="State.OtherParties" @bind:event="oninput" />
+            @if (string.IsNullOrWhiteSpace(State.OtherParties)) {
+                <div class="form-text">@I18n[I18nKey.Ui.Declarations.OtherPartiesRequired]</div>
+            }
+        </div>
+    }
 </div>
 
 <div class="mb-3">

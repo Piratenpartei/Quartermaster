@@ -20,6 +20,10 @@ public partial class PaymentStep {
             State.PaymentSchedule = PaymentSchedule.Annual;
     }
 
+    private void SetDirectDeposit(bool isDirectDeposit) {
+        State.IsDirectDeposit = isDirectDeposit;
+    }
+
     private string FullName() {
         return $"{State.FirstName} {State.LastName}".Trim();
     }

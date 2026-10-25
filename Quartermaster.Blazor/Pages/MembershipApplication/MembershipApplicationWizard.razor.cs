@@ -81,12 +81,14 @@ public partial class MembershipApplicationWizard {
             AddressHouseNbr = State.AddressHouseNbr,
             AddressPostCode = State.AddressPostCode,
             AddressCity = State.AddressCity,
+            AddressCountry = State.IsGermany ? "" : State.AddressCountry,
             AddressAdministrativeDivisionId = State.AddressAdministrativeDivisionId,
             ChapterId = State.ChapterId,
             DueSelection = DuesState.ToDTO(),
             ConformityDeclarationAccepted = State.ConformityDeclarationAccepted,
             HasPriorDeclinedApplication = State.HasPriorDeclinedApplication,
             IsMemberOfAnotherParty = State.IsMemberOfAnotherParty,
+            OtherParties = State.IsMemberOfAnotherParty ? State.OtherParties : "",
             ApplicationText = State.ApplicationText,
             EntryDate = DateOnly.FromDateTime(State.EntryDate)
         };

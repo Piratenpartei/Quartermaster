@@ -19,6 +19,7 @@ public partial class PublicFormsSetup {
     private const string MembershipKey = "public_forms.membership_application.enabled";
     private const string DueSelectionKey = "public_forms.due_selection.enabled";
     private const string MotionKey = "public_forms.motion.enabled";
+    private const string PermanentReductionKey = "public_forms.permanent_reduction.enabled";
     private const string TrueValue = "true";
     private const string FalseValue = "false";
 
@@ -38,6 +39,7 @@ public partial class PublicFormsSetup {
     private bool Busy;
     private bool MembershipEnabled;
     private bool DueSelectionEnabled;
+    private bool PermanentReductionEnabled;
     private bool MotionDefault;
     private List<OptionOverrideDTO> Overrides = [];
     private string NewChapterId = "";
@@ -57,6 +59,7 @@ public partial class PublicFormsSetup {
             var byId = options.ToDictionary(o => o.Identifier);
             MembershipEnabled = IsTrue(byId.GetValueOrDefault(MembershipKey)?.GlobalValue);
             DueSelectionEnabled = IsTrue(byId.GetValueOrDefault(DueSelectionKey)?.GlobalValue);
+            PermanentReductionEnabled = IsTrue(byId.GetValueOrDefault(PermanentReductionKey)?.GlobalValue);
             var motion = byId.GetValueOrDefault(MotionKey);
             MotionDefault = IsTrue(motion?.GlobalValue);
             Overrides = (motion?.Overrides ?? [])

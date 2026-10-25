@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
 
 namespace Quartermaster.Server.PublicForms;
 
-/// <summary>Reads the switches for the public membership application, due selection and motion forms.</summary>
+/// <summary>Reads the switches for the public membership application, due selection and motion forms, and the limits of the dues form.</summary>
 public class PublicFormSettings {
     private readonly OptionRepository _options;
     private readonly ChapterRepository _chapters;
@@ -22,6 +24,19 @@ public class PublicFormSettings {
 
     public bool IsDueSelectionEnabled() {
         return IsTrue(_options.GetGlobalValue(PublicFormOptions.DueSelection)?.Value);
+    }
+
+    public bool IsPermanentReductionEnabled() {
+        return IsTrue(_options.GetGlobalValue(PublicFormOptions.PermanentReduction)?.Value);
+    }
+
+    /// <summary>The regular minimum: from this yearly amount on no decision is needed, so a reduction can ask for at most this much.</summary>
+    public decimal ReducedDueMaximum() {
+        var value = _options.GetGlobalValue(ForwardingOptionKeys.RegularMinimum)?.Value?.Trim().Replace(',', '.');
+        if (decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) && amount > 0)
+            return amount;
+
+        return ForwardingOptionKeys.DefaultRegularMinimum;
     }
 
     public bool IsMotionFormEnabled(Guid chapterId) {

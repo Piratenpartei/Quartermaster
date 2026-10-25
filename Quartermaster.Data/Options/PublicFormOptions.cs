@@ -8,4 +8,7 @@ public static class PublicFormOptions {
     public const string MembershipApplication = "public_forms.membership_application.enabled";
     public const string DueSelection = "public_forms.due_selection.enabled";
     public const string Motion = "public_forms.motion.enabled";
+
+    /// <summary>Not a form switch: whether the dues form offers a permanent reduction next to the one for a year.</summary>
+    public const string PermanentReduction = "public_forms.permanent_reduction.enabled";
 }

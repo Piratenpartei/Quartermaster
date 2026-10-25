@@ -441,6 +441,9 @@ public static class I18nKey {
                 public const string CityRequired = "error.admin.application.city_required";
                 public const string CityMaxLength = "error.admin.application.city_max_length";
                 public const string BodyMaxLength = "error.admin.application.body_max_length";
+                public const string CountryMaxLength = "error.admin.application.country_max_length";
+                public const string OtherPartiesRequired = "error.admin.application.other_parties_required";
+                public const string OtherPartiesMaxLength = "error.admin.application.other_parties_max_length";
                 public const string DeclarationRequired = "error.admin.application.declaration_required";
                 public const string MemberNumberRequired = "error.admin.application.member_number_required";
                 public const string NotApprovedForWelcome = "error.admin.application.not_approved_for_welcome";
@@ -463,6 +466,12 @@ public static class I18nKey {
                 public const string AccountHolderRequired = "error.admin.due_selection.account_holder_required";
                 public const string JustificationMaxLength = "error.admin.due_selection.justification_max_length";
                 public const string DueBelowRate = "error.admin.due_selection.due_below_rate";
+                public const string ReducedAmountOutOfRange = "error.admin.due_selection.reduced_amount_out_of_range";
+                public const string PermanentReductionDisabled = "error.admin.due_selection.permanent_reduction_disabled";
+                public const string ValuationRequired = "error.admin.due_selection.valuation_required";
+                public const string JustificationRequired = "error.admin.due_selection.justification_required";
+                public const string TimeSpanInvalid = "error.admin.due_selection.time_span_invalid";
+                public const string ScheduleNotAllowed = "error.admin.due_selection.schedule_not_allowed";
                 public const string AlreadyDecided = "error.admin.due_selection.already_decided";
             }
 
@@ -985,6 +994,8 @@ public static class I18nKey {
             public const string NoPriorDeclinedHint = "ui.declarations.no_prior_declined_hint";
             public const string OtherPartyLabel = "ui.declarations.other_party_label";
             public const string OtherPartyHint = "ui.declarations.other_party_hint";
+            public const string OtherPartiesLabel = "ui.declarations.other_parties_label";
+            public const string OtherPartiesRequired = "ui.declarations.other_parties_required";
             public const string EntryDateLabel = "ui.declarations.entry_date_label";
             public const string AdditionalMessageLabel = "ui.declarations.additional_message_label";
         }
@@ -1004,7 +1015,7 @@ public static class I18nKey {
             public const string ConformityNotAccepted = "ui.application_summary.conformity_not_accepted";
             public const string ConformityLine = "ui.application_summary.conformity_line";
             public const string PriorDeclined = "ui.application_summary.prior_declined";
-            public const string MemberOfAnotherParty = "ui.application_summary.member_of_another_party";
+            public const string MemberOfOtherParties = "ui.application_summary.member_of_other_parties";
             public const string PrivacyNotice = "ui.application_summary.privacy_notice";
             public const string ConfirmCorrectHeading = "ui.application_summary.confirm_correct_heading";
             public const string SubmitButton = "ui.application_summary.submit_button";
@@ -1060,6 +1071,9 @@ public static class I18nKey {
             public const string ConformityNotAccepted = "ui.application_detail.conformity_not_accepted";
             public const string PriorDeclinedLabel = "ui.application_detail.prior_declined_label";
             public const string OtherPartyLabel = "ui.application_detail.other_party_label";
+            public const string OtherPartiesLabel = "ui.application_detail.other_parties_label";
+            public const string CountryLabel = "ui.application_detail.country_label";
+            public const string RejectedReductionDueLabel = "ui.application_detail.rejected_reduction_due_label";
             public const string MessageHeading = "ui.application_detail.message_heading";
             public const string TimingSection = "ui.application_detail.timing_section";
             public const string EntryDateLabel = "ui.application_detail.entry_date_label";
@@ -1096,6 +1110,8 @@ public static class I18nKey {
         public static class PaymentOptionSelection {
             public const string DirectDepositInstruction = "ui.payment_option_selection.direct_deposit_instruction";
             public const string DirectDepositMandate = "ui.payment_option_selection.direct_deposit_mandate";
+            public const string ManualTransferOption = "ui.payment_option_selection.manual_transfer_option";
+            public const string ManualTransferHint = "ui.payment_option_selection.manual_transfer_hint";
             public const string AccountHolderLabel = "ui.payment_option_selection.account_holder_label";
             public const string UseFullNameLink = "ui.payment_option_selection.use_full_name_link";
             public const string IbanLabel = "ui.payment_option_selection.iban_label";
@@ -1122,14 +1138,20 @@ public static class I18nKey {
         public static class SelectReduced {
             public const string JustificationLabel = "ui.select_reduced.justification_label";
             public const string YearlyAmountLabel = "ui.select_reduced.yearly_amount_label";
-            public const string AmountTooLowFeedback = "ui.select_reduced.amount_too_low_feedback";
             public const string TimeSpanOneYear = "ui.select_reduced.time_span.one_year";
             public const string TimeSpanPermanent = "ui.select_reduced.time_span.permanent";
             public const string ClassificationHeader = "ui.select_reduced.classification_header";
             public const string ClassificationNotice = "ui.select_reduced.classification_notice";
-            public const string MonthlyClassificationOption = "ui.select_reduced.monthly_classification_option";
             public const string JustificationRequired = "ui.select_reduced.justification_required";
             public const string SkipOption = "ui.select_reduced.skip_option";
+            public const string AmountRangeHint = "ui.select_reduced.amount_range_hint";
+            public const string AmountOutOfRangeFeedback = "ui.select_reduced.amount_out_of_range_feedback";
+            public const string OneYearOnlyNotice = "ui.select_reduced.one_year_only_notice";
+            public const string SkippedNotice = "ui.select_reduced.skipped_notice";
+            public const string ClassifyAgainButton = "ui.select_reduced.classify_again_button";
+            public const string SkipConfirmTitle = "ui.select_reduced.skip_confirm_title";
+            public const string SkipConfirmMessage = "ui.select_reduced.skip_confirm_message";
+            public const string SkipConfirmButton = "ui.select_reduced.skip_confirm_button";
         }
 
         public static class DueSelectorSummary {
@@ -1144,6 +1166,7 @@ public static class I18nKey {
             public const string ReducedPermanentLine = "ui.due_selector_summary.reduced_permanent_line";
             public const string ReducedOneYearLine = "ui.due_selector_summary.reduced_one_year_line";
             public const string ReducedFallbackLine = "ui.due_selector_summary.reduced_fallback_line";
+            public const string ReducedSkippedLine = "ui.due_selector_summary.reduced_skipped_line";
             public const string UnderageLine = "ui.due_selector_summary.underage_line";
             public const string PaymentMethodHeader = "ui.due_selector_summary.payment_method_header";
             public const string DirectDepositLine = "ui.due_selector_summary.direct_deposit_line";
@@ -1188,6 +1211,7 @@ public static class I18nKey {
             public const string ClassificationSection = "ui.due_selection_detail.classification_section";
             public const string ValuationTypeLabel = "ui.due_selection_detail.valuation_type_label";
             public const string YearlyDueLabel = "ui.due_selection_detail.yearly_due_label";
+            public const string RejectedReductionDueLabel = "ui.due_selection_detail.rejected_reduction_due_label";
             public const string YearlyIncomeLabel = "ui.due_selection_detail.yearly_income_label";
             public const string MonthlyIncomeLabel = "ui.due_selection_detail.monthly_income_label";
             public const string ReducedAmountLabel = "ui.due_selection_detail.reduced_amount_label";
@@ -3132,6 +3156,8 @@ public static class I18nKey {
             public const string MembershipLabel = "ui.public_forms_setup.membership_label";
             public const string DueSelectionLabel = "ui.public_forms_setup.due_selection_label";
             public const string MembershipHint = "ui.public_forms_setup.membership_hint";
+            public const string PermanentReductionLabel = "ui.public_forms_setup.permanent_reduction_label";
+            public const string PermanentReductionHint = "ui.public_forms_setup.permanent_reduction_hint";
             public const string MotionTitle = "ui.public_forms_setup.motion_title";
             public const string MotionDescription = "ui.public_forms_setup.motion_description";
             public const string MotionDefaultLabel = "ui.public_forms_setup.motion_default_label";

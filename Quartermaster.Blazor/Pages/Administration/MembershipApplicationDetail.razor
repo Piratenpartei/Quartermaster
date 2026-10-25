@@ -95,6 +95,9 @@
                 <tbody>
                     <tr><th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.StreetLabel]</th><td>@App.AddressStreet @App.AddressHouseNbr</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.PostCodeCityLabel]</th><td>@App.AddressPostCode @App.AddressCity</td></tr>
+                    @if (!string.IsNullOrEmpty(App.AddressCountry)) {
+                        <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.CountryLabel]</th><td>@App.AddressCountry</td></tr>
+                    }
                     <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.ChapterLabel]</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "—" : App.ChapterName)</td></tr>
                 </tbody>
             </table>
@@ -115,7 +118,7 @@
                             <td>@ValuationLabel(ds.SelectedValuation)</td>
                         </tr>
                         <tr>
-                            <th>@I18n[I18nKey.Ui.ApplicationDetail.YearlyDueLabel]</th>
+                            <th>@I18n[ds.SelectedValuation == SelectedValuation.Reduced ? I18nKey.Ui.ApplicationDetail.RejectedReductionDueLabel : I18nKey.Ui.ApplicationDetail.YearlyDueLabel]</th>
                             <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
                         </tr>
                         @if (ds.SelectedValuation == SelectedValuation.Reduced) {
@@ -175,6 +178,12 @@
                             }
                         </td>
                     </tr>
+                    @if (App.IsMemberOfAnotherParty && !string.IsNullOrEmpty(App.OtherParties)) {
+                        <tr>
+                            <th>@I18n[I18nKey.Ui.ApplicationDetail.OtherPartiesLabel]</th>
+                            <td>@App.OtherParties</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
             </div>

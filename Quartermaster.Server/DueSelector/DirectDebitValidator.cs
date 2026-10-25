@@ -7,8 +7,7 @@ namespace Quartermaster.Server.DueSelector;
 
 /// <summary>
 /// Direct debit needs an account holder and an IBAN that passes the offline check. A plain FluentValidation validator, so
-/// FastEndpoints doesn't register it for <see cref="DueSelectionDTO"/> next to <see cref="DueSelectionDTOValidator"/>;
-/// both that one and the membership application validator include it.
+/// FastEndpoints doesn't register it for <see cref="DueSelectionDTO"/>; <see cref="DueSelectionRulesValidator"/> includes it.
 /// </summary>
 public class DirectDebitValidator : AbstractValidator<DueSelectionDTO> {
     public DirectDebitValidator() {

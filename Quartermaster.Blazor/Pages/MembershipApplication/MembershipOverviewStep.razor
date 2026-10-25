@@ -41,7 +41,7 @@
                 <li class="list-group-item text-warning">@I18n[I18nKey.Ui.ApplicationSummary.PriorDeclined]</li>
             }
             @if (State.IsMemberOfAnotherParty) {
-                <li class="list-group-item">@I18n[I18nKey.Ui.ApplicationSummary.MemberOfAnotherParty]</li>
+                <li class="list-group-item">@I18n[I18nParams.With(I18nKey.Ui.ApplicationSummary.MemberOfOtherParties, ("parties", State.OtherParties))]</li>
             }
         </ul>
         @if (!string.IsNullOrEmpty(State.ApplicationText)) {

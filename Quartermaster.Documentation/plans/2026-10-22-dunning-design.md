@@ -1,4 +1,4 @@
-# Dunning (Mahnungen) (V9.0)
+# Dunning (Mahnungen)
 
 ## Goal
 
@@ -19,7 +19,7 @@ Members who do not pay their dues can be struck from the membership (Finanzordnu
 - The Streichung notice is a letter rendered from a template, sent by the LV.
 - A Mahnstopp sits on the member, not on a case: while it runs, no Mahnung goes out to them and no case starts or moves on. It always ends 30 days after it was last set; setting it again at any time extends it to 30 days from that moment, and it can be lifted early. An optional reason stays internal to officers with `dunning_manage`; the member never sees it. There is no notice when it runs out, since a Mahnlauf only ever starts by hand.
 - The old Sage rule "more than 3 months without any dues booking" is dropped; the payment check below covers its purpose.
-- Released as V9.0 with migration `M009`. UI name "Mahnungen"; a dunning case is a "Mahnverfahren", a batch a "Mahnlauf". Code and routes stay English (`Dunning`).
+- Released as the next major version after its implementation plan is written (V10 or later, depending on what ships in between), with that version's migration (e.g. `M010` for V10). UI name "Mahnungen"; a dunning case is a "Mahnverfahren", a batch a "Mahnlauf". Code and routes stay English (`Dunning`).
 
 ## Data model
 

@@ -107,6 +107,80 @@ public class DueSelectionCreateEndpointTests : IntegrationTestBase {
         await Assert.That(motion.ChapterId).IsEqualTo(state.Id);
     }
 
+    private static DueSelectionDTO ReducedDto(decimal amount) {
+        var dto = ValidDto();
+        dto.SelectedValuation = SelectedValuation.Reduced;
+        dto.ReducedAmount = amount;
+        dto.ReducedJustification = "Studium";
+        dto.MonthlyIncomeGroup = 0;
+        dto.SelectedDue = 120m;
+        return dto;
+    }
+
+    [Test]
+    [Arguments(11)]
+    [Arguments(73)]
+    public async Task Reduction_outside_the_range_is_rejected(int amount) {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/dueselector", ReducedDto(amount));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(Db.DueSelections.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Reduction_maximum_follows_the_regular_minimum() {
+        SetOption(ForwardingOptionKeys.RegularMinimum, null, "84");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/dueselector", ReducedDto(80));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.DueSelections.Single().ReducedAmount).IsEqualTo(80m);
+    }
+
+    [Test]
+    public async Task Permanent_reduction_is_rejected_while_switched_off() {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var dto = ReducedDto(36);
+        dto.ReducedTimeSpan = ReducedTimeSpan.Permanent;
+
+        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(Db.DueSelections.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Permanent_reduction_is_taken_while_switched_on() {
+        SetOption(PublicFormOptions.PermanentReduction, null, "true");
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var dto = ReducedDto(36);
+        dto.ReducedTimeSpan = ReducedTimeSpan.Permanent;
+
+        var response = await client.PostAsJsonAsync("/api/dueselector", dto);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.DueSelections.Single().ReducedTimeSpan).IsEqualTo(ReducedTimeSpan.Permanent);
+    }
+
+    [Test]
+    public async Task Reduction_without_classification_records_the_default_due() {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var dto = ReducedDto(36);
+        dto.SelectedDue = 0;
+
+        await client.PostAsJsonAsync("/api/dueselector", dto);
+
+        await Assert.That(Db.DueSelections.Single().SelectedDue).IsEqualTo(DueSelectionRates.RejectedReductionDue);
+    }
+
     [Test]
     public async Task Due_selection_without_member_goes_to_federal_and_is_marked_by_hand() {
         SetOption(ForwardingOptionKeys.DueSelectionEnabled, null, "true");

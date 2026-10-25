@@ -56,7 +56,7 @@
                         <td>@ValuationLabel(Selection.SelectedValuation)</td>
                     </tr>
                     <tr>
-                        <th>@I18n[I18nKey.Ui.DueSelectionDetail.YearlyDueLabel]</th>
+                        <th>@I18n[Selection.SelectedValuation == SelectedValuation.Reduced ? I18nKey.Ui.DueSelectionDetail.RejectedReductionDueLabel : I18nKey.Ui.DueSelectionDetail.YearlyDueLabel]</th>
                         <td><strong>@Selection.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</strong></td>
                     </tr>
                     @if (Selection.SelectedValuation == SelectedValuation.OnePercentYearlyPay) {

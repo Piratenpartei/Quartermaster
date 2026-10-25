@@ -94,6 +94,8 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
         await Assert.That(summary.ApplicationsAnonymized).IsEqualTo(1);
         var app = _context.MembershipApplications.Where(a => a.Id == appId).First();
         await Assert.That(app.Email).IsEqualTo("");
+        await Assert.That(app.AddressCountry).IsNull();
+        await Assert.That(app.OtherParties).IsNull();
         await Assert.That(app.AnonymizedAt).IsNotNull();
         // Preserved
         await Assert.That(app.FirstName).IsEqualTo("Orphan");
@@ -170,6 +172,9 @@ public class RetentionAnonymizationServiceTests : RepositoryTestBase {
             AddressHouseNbr = "7",
             AddressPostCode = "10115",
             AddressCity = "Berlin",
+            AddressCountry = "Österreich",
+            IsMemberOfAnotherParty = true,
+            OtherParties = "Beispielpartei",
             EntryDate = processedAt.AddYears(-1),
             SubmittedAt = processedAt.AddDays(-7),
             ProcessedAt = processedAt,

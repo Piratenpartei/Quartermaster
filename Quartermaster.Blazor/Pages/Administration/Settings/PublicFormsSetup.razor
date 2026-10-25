@@ -24,7 +24,13 @@
                            checked="@DueSelectionEnabled" @onchange="e => SetGlobal(DueSelectionKey, (bool)e.Value!)" />
                     <label class="form-check-label" for="public-form-dues">@I18n[I18nKey.Ui.PublicFormsSetup.DueSelectionLabel]</label>
                 </div>
-                <div class="form-text">@I18n[I18nKey.Ui.PublicFormsSetup.MembershipHint]</div>
+                <div class="form-text mb-3">@I18n[I18nKey.Ui.PublicFormsSetup.MembershipHint]</div>
+                <div class="form-check form-switch">
+                    <input id="public-form-permanent-reduction" type="checkbox" class="form-check-input" role="switch" disabled="@Busy"
+                           checked="@PermanentReductionEnabled" @onchange="e => SetGlobal(PermanentReductionKey, (bool)e.Value!)" />
+                    <label class="form-check-label" for="public-form-permanent-reduction">@I18n[I18nKey.Ui.PublicFormsSetup.PermanentReductionLabel]</label>
+                </div>
+                <div class="form-text">@I18n[I18nKey.Ui.PublicFormsSetup.PermanentReductionHint]</div>
             </div>
         </div>
 

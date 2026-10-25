@@ -127,9 +127,11 @@ public class MembershipApplicationRepository {
             .Set(a => a.AddressHouseNbr, "")
             .Set(a => a.AddressPostCode, "")
             .Set(a => a.AddressCity, "")
+            .Set(a => a.AddressCountry, (string?)null)
             .Set(a => a.AddressAdministrativeDivisionId, (Guid?)null)
             .Set(a => a.Citizenship, "")
             .Set(a => a.ApplicationText, "")
+            .Set(a => a.OtherParties, (string?)null)
             .Set(a => a.AnonymizedAt, (DateTime?)now)
             .Update();
         _auditLog.Log("MembershipApplication", id, "Anonymized");

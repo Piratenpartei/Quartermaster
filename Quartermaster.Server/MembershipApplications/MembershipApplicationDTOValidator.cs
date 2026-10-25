@@ -2,6 +2,7 @@ using FastEndpoints;
 using FluentValidation;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.DueSelector;
 
 namespace Quartermaster.Server.MembershipApplications;
@@ -62,6 +63,19 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
             .MaximumLength(256)
             .WithMessage(I18nKey.Error.Admin.Application.CityMaxLength);
 
+        RuleFor(x => x.AddressCountry)
+            .MaximumLength(MembershipApplication.AddressCountryMaxLength)
+            .WithMessage(I18nKey.Error.Admin.Application.CountryMaxLength);
+
+        RuleFor(x => x.OtherParties)
+            .NotEmpty()
+            .WithMessage(I18nKey.Error.Admin.Application.OtherPartiesRequired)
+            .When(x => x.IsMemberOfAnotherParty);
+
+        RuleFor(x => x.OtherParties)
+            .MaximumLength(MembershipApplication.OtherPartiesMaxLength)
+            .WithMessage(I18nKey.Error.Admin.Application.OtherPartiesMaxLength);
+
         RuleFor(x => x.ApplicationText)
             .MaximumLength(2048)
             .WithMessage(I18nKey.Error.Admin.Application.BodyMaxLength);
@@ -71,7 +85,7 @@ public class MembershipApplicationDTOValidator : Validator<MembershipApplication
             .WithMessage(I18nKey.Error.Admin.Application.DeclarationRequired);
 
         RuleFor(x => x.DueSelection!)
-            .SetValidator(new DirectDebitValidator())
+            .SetValidator(new DueSelectionRulesValidator())
             .When(x => x.DueSelection != null);
     }
 }

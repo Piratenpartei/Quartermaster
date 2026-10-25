@@ -15,12 +15,14 @@ public class MembershipApplicationDetailDTO {
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
+    public string AddressCountry { get; set; } = "";
     public Guid? ChapterId { get; set; }
     public string ChapterName { get; set; } = "";
     public DueSelectionAdminDTO? DueSelection { get; set; }
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
+    public string OtherParties { get; set; } = "";
     public string ApplicationText { get; set; } = "";
     public DateOnly EntryDate { get; set; }
     public DateTimeOffset SubmittedAt { get; set; }

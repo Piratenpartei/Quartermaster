@@ -86,6 +86,39 @@ public class ForwardingTicketRendererTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Application_ticket_names_country_and_other_parties() {
+        var application = Application();
+        application.AddressCountry = "Österreich";
+        application.IsMemberOfAnotherParty = true;
+        application.OtherParties = "Volt";
+        var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, application);
+
+        var ticket = await _renderer.RenderTicketAsync(forwardingCase, step, Target(), null, null);
+
+        await Assert.That(ticket.Description).Contains("30159 Hannover, Österreich");
+        await Assert.That(ticket.Description).Contains("Mitglied einer anderen Partei: ja (Volt)");
+    }
+
+    [Test]
+    public async Task Address_in_germany_has_no_country() {
+        var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, Application());
+
+        var ticket = await _renderer.RenderTicketAsync(forwardingCase, step, Target(), null, null);
+
+        await Assert.That(ticket.Description).Contains("30159 Hannover\n");
+    }
+
+    [Test]
+    public async Task Reduction_ticket_names_the_due_if_rejected() {
+        var due = new DueSelectionDTO { MemberNumber = 4711, SelectedValuation = SelectedValuation.Reduced, ReducedAmount = 24, ReducedJustification = "Studium", SelectedDue = 120 };
+        var (forwardingCase, step) = Case(ForwardingPurpose.Reduction, _state.Id, due: due);
+
+        var ticket = await _renderer.RenderTicketAsync(forwardingCase, step, Target(), null, null);
+
+        await Assert.That(ticket.Description).Contains("Jahresbeitrag bei Ablehnung: 120,00 €");
+    }
+
+    [Test]
     public async Task Reference_line_is_appended() {
         var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, Application());
 

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api.Config;
+using Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Blazor.Services;
 
@@ -25,6 +26,8 @@ public class ClientConfigService {
     public bool IsDebug => _config?.IsDebug ?? false;
     public bool MembershipApplicationEnabled => _config?.MembershipApplicationEnabled ?? false;
     public bool DueSelectionEnabled => _config?.DueSelectionEnabled ?? false;
+    public bool PermanentReductionEnabled => _config?.PermanentReductionEnabled ?? false;
+    public decimal ReducedDueMaximum => _config == null || _config.ReducedDueMaximum <= 0 ? DueSelectionRates.LowestIncomeGroupDue : _config.ReducedDueMaximum;
     public IReadOnlyList<Guid> MotionFormChapterIds => _config?.MotionFormChapterIds ?? [];
     public bool MotionFormEnabled => MotionFormChapterIds.Count > 0;
 

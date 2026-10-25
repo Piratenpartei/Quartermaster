@@ -10,7 +10,7 @@ public class DueSelectionDTO {
 
     public decimal YearlyIncome { get; set; }
     public decimal MonthlyIncomeGroup { get; set; }
-    public decimal ReducedAmount { get; set; } = 12;
+    public decimal ReducedAmount { get; set; }
     public decimal SelectedDue { get; set; }
 
     public string ReducedJustification { get; set; } = "";

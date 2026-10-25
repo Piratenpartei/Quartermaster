@@ -47,6 +47,11 @@ public class DueSelectionCreateEndpoint : Endpoint<DueSelectionDTO, SubmissionAc
         if (!_publicForms.IsDueSelectionEnabled() && !_perms.HasInAnyChapter(PermissionIdentifier.ProcessDueSelections))
             ThrowError(I18nKey.Error.PublicForm.Disabled, 403);
 
+        var reductionProblem = ReducedDueRules.Problem(req, _publicForms.ReducedDueMaximum(), _publicForms.IsPermanentReductionEnabled());
+        if (reductionProblem != null)
+            ThrowError(reductionProblem);
+        ReducedDueRules.ApplyRejectionDefault(req);
+
         var userId = _perms.UserId.Value;
         var user = _users.Get(userId);
         var member = _members.GetByUserIdIncludingFloating(userId);

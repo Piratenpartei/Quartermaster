@@ -12,9 +12,13 @@ public class ForwardingApplicationModel {
     public string HouseNumber { get; set; } = "";
     public string PostCode { get; set; } = "";
     public string City { get; set; } = "";
+
+    /// <summary>Empty for an address in Germany.</summary>
+    public string Country { get; set; } = "";
     public string ChapterName { get; set; } = "";
     public string EntryDate { get; set; } = "";
     public bool IsMemberOfAnotherParty { get; set; }
+    public string OtherParties { get; set; } = "";
     public bool HasPriorDeclinedApplication { get; set; }
     public string ApplicationText { get; set; } = "";
 }
@@ -26,6 +30,9 @@ public class ForwardingDuesModel {
     public string ReducedAmount { get; set; } = "";
     public string Justification { get; set; } = "";
     public string ReducedTimeSpan { get; set; } = "";
+
+    /// <summary>The yearly due that applies if the reduction is rejected.</summary>
+    public string RejectedReductionAmount { get; set; } = "";
     public string MonthlyIncomeGroup { get; set; } = "";
     public string YearlyIncome { get; set; } = "";
     public string PaymentSchedule { get; set; } = "";

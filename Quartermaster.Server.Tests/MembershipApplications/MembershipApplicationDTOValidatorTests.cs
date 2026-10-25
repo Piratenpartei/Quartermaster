@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentValidation.TestHelper;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.I18n;
@@ -9,6 +12,17 @@ namespace Quartermaster.Server.Tests.MembershipApplications;
 
 public class MembershipApplicationDTOValidatorTests {
     private readonly MembershipApplicationDTOValidator _validator = new();
+
+    /// <summary>
+    /// The messages of the nested dues errors. Their property paths are not compared: once a test host has started in the same run,
+    /// FastEndpoints switches the global property names to camelCase.
+    /// </summary>
+    private static List<string> NestedErrors(TestValidationResult<MembershipApplicationDTO> result) {
+        return result.Errors
+            .Where(e => e.PropertyName.StartsWith("DueSelection.", StringComparison.OrdinalIgnoreCase))
+            .Select(e => e.ErrorMessage)
+            .ToList();
+    }
 
     private static MembershipApplicationDTO ValidApplication() => new() {
         FirstName = "Max",
@@ -400,7 +414,7 @@ public class MembershipApplicationDTOValidatorTests {
     }
 
     [Test]
-    public void DuesWithMistypedIban_ShouldHaveError() {
+    public async Task DuesWithMistypedIban_ShouldHaveError() {
         var application = ValidApplication();
         application.DueSelection = new DueSelectionDTO {
             FirstName = "Max",
@@ -413,8 +427,7 @@ public class MembershipApplicationDTOValidatorTests {
 
         var result = _validator.TestValidate(application);
 
-        result.ShouldHaveValidationErrorFor(x => x.DueSelection!.IBAN)
-            .WithErrorMessage(I18nKey.Error.Admin.DueSelection.IbanInvalid);
+        await Assert.That(NestedErrors(result)).Contains(I18nKey.Error.Admin.DueSelection.IbanInvalid);
     }
 
     [Test]
@@ -425,5 +438,78 @@ public class MembershipApplicationDTOValidatorTests {
         var result = _validator.TestValidate(application);
 
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
+    public void OtherPartyMemberWithoutParties_ShouldHaveError() {
+        var application = ValidApplication();
+        application.IsMemberOfAnotherParty = true;
+        application.OtherParties = " ";
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldHaveValidationErrorFor(x => x.OtherParties)
+            .WithErrorMessage(I18nKey.Error.Admin.Application.OtherPartiesRequired);
+    }
+
+    [Test]
+    public void OtherPartyMemberWithParties_ShouldHaveNoError() {
+        var application = ValidApplication();
+        application.IsMemberOfAnotherParty = true;
+        application.OtherParties = "Volt";
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.OtherParties);
+    }
+
+    [Test]
+    public void OtherPartiesTooLong_ShouldHaveError() {
+        var application = ValidApplication();
+        application.IsMemberOfAnotherParty = true;
+        application.OtherParties = new string('a', 501);
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldHaveValidationErrorFor(x => x.OtherParties)
+            .WithErrorMessage(I18nKey.Error.Admin.Application.OtherPartiesMaxLength);
+    }
+
+    [Test]
+    public void CountryTooLong_ShouldHaveError() {
+        var application = ValidApplication();
+        application.AddressCountry = new string('a', 129);
+
+        var result = _validator.TestValidate(application);
+
+        result.ShouldHaveValidationErrorFor(x => x.AddressCountry)
+            .WithErrorMessage(I18nKey.Error.Admin.Application.CountryMaxLength);
+    }
+
+    [Test]
+    public async Task DuesBelowTheValuationRate_ShouldHaveError() {
+        var application = ValidApplication();
+        application.DueSelection = new DueSelectionDTO {
+            FirstName = "Max",
+            LastName = "Mustermann",
+            SelectedValuation = SelectedValuation.MonthlyPayGroup,
+            MonthlyIncomeGroup = 0,
+            SelectedDue = 10,
+            PaymentSchedule = PaymentSchedule.Annual
+        };
+
+        var result = _validator.TestValidate(application);
+
+        await Assert.That(NestedErrors(result)).Contains(I18nKey.Error.Admin.DueSelection.DueBelowRate);
+    }
+
+    [Test]
+    public async Task DuesWithoutValuation_ShouldHaveError() {
+        var application = ValidApplication();
+        application.DueSelection = new DueSelectionDTO { PaymentSchedule = PaymentSchedule.Annual };
+
+        var result = _validator.TestValidate(application);
+
+        await Assert.That(NestedErrors(result)).Contains(I18nKey.Error.Admin.DueSelection.ValuationRequired);
     }
 }

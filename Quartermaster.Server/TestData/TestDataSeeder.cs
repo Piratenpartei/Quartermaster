@@ -86,8 +86,8 @@ public class TestDataSeeder {
                     : faker.PickRandom(SelectedValuation.MonthlyPayGroup, SelectedValuation.OnePercentYearlyPay),
                 YearlyIncome = faker.Random.Decimal(12000, 80000),
                 MonthlyIncomeGroup = faker.PickRandom(0m, 1000m, 2000m, 2500m, 3000m, 4000m, 5000m, 6000m),
-                ReducedAmount = isReduced ? faker.Random.Decimal(1, 60) : 0,
-                SelectedDue = isReduced ? faker.Random.Decimal(1, 60) : faker.PickRandom(72m, 120m, 180m, 240m, 360m, 480m, 600m),
+                ReducedAmount = isReduced ? Math.Round(faker.Random.Decimal(DueSelectionRates.ReducedMinimum, DueSelectionRates.LowestIncomeGroupDue)) : 0,
+                SelectedDue = faker.PickRandom(72m, 120m, 180m, 240m, 360m, 480m, 600m),
                 ReducedJustification = isReduced ? faker.PickRandom(justifications) : "",
                 ReducedTimeSpan = isReduced
                     ? faker.PickRandom<ReducedTimeSpan>()
@@ -105,6 +105,7 @@ public class TestDataSeeder {
 
             var submittedAt = faker.Date.Between(
                 DateTime.UtcNow.AddMonths(-3), DateTime.UtcNow);
+            var isOtherPartyMember = faker.Random.Bool(0.1f);
 
             var application = new MembershipApplication {
                 Id = Guid.NewGuid(),
@@ -123,7 +124,8 @@ public class TestDataSeeder {
                 DueSelectionId = dueSelection.Id,
                 ConformityDeclarationAccepted = true,
                 HasPriorDeclinedApplication = faker.Random.Bool(0.05f),
-                IsMemberOfAnotherParty = faker.Random.Bool(0.1f),
+                IsMemberOfAnotherParty = isOtherPartyMember,
+                OtherParties = isOtherPartyMember ? faker.PickRandom("Volt", "Die PARTEI", "ÖDP") : null,
                 ApplicationText = faker.Random.Bool(0.3f)
                     ? faker.Lorem.Sentence(faker.Random.Int(5, 20))
                     : "",

@@ -34,7 +34,7 @@ public static class SettingsAssistantCatalog {
     };
 
     public static readonly SettingsAssistant PublicForms = new("PublicForms", SettingsGroup.Basics, "bi-ui-checks", I18nKey.Ui.Settings.PublicFormsTitle, I18nKey.Ui.Settings.PublicFormsDescription) {
-        ManagedKeys = ["public_forms.membership_application.enabled", "public_forms.due_selection.enabled", "public_forms.motion.enabled"],
+        ManagedKeys = ["public_forms.membership_application.enabled", "public_forms.due_selection.enabled", "public_forms.motion.enabled", "public_forms.permanent_reduction.enabled"],
         ToggleKeys = ["public_forms.membership_application.enabled", "public_forms.due_selection.enabled", "public_forms.motion.enabled"]
     };
 

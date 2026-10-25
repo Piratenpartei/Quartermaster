@@ -15,6 +15,9 @@ public class MembershipApplicationDTO {
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
+
+    /// <summary>Empty for an address in Germany.</summary>
+    public string AddressCountry { get; set; } = "";
     public Guid? AddressAdministrativeDivisionId { get; set; }
 
     public Guid? ChapterId { get; set; }
@@ -24,6 +27,7 @@ public class MembershipApplicationDTO {
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
+    public string OtherParties { get; set; } = "";
     public string ApplicationText { get; set; } = "";
 
     public DateOnly EntryDate { get; set; }
@@ -39,11 +43,13 @@ public class MembershipApplicationDTO {
         AddressHouseNbr = AddressHouseNbr,
         AddressPostCode = AddressPostCode,
         AddressCity = AddressCity,
+        AddressCountry = AddressCountry,
         ChapterId = ChapterId,
         ChapterName = chapterName,
         ConformityDeclarationAccepted = ConformityDeclarationAccepted,
         HasPriorDeclinedApplication = HasPriorDeclinedApplication,
         IsMemberOfAnotherParty = IsMemberOfAnotherParty,
+        OtherParties = OtherParties,
         ApplicationText = ApplicationText,
         EntryDate = EntryDate,
         HasReducedDueSelection = DueSelection != null

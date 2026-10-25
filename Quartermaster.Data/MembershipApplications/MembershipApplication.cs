@@ -10,6 +10,8 @@ namespace Quartermaster.Data.MembershipApplications;
 [Table(TableName, IsColumnAttributeRequired = false)]
 public class MembershipApplication {
     public const string TableName = "MembershipApplications";
+    public const int AddressCountryMaxLength = 128;
+    public const int OtherPartiesMaxLength = 500;
 
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -27,6 +29,9 @@ public class MembershipApplication {
     public string AddressHouseNbr { get; set; } = "";
     public string AddressPostCode { get; set; } = "";
     public string AddressCity { get; set; } = "";
+
+    /// <summary>Null for an address in Germany.</summary>
+    public string? AddressCountry { get; set; }
     public Guid? AddressAdministrativeDivisionId { get; set; }
 
     // Chapter
@@ -39,6 +44,7 @@ public class MembershipApplication {
     public bool ConformityDeclarationAccepted { get; set; }
     public bool HasPriorDeclinedApplication { get; set; }
     public bool IsMemberOfAnotherParty { get; set; }
+    public string? OtherParties { get; set; }
     public string ApplicationText { get; set; } = "";
 
     // Entry date
@@ -67,12 +73,14 @@ public class MembershipApplication {
         AddressHouseNbr = dto.AddressHouseNbr,
         AddressPostCode = dto.AddressPostCode,
         AddressCity = dto.AddressCity,
+        AddressCountry = string.IsNullOrWhiteSpace(dto.AddressCountry) ? null : dto.AddressCountry.Trim(),
         AddressAdministrativeDivisionId = dto.AddressAdministrativeDivisionId,
         ChapterId = dto.ChapterId,
         DueSelectionId = dueSelectionId,
         ConformityDeclarationAccepted = dto.ConformityDeclarationAccepted,
         HasPriorDeclinedApplication = dto.HasPriorDeclinedApplication,
         IsMemberOfAnotherParty = dto.IsMemberOfAnotherParty,
+        OtherParties = dto.IsMemberOfAnotherParty && !string.IsNullOrWhiteSpace(dto.OtherParties) ? dto.OtherParties.Trim() : null,
         ApplicationText = dto.ApplicationText,
         EntryDate = dto.EntryDate.ToStorage(),
         SubmittedAt = nowUtc,
@@ -90,12 +98,14 @@ public class MembershipApplication {
         AddressHouseNbr = AddressHouseNbr,
         AddressPostCode = AddressPostCode,
         AddressCity = AddressCity,
+        AddressCountry = AddressCountry ?? "",
         AddressAdministrativeDivisionId = AddressAdministrativeDivisionId,
         ChapterId = ChapterId,
         DueSelection = dueSelection,
         ConformityDeclarationAccepted = ConformityDeclarationAccepted,
         HasPriorDeclinedApplication = HasPriorDeclinedApplication,
         IsMemberOfAnotherParty = IsMemberOfAnotherParty,
+        OtherParties = OtherParties ?? "",
         ApplicationText = ApplicationText,
         EntryDate = EntryDate.ToDtoDate()
     };
@@ -112,11 +122,13 @@ public class MembershipApplication {
         AddressHouseNbr = AddressHouseNbr,
         AddressPostCode = AddressPostCode,
         AddressCity = AddressCity,
+        AddressCountry = AddressCountry ?? "",
         ChapterId = ChapterId,
         ChapterName = chapterName,
         ConformityDeclarationAccepted = ConformityDeclarationAccepted,
         HasPriorDeclinedApplication = HasPriorDeclinedApplication,
         IsMemberOfAnotherParty = IsMemberOfAnotherParty,
+        OtherParties = OtherParties ?? "",
         ApplicationText = ApplicationText,
         EntryDate = EntryDate.ToDtoDate(),
         SubmittedAt = SubmittedAt.ToDtoUtc(),
