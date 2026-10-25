@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -12,7 +14,10 @@ using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.MembershipApplication;
 
-/// <summary>Germany or abroad first; in Germany the municipality search fills post code, city and chapter before the street is asked.</summary>
+/// <summary>
+/// Germany or abroad first; in Germany the municipality search fills post code, city and chapter before the street is asked. Applications from abroad
+/// go to the federal chapter.
+/// </summary>
 public partial class MembershipAddressStep {
     [Inject]
     public required HttpClient Http { get; set; }
@@ -34,11 +39,13 @@ public partial class MembershipAddressStep {
         return State.AddressAdministrativeDivisionId != null;
     }
 
-    private void SelectCountry(bool isGermany) {
+    private async Task SelectCountry(bool isGermany) {
         if (State.CountrySelected && State.IsGermany == isGermany)
             return;
 
         State.SelectCountry(isGermany, I18n[I18nKey.Ui.CountrySelection.GermanyCountryName]);
+        if (!isGermany)
+            await LookupFederalChapter();
     }
 
     private async Task SelectDivision(AdministrativeDivisionDTO division) {
@@ -68,6 +75,20 @@ public partial class MembershipAddressStep {
 
         var codes = division.PostCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return codes != null && codes.Length > 0 ? codes[0] : searched;
+    }
+
+    private async Task LookupFederalChapter() {
+        try {
+            var roots = await Http.GetFromJsonAsync<List<ChapterDTO>>("/api/chapters/roots");
+            var federal = roots?.FirstOrDefault();
+            if (federal == null || State.IsGermany)
+                return;
+
+            State.ChapterId = federal.Id;
+            State.ChapterName = federal.Name;
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
     }
 
     private async Task LookupChapter(Guid divisionId) {

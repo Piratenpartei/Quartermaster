@@ -128,13 +128,15 @@ public class SubmissionMaterializer {
     }
 
     /// <summary>
-    /// The chapter comes from the address' administrative division, never from the client. The receipt mail always goes out, also when the application is only
-    /// forwarded to Redmine; returns the stored application id, or the forwarding case id when Quartermaster keeps no application.
+    /// The chapter comes from the address' administrative division, never from the client; applicants living abroad go to the federal chapter. The receipt
+    /// mail always goes out, also when the application is only forwarded to Redmine; returns the stored application id, or the forwarding case id when
+    /// Quartermaster keeps no application.
     /// </summary>
     private async Task<Guid> MaterializeApplicationAsync(MembershipApplicationDTO req, CancellationToken ct) {
-        var chapterId = req.AddressAdministrativeDivisionId == null
-            ? null
-            : _chapterRepo.FindForDivision(req.AddressAdministrativeDivisionId.Value, _divisionRepo)?.Id;
+        var livesAbroad = !string.IsNullOrWhiteSpace(req.AddressCountry);
+        if (livesAbroad)
+            req.AddressAdministrativeDivisionId = null;
+        var chapterId = livesAbroad ? _chapterRepo.GetRootChapter()?.Id : ChapterForDivision(req.AddressAdministrativeDivisionId);
         req.ChapterId = chapterId;
 
         var result = _forwardingIntake.IntakeApplication(req, chapterId, DateTime.UtcNow);
@@ -145,6 +147,13 @@ public class SubmissionMaterializer {
         await _applicantMail.SendApplicationReceivedAsync(application, result.IsReduced, logSource, ct);
 
         return result.ApplicationId ?? result.CaseId ?? application.Id;
+    }
+
+    private Guid? ChapterForDivision(Guid? divisionId) {
+        if (divisionId == null)
+            return null;
+
+        return _chapterRepo.FindForDivision(divisionId.Value, _divisionRepo)?.Id;
     }
 
     private static T Deserialize<T>(string json) {

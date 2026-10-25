@@ -36,6 +36,14 @@ public class ApplicationForwardingTests : IntegrationTestBase {
         EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
+    private static MembershipApplicationDTO AbroadDto(Guid? divisionId = null) {
+        var dto = Dto(divisionId);
+        dto.AddressPostCode = "1010";
+        dto.AddressCity = "Wien";
+        dto.AddressCountry = "Österreich";
+        return dto;
+    }
+
     private async Task Submit(MembershipApplicationDTO dto) {
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
@@ -123,5 +131,50 @@ public class ApplicationForwardingTests : IntegrationTestBase {
         var reductionMotion = Db.Motions.Single(m => m.LinkedDueSelectionId == application.DueSelectionId);
         await Assert.That(reductionMotion.ChapterId).IsEqualTo(state.Id);
         await Assert.That(Db.Motions.Single(m => m.LinkedMembershipApplicationId == application.Id).ChapterId).IsEqualTo(district.Id);
+    }
+
+    [Test]
+    public async Task Abroad_application_goes_to_the_federal_chapter() {
+        var federal = Builder.SeedChapter("Bund");
+        Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id, federal.Id);
+
+        await Submit(AbroadDto());
+
+        var application = Db.MembershipApplications.Single();
+        await Assert.That(application.ChapterId).IsEqualTo(federal.Id);
+        await Assert.That(application.Status).IsEqualTo(ApplicationStatus.Pending);
+        await Assert.That(Db.Motions.Single(m => m.LinkedMembershipApplicationId == application.Id).ChapterId).IsEqualTo(federal.Id);
+    }
+
+    [Test]
+    public async Task Abroad_application_ignores_a_division() {
+        var federal = Builder.SeedChapter("Bund");
+        var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id, federal.Id);
+        SaveChapterSetting(new ForwardingChapterSetting { ChapterId = state.Id, ApplicationMode = ForwardingMode.Quartermaster });
+        var division = Builder.SeedDivisionFor(state.Id);
+
+        await Submit(AbroadDto(division));
+
+        var application = Db.MembershipApplications.Single();
+        await Assert.That(application.ChapterId).IsEqualTo(federal.Id);
+        await Assert.That(application.AddressAdministrativeDivisionId).IsNull();
+        await Assert.That(Db.Motions.Single().ChapterId).IsEqualTo(federal.Id);
+    }
+
+    [Test]
+    public async Task Abroad_application_is_decided_by_the_federal_chapter_in_redmine() {
+        var federal = Builder.SeedChapter("Bund");
+        var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id);
+        SaveChapterSetting(new ForwardingChapterSetting { ChapterId = state.Id, ApplicationMode = ForwardingMode.Quartermaster });
+
+        await Submit(AbroadDto());
+
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
+        var forwardingCase = Db.ForwardingCases.Single();
+        await Assert.That(forwardingCase.ApplicationChapterId).IsEqualTo(federal.Id);
+        await Assert.That(forwardingCase.DecidingChapterId).IsEqualTo(federal.Id);
     }
 }
