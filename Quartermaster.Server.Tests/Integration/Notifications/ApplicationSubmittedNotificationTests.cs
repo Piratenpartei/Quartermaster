@@ -40,6 +40,7 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
     [Test]
     public async Task Notifies_users_with_ProcessApplications_on_chapter() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         var (intake, _) = Builder.SeedAuthenticatedUser(
             email: "intake@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.ProcessApplications } });
@@ -57,6 +58,8 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
 
     [Test]
     public async Task Skips_dispatch_when_chapter_is_null() {
+        var root = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, root.Id);
         Builder.SeedAuthenticatedUser(
             email: "global@test.local",
             globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
@@ -73,6 +76,7 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
     [Test]
     public async Task Global_ProcessApplications_holder_receives_notification() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         var (admin, _) = Builder.SeedAuthenticatedUser(
             email: "admin@test.local",
             globalPermissions: new[] { PermissionIdentifier.ProcessApplications });

@@ -127,6 +127,11 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE UserRoleAssignments;
             TRUNCATE TABLE RolePermissions;
             TRUNCATE TABLE Roles;
+            TRUNCATE TABLE ForwardingSteps;
+            TRUNCATE TABLE ForwardingCases;
+            TRUNCATE TABLE ForwardingTargets;
+            TRUNCATE TABLE ForwardingChapterSettings;
+            TRUNCATE TABLE RedmineConnections;
             TRUNCATE TABLE Permissions;
             TRUNCATE TABLE PostPublications;
             TRUNCATE TABLE PostCandidates;

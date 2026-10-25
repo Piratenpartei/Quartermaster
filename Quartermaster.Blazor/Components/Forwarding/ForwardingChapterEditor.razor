@@ -39,7 +39,8 @@
     }
     @foreach (var purpose in VisiblePurposes()) {
         <ForwardingTargetEditor Target="@Targets[purpose]" Lookups="@Lookups" Title="@TargetTitle(purpose)"
-                                ShowNoteFields="@(Setting.IsFederal && purpose != ForwardingPurpose.Regular)" IdPrefix="@($"{IdPrefix}-{purpose}")" />
+                                ShowNoteFields="@(Setting.IsFederal && purpose != ForwardingPurpose.Regular)"
+                                ShowSageFields="@(Setting.IsFederal && purpose == ForwardingPurpose.Application)" IdPrefix="@($"{IdPrefix}-{purpose}")" />
     }
 }
 

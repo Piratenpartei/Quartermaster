@@ -118,4 +118,18 @@ public class ClientConfigEndpointTests : IntegrationTestBase {
         await Assert.That(dto!.PermanentReductionEnabled).IsTrue();
         await Assert.That(dto.ReducedDueMaximum).IsEqualTo(84m);
     }
+
+    [Test]
+    public async Task ClientConfig_closes_form_without_setup() {
+        var chapter = Builder.SeedChapter("Bund");
+        using var client = AnonymousClient();
+        await WarmUpAsync(client);
+
+        var closed = await client.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id);
+        var open = await client.GetFromJsonAsync<ClientConfigDTO>("/api/config/client");
+
+        await Assert.That(closed!.MembershipApplicationEnabled).IsFalse();
+        await Assert.That(open!.MembershipApplicationEnabled).IsTrue();
+    }
 }

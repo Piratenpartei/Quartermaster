@@ -25,6 +25,7 @@ public class ForwardingTicketRenderer {
     public const string DueSelectionTemplate = "forwarding.redmine.due_selection";
     public const string ReductionTemplate = "forwarding.redmine.reduction";
     public const string OutcomeNoteTemplate = "forwarding.redmine.outcome_note";
+    public const string SageRequestTemplate = "forwarding.redmine.sage_request";
     public const string FailureMailTemplate = "forwarding.failure.email";
 
     private const int MaxSubjectLength = 255;
@@ -80,16 +81,31 @@ public class ForwardingTicketRenderer {
         return (await RenderAsync(template.Body, model)).TrimEnd();
     }
 
+    /// <summary>Takes its application data from the argument, because the case payload is cleared once the tickets exist.</summary>
+    public async Task<string> RenderSageRequestAsync(ForwardingCase forwardingCase, ForwardingStep step, MembershipApplicationDTO application, ForwardingSageModel sage) {
+        var template = Resolve(SageRequestTemplate, step.TargetChapterId);
+        var model = new Dictionary<string, object> {
+            ["application"] = ApplicationModel(application, forwardingCase.ApplicationChapterId),
+            ["dues"] = application.DueSelection == null ? new ForwardingDuesModel() : DuesModel(application.DueSelection),
+            ["case"] = CaseModel(forwardingCase),
+            ["sage"] = sage
+        };
+        return (await RenderAsync(template.Body, model)).Trim();
+    }
+
     public async Task<(string Subject, string Html)> RenderFailureMailAsync(ForwardingCase forwardingCase, ForwardingStep step, RenderedTicket? ticket) {
         var template = Resolve(FailureMailTemplate, step.TargetChapterId);
         var model = BuildModel(forwardingCase, step.TargetChapterId, null, null);
+        var casesUrl = $"{BaseUrl()}/Administration/Forwarding";
         model["failure"] = new ForwardingFailureModel {
             Error = step.LastError ?? "",
             Purpose = PurposeLabel(step.Purpose),
             TargetChapter = ChapterName(step.TargetChapterId),
             TicketSubject = ticket?.Subject ?? "",
             TicketDescription = ticket?.Description ?? "",
-            CasesUrl = $"{BaseUrl()}/Administration/Forwarding"
+            CasesUrl = casesUrl,
+            Action = ActionLabel(step.Kind),
+            Remedy = Remedy(forwardingCase, step.Kind, casesUrl)
         };
 
         var subject = SingleLine(await RenderAsync(template.Subject ?? "Weiterleitung fehlgeschlagen: {{ case.Reference }}", model));
@@ -156,17 +172,21 @@ public class ForwardingTicketRenderer {
                 DecidingName = forwardingCase.DecidingChapterId == null ? "" : ChapterName(forwardingCase.DecidingChapterId.Value),
                 StateName = forwardingCase.StateChapterId == null ? "" : ChapterName(forwardingCase.StateChapterId.Value)
             },
-            ["case"] = new ForwardingCaseModel {
-                Reference = forwardingCase.Reference,
-                RelatedReference = forwardingCase.RelatedCaseId == null ? "" : ForwardingCase.ReferenceFor(forwardingCase.RelatedCaseId.Value),
-                Kind = forwardingCase.Kind == ForwardingCaseKind.Application ? "Mitgliedsantrag" : "Beitragseinstufung"
-            },
+            ["case"] = CaseModel(forwardingCase),
             ["federalTicket"] = new ForwardingTicketModel {
                 Id = federalTicketId?.ToString(CultureInfo.InvariantCulture) ?? "",
                 Url = federalTicketUrl ?? ""
             },
             ["outcome"] = new ForwardingOutcomeModel(),
             ["failure"] = new ForwardingFailureModel()
+        };
+    }
+
+    private static ForwardingCaseModel CaseModel(ForwardingCase forwardingCase) {
+        return new ForwardingCaseModel {
+            Reference = forwardingCase.Reference,
+            RelatedReference = forwardingCase.RelatedCaseId == null ? "" : ForwardingCase.ReferenceFor(forwardingCase.RelatedCaseId.Value),
+            Kind = forwardingCase.Kind == ForwardingCaseKind.Application ? "Mitgliedsantrag" : "Beitragseinstufung"
         };
     }
 
@@ -227,7 +247,7 @@ public class ForwardingTicketRenderer {
         return line.Length > MaxSubjectLength ? line[..MaxSubjectLength] : line;
     }
 
-    private static string FormatAmount(decimal amount) {
+    public static string FormatAmount(decimal amount) {
         return amount.ToString("N2", German);
     }
 
@@ -264,6 +284,25 @@ public class ForwardingTicketRenderer {
             ForwardingPurpose.Reduction => "Beitragsminderung",
             _ => "Beitragseinstufung"
         };
+    }
+
+    private static string ActionLabel(ForwardingStepKind kind) {
+        return kind switch {
+            ForwardingStepKind.AddOutcomeNote => "um die Entscheidung ergänzt",
+            ForwardingStepKind.AwaitSageEntry => "auf die SAGE-Eintragung geprüft",
+            _ => "angelegt"
+        };
+    }
+
+    /// <summary>Only a missing ticket can be made up for by hand; resolving a later step by hand ends the case, and for an application that means no confirmation.</summary>
+    private static string Remedy(ForwardingCase forwardingCase, ForwardingStepKind kind, string casesUrl) {
+        if (kind == ForwardingStepKind.CreateTicket)
+            return $"Bitte das Ticket von Hand anlegen und den Vorgang danach unter {casesUrl} als erledigt markieren, oder die Ursache beheben und dort erneut versuchen.";
+
+        var remedy = $"Bitte die Ursache beheben und den Vorgang unter {casesUrl} erneut versuchen.";
+        return forwardingCase.Kind == ForwardingCaseKind.Application
+            ? remedy + " Wird der Vorgang von Hand als erledigt markiert, verschickt Quartermaster keine Aufnahmebestätigung."
+            : remedy;
     }
 
     private static string ResultLabel(MotionApprovalStatus status) {

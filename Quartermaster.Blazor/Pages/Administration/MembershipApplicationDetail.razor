@@ -26,6 +26,18 @@
         }
     </div>
 
+    @if (App.ApprovalMailState != ApprovalMailState.None) {
+        <div class="alert @ApprovalMailClass mb-3">
+            @ApprovalMailText
+            @if (App.ApprovalMailState == ApprovalMailState.Failed) {
+                <a href="/Administration/Forwarding" class="ms-2"><i class="bi bi-arrow-right me-1"></i>@I18n[I18nKey.Ui.ForwardingCases.Title]</a>
+            }
+            @if (!string.IsNullOrEmpty(App.FederalTicketUrl)) {
+                <a href="@App.FederalTicketUrl" target="_blank" rel="noopener" class="ms-2"><i class="bi bi-box-arrow-up-right me-1"></i>@I18n[I18nKey.Ui.ApplicationDetail.FederalTicket]</a>
+            }
+        </div>
+    }
+
     @if (App.Status == ApplicationStatus.PendingDivisionLinking) {
         <RequirePermission GlobalPermission="@PermissionIdentifier.LinkApplicationDivision">
             <div class="card border-warning mb-3">

@@ -200,7 +200,8 @@ public static class SettingsAssistantCatalog {
             ForwardingOptionKeys.MembershipApplicationEnabled,
             ForwardingOptionKeys.DueSelectionEnabled,
             ForwardingOptionKeys.RegularMinimum,
-            ForwardingOptionKeys.StateDecisionMinimum
+            ForwardingOptionKeys.StateDecisionMinimum,
+            ForwardingOptionKeys.SageCheckMinutes
         ],
         ToggleKeys = [ForwardingOptionKeys.MembershipApplicationEnabled, ForwardingOptionKeys.DueSelectionEnabled],
         Links = [new("/Administration/Forwarding", I18nKey.Ui.Settings.LinkForwardingCases)]

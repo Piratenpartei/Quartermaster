@@ -7,10 +7,12 @@ public class FakeRedmineClient : IRedmineClient {
     private static readonly Lock StateLock = new();
     private static int nextId = 1000;
 
+    public const int CurrentUserId = 42;
+
     public static List<FakeRedmineIssue> Issues { get; } = [];
     public static List<string> Calls { get; } = [];
 
-    /// <summary>Exceptions thrown by method name (CurrentUser, Projects, Trackers, Statuses, Priorities, Create, Update, Find) on every call.</summary>
+    /// <summary>Exceptions thrown by method name (CurrentUser, Issue, Projects, Trackers, Statuses, Priorities, Create, Update, Find) on every call.</summary>
     public static Dictionary<string, Exception> ThrowOn { get; } = [];
 
     /// <summary>When set, Create stores the issue and then throws this, like a timeout after Redmine already created the ticket.</summary>
@@ -35,9 +37,25 @@ public class FakeRedmineClient : IRedmineClient {
         }
     }
 
-    public Task<string> GetCurrentUserNameAsync(RedmineConnectionSettings settings, CancellationToken ct) {
+    public async Task<string> GetCurrentUserNameAsync(RedmineConnectionSettings settings, CancellationToken ct) {
+        var user = await GetCurrentUserAsync(settings, ct);
+        return user.Name;
+    }
+
+    public Task<RedmineIdName> GetCurrentUserAsync(RedmineConnectionSettings settings, CancellationToken ct) {
         Record("CurrentUser");
-        return Task.FromResult("qm-bot");
+        return Task.FromResult(new RedmineIdName(CurrentUserId, "qm-bot"));
+    }
+
+    public Task<RedmineIssueState> GetIssueAsync(RedmineConnectionSettings settings, int issueId, CancellationToken ct) {
+        Record("Issue");
+        using (StateLock.EnterScope()) {
+            var issue = Issues.FirstOrDefault(i => i.Id == issueId && i.BaseUrl == settings.Root);
+            if (issue == null)
+                throw new RedmineException("Redmine kennt die Adresse oder das Objekt nicht.", RedmineException.NotFound, 404);
+
+            return Task.FromResult(new RedmineIssueState(issue.StatusId ?? 0, issue.AssigneeId));
+        }
     }
 
     public Task<List<RedmineIdName>> ListProjectsAsync(RedmineConnectionSettings settings, CancellationToken ct) {

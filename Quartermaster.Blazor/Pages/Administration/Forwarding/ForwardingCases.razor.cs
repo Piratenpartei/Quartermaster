@@ -75,11 +75,14 @@ public partial class ForwardingCases {
         return RunAsync(() => Http.PostAsJsonAsync($"/api/forwarding/cases/{id}/retry", new { }));
     }
 
-    private async Task ResolveAsync(Guid id) {
-        if (!await ResolveDialog.ShowAsync(I18n[I18nKey.Ui.ForwardingCases.ResolveConfirm]))
+    private async Task ResolveAsync(ForwardingCaseListItemDTO item) {
+        var message = I18n[I18nKey.Ui.ForwardingCases.ResolveConfirm];
+        if (item.Kind == ForwardingCaseKind.Application)
+            message += " " + I18n[I18nKey.Ui.ForwardingCases.ResolveConfirmApplication];
+        if (!await ResolveDialog.ShowAsync(message))
             return;
 
-        await RunAsync(() => Http.PostAsJsonAsync($"/api/forwarding/cases/{id}/resolve", new { }));
+        await RunAsync(() => Http.PostAsJsonAsync($"/api/forwarding/cases/{item.Id}/resolve", new { }));
     }
 
     private async Task RunAsync(Func<Task<HttpResponseMessage>> send) {
@@ -146,10 +149,17 @@ public partial class ForwardingCases {
         if (step.Kind == ForwardingStepKind.AddOutcomeNote)
             return I18n[I18nKey.Ui.ForwardingCases.NoteStep];
 
+        if (step.Kind == ForwardingStepKind.AwaitSageEntry)
+            return I18n[I18nKey.Ui.ForwardingCases.SageStep];
+
         return step.Purpose switch {
             ForwardingPurpose.Application => I18n[I18nKey.Ui.ForwardingCases.PurposeApplication],
             ForwardingPurpose.Reduction => I18n[I18nKey.Ui.ForwardingCases.PurposeReduction],
             _ => I18n[I18nKey.Ui.ForwardingCases.PurposeRegular]
         };
+    }
+
+    private static bool ShowsNextCheck(ForwardingStepDTO step) {
+        return step.Kind == ForwardingStepKind.AwaitSageEntry && step.State == ForwardingStepState.Pending && step.NextAttemptAt != null;
     }
 }

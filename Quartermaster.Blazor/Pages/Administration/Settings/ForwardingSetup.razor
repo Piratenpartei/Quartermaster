@@ -39,6 +39,10 @@
                         <input id="forwarding-state-minimum" type="number" min="1" step="1" class="form-control" @bind="StateMinimum" />
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label small text-secondary" for="forwarding-sage-check-minutes">@I18n[I18nKey.Ui.ForwardingSetup.SageCheckMinutes]</label>
+                        <input id="forwarding-sage-check-minutes" type="number" min="@ForwardingOptionKeys.MinimumSageCheckMinutes" step="1" class="form-control" @bind="SageCheckMinutes" />
+                    </div>
+                    <div class="col-md-4">
                         <button class="btn btn-outline-primary" disabled="@Busy" @onclick="SaveThresholdsAsync"><i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]</button>
                     </div>
                 </div>

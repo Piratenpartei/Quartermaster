@@ -41,6 +41,58 @@ public class HttpRedmineClientTests {
     }
 
     [Test]
+    public async Task Get_issue_reads_status_and_assignee() {
+        var handler = new RecordingRedmineHandler();
+        handler.EnqueueOk("""{"issue":{"id":77,"status":{"id":5,"name":"Zur Eintragung"},"assigned_to":{"id":42,"name":"QM Bot"}}}""");
+        using var client = Client(handler);
+
+        var state = await client.GetIssueAsync(Settings(), 77, CancellationToken.None);
+
+        var request = handler.Requests.Single();
+        await Assert.That(request.Method).IsEqualTo(HttpMethod.Get);
+        await Assert.That(request.Url).IsEqualTo("https://redmine.invalid/issues/77.json");
+        await Assert.That(state.StatusId).IsEqualTo(5);
+        await Assert.That(state.AssigneeId).IsEqualTo(42);
+    }
+
+    [Test]
+    public async Task Get_issue_without_assignee() {
+        var handler = new RecordingRedmineHandler();
+        handler.EnqueueOk("""{"issue":{"id":77,"status":{"id":5,"name":"Zur Eintragung"}}}""");
+        using var client = Client(handler);
+
+        var state = await client.GetIssueAsync(Settings(), 77, CancellationToken.None);
+
+        await Assert.That(state.StatusId).IsEqualTo(5);
+        await Assert.That(state.AssigneeId).IsNull();
+    }
+
+    [Test]
+    public async Task Get_issue_refuses_redirect() {
+        var handler = new RecordingRedmineHandler();
+        handler.EnqueueRedirect("https://evil.invalid/issues/77.json");
+        using var client = Client(handler);
+
+        var ex = await Capture(() => client.GetIssueAsync(Settings(), 77, CancellationToken.None));
+
+        await Assert.That(ex.Code).IsEqualTo(RedmineException.HttpError);
+        await Assert.That(handler.Requests.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Current_user_reads_id_and_login() {
+        var handler = new RecordingRedmineHandler();
+        handler.EnqueueOk("""{"user":{"id":3,"login":"qm-bot","firstname":"Q","lastname":"M"}}""");
+        using var client = Client(handler);
+
+        var user = await client.GetCurrentUserAsync(Settings(), CancellationToken.None);
+
+        await Assert.That(handler.Requests.Single().Url).IsEqualTo("https://redmine.invalid/users/current.json");
+        await Assert.That(user.Id).IsEqualTo(3);
+        await Assert.That(user.Name).IsEqualTo("qm-bot");
+    }
+
+    [Test]
     public async Task Create_issue_body_contains_all_fields() {
         var handler = new RecordingRedmineHandler();
         handler.Enqueue(HttpStatusCode.Created, """{"issue":{"id":4711}}""");

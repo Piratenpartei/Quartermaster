@@ -116,6 +116,52 @@ public class ForwardingIntakeTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Quartermaster_handled_application_queues_note_and_sage_step() {
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _district.Id, ApplicationMode = ForwardingMode.Quartermaster }, []);
+
+        var result = _intake.IntakeApplication(Application(Regular()), _district.Id, DateTime.UtcNow);
+
+        var steps = _cases.GetSteps(result.CaseId!.Value);
+        await Assert.That(steps.Select(s => (s.Kind, s.State)).ToArray()).IsEquivalentTo(new[] {
+            (ForwardingStepKind.CreateTicket, ForwardingStepState.Pending),
+            (ForwardingStepKind.AddOutcomeNote, ForwardingStepState.Waiting),
+            (ForwardingStepKind.AwaitSageEntry, ForwardingStepState.Waiting)
+        });
+        await Assert.That(steps.Single(s => s.Kind == ForwardingStepKind.AwaitSageEntry).TargetChapterId).IsEqualTo(_federal.Id);
+    }
+
+    [Test]
+    public async Task Linked_application_queues_sage_step() {
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ApplicationMode = ForwardingMode.Quartermaster }, []);
+        var result = _intake.IntakeApplication(Application(Regular()), null, DateTime.UtcNow);
+        var application = Db.MembershipApplications.Single(a => a.Id == result.ApplicationId);
+
+        _intake.LinkApplication(application, null, _district.Id, DateTime.UtcNow);
+
+        var steps = _cases.GetSteps(result.CaseId!.Value);
+        await Assert.That(steps.Last().Kind).IsEqualTo(ForwardingStepKind.AwaitSageEntry);
+        await Assert.That(steps.Last().State).IsEqualTo(ForwardingStepState.Waiting);
+    }
+
+    [Test]
+    public async Task Redmine_handled_application_has_no_sage_step() {
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ApplicationMode = ForwardingMode.Redmine }, []);
+
+        var result = _intake.IntakeApplication(Application(Regular()), _district.Id, DateTime.UtcNow);
+
+        await Assert.That(_cases.GetSteps(result.CaseId!.Value).Any(s => s.Kind == ForwardingStepKind.AwaitSageEntry)).IsFalse();
+    }
+
+    [Test]
+    public async Task Reduction_case_has_no_sage_step() {
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ReductionMode = ForwardingMode.Quartermaster }, []);
+
+        var result = _intake.IntakeDueSelection(Reduction(), _district.Id, null, "anna", false, DateTime.UtcNow);
+
+        await Assert.That(_cases.GetSteps(result.CaseId!.Value).Any(s => s.Kind == ForwardingStepKind.AwaitSageEntry)).IsFalse();
+    }
+
+    [Test]
     public async Task Application_redmine_stores_nothing() {
         _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ApplicationMode = ForwardingMode.Redmine }, []);
 
@@ -286,7 +332,7 @@ public class ForwardingIntakeTests : RepositoryTestBase {
         await Assert.That(Db.MembershipApplications.Single(a => a.Id == application.Id).ChapterId).IsEqualTo(_state.Id);
         await Assert.That(forwardingCase.MotionId).IsEqualTo(motion.Id);
         await Assert.That(forwardingCase.DecidingChapterId).IsEqualTo(_state.Id);
-        await Assert.That(_cases.GetSteps(forwardingCase.Id).Last().Kind).IsEqualTo(ForwardingStepKind.AddOutcomeNote);
+        await Assert.That(_cases.GetSteps(forwardingCase.Id).Last().Kind).IsEqualTo(ForwardingStepKind.AwaitSageEntry);
     }
 
     [Test]

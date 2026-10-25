@@ -1,4 +1,5 @@
 using FluentMigrator;
+using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Templates;
 
@@ -9,6 +10,12 @@ public class M009 : MigrationBase {
     public const string ApplicationTicketIdentifier = "forwarding.redmine.application";
     public const string ReductionTicketIdentifier = "forwarding.redmine.reduction";
 
+    public const string FailureMailIdentifier = "forwarding.failure.email";
+    public const string FailureLegacyPhrase = "nicht angelegt werden";
+    public const string FailureActionPhrase = "nicht {{ failure.Action }} werden";
+    public const string FailureLegacyRemedy = "Bitte das Ticket von Hand anlegen und den Vorgang danach unter {{ failure.CasesUrl }} als erledigt markieren, oder die Ursache beheben und dort erneut versuchen.";
+    public const string FailureRemedyTag = "{{ failure.Remedy }}";
+
     public const string CityTag = "{{ application.City }}";
     public const string CountryTag = "{% if application.Country != \"\" %}, {{ application.Country }}{% endif %}";
     public const string OtherPartyYes = "{% if application.IsMemberOfAnotherParty %}ja{% else %}";
@@ -18,6 +25,11 @@ public class M009 : MigrationBase {
     public const string ReductionRejectionLine = "- Jahresbeitrag bei Ablehnung: {{ dues.RejectedReductionAmount }} €";
 
     public override void Up() {
+        Alter.Table(ForwardingTarget.TableName)
+            .AddColumn(nameof(ForwardingTarget.SageAssigneeId)).AsInt32().Nullable()
+            .AddColumn(nameof(ForwardingTarget.SageDoneStatusId)).AsInt32().Nullable()
+            .AddColumn(nameof(ForwardingTarget.SageAwaitReassignment)).AsBoolean().NotNullable().WithDefaultValue(false);
+
         Alter.Table(MembershipApplication.TableName)
             .AddColumn(nameof(MembershipApplication.AddressCountry)).AsString(MembershipApplication.AddressCountryMaxLength).Nullable()
             .AddColumn(nameof(MembershipApplication.OtherParties)).AsString(MembershipApplication.OtherPartiesMaxLength).Nullable();
@@ -34,6 +46,12 @@ public class M009 : MigrationBase {
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(`{nameof(Template.Body)}`,
                 '{JustificationTag}', CONCAT('{JustificationTag}', CHAR(10), '{ReductionRejectionLine}'))
             WHERE `{nameof(Template.Identifier)}` = '{ReductionTicketIdentifier}' AND `{nameof(Template.Body)}` NOT LIKE '%RejectedReductionAmount%'");
+
+        Execute.Sql($@"
+            UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(`{nameof(Template.Body)}`,
+                '{FailureLegacyPhrase}', '{FailureActionPhrase}'),
+                '{FailureLegacyRemedy}', '{FailureRemedyTag}')
+            WHERE `{nameof(Template.Identifier)}` = '{FailureMailIdentifier}' AND `{nameof(Template.Body)}` NOT LIKE '%failure.Remedy%'");
     }
 
     public override void Down() {
@@ -49,6 +67,15 @@ public class M009 : MigrationBase {
                 CONCAT(CHAR(10), '{ReductionRejectionLine}'), '')
             WHERE `{nameof(Template.Identifier)}` = '{ReductionTicketIdentifier}'");
 
+        Execute.Sql($@"
+            UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(`{nameof(Template.Body)}`,
+                '{FailureRemedyTag}', '{FailureLegacyRemedy}'),
+                '{FailureActionPhrase}', '{FailureLegacyPhrase}')
+            WHERE `{nameof(Template.Identifier)}` = '{FailureMailIdentifier}'");
+
+        Delete.Column(nameof(ForwardingTarget.SageAssigneeId)).FromTable(ForwardingTarget.TableName);
+        Delete.Column(nameof(ForwardingTarget.SageDoneStatusId)).FromTable(ForwardingTarget.TableName);
+        Delete.Column(nameof(ForwardingTarget.SageAwaitReassignment)).FromTable(ForwardingTarget.TableName);
         Delete.Column(nameof(MembershipApplication.AddressCountry)).FromTable(MembershipApplication.TableName);
         Delete.Column(nameof(MembershipApplication.OtherParties)).FromTable(MembershipApplication.TableName);
     }

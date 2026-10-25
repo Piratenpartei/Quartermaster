@@ -135,6 +135,11 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "72",
             description: "Beitragseinstufungen ab diesem Jahresbetrag brauchen keine Entscheidung. Darunter ist es eine Beitragsminderung, über die eine Gliederung entscheidet.");
 
+        AddDefinitionIfNotExists(ForwardingOptionKeys.SageCheckMinutes,
+            "Weiterleitung: SAGE-Prüfung alle (Minuten)",
+            OptionDataType.Number, false, "", "15",
+            description: "So oft prüft Quartermaster das Ticket eines angenommenen Mitgliedsantrags auf die SAGE-Eintragung. Mindestens 5.");
+
         AddDefinitionIfNotExists(ForwardingOptionKeys.StateDecisionMinimum,
             "Beiträge: Entscheidung durch Bundesebene unter (EUR/Jahr)",
             OptionDataType.Number, false, "", "12",

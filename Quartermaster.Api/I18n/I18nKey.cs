@@ -182,6 +182,7 @@ public static class I18nKey {
             public const string TargetInvalid = "error.forwarding.target_invalid";
             public const string CustomFieldTemplateInvalid = "error.forwarding.custom_field_template_invalid";
             public const string ThresholdsInvalid = "error.forwarding.thresholds_invalid";
+            public const string SageCheckMinutesInvalid = "error.forwarding.sage_check_minutes_invalid";
             public const string SwitchViaAssistant = "error.forwarding.switch_via_assistant";
             public const string FailureEmailInvalid = "error.forwarding.failure_email_invalid";
             public const string BaseUrlInvalid = "error.forwarding.base_url_invalid";
@@ -421,6 +422,7 @@ public static class I18nKey {
             public static class Application {
                 public const string IdRequired = "error.admin.application.id_required";
                 public const string AlreadyDecided = "error.admin.application.already_decided";
+                public const string ChapterUnknown = "error.admin.application.chapter_unknown";
                 public const string StatusInvalid = "error.admin.application.status_invalid";
                 public const string FirstNameRequired = "error.admin.application.first_name_required";
                 public const string FirstNameMaxLength = "error.admin.application.first_name_max_length";
@@ -451,6 +453,7 @@ public static class I18nKey {
                 public const string NotPendingDivisionLinking = "error.admin.application.not_pending_division_linking";
                 public const string DivisionRequired = "error.admin.application.division_required";
                 public const string NoChapterForDivision = "error.admin.application.no_chapter_for_division";
+                public const string NotSetUp = "error.admin.application.not_set_up";
             }
 
             public static class DueSelection {
@@ -1086,6 +1089,12 @@ public static class I18nKey {
             public const string MemberNumberLabel = "ui.application_detail.member_number_label";
             public const string SendWelcomeButton = "ui.application_detail.send_welcome_button";
             public const string LinkedMotionButton = "ui.application_detail.linked_motion_button";
+            public const string ApprovalWaitingSage = "ui.application_detail.approval_waiting_sage";
+            public const string ApprovalWaitingReduction = "ui.application_detail.approval_waiting_reduction";
+            public const string ApprovalSent = "ui.application_detail.approval_sent";
+            public const string ApprovalManuallyResolved = "ui.application_detail.approval_manually_resolved";
+            public const string ApprovalFailed = "ui.application_detail.approval_failed";
+            public const string FederalTicket = "ui.application_detail.federal_ticket";
             public const string ValuationMonthlyPay = "ui.application_detail.valuation.monthly_pay";
             public const string ValuationOnePercent = "ui.application_detail.valuation.one_percent";
             public const string ValuationUnderage = "ui.application_detail.valuation.underage";
@@ -3097,6 +3106,12 @@ public static class I18nKey {
             public const string Assignee = "ui.forwarding_setup.assignee";
             public const string NoteStatus = "ui.forwarding_setup.note_status";
             public const string NoteAssignee = "ui.forwarding_setup.note_assignee";
+            public const string SageTitle = "ui.forwarding_setup.sage_title";
+            public const string SageGroup = "ui.forwarding_setup.sage_group";
+            public const string SageDoneStatus = "ui.forwarding_setup.sage_done_status";
+            public const string SageReassignment = "ui.forwarding_setup.sage_reassignment";
+            public const string SageHint = "ui.forwarding_setup.sage_hint";
+            public const string SageCheckMinutes = "ui.forwarding_setup.sage_check_minutes";
             public const string DefaultOption = "ui.forwarding_setup.default_option";
             public const string CustomFields = "ui.forwarding_setup.custom_fields";
             public const string CustomFieldId = "ui.forwarding_setup.custom_field_id";
@@ -3130,6 +3145,7 @@ public static class I18nKey {
             public const string Retry = "ui.forwarding_cases.retry";
             public const string Resolve = "ui.forwarding_cases.resolve";
             public const string ResolveConfirm = "ui.forwarding_cases.resolve_confirm";
+            public const string ResolveConfirmApplication = "ui.forwarding_cases.resolve_confirm_application";
             public const string KindApplication = "ui.forwarding_cases.kind_application";
             public const string KindDueSelection = "ui.forwarding_cases.kind_due_selection";
             public const string StatusOpen = "ui.forwarding_cases.status_open";
@@ -3147,6 +3163,8 @@ public static class I18nKey {
             public const string PurposeApplication = "ui.forwarding_cases.purpose_application";
             public const string NoteStep = "ui.forwarding_cases.note_step";
             public const string Attempts = "ui.forwarding_cases.attempts";
+            public const string SageStep = "ui.forwarding_cases.sage_step";
+            public const string NextCheck = "ui.forwarding_cases.next_check";
             public const string NoPermission = "ui.forwarding_cases.no_permission";
         }
 
@@ -3171,6 +3189,13 @@ public static class I18nKey {
             public const string AddChapterPlaceholder = "ui.public_forms_setup.add_chapter_placeholder";
             public const string AddButton = "ui.public_forms_setup.add_button";
             public const string OpenCount = "ui.public_forms_setup.open_count";
+            public const string MembershipNotReady = "ui.public_forms_setup.membership_not_ready";
+            public const string OpenForwarding = "ui.public_forms_setup.open_forwarding";
+            public const string GapForwardingSwitch = "ui.public_forms_setup.gap.forwarding_switch";
+            public const string GapFederalConnection = "ui.public_forms_setup.gap.federal_connection";
+            public const string GapFederalTarget = "ui.public_forms_setup.gap.federal_target";
+            public const string GapSageGroup = "ui.public_forms_setup.gap.sage_group";
+            public const string GapDoneSignal = "ui.public_forms_setup.gap.done_signal";
         }
 
         public static class OptionGroupEditor {

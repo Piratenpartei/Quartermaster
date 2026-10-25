@@ -281,4 +281,81 @@ public class ForwardingSettingsEndpointTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(Db.SystemOptions.Any(o => o.Identifier == ForwardingOptionKeys.DueSelectionEnabled && o.Value == "true")).IsFalse();
     }
+
+    [Test]
+    public async Task Sage_fields_saved_through_chapter_endpoint() {
+        using var client = await AdminAsync();
+        await client.PutAsJsonAsync($"/api/forwarding/redmine-connections/{_federal.Id}", new RedmineConnectionSaveRequest { BaseUrl = "https://redmine.invalid", ApiKey = "k" });
+
+        var save = await client.PutAsJsonAsync($"/api/forwarding/chapters/{_federal.Id}", new ForwardingChapterSaveRequest {
+            Targets = [new ForwardingTargetDTO {
+                Purpose = ForwardingPurpose.Application, ProjectId = 1, TrackerId = 2,
+                SageAssigneeId = 31, SageDoneStatusId = 5, SageAwaitReassignment = true
+            }]
+        });
+        var list = await client.GetFromJsonAsync<List<ForwardingChapterSettingDTO>>("/api/forwarding/chapters");
+
+        var target = list!.Single(c => c.ChapterId == _federal.Id).Targets.Single();
+        await Assert.That(save.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(target.SageAssigneeId).IsEqualTo(31);
+        await Assert.That(target.SageDoneStatusId).IsEqualTo(5);
+        await Assert.That(target.SageAwaitReassignment).IsTrue();
+    }
+
+    [Test]
+    [Arguments("note-status")]
+    [Arguments("note-assignee")]
+    [Arguments("sage-assignee")]
+    [Arguments("sage-done-status")]
+    public async Task Optional_ids_must_be_positive(string field) {
+        using var client = await AdminAsync();
+        var target = new ForwardingTargetDTO { Purpose = ForwardingPurpose.Application, ProjectId = 1, TrackerId = 2 };
+        switch (field) {
+            case "note-status":
+                target.NoteStatusId = 0;
+                break;
+            case "note-assignee":
+                target.NoteAssigneeId = -1;
+                break;
+            case "sage-assignee":
+                target.SageAssigneeId = 0;
+                break;
+            default:
+                target.SageDoneStatusId = -5;
+                break;
+        }
+
+        var response = await client.PutAsJsonAsync($"/api/forwarding/chapters/{_federal.Id}", new ForwardingChapterSaveRequest { Targets = [target] });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.forwarding.target_invalid");
+    }
+
+    [Test]
+    public async Task Sage_setup_status_lists_gaps() {
+        using var client = await AdminAsync();
+
+        var empty = await client.GetFromJsonAsync<SageSetupStatusDTO>("/api/forwarding/sage-setup");
+        await client.PutAsJsonAsync($"/api/forwarding/redmine-connections/{_federal.Id}", new RedmineConnectionSaveRequest { BaseUrl = "https://redmine.invalid", ApiKey = "k" });
+        await client.PutAsJsonAsync($"/api/forwarding/chapters/{_federal.Id}", new ForwardingChapterSaveRequest {
+            Targets = [new ForwardingTargetDTO { Purpose = ForwardingPurpose.Application, ProjectId = 1, TrackerId = 2, SageAssigneeId = 31, SageDoneStatusId = 5 }]
+        });
+        var configured = await client.GetFromJsonAsync<SageSetupStatusDTO>("/api/forwarding/sage-setup");
+
+        await Assert.That(empty!.Missing).Contains(SageSetupGap.FederalConnection);
+        await Assert.That(empty.Missing).Contains(SageSetupGap.FederalTarget);
+        await Assert.That(empty.Missing).Contains(SageSetupGap.SageGroup);
+        await Assert.That(empty.Missing).Contains(SageSetupGap.DoneSignal);
+        await Assert.That(configured!.Missing.Single()).IsEqualTo(SageSetupGap.ForwardingSwitch);
+    }
+
+    [Test]
+    public async Task Sage_setup_status_needs_permission() {
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await ClientAsync(token);
+
+        var response = await client.GetAsync("/api/forwarding/sage-setup");
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+    }
 }

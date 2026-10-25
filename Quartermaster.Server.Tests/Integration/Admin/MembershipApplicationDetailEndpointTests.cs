@@ -3,7 +3,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.Forwarding;
+using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.Admin;
@@ -73,5 +76,24 @@ public class MembershipApplicationDetailEndpointTests : IntegrationTestBase {
         using var client = AuthenticatedClient(token);
         var response = await client.GetAsync($"/api/admin/membershipapplications/{app.Id}");
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
+    }
+
+    [Test]
+    public async Task Detail_reports_waiting_for_sage_with_ticket_url() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id, status: ApplicationStatus.Approved);
+        new ForwardingCaseRepository(Db).Create(new ForwardingCase { Kind = ForwardingCaseKind.Application, MembershipApplicationId = app.Id, CreatedAt = DateTime.UtcNow }, [
+            new ForwardingStep { Order = 1, Kind = ForwardingStepKind.CreateTicket, TargetChapterId = chapter.Id, Purpose = ForwardingPurpose.Application, State = ForwardingStepState.Done, TicketUrl = "https://redmine.invalid/issues/9", UpdatedAt = DateTime.UtcNow },
+            new ForwardingStep { Order = 2, Kind = ForwardingStepKind.AwaitSageEntry, TargetChapterId = chapter.Id, Purpose = ForwardingPurpose.Application, State = ForwardingStepState.Pending, UpdatedAt = DateTime.UtcNow }
+        ]);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.ViewApplications });
+        using var client = AuthenticatedClient(token);
+        var response = await client.GetAsync($"/api/admin/membershipapplications/{app.Id}");
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var dto = await response.Content.ReadFromJsonAsync<MembershipApplicationDetailDTO>();
+        await Assert.That(dto!.ApprovalMailState).IsEqualTo(ApprovalMailState.WaitingForSage);
+        await Assert.That(dto.ApprovalMailSentAt).IsNull();
+        await Assert.That(dto.FederalTicketUrl).IsEqualTo("https://redmine.invalid/issues/9");
     }
 }

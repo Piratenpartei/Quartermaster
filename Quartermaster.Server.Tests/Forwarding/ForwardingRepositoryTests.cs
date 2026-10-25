@@ -42,6 +42,23 @@ public class ForwardingRepositoryTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Sage_fields_round_trip() {
+        var chapter = _builder.SeedChapter();
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = chapter.Id, ApplicationMode = ForwardingMode.Redmine }, [
+            new ForwardingTarget {
+                ChapterId = chapter.Id, Purpose = ForwardingPurpose.Application, ProjectId = 1, TrackerId = 2,
+                SageAssigneeId = 12, SageDoneStatusId = 5, SageAwaitReassignment = true
+            }
+        ]);
+
+        var target = _settings.GetTarget(chapter.Id, ForwardingPurpose.Application)!;
+
+        await Assert.That(target.SageAssigneeId).IsEqualTo(12);
+        await Assert.That(target.SageDoneStatusId).IsEqualTo(5);
+        await Assert.That(target.SageAwaitReassignment).IsTrue();
+    }
+
+    [Test]
     public async Task SaveChapter_replaces_targets() {
         var chapter = _builder.SeedChapter();
         var setting = new ForwardingChapterSetting { ChapterId = chapter.Id, ApplicationMode = ForwardingMode.Redmine };

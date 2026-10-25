@@ -25,7 +25,16 @@ public enum ForwardingCaseStatus {
 
 public enum ForwardingStepKind {
     CreateTicket = 0,
-    AddOutcomeNote = 1
+    AddOutcomeNote = 1,
+    AwaitSageEntry = 2
+}
+
+public enum SageSetupGap {
+    ForwardingSwitch,
+    FederalConnection,
+    FederalTarget,
+    SageGroup,
+    DoneSignal
 }
 
 public enum ForwardingStepState {

@@ -80,6 +80,7 @@ public class PublicFormTests : IntegrationTestBase {
     [Test]
     public async Task Application_refused_while_switched_off() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         SetOption(PublicFormOptions.MembershipApplication, null, "false");
         using var client = await AnonymousWithCsrfAsync();
 
@@ -92,6 +93,7 @@ public class PublicFormTests : IntegrationTestBase {
     [Test]
     public async Task Application_officer_still_enters_paper_application_while_switched_off() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         SetOption(PublicFormOptions.MembershipApplication, null, "false");
         var (_, token) = Builder.SeedAuthenticatedUser(chapterPermissions: new() { [chapter.Id] = [PermissionIdentifier.ProcessApplications] });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
@@ -158,7 +160,8 @@ public class PublicFormTests : IntegrationTestBase {
 
     [Test]
     public async Task Client_config_reports_switched_off_forms() {
-        Builder.SeedChapter("C");
+        var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id);
         SetOption(PublicFormOptions.MembershipApplication, null, "false");
         SetOption(PublicFormOptions.DueSelection, null, "false");
         SetOption(PublicFormOptions.Motion, null, "false");

@@ -5,6 +5,7 @@ using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.DueSelector;
+using Quartermaster.Server.Forwarding.SageEntry;
 using Quartermaster.Server.MembershipApplications;
 
 namespace Quartermaster.Server.Motions;
@@ -21,18 +22,21 @@ public class MotionResolutionDecisionMailer {
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MembershipApplicationMailService _applicationMail;
     private readonly DueSelectionMailService _dueSelectionMail;
+    private readonly SageEntryGate _gate;
 
     public MotionResolutionDecisionMailer(
         MotionRepository motionRepo,
         MembershipApplicationRepository applicationRepo,
         DueSelectionRepository dueSelectionRepo,
         MembershipApplicationMailService applicationMail,
-        DueSelectionMailService dueSelectionMail) {
+        DueSelectionMailService dueSelectionMail,
+        SageEntryGate gate) {
         _motionRepo = motionRepo;
         _applicationRepo = applicationRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _applicationMail = applicationMail;
         _dueSelectionMail = dueSelectionMail;
+        _gate = gate;
     }
 
     public async Task NotifyAsync(Guid motionId, CancellationToken ct) {
@@ -43,7 +47,7 @@ public class MotionResolutionDecisionMailer {
 
         if (motion.LinkedMembershipApplicationId.HasValue) {
             var application = _applicationRepo.Get(motion.LinkedMembershipApplicationId.Value);
-            if (application != null) {
+            if (application != null && !_gate.HoldsApprovalMail(application.Id)) {
                 await _applicationMail.SendApplicationDecisionAsync(application, ct);
             }
         }

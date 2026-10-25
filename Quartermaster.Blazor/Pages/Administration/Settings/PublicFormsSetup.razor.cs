@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
 using Quartermaster.Blazor.Services;
@@ -41,6 +42,7 @@ public partial class PublicFormsSetup {
     private bool DueSelectionEnabled;
     private bool PermanentReductionEnabled;
     private bool MotionDefault;
+    private List<SageSetupGap> SageMissing = [];
     private List<OptionOverrideDTO> Overrides = [];
     private string NewChapterId = "";
     private string NewValue = TrueValue;
@@ -65,9 +67,26 @@ public partial class PublicFormsSetup {
             Overrides = (motion?.Overrides ?? [])
                 .OrderBy(o => o.ChapterName, StringComparer.CurrentCulture)
                 .ToList();
+
+            var sage = await Http.GetFromJsonAsync<SageSetupStatusDTO>("/api/forwarding/sage-setup");
+            SageMissing = sage?.Missing ?? [];
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
+    }
+
+    private string MissingLabels() {
+        return string.Join(", ", SageMissing.Select(GapLabel));
+    }
+
+    private string GapLabel(SageSetupGap gap) {
+        return gap switch {
+            SageSetupGap.ForwardingSwitch => I18n[I18nKey.Ui.PublicFormsSetup.GapForwardingSwitch],
+            SageSetupGap.FederalConnection => I18n[I18nKey.Ui.PublicFormsSetup.GapFederalConnection],
+            SageSetupGap.FederalTarget => I18n[I18nKey.Ui.PublicFormsSetup.GapFederalTarget],
+            SageSetupGap.SageGroup => I18n[I18nKey.Ui.PublicFormsSetup.GapSageGroup],
+            _ => I18n[I18nKey.Ui.PublicFormsSetup.GapDoneSignal]
+        };
     }
 
     private List<Guid> OverriddenChapterIds() {

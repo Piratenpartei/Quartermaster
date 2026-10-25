@@ -32,4 +32,7 @@ public class MembershipApplicationDetailDTO {
     public int? MemberNumber { get; set; }
     public DateTimeOffset? WelcomeSentAt { get; set; }
     public bool HasReducedDueSelection { get; set; }
+    public ApprovalMailState ApprovalMailState { get; set; }
+    public DateTimeOffset? ApprovalMailSentAt { get; set; }
+    public string? FederalTicketUrl { get; set; }
 }

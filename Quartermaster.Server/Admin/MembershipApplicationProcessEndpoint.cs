@@ -9,6 +9,7 @@ using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Forwarding;
+using Quartermaster.Server.Forwarding.SageEntry;
 using Quartermaster.Server.MembershipApplications;
 
 namespace Quartermaster.Server.Admin;
@@ -22,13 +23,15 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly MembershipApplicationMailService _mailService;
     private readonly ForwardingOutcomeHook _outcomeHook;
+    private readonly SageEntryGate _gate;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationProcessEndpoint(MembershipApplicationRepository applicationRepo,
-        MembershipApplicationMailService mailService, ForwardingOutcomeHook outcomeHook, PermissionContext perms) {
+        MembershipApplicationMailService mailService, ForwardingOutcomeHook outcomeHook, SageEntryGate gate, PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _mailService = mailService;
         _outcomeHook = outcomeHook;
+        _gate = gate;
         _perms = perms;
     }
 
@@ -70,12 +73,18 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             await SendErrorsAsync(409, ct);
             return;
         }
+        // Without its chapter the application has no SAGE step yet, so an approval would mail before the SAGE entry.
+        if (req.Status == ApplicationStatus.Approved && application.Status == ApplicationStatus.PendingDivisionLinking) {
+            AddError(I18nKey.Error.Admin.Application.ChapterUnknown);
+            await SendErrorsAsync(409, ct);
+            return;
+        }
 
         _applicationRepo.UpdateStatus(req.Id, req.Status, null);
         _outcomeHook.OnRecordDecided(ForwardingCaseKind.Application, req.Id, DateTime.UtcNow);
 
         var updated = _applicationRepo.Get(req.Id);
-        if (updated != null) {
+        if (updated != null && !_gate.HoldsApprovalMail(updated.Id)) {
             await _mailService.SendApplicationDecisionAsync(updated, ct);
         }
 

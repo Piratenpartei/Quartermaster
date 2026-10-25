@@ -213,7 +213,21 @@ public static class TemplateMockDataProvider {
             TargetChapter = "Landesverband Niedersachsen",
             TicketSubject = "Beitragsminderung: Max Mustermann auf 36,00 €",
             TicketDescription = "**Antrag auf Beitragsminderung** von Max Mustermann",
-            CasesUrl = "https://quartermaster.example.local/Administration/Forwarding"
+            CasesUrl = "https://quartermaster.example.local/Administration/Forwarding",
+            Action = "angelegt",
+            Remedy = "Bitte das Ticket von Hand anlegen und den Vorgang danach unter https://quartermaster.example.local/Administration/Forwarding als erledigt markieren, oder die Ursache beheben und dort erneut versuchen."
+        };
+        data["sage"] = new ForwardingSageModel {
+            ProvisionalMemberNumber = "RM4711",
+            EntryDate = "01.11.2026",
+            EntryYear = "2026",
+            EntryMonth = "November",
+            YearlyAmount = "120",
+            PartialAmount = "20",
+            ReductionResult = "",
+            PartialAmountIfReduced = "",
+            DoneStatus = "In SAGE erfasst",
+            DoneAccount = "qm-bot"
         };
     }
 }

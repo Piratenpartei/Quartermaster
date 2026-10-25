@@ -4,6 +4,8 @@ namespace Quartermaster.Server.Forwarding.Redmine;
 
 public record RedmineIdName(int Id, string Name);
 
+public record RedmineIssueState(int StatusId, int? AssigneeId);
+
 public record RedmineCustomFieldValue(int Id, string Value);
 
 public record RedmineIssueCreate(int ProjectId, int TrackerId, string Subject, string Description, int? PriorityId, int? AssigneeId,

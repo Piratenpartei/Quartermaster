@@ -55,6 +55,13 @@ public class ForwardingTargetDTO {
     public List<ForwardingCustomFieldDTO> CustomFields { get; set; } = [];
     public int? NoteStatusId { get; set; }
     public int? NoteAssigneeId { get; set; }
+    public int? SageAssigneeId { get; set; }
+    public int? SageDoneStatusId { get; set; }
+    public bool SageAwaitReassignment { get; set; }
+}
+
+public class SageSetupStatusDTO {
+    public List<SageSetupGap> Missing { get; set; } = [];
 }
 
 public class ForwardingChapterSettingDTO {

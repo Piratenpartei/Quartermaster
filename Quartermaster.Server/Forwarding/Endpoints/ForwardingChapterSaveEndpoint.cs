@@ -125,9 +125,24 @@ public class ForwardingChapterSaveEndpoint : Endpoint<ForwardingChapterSaveReque
         foreach (var target in req.Targets) {
             if (target.ProjectId <= 0 || target.TrackerId <= 0)
                 return false;
+            if (!OptionalIdsAreValid(target))
+                return false;
             if (target.CustomFields.Any(f => f.FieldId <= 0 || f.Template.Length > MaxTemplateLength))
                 return false;
         }
+
+        return true;
+    }
+
+    private static bool OptionalIdsAreValid(ForwardingTargetDTO target) {
+        if (target.NoteStatusId <= 0)
+            return false;
+        if (target.NoteAssigneeId <= 0)
+            return false;
+        if (target.SageAssigneeId <= 0)
+            return false;
+        if (target.SageDoneStatusId <= 0)
+            return false;
 
         return true;
     }

@@ -29,6 +29,8 @@ public class MembershipApplicationLinkDivisionEndpointTests : IntegrationTestBas
 
     [Test]
     public async Task Confirmed_application_without_chapter_enters_PendingDivisionLinking() {
+        var root = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, root.Id);
         using var anon = AnonymousClient();
         await AttachAntiforgeryTokenAsync(anon);
         await anon.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapterId: null));

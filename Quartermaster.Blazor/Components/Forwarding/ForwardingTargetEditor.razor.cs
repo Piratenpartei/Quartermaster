@@ -22,6 +22,9 @@ public partial class ForwardingTargetEditor {
     public bool ShowNoteFields { get; set; }
 
     [Parameter]
+    public bool ShowSageFields { get; set; }
+
+    [Parameter]
     public string IdPrefix { get; set; } = "target";
 
     private void AddField() {

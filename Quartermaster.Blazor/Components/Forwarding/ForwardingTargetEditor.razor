@@ -67,6 +67,38 @@
         }
     </div>
 
+    @if (ShowSageFields) {
+        <div class="mt-3">
+            <div class="small fw-semibold mb-2">@I18n[I18nKey.Ui.ForwardingSetup.SageTitle]</div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary" for="@($"{IdPrefix}-sage-group")">@I18n[I18nKey.Ui.ForwardingSetup.SageGroup]</label>
+                    <input id="@($"{IdPrefix}-sage-group")" type="number" min="1" class="form-control form-control-sm" @bind="Target.SageAssigneeId" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary" for="@($"{IdPrefix}-sage-done-status")">@I18n[I18nKey.Ui.ForwardingSetup.SageDoneStatus]</label>
+                    @if (Lookups != null) {
+                        <select id="@($"{IdPrefix}-sage-done-status")" class="form-select form-select-sm" @bind="Target.SageDoneStatusId">
+                            <option value="">-</option>
+                            @foreach (var status in Lookups.Statuses) {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        </select>
+                    } else {
+                        <input id="@($"{IdPrefix}-sage-done-status")" type="number" min="1" class="form-control form-control-sm" @bind="Target.SageDoneStatusId" />
+                    }
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        <input id="@($"{IdPrefix}-sage-reassignment")" type="checkbox" class="form-check-input" @bind="Target.SageAwaitReassignment" />
+                        <label class="form-check-label small" for="@($"{IdPrefix}-sage-reassignment")">@I18n[I18nKey.Ui.ForwardingSetup.SageReassignment]</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-text">@I18n[I18nKey.Ui.ForwardingSetup.SageHint]</div>
+        </div>
+    }
+
     <div class="mt-3">
         <div class="small text-secondary mb-1">@I18n[I18nKey.Ui.ForwardingSetup.CustomFields]</div>
         @foreach (var field in Target.CustomFields) {

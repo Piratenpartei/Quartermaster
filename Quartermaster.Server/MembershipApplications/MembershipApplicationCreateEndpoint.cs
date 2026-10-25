@@ -56,6 +56,9 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     }
 
     public override async Task HandleAsync(MembershipApplicationDTO req, CancellationToken ct) {
+        if (!_publicForms.IsMembershipApplicationReady())
+            ThrowError(I18nKey.Error.Admin.Application.NotSetUp, 400);
+
         if (!_publicForms.IsMembershipApplicationEnabled() && !_perms.HasInAnyChapter(PermissionIdentifier.ProcessApplications))
             ThrowError(I18nKey.Error.PublicForm.Disabled, 403);
 

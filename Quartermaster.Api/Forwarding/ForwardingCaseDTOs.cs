@@ -22,6 +22,7 @@ public class ForwardingStepDTO {
     public string? TicketUrl { get; set; }
     public string? LastError { get; set; }
     public int Attempts { get; set; }
+    public DateTimeOffset? NextAttemptAt { get; set; }
 }
 
 public class ForwardingCaseListRequest : IPaginatedRequest {

@@ -86,4 +86,19 @@ public class ForwardingFailureModel {
     public string TicketSubject { get; set; } = "";
     public string TicketDescription { get; set; } = "";
     public string CasesUrl { get; set; } = "";
+    public string Action { get; set; } = "";
+    public string Remedy { get; set; } = "";
+}
+
+public class ForwardingSageModel {
+    public string ProvisionalMemberNumber { get; set; } = "";
+    public string EntryDate { get; set; } = "";
+    public string EntryYear { get; set; } = "";
+    public string EntryMonth { get; set; } = "";
+    public string YearlyAmount { get; set; } = "";
+    public string PartialAmount { get; set; } = "";
+    public string ReductionResult { get; set; } = "";
+    public string PartialAmountIfReduced { get; set; } = "";
+    public string DoneStatus { get; set; } = "";
+    public string DoneAccount { get; set; } = "";
 }

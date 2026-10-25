@@ -223,6 +223,10 @@ public partial class Program {
         builder.Services.AddScoped<Forwarding.ForwardingSettingsResolver>();
         builder.Services.AddScoped<Forwarding.ForwardingTicketRenderer>();
         builder.Services.AddScoped<Forwarding.ForwardingIntake>();
+        builder.Services.AddScoped<Forwarding.SageEntry.SageEntrySetup>();
+        builder.Services.AddScoped<Forwarding.SageEntry.SageEntryGate>();
+        builder.Services.AddScoped<Forwarding.SageEntry.SageEntryNote>();
+        builder.Services.AddScoped<Forwarding.SageEntry.SageEntryCheck>();
         builder.Services.AddScoped<Forwarding.ForwardingOutcomeHook>();
         builder.Services.AddScoped<Forwarding.ForwardingFailureMailer>();
         builder.Services.AddScoped<Forwarding.ForwardingCaseActions>();

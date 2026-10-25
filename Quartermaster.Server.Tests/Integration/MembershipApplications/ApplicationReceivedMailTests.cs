@@ -35,6 +35,7 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
     [Test]
     public async Task No_received_mail_before_confirmation() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         await Submit(Dto(chapter.Id));
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "application_received").ToList();
@@ -44,6 +45,7 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
     [Test]
     public async Task Sends_received_mail_to_applicant_on_confirm() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         await Submit(Dto(chapter.Id));
         await ConfirmAllPendingSubmissionsAsync();
 
@@ -55,6 +57,8 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
 
     [Test]
     public async Task Sends_received_mail_even_without_chapter() {
+        var root = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, root.Id);
         await Submit(Dto(chapterId: null));
         await ConfirmAllPendingSubmissionsAsync();
 

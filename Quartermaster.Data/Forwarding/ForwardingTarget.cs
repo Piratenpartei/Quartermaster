@@ -26,6 +26,9 @@ public class ForwardingTarget {
 
     public int? NoteStatusId { get; set; }
     public int? NoteAssigneeId { get; set; }
+    public int? SageAssigneeId { get; set; }
+    public int? SageDoneStatusId { get; set; }
+    public bool SageAwaitReassignment { get; set; }
 
     public ForwardingTargetDTO ToDto() {
         List<ForwardingCustomFieldDTO>? fields;
@@ -43,7 +46,10 @@ public class ForwardingTarget {
             AssigneeId = AssigneeId,
             CustomFields = fields ?? [],
             NoteStatusId = NoteStatusId,
-            NoteAssigneeId = NoteAssigneeId
+            NoteAssigneeId = NoteAssigneeId,
+            SageAssigneeId = SageAssigneeId,
+            SageDoneStatusId = SageDoneStatusId,
+            SageAwaitReassignment = SageAwaitReassignment
         };
     }
 
@@ -57,7 +63,10 @@ public class ForwardingTarget {
             AssigneeId = dto.AssigneeId,
             CustomFieldsJson = JsonSerializer.Serialize(dto.CustomFields.Select(f => new ForwardingCustomFieldDTO { FieldId = f.FieldId, Template = f.Template.Trim() }).ToList()),
             NoteStatusId = dto.NoteStatusId,
-            NoteAssigneeId = dto.NoteAssigneeId
+            NoteAssigneeId = dto.NoteAssigneeId,
+            SageAssigneeId = dto.SageAssigneeId,
+            SageDoneStatusId = dto.SageDoneStatusId,
+            SageAwaitReassignment = dto.SageAwaitReassignment
         };
     }
 }

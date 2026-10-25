@@ -141,6 +141,21 @@ public partial class MembershipApplicationDetail {
         _ => I18n[I18nKey.Ui.ApplicationDetail.ValuationUnknown]
     };
 
+    private string ApprovalMailText => App!.ApprovalMailState switch {
+        ApprovalMailState.Sent => I18n[I18nParams.With(I18nKey.Ui.ApplicationDetail.ApprovalSent, ("date", App.ApprovalMailSentAt?.LocalDateTime.ToString("dd.MM.yyyy HH:mm") ?? ""))],
+        ApprovalMailState.WaitingForReduction => I18n[I18nKey.Ui.ApplicationDetail.ApprovalWaitingReduction],
+        ApprovalMailState.ManuallyResolved => I18n[I18nKey.Ui.ApplicationDetail.ApprovalManuallyResolved],
+        ApprovalMailState.Failed => I18n[I18nKey.Ui.ApplicationDetail.ApprovalFailed],
+        _ => I18n[I18nKey.Ui.ApplicationDetail.ApprovalWaitingSage]
+    };
+
+    private string ApprovalMailClass => App!.ApprovalMailState switch {
+        ApprovalMailState.Sent => "alert-success",
+        ApprovalMailState.ManuallyResolved => "alert-warning",
+        ApprovalMailState.Failed => "alert-danger",
+        _ => "alert-info"
+    };
+
     private string DueStatusLabel(DueSelectionStatus status) => status switch {
         DueSelectionStatus.Pending => I18n[I18nKey.Ui.ApplicationDetail.DueStatusPending],
         DueSelectionStatus.Approved => I18n[I18nKey.Ui.ApplicationDetail.DueStatusApproved],

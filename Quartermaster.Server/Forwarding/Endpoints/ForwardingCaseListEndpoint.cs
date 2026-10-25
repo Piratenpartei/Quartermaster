@@ -61,7 +61,8 @@ public class ForwardingCaseListEndpoint : Endpoint<ForwardingCaseListRequest, Fo
                 State = s.State,
                 TicketUrl = s.TicketUrl,
                 LastError = s.LastError,
-                Attempts = s.Attempts
+                Attempts = s.Attempts,
+                NextAttemptAt = s.NextAttemptAt.ToDtoUtc()
             }).ToList()
         }).ToList();
         await SendAsync(new ForwardingCaseListResponse { Items = items, TotalCount = totalCount, Page = req.Page, PageSize = req.PageSize }, cancellation: ct);

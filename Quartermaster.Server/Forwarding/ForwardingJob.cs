@@ -13,11 +13,13 @@ using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Forwarding.Redmine;
+using Quartermaster.Server.Forwarding.SageEntry;
+using Quartermaster.Server.MembershipApplications;
 
 namespace Quartermaster.Server.Forwarding;
 
 /// <summary>
-/// Creates the tickets and outcome notes of forwarding cases, step by step in order. A step gets three attempts (now, after 5 and after 15 more minutes);
+/// Creates the tickets and outcome notes of forwarding cases and waits for the SAGE entry of approved applications, step by step in order. A step gets three attempts (now, after 5 and after 15 more minutes);
 /// errors that will not go away by waiting fail at once. A failed step stops its case and sends the failure mail.
 /// </summary>
 public class ForwardingJob {
@@ -42,11 +44,17 @@ public class ForwardingJob {
     private readonly DueSelectionRepository _dueSelections;
     private readonly MembershipApplicationRepository _applications;
     private readonly ForwardingFailureMailer _mailer;
+    private readonly SageEntryGate _sageGate;
+    private readonly SageEntryNote _sageNote;
+    private readonly SageEntryCheck _sageCheck;
+    private readonly SageEntrySetup _sageSetup;
+    private readonly MembershipApplicationMailService _applicationMails;
     private readonly ILogger<ForwardingJob> _logger;
 
     public ForwardingJob(ForwardingCaseRepository cases, ForwardingSettingsRepository settings, ForwardingSettingsResolver resolver,
         ForwardingTicketRenderer renderer, IRedmineClient redmine, MotionRepository motions, DueSelectionRepository dueSelections,
-        MembershipApplicationRepository applications, ForwardingFailureMailer mailer, ILogger<ForwardingJob> logger) {
+        MembershipApplicationRepository applications, ForwardingFailureMailer mailer, SageEntryGate sageGate, SageEntryNote sageNote,
+        SageEntryCheck sageCheck, SageEntrySetup sageSetup, MembershipApplicationMailService applicationMails, ILogger<ForwardingJob> logger) {
         _cases = cases;
         _settings = settings;
         _resolver = resolver;
@@ -56,6 +64,11 @@ public class ForwardingJob {
         _dueSelections = dueSelections;
         _applications = applications;
         _mailer = mailer;
+        _sageGate = sageGate;
+        _sageNote = sageNote;
+        _sageCheck = sageCheck;
+        _sageSetup = sageSetup;
+        _applicationMails = applicationMails;
         _logger = logger;
     }
 
@@ -87,9 +100,11 @@ public class ForwardingJob {
             if (!IsDue(step, nowUtc))
                 break;
 
-            var done = step.Kind == ForwardingStepKind.CreateTicket
-                ? await CreateTicketAsync(forwardingCase, step, steps, nowUtc, ct)
-                : await AddNoteAsync(forwardingCase, step, steps, nowUtc, ct);
+            var done = step.Kind switch {
+                ForwardingStepKind.CreateTicket => await CreateTicketAsync(forwardingCase, step, steps, nowUtc, ct),
+                ForwardingStepKind.AwaitSageEntry => await AwaitSageEntryAsync(forwardingCase, step, steps, nowUtc, ct),
+                _ => await AddNoteAsync(forwardingCase, step, steps, nowUtc, ct)
+            };
             if (!done)
                 break;
             completed++;
@@ -148,27 +163,35 @@ public class ForwardingJob {
     }
 
     private async Task<bool> AddNoteAsync(ForwardingCase forwardingCase, ForwardingStep step, List<ForwardingStep> steps, DateTime nowUtc, CancellationToken ct) {
-        var federal = steps.FirstOrDefault(s => s.Kind == ForwardingStepKind.CreateTicket && s.TargetChapterId == step.TargetChapterId && s.TicketId != null);
+        var federal = FederalTicket(step, steps);
         var decision = DecisionFor(forwardingCase);
-        if (federal == null || decision == null) {
-            var readState = step.State;
-            step.State = ForwardingStepState.Skipped;
-            step.UpdatedAt = nowUtc;
-            return _cases.UpdateStep(step, readState);
+        if (decision == null && AwaitsDecision(forwardingCase)) {
+            WaitForDecision(forwardingCase, step, nowUtc);
+            return false;
+        }
+        if (federal == null || decision == null)
+            return Skip(step, nowUtc);
+
+        var approved = ApprovedApplication(forwardingCase, steps, decision);
+        if (approved != null && _sageGate.ReductionOf(approved) == ReductionOutcome.Pending) {
+            WaitForReduction(step, approved, nowUtc);
+            return false;
         }
 
         try {
             var target = _settings.GetTarget(step.TargetChapterId, step.Purpose);
+            var connection = Connection(step.TargetChapterId);
             var note = await _renderer.RenderNoteAsync(forwardingCase, step, decision);
-            await _redmine.UpdateIssueAsync(Connection(step.TargetChapterId), federal.TicketId!.Value,
-                new RedmineIssueUpdate(note, target?.NoteStatusId, target?.NoteAssigneeId), ct);
+            var update = new RedmineIssueUpdate(note, target?.NoteStatusId, target?.NoteAssigneeId);
+            if (approved != null) {
+                var sageTarget = _sageSetup.RequireTarget(target);
+                await _sageCheck.RequireNotOnDoneStatusAsync(sageTarget, federal.TicketId!.Value, connection, ct);
+                var request = await _sageNote.BuildAsync(forwardingCase, step, approved, federal.TicketId!.Value, sageTarget, connection, ct);
+                update = new RedmineIssueUpdate(note + "\n\n" + request, null, sageTarget.SageAssigneeId);
+            }
 
-            step.State = ForwardingStepState.Done;
-            step.TicketId = federal.TicketId;
-            step.TicketUrl = federal.TicketUrl;
-            step.LastError = null;
-            step.NextAttemptAt = null;
-            step.UpdatedAt = nowUtc;
+            await _redmine.UpdateIssueAsync(connection, federal.TicketId!.Value, update, ct);
+            MarkDone(step, federal, nowUtc);
             _cases.UpdateStep(step);
             return true;
         } catch (Exception ex) when (!IsShutdown(ex, ct)) {
@@ -177,10 +200,141 @@ public class ForwardingJob {
         }
     }
 
+    /// <summary>
+    /// Holds the approval mail until the federal ticket reports the SAGE entry. Waiting is no error, so a check that finds the entry missing
+    /// resets the attempts and stops the case until the next check.
+    /// </summary>
+    private async Task<bool> AwaitSageEntryAsync(ForwardingCase forwardingCase, ForwardingStep step, List<ForwardingStep> steps, DateTime nowUtc, CancellationToken ct) {
+        var federal = FederalTicket(step, steps);
+        var decision = DecisionFor(forwardingCase);
+        if (decision == null && AwaitsDecision(forwardingCase)) {
+            WaitForDecision(forwardingCase, step, nowUtc);
+            return false;
+        }
+        if (federal == null || decision == null || decision.Result != MotionApprovalStatus.Approved)
+            return Skip(step, nowUtc);
+
+        try {
+            var target = _sageSetup.RequireTarget(_settings.GetTarget(step.TargetChapterId, step.Purpose));
+            if (!await _sageCheck.IsEnteredAsync(target, federal.TicketId!.Value, Connection(step.TargetChapterId), ct)) {
+                ScheduleNextCheck(step, nowUtc);
+                return false;
+            }
+
+            // Claimed before the mail, so a case resolved by hand in the meantime ends without it.
+            var readState = step.State;
+            step.State = ForwardingStepState.InFlight;
+            step.UpdatedAt = nowUtc;
+            if (!_cases.UpdateStep(step, readState))
+                return false;
+
+            await SendApprovalMailAsync(forwardingCase, ct);
+            MarkDone(step, federal, nowUtc);
+            return _cases.UpdateStep(step, ForwardingStepState.InFlight);
+        } catch (Exception ex) when (!IsShutdown(ex, ct)) {
+            await RecordFailureAsync(forwardingCase, step, ex, null, nowUtc, ct);
+            return false;
+        }
+    }
+
+    private async Task SendApprovalMailAsync(ForwardingCase forwardingCase, CancellationToken ct) {
+        var application = forwardingCase.MembershipApplicationId == null ? null : _applications.Get(forwardingCase.MembershipApplicationId.Value);
+        if (application == null) {
+            _logger.LogWarning("Forwarding case {Reference} found the SAGE entry, but its application is gone; no approval mail sent", forwardingCase.Reference);
+            return;
+        }
+
+        await _applicationMails.SendApplicationDecisionAsync(application, ct);
+    }
+
+    private static ForwardingStep? FederalTicket(ForwardingStep step, List<ForwardingStep> steps) {
+        return steps.FirstOrDefault(s => s.Kind == ForwardingStepKind.CreateTicket && s.TargetChapterId == step.TargetChapterId && s.TicketId != null);
+    }
+
+    /// <summary>Cases created before the SAGE entry wait existed have no such step; their approval mail went out at once, so their note asks for nothing.</summary>
+    private MembershipApplication? ApprovedApplication(ForwardingCase forwardingCase, List<ForwardingStep> steps, ForwardingDecision decision) {
+        if (forwardingCase.Kind != ForwardingCaseKind.Application || forwardingCase.MembershipApplicationId == null)
+            return null;
+        if (decision.Result != MotionApprovalStatus.Approved)
+            return null;
+        if (!steps.Any(s => s.Kind == ForwardingStepKind.AwaitSageEntry))
+            return null;
+        return _applications.Get(forwardingCase.MembershipApplicationId.Value);
+    }
+
+    /// <summary>An application that is still open, for example after its vote closed without action, is decided later and releases its steps then.</summary>
+    private bool AwaitsDecision(ForwardingCase forwardingCase) {
+        if (forwardingCase.Kind != ForwardingCaseKind.Application || forwardingCase.MembershipApplicationId == null)
+            return false;
+        var application = _applications.Get(forwardingCase.MembershipApplicationId.Value);
+        if (application == null)
+            return false;
+        return application.Status != ApplicationStatus.Approved && application.Status != ApplicationStatus.Rejected;
+    }
+
+    /// <summary>Like <see cref="WaitForReduction"/>: a decision between the first read and this write would find the step not yet waiting, so it is read once more.</summary>
+    private void WaitForDecision(ForwardingCase forwardingCase, ForwardingStep step, DateTime nowUtc) {
+        var readState = step.State;
+        step.State = ForwardingStepState.Waiting;
+        step.NextAttemptAt = null;
+        step.UpdatedAt = nowUtc;
+        if (!_cases.UpdateStep(step, readState))
+            return;
+        if (DecisionFor(forwardingCase) == null)
+            return;
+
+        step.State = ForwardingStepState.Pending;
+        _cases.UpdateStep(step, ForwardingStepState.Waiting);
+    }
+
+    /// <summary>
+    /// The outcome hook releases the note when the reduction is decided. A decision that lands between the first read and this write would find
+    /// the note not yet waiting and leave it alone, so the reduction is read once more after the write.
+    /// </summary>
+    private void WaitForReduction(ForwardingStep step, MembershipApplication application, DateTime nowUtc) {
+        var readState = step.State;
+        step.State = ForwardingStepState.Waiting;
+        step.NextAttemptAt = null;
+        step.UpdatedAt = nowUtc;
+        if (!_cases.UpdateStep(step, readState))
+            return;
+        if (_sageGate.ReductionOf(application) == ReductionOutcome.Pending)
+            return;
+
+        step.State = ForwardingStepState.Pending;
+        _cases.UpdateStep(step, ForwardingStepState.Waiting);
+    }
+
+    private void ScheduleNextCheck(ForwardingStep step, DateTime nowUtc) {
+        var readState = step.State;
+        step.State = ForwardingStepState.Pending;
+        step.Attempts = 0;
+        step.LastError = null;
+        step.NextAttemptAt = nowUtc + _sageSetup.CheckInterval();
+        step.UpdatedAt = nowUtc;
+        _cases.UpdateStep(step, readState);
+    }
+
+    private bool Skip(ForwardingStep step, DateTime nowUtc) {
+        var readState = step.State;
+        step.State = ForwardingStepState.Skipped;
+        step.UpdatedAt = nowUtc;
+        return _cases.UpdateStep(step, readState);
+    }
+
+    private static void MarkDone(ForwardingStep step, ForwardingStep federal, DateTime nowUtc) {
+        step.State = ForwardingStepState.Done;
+        step.TicketId = federal.TicketId;
+        step.TicketUrl = federal.TicketUrl;
+        step.LastError = null;
+        step.NextAttemptAt = null;
+        step.UpdatedAt = nowUtc;
+    }
+
     /// <summary>The board vote when there was one, otherwise the decision taken directly on the due selection or application.</summary>
     private ForwardingDecision? DecisionFor(ForwardingCase forwardingCase) {
         var motion = forwardingCase.MotionId == null ? null : _motions.Get(forwardingCase.MotionId.Value);
-        if (motion != null && motion.ApprovalStatus != MotionApprovalStatus.Pending)
+        if (motion != null && ForwardingOutcomeHook.Decides(motion, forwardingCase))
             return new ForwardingDecision(motion.ApprovalStatus, motion.ChapterId, motion.ResolvedAt ?? DateTime.UtcNow, $"/Administration/Motions/{motion.Id}");
 
         var chapterId = forwardingCase.DecidingChapterId ?? motion?.ChapterId;

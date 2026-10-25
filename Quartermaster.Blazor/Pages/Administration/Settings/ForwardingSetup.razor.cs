@@ -34,6 +34,7 @@ public partial class ForwardingSetup {
     private bool DuesEnabled;
     private decimal RegularMinimum = ForwardingOptionKeys.DefaultRegularMinimum;
     private decimal StateMinimum = ForwardingOptionKeys.DefaultStateDecisionMinimum;
+    private int SageCheckMinutes = ForwardingOptionKeys.DefaultSageCheckMinutes;
     private ForwardingChapterSettingDTO? Federal;
     private List<ForwardingChapterSettingDTO> Chapters = [];
     private ForwardingChapterSettingDTO? NewChapter;
@@ -57,6 +58,7 @@ public partial class ForwardingSetup {
             DuesEnabled = IsTrue(byId.GetValueOrDefault(ForwardingOptionKeys.DueSelectionEnabled)?.GlobalValue);
             RegularMinimum = ParseAmount(byId.GetValueOrDefault(ForwardingOptionKeys.RegularMinimum)?.GlobalValue, ForwardingOptionKeys.DefaultRegularMinimum);
             StateMinimum = ParseAmount(byId.GetValueOrDefault(ForwardingOptionKeys.StateDecisionMinimum)?.GlobalValue, ForwardingOptionKeys.DefaultStateDecisionMinimum);
+            SageCheckMinutes = ParseMinutes(byId.GetValueOrDefault(ForwardingOptionKeys.SageCheckMinutes)?.GlobalValue, ForwardingOptionKeys.DefaultSageCheckMinutes);
 
             var chapters = await Http.GetFromJsonAsync<List<ForwardingChapterSettingDTO>>("/api/forwarding/chapters") ?? [];
             Federal = chapters.FirstOrDefault(c => c.IsFederal);
@@ -148,18 +150,28 @@ public partial class ForwardingSetup {
             return;
         }
 
+        if (SageCheckMinutes < ForwardingOptionKeys.MinimumSageCheckMinutes) {
+            ToastService.ToastKey(I18nKey.Error.Forwarding.SageCheckMinutesInvalid, "danger");
+            return;
+        }
+
         await RunAsync(async () => {
             var regular = await SaveOptionAsync(ForwardingOptionKeys.RegularMinimum, RegularMinimum);
             if (!regular.IsSuccessStatusCode)
                 return regular;
 
             regular.Dispose();
-            return await SaveOptionAsync(ForwardingOptionKeys.StateDecisionMinimum, StateMinimum);
+            var state = await SaveOptionAsync(ForwardingOptionKeys.StateDecisionMinimum, StateMinimum);
+            if (!state.IsSuccessStatusCode)
+                return state;
+
+            state.Dispose();
+            return await SaveOptionAsync(ForwardingOptionKeys.SageCheckMinutes, SageCheckMinutes);
         });
     }
 
-    private Task<HttpResponseMessage> SaveOptionAsync(string key, decimal value) {
-        return Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest { Identifier = key, Value = value.ToString(CultureInfo.InvariantCulture) });
+    private Task<HttpResponseMessage> SaveOptionAsync(string key, IFormattable value) {
+        return Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest { Identifier = key, Value = value.ToString(null, CultureInfo.InvariantCulture) });
     }
 
     private async Task RunAsync(Func<Task<HttpResponseMessage>> send) {
@@ -182,6 +194,10 @@ public partial class ForwardingSetup {
 
     private static bool IsTrue(string? value) {
         return string.Equals(value, TrueValue, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static int ParseMinutes(string? value, int fallback) {
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var minutes) && minutes > 0 ? minutes : fallback;
     }
 
     private static decimal ParseAmount(string? value, decimal fallback) {

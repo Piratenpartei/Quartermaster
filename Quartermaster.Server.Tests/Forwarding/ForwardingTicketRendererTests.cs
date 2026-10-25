@@ -229,4 +229,143 @@ public class ForwardingTicketRendererTests : RepositoryTestBase {
         await Assert.That(text).Contains("angenommen");
         await Assert.That(text).Contains("https://qm.test/Administration/DueSelections/x");
     }
+
+    private static ForwardingSageModel Sage(string reductionResult = "", string partialIfReduced = "", string doneStatus = "", string doneAccount = "") {
+        return new ForwardingSageModel {
+            ProvisionalMemberNumber = "RM1001",
+            EntryDate = "01.11.2026",
+            EntryYear = "2026",
+            EntryMonth = "November",
+            YearlyAmount = "120",
+            PartialAmount = "20",
+            ReductionResult = reductionResult,
+            PartialAmountIfReduced = partialIfReduced,
+            DoneStatus = doneStatus,
+            DoneAccount = doneAccount
+        };
+    }
+
+    private async Task<string> RenderSageAsync(ForwardingSageModel sage, MembershipApplicationDTO? application = null) {
+        application ??= Application();
+        var (forwardingCase, _) = Case(ForwardingPurpose.Application, _federal.Id);
+        forwardingCase.PayloadJson = null;
+        var step = new ForwardingStep { CaseId = forwardingCase.Id, Kind = ForwardingStepKind.AddOutcomeNote, TargetChapterId = _federal.Id, Purpose = ForwardingPurpose.Application, Order = 2 };
+        return await _renderer.RenderSageRequestAsync(forwardingCase, step, application, sage);
+    }
+
+    [Test]
+    public async Task Sage_request_lists_number_entry_and_partial_due() {
+        var text = await RenderSageAsync(Sage());
+
+        await Assert.That(text).Contains("Vorläufige Mitgliedsnummer: RM1001");
+        await Assert.That(text).Contains("Name: Anna Pirat");
+        await Assert.That(text).Contains("Gewünschtes Eintrittsdatum: 01.11.2026");
+        await Assert.That(text).Contains("Beitrag 2026 anteilig ab November: 20 €");
+        await Assert.That(text).Contains("Jahresbeitrag: 120 €");
+        await Assert.That(text).Contains("Lastschrift: Anna Pirat, IBAN DE02120300000000202051");
+    }
+
+    [Test]
+    public async Task Sage_request_renders_the_full_default_body() {
+        var text = await RenderSageAsync(Sage(doneStatus: "In SAGE erfasst"));
+
+        await Assert.That(text).IsEqualTo("**Bitte um Eintragung in SAGE**\n\n- Vorläufige Mitgliedsnummer: RM1001\n- Name: Anna Pirat\n- Gewünschtes Eintrittsdatum: 01.11.2026\n"
+            + "- Beitrag 2026 anteilig ab November: 20 €\n\n**Beitrag**\n\n- Einstufung: nach monatlichem Einkommen\n- Jahresbeitrag: 120 €\n- Zahlweise: jährlich\n"
+            + "- Lastschrift: Anna Pirat, IBAN DE02120300000000202051\n\nDie übrigen Personendaten stehen in der Ticketbeschreibung. "
+            + "Sobald das Ticket auf „In SAGE erfasst“ steht, verschickt Quartermaster die Aufnahmebestätigung.");
+    }
+
+    [Test]
+    public async Task Sage_request_without_due_selection_has_no_due_lines() {
+        var application = Application();
+        application.DueSelection = null;
+        var sage = Sage(doneStatus: "In SAGE erfasst");
+        sage.YearlyAmount = "";
+        sage.PartialAmount = "";
+
+        var text = await RenderSageAsync(sage, application);
+
+        await Assert.That(text).Contains("- Gewünschtes Eintrittsdatum: 01.11.2026\n\nDie übrigen Personendaten stehen in der Ticketbeschreibung.");
+        await Assert.That(text).DoesNotContain("anteilig");
+        await Assert.That(text).DoesNotContain("**Beitrag**");
+        await Assert.That(text).DoesNotContain("Jahresbeitrag");
+        await Assert.That(text).DoesNotContain("€");
+    }
+
+    [Test]
+    public async Task Sage_request_with_open_reduction_names_both_amounts() {
+        var text = await RenderSageAsync(Sage("offen", "6"));
+
+        await Assert.That(text).Contains("6 € bei Genehmigung der Minderung, sonst 20 €");
+    }
+
+    [Test]
+    public async Task Sage_request_done_hint_status_only() {
+        var text = await RenderSageAsync(Sage(doneStatus: "In SAGE erfasst"));
+
+        await Assert.That(text).Contains("Sobald das Ticket auf „In SAGE erfasst“ steht, verschickt Quartermaster die Aufnahmebestätigung.");
+    }
+
+    [Test]
+    public async Task Sage_request_done_hint_account_only() {
+        var text = await RenderSageAsync(Sage(doneAccount: "qm-bot"));
+
+        await Assert.That(text).Contains("Sobald das Ticket wieder dem Konto qm-bot zugewiesen ist, verschickt Quartermaster die Aufnahmebestätigung.");
+    }
+
+    [Test]
+    public async Task Sage_request_done_hint_both() {
+        var text = await RenderSageAsync(Sage(doneStatus: "In SAGE erfasst", doneAccount: "qm-bot"));
+
+        await Assert.That(text).Contains("Sobald das Ticket auf „In SAGE erfasst“ steht und das Ticket wieder dem Konto qm-bot zugewiesen ist, verschickt Quartermaster die Aufnahmebestätigung.");
+    }
+
+    [Test]
+    [Arguments(ForwardingStepKind.CreateTicket, "nicht angelegt werden")]
+    [Arguments(ForwardingStepKind.AddOutcomeNote, "nicht um die Entscheidung ergänzt werden")]
+    [Arguments(ForwardingStepKind.AwaitSageEntry, "nicht auf die SAGE-Eintragung geprüft werden")]
+    public async Task Failure_mail_names_the_action(ForwardingStepKind kind, string expected) {
+        var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, Application());
+        step.Kind = kind;
+        step.LastError = "Fehler";
+
+        var (_, html) = await _renderer.RenderFailureMailAsync(forwardingCase, step, null);
+
+        await Assert.That(html).Contains(expected);
+    }
+
+    [Test]
+    public async Task Failure_mail_of_a_ticket_asks_to_create_it_by_hand() {
+        var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, Application());
+        step.LastError = "Fehler";
+
+        var (_, html) = await _renderer.RenderFailureMailAsync(forwardingCase, step, null);
+
+        await Assert.That(html).Contains("Bitte das Ticket von Hand anlegen und den Vorgang danach unter");
+        await Assert.That(html).Contains("qm.test/Administration/Forwarding");
+        await Assert.That(html).DoesNotContain("Aufnahmebestätigung");
+    }
+
+    [Test]
+    [Arguments(ForwardingStepKind.AddOutcomeNote, true)]
+    [Arguments(ForwardingStepKind.AwaitSageEntry, true)]
+    [Arguments(ForwardingStepKind.AddOutcomeNote, false)]
+    public async Task Failure_mail_of_a_later_step_asks_to_fix_and_retry(ForwardingStepKind kind, bool applicationCase) {
+        var (forwardingCase, step) = applicationCase
+            ? Case(ForwardingPurpose.Application, _federal.Id, Application())
+            : Case(ForwardingPurpose.Reduction, _federal.Id, due: new DueSelectionDTO { SelectedValuation = SelectedValuation.Reduced, ReducedAmount = 24 });
+        step.Kind = kind;
+        step.LastError = "Fehler";
+
+        var (_, html) = await _renderer.RenderFailureMailAsync(forwardingCase, step, null);
+
+        await Assert.That(html).Contains("Bitte die Ursache beheben und den Vorgang unter");
+        await Assert.That(html).Contains("qm.test/Administration/Forwarding");
+        await Assert.That(html).DoesNotContain("Ticket von Hand anlegen");
+        if (applicationCase) {
+            await Assert.That(html).Contains("Wird der Vorgang von Hand als erledigt markiert, verschickt Quartermaster keine Aufnahmebestätigung.");
+        } else {
+            await Assert.That(html).DoesNotContain("Aufnahmebestätigung");
+        }
+    }
 }

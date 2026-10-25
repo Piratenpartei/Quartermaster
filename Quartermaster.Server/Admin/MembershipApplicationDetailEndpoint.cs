@@ -10,6 +10,7 @@ using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Forwarding.SageEntry;
 
 namespace Quartermaster.Server.Admin;
 
@@ -24,6 +25,7 @@ public class MembershipApplicationDetailEndpoint
     private readonly ChapterRepository _chapterRepo;
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MotionRepository _motionRepo;
+    private readonly SageEntryGate _gate;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationDetailEndpoint(
@@ -31,11 +33,13 @@ public class MembershipApplicationDetailEndpoint
         ChapterRepository chapterRepo,
         DueSelectionRepository dueSelectionRepo,
         MotionRepository motionRepo,
+        SageEntryGate gate,
         PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
+        _gate = gate;
         _perms = perms;
     }
 
@@ -74,6 +78,11 @@ public class MembershipApplicationDetailEndpoint
         var dto = app.ToDetailDto(chapter?.Name ?? "", isReduced);
         dto.DueSelection = dueSelection?.ToAdminDto();
         dto.LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id;
+
+        var approvalMail = _gate.StatusOf(app.Id);
+        dto.ApprovalMailState = approvalMail.State;
+        dto.ApprovalMailSentAt = approvalMail.SentAt.ToDtoUtc();
+        dto.FederalTicketUrl = approvalMail.FederalTicketUrl;
         await SendAsync(dto, cancellation: ct);
     }
 }

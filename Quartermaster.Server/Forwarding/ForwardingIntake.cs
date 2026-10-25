@@ -326,6 +326,16 @@ public class ForwardingIntake {
                 State = ForwardingStepState.Waiting,
                 UpdatedAt = nowUtc
             });
+            if (notePurpose == ForwardingPurpose.Application) {
+                steps.Add(new ForwardingStep {
+                    Order = steps.Count + 1,
+                    Kind = ForwardingStepKind.AwaitSageEntry,
+                    TargetChapterId = plan.Tickets[0].TargetChapterId,
+                    Purpose = notePurpose,
+                    State = ForwardingStepState.Waiting,
+                    UpdatedAt = nowUtc
+                });
+            }
         }
 
         return steps;

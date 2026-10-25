@@ -8,17 +8,11 @@ using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Forwarding;
-using Quartermaster.Data.Options;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.MembershipApplications;
 
 public class ApplicationForwardingTests : IntegrationTestBase {
-    private void SetOption(string identifier, string value) {
-        using var scope = Factory.Services.CreateScope();
-        scope.ServiceProvider.GetRequiredService<OptionRepository>().SetValue(identifier, null, value);
-    }
-
     private void SaveChapterSetting(ForwardingChapterSetting setting) {
         using var scope = Factory.Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<ForwardingSettingsRepository>().SaveChapter(setting, []);
@@ -54,6 +48,7 @@ public class ApplicationForwardingTests : IntegrationTestBase {
         var federal = Builder.SeedChapter("Bund");
         var district = Builder.SeedChapter("Kreis", parentChapterId: federal.Id);
         var foreign = Builder.SeedChapter("Fremd", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id, district.Id);
         var division = Builder.SeedDivisionFor(district.Id);
 
         await Submit(Dto(division, chapterId: foreign.Id));
@@ -65,9 +60,9 @@ public class ApplicationForwardingTests : IntegrationTestBase {
 
     [Test]
     public async Task Receipt_mail_is_sent_on_redmine_path() {
-        SetOption(ForwardingOptionKeys.MembershipApplicationEnabled, "true");
         var federal = Builder.SeedChapter("Bund");
         var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id);
         SaveChapterSetting(new ForwardingChapterSetting { ChapterId = state.Id, ApplicationMode = ForwardingMode.Redmine });
         var division = Builder.SeedDivisionFor(state.Id);
 
@@ -80,9 +75,9 @@ public class ApplicationForwardingTests : IntegrationTestBase {
 
     [Test]
     public async Task Receipt_mail_on_redmine_path_is_cleared_with_the_case_data() {
-        SetOption(ForwardingOptionKeys.MembershipApplicationEnabled, "true");
         var federal = Builder.SeedChapter("Bund");
         var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id);
         SaveChapterSetting(new ForwardingChapterSetting { ChapterId = state.Id, ApplicationMode = ForwardingMode.Redmine });
         var division = Builder.SeedDivisionFor(state.Id);
         await Submit(Dto(division));
@@ -101,6 +96,7 @@ public class ApplicationForwardingTests : IntegrationTestBase {
     public async Task Quartermaster_path_creates_motion_without_reduction() {
         var federal = Builder.SeedChapter("Bund");
         var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id, state.Id);
         var division = Builder.SeedDivisionFor(state.Id);
         var dues = new DueSelectionDTO { SelectedValuation = SelectedValuation.Reduced, ReducedAmount = 36, ReducedJustification = "Studium" };
 
@@ -117,6 +113,7 @@ public class ApplicationForwardingTests : IntegrationTestBase {
         var federal = Builder.SeedChapter("Bund");
         var state = Builder.SeedChapter("Land", parentChapterId: federal.Id);
         var district = Builder.SeedChapter("Kreis", parentChapterId: state.Id);
+        SageSetupSeeder.Seed(Factory.Services, federal.Id, district.Id);
         var division = Builder.SeedDivisionFor(district.Id);
         var dues = new DueSelectionDTO { SelectedValuation = SelectedValuation.Reduced, ReducedAmount = 36, ReducedJustification = "Studium" };
 

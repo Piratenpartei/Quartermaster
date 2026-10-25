@@ -5,7 +5,9 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
 using Quartermaster.Api;
+using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -108,5 +110,68 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.admin.application.already_decided");
         await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.Approved);
+    }
+
+    [Test]
+    public async Task Application_without_chapter_cannot_be_approved() {
+        var app = Builder.SeedMembershipApplication(status: ApplicationStatus.PendingDivisionLinking);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Approved });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.admin.application.chapter_unknown");
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.PendingDivisionLinking);
+    }
+
+    [Test]
+    public async Task Application_without_chapter_can_be_rejected() {
+        var app = Builder.SeedMembershipApplication(status: ApplicationStatus.PendingDivisionLinking);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Rejected });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.Rejected);
+    }
+
+    private void SeedSageCase(Guid chapterId, Guid applicationId) {
+        new ForwardingCaseRepository(Db).Create(
+            new ForwardingCase { Kind = ForwardingCaseKind.Application, MembershipApplicationId = applicationId, CreatedAt = DateTime.UtcNow },
+            [
+                new ForwardingStep { Order = 1, Kind = ForwardingStepKind.CreateTicket, TargetChapterId = chapterId, Purpose = ForwardingPurpose.Application, State = ForwardingStepState.Done, UpdatedAt = DateTime.UtcNow },
+                new ForwardingStep { Order = 2, Kind = ForwardingStepKind.AwaitSageEntry, TargetChapterId = chapterId, Purpose = ForwardingPurpose.Application, State = ForwardingStepState.Waiting, UpdatedAt = DateTime.UtcNow }
+            ]);
+    }
+
+    [Test]
+    public async Task Approval_with_sage_step_sends_no_mail() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id);
+        SeedSageCase(chapter.Id, app.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Approved });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.Approved);
+        await Assert.That(Db.NotificationLogs.Count(l => l.TriggerId == "application_approved")).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Rejection_mails_at_once() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id);
+        SeedSageCase(chapter.Id, app.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Rejected });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.NotificationLogs.Count(l => l.TriggerId == "application_rejected")).IsEqualTo(1);
     }
 }

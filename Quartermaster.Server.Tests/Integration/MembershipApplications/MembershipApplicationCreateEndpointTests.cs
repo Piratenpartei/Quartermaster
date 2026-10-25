@@ -3,10 +3,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
+using Quartermaster.Api;
 using Quartermaster.Api.DueSelector;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Options;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.MembershipApplications;
@@ -34,6 +38,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Anonymous_can_submit_application() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
@@ -41,8 +46,49 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Refused_without_setup() {
+        var chapter = Builder.SeedChapter("C");
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Admin.Application.NotSetUp);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Hand_entry_refused_without_setup() {
+        var chapter = Builder.SeedChapter("C");
+        Db.SystemOptions.Where(o => o.Identifier == PublicFormOptions.MembershipApplication && o.ChapterId == null).Set(o => o.Value, "false").Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(chapterPermissions: new() { [chapter.Id] = [PermissionIdentifier.ProcessApplications] });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Admin.Application.NotSetUp);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Accepted_with_setup() {
+        var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(1);
+    }
+
+    [Test]
     public async Task Submit_stashes_pending_and_does_not_create_application() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
@@ -54,6 +100,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Persists_application_with_pending_status_on_confirm() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
@@ -96,6 +143,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Creates_linked_motion_when_chapter_provided_on_confirm() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
@@ -108,6 +156,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Authenticated_caller_creates_application_directly_without_pending_row() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
@@ -141,6 +190,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Stores_country_and_other_parties_on_confirm() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var dto = ValidDto(chapter.Id);
@@ -159,6 +209,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Address_in_germany_stores_no_country() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
@@ -170,6 +221,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Reduction_outside_the_range_is_rejected() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
         var dto = ValidDto(chapter.Id);
@@ -184,6 +236,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     [Test]
     public async Task Reduction_without_classification_records_the_default_due() {
         var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         var (_, token) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var dto = ValidDto(chapter.Id);

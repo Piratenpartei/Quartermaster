@@ -32,9 +32,25 @@ public class HttpRedmineClient : IRedmineClient, IDisposable {
     }
 
     public async Task<string> GetCurrentUserNameAsync(RedmineConnectionSettings settings, CancellationToken ct) {
+        var user = await GetCurrentUserAsync(settings, ct);
+        return user.Name;
+    }
+
+    public async Task<RedmineIdName> GetCurrentUserAsync(RedmineConnectionSettings settings, CancellationToken ct) {
         using var doc = await SendAsync(settings, HttpMethod.Get, "/users/current.json", null, ct);
         var user = Property(doc.RootElement, "user");
-        return StringProperty(user, "login");
+        return new RedmineIdName(IntProperty(user, "id"), StringProperty(user, "login"));
+    }
+
+    public async Task<RedmineIssueState> GetIssueAsync(RedmineConnectionSettings settings, int issueId, CancellationToken ct) {
+        using var doc = await SendAsync(settings, HttpMethod.Get, $"/issues/{issueId}.json", null, ct);
+        var issue = Property(doc.RootElement, "issue");
+        var statusId = IntProperty(Property(issue, "status"), "id");
+        int? assigneeId = null;
+        if (issue.TryGetProperty("assigned_to", out var assignee) && assignee.ValueKind == JsonValueKind.Object)
+            assigneeId = IntProperty(assignee, "id");
+
+        return new RedmineIssueState(statusId, assigneeId);
     }
 
     public async Task<List<RedmineIdName>> ListProjectsAsync(RedmineConnectionSettings settings, CancellationToken ct) {

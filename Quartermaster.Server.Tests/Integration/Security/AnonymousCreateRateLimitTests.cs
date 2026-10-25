@@ -52,6 +52,7 @@ public class AnonymousCreateRateLimitTests : IntegrationTestBase {
     [Test]
     public async Task Bucket_is_shared_across_all_three_anonymous_endpoints() {
         var chapter = Builder.SeedChapter("RL-shared");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id);
         SetAnonymousCreatePermits("2");
 
         using var strict = Factory.WithWebHostBuilder(_ => { });

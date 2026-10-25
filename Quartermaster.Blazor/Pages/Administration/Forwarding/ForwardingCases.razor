@@ -51,6 +51,9 @@
                                         @if (!string.IsNullOrEmpty(step.TicketUrl)) {
                                             <a href="@step.TicketUrl" target="_blank" rel="noopener" class="ms-1"><i class="bi bi-box-arrow-up-right"></i></a>
                                         }
+                                        @if (ShowsNextCheck(step)) {
+                                            <div class="text-secondary">@I18n[I18nParams.With(I18nKey.Ui.ForwardingCases.NextCheck, ("time", step.NextAttemptAt!.Value.LocalDateTime.ToString("dd.MM.yyyy HH:mm")))]</div>
+                                        }
                                         @if (!string.IsNullOrEmpty(step.LastError)) {
                                             <div class="text-danger-emphasis text-break">@step.LastError <span class="text-secondary">(@I18n[I18nParams.With(I18nKey.Ui.ForwardingCases.Attempts, ("count", step.Attempts.ToString()))])</span></div>
                                         }
@@ -62,7 +65,7 @@
                                     <button class="btn btn-sm btn-outline-primary mb-1" disabled="@Busy" @onclick="() => RetryAsync(item.Id)"><i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.ForwardingCases.Retry]</button>
                                 }
                                 @if (item.Status == ForwardingCaseStatus.Failed || item.Status == ForwardingCaseStatus.Open) {
-                                    <button class="btn btn-sm btn-outline-secondary mb-1" disabled="@Busy" @onclick="() => ResolveAsync(item.Id)"><i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.ForwardingCases.Resolve]</button>
+                                    <button class="btn btn-sm btn-outline-secondary mb-1" disabled="@Busy" @onclick="() => ResolveAsync(item)"><i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.ForwardingCases.Resolve]</button>
                                 }
                             </td>
                         </tr>

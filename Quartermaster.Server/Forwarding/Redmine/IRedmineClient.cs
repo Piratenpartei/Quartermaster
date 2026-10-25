@@ -8,6 +8,10 @@ namespace Quartermaster.Server.Forwarding.Redmine;
 public interface IRedmineClient {
     Task<string> GetCurrentUserNameAsync(RedmineConnectionSettings settings, CancellationToken ct);
 
+    Task<RedmineIdName> GetCurrentUserAsync(RedmineConnectionSettings settings, CancellationToken ct);
+
+    Task<RedmineIssueState> GetIssueAsync(RedmineConnectionSettings settings, int issueId, CancellationToken ct);
+
     Task<List<RedmineIdName>> ListProjectsAsync(RedmineConnectionSettings settings, CancellationToken ct);
 
     Task<List<RedmineIdName>> ListTrackersAsync(RedmineConnectionSettings settings, CancellationToken ct);

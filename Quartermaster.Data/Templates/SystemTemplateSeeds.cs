@@ -62,10 +62,16 @@ internal static class SystemTemplateSeeds {
             "Entscheidung in Quartermaster: **{{ outcome.Result }}** durch {{ outcome.DecidedBy }} am {{ outcome.Date }}.\n\nBeschluss: {{ outcome.MotionUrl }}\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
+            "forwarding.redmine.sage_request",
+            "Redmine-Notiz: Bitte um SAGE-Eintragung",
+            null,
+            "**Bitte um Eintragung in SAGE**\n\n- Vorläufige Mitgliedsnummer: {{ sage.ProvisionalMemberNumber }}\n- Name: {{ application.FirstName }} {{ application.LastName }}\n- Gewünschtes Eintrittsdatum: {{ sage.EntryDate }}\n{% if sage.PartialAmount != \"\" %}- Beitrag {{ sage.EntryYear }} anteilig ab {{ sage.EntryMonth }}: {% if sage.ReductionResult == \"offen\" %}{{ sage.PartialAmountIfReduced }} € bei Genehmigung der Minderung, sonst {{ sage.PartialAmount }} €{% else %}{{ sage.PartialAmount }} €{% endif %}\n{% endif %}\n{% if sage.YearlyAmount != \"\" %}**Beitrag**\n\n- Einstufung: {{ dues.Valuation }}\n- Jahresbeitrag: {{ sage.YearlyAmount }} €\n{% if dues.Reduced %}- Minderung auf {{ dues.ReducedAmount }} € ({{ dues.ReducedTimeSpan }}): {{ sage.ReductionResult }}\n{% endif %}- Zahlweise: {{ dues.PaymentSchedule }}\n{% if dues.IsDirectDeposit %}- Lastschrift: {{ dues.AccountHolder }}, IBAN {{ dues.Iban }}\n{% else %}- Zahlung per Überweisung\n{% endif %}\n{% endif %}Die übrigen Personendaten stehen in der Ticketbeschreibung. Sobald {% if sage.DoneStatus != \"\" %}das Ticket auf „{{ sage.DoneStatus }}“ steht{% if sage.DoneAccount != \"\" %} und {% endif %}{% endif %}{% if sage.DoneAccount != \"\" %}das Ticket wieder dem Konto {{ sage.DoneAccount }} zugewiesen ist{% endif %}, verschickt Quartermaster die Aufnahmebestätigung.",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "forwarding.failure.email",
             "E-Mail: Weiterleitung fehlgeschlagen",
             "Weiterleitung fehlgeschlagen: {{ case.Reference }}",
-            "Für den Vorgang **{{ case.Reference }}** ({{ case.Kind }}) konnte das Ticket \"{{ failure.Purpose }}\" bei **{{ failure.TargetChapter }}** nicht angelegt werden.\n\n**Fehler:** {{ failure.Error }}\n\nBitte das Ticket von Hand anlegen und den Vorgang danach unter {{ failure.CasesUrl }} als erledigt markieren, oder die Ursache beheben und dort erneut versuchen.\n\n---\n\n**Betreff:** {{ failure.TicketSubject }}\n\n{{ failure.TicketDescription }}\n",
+            "Für den Vorgang **{{ case.Reference }}** ({{ case.Kind }}) konnte das Ticket \"{{ failure.Purpose }}\" bei **{{ failure.TargetChapter }}** nicht {{ failure.Action }} werden.\n\n**Fehler:** {{ failure.Error }}\n\n{{ failure.Remedy }}\n\n---\n\n**Betreff:** {{ failure.TicketSubject }}\n\n{{ failure.TicketDescription }}\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "templates.membershipapplication.approved.email",

@@ -5,6 +5,7 @@ using System.Linq;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.Forwarding.SageEntry;
 
 namespace Quartermaster.Server.PublicForms;
 
@@ -12,14 +13,22 @@ namespace Quartermaster.Server.PublicForms;
 public class PublicFormSettings {
     private readonly OptionRepository _options;
     private readonly ChapterRepository _chapters;
+    private readonly SageEntrySetup _sageSetup;
 
-    public PublicFormSettings(OptionRepository options, ChapterRepository chapters) {
+    public PublicFormSettings(OptionRepository options, ChapterRepository chapters, SageEntrySetup sageSetup) {
         _options = options;
         _chapters = chapters;
+        _sageSetup = sageSetup;
     }
 
+    /// <summary>The public form switch is on and the SAGE entry setup is complete.</summary>
     public bool IsMembershipApplicationEnabled() {
-        return IsTrue(_options.GetGlobalValue(PublicFormOptions.MembershipApplication)?.Value);
+        return IsTrue(_options.GetGlobalValue(PublicFormOptions.MembershipApplication)?.Value) && IsMembershipApplicationReady();
+    }
+
+    /// <summary>Applications are only accepted, by anyone, once the federal Redmine setup carries everything the SAGE entry check needs.</summary>
+    public bool IsMembershipApplicationReady() {
+        return _sageSetup.IsComplete();
     }
 
     public bool IsDueSelectionEnabled() {
