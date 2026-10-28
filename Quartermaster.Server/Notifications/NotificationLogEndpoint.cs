@@ -41,29 +41,32 @@ public class NotificationLogEndpoint : Endpoint<NotificationLogRequest, List<Not
             return;
         }
 
+        var hiddenTriggerIds = NotificationTriggerCatalog.HiddenTriggerIdsFor(_perms);
         List<NotificationLog> logs;
         if (!string.IsNullOrEmpty(req.SourceEntityType) && req.SourceEntityId.HasValue) {
-            logs = _logRepo.GetForSource(req.SourceEntityType, req.SourceEntityId.Value);
+            logs = _logRepo.GetForSource(req.SourceEntityType, req.SourceEntityId.Value, hiddenTriggerIds);
         } else {
-            logs = _logRepo.GetRecent();
+            logs = _logRepo.GetRecent(hiddenTriggerIds);
         }
 
-        var dtos = logs.Select(l => new NotificationLogDTO {
-            Id = l.Id,
-            ChannelId = l.ChannelId,
-            Recipient = l.Recipient,
-            RecipientUserId = l.RecipientUserId,
-            Subject = l.Subject,
-            TriggerId = l.TriggerId,
-            TemplateIdentifier = l.TemplateIdentifier,
-            SourceEntityType = l.SourceEntityType,
-            SourceEntityId = l.SourceEntityId,
-            Status = l.Status,
-            Error = l.Error,
-            AttemptCount = l.AttemptCount,
-            CreatedAt = l.CreatedAt.ToDtoUtc(),
-            SentAt = l.SentAt.ToDtoUtc()
-        }).ToList();
+        var dtos = logs
+            .Select(l => new NotificationLogDTO {
+                Id = l.Id,
+                ChannelId = l.ChannelId,
+                Recipient = l.Recipient,
+                RecipientUserId = l.RecipientUserId,
+                Subject = l.Subject,
+                TriggerId = l.TriggerId,
+                TemplateIdentifier = l.TemplateIdentifier,
+                SourceEntityType = l.SourceEntityType,
+                SourceEntityId = l.SourceEntityId,
+                Status = l.Status,
+                Error = l.Error,
+                AttemptCount = l.AttemptCount,
+                CreatedAt = l.CreatedAt.ToDtoUtc(),
+                SentAt = l.SentAt.ToDtoUtc()
+            })
+            .ToList();
 
         await SendAsync(dtos, cancellation: ct);
     }

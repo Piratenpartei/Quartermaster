@@ -44,6 +44,7 @@ public class PermissionRepository {
         AddOrRename(PermissionIdentifier.ManageAccreditation, "Akkreditierung durchführen", true);
         AddOrRename(PermissionIdentifier.SystemVote, "Systemweites Stimmrecht", true);
         AddOrRename(PermissionIdentifier.LinkApplicationDivision, "Mitgliedsanträge: Gliederung zuordnen", true);
+        AddOrRename(PermissionIdentifier.ManageApplicantRegister, "Ablehnungsregister verwalten", true);
 
         AddOrRename(PermissionIdentifier.ViewApplications, "Mitgliedsanträge einsehen", false);
         AddOrRename(PermissionIdentifier.ProcessApplications, "Mitgliedsanträge bearbeiten", false);

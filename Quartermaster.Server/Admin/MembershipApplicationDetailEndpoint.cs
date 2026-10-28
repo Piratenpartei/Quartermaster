@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.ApplicantRegister;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
@@ -26,6 +30,7 @@ public class MembershipApplicationDetailEndpoint
     private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly MotionRepository _motionRepo;
     private readonly SageEntryGate _gate;
+    private readonly ApplicantRegisterRepository _register;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationDetailEndpoint(
@@ -34,12 +39,14 @@ public class MembershipApplicationDetailEndpoint
         DueSelectionRepository dueSelectionRepo,
         MotionRepository motionRepo,
         SageEntryGate gate,
+        ApplicantRegisterRepository register,
         PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
         _gate = gate;
+        _register = register;
         _perms = perms;
     }
 
@@ -83,6 +90,19 @@ public class MembershipApplicationDetailEndpoint
         dto.ApprovalMailState = approvalMail.State;
         dto.ApprovalMailSentAt = approvalMail.SentAt.ToDtoUtc();
         dto.FederalTicketUrl = approvalMail.FederalTicketUrl;
+        if (_perms.HasGlobal(PermissionIdentifier.ManageApplicantRegister))
+            dto.RegisterHits = RegisterHitsOf(app.Id);
         await SendAsync(dto, cancellation: ct);
+    }
+
+    private List<ApplicationRegisterHitDTO> RegisterHitsOf(Guid applicationId) {
+        var hits = _register.HitsFor(applicationId);
+        var entries = _register.GetMany(hits.Select(h => h.EntryId).Distinct().ToList());
+        var dtos = new List<ApplicationRegisterHitDTO>();
+        foreach (var hit in hits) {
+            if (entries.TryGetValue(hit.EntryId, out var entry))
+                dtos.Add(hit.ToDto(entry));
+        }
+        return dtos;
     }
 }

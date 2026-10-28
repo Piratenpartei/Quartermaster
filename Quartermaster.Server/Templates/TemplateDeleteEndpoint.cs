@@ -31,7 +31,7 @@ public class TemplateDeleteEndpoint : Endpoint<TemplateDeleteRequest> {
             return;
         }
         var template = _templateRepo.Get(req.Id);
-        if (template == null) {
+        if (template == null || !RestrictedTemplates.IsVisible(template.Identifier, _perms)) {
             await SendNotFoundAsync(ct);
             return;
         }

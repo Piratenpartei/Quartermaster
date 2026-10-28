@@ -42,6 +42,7 @@ public class TemplateListEndpoint : EndpointWithoutRequest<List<TemplateListItem
             .Where(t => t.ChapterId == null
                 || permittedSet == null
                 || permittedSet.Contains(t.ChapterId.Value))
+            .Where(t => RestrictedTemplates.IsVisible(t.Identifier, _perms))
             .Select(t => new TemplateListItemDTO {
                 Id = t.Id,
                 Identifier = t.Identifier,

@@ -20,6 +20,15 @@ public class ChapterRepository {
     public Chapter? Get(Guid id)
         => _context.Chapters.Where(c => c.Id == id && c.DeletedAt == null).FirstOrDefault();
 
+    /// <summary>True for soft-deleted chapters too, so records that keep a historical chapter stay valid.</summary>
+    public bool Exists(Guid id)
+        => _context.Chapters.Any(c => c.Id == id);
+
+    public Dictionary<Guid, string> GetNames(IReadOnlyCollection<Guid> ids)
+        => _context.Chapters
+            .Where(c => ids.Contains(c.Id) && c.DeletedAt == null)
+            .ToDictionary(c => c.Id, c => c.Name);
+
     public List<Chapter> GetAll()
         => _context.Chapters.Where(c => c.DeletedAt == null).OrderBy(c => c.Name).ToList();
 
@@ -108,7 +117,7 @@ public class ChapterRepository {
             .ToDictionary(g => g.Key, g => g.Select(c => c.Code).OrderBy(s => s).ToList());
     }
 
-    /// <summary>Builds DTOs with codes + divisions batch-loaded — two extra queries total regardless of list size.
+    /// <summary>Builds DTOs with codes + divisions batch-loaded: two extra queries total regardless of list size.
     /// Pass <paramref name="includeContactEmail"/> only for signed-in callers.</summary>
     public List<ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters, bool includeContactEmail = false) {
         if (chapters.Count == 0)
@@ -197,7 +206,7 @@ public class ChapterRepository {
             .ToList();
 
         // Most specific match wins: the chapter whose division appears earliest in the ancestor chain.
-        // Archived chapters skipped — historical reference only; new applications route to a live chapter.
+        // Archived chapters skipped; historical reference only; new applications route to a live chapter.
         foreach (var ancestorId in ancestorIds) {
             var matchId = ancestorChapterIds
                 .FirstOrDefault(c => c.AdministrativeDivisionId == ancestorId)?.ChapterId;
@@ -210,7 +219,7 @@ public class ChapterRepository {
                 return chapter;
         }
 
-        // No region-specific chapter covers this division — fall back to the top-level
+        // No region-specific chapter covers this division; fall back to the top-level
         // (national) chapter so an application still routes to a reviewable body.
         return GetRootChapter();
     }

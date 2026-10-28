@@ -8,7 +8,6 @@ using Quartermaster.Api;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Events;
-using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Events;
@@ -76,12 +75,13 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
 
     private DashboardSection<DashboardApplicationDTO>? FetchApplications(Dictionary<Guid, string> chapters) {
         var chapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
+        var includeFederalStep = MayDecideFederalStep();
 
-        if (chapterIds is { Count: 0 })
+        if (chapterIds is { Count: 0 } && !includeFederalStep)
             return null;
 
         var scopeIds = chapterIds ?? chapters.Keys.ToList();
-        var (items, total) = _applicationRepo.List(scopeIds, ApplicationStatus.Pending, 1, WidgetLimit);
+        var (items, total) = _applicationRepo.ListAwaitingDecision(scopeIds, includeFederalStep, 1, WidgetLimit);
 
         return new DashboardSection<DashboardApplicationDTO> {
             TotalCount = total,
@@ -93,6 +93,12 @@ public class DashboardEndpoint : EndpointWithoutRequest<DashboardDTO> {
                 SubmittedAt = a.SubmittedAt.ToDtoUtc()
             }).ToList()
         };
+    }
+
+    /// <summary>The federal step is decided with the root chapter's permission, never the responsible chapter's own.</summary>
+    private bool MayDecideFederalStep() {
+        var rootId = _chapterRepo.GetRootChapter()?.Id;
+        return rootId != null && _perms.Has(rootId.Value, PermissionIdentifier.ProcessApplications);
     }
 
     private DashboardSection<DashboardDueSelectionDTO>? FetchDueSelections() {

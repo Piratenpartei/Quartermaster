@@ -11,5 +11,11 @@ public enum ApplicationStatus {
     /// <c>applications_link_division</c> assigns a chapter, after which it moves to <see cref="Pending"/>.
     /// Appended last to preserve the persisted integer ordering.
     /// </summary>
-    PendingDivisionLinking
+    PendingDivisionLinking,
+
+    /// <summary>
+    /// Approved by its chapter, waiting for the Bundesvorstand under § 3 Abs. 2 BS.
+    /// Appended last to preserve the persisted integer ordering.
+    /// </summary>
+    PendingFederalApproval
 }

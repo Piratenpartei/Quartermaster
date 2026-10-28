@@ -38,9 +38,10 @@ public class NotificationLogRepository {
             .Update();
     }
 
-    public List<NotificationLog> GetForSource(string entityType, Guid entityId) {
+    public List<NotificationLog> GetForSource(string entityType, Guid entityId, IReadOnlyList<string> excludedTriggerIds) {
         return _context.NotificationLogs
             .Where(l => l.SourceEntityType == entityType && l.SourceEntityId == entityId)
+            .Where(l => l.TriggerId == null || !excludedTriggerIds.Contains(l.TriggerId))
             .OrderByDescending(l => l.CreatedAt)
             .ToList();
     }
@@ -56,8 +57,9 @@ public class NotificationLogRepository {
             .ToList();
     }
 
-    public List<NotificationLog> GetRecent(int count = 50) {
+    public List<NotificationLog> GetRecent(IReadOnlyList<string> excludedTriggerIds, int count = 50) {
         return _context.NotificationLogs
+            .Where(l => l.TriggerId == null || !excludedTriggerIds.Contains(l.TriggerId))
             .OrderByDescending(l => l.CreatedAt)
             .Take(count)
             .ToList();
@@ -132,6 +134,11 @@ public class NotificationLogRepository {
         }
         if (!string.IsNullOrEmpty(filter.SourceEntityType)) {
             q = q.Where(l => l.SourceEntityType == filter.SourceEntityType);
+        }
+
+        var excludedTriggerIds = filter.ExcludedTriggerIds;
+        if (excludedTriggerIds.Count > 0) {
+            q = q.Where(l => l.TriggerId == null || !excludedTriggerIds.Contains(l.TriggerId));
         }
 
         var totals = q

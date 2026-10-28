@@ -30,6 +30,7 @@ using Quartermaster.Data.Migrations;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.AdministrativeDivisions;
+using Quartermaster.Server.ApplicantRegister;
 using Quartermaster.Server.Antiforgery;
 using Quartermaster.Server.AssemblyMotions.Notifications;
 using Quartermaster.Server.Authentication;
@@ -302,6 +303,7 @@ public partial class Program {
         builder.Services.AddScoped<IRecipientResolver, MotionSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, ApplicationSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();
+        builder.Services.AddScoped<IRecipientResolver, ApplicantRegisterHitRecipientResolver>();
         foreach (var triggerId in AssemblyMotionRecipientResolver.TriggerIds)
             builder.Services.AddScoped<IRecipientResolver>(sp => new AssemblyMotionRecipientResolver(triggerId, sp.GetRequiredService<DbContext>()));
         builder.Services.AddScoped<NotificationDispatcher>();
@@ -314,6 +316,8 @@ public partial class Program {
         builder.Services.AddScoped<SubmissionMaterializer>();
         builder.Services.AddScoped<MembershipApplicationMailService>();
         builder.Services.AddScoped<ApplicationReviewService>();
+        builder.Services.AddScoped<FederalApprovalFlow>();
+        builder.Services.AddScoped<ApplicantRegisterEntryMapper>();
         builder.Services.AddScoped<DueSelectionMailService>();
         builder.Services.AddScoped<MotionResolutionDecisionMailer>();
         builder.Services.AddHostedService<PendingSubmissionCleanupHostedService>();

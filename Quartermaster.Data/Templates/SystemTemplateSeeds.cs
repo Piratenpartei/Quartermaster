@@ -151,6 +151,18 @@ internal static class SystemTemplateSeeds {
             null,
             "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}* — {{ selection.ReducedAmount }}€\n\n[Beitragseinstufung öffnen]({{ globals.BaseUrl }}/Administration/DueSelections/{{ selection.Id }})"),
         new SystemTemplateSeed(
+            "notifications.applicant_register_hit.email",
+            "Benachrichtigung: Treffer im Ablehnungsregister (E-Mail)",
+            "Treffer im Ablehnungsregister: {{ hit.FirstName }} {{ hit.LastName }}",
+            "Hallo,\n\nder Mitgliedsantrag von *{{ hit.FirstName }} {{ hit.LastName }}* ({{ hit.City }}) entspricht einem Eintrag im Ablehnungsregister:\n\n{% for entry in hit.Entries %}- {{ entry }}\n{% endfor %}\n[Mitgliedsantrag öffnen]({{ globals.BaseUrl }}{{ hit.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.applicant_register_hit.telegram",
+            "Benachrichtigung: Treffer im Ablehnungsregister (Telegram)",
+            null,
+            "Treffer im Ablehnungsregister\n\n*{{ hit.FirstName }} {{ hit.LastName }}* ({{ hit.City }})\n\n{% for entry in hit.Entries %}- {{ entry }}\n{% endfor %}\n[Mitgliedsantrag öffnen]({{ globals.BaseUrl }}{{ hit.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_reset.email",
             "Benachrichtigung: Antrag geändert, Mitantragstellung zurückgesetzt (E-Mail)",
             "Antrag geändert: {{ motion.Title }}",

@@ -63,9 +63,18 @@ public class ForwardingTicketRenderer {
         var model = BuildModel(forwardingCase, step.TargetChapterId, federalTicketId, federalTicketUrl);
 
         var subject = SingleLine(await RenderAsync(template.Subject ?? "{{ case.Kind }} {{ case.Reference }}", model));
-        var description = (await RenderAsync(template.Body, model)).TrimEnd() + "\n\n" + ReferenceLine(forwardingCase, step);
+        var description = (await RenderAsync(template.Body, model)).TrimEnd() + "\n\n" + RegisterNoticeBlock(forwardingCase, step) + ReferenceLine(forwardingCase, step);
         var customFields = await RenderCustomFieldsAsync(target.CustomFieldsJson, model);
         return new RenderedTicket(subject, description, customFields);
+    }
+
+    private static string RegisterNoticeBlock(ForwardingCase forwardingCase, ForwardingStep step) {
+        if (step.Order != 1)
+            return "";
+        var notice = Payload(forwardingCase)?.RegisterNotice;
+        if (string.IsNullOrEmpty(notice))
+            return "";
+        return notice + "\n\n";
     }
 
     /// <summary>The note goes onto the federal ticket, so like that ticket it takes the template of the note step's (federal) chapter.</summary>

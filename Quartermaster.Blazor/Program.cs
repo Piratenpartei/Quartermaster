@@ -46,6 +46,7 @@ public static class Program {
         builder.Services.AddScoped<MeetingsApi>();
         builder.Services.AddScoped<ReceiptService>();
         builder.Services.AddScoped<SupportSignatureService>();
+        builder.Services.AddScoped<ApplicantRegisterService>();
         builder.Services.AddScoped<ChapterNames>();
 
         await builder.Build().RunAsync();

@@ -102,6 +102,18 @@ public static class I18nKey {
             }
         }
 
+        public static class ApplicantRegister {
+            public const string NamesRequired = "error.applicant_register.names_required";
+            public const string KindInvalid = "error.applicant_register.kind_invalid";
+            public const string IdentifyingDetailRequired = "error.applicant_register.identifying_detail_required";
+            public const string FieldTooLong = "error.applicant_register.field_too_long";
+            public const string ChapterUnknown = "error.applicant_register.chapter_unknown";
+            public const string EmailInvalid = "error.applicant_register.email_invalid";
+            public const string OccurredOnRequired = "error.applicant_register.occurred_on_required";
+            public const string OccurredOnInFuture = "error.applicant_register.occurred_on_in_future";
+            public const string EntryInUse = "error.applicant_register.entry_in_use";
+        }
+
         public static class SupportSignatures {
             public static class Office {
                 public const string NameRequired = "error.support_signatures.office.name_required";
@@ -231,6 +243,7 @@ public static class I18nKey {
 
             public static class Status {
                 public const string MotionIdRequired = "error.motion.status.motion_id_required";
+                public const string MotionClosed = "error.motion.status.motion_closed";
             }
         }
 
@@ -456,6 +469,7 @@ public static class I18nKey {
                 public const string DivisionRequired = "error.admin.application.division_required";
                 public const string NoChapterForDivision = "error.admin.application.no_chapter_for_division";
                 public const string NotSetUp = "error.admin.application.not_set_up";
+                public const string RegisterHitAlreadyDismissed = "error.admin.application.register_hit_already_dismissed";
             }
 
             public static class DueSelection {
@@ -737,6 +751,7 @@ public static class I18nKey {
             public const string AdministrationDivisionsTree = "ui.main_nav_bar.administration.divisions_tree";
             public const string AdministrationChaptersList = "ui.main_nav_bar.administration.chapters_list";
             public const string AdministrationChaptersTree = "ui.main_nav_bar.administration.chapters_tree";
+            public const string AdministrationApplicantRegister = "ui.main_nav_bar.administration.applicant_register";
             public const string System = "ui.main_nav_bar.system";
             public const string SystemSettings = "ui.main_nav_bar.system.settings";
             public const string SystemTemplates = "ui.main_nav_bar.system.templates";
@@ -1041,6 +1056,7 @@ public static class I18nKey {
             public const string Approved = "ui.application_status.approved";
             public const string Rejected = "ui.application_status.rejected";
             public const string PendingDivisionLinking = "ui.application_status.pending_division_linking";
+            public const string PendingFederalApproval = "ui.application_status.pending_federal_approval";
         }
 
         public static class ApplicationDetail {
@@ -1097,6 +1113,23 @@ public static class I18nKey {
             public const string ApprovalManuallyResolved = "ui.application_detail.approval_manually_resolved";
             public const string ApprovalFailed = "ui.application_detail.approval_failed";
             public const string FederalTicket = "ui.application_detail.federal_ticket";
+            public const string FederalApprovalNotice = "ui.application_detail.federal_approval_notice";
+            public const string FederalMotionLink = "ui.application_detail.federal_motion_link";
+            public const string RegisterHitsTitle = "ui.application_detail.register_hits_title";
+            public const string RegisterHitMatched = "ui.application_detail.register_hit_matched";
+            public const string RegisterHitDismissedAt = "ui.application_detail.register_hit_dismissed_at";
+            public const string RegisterSelfDeclared = "ui.application_detail.register_self_declared";
+            public const string RegisterNoHits = "ui.application_detail.register_no_hits";
+            public const string OtherPerson = "ui.application_detail.other_person";
+            public const string OtherPersonDialogTitle = "ui.application_detail.other_person_dialog_title";
+            public const string OtherPersonDialogMessage = "ui.application_detail.other_person_dialog_message";
+            public const string OtherPersonDialogConfirm = "ui.application_detail.other_person_dialog_confirm";
+            public const string MatchFirstName = "ui.application_detail.match.first_name";
+            public const string MatchLastName = "ui.application_detail.match.last_name";
+            public const string MatchDateOfBirth = "ui.application_detail.match.date_of_birth";
+            public const string MatchStreet = "ui.application_detail.match.street";
+            public const string MatchPostCodeCity = "ui.application_detail.match.post_code_city";
+            public const string MatchEmail = "ui.application_detail.match.email";
             public const string ValuationMonthlyPay = "ui.application_detail.valuation.monthly_pay";
             public const string ValuationOnePercent = "ui.application_detail.valuation.one_percent";
             public const string ValuationUnderage = "ui.application_detail.valuation.underage";
@@ -2646,6 +2679,44 @@ public static class I18nKey {
             public const string LoginOk = "ui.settings_check.login_ok";
             public const string MistralOk = "ui.settings_check.mistral_ok";
             public const string PostizOk = "ui.settings_check.postiz_ok";
+        }
+
+        public static class ApplicantRegister {
+            public const string Title = "ui.applicant_register.title";
+            public const string Intro = "ui.applicant_register.intro";
+            public const string NewEntry = "ui.applicant_register.new_entry";
+            public const string NewTitle = "ui.applicant_register.new_title";
+            public const string EditTitle = "ui.applicant_register.edit_title";
+            public const string BackToList = "ui.applicant_register.back_to_list";
+            public const string SearchPlaceholder = "ui.applicant_register.search_placeholder";
+            public const string NoEntries = "ui.applicant_register.no_entries";
+            public const string NotFound = "ui.applicant_register.not_found";
+            public const string ColumnKind = "ui.applicant_register.column_kind";
+            public const string ColumnDate = "ui.applicant_register.column_date";
+            public const string ColumnName = "ui.applicant_register.column_name";
+            public const string ColumnCity = "ui.applicant_register.column_city";
+            public const string KindRejected = "ui.applicant_register.kind.rejected";
+            public const string KindExpelled = "ui.applicant_register.kind.expelled";
+            public const string KindLeftDuringExpulsion = "ui.applicant_register.kind.left_during_expulsion";
+            public const string KindLabel = "ui.applicant_register.kind_label";
+            public const string FirstName = "ui.applicant_register.first_name";
+            public const string LastName = "ui.applicant_register.last_name";
+            public const string DateOfBirth = "ui.applicant_register.date_of_birth";
+            public const string Street = "ui.applicant_register.street";
+            public const string HouseNumber = "ui.applicant_register.house_number";
+            public const string PostCode = "ui.applicant_register.post_code";
+            public const string City = "ui.applicant_register.city";
+            public const string PostCodeCity = "ui.applicant_register.post_code_city";
+            public const string Email = "ui.applicant_register.email";
+            public const string OccurredOn = "ui.applicant_register.occurred_on";
+            public const string Note = "ui.applicant_register.note";
+            public const string Chapter = "ui.applicant_register.chapter";
+            public const string IdentifyingHint = "ui.applicant_register.identifying_hint";
+            public const string SourceApplication = "ui.applicant_register.source_application";
+            public const string DeleteTitle = "ui.applicant_register.delete_title";
+            public const string DeleteMessage = "ui.applicant_register.delete_message";
+            public const string DeleteConfirm = "ui.applicant_register.delete_confirm";
+            public const string Deleted = "ui.applicant_register.deleted";
         }
 
         public static class SupportSignatures {

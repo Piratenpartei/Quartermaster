@@ -1,0 +1,58 @@
+@page "/Administration/ApplicantRegister"
+@using Quartermaster.Api
+@using Quartermaster.Api.I18n
+
+<PageTitle>@I18n[I18nKey.Ui.ApplicantRegister.Title]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ManageApplicantRegister">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <h3 class="mb-0">@I18n[I18nKey.Ui.ApplicantRegister.Title]</h3>
+        <a href="/Administration/ApplicantRegister/New" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.ApplicantRegister.NewEntry]
+        </a>
+    </div>
+    <p class="text-secondary">@I18n[I18nKey.Ui.ApplicantRegister.Intro]</p>
+
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="search" class="form-control" placeholder="@I18n[I18nKey.Ui.ApplicantRegister.SearchPlaceholder]"
+               aria-label="@I18n[I18nKey.Ui.Common.Search]" @bind="SearchQuery" @onkeydown="OnSearchKeyDown" />
+        <button class="btn btn-outline-secondary" @onclick="SearchFromStart">@I18n[I18nKey.Ui.Common.Search]</button>
+    </div>
+
+    @if (Response == null) {
+        <LoadingSpinner />
+    } else if (Response.Items.Count == 0) {
+        <EmptyState Message="@I18n[I18nKey.Ui.ApplicantRegister.NoEntries]" />
+    } else {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.ApplicantRegister.ColumnKind]</th>
+                        <th>@I18n[I18nKey.Ui.ApplicantRegister.ColumnDate]</th>
+                        <th>@I18n[I18nKey.Ui.ApplicantRegister.ColumnName]</th>
+                        <th>@I18n[I18nKey.Ui.ApplicantRegister.ColumnCity]</th>
+                        <th class="text-end"><span class="visually-hidden">@I18n[I18nKey.Ui.Common.Action]</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Response.Items) {
+                        <tr>
+                            <td>@KindLabel(entry.Kind)</td>
+                            <td><LocalTime DateValue="entry.OccurredOn" /></td>
+                            <td>@entry.FirstName @entry.LastName</td>
+                            <td>@entry.PostCode @entry.City</td>
+                            <td class="text-end">
+                                <a href="/Administration/ApplicantRegister/@entry.Id" class="btn btn-sm btn-outline-primary" title="@I18n[I18nKey.Ui.Common.Edit]">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pagination CurrentPage="CurrentPage" TotalPages="TotalPages" OnPageChanged="GoToPage" />
+    }
+</RequirePermission>

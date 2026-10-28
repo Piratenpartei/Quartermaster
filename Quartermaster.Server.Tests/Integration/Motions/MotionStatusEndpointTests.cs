@@ -141,4 +141,46 @@ public class MotionStatusEndpointTests : IntegrationTestBase {
         var persisted = Db.Motions.First(m => m.Id == motion.Id);
         await Assert.That(persisted.IsRealized).IsTrue();
     }
+
+    [Test]
+    public async Task Status_change_on_closed_motion_conflicts() {
+        var chapter = Builder.SeedChapter();
+        var approved = Builder.SeedMotion(chapter.Id, status: MotionApprovalStatus.Approved);
+        var formallyRejected = Builder.SeedMotion(chapter.Id, status: MotionApprovalStatus.FormallyRejected);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var rejectApproved = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            MotionId = approved.Id,
+            ApprovalStatus = MotionApprovalStatus.FormallyRejected
+        });
+        var closeRejected = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            MotionId = formallyRejected.Id,
+            ApprovalStatus = MotionApprovalStatus.ClosedWithoutAction
+        });
+
+        await Assert.That(rejectApproved.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await rejectApproved.Content.ReadAsStringAsync()).Contains("error.motion.status.motion_closed");
+        await Assert.That(closeRejected.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(Db.Motions.First(m => m.Id == approved.Id).ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
+        await Assert.That(Db.Motions.First(m => m.Id == formallyRejected.Id).ApprovalStatus).IsEqualTo(MotionApprovalStatus.FormallyRejected);
+    }
+
+    [Test]
+    public async Task Realized_flag_set_on_approved_motion() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, status: MotionApprovalStatus.Approved);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            MotionId = motion.Id,
+            IsRealized = true
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.Motions.First(m => m.Id == motion.Id).IsRealized).IsTrue();
+    }
 }

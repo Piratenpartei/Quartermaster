@@ -3,6 +3,7 @@ using LinqToDB;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Forwarding;
@@ -44,7 +45,8 @@ public class ForwardingIntakeTests : RepositoryTestBase {
         var review = new ApplicationReviewService(motions, chapters, new CapturingNotificationQueue());
         _intake = new ForwardingIntake(
             new ForwardingSettingsResolver(chapters, _settings, new RedmineConnectionRepository(Db)),
-            _cases, dueSelections, new MembershipApplicationRepository(Db, AuditLog), review, _options, _notifications, new NotificationLogRepository(Db), chapters);
+            _cases, dueSelections, new MembershipApplicationRepository(Db, AuditLog), review, _options, _notifications, new NotificationLogRepository(Db), chapters,
+            new ApplicantRegisterRepository(Db, AuditLog));
         _federal = _builder.SeedChapter("Bund " + Guid.NewGuid().ToString("N")[..6]);
         _state = _builder.SeedChapter("Land", parentChapterId: _federal.Id);
         _district = _builder.SeedChapter("Kreis", parentChapterId: _state.Id);
@@ -246,7 +248,8 @@ public class ForwardingIntakeTests : RepositoryTestBase {
         var review = new ApplicationReviewService(new MotionRepository(Db, AuditLog), chapters, notifications);
         return new ForwardingIntake(
             new ForwardingSettingsResolver(chapters, _settings, new RedmineConnectionRepository(Db)),
-            _cases, dueSelections, new MembershipApplicationRepository(Db, AuditLog), review, _options, notifications, new NotificationLogRepository(Db), chapters);
+            _cases, dueSelections, new MembershipApplicationRepository(Db, AuditLog), review, _options, notifications, new NotificationLogRepository(Db), chapters,
+            new ApplicantRegisterRepository(Db, AuditLog));
     }
 
     [Test]

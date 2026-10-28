@@ -58,9 +58,24 @@ public class MembershipApplication {
     public DateTime? DeletedAt { get; set; }
     public DateTime? AnonymizedAt { get; set; }
 
+    public bool RequiresFederalApproval { get; set; }
+    public Guid? FederalApprovalMotionId { get; set; }
+
     // Manual member activation
     public int? MemberNumber { get; set; }
     public DateTime? WelcomeSentAt { get; set; }
+
+    /// <summary>The status an approval moves this application to: the chapter's approval of an application that needs the Bundesvorstand only
+    /// opens the federal step, unless the application already sits there or belongs to the root chapter.</summary>
+    public ApplicationStatus ApprovedStatus(Guid? rootChapterId) {
+        if (!RequiresFederalApproval)
+            return ApplicationStatus.Approved;
+        if (Status == ApplicationStatus.PendingFederalApproval)
+            return ApplicationStatus.Approved;
+        if (ChapterId != null && ChapterId == rootChapterId)
+            return ApplicationStatus.Approved;
+        return ApplicationStatus.PendingFederalApproval;
+    }
 
     public static MembershipApplication FromDto(MembershipApplicationDTO dto, Guid? dueSelectionId, DateTime nowUtc) => new() {
         FirstName = dto.FirstName,
@@ -136,7 +151,9 @@ public class MembershipApplication {
         ProcessedAt = ProcessedAt.ToDtoUtc(),
         MemberNumber = MemberNumber,
         WelcomeSentAt = WelcomeSentAt.ToDtoUtc(),
-        HasReducedDueSelection = hasReducedDueSelection
+        HasReducedDueSelection = hasReducedDueSelection,
+        RequiresFederalApproval = RequiresFederalApproval,
+        FederalApprovalMotionId = FederalApprovalMotionId
     };
 
     /// <summary>Synthesises a <see cref="MemberDetailDTO"/> from this application for the welcome-mail flow, before the real Member entity exists.</summary>

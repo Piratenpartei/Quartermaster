@@ -41,7 +41,7 @@ public class NotificationPreferencesUpdateEndpoint : Endpoint<UpdateNotification
             return;
         }
 
-        var knownTriggerIds = NotificationTriggerCatalog.All.Select(t => t.TriggerId).ToHashSet();
+        var knownTriggerIds = NotificationTriggerCatalog.VisibleFor(_perms).Select(t => t.TriggerId).ToHashSet();
         var availableChannelIds = NotificationChannelCatalog.All
             .Where(c => c.UserSelectable)
             .Select(c => c.ChannelId)

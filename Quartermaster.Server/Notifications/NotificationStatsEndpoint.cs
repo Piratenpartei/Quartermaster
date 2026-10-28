@@ -57,6 +57,7 @@ public class NotificationStatsEndpoint : Endpoint<NotificationStatsRequest, Noti
             TriggerId = req.TriggerId,
             TemplateIdentifier = req.TemplateIdentifier,
             SourceEntityType = req.SourceEntityType,
+            ExcludedTriggerIds = NotificationTriggerCatalog.HiddenTriggerIdsFor(_perms).ToList(),
             GroupBy = (NotificationStatsGroupBy)(int)req.GroupBy
         };
         var aggregate = _logRepo.AggregateStats(filter);

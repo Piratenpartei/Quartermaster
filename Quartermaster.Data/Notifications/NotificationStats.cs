@@ -10,6 +10,7 @@ public class NotificationStatsFilter {
     public string? TriggerId { get; set; }
     public string? TemplateIdentifier { get; set; }
     public string? SourceEntityType { get; set; }
+    public List<string> ExcludedTriggerIds { get; set; } = new();
     public NotificationStatsGroupBy GroupBy { get; set; } = NotificationStatsGroupBy.None;
 }
 

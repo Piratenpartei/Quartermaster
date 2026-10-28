@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LinqToDB;
+using Quartermaster.Api.ApplicantRegister;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
@@ -9,6 +10,7 @@ using Quartermaster.Api.Motions;
 using Quartermaster.Api.Roles;
 using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
@@ -368,6 +370,41 @@ public sealed class TestDataBuilder {
         };
         _db.Insert(app);
         return app;
+    }
+
+    public ApplicantRegisterEntry SeedRegisterEntry(
+        Guid? chapterId = null,
+        ApplicantRegisterKind kind = ApplicantRegisterKind.Rejected,
+        string firstName = "Max",
+        string lastName = "Mustermann",
+        DateTime? dateOfBirth = null,
+        string street = "Hauptstrasse",
+        string houseNumber = "1",
+        string postCode = "12345",
+        string city = "Musterstadt",
+        string? email = "max@test.local",
+        DateTime? occurredOn = null,
+        string? note = null,
+        Guid? sourceApplicationId = null) {
+        var entry = new ApplicantRegisterEntry {
+            Id = Guid.NewGuid(),
+            Kind = kind,
+            FirstName = firstName,
+            LastName = lastName,
+            DateOfBirth = dateOfBirth ?? new DateTime(1990, 1, 1),
+            Street = street,
+            HouseNumber = houseNumber,
+            PostCode = postCode,
+            City = city,
+            Email = email,
+            OccurredOn = occurredOn ?? new DateTime(2025, 1, 1),
+            Note = note,
+            ChapterId = chapterId ?? SeedChapter().Id,
+            SourceApplicationId = sourceApplicationId,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.Insert(entry);
+        return entry;
     }
 
     public DueSelection SeedDueSelection(

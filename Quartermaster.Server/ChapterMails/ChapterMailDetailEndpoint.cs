@@ -10,6 +10,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Templates;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Templates;
 
 namespace Quartermaster.Server.ChapterMails;
 
@@ -55,7 +56,19 @@ public class ChapterMailDetailEndpoint : Endpoint<ChapterMailIdRequest, ChapterM
             return;
         }
 
+        if (HasHiddenTemplate(mail)) {
+            await SendNotFoundAsync(ct);
+            return;
+        }
+
         await SendAsync(BuildDto(mail), cancellation: ct);
+    }
+
+    private bool HasHiddenTemplate(ChapterMail mail) {
+        if (mail.TemplateId == null)
+            return false;
+        var template = _templateRepo.Get(mail.TemplateId.Value);
+        return template != null && !RestrictedTemplates.IsVisible(template.Identifier, _perms);
     }
 
     private ChapterMailDTO BuildDto(ChapterMail mail) {

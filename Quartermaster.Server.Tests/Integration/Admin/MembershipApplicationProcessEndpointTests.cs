@@ -1,14 +1,21 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Quartermaster.Api;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
+using Quartermaster.Data;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
 using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Integration.Admin;
@@ -173,5 +180,61 @@ public class MembershipApplicationProcessEndpointTests : IntegrationTestBase {
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(Db.NotificationLogs.Count(l => l.TriggerId == "application_rejected")).IsEqualTo(1);
+    }
+
+    /// <summary>A host whose DbContexts carry <paramref name="interceptor"/>.</summary>
+    private WebApplicationFactory<Program> HostWith(BeforeUpdateInterceptor interceptor) {
+        return Factory.WithWebHostBuilder(b => b.ConfigureServices(services => {
+            services.RemoveAll<DbContext>();
+            services.AddScoped(_ => {
+                var context = new DbContext(new DataOptions().UseMySqlConnector(Database.ConnectionString));
+                context.AddInterceptor(interceptor);
+                return context;
+            });
+        }));
+    }
+
+    [Test]
+    public async Task Decision_conflicts_when_status_changed_after_read() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        var interceptor = new BeforeUpdateInterceptor(MembershipApplication.TableName, () => {
+            using var other = Database.CreateDbContext();
+            other.MembershipApplications.Where(a => a.Id == app.Id).Set(a => a.Status, ApplicationStatus.Rejected).Update();
+        });
+        using var host = HostWith(interceptor);
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = true });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await AttachAntiforgeryTokenAsync(client);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Approved });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Conflict);
+        await Assert.That(await response.Content.ReadAsStringAsync()).Contains("error.admin.application.already_decided");
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == app.Id).Status).IsEqualTo(ApplicationStatus.Rejected);
+        await Assert.That(Db.NotificationLogs.Count(l => l.TriggerId == "application_approved")).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Decision_keeps_motion_resolved_meanwhile() {
+        var chapter = Builder.SeedChapter("C");
+        var app = Builder.SeedMembershipApplication(chapter.Id);
+        var motion = Builder.SeedMotion(chapter.Id);
+        Db.Motions.Where(m => m.Id == motion.Id).Set(m => m.LinkedMembershipApplicationId, (Guid?)app.Id).Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
+        var interceptor = new BeforeUpdateInterceptor(Motion.TableName, () => {
+            using var other = Database.CreateDbContext();
+            other.Motions.Where(m => m.Id == motion.Id).Set(m => m.ApprovalStatus, MotionApprovalStatus.Approved).Update();
+        });
+        using var host = HostWith(interceptor);
+        using var client = host.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = true });
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        await AttachAntiforgeryTokenAsync(client);
+
+        var response = await client.PostAsJsonAsync("/api/admin/membershipapplications/process", new { Id = app.Id, Status = ApplicationStatus.Rejected });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.Motions.Single(m => m.Id == motion.Id).ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
     }
 }

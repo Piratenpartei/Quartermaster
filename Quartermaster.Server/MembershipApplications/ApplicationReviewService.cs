@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Quartermaster.Api;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.MembershipApplications;
@@ -14,10 +15,12 @@ using Quartermaster.Server.Notifications;
 namespace Quartermaster.Server.MembershipApplications;
 
 /// <summary>
-/// Creates the officer-review motion for a membership application and notifies the chapter's
+/// Creates the officer-review motions for a membership application and notifies the deciding chapter's
 /// processing officers. Used by the forwarding intake at confirm time and after division linking. No-op without a chapter.
 /// </summary>
 public class ApplicationReviewService {
+    private const string FederalApprovalNotice = "\nBenötigt zusätzlich die Zustimmung des Bundesvorstands (§ 3 Abs. 2 BS).\n";
+
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly INotificationDispatchQueue _notifications;
@@ -37,13 +40,13 @@ public class ApplicationReviewService {
         if (!application.ChapterId.HasValue)
             return null;
 
-        var md = $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
-            + $"- **E-Mail:** {application.Email}\n"
-            + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
-            + $"{application.AddressPostCode} {application.AddressCity}\n";
+        var md = ApplicationMarkdown(application);
 
         if (isReduced)
             md += "\nÜber die beantragte Beitragsminderung wird gesondert entschieden.\n";
+
+        if (application.RequiresFederalApproval)
+            md += FederalApprovalNotice;
 
         md += $"\n[Antrag ansehen](/Administration/MembershipApplications/{application.Id})\n";
 
@@ -58,22 +61,81 @@ public class ApplicationReviewService {
             linkedApplicationId: application.Id,
             linkedDueSelectionId: null);
         _motionRepo.Create(motion);
-
-        var chapter = _chapterRepo.Get(application.ChapterId.Value);
-        var chapterName = chapter?.Name ?? "";
-        var payload = new ApplicationSubmittedPayload(
-            application.Id, application.ChapterId.Value, chapterName,
-            application.FirstName, application.LastName, isReduced);
-        _notifications.Enqueue(new NotificationDispatchRequest(
-            NotificationTriggers.ApplicationSubmitted,
-            payload,
-            _ => new Dictionary<string, object> {
-                ["application"] = application.ToDetailDto(chapterName, isReduced),
-                ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = application.ChapterId.Value, Name = chapterName })
-            },
-            SourceEntityType: "MembershipApplication",
-            SourceEntityId: application.Id));
+        NotifySubmitted(application, application.ChapterId.Value, isReduced);
         return motion.Id;
+    }
+
+    /// <summary>
+    /// Takes the federal approval notice out of the application's open motions once the requirement is lifted; their votes stay. The notice
+    /// line is found even when an officer's edit of the motion changed its whitespace or case. Runs inside the caller's transaction.
+    /// </summary>
+    public void RemoveFederalApprovalNotice(Guid applicationId) {
+        foreach (var motion in _motionRepo.ListByLinkedApplicationId(applicationId)) {
+            if (motion.ApprovalStatus != MotionApprovalStatus.Pending)
+                continue;
+            var md = WithoutFederalApprovalNotice(motion.TextMarkdown);
+            if (md != motion.TextMarkdown)
+                _motionRepo.UpdateText(motion.Id, md, MarkdownService.ToHtml(md, SanitizationProfile.Strict));
+        }
+    }
+
+    /// <summary>Also drops the blank line the notice brought along, so the paragraphs around it keep a single gap.</summary>
+    private static string WithoutFederalApprovalNotice(string markdown) {
+        var notice = ComparableLine(FederalApprovalNotice);
+        var lines = markdown.Split('\n');
+        var kept = new List<string>();
+        for (var i = 0; i < lines.Length; i++) {
+            if (ComparableLine(lines[i]) != notice) {
+                kept.Add(lines[i]);
+                continue;
+            }
+            if (SitsBetweenBlankLines(kept, lines, i))
+                i++;
+        }
+        return string.Join('\n', kept);
+    }
+
+    private static bool SitsBetweenBlankLines(List<string> kept, string[] lines, int index) {
+        if (kept.Count == 0)
+            return false;
+        if (!string.IsNullOrWhiteSpace(kept[^1]))
+            return false;
+        if (index + 1 >= lines.Length)
+            return false;
+        return string.IsNullOrWhiteSpace(lines[index + 1]);
+    }
+
+    private static string ComparableLine(string line) {
+        return string.Concat(line.Where(c => !char.IsWhiteSpace(c))).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Creates the motion on the Bundesvorstand's approval under § 3 Abs. 2 BS after the chapter approved, linked to the same application, and
+    /// notifies the federal processors. <paramref name="hearing"/> says which chapter decided, when and how. <paramref name="motionId"/> is the id
+    /// the caller already claimed on the application.
+    /// </summary>
+    /// <param name="chapterDecidedAtUtc">The chapter's decision, stored as the motion's creation time; an approval after the federal step was
+    /// lifted takes its date from there.</param>
+    /// <param name="isReduced">True when the application's dues need their own decision.</param>
+    public void CreateFederalApprovalMotion(MembershipApplication application, Guid motionId, Guid federalChapterId, string hearing, DateTime chapterDecidedAtUtc,
+        bool isReduced) {
+        var md = ApplicationMarkdown(application)
+            + $"\nAnhörung: {hearing}\n"
+            + $"\n[Antrag ansehen](/Administration/MembershipApplications/{application.Id})\n";
+
+        var motion = Motion.Create(
+            federalChapterId,
+            authorName: $"{application.FirstName} {application.LastName}",
+            authorEmail: application.Email,
+            title: $"Mitgliedsantrag (Zustimmung nach § 3 Abs. 2 BS): {application.FirstName} {application.LastName}",
+            textMarkdown: md,
+            textHtml: MarkdownService.ToHtml(md, SanitizationProfile.Strict),
+            nowUtc: chapterDecidedAtUtc,
+            linkedApplicationId: application.Id,
+            linkedDueSelectionId: null);
+        motion.Id = motionId;
+        _motionRepo.Create(motion);
+        NotifySubmitted(application, federalChapterId, isReduced);
     }
 
     /// <summary>Creates the board motion on a reduced due selection in the deciding chapter. The vote sets the due selection to approved or rejected.</summary>
@@ -102,5 +164,29 @@ public class ApplicationReviewService {
             linkedDueSelectionId: dueSelection.Id);
         _motionRepo.Create(motion);
         return motion.Id;
+    }
+
+    private static string ApplicationMarkdown(MembershipApplication application) {
+        return $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
+            + $"- **E-Mail:** {application.Email}\n"
+            + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
+            + $"{application.AddressPostCode} {application.AddressCity}\n";
+    }
+
+    private void NotifySubmitted(MembershipApplication application, Guid chapterId, bool isReduced) {
+        var chapter = _chapterRepo.Get(chapterId);
+        var chapterName = chapter?.Name ?? "";
+        var payload = new ApplicationSubmittedPayload(
+            application.Id, chapterId, chapterName,
+            application.FirstName, application.LastName, isReduced);
+        _notifications.Enqueue(new NotificationDispatchRequest(
+            NotificationTriggers.ApplicationSubmitted,
+            payload,
+            _ => new Dictionary<string, object> {
+                ["application"] = application.ToDetailDto(chapterName, isReduced),
+                ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName })
+            },
+            SourceEntityType: "MembershipApplication",
+            SourceEntityId: application.Id));
     }
 }

@@ -8,7 +8,9 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterMails;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Templates;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Templates;
 
 namespace Quartermaster.Server.ChapterMails;
 
@@ -20,14 +22,16 @@ public class ChapterMailUpdateEndpoint : Endpoint<ChapterMailUpdateBoundRequest>
     private readonly ChapterMailRepository _mailRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly DbContext _db;
     private readonly PermissionContext _perms;
 
     public ChapterMailUpdateEndpoint(ChapterMailRepository mailRepo, ChapterRepository chapterRepo,
-        AdministrativeDivisionRepository adminDivRepo, DbContext db, PermissionContext perms) {
+        AdministrativeDivisionRepository adminDivRepo, TemplateRepository templateRepo, DbContext db, PermissionContext perms) {
         _mailRepo = mailRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
+        _templateRepo = templateRepo;
         _db = db;
         _perms = perms;
     }
@@ -57,6 +61,11 @@ public class ChapterMailUpdateEndpoint : Endpoint<ChapterMailUpdateBoundRequest>
         }
         if (string.IsNullOrWhiteSpace(req.Title)) {
             await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        if (IsTemplateHidden(req.TemplateId, existing.TemplateId)) {
+            await SendNotFoundAsync(ct);
             return;
         }
 
@@ -91,5 +100,15 @@ public class ChapterMailUpdateEndpoint : Endpoint<ChapterMailUpdateBoundRequest>
 
         _mailRepo.Update(updated, original);
         await SendOkAsync(ct);
+    }
+
+    /// <summary>A missing template is refused only when newly picked, so a draft whose template was deleted stays editable.</summary>
+    private bool IsTemplateHidden(Guid? templateId, Guid? storedTemplateId) {
+        if (templateId == null)
+            return false;
+        var template = _templateRepo.Get(templateId.Value);
+        if (template == null)
+            return templateId != storedTemplateId;
+        return !RestrictedTemplates.IsVisible(template.Identifier, _perms);
     }
 }

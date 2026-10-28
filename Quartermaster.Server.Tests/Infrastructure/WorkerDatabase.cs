@@ -160,6 +160,8 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE OfficialOfficeMunicipalities;
             TRUNCATE TABLE CertificationOffices;
             TRUNCATE TABLE MunicipalityAssociations;
+            TRUNCATE TABLE ApplicationRegisterHits;
+            TRUNCATE TABLE ApplicantRegisterEntries;
             SET FOREIGN_KEY_CHECKS = 1;
             """;
         cmd.ExecuteNonQuery();

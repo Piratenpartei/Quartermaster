@@ -167,4 +167,24 @@ public class MotionVoteEndpointTests : IntegrationTestBase {
         var persisted = Db.MotionVotes.FirstOrDefault(v => v.MotionId == motion.Id && v.MemberId == officerMemberId);
         await Assert.That(persisted).IsNotNull();
     }
+
+    [Test]
+    public async Task Vote_on_closed_motion_is_recorded_without_changing_the_outcome() {
+        var chapter = Builder.SeedChapter();
+        var motion = Builder.SeedMotion(chapter.Id, status: MotionApprovalStatus.Approved);
+        var officerMemberId = SeedOfficerMember(chapter.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.SystemVote });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync("/api/motions/vote", new MotionVoteRequest {
+            MotionId = motion.Id,
+            MemberId = officerMemberId,
+            Vote = VoteType.Deny
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.MotionVotes.Count(v => v.MotionId == motion.Id && v.Vote == VoteType.Deny)).IsEqualTo(1);
+        await Assert.That(Db.Motions.Single(m => m.Id == motion.Id).ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
+    }
 }

@@ -1,0 +1,97 @@
+@page "/Administration/ApplicantRegister/New"
+@page "/Administration/ApplicantRegister/{Id:guid}"
+@using Quartermaster.Api
+@using Quartermaster.Api.ApplicantRegister
+@using Quartermaster.Api.I18n
+@using Quartermaster.Blazor.Components.Inputs
+
+<PageTitle>@I18n[IsNew ? I18nKey.Ui.ApplicantRegister.NewTitle : I18nKey.Ui.ApplicantRegister.EditTitle]</PageTitle>
+
+<RequirePermission GlobalPermission="@PermissionIdentifier.ManageApplicantRegister">
+    <ConfirmDialog @ref="DeleteConfirm" Title="@I18n[I18nKey.Ui.ApplicantRegister.DeleteTitle]" Message="@I18n[I18nKey.Ui.ApplicantRegister.DeleteMessage]"
+                   ConfirmText="@I18n[I18nKey.Ui.ApplicantRegister.DeleteConfirm]" />
+    <PageBackLink Href="/Administration/ApplicantRegister" Text="@I18n[I18nKey.Ui.ApplicantRegister.BackToList]" />
+
+    @if (Loading) {
+        <LoadingSpinner />
+    } else if (Request == null) {
+        <div class="alert alert-danger">@I18n[I18nKey.Ui.ApplicantRegister.NotFound]</div>
+    } else {
+        <h3 class="mb-3">@I18n[IsNew ? I18nKey.Ui.ApplicantRegister.NewTitle : I18nKey.Ui.ApplicantRegister.EditTitle]</h3>
+        <div class="alert alert-info small">@I18n[I18nKey.Ui.ApplicantRegister.IdentifyingHint]</div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="kind">@I18n[I18nKey.Ui.ApplicantRegister.KindLabel]</label>
+                        <select id="kind" class="form-select" @bind="Request.Kind">
+                            <option value="@ApplicantRegisterKind.Rejected">@I18n[I18nKey.Ui.ApplicantRegister.KindRejected]</option>
+                            <option value="@ApplicantRegisterKind.Expelled">@I18n[I18nKey.Ui.ApplicantRegister.KindExpelled]</option>
+                            <option value="@ApplicantRegisterKind.LeftDuringExpulsion">@I18n[I18nKey.Ui.ApplicantRegister.KindLeftDuringExpulsion]</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="occurredOn">@I18n[I18nKey.Ui.ApplicantRegister.OccurredOn]</label>
+                        <input id="occurredOn" type="date" class="form-control" @bind="Request.OccurredOn" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="firstName">@I18n[I18nKey.Ui.ApplicantRegister.FirstName]</label>
+                        <input id="firstName" class="form-control" @bind="Request.FirstName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="lastName">@I18n[I18nKey.Ui.ApplicantRegister.LastName]</label>
+                        <input id="lastName" class="form-control" @bind="Request.LastName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="dateOfBirth">@I18n[I18nKey.Ui.ApplicantRegister.DateOfBirth]</label>
+                        <input id="dateOfBirth" type="date" class="form-control" @bind="Request.DateOfBirth" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="email">@I18n[I18nKey.Ui.ApplicantRegister.Email]</label>
+                        <input id="email" type="email" class="form-control" @bind="Request.Email" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="street">@I18n[I18nKey.Ui.ApplicantRegister.Street]</label>
+                        <input id="street" class="form-control" @bind="Request.Street" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="houseNumber">@I18n[I18nKey.Ui.ApplicantRegister.HouseNumber]</label>
+                        <input id="houseNumber" class="form-control" @bind="Request.HouseNumber" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="postCode">@I18n[I18nKey.Ui.ApplicantRegister.PostCode]</label>
+                        <input id="postCode" class="form-control" @bind="Request.PostCode" />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="city">@I18n[I18nKey.Ui.ApplicantRegister.City]</label>
+                        <input id="city" class="form-control" @bind="Request.City" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">@I18n[I18nKey.Ui.ApplicantRegister.Chapter]</label>
+                        <ChapterPicker Value="@ChapterIdText" ValueChanged="OnChapterChanged" AllowEmpty="true" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="note">@I18n[I18nKey.Ui.ApplicantRegister.Note]</label>
+                        <textarea id="note" class="form-control" rows="3" @bind="Request.Note"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-primary" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+            <a href="/Administration/ApplicantRegister" class="btn btn-outline-secondary">@I18n[I18nKey.Ui.Common.Cancel]</a>
+            @if (!IsNew) {
+                @if (Entry?.SourceApplicationId != null) {
+                    <a href="/Administration/MembershipApplications/@Entry.SourceApplicationId" class="btn btn-outline-primary">
+                        <i class="bi bi-person-lines-fill me-1"></i>@I18n[I18nKey.Ui.ApplicantRegister.SourceApplication]
+                    </a>
+                }
+                <button class="btn btn-outline-danger ms-auto" @onclick="Delete" disabled="@Busy">
+                    <i class="bi bi-trash me-1"></i>@I18n[I18nKey.Ui.Common.Delete]
+                </button>
+            }
+        </div>
+    }
+</RequirePermission>

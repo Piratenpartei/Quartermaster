@@ -18,4 +18,5 @@ public static class NotificationTriggers {
     public const string AssemblyMotionEditedByCommission = "assembly_motion_edited_by_commission";
     public const string AssemblyMotionCompetitionDeclared = "assembly_motion_competition_declared";
     public const string AssemblyMotionWithdrawn = "assembly_motion_withdrawn";
+    public const string ApplicantRegisterHit = "applicant_register_hit";
 }

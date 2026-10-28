@@ -6,7 +6,11 @@ using Quartermaster.Api;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Api.Motions;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
+using Quartermaster.Server.ApplicantRegister;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.Forwarding.SageEntry;
@@ -25,14 +29,21 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
     private readonly ForwardingOutcomeHook _outcomeHook;
     private readonly SageEntryGate _gate;
     private readonly PermissionContext _perms;
+    private readonly ChapterRepository _chapterRepo;
+    private readonly MotionRepository _motionRepo;
+    private readonly FederalApprovalFlow _federalApproval;
 
     public MembershipApplicationProcessEndpoint(MembershipApplicationRepository applicationRepo,
-        MembershipApplicationMailService mailService, ForwardingOutcomeHook outcomeHook, SageEntryGate gate, PermissionContext perms) {
+        MembershipApplicationMailService mailService, ForwardingOutcomeHook outcomeHook, SageEntryGate gate, PermissionContext perms,
+        ChapterRepository chapterRepo, MotionRepository motionRepo, FederalApprovalFlow federalApproval) {
         _applicationRepo = applicationRepo;
         _mailService = mailService;
         _outcomeHook = outcomeHook;
         _gate = gate;
         _perms = perms;
+        _chapterRepo = chapterRepo;
+        _motionRepo = motionRepo;
+        _federalApproval = federalApproval;
     }
 
     public override void Configure() {
@@ -51,16 +62,10 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             return;
         }
 
-        if (application.ChapterId.HasValue) {
-            if (!_perms.Has(application.ChapterId.Value, PermissionIdentifier.ProcessApplications)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else {
-            if (!_perms.HasGlobal(PermissionIdentifier.ProcessApplications)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
+        var rootChapterId = _chapterRepo.GetRootChapter()?.Id;
+        if (!MayProcess(application, rootChapterId)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         if (req.Status != ApplicationStatus.Approved && req.Status != ApplicationStatus.Rejected) {
@@ -68,7 +73,7 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             return;
         }
         // A second decision would send the applicant a contradicting mail.
-        if (application.Status != ApplicationStatus.Pending && application.Status != ApplicationStatus.PendingDivisionLinking) {
+        if (!application.Status.IsUndecided()) {
             AddError(I18nKey.Error.Admin.Application.AlreadyDecided);
             await SendErrorsAsync(409, ct);
             return;
@@ -80,8 +85,18 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
             return;
         }
 
-        _applicationRepo.UpdateStatus(req.Id, req.Status, null);
-        _outcomeHook.OnRecordDecided(ForwardingCaseKind.Application, req.Id, DateTime.UtcNow);
+        var status = req.Status == ApplicationStatus.Approved ? application.ApprovedStatus(rootChapterId) : req.Status;
+        var decidedAtUtc = DateTime.UtcNow;
+        if (!_applicationRepo.ClaimStatus(req.Id, application.Status, status, _perms.UserId)) {
+            AddError(I18nKey.Error.Admin.Application.AlreadyDecided);
+            await SendErrorsAsync(409, ct);
+            return;
+        }
+        await _federalApproval.OnRecordDecidedAsync(req.Id, decidedAtUtc);
+        CloseOpenMotions(req.Id);
+        // The chapter's approval of an application that needs the federal one decides nothing yet; its forwarding steps keep waiting.
+        if (status != ApplicationStatus.PendingFederalApproval)
+            _outcomeHook.OnRecordDecided(ForwardingCaseKind.Application, req.Id, decidedAtUtc);
 
         var updated = _applicationRepo.Get(req.Id);
         if (updated != null && !_gate.HoldsApprovalMail(updated.Id)) {
@@ -89,5 +104,28 @@ public class MembershipApplicationProcessEndpoint : Endpoint<MembershipApplicati
         }
 
         await SendOkAsync(ct);
+    }
+
+    /// <summary>
+    /// A motion left open after the dialog decided could still be voted on and mail the applicant a second decision. Closing it is no decision:
+    /// the forwarding outcome falls back to the application's status. The federal motion just opened for the dialog's chapter approval stays open,
+    /// and a motion resolved by a vote in the meantime keeps its result.
+    /// </summary>
+    private void CloseOpenMotions(Guid applicationId) {
+        var application = _applicationRepo.Get(applicationId);
+        var keepOpenId = application?.Status == ApplicationStatus.PendingFederalApproval ? application.FederalApprovalMotionId : null;
+        foreach (var motion in _motionRepo.ListByLinkedApplicationId(applicationId)) {
+            if (motion.ApprovalStatus == MotionApprovalStatus.Pending && motion.Id != keepOpenId)
+                _motionRepo.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
+        }
+    }
+
+    /// <summary>The federal step is decided with the root chapter's permission, never the chapter's own.</summary>
+    private bool MayProcess(MembershipApplication application, Guid? rootChapterId) {
+        if (application.Status == ApplicationStatus.PendingFederalApproval && rootChapterId != null)
+            return _perms.Has(rootChapterId.Value, PermissionIdentifier.ProcessApplications);
+        if (application.ChapterId.HasValue)
+            return _perms.Has(application.ChapterId.Value, PermissionIdentifier.ProcessApplications);
+        return _perms.HasGlobal(PermissionIdentifier.ProcessApplications);
     }
 }

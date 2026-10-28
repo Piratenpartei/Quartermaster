@@ -25,7 +25,14 @@ public class MotionRepository {
         => _context.Motions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
 
     public Motion? GetByLinkedApplicationId(Guid applicationId)
-        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.DeletedAt == null).FirstOrDefault();
+        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.DeletedAt == null)
+            .OrderBy(m => m.CreatedAt)
+            .FirstOrDefault();
+
+    public List<Motion> ListByLinkedApplicationId(Guid applicationId)
+        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.DeletedAt == null)
+            .OrderBy(m => m.CreatedAt)
+            .ToList();
 
     public Motion? GetByLinkedDueSelectionId(Guid dueSelectionId)
         => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId && m.DeletedAt == null).FirstOrDefault();
@@ -180,19 +187,72 @@ public class MotionRepository {
     }
 
     /// <summary>
+    /// <see cref="UpdateApprovalStatus"/> only while the motion is still Pending; false when a vote or another closing got there first.
+    /// </summary>
+    public bool UpdatePendingApprovalStatus(Guid id, MotionApprovalStatus status) {
+        // Read before the transaction: under snapshot isolation a read inside it would turn a lost race into an error instead of false.
+        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+        if (existing == null)
+            return false;
+
+        using var tx = _context.BeginTransaction();
+        if (!UpdatePendingApprovalStatus(existing, status))
+            return false;
+
+        tx.Commit();
+        return true;
+    }
+
+    /// <summary><see cref="UpdatePendingApprovalStatus(Guid, MotionApprovalStatus)"/> inside the caller's transaction.</summary>
+    public bool UpdatePendingApprovalStatusInTransaction(Guid id, MotionApprovalStatus status) {
+        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
+        if (existing == null)
+            return false;
+        return UpdatePendingApprovalStatus(existing, status);
+    }
+
+    private bool UpdatePendingApprovalStatus(Motion existing, MotionApprovalStatus status) {
+        var id = existing.Id;
+        var updated = _context.Motions
+            .Where(m => m.Id == id && m.ApprovalStatus == MotionApprovalStatus.Pending)
+            .Set(m => m.ApprovalStatus, status)
+            .Set(m => m.ResolvedAt, DateTime.UtcNow)
+            .Update();
+        if (updated == 0)
+            return false;
+
+        _auditLog.LogFieldChange("Motion", id, "ApprovalStatus", MotionApprovalStatus.Pending.ToString(), status.ToString());
+
+        CascadeResolutionToLinkedEntities(existing, status);
+        return true;
+    }
+
+    /// <summary>
+    /// Rewrites the text without counting as a substantive edit: unlike <see cref="Update"/>, the votes cast so far stay. Runs inside the
+    /// caller's transaction.
+    /// </summary>
+    public void UpdateText(Guid id, string textMarkdown, string textHtml) {
+        var existing = _context.Motions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
+        if (existing == null || existing.TextMarkdown == textMarkdown)
+            return;
+
+        _context.Motions
+            .Where(m => m.Id == id)
+            .Set(m => m.TextMarkdown, textMarkdown)
+            .Set(m => m.Text, textHtml)
+            .Update();
+        _auditLog.LogFieldChange("Motion", id, nameof(Motion.TextMarkdown), existing.TextMarkdown, textMarkdown);
+    }
+
+    /// <summary>
     /// Propagates a motion resolution to its linked membership application and/or due selection.
     /// <c>ClosedWithoutAction</c> (and any non-terminal status) leaves the linked entity untouched —
     /// only a real approve/reject decision flips it. Must run inside the caller's transaction.
     /// </summary>
     private void CascadeResolutionToLinkedEntities(Motion motion, MotionApprovalStatus newStatus) {
         var appStatus = MapToApplicationStatus(newStatus);
-        if (motion.LinkedMembershipApplicationId.HasValue && appStatus.HasValue) {
-            _context.MembershipApplications
-                .Where(a => a.Id == motion.LinkedMembershipApplicationId.Value)
-                .Set(a => a.Status, appStatus.Value)
-                .Set(a => a.ProcessedAt, DateTime.UtcNow)
-                .Update();
-        }
+        if (motion.LinkedMembershipApplicationId.HasValue && appStatus.HasValue)
+            CascadeToApplication(motion.LinkedMembershipApplicationId.Value, motion.Id, appStatus.Value);
 
         var dsStatus = MapToDueSelectionStatus(newStatus);
         if (motion.LinkedDueSelectionId.HasValue && dsStatus.HasValue) {
@@ -203,6 +263,41 @@ public class MotionRepository {
                 .Update();
         }
     }
+
+    private void CascadeToApplication(Guid applicationId, Guid motionId, ApplicationStatus resolvedStatus) {
+        var application = _context.MembershipApplications.Where(a => a.Id == applicationId).FirstOrDefault();
+        if (application == null)
+            return;
+        if (!MayDecide(application, motionId))
+            return;
+
+        var status = resolvedStatus == ApplicationStatus.Approved ? application.ApprovedStatus(GetRootChapterId()) : resolvedStatus;
+
+        var readStatus = application.Status;
+        var update = _context.MembershipApplications
+            .Where(a => a.Id == applicationId && a.Status == readStatus)
+            .Set(a => a.Status, status);
+        if (status != ApplicationStatus.PendingFederalApproval)
+            update = update.Set(a => a.ProcessedAt, (DateTime?)DateTime.UtcNow);
+        update.Update();
+    }
+
+    /// <summary>
+    /// A motion still open after its application was decided in the processing dialog may be voted on later; that vote must not override the
+    /// decision. Once the chapter approved, only the federal motion decides.
+    /// </summary>
+    private static bool MayDecide(MembershipApplication application, Guid motionId) {
+        if (application.Status == ApplicationStatus.Pending || application.Status == ApplicationStatus.PendingDivisionLinking)
+            return true;
+        return application.Status == ApplicationStatus.PendingFederalApproval && application.FederalApprovalMotionId == motionId;
+    }
+
+    private Guid? GetRootChapterId()
+        => _context.Chapters
+            .Where(c => c.ParentChapterId == null && c.DeletedAt == null)
+            .OrderBy(c => c.Name)
+            .Select(c => (Guid?)c.Id)
+            .FirstOrDefault();
 
     private static ApplicationStatus? MapToApplicationStatus(MotionApprovalStatus status) => status switch {
         MotionApprovalStatus.Approved => ApplicationStatus.Approved,

@@ -1,4 +1,5 @@
 using FluentMigrator;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
@@ -38,6 +39,37 @@ public class M009 : MigrationBase {
         Alter.Table(Chapter.TableName)
             .AddColumn(nameof(Chapter.ContactEmail)).AsString(Chapter.ContactEmailMaxLength).Nullable();
 
+        Alter.Table(MembershipApplication.TableName)
+            .AddColumn(nameof(MembershipApplication.RequiresFederalApproval)).AsBoolean().NotNullable().WithDefaultValue(false)
+            .AddColumn(nameof(MembershipApplication.FederalApprovalMotionId)).AsGuid().Nullable();
+
+        Create.Table(ApplicantRegisterEntry.TableName)
+            .WithColumn(nameof(ApplicantRegisterEntry.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(ApplicantRegisterEntry.Kind)).AsInt32().NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.FirstName)).AsString(ApplicantRegisterEntry.NameMaxLength).NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.LastName)).AsString(ApplicantRegisterEntry.NameMaxLength).NotNullable().Indexed()
+            .WithColumn(nameof(ApplicantRegisterEntry.DateOfBirth)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.Street)).AsString(ApplicantRegisterEntry.StreetMaxLength).NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.HouseNumber)).AsString(ApplicantRegisterEntry.HouseNumberMaxLength).NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.PostCode)).AsString(ApplicantRegisterEntry.PostCodeMaxLength).NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.City)).AsString(ApplicantRegisterEntry.CityMaxLength).NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.Email)).AsString(ApplicantRegisterEntry.EmailMaxLength).Nullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.OccurredOn)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.Note)).AsString(ApplicantRegisterEntry.NoteMaxLength).Nullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.ChapterId)).AsGuid().Nullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.SourceApplicationId)).AsGuid().Nullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.CreatedAt)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(ApplicantRegisterEntry.CreatedByUserId)).AsGuid().Nullable();
+
+        Create.Table(ApplicationRegisterHit.TableName)
+            .WithColumn(nameof(ApplicationRegisterHit.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(ApplicationRegisterHit.ApplicationId)).AsGuid().NotNullable().Indexed()
+            .WithColumn(nameof(ApplicationRegisterHit.EntryId)).AsGuid().NotNullable().Indexed()
+            .WithColumn(nameof(ApplicationRegisterHit.MatchedFields)).AsInt32().NotNullable()
+            .WithColumn(nameof(ApplicationRegisterHit.CreatedAt)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(ApplicationRegisterHit.DismissedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(ApplicationRegisterHit.DismissedByUserId)).AsGuid().Nullable();
+
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
@@ -59,6 +91,11 @@ public class M009 : MigrationBase {
     }
 
     public override void Down() {
+        Delete.Table(ApplicationRegisterHit.TableName);
+        Delete.Table(ApplicantRegisterEntry.TableName);
+        Delete.Column(nameof(MembershipApplication.RequiresFederalApproval)).FromTable(MembershipApplication.TableName);
+        Delete.Column(nameof(MembershipApplication.FederalApprovalMotionId)).FromTable(MembershipApplication.TableName);
+
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
                 '{CountryTag}', ''),

@@ -10,6 +10,7 @@ using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Motions;
+using Quartermaster.Server.ApplicantRegister;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Forwarding;
 
@@ -22,17 +23,20 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
     private readonly MemberRepository _memberRepo;
     private readonly MotionResolutionDecisionMailer _decisionMailer;
     private readonly ForwardingOutcomeHook _forwarding;
+    private readonly FederalApprovalFlow _federalApproval;
     private readonly PermissionContext _perms;
 
     public MotionVoteEndpoint(MotionRepository motionRepo, ChapterOfficerRepository officerRepo,
         ChapterRepository chapterRepo, MemberRepository memberRepo,
-        MotionResolutionDecisionMailer decisionMailer, PermissionContext perms, ForwardingOutcomeHook forwarding) {
+        MotionResolutionDecisionMailer decisionMailer, PermissionContext perms, ForwardingOutcomeHook forwarding,
+        FederalApprovalFlow federalApproval) {
         _motionRepo = motionRepo;
         _officerRepo = officerRepo;
         _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
         _decisionMailer = decisionMailer;
         _forwarding = forwarding;
+        _federalApproval = federalApproval;
         _perms = perms;
     }
 
@@ -66,7 +70,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             return;
         }
 
-        // Recording a vote for an officer other than yourself needs delegation rights —
+        // Recording a vote for an officer other than yourself needs delegation rights,
         // unless you hold system_vote. (Self = the recorder's own member.)
         var callerMember = _memberRepo.GetByUserId(_perms.UserId.Value);
         var isSelf = callerMember != null && callerMember.Id == req.MemberId;
@@ -92,6 +96,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
 
         if (_motionRepo.TryAutoResolve(req.MotionId, _officerRepo)) {
             await _decisionMailer.NotifyAsync(req.MotionId, ct);
+            await _federalApproval.OnMotionResolvedAsync(req.MotionId);
             _forwarding.OnMotionResolved(req.MotionId, DateTime.UtcNow);
         }
 

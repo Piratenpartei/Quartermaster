@@ -7,6 +7,7 @@ using Quartermaster.Api.Notifications;
 using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Templates;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Templates;
 
 namespace Quartermaster.Server.Notifications;
 
@@ -42,7 +43,7 @@ public class NotificationStatsCatalogEndpoint : EndpointWithoutRequest<Notificat
             })
             .ToList();
 
-        var triggers = NotificationTriggerCatalog.All
+        var triggers = NotificationTriggerCatalog.VisibleFor(_perms)
             .Select(t => new NotificationStatsFilterOptionDTO {
                 Value = t.TriggerId,
                 DisplayName = t.DisplayName
@@ -51,6 +52,7 @@ public class NotificationStatsCatalogEndpoint : EndpointWithoutRequest<Notificat
 
         var templates = _templateRepo.GetAll()
             .Where(t => !string.IsNullOrEmpty(t.Identifier))
+            .Where(t => RestrictedTemplates.IsVisible(t.Identifier!, _perms))
             .Select(t => new NotificationStatsFilterOptionDTO {
                 Value = t.Identifier!,
                 DisplayName = t.DisplayName

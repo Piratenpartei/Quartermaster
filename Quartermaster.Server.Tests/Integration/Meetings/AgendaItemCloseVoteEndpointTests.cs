@@ -111,4 +111,23 @@ public class AgendaItemCloseVoteEndpointTests : IntegrationTestBase {
             $"/api/meetings/{meetingA.Id}/agenda/{itemInB.Id}/close-vote", new { });
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.NotFound);
     }
+
+    [Test]
+    public async Task Close_vote_leaves_resolved_motion_and_resolution_alone() {
+        var chapter = Builder.SeedChapter("C");
+        var meeting = Builder.SeedMeeting(chapter.Id, status: MeetingStatus.InProgress);
+        var motion = Builder.SeedMotion(chapter.Id, status: MotionApprovalStatus.ClosedWithoutAction);
+        var item = Builder.SeedAgendaItem(meeting.Id, itemType: AgendaItemType.Motion, motionId: motion.Id);
+        var voterMember = Builder.SeedMember(chapter.Id);
+        Builder.SeedMotionVote(motion.Id, voterMember.Id, Builder.SeedUser().Id, VoteType.Approve);
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMeetings } });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PostAsJsonAsync($"/api/meetings/{meeting.Id}/agenda/{item.Id}/close-vote", new { });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That(Db.AgendaItems.First(a => a.Id == item.Id).Resolution).IsNull();
+        await Assert.That(Db.Motions.First(m => m.Id == motion.Id).ApprovalStatus).IsEqualTo(MotionApprovalStatus.ClosedWithoutAction);
+    }
 }

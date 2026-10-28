@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Quartermaster.Api.ApplicantRegister;
 using Quartermaster.Api.DueSelector;
 
 namespace Quartermaster.Api.MembershipApplications;
@@ -35,4 +37,9 @@ public class MembershipApplicationDetailDTO {
     public ApprovalMailState ApprovalMailState { get; set; }
     public DateTimeOffset? ApprovalMailSentAt { get; set; }
     public string? FederalTicketUrl { get; set; }
+    public bool RequiresFederalApproval { get; set; }
+    public Guid? FederalApprovalMotionId { get; set; }
+
+    /// <summary>Only filled for holders of the register permission; null for everyone else.</summary>
+    public List<ApplicationRegisterHitDTO>? RegisterHits { get; set; }
 }

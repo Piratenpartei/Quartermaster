@@ -120,6 +120,10 @@
                             </RequirePermission>
                             <li><a class="dropdown-item" href="/Administration/Chapters">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersList]</a></li>
                             <li><a class="dropdown-item" href="/Administration/ChapterTree">@I18n[I18nKey.Ui.MainNavBar.AdministrationChaptersTree]</a></li>
+                            <RequirePermission GlobalPermission="@PermissionIdentifier.ManageApplicantRegister">
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/Administration/ApplicantRegister">@I18n[I18nKey.Ui.MainNavBar.AdministrationApplicantRegister]</a></li>
+                            </RequirePermission>
                         </DropdownContent>
                     </NavMenuDropdown>
                 </li>

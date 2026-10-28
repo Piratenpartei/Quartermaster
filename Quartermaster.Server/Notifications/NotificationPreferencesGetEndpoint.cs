@@ -47,7 +47,8 @@ public class NotificationPreferencesGetEndpoint : EndpointWithoutRequest<Notific
         var userChannels = NotificationChannelCatalog.All.Where(c => c.UserSelectable).ToList();
         var unavailableReason = BuildUnavailableReasons(userId.Value, userChannels);
 
-        var cells = NotificationTriggerCatalog.All
+        var visibleTriggers = NotificationTriggerCatalog.VisibleFor(_perms);
+        var cells = visibleTriggers
             .SelectMany(_ => userChannels, (t, c) => new NotificationPreferenceCellDTO {
                 TriggerId = t.TriggerId,
                 ChannelId = c.ChannelId,
@@ -60,7 +61,7 @@ public class NotificationPreferencesGetEndpoint : EndpointWithoutRequest<Notific
             .ToList();
 
         await SendAsync(new NotificationPreferencesDTO {
-            Triggers = NotificationTriggerCatalog.All
+            Triggers = visibleTriggers
                 .Select(t => new NotificationTriggerDescriptorDTO {
                     TriggerId = t.TriggerId,
                     DisplayName = t.DisplayName,

@@ -3,6 +3,7 @@ using LinqToDB;
 using LinqToDB.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Quartermaster.Data.AdministrativeDivisions;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.AssemblyAssistant;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.AuditLog;
@@ -112,6 +113,8 @@ public class DbContext : DataConnection {
     public ITable<AssemblyMotionUpvote> AssemblyMotionUpvotes => this.GetTable<AssemblyMotionUpvote>();
     public ITable<AssemblySession> AssemblySessions => this.GetTable<AssemblySession>();
     public ITable<AssemblyLogEntry> AssemblyLogEntries => this.GetTable<AssemblyLogEntry>();
+    public ITable<ApplicantRegisterEntry> ApplicantRegisterEntries => this.GetTable<ApplicantRegisterEntry>();
+    public ITable<ApplicationRegisterHit> ApplicationRegisterHits => this.GetTable<ApplicationRegisterHit>();
 
     public DbContext(DataOptions dataOptions) : base(dataOptions) { }
 
@@ -125,6 +128,7 @@ public class DbContext : DataConnection {
         services.AddScoped<DueSelectionRepository>();
         services.AddScoped<ChapterRepository>();
         services.AddScoped<MembershipApplicationRepository>();
+        services.AddScoped<ApplicantRegisterRepository>();
         services.AddScoped<ChapterOfficerRepository>();
         services.AddScoped<MotionRepository>();
         services.AddScoped<OptionRepository>();

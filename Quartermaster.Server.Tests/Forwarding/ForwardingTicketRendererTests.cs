@@ -119,6 +119,21 @@ public class ForwardingTicketRendererTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task Federal_ticket_carries_notice_chapter_ticket_does_not() {
+        var (forwardingCase, federalStep) = Case(ForwardingPurpose.Application, _federal.Id, Application());
+        var payload = new ForwardingPayload(Application(), null, null, null, false, DateTime.UtcNow, "Zustimmung des Bundesvorstands erforderlich (§ 3 Abs. 2 BS):\n- Treffer");
+        forwardingCase.PayloadJson = JsonSerializer.Serialize(payload);
+        var chapterStep = new ForwardingStep { CaseId = forwardingCase.Id, Kind = ForwardingStepKind.CreateTicket, TargetChapterId = _state.Id, Purpose = ForwardingPurpose.Application, Order = 2 };
+
+        var federal = await _renderer.RenderTicketAsync(forwardingCase, federalStep, Target(), null, null);
+        var chapter = await _renderer.RenderTicketAsync(forwardingCase, chapterStep, Target(), null, null);
+
+        await Assert.That(federal.Description).Contains("Zustimmung des Bundesvorstands erforderlich");
+        await Assert.That(federal.Description).EndsWith("Quartermaster-Vorgang " + forwardingCase.Reference);
+        await Assert.That(chapter.Description).DoesNotContain("Zustimmung des Bundesvorstands");
+    }
+
+    [Test]
     public async Task Reference_line_is_appended() {
         var (forwardingCase, step) = Case(ForwardingPurpose.Application, _federal.Id, Application());
 

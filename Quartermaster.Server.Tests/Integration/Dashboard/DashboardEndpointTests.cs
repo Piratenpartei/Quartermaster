@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Quartermaster.Api;
 using Quartermaster.Api.Dashboard;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Data.Events;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -52,6 +54,32 @@ public class DashboardEndpointTests : IntegrationTestBase {
         var dto = await response.Content.ReadFromJsonAsync<DashboardDTO>();
         await Assert.That(dto!.PendingApplications).IsNotNull();
         await Assert.That(dto.PendingApplications!.TotalCount).IsEqualTo(2);
+    }
+
+    private async Task<DashboardSection<DashboardApplicationDTO>> ApplicationsFor(string token) {
+        using var client = AuthenticatedClient(token);
+        var dto = await client.GetFromJsonAsync<DashboardDTO>("/api/dashboard");
+        return dto!.PendingApplications!;
+    }
+
+    [Test]
+    public async Task Federal_step_shows_for_root_processors_only() {
+        var root = Builder.SeedChapter("Bund");
+        var state = Builder.SeedChapter("Land", parentChapterId: root.Id);
+        Builder.SeedMembershipApplication(state.Id, "Federal", "Step", status: ApplicationStatus.PendingFederalApproval);
+        Builder.SeedMembershipApplication(state.Id, "Chapter", "Step");
+        var (_, rootToken) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [root.Id] = new[] { PermissionIdentifier.ViewApplications, PermissionIdentifier.ProcessApplications } });
+        var (_, stateToken) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [state.Id] = new[] { PermissionIdentifier.ViewApplications, PermissionIdentifier.ProcessApplications } });
+
+        var rootSection = await ApplicationsFor(rootToken);
+        var stateSection = await ApplicationsFor(stateToken);
+
+        await Assert.That(rootSection.TotalCount).IsEqualTo(2);
+        await Assert.That(rootSection.Items.Any(a => a.FirstName == "Federal")).IsTrue();
+        await Assert.That(stateSection.TotalCount).IsEqualTo(1);
+        await Assert.That(stateSection.Items.Single().FirstName).IsEqualTo("Chapter");
     }
 
     [Test]

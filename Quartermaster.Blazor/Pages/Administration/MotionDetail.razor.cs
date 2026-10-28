@@ -168,10 +168,14 @@ public partial class MotionDetail {
 
     private async Task SetStatus(MotionApprovalStatus status) {
         try {
-            await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
+            var resp = await Http.PostAsJsonAsync("/api/motions/status", new MotionStatusRequest {
                 MotionId = Id,
                 ApprovalStatus = status
             });
+            if (!resp.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(resp);
+                return;
+            }
 
             ToastService.ToastKey(I18nKey.Ui.Toast.MotionStatusUpdated);
             await LoadMotion();

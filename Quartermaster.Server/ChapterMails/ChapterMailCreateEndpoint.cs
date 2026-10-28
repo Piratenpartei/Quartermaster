@@ -8,7 +8,9 @@ using Quartermaster.Data;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterMails;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Templates;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Templates;
 
 namespace Quartermaster.Server.ChapterMails;
 
@@ -20,14 +22,16 @@ public class ChapterMailCreateEndpoint : Endpoint<ChapterMailCreateRequest, Chap
     private readonly ChapterMailRepository _mailRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly DbContext _db;
     private readonly PermissionContext _perms;
 
     public ChapterMailCreateEndpoint(ChapterMailRepository mailRepo, ChapterRepository chapterRepo,
-        AdministrativeDivisionRepository adminDivRepo, DbContext db, PermissionContext perms) {
+        AdministrativeDivisionRepository adminDivRepo, TemplateRepository templateRepo, DbContext db, PermissionContext perms) {
         _mailRepo = mailRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
+        _templateRepo = templateRepo;
         _db = db;
         _perms = perms;
     }
@@ -47,6 +51,11 @@ public class ChapterMailCreateEndpoint : Endpoint<ChapterMailCreateRequest, Chap
         }
         if (string.IsNullOrWhiteSpace(req.Title)) {
             await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        if (IsTemplateHidden(req.TemplateId)) {
+            await SendNotFoundAsync(ct);
             return;
         }
 
@@ -73,5 +82,12 @@ public class ChapterMailCreateEndpoint : Endpoint<ChapterMailCreateRequest, Chap
 
         _mailRepo.Create(mail);
         await SendAsync(new ChapterMailCreateResponse { Id = mail.Id }, cancellation: ct);
+    }
+
+    private bool IsTemplateHidden(Guid? templateId) {
+        if (templateId == null)
+            return false;
+        var template = _templateRepo.Get(templateId.Value);
+        return template == null || !RestrictedTemplates.IsVisible(template.Identifier, _perms);
     }
 }

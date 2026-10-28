@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
@@ -47,7 +48,12 @@ public class MotionStatusEndpoint : Endpoint<MotionStatusRequest> {
                 await SendErrorsAsync(400, ct);
                 return;
             }
-            _motionRepo.UpdateApprovalStatus(req.MotionId, status);
+            // Only an open motion can be closed: on a decided one the forwarding would report the new status as the decision.
+            if (!_motionRepo.UpdatePendingApprovalStatus(req.MotionId, status)) {
+                AddError(I18nKey.Error.Motion.Status.MotionClosed);
+                await SendErrorsAsync(409, ct);
+                return;
+            }
             _forwarding.OnMotionResolved(req.MotionId, DateTime.UtcNow);
         }
 

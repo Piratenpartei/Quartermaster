@@ -33,7 +33,7 @@ public class TemplateOverrideUpsertEndpoint : Endpoint<TemplateOverrideUpsertReq
             return;
         }
         var baseTemplate = _templateRepo.Get(req.TemplateId);
-        if (baseTemplate == null || baseTemplate.ChapterId != null) {
+        if (baseTemplate == null || baseTemplate.ChapterId != null || !RestrictedTemplates.IsVisible(baseTemplate.Identifier, _perms)) {
             await SendNotFoundAsync(ct);
             return;
         }

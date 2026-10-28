@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
+using Quartermaster.Api;
+using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Notifications;
 
@@ -60,6 +63,23 @@ public static class NotificationTriggerCatalog {
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionWithdrawn,
             "Antrag zurückgezogen",
-            "Sobald ein Antrag zurückgezogen wird, an dem du beteiligt bist oder den du als Antragskommission betreust.")
+            "Sobald ein Antrag zurückgezogen wird, an dem du beteiligt bist oder den du als Antragskommission betreust."),
+        new NotificationTriggerDescriptor(
+            NotificationTriggers.ApplicantRegisterHit,
+            "Treffer im Ablehnungsregister",
+            "Sobald ein Mitgliedsantrag einem Eintrag im Ablehnungsregister entspricht.",
+            PermissionIdentifier.ManageApplicantRegister)
     };
+
+    /// <summary>The triggers the caller may see; triggers bound to a global permission are left out for callers without it.</summary>
+    public static IReadOnlyList<NotificationTriggerDescriptor> VisibleFor(PermissionContext perms)
+        => All
+            .Where(t => t.RequiredGlobalPermission == null || perms.HasGlobal(t.RequiredGlobalPermission))
+            .ToList();
+
+    public static IReadOnlyList<string> HiddenTriggerIdsFor(PermissionContext perms)
+        => All
+            .Where(t => t.RequiredGlobalPermission != null && !perms.HasGlobal(t.RequiredGlobalPermission))
+            .Select(t => t.TriggerId)
+            .ToList();
 }

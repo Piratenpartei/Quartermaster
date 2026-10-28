@@ -1,4 +1,5 @@
 using LinqToDB;
+using LinqToDB.Data;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.MembershipApplications;
@@ -279,4 +280,176 @@ public class MotionRepositoryTests : RepositoryTestBase {
         await Assert.That(motion!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
     }
 
+    private Guid SeedStateChapter() {
+        var stateChapterId = Guid.NewGuid();
+        _context.Insert(new Chapter {
+            Id = stateChapterId,
+            Name = "State Chapter",
+            ShortCode = "stt",
+            ParentChapterId = _chapterId
+        });
+        return stateChapterId;
+    }
+
+    private Guid SeedApplication(Guid? chapterId, ApplicationStatus status, bool requiresFederalApproval) {
+        var appId = Guid.NewGuid();
+        _context.Insert(new MembershipApplication {
+            Id = appId,
+            FirstName = "Test",
+            LastName = "Applicant",
+            Email = "test@example.com",
+            ChapterId = chapterId,
+            Status = status,
+            RequiresFederalApproval = requiresFederalApproval,
+            SubmittedAt = DateTime.UtcNow,
+            EntryDate = DateTime.UtcNow
+        });
+        return appId;
+    }
+
+    private Guid SeedFederalMotion(Guid appId) {
+        var motionId = SeedMotion(linkedAppId: appId);
+        _context.MembershipApplications
+            .Where(a => a.Id == appId)
+            .Set(a => a.FederalApprovalMotionId, (Guid?)motionId)
+            .Update();
+        return motionId;
+    }
+
+    private ApplicationStatus StatusOf(Guid appId)
+        => _context.MembershipApplications.Where(a => a.Id == appId).First().Status;
+
+    [Test]
+    public async Task Approval_waits_for_federal_when_required() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Pending, true);
+        var motionId = SeedMotion(linkedAppId: appId);
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
+    }
+
+    [Test]
+    public async Task Approval_of_federal_step_approves() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.PendingFederalApproval, true);
+        var motionId = SeedFederalMotion(appId);
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
+    }
+
+    [Test]
+    public async Task Motion_leaves_decided_application_alone() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Rejected, false);
+        var motionId = SeedMotion(linkedAppId: appId);
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Rejected);
+    }
+
+    [Test]
+    public async Task Late_federal_motion_leaves_approved_application_alone() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Approved, true);
+        var federalMotionId = SeedFederalMotion(appId);
+
+        _motionRepo.UpdateApprovalStatus(federalMotionId, MotionApprovalStatus.Rejected);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
+    }
+
+    [Test]
+    public async Task Chapter_motion_leaves_federal_step_open() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.PendingFederalApproval, true);
+        var chapterMotionId = SeedMotion(linkedAppId: appId);
+        SeedFederalMotion(appId);
+
+        _motionRepo.UpdateApprovalStatus(chapterMotionId, MotionApprovalStatus.Rejected);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
+    }
+
+    [Test]
+    public async Task Root_chapter_application_approves_directly() {
+        var appId = SeedApplication(_chapterId, ApplicationStatus.Pending, true);
+        var motionId = SeedMotion(linkedAppId: appId);
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
+    }
+
+    [Test]
+    public async Task Rejection_rejects_in_both_steps() {
+        var stateChapterId = SeedStateChapter();
+        var pendingId = SeedApplication(stateChapterId, ApplicationStatus.Pending, true);
+        var federalId = SeedApplication(stateChapterId, ApplicationStatus.PendingFederalApproval, true);
+
+        _motionRepo.UpdateApprovalStatus(SeedMotion(linkedAppId: pendingId), MotionApprovalStatus.Rejected);
+        _motionRepo.UpdateApprovalStatus(SeedFederalMotion(federalId), MotionApprovalStatus.Rejected);
+
+        await Assert.That(StatusOf(pendingId)).IsEqualTo(ApplicationStatus.Rejected);
+        await Assert.That(StatusOf(federalId)).IsEqualTo(ApplicationStatus.Rejected);
+    }
+
+    [Test]
+    public async Task Division_linking_application_waits_for_federal() {
+        var appId = SeedApplication(null, ApplicationStatus.PendingDivisionLinking, true);
+        var motionId = SeedMotion(linkedAppId: appId);
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
+    }
+
+    [Test]
+    public async Task Pending_close_skips_decided_motion() {
+        var pendingId = SeedMotion();
+        var decidedId = SeedMotion(MotionApprovalStatus.Approved);
+
+        var pendingClosed = _motionRepo.UpdatePendingApprovalStatus(pendingId, MotionApprovalStatus.ClosedWithoutAction);
+        var decidedClosed = _motionRepo.UpdatePendingApprovalStatus(decidedId, MotionApprovalStatus.ClosedWithoutAction);
+
+        await Assert.That(pendingClosed).IsTrue();
+        await Assert.That(_motionRepo.Get(pendingId)!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.ClosedWithoutAction);
+        await Assert.That(decidedClosed).IsFalse();
+        await Assert.That(_motionRepo.Get(decidedId)!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
+    }
+
+    [Test]
+    public async Task Cascade_keeps_status_changed_after_read() {
+        var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Pending, false);
+        var motionId = SeedMotion(linkedAppId: appId);
+        // MariaDB's snapshot isolation would abort the stale update on its own; MySQL and older MariaDB servers let it through.
+        _context.Execute("SET SESSION innodb_snapshot_isolation = OFF");
+        _context.AddInterceptor(new BeforeUpdateInterceptor(MembershipApplication.TableName, () => {
+            using var other = Worker.CreateDbContext();
+            other.MembershipApplications.Where(a => a.Id == appId).Set(a => a.Status, ApplicationStatus.Rejected).Update();
+        }));
+
+        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+
+        await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Rejected);
+    }
+
+    [Test]
+    public async Task GetByLinkedApplicationId_returns_the_oldest_linked_motion() {
+        var seed = new TestDataBuilder(_context);
+        var application = seed.SeedMembershipApplication();
+        var newer = seed.SeedMotion(_chapterId, title: "Newer");
+        var older = seed.SeedMotion(_chapterId, title: "Older");
+        _context.Motions.Where(m => m.Id == newer.Id)
+            .Set(m => m.LinkedMembershipApplicationId, application.Id)
+            .Set(m => m.CreatedAt, new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc))
+            .Update();
+        _context.Motions.Where(m => m.Id == older.Id)
+            .Set(m => m.LinkedMembershipApplicationId, application.Id)
+            .Set(m => m.CreatedAt, new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+            .Update();
+
+        var found = _motionRepo.GetByLinkedApplicationId(application.Id);
+
+        await Assert.That(found!.Id).IsEqualTo(older.Id);
+    }
 }

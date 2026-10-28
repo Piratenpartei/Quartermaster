@@ -12,6 +12,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.ApplicantRegister;
 using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.Motions;
 
@@ -30,6 +31,7 @@ public class MeetingLifecycleService {
     private readonly OptionRepository _optionRepo;
     private readonly MotionResolutionDecisionMailer _decisionMailer;
     private readonly ForwardingOutcomeHook _forwarding;
+    private readonly FederalApprovalFlow _federalApproval;
     private readonly ILogger<MeetingLifecycleService> _logger;
 
     public MeetingLifecycleService(
@@ -40,6 +42,7 @@ public class MeetingLifecycleService {
         OptionRepository optionRepo,
         MotionResolutionDecisionMailer decisionMailer,
         ForwardingOutcomeHook forwarding,
+        FederalApprovalFlow federalApproval,
         ILogger<MeetingLifecycleService> logger) {
         _meetingRepo = meetingRepo;
         _agendaRepo = agendaRepo;
@@ -48,6 +51,7 @@ public class MeetingLifecycleService {
         _optionRepo = optionRepo;
         _decisionMailer = decisionMailer;
         _forwarding = forwarding;
+        _federalApproval = federalApproval;
         _logger = logger;
     }
 
@@ -74,6 +78,7 @@ public class MeetingLifecycleService {
             var newStatus = DetermineApprovalStatus(approve, deny, abstain);
             _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
             await _decisionMailer.NotifyAsync(motion.Id, ct);
+            await _federalApproval.OnMotionResolvedAsync(motion.Id);
             _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);
 
             if (string.IsNullOrWhiteSpace(item.Resolution)) {
@@ -85,14 +90,15 @@ public class MeetingLifecycleService {
 
     /// <summary>
     /// Tally votes for a single agenda item's linked motion, close the motion, and fill
-    /// the item's Resolution field. Used by the explicit close-vote endpoint.
+    /// the item's Resolution field. Used by the explicit close-vote endpoint. A motion that is
+    /// no longer pending keeps its result, and the item gets no resolution contradicting it.
     /// </summary>
     public async Task CloseVoteForAgendaItem(Guid agendaItemId, CancellationToken ct) {
         var item = _agendaRepo.Get(agendaItemId);
         if (item == null || item.ItemType != AgendaItemType.Motion || !item.MotionId.HasValue)
             return;
         var motion = _motionRepo.Get(item.MotionId.Value);
-        if (motion == null)
+        if (motion == null || motion.ApprovalStatus != MotionApprovalStatus.Pending)
             return;
 
         var votes = _motionRepo.GetVotes(motion.Id);
@@ -101,11 +107,11 @@ public class MeetingLifecycleService {
         var abstain = votes.Count(v => v.Vote == VoteType.Abstain);
 
         var newStatus = DetermineApprovalStatus(approve, deny, abstain);
-        if (motion.ApprovalStatus == MotionApprovalStatus.Pending) {
-            _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
-            await _decisionMailer.NotifyAsync(motion.Id, ct);
-            _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);
-        }
+        if (!_motionRepo.UpdatePendingApprovalStatus(motion.Id, newStatus))
+            return;
+        await _decisionMailer.NotifyAsync(motion.Id, ct);
+        await _federalApproval.OnMotionResolvedAsync(motion.Id);
+        _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);
 
         _agendaRepo.UpdateResolution(item.Id, BuildResolutionText(newStatus, approve, deny, abstain));
     }

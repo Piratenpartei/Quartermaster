@@ -8,9 +8,11 @@ using Quartermaster.Api.ChapterMails;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterMails;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Templates;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.Email;
+using Quartermaster.Server.Templates;
 
 namespace Quartermaster.Server.ChapterMails;
 
@@ -22,14 +24,16 @@ public class ChapterMailSendEndpoint : Endpoint<ChapterMailIdRequest, ChapterMai
     private readonly ChapterMailRepository _mailRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
+    private readonly TemplateRepository _templateRepo;
     private readonly EmailService _emailService;
     private readonly PermissionContext _perms;
 
     public ChapterMailSendEndpoint(ChapterMailRepository mailRepo, ChapterRepository chapterRepo,
-        AdministrativeDivisionRepository adminDivRepo, EmailService emailService, PermissionContext perms) {
+        AdministrativeDivisionRepository adminDivRepo, TemplateRepository templateRepo, EmailService emailService, PermissionContext perms) {
         _mailRepo = mailRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
+        _templateRepo = templateRepo;
         _emailService = emailService;
         _perms = perms;
     }
@@ -60,6 +64,10 @@ public class ChapterMailSendEndpoint : Endpoint<ChapterMailIdRequest, ChapterMai
         if (mail.IsArchived) {
             AddError("mail is archived and cannot be sent");
             await SendErrorsAsync(409, ct);
+            return;
+        }
+        if (IsTemplateHidden(mail.TemplateId)) {
+            await SendNotFoundAsync(ct);
             return;
         }
         var isManual = mail.TemplateId == null;
@@ -102,4 +110,11 @@ public class ChapterMailSendEndpoint : Endpoint<ChapterMailIdRequest, ChapterMai
         await SendAsync(new ChapterMailSendResponse { RecipientCount = count }, cancellation: ct);
     }
 
+    /// <summary>A deleted template is left to the mail service, which reports it with its own message.</summary>
+    private bool IsTemplateHidden(Guid? templateId) {
+        if (templateId == null)
+            return false;
+        var template = _templateRepo.Get(templateId.Value);
+        return template != null && !RestrictedTemplates.IsVisible(template.Identifier, _perms);
+    }
 }

@@ -7,12 +7,14 @@ using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Notifications;
 using Quartermaster.Data.Options;
+using Quartermaster.Server.ApplicantRegister;
 using Quartermaster.Server.MembershipApplications;
 using Quartermaster.Server.Notifications;
 
@@ -38,10 +40,12 @@ public class ForwardingIntake {
     private readonly INotificationDispatchQueue _notifications;
     private readonly NotificationLogRepository _notificationLogs;
     private readonly ChapterRepository _chapters;
+    private readonly ApplicantRegisterRepository _register;
 
     public ForwardingIntake(ForwardingSettingsResolver resolver, ForwardingCaseRepository cases, DueSelectionRepository dueSelections,
         MembershipApplicationRepository applications, ApplicationReviewService review, OptionRepository options,
-        INotificationDispatchQueue notifications, NotificationLogRepository notificationLogs, ChapterRepository chapters) {
+        INotificationDispatchQueue notifications, NotificationLogRepository notificationLogs, ChapterRepository chapters,
+        ApplicantRegisterRepository register) {
         _resolver = resolver;
         _cases = cases;
         _dueSelections = dueSelections;
@@ -51,6 +55,7 @@ public class ForwardingIntake {
         _notifications = notifications;
         _notificationLogs = notificationLogs;
         _chapters = chapters;
+        _register = register;
     }
 
     public DueSelectionIntakeResult IntakeDueSelection(DueSelectionDTO dto, Guid? memberChapterId, Guid? userId, string? userName, bool enteredByHand, DateTime nowUtc) {
@@ -205,6 +210,10 @@ public class ForwardingIntake {
         var waitsForDivision = applicationChapterId == null && plan.StoreRecord;
         var reductionPlan = isReduced && !waitsForDivision ? PlanReduction(ctx, dues!) : null;
 
+        var registerEntries = _register.All();
+        var hits = ApplicantRegisterMatcher.Match(RegisterPerson.FromApplication(dto), registerEntries, nowUtc);
+        var registerNotice = RegisterNoticeText.Build(hits, registerEntries, dto.HasPriorDeclinedApplication);
+
         MembershipApplication? application = null;
         DueSelection? dueRecord = null;
         Guid? applicationMotionId = null;
@@ -226,7 +235,9 @@ public class ForwardingIntake {
             application = MembershipApplication.FromDto(dto, dueRecord?.Id, nowUtc);
             application.ChapterId = plan.RecordChapterId;
             application.Status = plan.RecordChapterId.HasValue ? ApplicationStatus.Pending : ApplicationStatus.PendingDivisionLinking;
+            application.RequiresFederalApproval = registerNotice != null;
             _applications.Create(application);
+            _register.AddHits(application.Id, hits);
             if (plan.MotionChapterId != null)
                 applicationMotionId = _review.CreateReviewMotionAndNotify(application, isReduced);
         }
@@ -241,12 +252,14 @@ public class ForwardingIntake {
                 MembershipApplicationId = application?.Id,
                 DueSelectionId = dueRecord?.Id,
                 MotionId = applicationMotionId,
-                PayloadJson = JsonSerializer.Serialize(new ForwardingPayload(dto, null, null, null, false, nowUtc)),
+                PayloadJson = JsonSerializer.Serialize(new ForwardingPayload(dto, null, null, null, false, nowUtc, registerNotice)),
                 CreatedAt = nowUtc
             };
             _cases.Create(applicationCase, Steps(plan, ForwardingPurpose.Application, nowUtc));
             applicationCaseId = applicationCase.Id;
         }
+
+        NotifyRegisterHit(dto, hits, registerEntries, application, applicationCaseId);
 
         if (reductionPlan != null)
             IntakeApplicationReduction(dto, application, dueRecord, reductionPlan, ctx, applicationChapterId, applicationCaseId, nowUtc);
@@ -339,6 +352,35 @@ public class ForwardingIntake {
         }
 
         return steps;
+    }
+
+    private void NotifyRegisterHit(MembershipApplicationDTO dto, List<ApplicationRegisterHit> hits, List<ApplicantRegisterEntry> registerEntries,
+        MembershipApplication? application, Guid? caseId) {
+        var root = _chapters.GetRootChapter();
+        if (hits.Count == 0 || root == null)
+            return;
+
+        var lines = RegisterNoticeText.HitLines(hits, registerEntries);
+        var payload = new ApplicantRegisterHitPayload(root.Id, dto.FirstName, dto.LastName, dto.AddressCity, RegisterHitPath(application, hits[0].EntryId), lines);
+        string? sourceType = null;
+        if (application != null) {
+            sourceType = ApplicationSourceType;
+        } else if (caseId != null) {
+            sourceType = ForwardingCaseRepository.MailSourceType;
+        }
+        _notifications.Enqueue(new NotificationDispatchRequest(
+            NotificationTriggers.ApplicantRegisterHit,
+            payload,
+            _ => new Dictionary<string, object> { ["hit"] = payload },
+            SourceEntityType: sourceType,
+            SourceEntityId: application?.Id ?? caseId));
+    }
+
+    /// <summary>An application waiting for its division may still leave Quartermaster for a Redmine path, so it is not linked.</summary>
+    private static string RegisterHitPath(MembershipApplication? application, Guid entryId) {
+        if (application != null && application.Status != ApplicationStatus.PendingDivisionLinking)
+            return $"/Administration/MembershipApplications/{application.Id}";
+        return $"/Administration/ApplicantRegister/{entryId}";
     }
 
     private void NotifyProcessors(DueSelection record) {

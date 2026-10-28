@@ -1,5 +1,7 @@
 using LinqToDB;
+using LinqToDB.Data;
 using Quartermaster.Api.MembershipApplications;
+using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.AuditLog;
 using System;
 using System.Collections.Generic;
@@ -54,15 +56,34 @@ public class MembershipApplicationRepository {
         return (items, totalCount);
     }
 
+    /// <summary>Pending applications of <paramref name="chapterIds"/> plus, with <paramref name="includeFederalStep"/>, every application waiting for the Bundesvorstand.</summary>
+    public (List<MembershipApplication> Items, int TotalCount) ListAwaitingDecision(
+        List<Guid> chapterIds, bool includeFederalStep, int page, int pageSize) {
+
+        var q = _context.MembershipApplications
+            .Where(a => a.DeletedAt == null)
+            .Where(a => (a.Status == ApplicationStatus.Pending && a.ChapterId != null && chapterIds.Contains(a.ChapterId.Value))
+                || (includeFederalStep && a.Status == ApplicationStatus.PendingFederalApproval));
+
+        var totalCount = q.Count();
+        var items = q.OrderByDescending(a => a.SubmittedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return (items, totalCount);
+    }
+
     public void UpdateStatus(Guid id, ApplicationStatus status, Guid? processedByUserId) {
         using var tx = _context.BeginTransaction();
         var existing = Get(id);
-        _context.MembershipApplications
+        var update = _context.MembershipApplications
             .Where(a => a.Id == id)
             .Set(a => a.Status, status)
-            .Set(a => a.ProcessedByUserId, processedByUserId)
-            .Set(a => a.ProcessedAt, DateTime.UtcNow)
-            .Update();
+            .Set(a => a.ProcessedByUserId, processedByUserId);
+        if (status != ApplicationStatus.PendingFederalApproval)
+            update = update.Set(a => a.ProcessedAt, (DateTime?)DateTime.UtcNow);
+        update.Update();
         if (existing != null)
             _auditLog.LogFieldChange("MembershipApplication", id, "Status", existing.Status.ToString(), status.ToString());
         tx.Commit();
@@ -84,10 +105,101 @@ public class MembershipApplicationRepository {
             _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId?.ToString());
     }
 
-    /// <summary>Removes the row for good; for data that only Redmine keeps from now on.</summary>
+    /// <summary>Removes the row for good; for data that only Redmine keeps from now on. Runs inside the caller's transaction.</summary>
     public void Delete(Guid id) {
+        var hitIds = _context.ApplicationRegisterHits
+            .Where(h => h.ApplicationId == id)
+            .Select(h => h.Id)
+            .ToList();
+        _context.ApplicationRegisterHits.Where(h => h.ApplicationId == id).Delete();
+        foreach (var hitId in hitIds)
+            _auditLog.LogDeleted(ApplicantRegisterRepository.HitAuditType, hitId);
         _context.MembershipApplications.Where(a => a.Id == id).Delete();
         _auditLog.LogDeleted("MembershipApplication", id);
+    }
+
+    /// <summary>
+    /// Locks the application row until the transaction ends, so concurrent changes to its register hits run one after another. Under snapshot
+    /// isolation it must come before the transaction's first consistent read, or the waiting transaction fails once the first one committed.
+    /// </summary>
+    public void Lock(Guid id) {
+        _context.Query<Guid>(
+                $"SELECT Id FROM {MembershipApplication.TableName} WHERE Id = @id FOR UPDATE",
+                new DataParameter("id", id)).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Drops the federal approval only while the status still is <paramref name="expected"/>; false when a decision moved it first. Runs inside
+    /// the caller's transaction.
+    /// </summary>
+    public bool LiftFederalApproval(Guid id, ApplicationStatus expected) {
+        var lifted = _context.MembershipApplications
+            .Where(a => a.Id == id && a.Status == expected)
+            .Set(a => a.RequiresFederalApproval, false)
+            .Update();
+        if (lifted == 0)
+            return false;
+
+        LogFederalApprovalLifted(id);
+        return true;
+    }
+
+    /// <summary>
+    /// Approves an application waiting for the federal step on its chapter's decision once the federal approval is no longer needed, dated
+    /// <paramref name="chapterDecidedAtUtc"/>; false when another decision got there first. Runs inside the caller's transaction.
+    /// </summary>
+    public bool ApproveOnChapterDecision(Guid id, Guid? processedByUserId, DateTime chapterDecidedAtUtc) {
+        var approved = _context.MembershipApplications
+            .Where(a => a.Id == id && a.Status == ApplicationStatus.PendingFederalApproval)
+            .Set(a => a.Status, ApplicationStatus.Approved)
+            .Set(a => a.RequiresFederalApproval, false)
+            .Set(a => a.ProcessedByUserId, processedByUserId)
+            .Set(a => a.ProcessedAt, (DateTime?)chapterDecidedAtUtc)
+            .Update();
+        if (approved == 0)
+            return false;
+
+        _auditLog.LogFieldChange("MembershipApplication", id, "Status", ApplicationStatus.PendingFederalApproval.ToString(), ApplicationStatus.Approved.ToString());
+        LogFederalApprovalLifted(id);
+        return true;
+    }
+
+    private void LogFederalApprovalLifted(Guid id) {
+        _auditLog.LogFieldChange("MembershipApplication", id, nameof(MembershipApplication.RequiresFederalApproval), true.ToString(), false.ToString());
+    }
+
+
+    /// <summary>
+    /// Stores the federal motion only while the application has none; false when another decision claimed it first. Runs inside the caller's
+    /// transaction, whose row lock holds a concurrent claim back until it ends.
+    /// </summary>
+    public bool ClaimFederalApprovalMotion(Guid id, Guid motionId) {
+        var claimed = _context.MembershipApplications
+            .Where(a => a.Id == id && a.FederalApprovalMotionId == null)
+            .Set(a => a.FederalApprovalMotionId, (Guid?)motionId)
+            .Update();
+        if (claimed == 0)
+            return false;
+
+        _auditLog.LogFieldChange("MembershipApplication", id, nameof(MembershipApplication.FederalApprovalMotionId), null, motionId.ToString());
+        return true;
+    }
+
+    /// <summary>Moves the status only while it still is <paramref name="expected"/>; false when another decision got there first.</summary>
+    public bool ClaimStatus(Guid id, ApplicationStatus expected, ApplicationStatus status, Guid? processedByUserId) {
+        using var tx = _context.BeginTransaction();
+        var update = _context.MembershipApplications
+            .Where(a => a.Id == id && a.Status == expected)
+            .Set(a => a.Status, status)
+            .Set(a => a.ProcessedByUserId, processedByUserId);
+        if (status != ApplicationStatus.PendingFederalApproval)
+            update = update.Set(a => a.ProcessedAt, (DateTime?)DateTime.UtcNow);
+        if (update.Update() == 0)
+            return false;
+
+        _auditLog.LogFieldChange("MembershipApplication", id, "Status", expected.ToString(), status.ToString());
+        tx.Commit();
+        return true;
     }
 
     public void SetMemberNumberAndWelcome(Guid id, int memberNumber, DateTime sentAt) {
