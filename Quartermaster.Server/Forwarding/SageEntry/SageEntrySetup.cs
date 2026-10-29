@@ -28,7 +28,7 @@ public class SageEntrySetup {
         var federal = _chapters.GetRootChapter();
         var target = FederalApplicationTarget();
 
-        if (!ApplicationForwardingEnabled())
+        if (!_options.IsGlobalEnabled(ForwardingOptionKeys.MembershipApplicationEnabled))
             missing.Add(SageSetupGap.ForwardingSwitch);
         if (federal == null || _resolver.ConnectionFor(federal.Id) == null)
             missing.Add(SageSetupGap.FederalConnection);
@@ -75,9 +75,5 @@ public class SageEntrySetup {
         if (target.SageDoneStatusId != null)
             return true;
         return target.SageAwaitReassignment;
-    }
-
-    private bool ApplicationForwardingEnabled() {
-        return string.Equals(_options.GetGlobalValue(ForwardingOptionKeys.MembershipApplicationEnabled)?.Value?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
     }
 }

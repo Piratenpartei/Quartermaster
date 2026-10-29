@@ -69,6 +69,7 @@ public class PermissionRepository {
         AddOrRename(PermissionIdentifier.EditMeetings, "Sitzungen bearbeiten", false);
         AddOrRename(PermissionIdentifier.DeleteMeetings, "Sitzungen löschen/archivieren", false);
         AddOrRename(PermissionIdentifier.ManageChapterMail, "Mailings verwalten", false);
+        AddOrRename(PermissionIdentifier.ManageChapterCapacity, "Handlungsfähigkeit verwalten", false);
         AddOrRename(PermissionIdentifier.ManageAssemblyMotions, "Antragskommission (Versammlungsanträge)", false);
         AddOrRename(PermissionIdentifier.AssemblyChair, "Versammlungsleitung", false);
         AddOrRename(PermissionIdentifier.AssemblyView, "Versammlung mitlesen", false);

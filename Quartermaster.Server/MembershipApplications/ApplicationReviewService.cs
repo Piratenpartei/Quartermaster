@@ -36,7 +36,8 @@ public class ApplicationReviewService {
     /// Returns the motion id, or null when the application has no chapter yet.
     /// </summary>
     /// <param name="isReduced">True when the application's dues need their own decision (a reduction below the regular minimum).</param>
-    public Guid? CreateReviewMotionAndNotify(MembershipApplication application, bool isReduced) {
+    /// <param name="onBehalfOf">The marked chapter the application's chapter decides for, or null.</param>
+    public Guid? CreateReviewMotionAndNotify(MembershipApplication application, bool isReduced, ChapterMarkSkip? onBehalfOf) {
         if (!application.ChapterId.HasValue)
             return null;
 
@@ -59,9 +60,10 @@ public class ApplicationReviewService {
             textHtml: MarkdownService.ToHtml(md, SanitizationProfile.Strict),
             nowUtc: DateTime.UtcNow,
             linkedApplicationId: application.Id,
-            linkedDueSelectionId: null);
+            linkedDueSelectionId: null,
+            onBehalfOf: onBehalfOf);
         _motionRepo.Create(motion);
-        NotifySubmitted(application, application.ChapterId.Value, isReduced);
+        NotifyApplicationSubmitted(application, application.ChapterId.Value, isReduced);
         return motion.Id;
     }
 
@@ -135,11 +137,11 @@ public class ApplicationReviewService {
             linkedDueSelectionId: null);
         motion.Id = motionId;
         _motionRepo.Create(motion);
-        NotifySubmitted(application, federalChapterId, isReduced);
+        NotifyApplicationSubmitted(application, federalChapterId, isReduced);
     }
 
     /// <summary>Creates the board motion on a reduced due selection in the deciding chapter. The vote sets the due selection to approved or rejected.</summary>
-    public Guid CreateReductionMotion(DueSelection dueSelection, Guid chapterId, MembershipApplication? application) {
+    public Guid CreateReductionMotion(DueSelection dueSelection, Guid chapterId, MembershipApplication? application, ChapterMarkSkip? onBehalfOf) {
         var firstName = application?.FirstName ?? dueSelection.FirstName;
         var lastName = application?.LastName ?? dueSelection.LastName;
         var email = application?.Email ?? dueSelection.Email ?? "";
@@ -161,19 +163,13 @@ public class ApplicationReviewService {
             textHtml: MarkdownService.ToHtml(md, SanitizationProfile.Strict),
             nowUtc: DateTime.UtcNow,
             linkedApplicationId: null,
-            linkedDueSelectionId: dueSelection.Id);
+            linkedDueSelectionId: dueSelection.Id,
+            onBehalfOf: onBehalfOf);
         _motionRepo.Create(motion);
         return motion.Id;
     }
 
-    private static string ApplicationMarkdown(MembershipApplication application) {
-        return $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
-            + $"- **E-Mail:** {application.Email}\n"
-            + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
-            + $"{application.AddressPostCode} {application.AddressCity}\n";
-    }
-
-    private void NotifySubmitted(MembershipApplication application, Guid chapterId, bool isReduced) {
+    public void NotifyApplicationSubmitted(MembershipApplication application, Guid chapterId, bool isReduced) {
         var chapter = _chapterRepo.Get(chapterId);
         var chapterName = chapter?.Name ?? "";
         var payload = new ApplicationSubmittedPayload(
@@ -188,5 +184,31 @@ public class ApplicationReviewService {
             },
             SourceEntityType: "MembershipApplication",
             SourceEntityId: application.Id));
+    }
+
+    public void NotifyDueSelectionSubmitted(DueSelection record) {
+        if (record.ChapterId == null)
+            return;
+
+        var chapterId = record.ChapterId.Value;
+        var chapter = _chapterRepo.Get(chapterId);
+        var chapterName = chapter?.Name ?? "";
+        var payload = new DueSelectionSubmittedPayload(record.Id, chapterId, chapterName, record.FirstName, record.LastName, record.SelectedDue);
+        _notifications.Enqueue(new NotificationDispatchRequest(
+            NotificationTriggers.DueSelectionSubmitted,
+            payload,
+            _ => new Dictionary<string, object> {
+                ["selection"] = record.ToDetailDto(),
+                ["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName })
+            },
+            SourceEntityType: "DueSelection",
+            SourceEntityId: record.Id));
+    }
+
+    private static string ApplicationMarkdown(MembershipApplication application) {
+        return $"**Mitgliedsantrag von {application.FirstName} {application.LastName}**\n\n"
+            + $"- **E-Mail:** {application.Email}\n"
+            + $"- **Adresse:** {application.AddressStreet} {application.AddressHouseNbr}, "
+            + $"{application.AddressPostCode} {application.AddressCity}\n";
     }
 }

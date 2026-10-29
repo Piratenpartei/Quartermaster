@@ -1,5 +1,7 @@
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
+using Quartermaster.Data.Chapters;
 using Quartermaster.Server.Forwarding;
 
 namespace Quartermaster.Server.Tests.Forwarding;
@@ -10,8 +12,10 @@ public class ForwardingRouterTests {
     private static readonly Guid District = Guid.NewGuid();
 
     private static ForwardingChapterContext Context(ForwardingMode? stateReduction = null, ForwardingMode? federalReduction = null,
-        ForwardingMode? federalApplication = null, Guid? handling = null, ForwardingMode? handlingMode = null, bool withState = true)
-        => new(Federal, withState ? State : null, federalApplication, federalReduction, stateReduction, handling, handlingMode);
+        ForwardingMode? federalApplication = null, Guid? handling = null, ForwardingMode? handlingMode = null, bool withState = true,
+        Guid? applicationDeciding = null, ChapterMarkSkip? applicationSkip = null, ChapterMarkSkip? handlingSkip = null, ChapterMarkSkip? stateSkip = null)
+        => new(Federal, withState ? State : null, federalApplication, federalReduction, stateReduction, handling, handlingMode,
+            applicationDeciding, applicationSkip, handlingSkip, stateSkip);
 
     private static ForwardingPlan Due(ForwardingChapterContext ctx, decimal amount, bool reduced = true, bool enabled = true, bool partOfApplication = false)
         => ForwardingRouter.PlanDueSelection(ctx, amount, reduced, enabled, 72, 12, partOfApplication);
@@ -168,7 +172,7 @@ public class ForwardingRouterTests {
 
     [Test]
     public async Task Application_switch_off_is_handled_in_its_chapter() {
-        var plan = ForwardingRouter.PlanApplication(Context(), District, false);
+        var plan = ForwardingRouter.PlanApplication(Context(applicationDeciding: District), District, false);
 
         await Assert.That(plan.Tickets).IsEmpty();
         await Assert.That(plan.MotionChapterId).IsEqualTo(District);
@@ -195,5 +199,86 @@ public class ForwardingRouterTests {
         await Assert.That(plan.RecordChapterId).IsNull();
         await Assert.That(plan.MotionChapterId).IsNull();
         await Assert.That(plan.NoteAfterDecision).IsFalse();
+    }
+
+    [Test]
+    public async Task Application_without_forwarding_goes_to_deciding_chapter() {
+        var skip = new ChapterMarkSkip(District, ChapterMark.NoMemberAdministration);
+
+        var plan = ForwardingRouter.PlanApplication(Context(applicationDeciding: State, applicationSkip: skip), District, false);
+
+        await Assert.That(plan.Tickets).IsEmpty();
+        await Assert.That(plan.MotionChapterId).IsEqualTo(State);
+        await Assert.That(plan.RecordChapterId).IsEqualTo(State);
+        await Assert.That(plan.DecidingChapterId).IsEqualTo(State);
+        await Assert.That(plan.Skip).IsEqualTo(skip);
+    }
+
+    [Test]
+    public async Task Handling_plan_carries_handling_skip() {
+        var skip = new ChapterMarkSkip(District, ChapterMark.UnableToAct);
+
+        var plan = ForwardingRouter.PlanApplication(Context(handling: State, handlingMode: ForwardingMode.Quartermaster, handlingSkip: skip), District, true);
+
+        await Assert.That(plan.MotionChapterId).IsEqualTo(State);
+        await Assert.That(plan.RecordChapterId).IsEqualTo(State);
+        await Assert.That(plan.Skip).IsEqualTo(skip);
+    }
+
+    [Test]
+    public async Task Reduction_skips_marked_state() {
+        var skip = new ChapterMarkSkip(State, ChapterMark.NoMemberAdministration);
+        var ctx = Context(stateReduction: ForwardingMode.Redmine, federalReduction: ForwardingMode.Quartermaster, stateSkip: skip);
+
+        var plan = Due(ctx, 36);
+
+        await Assert.That(plan.Tickets).IsEquivalentTo(new[] { new PlannedTicket(Federal, ForwardingPurpose.Reduction) });
+        await Assert.That(plan.DecidingChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.MotionChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.RecordChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.Skip).IsEqualTo(skip);
+    }
+
+    [Test]
+    public async Task Reduction_below_state_minimum_has_no_skip() {
+        var skip = new ChapterMarkSkip(State, ChapterMark.NoMemberAdministration);
+        var ctx = Context(stateReduction: ForwardingMode.Redmine, federalReduction: ForwardingMode.Quartermaster, stateSkip: skip);
+
+        var plan = Due(ctx, 6);
+
+        await Assert.That(plan.DecidingChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.MotionChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.Skip).IsNull();
+    }
+
+    [Test]
+    public async Task Marked_path_to_federal_gets_federal_motion() {
+        var skip = new ChapterMarkSkip(District, ChapterMark.NoMemberAdministration);
+        var ctx = Context(federalApplication: ForwardingMode.Quartermaster, applicationDeciding: Federal, applicationSkip: skip);
+
+        var plan = ForwardingRouter.PlanApplication(ctx, District, true);
+
+        await Assert.That(plan.Tickets).IsEquivalentTo(new[] { new PlannedTicket(Federal, ForwardingPurpose.Application) });
+        await Assert.That(plan.MotionChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.RecordChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.DecidingChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.StoreRecord).IsTrue();
+        await Assert.That(plan.NoteAfterDecision).IsTrue();
+        await Assert.That(plan.Skip).IsEqualTo(skip);
+    }
+
+    [Test]
+    public async Task Marked_path_to_federal_with_redmine_mode_is_ticket_only() {
+        var skip = new ChapterMarkSkip(District, ChapterMark.UnableToAct);
+        var ctx = Context(federalApplication: ForwardingMode.Redmine, applicationDeciding: Federal, applicationSkip: skip);
+
+        var plan = ForwardingRouter.PlanApplication(ctx, District, true);
+
+        await Assert.That(plan.Tickets).IsEquivalentTo(new[] { new PlannedTicket(Federal, ForwardingPurpose.Application) });
+        await Assert.That(plan.MotionChapterId).IsNull();
+        await Assert.That(plan.StoreRecord).IsFalse();
+        await Assert.That(plan.DecidingChapterId).IsEqualTo(Federal);
+        await Assert.That(plan.NoteAfterDecision).IsFalse();
+        await Assert.That(plan.Skip).IsNull();
     }
 }

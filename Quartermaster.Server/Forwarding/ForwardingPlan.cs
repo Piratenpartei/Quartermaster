@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
+using Quartermaster.Data.Chapters;
 
 namespace Quartermaster.Server.Forwarding;
 
@@ -14,6 +15,7 @@ public record PlannedTicket(Guid TargetChapterId, ForwardingPurpose Purpose);
 /// <param name="RecordChapterId">Chapter of a stored record.</param>
 /// <param name="DecidingChapterId">Chapter deciding on a reduction or handling an application, when one is determined.</param>
 /// <param name="NoteAfterDecision">Whether the federal ticket gets the outcome of the Quartermaster vote as a note.</param>
+/// <param name="Skip">The marked chapter the planned motion is decided for, or null.</param>
 public record ForwardingPlan(
     IReadOnlyList<PlannedTicket> Tickets,
     Guid? MotionChapterId,
@@ -21,4 +23,5 @@ public record ForwardingPlan(
     DueSelectionStatus? RecordStatus,
     Guid? RecordChapterId,
     Guid? DecidingChapterId,
-    bool NoteAfterDecision);
+    bool NoteAfterDecision,
+    ChapterMarkSkip? Skip);

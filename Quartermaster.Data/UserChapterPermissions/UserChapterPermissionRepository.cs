@@ -27,7 +27,7 @@ public class UserChapterPermissionRepository {
                 return true;
         }
 
-        // Role-derived grant — any role assigned to this chapter (or Global) counts,
+        // Role-derived grant - any role assigned to this chapter (or Global) counts,
         // regardless of InheritsToChildren (that flag only affects ancestor-walk).
         return _roleRepo.GetChapterPermissionsViaRoles(userId, chapterId).Contains(identifier);
     }
@@ -50,7 +50,7 @@ public class UserChapterPermissionRepository {
     /// <summary>
     /// Direct UserChapterPermission grants always inherit (the flag is per-role, not per-direct);
     /// role-derived grants only count when the role's InheritsToChildren is true. Global role
-    /// assignments aren't re-checked here — they're covered by the exact-chapter pass before this.
+    /// assignments aren't re-checked here - they're covered by the exact-chapter pass before this.
     /// </summary>
     private bool HasInheritablePermissionForAnyChapter(Guid userId, List<Guid> chapterIds, string identifier) {
         var directHit = _context.UserChapterPermissions
@@ -69,6 +69,21 @@ public class UserChapterPermissionRepository {
                 && chapterIds.Contains(x.a.ChapterId.Value)
                 && x.r.InheritsToChildren
                 && x.rp.PermissionIdentifier == identifier);
+    }
+
+    /// <summary>
+    /// Like <see cref="HasPermissionWithInheritance"/>, but inherits for any permission, not only view ones: a grant on the chapter itself, or an
+    /// inheriting grant on a chapter above it (direct grants, and roles with InheritsToChildren) counts.
+    /// </summary>
+    public bool HasPermissionOnChapterOrInheritedFromAbove(Guid userId, Guid chapterId, string identifier, ChapterRepository chapterRepo) {
+        if (HasPermissionForChapter(userId, chapterId, identifier))
+            return true;
+
+        var ancestorIds = chapterRepo.GetAncestorChainIds(chapterId).Skip(1).ToList();
+        if (ancestorIds.Count == 0)
+            return false;
+
+        return HasInheritablePermissionForAnyChapter(userId, ancestorIds, identifier);
     }
 
     public Dictionary<Guid, List<string>> GetAllForUser(Guid userId) {
@@ -90,7 +105,7 @@ public class UserChapterPermissionRepository {
             set.Add(r.Identifier);
         }
 
-        // Role-derived chapter grants (chapter-scoped assignments only — global assignments
+        // Role-derived chapter grants (chapter-scoped assignments only - global assignments
         // apply to all chapters but aren't chapter-specific, so they're handled via HasGlobalPermission)
         var chapterAssignments = _roleRepo.GetAssignmentsForUser(userId)
             .Where(a => a.ChapterId.HasValue)

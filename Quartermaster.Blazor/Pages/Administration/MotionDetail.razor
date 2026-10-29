@@ -1,4 +1,5 @@
 @page "/Administration/Motions/{Id:guid}"
+@using System
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Motions
@@ -25,6 +26,18 @@
             }
         </div>
     </div>
+
+    @if (Motion.OnBehalfOfReason != null && Motion.OnBehalfOfChapterName != null) {
+        <div class="alert alert-info">
+            <MotionOnBehalfText Reason="Motion.OnBehalfOfReason.Value" ChapterName="@Motion.OnBehalfOfChapterName" />
+        </div>
+    }
+    @if (Motion.HandedOverToMotionId != null && Motion.HandedOverToChapterName != null) {
+        <div class="alert alert-secondary">
+            @I18n[$"{I18nKey.Ui.ChapterMarks.HandedOverTo}?name={Uri.EscapeDataString(Motion.HandedOverToChapterName)}"]
+            <a href="/Administration/Motions/@Motion.HandedOverToMotionId" class="alert-link ms-1">@I18n[I18nKey.Ui.ChapterMarks.HandedOverLink]</a>
+        </div>
+    }
 
     @if (EditMode) {
         <div class="card mb-3 border-primary">

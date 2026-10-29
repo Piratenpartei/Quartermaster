@@ -10,14 +10,12 @@ using Quartermaster.Api.Motions;
 using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.AuditLog;
 using Quartermaster.Data.Chapters;
-using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.Forwarding.SageEntry;
 using Quartermaster.Server.MembershipApplications;
-using Quartermaster.Server.PublicForms;
 
 namespace Quartermaster.Server.ApplicantRegister;
 
@@ -49,13 +47,12 @@ public class FederalApprovalFlow {
     private readonly SageEntryGate _gate;
     private readonly MembershipApplicationMailService _mailService;
     private readonly AuditLogRepository _auditLog;
-    private readonly DueSelectionRepository _dueSelections;
-    private readonly PublicFormSettings _settings;
+    private readonly ApplicationReduction _reduction;
 
     public FederalApprovalFlow(MembershipApplicationRepository applications, MotionRepository motions, ChapterRepository chapters,
         ForwardingCaseRepository cases, ApplicantRegisterRepository register, ApplicationReviewService review,
         ForwardingOutcomeHook outcomeHook, SageEntryGate gate, MembershipApplicationMailService mailService, AuditLogRepository auditLog,
-        DueSelectionRepository dueSelections, PublicFormSettings settings) {
+        ApplicationReduction reduction) {
         _applications = applications;
         _motions = motions;
         _chapters = chapters;
@@ -66,8 +63,7 @@ public class FederalApprovalFlow {
         _gate = gate;
         _mailService = mailService;
         _auditLog = auditLog;
-        _dueSelections = dueSelections;
-        _settings = settings;
+        _reduction = reduction;
     }
 
     /// <summary>
@@ -148,7 +144,7 @@ public class FederalApprovalFlow {
 
     private void PointCasesBackAtChapter(MembershipApplication application) {
         var chapterMotionId = _motions.ListByLinkedApplicationId(application.Id)
-            .FirstOrDefault(m => m.Id != application.FederalApprovalMotionId)?.Id;
+            .FirstOrDefault(m => m.Id != application.FederalApprovalMotionId && m.HandedOverToMotionId == null)?.Id;
         foreach (var applicationCase in _cases.ListByRecord(ForwardingCaseKind.Application, application.Id)) {
             applicationCase.MotionId = chapterMotionId;
             applicationCase.DecidingChapterId = application.ChapterId;
@@ -202,20 +198,13 @@ public class FederalApprovalFlow {
         if (!_applications.ClaimFederalApprovalMotion(application.Id, motionId))
             return;
 
-        _review.CreateFederalApprovalMotion(application, motionId, root.Id, hearing(), chapterDecidedAtUtc, IsReduced(application));
+        _review.CreateFederalApprovalMotion(application, motionId, root.Id, hearing(), chapterDecidedAtUtc, _reduction.IsReduced(application));
         foreach (var applicationCase in _cases.ListByRecord(ForwardingCaseKind.Application, application.Id)) {
             applicationCase.MotionId = motionId;
             applicationCase.DecidingChapterId = root.Id;
             _cases.UpdateRouting(applicationCase);
         }
         tx.Commit();
-    }
-
-    private bool IsReduced(MembershipApplication application) {
-        if (application.DueSelectionId == null)
-            return false;
-        var dueSelection = _dueSelections.Get(application.DueSelectionId.Value);
-        return dueSelection != null && DueAmount.NeedsDecision(dueSelection.ToDto(), _settings.ReducedDueMaximum());
     }
 
     private void AddRejectedEntry(MembershipApplication application, Guid decidingChapterId) {

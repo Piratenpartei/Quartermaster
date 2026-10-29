@@ -22,8 +22,18 @@ public class Chapter {
 
     /// <summary>Shown to signed-in users only; never put it into a <see cref="ChapterDTO"/> for anonymous callers.</summary>
     public string? ContactEmail { get; set; }
+    public bool NoMemberAdministration { get; set; }
+    public bool UnableToAct { get; set; }
     public DateTime? ArchivedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public ChapterMark? MarkFor(ChapterMarkPurpose purpose) {
+        if (UnableToAct)
+            return ChapterMark.UnableToAct;
+        if (NoMemberAdministration && purpose == ChapterMarkPurpose.MemberAdministration)
+            return ChapterMark.NoMemberAdministration;
+        return null;
+    }
 
     public ChapterDTO ToDto(IReadOnlyList<string> externalCodes, IReadOnlyList<Guid> administrativeDivisionIds) => new() {
         Id = Id,

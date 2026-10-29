@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.I18n;
@@ -22,6 +24,7 @@ public class ChapterDetailResponse {
     public List<string> AdministrativeDivisionNames { get; set; } = [];
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
+    public bool CanManageMarks { get; set; }
 }
 
 public partial class ChapterDetail {
@@ -43,6 +46,8 @@ public partial class ChapterDetail {
     private bool Loading = true;
     private bool Editing;
     private bool Saving;
+    private bool SavingMarks;
+    private int MarksVersion;
 
     private string EditName = "";
     private string EditShortCode = "";
@@ -57,6 +62,7 @@ public partial class ChapterDetail {
     private ConfirmDialog ArchiveConfirm = default!;
     private ConfirmDialog UnarchiveConfirm = default!;
     private ConfirmDialog RemoveOfficerConfirm = default!;
+    private ConfirmDialog MarksConfirm = default!;
 
     protected override async Task OnParametersSetAsync() {
         Loading = true;
@@ -219,6 +225,85 @@ public partial class ChapterDetail {
             }
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+        }
+    }
+
+    private bool CanManageMarks()
+        => Detail?.CanManageMarks == true;
+
+    private async Task ToggleMark(ChapterMark mark, bool value) {
+        if (Detail == null)
+            return;
+        var request = new ChapterMarksRequest {
+            Id = Id,
+            NoMemberAdministration = mark == ChapterMark.NoMemberAdministration ? value : Detail.Chapter.NoMemberAdministration,
+            UnableToAct = mark == ChapterMark.UnableToAct ? value : Detail.Chapter.UnableToAct
+        };
+        var markName = I18n[mark == ChapterMark.NoMemberAdministration ? I18nKey.Ui.ChapterMarks.BadgeNoMemberAdministration : I18nKey.Ui.ChapterMarks.BadgeUnableToAct];
+        var name = Uri.EscapeDataString(Detail.Chapter.Name);
+        var escapedMarkName = Uri.EscapeDataString(markName);
+
+        string? message;
+        if (value) {
+            message = await BuildTurnOnMessage(request, name, escapedMarkName);
+        } else {
+            message = I18n[$"{I18nKey.Ui.ChapterMarks.TurnOff}?name={name}&mark={escapedMarkName}"];
+        }
+
+        var confirmed = message != null && await MarksConfirm.ShowAsync(message);
+        if (!confirmed) {
+            MarksVersion++;
+            return;
+        }
+        await SaveMarks(request);
+    }
+
+    private async Task<string?> BuildTurnOnMessage(ChapterMarksRequest request, string name, string escapedMarkName) {
+        try {
+            var url = $"/api/chapters/{Id}/marks/preview?NoMemberAdministration={request.NoMemberAdministration}&UnableToAct={request.UnableToAct}";
+            var response = await Http.GetAsync(url);
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return null;
+            }
+            var preview = await response.Content.ReadFromJsonAsync<List<ChapterMarksPreviewDTO>>() ?? [];
+            var lines = preview
+                .Where(entry => entry.Count > 0)
+                .Select(entry => I18n[$"{(entry.Count == 1 ? I18nKey.Ui.ChapterMarks.HandoverLineSingular : I18nKey.Ui.ChapterMarks.HandoverLine)}?count={entry.Count}&target={Uri.EscapeDataString(entry.TargetChapterName)}"])
+                .ToList();
+            if (lines.Count == 0)
+                return I18n[$"{I18nKey.Ui.ChapterMarks.TurnOnPlain}?name={name}&mark={escapedMarkName}"];
+            var intro = I18n[$"{I18nKey.Ui.ChapterMarks.TurnOnIntro}?name={name}&mark={escapedMarkName}"];
+            return string.Join("\n", lines.Prepend(intro));
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+            return null;
+        }
+    }
+
+    private async Task SaveMarks(ChapterMarksRequest request) {
+        SavingMarks = true;
+        StateHasChanged();
+        try {
+            var response = await Http.PutAsJsonAsync($"/api/chapters/{Id}/marks", request);
+            if (response.IsSuccessStatusCode) {
+                var result = await response.Content.ReadFromJsonAsync<ChapterMarksResponse>();
+                if (result != null && result.HandedOver > 0) {
+                    var toastKey = result.HandedOver == 1 ? I18nKey.Ui.ChapterMarks.HandedOverToastSingular : I18nKey.Ui.ChapterMarks.HandedOverToast;
+                    ToastService.Toast(I18n[$"{toastKey}?count={result.HandedOver}"]);
+                } else {
+                    ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+                }
+                await ReloadDetail();
+            } else {
+                await ToastService.ErrorAsync(response);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            SavingMarks = false;
+            MarksVersion++;
+            StateHasChanged();
         }
     }
 

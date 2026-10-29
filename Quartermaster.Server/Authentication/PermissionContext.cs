@@ -73,6 +73,20 @@ public class PermissionContext {
         return _chapterPermRepo.HasPermissionWithInheritance(uid.Value, chapterId, permission, _chapterRepo);
     }
 
+    /// <summary>
+    /// True if authenticated and holds the permission globally, on <paramref name="chapterId"/>, or through an inheriting grant on a chapter
+    /// above it (direct grants and roles with InheritsToChildren; delegates hold it only on their own chapter). For permissions that are not
+    /// view permissions but that higher chapters are meant to hold over their descendants.
+    /// </summary>
+    public bool HasOnChapterOrAncestors(Guid chapterId, string permission) {
+        var uid = UserId;
+        if (uid == null)
+            return false;
+        if (HasGlobal(permission))
+            return true;
+        return _chapterPermRepo.HasPermissionOnChapterOrInheritedFromAbove(uid.Value, chapterId, permission, _chapterRepo);
+    }
+
     /// <summary>True if authenticated and holds the permission globally or on at least one chapter.</summary>
     public bool HasInAnyChapter(string permission) {
         var uid = UserId;

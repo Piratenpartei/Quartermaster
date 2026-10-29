@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
-using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
@@ -68,7 +67,7 @@ public class ForwardingIntake {
     private DueSelectionIntakeResult RouteDueSelection(DueSelectionDTO dto, Guid? memberChapterId, Guid? userId, string? userName, bool enteredByHand, DateTime nowUtc) {
         var ctx = _resolver.Build(memberChapterId);
         var plan = ForwardingRouter.PlanDueSelection(ctx, DueAmount.Effective(dto), dto.SelectedValuation == SelectedValuation.Reduced,
-            IsEnabled(ForwardingOptionKeys.DueSelectionEnabled), RegularMinimum(), StateDecisionMinimum(), false);
+            _options.IsGlobalEnabled(ForwardingOptionKeys.DueSelectionEnabled), RegularMinimum(), StateDecisionMinimum(), false);
 
         Guid? dueSelectionId = null;
         Guid? motionId = null;
@@ -80,11 +79,11 @@ public class ForwardingIntake {
             _dueSelections.Create(record);
             dueSelectionId = record.Id;
             if (plan.MotionChapterId != null)
-                motionId = _review.CreateReductionMotion(record, plan.MotionChapterId.Value, null);
+                motionId = _review.CreateReductionMotion(record, plan.MotionChapterId.Value, null, plan.Skip);
             // The board that votes is always told. A record without a vote and without a known member chapter lands at the federal level by default,
             // where nobody has to act on it.
             if (motionId != null || memberChapterId != null)
-                NotifyProcessors(record);
+                _review.NotifyDueSelectionSubmitted(record);
         }
 
         if (plan.Tickets.Count == 0)
@@ -137,7 +136,7 @@ public class ForwardingIntake {
         if (plan.StoreRecord) {
             _applications.LinkDivisionAndChapter(application.Id, divisionId, plan.RecordChapterId);
             if (plan.MotionChapterId != null)
-                motionId = _review.CreateReviewMotionAndNotify(application, isReduced);
+                motionId = _review.CreateReviewMotionAndNotify(application, isReduced, plan.Skip);
         }
 
         // Without the application in Quartermaster a reduction gets its own record carrying the applicant's name, as on arrival.
@@ -203,7 +202,7 @@ public class ForwardingIntake {
 
     private ApplicationIntakeResult RouteApplication(MembershipApplicationDTO dto, Guid? applicationChapterId, DateTime nowUtc) {
         var ctx = _resolver.Build(applicationChapterId);
-        var plan = ForwardingRouter.PlanApplication(ctx, applicationChapterId, IsEnabled(ForwardingOptionKeys.MembershipApplicationEnabled));
+        var plan = ForwardingRouter.PlanApplication(ctx, applicationChapterId, _options.IsGlobalEnabled(ForwardingOptionKeys.MembershipApplicationEnabled));
         var dues = dto.DueSelection;
         var isReduced = dues != null && DueAmount.NeedsDecision(dues, RegularMinimum());
         // Who decides on a reduction depends on the chapter, so an application waiting for its division holds its reduction back until it is linked.
@@ -239,7 +238,7 @@ public class ForwardingIntake {
             _applications.Create(application);
             _register.AddHits(application.Id, hits);
             if (plan.MotionChapterId != null)
-                applicationMotionId = _review.CreateReviewMotionAndNotify(application, isReduced);
+                applicationMotionId = _review.CreateReviewMotionAndNotify(application, isReduced, plan.Skip);
         }
 
         Guid? applicationCaseId = null;
@@ -282,8 +281,8 @@ public class ForwardingIntake {
 
         Guid? motionId = null;
         if (record != null && plan.MotionChapterId != null) {
-            motionId = _review.CreateReductionMotion(record, plan.MotionChapterId.Value, application);
-            NotifyProcessors(record);
+            motionId = _review.CreateReductionMotion(record, plan.MotionChapterId.Value, application, plan.Skip);
+            _review.NotifyDueSelectionSubmitted(record);
         }
 
         if (plan.Tickets.Count == 0)
@@ -307,7 +306,7 @@ public class ForwardingIntake {
     }
 
     private ForwardingPlan PlanReduction(ForwardingChapterContext ctx, DueSelectionDTO dues) {
-        return ForwardingRouter.PlanDueSelection(ctx, DueAmount.Effective(dues), true, IsEnabled(ForwardingOptionKeys.DueSelectionEnabled),
+        return ForwardingRouter.PlanDueSelection(ctx, DueAmount.Effective(dues), true, _options.IsGlobalEnabled(ForwardingOptionKeys.DueSelectionEnabled),
             RegularMinimum(), StateDecisionMinimum(), true);
     }
 
@@ -381,29 +380,6 @@ public class ForwardingIntake {
         if (application != null && application.Status != ApplicationStatus.PendingDivisionLinking)
             return $"/Administration/MembershipApplications/{application.Id}";
         return $"/Administration/ApplicantRegister/{entryId}";
-    }
-
-    private void NotifyProcessors(DueSelection record) {
-        if (record.ChapterId == null)
-            return;
-
-        var chapterId = record.ChapterId.Value;
-        var chapter = _chapters.Get(chapterId);
-        var chapterName = chapter?.Name ?? "";
-        var payload = new DueSelectionSubmittedPayload(record.Id, chapterId, chapterName, record.FirstName, record.LastName, record.SelectedDue);
-        _notifications.Enqueue(new NotificationDispatchRequest(
-            NotificationTriggers.DueSelectionSubmitted,
-            payload,
-            _ => new Dictionary<string, object> {
-                ["selection"] = record.ToDetailDto(),
-                ["chapter"] = _chapters.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = chapterId, Name = chapterName })
-            },
-            SourceEntityType: "DueSelection",
-            SourceEntityId: record.Id));
-    }
-
-    private bool IsEnabled(string key) {
-        return string.Equals(_options.GetGlobalValue(key)?.Value?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
     }
 
     private decimal RegularMinimum() {

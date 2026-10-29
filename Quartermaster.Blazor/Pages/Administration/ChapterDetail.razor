@@ -19,6 +19,7 @@
             @if (Detail.Chapter.IsArchived) {
                 <span class="badge text-bg-warning">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
             }
+            <ChapterMarkBadges NoMemberAdministration="Detail.Chapter.NoMemberAdministration" UnableToAct="Detail.Chapter.UnableToAct" />
         </div>
         <div class="d-flex gap-2">
             @if (!Editing) {
@@ -186,6 +187,28 @@
         </div>
     </div>
 
+    @if (CanManageMarks()) {
+        <div class="card mb-3" @key="MarksVersion">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.ChapterMarks.CardTitle]</h5>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" role="switch" id="mark-no-member-administration"
+                           checked="@Detail.Chapter.NoMemberAdministration" disabled="@SavingMarks"
+                           @onchange="args => ToggleMark(ChapterMark.NoMemberAdministration, (bool)args.Value!)" />
+                    <label class="form-check-label" for="mark-no-member-administration">@I18n[I18nKey.Ui.ChapterMarks.BadgeNoMemberAdministration]</label>
+                    <div class="form-text">@I18n[I18nKey.Ui.ChapterMarks.NoMemberAdministrationHint]</div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="mark-unable-to-act"
+                           checked="@Detail.Chapter.UnableToAct" disabled="@SavingMarks"
+                           @onchange="args => ToggleMark(ChapterMark.UnableToAct, (bool)args.Value!)" />
+                    <label class="form-check-label" for="mark-unable-to-act">@I18n[I18nKey.Ui.ChapterMarks.BadgeUnableToAct]</label>
+                    <div class="form-text">@I18n[I18nKey.Ui.ChapterMarks.UnableToActHint]</div>
+                </div>
+            </div>
+        </div>
+    }
+
     @if (Detail.Children.Count > 0) {
         <div class="card mb-3">
             <div class="card-body">
@@ -208,4 +231,5 @@
 <ConfirmDialog @ref="DeleteConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.DeleteDialogConfirm]" />
 <ConfirmDialog @ref="ArchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.ArchiveDialogConfirm]" />
 <ConfirmDialog @ref="UnarchiveConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.UnarchiveDialogConfirm]" />
+<ConfirmDialog @ref="MarksConfirm" Title="@I18n[I18nKey.Ui.ChapterMarks.DialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterMarks.DialogConfirm]" />
 <ConfirmDialog @ref="RemoveOfficerConfirm" Title="@I18n[I18nKey.Ui.ChapterDetail.RemoveOfficerDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.ChapterDetail.RemoveOfficerDialogConfirm]" />

@@ -36,6 +36,11 @@ public class OptionRepository {
             .Where(o => o.Identifier == identifier && o.ChapterId == null)
             .FirstOrDefault();
 
+    /// <summary>True when the global value of a switch option is "true", ignoring case and surrounding blanks.</summary>
+    public bool IsGlobalEnabled(string identifier) {
+        return string.Equals(GetGlobalValue(identifier)?.Value?.Trim(), "true", StringComparison.OrdinalIgnoreCase);
+    }
+
     public SystemOption? GetChapterValue(string identifier, Guid chapterId)
         => _context.SystemOptions
             .Where(o => o.Identifier == identifier && o.ChapterId == chapterId)

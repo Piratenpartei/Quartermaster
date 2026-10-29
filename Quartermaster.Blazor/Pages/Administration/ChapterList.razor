@@ -53,6 +53,7 @@
                         @if (ch.IsArchived) {
                             <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
                         }
+                        <ChapterMarkBadges NoMemberAdministration="ch.NoMemberAdministration" UnableToAct="ch.UnableToAct" />
                     </td>
                     <td>
                         @if (!string.IsNullOrEmpty(ch.ShortCode)) {

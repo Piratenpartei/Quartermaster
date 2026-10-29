@@ -1,7 +1,9 @@
 using System;
 using LinqToDB.Mapping;
 using Quartermaster.Api;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Motions;
+using Quartermaster.Data.Chapters;
 
 namespace Quartermaster.Data.Motions;
 
@@ -33,11 +35,15 @@ public class Motion {
     public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
 
+    public Guid? OnBehalfOfChapterId { get; set; }
+    public ChapterMark? OnBehalfOfReason { get; set; }
+    public Guid? HandedOverToMotionId { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 
-    public static Motion Create(Guid chapterId, string authorName, string authorEmail, string title, string textMarkdown, string textHtml, DateTime nowUtc, Guid? linkedApplicationId = null, Guid? linkedDueSelectionId = null) => new() {
+    public static Motion Create(Guid chapterId, string authorName, string authorEmail, string title, string textMarkdown, string textHtml, DateTime nowUtc, Guid? linkedApplicationId = null, Guid? linkedDueSelectionId = null, ChapterMarkSkip? onBehalfOf = null) => new() {
         ChapterId = chapterId,
         AuthorName = authorName,
         AuthorEmail = authorEmail,
@@ -48,6 +54,8 @@ public class Motion {
         LinkedMembershipApplicationId = linkedApplicationId,
         LinkedDueSelectionId = linkedDueSelectionId,
         ApprovalStatus = MotionApprovalStatus.Pending,
+        OnBehalfOfChapterId = onBehalfOf?.ChapterId,
+        OnBehalfOfReason = onBehalfOf?.Reason,
         CreatedAt = nowUtc
     };
 

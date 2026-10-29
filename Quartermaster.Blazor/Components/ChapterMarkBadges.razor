@@ -1,0 +1,7 @@
+@using Quartermaster.Api.I18n
+@if (NoMemberAdministration) {
+    <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterMarks.BadgeNoMemberAdministration]</span>
+}
+@if (UnableToAct) {
+    <span class="badge text-bg-danger ms-1">@I18n[I18nKey.Ui.ChapterMarks.BadgeUnableToAct]</span>
+}

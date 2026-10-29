@@ -26,7 +26,7 @@ public class ChapterSearchEndpoint : Endpoint<ChapterSearchRequest, ChapterSearc
         var (items, totalCount) = _chapterRepo.Search(req.Query, req.Page, req.PageSize);
 
         await SendAsync(new ChapterSearchResponse {
-            Items = _chapterRepo.ToDtos(items, includeContactEmail: _perms.UserId != null),
+            Items = _chapterRepo.ToDtos(items, includeMemberFields: _perms.UserId != null),
             TotalCount = totalCount,
             Page = req.Page,
             PageSize = req.PageSize

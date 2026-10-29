@@ -128,6 +128,15 @@ public class ForwardingCaseRepository {
             .Update();
     }
 
+    /// <summary>Points a case at the motion that replaced its motion in a handover, so the outcome note follows the new vote.</summary>
+    public void PointAtMotion(Guid caseId, Guid motionId, Guid decidingChapterId) {
+        _context.ForwardingCases
+            .Where(c => c.Id == caseId)
+            .Set(c => c.MotionId, (Guid?)motionId)
+            .Set(c => c.DecidingChapterId, (Guid?)decidingChapterId)
+            .Update();
+    }
+
     public void SetRelatedCase(Guid id, Guid relatedCaseId) {
         _context.ForwardingCases
             .Where(c => c.Id == id)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Quartermaster.Api.Chapters;
 
 namespace Quartermaster.Api.Motions;
 
@@ -27,4 +28,13 @@ public class MotionDetailDTO {
     public List<MotionVoteDTO> Votes { get; set; } = [];
     public List<MotionVoteDTO> Officers { get; set; } = [];
     public int TotalOfficers { get; set; }
+
+    /// <summary>The marked chapter this motion is decided for. Only filled for signed-in callers.</summary>
+    public Guid? OnBehalfOfChapterId { get; set; }
+    public string? OnBehalfOfChapterName { get; set; }
+    public ChapterMark? OnBehalfOfReason { get; set; }
+
+    /// <summary>The replacement motion this one was handed over to. Only filled for signed-in callers.</summary>
+    public Guid? HandedOverToMotionId { get; set; }
+    public string? HandedOverToChapterName { get; set; }
 }

@@ -18,7 +18,7 @@ using Quartermaster.Data.Submissions;
 using Quartermaster.Rendering;
 using Quartermaster.Server.Forwarding;
 using Quartermaster.Server.MembershipApplications;
-using Quartermaster.Server.Notifications;
+using Quartermaster.Server.Motions;
 
 namespace Quartermaster.Server.Submissions;
 
@@ -32,7 +32,7 @@ public class SubmissionMaterializer {
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly MemberRepository _memberRepo;
-    private readonly INotificationDispatchQueue _notifications;
+    private readonly MotionSubmittedNotifier _motionNotifier;
     private readonly MembershipApplicationMailService _applicantMail;
     private readonly ForwardingIntake _forwardingIntake;
     private readonly AdministrativeDivisionRepository _divisionRepo;
@@ -43,7 +43,7 @@ public class SubmissionMaterializer {
         MembershipApplicationRepository applicationRepo,
         ChapterRepository chapterRepo,
         MemberRepository memberRepo,
-        INotificationDispatchQueue notifications,
+        MotionSubmittedNotifier motionNotifier,
         MembershipApplicationMailService applicantMail,
         ForwardingIntake forwardingIntake,
         AdministrativeDivisionRepository divisionRepo,
@@ -52,7 +52,7 @@ public class SubmissionMaterializer {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _memberRepo = memberRepo;
-        _notifications = notifications;
+        _motionNotifier = motionNotifier;
         _applicantMail = applicantMail;
         _forwardingIntake = forwardingIntake;
         _divisionRepo = divisionRepo;
@@ -99,22 +99,16 @@ public class SubmissionMaterializer {
             return null;
         }
 
+        var route = _chapterRepo.Route(chapter.Id, ChapterMarkPurpose.Motion);
+        var decidingChapter = route.DecidingChapterId == chapter.Id ? chapter : _chapterRepo.Get(route.DecidingChapterId)!;
         var textHtml = MarkdownService.ToHtml(req.Text, SanitizationProfile.Strict);
         var motion = Motion.FromCreateRequest(req, textHtml, DateTime.UtcNow);
+        motion.ChapterId = decidingChapter.Id;
+        motion.OnBehalfOfChapterId = route.Skip?.ChapterId;
+        motion.OnBehalfOfReason = route.Skip?.Reason;
         _motionRepo.Create(motion);
 
-        var chapterName = chapter.Name;
-        var payload = new MotionSubmittedPayload(
-            motion.Id, motion.ChapterId, motion.Title, motion.AuthorName, chapterName);
-        _notifications.Enqueue(new NotificationDispatchRequest(
-            NotificationTriggers.MotionSubmitted,
-            payload,
-            _ => new Dictionary<string, object> {
-                ["motion"] = motion.ToDetailDto(chapterName),
-                ["chapter"] = _chapterRepo.WithTemplateContact(chapter.ToDto())
-            },
-            SourceEntityType: "Motion",
-            SourceEntityId: motion.Id));
+        _motionNotifier.Notify(motion, decidingChapter);
         return motion.Id;
     }
 

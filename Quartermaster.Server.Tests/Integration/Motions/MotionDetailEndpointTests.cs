@@ -1,7 +1,10 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -68,5 +71,54 @@ public class MotionDetailEndpointTests : IntegrationTestBase {
         await Assert.That(dto!.Votes.Count).IsEqualTo(0);
         await Assert.That(dto.Officers.Count).IsEqualTo(0);
         await Assert.That(dto.TotalOfficers).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Public_motion_hides_on_behalf_from_anonymous() {
+        var (motion, _) = SeedHandedOverMotion();
+        using var client = AnonymousClient();
+
+        var dto = await client.GetFromJsonAsync<MotionDetailDTO>($"/api/motions/{motion.Id}");
+
+        await Assert.That(dto!.OnBehalfOfChapterId).IsNull();
+        await Assert.That(dto.OnBehalfOfChapterName).IsNull();
+        await Assert.That(dto.OnBehalfOfReason).IsNull();
+        await Assert.That(dto.HandedOverToMotionId).IsNull();
+        await Assert.That(dto.HandedOverToChapterName).IsNull();
+    }
+
+    [Test]
+    public async Task On_behalf_shown_to_member() {
+        var (motion, target) = SeedHandedOverMotion();
+        var (_, token) = Builder.SeedAuthenticatedUser();
+        using var client = AuthenticatedClient(token);
+
+        var dto = await client.GetFromJsonAsync<MotionDetailDTO>($"/api/motions/{motion.Id}");
+        var list = await client.GetFromJsonAsync<MotionListResponse>("/api/motions?page=1&pageSize=25");
+
+        await Assert.That(dto!.OnBehalfOfChapterName).IsEqualTo("OV");
+        await Assert.That(dto.OnBehalfOfReason).IsEqualTo(ChapterMark.UnableToAct);
+        await Assert.That(dto.HandedOverToMotionId).IsEqualTo(target.Id);
+        await Assert.That(dto.HandedOverToChapterName).IsEqualTo("KV");
+        var listed = list!.Items.Single(m => m.Id == motion.Id);
+        await Assert.That(listed.OnBehalfOfChapterName).IsEqualTo("OV");
+        await Assert.That(listed.HandedOverToChapterName).IsEqualTo("KV");
+        await Assert.That(list.Items.Single(m => m.Id == target.Id).OnBehalfOfReason).IsEqualTo(ChapterMark.UnableToAct);
+    }
+
+    private (Motion Closed, Motion Replacement) SeedHandedOverMotion() {
+        var tree = Builder.SeedChapterHierarchy("Bund", "KV", "OV");
+        var closed = Builder.SeedMotion(tree[2].Id, title: "Alt");
+        var replacement = Builder.SeedMotion(tree[1].Id, title: "Neu");
+        Db.Motions.Where(m => m.Id == replacement.Id)
+            .Set(m => m.OnBehalfOfChapterId, tree[2].Id)
+            .Set(m => m.OnBehalfOfReason, ChapterMark.UnableToAct)
+            .Update();
+        Db.Motions.Where(m => m.Id == closed.Id)
+            .Set(m => m.OnBehalfOfChapterId, tree[2].Id)
+            .Set(m => m.OnBehalfOfReason, ChapterMark.UnableToAct)
+            .Set(m => m.HandedOverToMotionId, replacement.Id)
+            .Update();
+        return (closed, replacement);
     }
 }

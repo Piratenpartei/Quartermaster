@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Quartermaster.Api;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -166,5 +168,53 @@ public class MotionCreateEndpointTests : IntegrationTestBase {
 
         var motion = Db.Motions.Single();
         await Assert.That(motion.Text.Contains("<strong>")).IsTrue();
+    }
+
+    private async Task<HttpResponseMessage> SubmitAsMemberAsync(Guid chapterId) {
+        var (_, token) = Builder.SeedAuthenticatedUser(email: "member@test.local");
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        return await client.PostAsJsonAsync("/api/motions", new MotionCreateRequest {
+            ChapterId = chapterId,
+            AuthorName = "Member Mia",
+            AuthorEmail = "member@test.local",
+            Title = "Routed motion",
+            Text = "Body."
+        });
+    }
+
+    [Test]
+    public async Task Motion_for_unable_chapter_goes_to_parent() {
+        var parent = Builder.SeedChapter("Kreis");
+        var marked = Builder.SeedChapter("Ortsverband", parentChapterId: parent.Id, unableToAct: true);
+        var (parentOfficer, _) = Builder.SeedAuthenticatedUser(
+            email: "parent@test.local",
+            chapterPermissions: new() { [parent.Id] = new[] { PermissionIdentifier.EditMotions } });
+        Builder.SeedAuthenticatedUser(
+            email: "marked@test.local",
+            chapterPermissions: new() { [marked.Id] = new[] { PermissionIdentifier.EditMotions } });
+
+        var response = await SubmitAsMemberAsync(marked.Id);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var motion = Db.Motions.Single();
+        await Assert.That(motion.ChapterId).IsEqualTo(parent.Id);
+        await Assert.That(motion.OnBehalfOfChapterId).IsEqualTo(marked.Id);
+        await Assert.That(motion.OnBehalfOfReason).IsEqualTo(ChapterMark.UnableToAct);
+        var recipients = Db.NotificationLogs.Where(l => l.TriggerId == "motion_submitted").Select(l => l.RecipientUserId).ToList();
+        await Assert.That(recipients).IsEquivalentTo(new Guid?[] { parentOfficer.Id });
+    }
+
+    [Test]
+    public async Task Motion_for_chapter_without_member_administration_stays() {
+        var parent = Builder.SeedChapter("Kreis");
+        var marked = Builder.SeedChapter("Ortsverband", parentChapterId: parent.Id, noMemberAdministration: true);
+
+        var response = await SubmitAsMemberAsync(marked.Id);
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var motion = Db.Motions.Single();
+        await Assert.That(motion.ChapterId).IsEqualTo(marked.Id);
+        await Assert.That(motion.OnBehalfOfChapterId).IsNull();
+        await Assert.That(motion.OnBehalfOfReason).IsNull();
     }
 }

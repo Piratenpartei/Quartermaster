@@ -24,7 +24,7 @@ public class ChapterListEndpoint : EndpointWithoutRequest<List<ChapterDTO>> {
     }
 
     public override async Task HandleAsync(CancellationToken ct) {
-        var dtos = _chapterRepository.ToDtos(_chapterRepository.GetAll(), includeContactEmail: _perms.UserId != null);
+        var dtos = _chapterRepository.ToDtos(_chapterRepository.GetAll(), includeMemberFields: _perms.UserId != null);
         await SendAsync(dtos, cancellation: ct);
     }
 }

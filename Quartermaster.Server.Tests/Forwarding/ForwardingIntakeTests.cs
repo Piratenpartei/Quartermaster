@@ -1,5 +1,6 @@
 using System.Text.Json;
 using LinqToDB;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Api.MembershipApplications;
@@ -42,7 +43,7 @@ public class ForwardingIntakeTests : RepositoryTestBase {
         var motions = new MotionRepository(Db, AuditLog);
         var dueSelections = new DueSelectionRepository(Db, AuditLog);
         _notifications = new CapturingNotificationQueue();
-        var review = new ApplicationReviewService(motions, chapters, new CapturingNotificationQueue());
+        var review = new ApplicationReviewService(motions, chapters, _notifications);
         _intake = new ForwardingIntake(
             new ForwardingSettingsResolver(chapters, _settings, new RedmineConnectionRepository(Db)),
             _cases, dueSelections, new MembershipApplicationRepository(Db, AuditLog), review, _options, _notifications, new NotificationLogRepository(Db), chapters,
@@ -349,5 +350,39 @@ public class ForwardingIntakeTests : RepositoryTestBase {
         var lowText = Db.Motions.Single(m => m.LinkedMembershipApplicationId == low.ApplicationId).TextMarkdown;
         await Assert.That(highText).DoesNotContain("gesondert entschieden");
         await Assert.That(lowText).Contains("gesondert entschieden");
+    }
+
+    [Test]
+    public async Task Application_in_marked_chapter_goes_up_without_forwarding() {
+        _options.SetValue(ForwardingOptionKeys.MembershipApplicationEnabled, null, "false");
+        var marked = _builder.SeedChapter("Kreis ohne Verwaltung", parentChapterId: _state.Id, noMemberAdministration: true);
+
+        var result = _intake.IntakeApplication(Application(Regular()), marked.Id, DateTime.UtcNow);
+
+        var application = Db.MembershipApplications.Single(a => a.Id == result.ApplicationId);
+        var motion = Db.Motions.Single(m => m.LinkedMembershipApplicationId == application.Id);
+        await Assert.That(result.CaseId).IsNull();
+        await Assert.That(application.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(motion.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(motion.OnBehalfOfChapterId).IsEqualTo(marked.Id);
+        await Assert.That(motion.OnBehalfOfReason).IsEqualTo(ChapterMark.NoMemberAdministration);
+    }
+
+    [Test]
+    public async Task Linking_to_marked_chapter_goes_up() {
+        _options.SetValue(ForwardingOptionKeys.MembershipApplicationEnabled, null, "false");
+        var marked = _builder.SeedChapter("Kreis handlungsunfaehig", parentChapterId: _state.Id, unableToAct: true);
+        var result = _intake.IntakeApplication(Application(Regular()), null, DateTime.UtcNow);
+        var application = Db.MembershipApplications.Single(a => a.Id == result.ApplicationId);
+
+        _intake.LinkApplication(application, null, marked.Id, DateTime.UtcNow);
+
+        var linked = Db.MembershipApplications.Single(a => a.Id == application.Id);
+        var motion = Db.Motions.Single(m => m.LinkedMembershipApplicationId == application.Id);
+        await Assert.That(linked.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(linked.Status).IsEqualTo(ApplicationStatus.Pending);
+        await Assert.That(motion.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(motion.OnBehalfOfChapterId).IsEqualTo(marked.Id);
+        await Assert.That(motion.OnBehalfOfReason).IsEqualTo(ChapterMark.UnableToAct);
     }
 }

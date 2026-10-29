@@ -47,6 +47,20 @@ public class ChapterRepositoryTests : RepositoryTestBase {
     }
 
     [Test]
+    public async Task SetMarks_audits_each_changed_flag() {
+        _repo.SetMarks(_kreisId, true, false);
+
+        var entries = AuditLog.GetForEntity("Chapter", _kreisId);
+        await Assert.That(entries.Count).IsEqualTo(1);
+        await Assert.That(entries[0].FieldName).IsEqualTo("NoMemberAdministration");
+
+        _repo.SetMarks(_kreisId, true, false);
+
+        await Assert.That(AuditLog.GetForEntity("Chapter", _kreisId).Count).IsEqualTo(1);
+        await Assert.That(_repo.Get(_kreisId)!.NoMemberAdministration).IsTrue();
+    }
+
+    [Test]
     public async Task GetAncestorChain_LeafNode_ReturnsFullChain() {
         var chain = _repo.GetAncestorChain(_kreisId);
 

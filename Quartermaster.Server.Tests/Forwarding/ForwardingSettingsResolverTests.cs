@@ -1,3 +1,4 @@
+using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Forwarding;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
@@ -90,5 +91,51 @@ public class ForwardingSettingsResolverTests : RepositoryTestBase {
 
         await Assert.That(_resolver.ConnectionFor(_district.Id)!.BaseUrl).IsEqualTo("https://kreis.invalid");
         await Assert.That(_resolver.FailureEmailFor(_district.Id)).IsEqualTo("land@example.org");
+    }
+
+    [Test]
+    public async Task Handling_chapter_skips_marked_chapter() {
+        var marked = _builder.SeedChapter("Kreis ohne Verwaltung", parentChapterId: _state.Id, noMemberAdministration: true);
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = marked.Id, ApplicationMode = ForwardingMode.Quartermaster }, []);
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ApplicationMode = ForwardingMode.Redmine }, []);
+
+        var handling = _resolver.HandlingChapterFor(marked.Id);
+
+        await Assert.That(handling.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(handling.Mode).IsEqualTo(ForwardingMode.Redmine);
+        await Assert.That(handling.Skip).IsEqualTo(new ChapterMarkSkip(marked.Id, ChapterMark.NoMemberAdministration));
+    }
+
+    [Test]
+    public async Task Handling_chapter_skips_consecutive_marks() {
+        var kv = _builder.SeedChapter("KV", parentChapterId: _state.Id, unableToAct: true);
+        var ov = _builder.SeedChapter("OV", parentChapterId: kv.Id, noMemberAdministration: true);
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = kv.Id, ApplicationMode = ForwardingMode.Quartermaster }, []);
+        _settings.SaveChapter(new ForwardingChapterSetting { ChapterId = _state.Id, ApplicationMode = ForwardingMode.Quartermaster }, []);
+
+        var handling = _resolver.HandlingChapterFor(ov.Id);
+        var ctx = _resolver.Build(ov.Id);
+
+        await Assert.That(handling.ChapterId).IsEqualTo(_state.Id);
+        await Assert.That(handling.Skip).IsEqualTo(new ChapterMarkSkip(kv.Id, ChapterMark.UnableToAct));
+        await Assert.That(ctx.HandlingChapterId).IsEqualTo(_state.Id);
+        await Assert.That(ctx.HandlingSkip).IsEqualTo(new ChapterMarkSkip(kv.Id, ChapterMark.UnableToAct));
+        await Assert.That(ctx.ApplicationDecidingChapterId).IsEqualTo(_state.Id);
+        await Assert.That(ctx.ApplicationSkip).IsEqualTo(new ChapterMarkSkip(ov.Id, ChapterMark.NoMemberAdministration));
+    }
+
+    [Test]
+    public async Task State_skip_set_for_marked_state() {
+        var markedState = _builder.SeedChapter("Land ohne Verwaltung", parentChapterId: _federal.Id, noMemberAdministration: true);
+        var district = _builder.SeedChapter("Kreis", parentChapterId: markedState.Id);
+
+        var marked = _resolver.Build(district.Id);
+        var unmarked = _resolver.Build(_district.Id);
+
+        await Assert.That(marked.StateId).IsEqualTo(markedState.Id);
+        await Assert.That(marked.StateSkip).IsEqualTo(new ChapterMarkSkip(markedState.Id, ChapterMark.NoMemberAdministration));
+        await Assert.That(marked.ApplicationDecidingChapterId).IsEqualTo(district.Id);
+        await Assert.That(marked.ApplicationSkip).IsNull();
+        await Assert.That(unmarked.StateSkip).IsNull();
     }
 }

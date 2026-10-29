@@ -3,6 +3,7 @@ using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
+using Quartermaster.Data.Motions;
 using Quartermaster.Data.Templates;
 
 namespace Quartermaster.Data.Migrations;
@@ -38,6 +39,15 @@ public class M009 : MigrationBase {
 
         Alter.Table(Chapter.TableName)
             .AddColumn(nameof(Chapter.ContactEmail)).AsString(Chapter.ContactEmailMaxLength).Nullable();
+
+        Alter.Table(Chapter.TableName)
+            .AddColumn(nameof(Chapter.NoMemberAdministration)).AsBoolean().NotNullable().WithDefaultValue(false)
+            .AddColumn(nameof(Chapter.UnableToAct)).AsBoolean().NotNullable().WithDefaultValue(false);
+
+        Alter.Table(Motion.TableName)
+            .AddColumn(nameof(Motion.OnBehalfOfChapterId)).AsGuid().Nullable()
+            .AddColumn(nameof(Motion.OnBehalfOfReason)).AsInt32().Nullable()
+            .AddColumn(nameof(Motion.HandedOverToMotionId)).AsGuid().Nullable();
 
         Alter.Table(MembershipApplication.TableName)
             .AddColumn(nameof(MembershipApplication.RequiresFederalApproval)).AsBoolean().NotNullable().WithDefaultValue(false)
@@ -120,5 +130,10 @@ public class M009 : MigrationBase {
         Delete.Column(nameof(MembershipApplication.AddressCountry)).FromTable(MembershipApplication.TableName);
         Delete.Column(nameof(MembershipApplication.OtherParties)).FromTable(MembershipApplication.TableName);
         Delete.Column(nameof(Chapter.ContactEmail)).FromTable(Chapter.TableName);
+        Delete.Column(nameof(Chapter.NoMemberAdministration)).FromTable(Chapter.TableName);
+        Delete.Column(nameof(Chapter.UnableToAct)).FromTable(Chapter.TableName);
+        Delete.Column(nameof(Motion.OnBehalfOfChapterId)).FromTable(Motion.TableName);
+        Delete.Column(nameof(Motion.OnBehalfOfReason)).FromTable(Motion.TableName);
+        Delete.Column(nameof(Motion.HandedOverToMotionId)).FromTable(Motion.TableName);
     }
 }

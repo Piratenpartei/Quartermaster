@@ -118,8 +118,8 @@ public class ChapterRepository {
     }
 
     /// <summary>Builds DTOs with codes + divisions batch-loaded: two extra queries total regardless of list size.
-    /// Pass <paramref name="includeContactEmail"/> only for signed-in callers.</summary>
-    public List<ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters, bool includeContactEmail = false) {
+    /// Pass <paramref name="includeMemberFields"/> only for signed-in callers.</summary>
+    public List<ChapterDTO> ToDtos(IReadOnlyList<Chapter> chapters, bool includeMemberFields = false) {
         if (chapters.Count == 0)
             return [];
         var ids = chapters.Select(c => c.Id).ToList();
@@ -128,8 +128,11 @@ public class ChapterRepository {
         return chapters
             .Select(c => {
                 var dto = c.ToDto(codesByChapter.GetValueOrDefault(c.Id, []), divisionsByChapter.GetValueOrDefault(c.Id, []));
-                if (includeContactEmail)
+                if (includeMemberFields) {
                     dto.ContactEmail = c.ContactEmail;
+                    dto.NoMemberAdministration = c.NoMemberAdministration;
+                    dto.UnableToAct = c.UnableToAct;
+                }
                 return dto;
             })
             .ToList();
@@ -314,6 +317,25 @@ public class ChapterRepository {
         var chapters = _context.Chapters.Where(c => orderedIds.Contains(c.Id)).ToList()
             .ToDictionary(c => c.Id);
         return orderedIds.Where(chapters.ContainsKey).Select(id => chapters[id]).ToList();
+    }
+
+    public ChapterMarkRoute Route(Guid chapterId, ChapterMarkPurpose purpose)
+        => ChapterMarkRouting.Resolve(GetAncestorChain(chapterId), purpose);
+
+    /// <summary>Runs in the caller's transaction when there is one.</summary>
+    public void SetMarks(Guid chapterId, bool noMemberAdministration, bool unableToAct) {
+        var existing = Get(chapterId);
+        if (existing == null)
+            return;
+
+        _context.Chapters
+            .Where(c => c.Id == chapterId)
+            .Set(c => c.NoMemberAdministration, noMemberAdministration)
+            .Set(c => c.UnableToAct, unableToAct)
+            .Update();
+
+        _auditLog.LogFieldChange("Chapter", chapterId, nameof(Chapter.NoMemberAdministration), existing.NoMemberAdministration.ToString(), noMemberAdministration.ToString());
+        _auditLog.LogFieldChange("Chapter", chapterId, nameof(Chapter.UnableToAct), existing.UnableToAct.ToString(), unableToAct.ToString());
     }
 
     public enum ChapterDeleteResult {

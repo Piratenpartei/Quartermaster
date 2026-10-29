@@ -66,11 +66,30 @@ public class MotionListEndpoint : Endpoint<MotionListRequest, MotionListResponse
             ResolvedAt = m.ResolvedAt.ToDtoUtc()
         }).ToList();
 
+        if (_perms.UserId != null)
+            FillNotices(items, dtos);
+
         await SendAsync(new MotionListResponse {
             Items = dtos,
             TotalCount = totalCount,
             Page = req.Page,
             PageSize = req.PageSize
         }, cancellation: ct);
+    }
+
+    private void FillNotices(IReadOnlyList<Motion> motions, List<MotionDTO> dtos) {
+        var targetMotionIds = motions.Where(m => m.HandedOverToMotionId != null).Select(m => m.HandedOverToMotionId!.Value).ToList();
+        var targetChapterIds = _motionRepo.GetChapterIds(targetMotionIds);
+        var chapterIds = motions.Select(m => m.OnBehalfOfChapterId).OfType<Guid>().Concat(targetChapterIds.Values).Distinct().ToList();
+        var names = _chapterRepo.GetNames(chapterIds);
+        foreach (var motion in motions) {
+            var dto = dtos.First(d => d.Id == motion.Id);
+            dto.OnBehalfOfChapterId = motion.OnBehalfOfChapterId;
+            dto.OnBehalfOfChapterName = names.GetValueOrDefault(motion.OnBehalfOfChapterId ?? Guid.Empty);
+            dto.OnBehalfOfReason = motion.OnBehalfOfReason;
+            dto.HandedOverToMotionId = motion.HandedOverToMotionId;
+            if (motion.HandedOverToMotionId != null && targetChapterIds.TryGetValue(motion.HandedOverToMotionId.Value, out var targetChapterId))
+                dto.HandedOverToChapterName = names.GetValueOrDefault(targetChapterId);
+        }
     }
 }

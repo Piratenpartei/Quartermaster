@@ -110,9 +110,9 @@ public class AuthService {
     }
 
     /// <summary>
-    /// Mirrors <c>PermissionContext.Has</c> on the server: global grant satisfies any chapter,
-    /// chapter-specific grant satisfies the exact chapter (no client-side inheritance — that's
-    /// a server-side concern and the chapter dictionary is already flattened from <c>SessionEndpoint</c>).
+    /// Global grant satisfies any chapter, chapter-specific grant satisfies the exact chapter. The chapter
+    /// dictionary from <c>SessionEndpoint</c> holds only chapters with a direct grant or role assignment, with
+    /// no inheritance, so the server has to decide anything that depends on chapters above.
     /// </summary>
     public bool HasPermission(Guid chapterId, string permission) {
         if (HasGlobalPermission(permission))

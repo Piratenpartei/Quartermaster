@@ -1,4 +1,5 @@
 using System;
+using Quartermaster.Api.Chapters;
 
 namespace Quartermaster.Api.Motions;
 
@@ -13,4 +14,13 @@ public class MotionDTO {
     public bool IsRealized { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ResolvedAt { get; set; }
+
+    /// <summary>The marked chapter this motion is decided for. Only filled for signed-in callers.</summary>
+    public Guid? OnBehalfOfChapterId { get; set; }
+    public string? OnBehalfOfChapterName { get; set; }
+    public ChapterMark? OnBehalfOfReason { get; set; }
+
+    /// <summary>The replacement motion this one was handed over to. Only filled for signed-in callers.</summary>
+    public Guid? HandedOverToMotionId { get; set; }
+    public string? HandedOverToChapterName { get; set; }
 }

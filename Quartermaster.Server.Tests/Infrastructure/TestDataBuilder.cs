@@ -99,14 +99,18 @@ public sealed class TestDataBuilder {
         string? shortCode = null,
         string? externalCode = null,
         string? keycloakDepartment = null,
-        string? contactEmail = null) {
+        string? contactEmail = null,
+        bool noMemberAdministration = false,
+        bool unableToAct = false) {
         var chapter = new Chapter {
             Id = Guid.NewGuid(),
             Name = name,
             ParentChapterId = parentChapterId,
             ShortCode = shortCode,
             KeycloakDepartment = keycloakDepartment,
-            ContactEmail = contactEmail
+            ContactEmail = contactEmail,
+            NoMemberAdministration = noMemberAdministration,
+            UnableToAct = unableToAct
         };
         _db.Insert(chapter);
         var code = externalCode ?? "EC_" + Guid.NewGuid().ToString("N")[..6];

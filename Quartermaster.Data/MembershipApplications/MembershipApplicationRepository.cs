@@ -105,6 +105,17 @@ public class MembershipApplicationRepository {
             _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId?.ToString());
     }
 
+    /// <summary>Moves the application to the chapter that now decides on it; its status stays. Runs inside the caller's transaction.</summary>
+    public void SetChapter(Guid id, Guid chapterId) {
+        var existing = Get(id);
+        _context.MembershipApplications
+            .Where(a => a.Id == id)
+            .Set(a => a.ChapterId, (Guid?)chapterId)
+            .Update();
+        if (existing != null)
+            _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId.ToString());
+    }
+
     /// <summary>Removes the row for good; for data that only Redmine keeps from now on. Runs inside the caller's transaction.</summary>
     public void Delete(Guid id) {
         var hitIds = _context.ApplicationRegisterHits

@@ -39,18 +39,28 @@ public class ForwardingSettingsResolver {
         return chain.Count == 0 ? _chapters.GetRootChapter()?.Id : chain[^1];
     }
 
-    public (Guid? ChapterId, ForwardingMode? Mode) HandlingChapterFor(Guid? chapterId) {
+    /// <summary>Chapters marked for member administration are passed over, also when they have an application setting.</summary>
+    public HandlingChapter HandlingChapterFor(Guid? chapterId) {
         if (chapterId == null)
-            return (null, null);
+            return new HandlingChapter(null, null, null);
 
-        var chain = _chapters.GetAncestorChainIds(chapterId.Value);
-        foreach (var id in chain.Take(Math.Max(chain.Count - 1, 0))) {
-            var mode = _settings.GetChapter(id)?.ApplicationMode;
-            if (mode != null)
-                return (id, mode);
+        return HandlingChapterIn(_chapters.GetAncestorChain(chapterId.Value));
+    }
+
+    private HandlingChapter HandlingChapterIn(List<Chapter> chain) {
+        ChapterMarkSkip? skip = null;
+        foreach (var chapter in chain.Take(Math.Max(chain.Count - 1, 0))) {
+            var mode = _settings.GetChapter(chapter.Id)?.ApplicationMode;
+            if (mode == null)
+                continue;
+
+            var mark = chapter.MarkFor(ChapterMarkPurpose.MemberAdministration);
+            if (mark == null)
+                return new HandlingChapter(chapter.Id, mode, skip);
+            skip ??= new ChapterMarkSkip(chapter.Id, mark.Value);
         }
 
-        return (null, null);
+        return new HandlingChapter(null, null, skip);
     }
 
     public RedmineConnection? ConnectionFor(Guid chapterId) {
@@ -88,7 +98,10 @@ public class ForwardingSettingsResolver {
         var stateId = StateChapterOf(chapterId);
         var federal = federalId == null ? null : _settings.GetChapter(federalId.Value);
         var state = stateId == null ? null : _settings.GetChapter(stateId.Value);
-        var handling = HandlingChapterFor(chapterId);
+        var chain = chapterId == null ? [] : _chapters.GetAncestorChain(chapterId.Value);
+        var handling = HandlingChapterIn(chain);
+        var application = ApplicationRoute(chapterId, chain);
+        var stateMark = chain.Count < 2 ? null : chain[^2].MarkFor(ChapterMarkPurpose.MemberAdministration);
 
         return new ForwardingChapterContext(
             federalId,
@@ -97,6 +110,19 @@ public class ForwardingSettingsResolver {
             federal?.ReductionMode,
             state?.ReductionMode,
             handling.ChapterId,
-            handling.Mode);
+            handling.Mode,
+            application?.DecidingChapterId,
+            application?.Skip,
+            handling.Skip,
+            stateMark == null ? null : new ChapterMarkSkip(chain[^2].Id, stateMark.Value));
+    }
+
+    /// <summary>A chapter deleted meanwhile has no chain and stays the deciding chapter itself.</summary>
+    private static ChapterMarkRoute? ApplicationRoute(Guid? chapterId, List<Chapter> chain) {
+        if (chapterId == null)
+            return null;
+        if (chain.Count == 0)
+            return new ChapterMarkRoute(chapterId.Value, null);
+        return ChapterMarkRouting.Resolve(chain, ChapterMarkPurpose.MemberAdministration);
     }
 }

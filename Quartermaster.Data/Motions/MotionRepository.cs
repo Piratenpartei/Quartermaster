@@ -24,8 +24,14 @@ public class MotionRepository {
     public Motion? Get(Guid id)
         => _context.Motions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
 
+    public Dictionary<Guid, Guid> GetChapterIds(IReadOnlyCollection<Guid> ids)
+        => _context.Motions
+            .Where(m => ids.Contains(m.Id))
+            .ToDictionary(m => m.Id, m => m.ChapterId);
+
+    /// <summary>Passes over motions closed by a handover; their replacement carries the application on.</summary>
     public Motion? GetByLinkedApplicationId(Guid applicationId)
-        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.DeletedAt == null)
+        => _context.Motions.Where(m => m.LinkedMembershipApplicationId == applicationId && m.HandedOverToMotionId == null && m.DeletedAt == null)
             .OrderBy(m => m.CreatedAt)
             .FirstOrDefault();
 
@@ -34,12 +40,27 @@ public class MotionRepository {
             .OrderBy(m => m.CreatedAt)
             .ToList();
 
+    /// <summary>Passes over motions closed by a handover; their replacement carries the due selection on.</summary>
     public Motion? GetByLinkedDueSelectionId(Guid dueSelectionId)
-        => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId && m.DeletedAt == null).FirstOrDefault();
+        => _context.Motions.Where(m => m.LinkedDueSelectionId == dueSelectionId && m.HandedOverToMotionId == null && m.DeletedAt == null).FirstOrDefault();
 
     public void Create(Motion motion) {
         _context.Insert(motion);
         _auditLog.LogCreated("Motion", motion.Id);
+    }
+
+    public List<Motion> ListPendingInChapter(Guid chapterId)
+        => _context.Motions
+            .Where(m => m.ChapterId == chapterId && m.ApprovalStatus == MotionApprovalStatus.Pending && m.DeletedAt == null)
+            .OrderBy(m => m.CreatedAt)
+            .ToList();
+
+    public void SetHandedOverTo(Guid id, Guid newMotionId) {
+        _context.Motions
+            .Where(m => m.Id == id)
+            .Set(m => m.HandedOverToMotionId, (Guid?)newMotionId)
+            .Update();
+        _auditLog.Log("Motion", id, "HandedOver", nameof(Motion.HandedOverToMotionId), null, newMotionId.ToString());
     }
 
     public (List<Motion> Items, int TotalCount) List(

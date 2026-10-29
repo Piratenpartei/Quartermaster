@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,20 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
         dto.Votes = voteDtos;
         dto.Officers = officerDtos;
         dto.TotalOfficers = officers.Count;
+        if (_perms.UserId != null)
+            FillNotice(dto, motion);
         await SendAsync(dto, cancellation: ct);
+    }
+
+    private void FillNotice(MotionDetailDTO dto, Motion motion) {
+        var targetChapterId = motion.HandedOverToMotionId == null
+            ? null
+            : _motionRepo.Get(motion.HandedOverToMotionId.Value)?.ChapterId;
+        var names = _chapterRepo.GetNames(new[] { motion.OnBehalfOfChapterId, targetChapterId }.OfType<Guid>().ToList());
+        dto.OnBehalfOfChapterId = motion.OnBehalfOfChapterId;
+        dto.OnBehalfOfChapterName = names.GetValueOrDefault(motion.OnBehalfOfChapterId ?? Guid.Empty);
+        dto.OnBehalfOfReason = motion.OnBehalfOfReason;
+        dto.HandedOverToMotionId = motion.HandedOverToMotionId;
+        dto.HandedOverToChapterName = names.GetValueOrDefault(targetChapterId ?? Guid.Empty);
     }
 }

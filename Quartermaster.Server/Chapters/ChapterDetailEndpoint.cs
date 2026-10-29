@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
+using Quartermaster.Api;
 using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Data;
@@ -25,6 +26,7 @@ public class ChapterDetailResponse {
     public List<string> AdministrativeDivisionNames { get; set; } = [];
     public List<ChapterOfficerDTO> Officers { get; set; } = new();
     public List<ChapterDTO> Children { get; set; } = new();
+    public bool CanManageMarks { get; set; }
 }
 
 public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetailResponse> {
@@ -93,8 +95,13 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
         var chapterCodes = _chapterRepo.GetExternalCodes(chapter.Id);
         var children = _chapterRepo.GetChildren(chapter.Id);
         var chapterDto = chapter.ToDto(chapterCodes, divisionIds);
-        if (_perms.UserId != null)
+        var canManageMarks = false;
+        if (_perms.UserId != null) {
             chapterDto.ContactEmail = chapter.ContactEmail;
+            chapterDto.NoMemberAdministration = chapter.NoMemberAdministration;
+            chapterDto.UnableToAct = chapter.UnableToAct;
+            canManageMarks = chapter.ParentChapterId != null && _perms.HasOnChapterOrAncestors(chapter.ParentChapterId.Value, PermissionIdentifier.ManageChapterCapacity);
+        }
 
         await SendAsync(new ChapterDetailResponse {
             Chapter = chapterDto,
@@ -102,7 +109,8 @@ public class ChapterDetailEndpoint : Endpoint<ChapterDetailRequest, ChapterDetai
             ParentChapterName = parentName,
             AdministrativeDivisionNames = divisionNames,
             Officers = officerDtos,
-            Children = _chapterRepo.ToDtos(children)
+            Children = _chapterRepo.ToDtos(children, includeMemberFields: _perms.UserId != null),
+            CanManageMarks = canManageMarks
         }, cancellation: ct);
     }
 }

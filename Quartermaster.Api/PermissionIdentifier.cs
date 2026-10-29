@@ -82,6 +82,7 @@ public static class PermissionIdentifier {
     public static readonly string DeleteMeetings = "meetings_delete";
 
     public static readonly string ManageChapterMail = "chaptermail_manage";
+    public static readonly string ManageChapterCapacity = "chapters_manage_capacity";
 
     public static readonly string ManageAssemblyMotions = "assemblymotions_manage";
 
@@ -123,6 +124,7 @@ public static class PermissionIdentifier {
         ViewTemplates, EditTemplates,
         ViewMeetings, CreateMeetings, EditMeetings,
         ManageChapterMail,
+        ManageChapterCapacity,
         ManageSupportSignatures
     ];
 }

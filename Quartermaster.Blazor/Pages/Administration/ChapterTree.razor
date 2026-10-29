@@ -33,6 +33,7 @@
                     @if (context.IsArchived) {
                         <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
                     }
+                    <ChapterMarkBadges NoMemberAdministration="context.NoMemberAdministration" UnableToAct="context.UnableToAct" />
                 </ItemContent>
             </LazyTreeNode>
         }

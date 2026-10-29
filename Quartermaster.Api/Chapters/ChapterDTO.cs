@@ -16,5 +16,11 @@ public class ChapterDTO {
     /// <summary>Only filled for signed-in callers. In templates it falls back to the federal contact address.</summary>
     public string? ContactEmail { get; set; }
 
+    /// <summary>Only filled for signed-in callers.</summary>
+    public bool NoMemberAdministration { get; set; }
+
+    /// <summary>Only filled for signed-in callers.</summary>
+    public bool UnableToAct { get; set; }
+
     public bool IsArchived => ArchivedAt.HasValue;
 }

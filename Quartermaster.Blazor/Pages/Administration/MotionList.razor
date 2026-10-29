@@ -53,7 +53,14 @@
         <tbody>
             @foreach (var motion in Response.Items) {
                 <tr>
-                    <td><a href="/Administration/Motions/@motion.Id">@motion.Title</a></td>
+                    <td>
+                        <a href="/Administration/Motions/@motion.Id">@motion.Title</a>
+                        @if (motion.OnBehalfOfReason != null && motion.OnBehalfOfChapterName != null) {
+                            <div class="small text-body-secondary">
+                                <MotionOnBehalfText Reason="motion.OnBehalfOfReason.Value" ChapterName="@motion.OnBehalfOfChapterName" />
+                            </div>
+                        }
+                    </td>
                     <td>@motion.AuthorName</td>
                     <td>@motion.ChapterName</td>
                     <td>

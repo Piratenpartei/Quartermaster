@@ -86,6 +86,7 @@ public static class I18nKey {
             public const string ContactEmailInvalid = "error.chapter.contact_email_invalid";
             public const string HasChildren = "error.chapter.has_children";
             public const string Archived = "error.chapter.archived";
+            public const string MarksRoot = "error.chapter.marks.root";
 
             public static class Officer {
                 public const string MemberRequired = "error.chapter.officer.member_required";
@@ -1832,6 +1833,27 @@ public static class I18nKey {
             public const string RemoveOfficerDialogTitle = "ui.chapter_detail.remove_officer_dialog_title";
             public const string RemoveOfficerDialogMessage = "ui.chapter_detail.remove_officer_dialog_message";
             public const string RemoveOfficerDialogConfirm = "ui.chapter_detail.remove_officer_dialog_confirm";
+        }
+
+        public static class ChapterMarks {
+            public const string BadgeNoMemberAdministration = "ui.chapter_marks.badge_no_member_administration";
+            public const string BadgeUnableToAct = "ui.chapter_marks.badge_unable_to_act";
+            public const string CardTitle = "ui.chapter_marks.card_title";
+            public const string NoMemberAdministrationHint = "ui.chapter_marks.no_member_administration_hint";
+            public const string UnableToActHint = "ui.chapter_marks.unable_to_act_hint";
+            public const string DialogTitle = "ui.chapter_marks.dialog_title";
+            public const string DialogConfirm = "ui.chapter_marks.dialog_confirm";
+            public const string TurnOnPlain = "ui.chapter_marks.turn_on_plain";
+            public const string TurnOnIntro = "ui.chapter_marks.turn_on_intro";
+            public const string HandoverLine = "ui.chapter_marks.handover_line";
+            public const string HandoverLineSingular = "ui.chapter_marks.handover_line_singular";
+            public const string TurnOff = "ui.chapter_marks.turn_off";
+            public const string HandedOverToast = "ui.chapter_marks.handed_over_toast";
+            public const string HandedOverToastSingular = "ui.chapter_marks.handed_over_toast_singular";
+            public const string NoticeUnableToAct = "ui.chapter_marks.notice_unable_to_act";
+            public const string NoticeNoMemberAdministration = "ui.chapter_marks.notice_no_member_administration";
+            public const string HandedOverTo = "ui.chapter_marks.handed_over_to";
+            public const string HandedOverLink = "ui.chapter_marks.handed_over_link";
         }
 
         public static class ChapterCreate {
