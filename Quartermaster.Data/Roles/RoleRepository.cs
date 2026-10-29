@@ -195,7 +195,7 @@ public class RoleRepository {
     /// <summary>
     /// Returns the set of permission identifiers a user has via role assignments
     /// for a given chapter (includes Global roles too). Used for direct (exact-chapter)
-    /// permission checks — the role's InheritsToChildren flag is ignored here.
+    /// permission checks - the role's InheritsToChildren flag is ignored here.
     /// </summary>
     public HashSet<string> GetChapterPermissionsViaRoles(Guid userId, Guid chapterId) {
         var result = _context.UserRoleAssignments
@@ -212,7 +212,7 @@ public class RoleRepository {
     /// <summary>
     /// Returns permission identifiers the user has on <paramref name="chapterId"/> via role
     /// assignments, but ONLY from roles with <c>InheritsToChildren = true</c>.
-    /// Used by ancestor-chain walks in permission inheritance — permissions from
+    /// Used by ancestor-chain walks in permission inheritance - permissions from
     /// non-inheriting roles (e.g. delegates) are excluded so they don't bleed into
     /// descendant chapters.
     /// </summary>
@@ -232,7 +232,7 @@ public class RoleRepository {
 
     /// <summary>
     /// Returns true if the user holds a direct role assignment to the given chapter for
-    /// any of the specified role identifiers. No inheritance applied — this is an
+    /// any of the specified role identifiers. No inheritance applied - this is an
     /// exact-match check on the user-role-assignment's ChapterId.
     /// </summary>
     public bool HasDirectRoleAssignment(Guid userId, Guid chapterId, params string[] roleIdentifiers) {

@@ -1,4 +1,5 @@
 using FluentMigrator;
+using Quartermaster.Api.Chapters;
 using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Forwarding;
@@ -27,6 +28,14 @@ public class M009 : MigrationBase {
     public const string ApplicationRejectionAmount = ", bei Ablehnung {{ dues.RejectedReductionAmount }} €";
     public const string ReductionRejectionLine = "- Jahresbeitrag bei Ablehnung: {{ dues.RejectedReductionAmount }} €";
 
+    public static readonly string PrefillFederalLevelSql = $@"
+            UPDATE `{Chapter.TableName}` SET `{nameof(Chapter.Level)}` = {(int)ChapterLevel.Federal}
+            WHERE `{nameof(Chapter.ParentChapterId)}` IS NULL";
+
+    public static readonly string PrefillStateLevelSql = $@"
+            UPDATE `{Chapter.TableName}` SET `{nameof(Chapter.Level)}` = {(int)ChapterLevel.State}
+            WHERE `{nameof(Chapter.ParentChapterId)}` IN (SELECT `Id` FROM (SELECT `Id` FROM `{Chapter.TableName}` WHERE `{nameof(Chapter.ParentChapterId)}` IS NULL) AS roots)";
+
     public override void Up() {
         Alter.Table(ForwardingTarget.TableName)
             .AddColumn(nameof(ForwardingTarget.SageAssigneeId)).AsInt32().Nullable()
@@ -48,6 +57,16 @@ public class M009 : MigrationBase {
             .AddColumn(nameof(Motion.OnBehalfOfChapterId)).AsGuid().Nullable()
             .AddColumn(nameof(Motion.OnBehalfOfReason)).AsInt32().Nullable()
             .AddColumn(nameof(Motion.HandedOverToMotionId)).AsGuid().Nullable();
+
+        Alter.Table(Chapter.TableName)
+            .AddColumn(nameof(Chapter.Level)).AsInt32().Nullable()
+            .AddColumn(nameof(Chapter.TakeOverPeriodDays)).AsInt32().Nullable();
+
+        Alter.Table(Motion.TableName)
+            .AddColumn(nameof(Motion.HandoverReason)).AsInt32().Nullable();
+
+        Execute.Sql(PrefillFederalLevelSql);
+        Execute.Sql(PrefillStateLevelSql);
 
         Alter.Table(MembershipApplication.TableName)
             .AddColumn(nameof(MembershipApplication.RequiresFederalApproval)).AsBoolean().NotNullable().WithDefaultValue(false)
@@ -135,5 +154,8 @@ public class M009 : MigrationBase {
         Delete.Column(nameof(Motion.OnBehalfOfChapterId)).FromTable(Motion.TableName);
         Delete.Column(nameof(Motion.OnBehalfOfReason)).FromTable(Motion.TableName);
         Delete.Column(nameof(Motion.HandedOverToMotionId)).FromTable(Motion.TableName);
+        Delete.Column(nameof(Motion.HandoverReason)).FromTable(Motion.TableName);
+        Delete.Column(nameof(Chapter.Level)).FromTable(Chapter.TableName);
+        Delete.Column(nameof(Chapter.TakeOverPeriodDays)).FromTable(Chapter.TableName);
     }
 }

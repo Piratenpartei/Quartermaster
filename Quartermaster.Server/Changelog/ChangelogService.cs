@@ -11,7 +11,7 @@ namespace Quartermaster.Server.Changelog;
 
 /// <summary>
 /// Reads <c>Changelog/V*.md</c> once at startup, renders each via <see cref="MarkdownService"/>,
-/// and caches the result for /api/changelog. App restart picks up edits — files are deploy-time content, not runtime data.
+/// and caches the result for /api/changelog. App restart picks up edits - files are deploy-time content, not runtime data.
 /// </summary>
 public class ChangelogService {
     private readonly List<ChangelogEntryDTO> _entries;

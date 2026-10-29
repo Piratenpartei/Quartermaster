@@ -27,7 +27,7 @@ public class MotionDecisionMailTests : IntegrationTestBase {
         LinkMotionToApplication(motion.Id, app.Id);
 
         // One officer (no user account) makes the majority denominator 1; the admin records
-        // their vote — mirroring the real flow where an officer hasn't logged in via SSO yet.
+        // their vote - mirroring the real flow where an officer hasn't logged in via SSO yet.
         var officerMember = Builder.SeedMember(chapter.Id, firstName: "O", lastName: "fficer");
         Builder.SeedChapterOfficer(officerMember.Id, chapter.Id);
 

@@ -47,8 +47,8 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
         }
         // Cross-chapter IDOR guard: block lateral promotion (e.g. Bayern caller promoting a
         // Niedersachsen member). Allowed cases: the member's own chapter, or any ancestor of it
-        // (PPDE root chapter has no direct local members — federal-only Direktmitglieder are
-        // attributed to root by the import — so the request chapter may be the member's own
+        // (PPDE root chapter has no direct local members - federal-only Direktmitglieder are
+        // attributed to root by the import - so the request chapter may be the member's own
         // chapter or any chapter on the way up to the root).
         if (member.ChapterId == null
             || (member.ChapterId != req.ChapterId
@@ -66,7 +66,7 @@ public class ChapterOfficerAddEndpoint : Endpoint<ChapterOfficerAddRequest> {
 
         // Officer permissions attach to the member's user account. A member with no user yet
         // (not logged in via SSO) gets the officer role automatically when SSO first links them
-        // — see SsoLoginHelper.GrantDefaultPermissionsForAllChapters. Votes don't need a user;
+        // (see SsoLoginHelper.GrantDefaultPermissionsForAllChapters). Votes don't need a user;
         // they're recorded against the officer member directly.
         if (member.UserId.HasValue)
             _officerRepo.GrantDefaultPermissions(member.UserId.Value, req.ChapterId);

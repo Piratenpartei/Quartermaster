@@ -8,7 +8,7 @@ public class PublicPagesE2ETests : E2ETestBase {
     [Test]
     public async Task Home_page_loads_and_Blazor_WASM_boots() {
         await Page.GotoAsync("/");
-        // Wait for Blazor-rendered content — look for nav or any h element
+        // Wait for Blazor-rendered content - look for nav or any h element
         await Page.WaitForSelectorAsync("nav, h1, h2, h3", new PageWaitForSelectorOptions {
             Timeout = 30000
         });

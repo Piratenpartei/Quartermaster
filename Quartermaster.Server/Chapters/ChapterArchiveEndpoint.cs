@@ -8,7 +8,7 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Chapters;
 
-/// <summary>Archives a chapter — see <see cref="ChapterRepository.SetArchived"/> for what that means.</summary>
+/// <summary>Archives a chapter - see <see cref="ChapterRepository.SetArchived"/> for what that means.</summary>
 public class ChapterArchiveEndpoint : EndpointWithoutRequest {
     private readonly ChapterRepository _chapterRepo;
     private readonly PermissionContext _perms;

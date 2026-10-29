@@ -66,7 +66,7 @@ public class LoginEndpointTests : IntegrationTestBase {
             Password = ValidPassword
         });
 
-        // Antiforgery binds tokens to user identity — refresh after login so the logout call
+        // Antiforgery binds tokens to user identity - refresh after login so the logout call
         // validates under the now-authenticated context.
         await AttachAntiforgeryTokenAsync(client);
         var logoutResp = await client.PostAsync("/api/users/logout", null);
@@ -207,7 +207,7 @@ public class LoginEndpointTests : IntegrationTestBase {
                 Password = "WrongPasswordXYZ!!"
             });
         }
-        // Next attempt — even correct password — should be locked out.
+        // Next attempt - even correct password - should be locked out.
         var response = await client.PostAsJsonAsync("/api/users/login", new LoginRequest {
             Username = "carol",
             Password = ValidPassword

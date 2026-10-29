@@ -33,7 +33,7 @@ public class SessionEndpointsTests : IntegrationTestBase {
         await Assert.That(sessions!.Count).IsEqualTo(1);
         // The single token Alice has should be marked current.
         await Assert.That(sessions[0].IsCurrent).IsTrue();
-        // And it should belong to Alice — verify via TokenRepo.
+        // And it should belong to Alice - verify via TokenRepo.
         var aliceTokenRows = Db.Tokens.Where(t => t.UserId == alice.Id).ToList();
         await Assert.That(aliceTokenRows.Count).IsEqualTo(1);
         await Assert.That(sessions[0].TokenId).IsEqualTo(aliceTokenRows[0].Id);
@@ -42,7 +42,7 @@ public class SessionEndpointsTests : IntegrationTestBase {
     [Test]
     public async Task List_marks_the_current_token_only() {
         var (alice, currentToken) = Builder.SeedAuthenticatedUser(firstName: "Alice");
-        // Seed a second token for Alice — same user, separate login session.
+        // Seed a second token for Alice - same user, separate login session.
         var secondTokenRow = Db.LoginUser(alice.Id, DateTime.UtcNow.AddDays(7), "10.0.0.1", "Other UA");
         using var client = AuthenticatedClient(currentToken);
 
@@ -95,7 +95,7 @@ public class SessionEndpointsTests : IntegrationTestBase {
         var deleteResponse = await client.DeleteAsync($"/api/users/sessions/{currentSessionId}");
         await Assert.That(deleteResponse.StatusCode).IsEqualTo(HttpStatusCode.NoContent);
 
-        // Next call on the same client should be 401 — the bearer no longer maps to a row.
+        // Next call on the same client should be 401 - the bearer no longer maps to a row.
         var nextResponse = await client.GetAsync("/api/users/sessions");
         await Assert.That(nextResponse.StatusCode).IsEqualTo(HttpStatusCode.Unauthorized);
     }

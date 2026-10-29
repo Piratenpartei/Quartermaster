@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the application production-ready by: (1) creating a CLI command for initial admin setup, (2) moving SAML config to the database Options system, (3) making root account seeding DEBUG-only, (4) providing a config template for the only remaining secret — the database connection string.
+**Goal:** Make the application production-ready by: (1) creating a CLI command for initial admin setup, (2) moving SAML config to the database Options system, (3) making root account seeding DEBUG-only, (4) providing a config template for the only remaining secret - the database connection string.
 
 **Architecture:** The server's `Main()` method checks for CLI arguments (`init-admin`) before starting the web host. SAML settings become OptionDefinitions in the existing Options system. RootAccountSettings auto-seeding is wrapped in `#if DEBUG`. A tracked `appsettings.template.json` documents the required structure.
 
@@ -63,7 +63,7 @@ This file is tracked in git (not in .gitignore). It documents the required confi
 
 - [x] **Step 2: Verify it's not gitignored**
 
-Check `.gitignore` — it ignores `appsettings.json` and `appsettings.Development.json` but NOT `appsettings.template.json`.
+Check `.gitignore` - it ignores `appsettings.json` and `appsettings.Development.json` but NOT `appsettings.template.json`.
 
 - [x] **Step 3: Verify build**
 
@@ -214,7 +214,7 @@ cd /media/SMB/Quartermaster
 - Modify: `Quartermaster.Data/RootAccountSettings.cs`
 - Modify: `Quartermaster.Server/Program.cs`
 
-**Context:** In DEBUG builds (development), the admin user is still auto-seeded from appsettings for convenience. In RELEASE builds (production), auto-seeding is skipped — admin must be created via `init-admin` CLI command.
+**Context:** In DEBUG builds (development), the admin user is still auto-seeded from appsettings for convenience. In RELEASE builds (production), auto-seeding is skipped - admin must be created via `init-admin` CLI command.
 
 - [x] **Step 1: Make RootAccountSettings optional**
 
@@ -419,7 +419,7 @@ In `Quartermaster.Server/Program.cs`, remove:
 builder.Services.Configure<SamlSettings>(builder.Configuration.GetSection("SamlSettings"));
 ```
 
-And remove the `using Quartermaster.Data;` import if it was only needed for SamlSettings (check if other Data types are used — they likely are via DbContext, so the using probably stays).
+And remove the `using Quartermaster.Data;` import if it was only needed for SamlSettings (check if other Data types are used - they likely are via DbContext, so the using probably stays).
 
 - [x] **Step 5: Delete SamlSettings.cs**
 
@@ -477,4 +477,4 @@ Start server and verify app loads.
 | Remove hardcoded Admin/Admin default credentials from appsettings | ✅ Auto-seeding is `#if DEBUG` only; production uses `init-admin` CLI |
 | Support environment variables for database connection string | ✅ CLI command uses `AddEnvironmentVariables()`; default builder also supports it |
 | Support secrets management for production deployment | ✅ `appsettings.template.json` documents required config; only connection string needed in file |
-| Make SAML settings configurable per environment | ✅ Moved to Options system — configurable from admin UI |
+| Make SAML settings configurable per environment | ✅ Moved to Options system - configurable from admin UI |

@@ -1,4 +1,4 @@
-# Membership Application Flow — Implementation Plan
+# Membership Application Flow - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,35 +13,35 @@
 ## File Structure
 
 ### Data Model Changes (modify existing)
-- `Quartermaster.Data/Chapters/Chapter.cs` — add `AdministrativeDivisionId`, `ParentChapterId`
-- `Quartermaster.Data/Chapters/ChapterRepository.cs` — **create**, chapter CRUD + lookup by division
-- `Quartermaster.Data/MembershipApplications/MembershipApplication.cs` — expand with all application fields
-- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` — **create**
-- `Quartermaster.Data/MembershipApplications/MembershipApplicationMapper.cs` — **create**
-- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` — update Chapters + MembershipApplications tables
-- `Quartermaster.Data/DbContext.cs` — register new tables/repositories
-- `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionRepository.cs` — add `GetAncestors` method
+- `Quartermaster.Data/Chapters/Chapter.cs` - add `AdministrativeDivisionId`, `ParentChapterId`
+- `Quartermaster.Data/Chapters/ChapterRepository.cs` - **create**, chapter CRUD + lookup by division
+- `Quartermaster.Data/MembershipApplications/MembershipApplication.cs` - expand with all application fields
+- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` - **create**
+- `Quartermaster.Data/MembershipApplications/MembershipApplicationMapper.cs` - **create**
+- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` - update Chapters + MembershipApplications tables
+- `Quartermaster.Data/DbContext.cs` - register new tables/repositories
+- `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionRepository.cs` - add `GetAncestors` method
 
 ### API DTOs (new)
-- `Quartermaster.Api/Chapters/ChapterDTO.cs` — chapter with division and parent
-- `Quartermaster.Api/MembershipApplications/MembershipApplicationDTO.cs` — full application DTO
+- `Quartermaster.Api/Chapters/ChapterDTO.cs` - chapter with division and parent
+- `Quartermaster.Api/MembershipApplications/MembershipApplicationDTO.cs` - full application DTO
 
 ### Server Endpoints (new)
-- `Quartermaster.Server/Chapters/ChapterForDivisionEndpoint.cs` — find chapter for a given division
-- `Quartermaster.Server/Chapters/ChapterListEndpoint.cs` — list all chapters
-- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` — submit application
+- `Quartermaster.Server/Chapters/ChapterForDivisionEndpoint.cs` - find chapter for a given division
+- `Quartermaster.Server/Chapters/ChapterListEndpoint.cs` - list all chapters
+- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` - submit application
 
 ### Blazor Pages (new)
-- `Quartermaster.Blazor/Pages/MembershipApplication/MembershipApplicationEntryState.cs` — wizard state (embeds `DueSelectorEntryState`)
-- `Quartermaster.Blazor/Pages/MembershipApplication/PersonalData.razor` + `.cs` — step 1
-- `Quartermaster.Blazor/Pages/MembershipApplication/AddressAndChapter.razor` + `.cs` — step 2
-- `Quartermaster.Blazor/Pages/MembershipApplication/DuesTypeSelection.razor` + `.cs` — step 3 (wraps existing dues pages)
-- `Quartermaster.Blazor/Pages/MembershipApplication/Declarations.razor` + `.cs` — step 4
-- `Quartermaster.Blazor/Pages/MembershipApplication/ApplicationSummary.razor` + `.cs` — step 5
-- `Quartermaster.Blazor/Services/AppStateService.cs` — register new entry state
+- `Quartermaster.Blazor/Pages/MembershipApplication/MembershipApplicationEntryState.cs` - wizard state (embeds `DueSelectorEntryState`)
+- `Quartermaster.Blazor/Pages/MembershipApplication/PersonalData.razor` + `.cs` - step 1
+- `Quartermaster.Blazor/Pages/MembershipApplication/AddressAndChapter.razor` + `.cs` - step 2
+- `Quartermaster.Blazor/Pages/MembershipApplication/DuesTypeSelection.razor` + `.cs` - step 3 (wraps existing dues pages)
+- `Quartermaster.Blazor/Pages/MembershipApplication/Declarations.razor` + `.cs` - step 4
+- `Quartermaster.Blazor/Pages/MembershipApplication/ApplicationSummary.razor` + `.cs` - step 5
+- `Quartermaster.Blazor/Services/AppStateService.cs` - register new entry state
 
 ### Navigation
-- `Quartermaster.Blazor/Layout/MainLayout.razor` — add "Mitgliedsantrag" nav link
+- `Quartermaster.Blazor/Layout/MainLayout.razor` - add "Mitgliedsantrag" nav link
 
 ---
 
@@ -72,7 +72,7 @@ public class Chapter {
 }
 ```
 
-- [x] **Step 2: Update M001 migration — Chapters table**
+- [x] **Step 2: Update M001 migration - Chapters table**
 
 In `M001_InitialStructureMigration.cs`, update the Chapters table creation to add the two new columns and their foreign keys. Replace the Chapters table block:
 
@@ -168,7 +168,7 @@ public class MembershipApplication {
 }
 ```
 
-- [x] **Step 2: Update M001 migration — MembershipApplications table**
+- [x] **Step 2: Update M001 migration - MembershipApplications table**
 
 Replace the MembershipApplications table creation block in `M001_InitialStructureMigration.cs`. Remove the old `FK_MembershipApplications_UserId_Users_Id` foreign key since we no longer have `UserId`:
 
@@ -208,7 +208,7 @@ Create.ForeignKey("FK_MembershipApplications_DueSelectionId_DueSelections_Id")
     .ToTable(DueSelection.TableName).PrimaryColumn(nameof(DueSelection.Id));
 ```
 
-Update `Down()` — replace the old `FK_MembershipApplications_UserId_Users_Id` delete with:
+Update `Down()` - replace the old `FK_MembershipApplications_UserId_Users_Id` delete with:
 
 ```csharp
 Delete.ForeignKey("FK_MembershipApplications_AddressAdminDivId_AdministrativeDivisions_Id")
@@ -723,7 +723,7 @@ public class MembershipApplicationEntryState : EntryStateBase {
     public Guid? ChapterId { get; set; }
     public string? ChapterName { get; set; }
 
-    // Dues — embedded, reuses the existing entry state
+    // Dues - embedded, reuses the existing entry state
     public DueSelectorEntryState DuesState { get; set; } = new();
 
     // Declarations
@@ -757,7 +757,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 9: Blazor Page — Personal Data (Step 1)
+## Task 9: Blazor Page - Personal Data (Step 1)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/PersonalData.razor`
@@ -852,7 +852,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 10: Blazor Page — Address & Chapter (Step 2)
+## Task 10: Blazor Page - Address & Chapter (Step 2)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/AddressAndChapter.razor`
@@ -1020,7 +1020,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 11: Blazor Page — Dues Type Selection (Step 3, wraps existing)
+## Task 11: Blazor Page - Dues Type Selection (Step 3, wraps existing)
 
 This page is a thin wrapper that syncs the `MembershipApplicationEntryState.DuesState` into `AppStateService` as the `DueSelectorEntryState`, so the existing dues pages work unchanged. It pre-fills the name/email from the application state and provides navigation links that return to the membership flow.
 
@@ -1126,7 +1126,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 12: Blazor Page — Declarations (Step 4)
+## Task 12: Blazor Page - Declarations (Step 4)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/Declarations.razor`
@@ -1230,7 +1230,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 13: Blazor Page — Application Summary (Step 5)
+## Task 13: Blazor Page - Application Summary (Step 5)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/MembershipApplication/ApplicationSummary.razor`
@@ -1460,7 +1460,7 @@ dotnet watch --project Quartermaster.Server
 Verify:
 1. Server starts successfully
 2. Chapters table has 17 entries (1 Bundesverband + 16 Landesverbände)
-3. Navigate to `/MembershipApplication/PersonalData` in browser — wizard loads
+3. Navigate to `/MembershipApplication/PersonalData` in browser - wizard loads
 4. Existing `/DueSelector/UserDataInput` flow still works independently
 
 ---
@@ -1504,7 +1504,7 @@ Add this section to `Translations.md`:
 | Layer | Files Created | Files Modified |
 |---|---|---|
 | Data | ChapterRepository.cs, MembershipApplicationRepository.cs, MembershipApplicationMapper.cs, ChapterMapper.cs | Chapter.cs, MembershipApplication.cs, M001 migration, DbContext.cs, AdministrativeDivisionRepository.cs |
-| API | ChapterDTO.cs, MembershipApplicationDTO.cs | — |
-| Server | ChapterForDivisionEndpoint.cs, ChapterListEndpoint.cs, MembershipApplicationCreateEndpoint.cs | — |
+| API | ChapterDTO.cs, MembershipApplicationDTO.cs | - |
+| Server | ChapterForDivisionEndpoint.cs, ChapterListEndpoint.cs, MembershipApplicationCreateEndpoint.cs | - |
 | Blazor | MembershipApplicationEntryState.cs, PersonalData.razor/.cs, AddressAndChapter.razor/.cs, DuesTypeSelection.razor/.cs, Declarations.razor/.cs, ApplicationSummary.razor/.cs | AppStateService.cs, MainLayout.razor |
-| Docs | — | Translations.md |
+| Docs | - | Translations.md |

@@ -87,6 +87,9 @@ public static class I18nKey {
             public const string HasChildren = "error.chapter.has_children";
             public const string Archived = "error.chapter.archived";
             public const string MarksRoot = "error.chapter.marks.root";
+            public const string FederalRootOnly = "error.chapter.level.federal_root_only";
+            public const string LevelInvalid = "error.chapter.level.invalid";
+            public const string TakeOverPeriodRange = "error.chapter.take_over_period.range";
 
             public static class Officer {
                 public const string MemberRequired = "error.chapter.officer.member_required";
@@ -246,6 +249,12 @@ public static class I18nKey {
                 public const string MotionIdRequired = "error.motion.status.motion_id_required";
                 public const string MotionClosed = "error.motion.status.motion_closed";
             }
+
+            public static class TakeOver {
+                public const string NotPossible = "error.motion.take_over.not_possible";
+            }
+
+            public const string HandedOver = "error.motion.handed_over";
         }
 
         public static class AssemblyMotion {
@@ -1854,6 +1863,26 @@ public static class I18nKey {
             public const string NoticeNoMemberAdministration = "ui.chapter_marks.notice_no_member_administration";
             public const string HandedOverTo = "ui.chapter_marks.handed_over_to";
             public const string HandedOverLink = "ui.chapter_marks.handed_over_link";
+        }
+
+        public static class HandUp {
+            public const string LevelLabel = "ui.hand_up.level_label";
+            public const string LevelUnset = "ui.hand_up.level_unset";
+            public const string LevelFederal = "ui.hand_up.level_federal";
+            public const string LevelState = "ui.hand_up.level_state";
+            public const string LevelDistrict = "ui.hand_up.level_district";
+            public const string LevelCounty = "ui.hand_up.level_county";
+            public const string LevelLocal = "ui.hand_up.level_local";
+            public const string PeriodLabel = "ui.hand_up.period_label";
+            public const string PeriodHint = "ui.hand_up.period_hint";
+            public const string PeriodEffective = "ui.hand_up.period_effective";
+            public const string HandedOverDeadline = "ui.hand_up.handed_over_deadline";
+            public const string HandedOverTakenOver = "ui.hand_up.handed_over_taken_over";
+            public const string TakenOverFrom = "ui.hand_up.taken_over_from";
+            public const string NextTakeOver = "ui.hand_up.next_take_over";
+            public const string TakeOverButton = "ui.hand_up.take_over_button";
+            public const string TakeOverDialogTitle = "ui.hand_up.take_over_dialog_title";
+            public const string TakeOverDialogMessage = "ui.hand_up.take_over_dialog_message";
         }
 
         public static class ChapterCreate {

@@ -24,6 +24,8 @@ public class Chapter {
     public string? ContactEmail { get; set; }
     public bool NoMemberAdministration { get; set; }
     public bool UnableToAct { get; set; }
+    public ChapterLevel? Level { get; set; }
+    public int? TakeOverPeriodDays { get; set; }
     public DateTime? ArchivedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 
@@ -35,6 +37,30 @@ public class Chapter {
         return null;
     }
 
+    public static bool IsValidLevel(ChapterLevel? level) {
+        if (level == null)
+            return true;
+        return Enum.IsDefined(level.Value);
+    }
+
+    public static bool IsValidTakeOverPeriod(int? days) {
+        if (days == null)
+            return true;
+        if (days < ChapterTakeOverPeriods.MinDays)
+            return false;
+        return days <= ChapterTakeOverPeriods.MaxDays;
+    }
+
+    public int? EffectiveTakeOverPeriodDays() {
+        if (TakeOverPeriodDays.HasValue)
+            return TakeOverPeriodDays;
+        if (ParentChapterId == null)
+            return ChapterTakeOverPeriods.FederalDefaultDays;
+        if (Level == ChapterLevel.State)
+            return ChapterTakeOverPeriods.StateDefaultDays;
+        return null;
+    }
+
     public ChapterDTO ToDto(IReadOnlyList<string> externalCodes, IReadOnlyList<Guid> administrativeDivisionIds) => new() {
         Id = Id,
         Name = Name,
@@ -43,7 +69,9 @@ public class Chapter {
         ParentChapterId = ParentChapterId,
         ExternalCodes = [.. externalCodes],
         AdministrativeDivisionIds = [.. administrativeDivisionIds],
-        ArchivedAt = ArchivedAt.ToDtoUtc()
+        ArchivedAt = ArchivedAt.ToDtoUtc(),
+        Level = Level,
+        TakeOverPeriodDays = TakeOverPeriodDays
     };
 
     /// <summary>For callers that only need the scalar fields (notification template models etc.); codes/divisions come back empty.</summary>

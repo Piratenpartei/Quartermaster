@@ -102,7 +102,7 @@ public abstract class E2ETestBase : PageTest, IDisposable {
         if (_disposed)
             return;
         _disposed = true;
-        // Factory is NOT disposed here — shared per worker via WorkerDatabase.
+        // Factory is NOT disposed here - shared per worker via WorkerDatabase.
         Db?.Dispose();
         GC.SuppressFinalize(this);
     }

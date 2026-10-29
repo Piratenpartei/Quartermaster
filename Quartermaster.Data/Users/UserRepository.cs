@@ -34,7 +34,7 @@ public class UserRepository {
     /// <summary>
     /// Ensures the root admin account exists and holds every permission as a global grant.
     /// Chapter-scoped perms count as "granted everywhere" because <c>PermissionContext.HasChapter</c>
-    /// short-circuits on the global lookup — so the admin works regardless of which chapters exist.
+    /// short-circuits on the global lookup - so the admin works regardless of which chapters exist.
     /// </summary>
     public void SupplementDefaults(RootAccountSettings? accountSettings) {
         if (accountSettings == null || string.IsNullOrEmpty(accountSettings.Username) || string.IsNullOrEmpty(accountSettings.Password))

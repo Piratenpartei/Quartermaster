@@ -1,4 +1,4 @@
-# Administrative Division Background Service — Implementation Plan
+# Administrative Division Background Service - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -16,7 +16,7 @@
 - Modify: `Quartermaster.Data/DbContext.cs`
 - Modify: `Quartermaster.Data/AdministrativeDivisions/AdministrativeDivisionRepository.cs`
 
-- [x] **Step 1:** In `DbContext.SupplementDefaults()`, change `SupplementDefaults(true)` to `SupplementDefaults(false)` — the background service will handle file loading instead.
+- [x] **Step 1:** In `DbContext.SupplementDefaults()`, change `SupplementDefaults(true)` to `SupplementDefaults(false)` - the background service will handle file loading instead.
 
 ```csharp
 // Before:
@@ -141,9 +141,9 @@ builder.Services.AddHostedService<AdminDivisionImportHostedService>();
 - Create: `Quartermaster.Server/AdministrativeDivisions/AdminDivisionImportTriggerEndpoint.cs`
 - Create: `Quartermaster.Server/AdministrativeDivisions/AdminDivisionImportHistoryEndpoint.cs`
 
-- [x] **Step 1:** Trigger endpoint (POST `/api/admin/admindivisions/import`) — requires `TriggerMemberImport` permission (reuse existing permission), calls `AdminDivisionImportService.Import()`, returns log.
+- [x] **Step 1:** Trigger endpoint (POST `/api/admin/admindivisions/import`) - requires `TriggerMemberImport` permission (reuse existing permission), calls `AdminDivisionImportService.Import()`, returns log.
 
-- [x] **Step 2:** History endpoint (GET `/api/admin/admindivisions/importlogs`) — returns recent import logs for admin review.
+- [x] **Step 2:** History endpoint (GET `/api/admin/admindivisions/importlogs`) - returns recent import logs for admin review.
 
 ---
 
@@ -159,6 +159,6 @@ Add to production-readiness-todos.md:
 ### Task 8: Build, test, verify
 
 - [x] Build and run tests
-- [x] Restart server — verify startup is fast (no AdminDivs loading)
+- [x] Restart server - verify startup is fast (no AdminDivs loading)
 - [x] Verify admin divisions load in background (check logs)
 - [x] Verify manual trigger works via API

@@ -9,8 +9,10 @@ using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Chapters;
 
 namespace Quartermaster.Server.Motions;
 
@@ -22,15 +24,19 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
     private readonly MotionRepository _motionRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
+    private readonly MembershipApplicationRepository _applicationRepo;
+    private readonly TakeOverPlanner _planner;
     private readonly DbContext _context;
     private readonly PermissionContext _perms;
 
     public MotionDetailEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        ChapterOfficerRepository officerRepo, DbContext context,
+        ChapterOfficerRepository officerRepo, MembershipApplicationRepository applicationRepo, TakeOverPlanner planner, DbContext context,
         PermissionContext perms) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
+        _applicationRepo = applicationRepo;
+        _planner = planner;
         _context = context;
         _perms = perms;
     }
@@ -109,5 +115,34 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
         dto.OnBehalfOfReason = motion.OnBehalfOfReason;
         dto.HandedOverToMotionId = motion.HandedOverToMotionId;
         dto.HandedOverToChapterName = names.GetValueOrDefault(targetChapterId ?? Guid.Empty);
+        dto.HandoverReason = motion.HandoverReason;
+        FillPredecessor(dto, motion);
+        FillTakeOver(dto, motion);
+    }
+
+    private void FillPredecessor(MotionDetailDTO dto, Motion motion) {
+        var predecessor = _motionRepo.GetHandedOverFrom(motion.Id);
+        if (predecessor == null)
+            return;
+
+        dto.HandedOverFromChapterName = _chapterRepo.Get(predecessor.ChapterId)?.Name;
+        dto.HandedOverFromReason = predecessor.HandoverReason;
+        if (motion.LinkedMembershipApplicationId != null)
+            dto.ApplicationSubmittedAt = _applicationRepo.Get(motion.LinkedMembershipApplicationId.Value)?.SubmittedAt.ToDtoUtc();
+    }
+
+    private void FillTakeOver(MotionDetailDTO dto, Motion motion) {
+        var rootId = _planner.TakeOverRootFor(motion);
+        dto.CanTakeOver = rootId != null && _perms.Has(rootId.Value, PermissionIdentifier.ProcessDueSelections);
+        if (motion.LinkedMembershipApplicationId == null)
+            return;
+
+        var application = _applicationRepo.Get(motion.LinkedMembershipApplicationId.Value);
+        if (application == null)
+            return;
+
+        var next = _planner.NextFor(motion, application, DateTime.UtcNow);
+        dto.NextTakeOverAt = next?.DueAt.ToDtoUtc();
+        dto.NextTakeOverChapterName = next?.ChapterName;
     }
 }

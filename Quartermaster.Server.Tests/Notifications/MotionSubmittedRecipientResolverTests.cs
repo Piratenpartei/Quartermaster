@@ -114,7 +114,7 @@ public class MotionSubmittedRecipientResolverTests : RepositoryTestBase {
 
     [Test]
     public async Task Does_not_inherit_via_delegate_role_on_parent_chapter() {
-        // GeneralChapterDelegate has InheritsToChildren = false — must NOT pick up child-chapter motions.
+        // GeneralChapterDelegate has InheritsToChildren = false - must NOT pick up child-chapter motions.
         var chain = _builder.SeedChapterHierarchy("Parent", "Child");
         var (delegateUser, _) = _builder.SeedAuthenticatedUser(email: "delegate@test.local");
         var delegateRole = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.GeneralChapterDelegate)!;

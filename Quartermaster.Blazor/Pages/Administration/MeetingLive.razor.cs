@@ -66,7 +66,7 @@ public partial class MeetingLive : IAsyncDisposable {
         try {
             await HubClient.JoinMeetingAsync(Id);
         } catch (Exception ex) {
-            // Non-fatal — live updates disabled, REST still works.
+            // Non-fatal - live updates disabled, REST still works.
             Console.Error.WriteLine($"MeetingLive.ConnectHub: hub join failed; live updates off. {ex}");
         }
     }
@@ -136,7 +136,7 @@ public partial class MeetingLive : IAsyncDisposable {
             if (templateOption != null)
                 _motionNotesTemplate = templateOption.GlobalValue;
         } catch (Exception ex) {
-            // Non-critical — motion-notes template feature degrades silently.
+            // Non-critical - motion-notes template feature degrades silently.
             Console.Error.WriteLine($"MeetingLive.LoadMotionNotesTemplate: option fetch failed. {ex}");
         }
     }

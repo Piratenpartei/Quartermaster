@@ -37,12 +37,12 @@ public class CsrfDelegatingHandler : DelegatingHandler {
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // 401 only matters when we expected to be authenticated — anonymous visitors
+        // 401 only matters when we expected to be authenticated - anonymous visitors
         // hitting a protected page see 401 by design and shouldn't be redirected.
         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && wasAuthenticated)
             _authState.NotifyTokenExpired();
 
-        // If we get a 403, CSRF token may have expired — refetch and retry once
+        // If we get a 403, CSRF token may have expired - refetch and retry once
         if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&
             request.Method != HttpMethod.Get) {
 

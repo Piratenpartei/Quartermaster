@@ -102,7 +102,7 @@ public class AgendaItemRepository {
     }
 
     /// <summary>
-    /// Partial update of Notes field only — for fast auto-save during minute-taking.
+    /// Partial update of Notes field only - for fast auto-save during minute-taking.
     /// Does not emit an audit log entry (notes are free-form and change frequently).
     /// </summary>
     public void UpdateNotes(Guid itemId, string? notes) {

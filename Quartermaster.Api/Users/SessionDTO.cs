@@ -3,7 +3,7 @@ using System;
 namespace Quartermaster.Api.Users;
 
 /// <summary>
-/// One entry in the /api/users/sessions list — a single valid login token attributed
+/// One entry in the /api/users/sessions list - a single valid login token attributed
 /// to the calling user, with the audit columns populated at login time.
 /// </summary>
 public class SessionDTO {

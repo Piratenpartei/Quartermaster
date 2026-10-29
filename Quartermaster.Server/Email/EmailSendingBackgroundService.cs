@@ -132,7 +132,7 @@ public class EmailSendingBackgroundService : BackgroundService {
                 }
             }
         } catch (OperationCanceledException) when (ct.IsCancellationRequested) {
-            // Shutdown — pending messages remain in DB with status Pending and get re-queued on next start
+            // Shutdown - pending messages remain in DB with status Pending and get re-queued on next start
         } catch (Exception ex) {
             _logger.LogError(ex, "SMTP connection error, re-queueing {Count} messages", batch.Count);
             foreach (var msg in batch)
@@ -187,7 +187,7 @@ public class EmailSendingBackgroundService : BackgroundService {
     /// <summary>
     /// Fire-and-forget delayed re-enqueue. Off the consumer loop so the next batch can
     /// start sending immediately. On shutdown the delay observes <paramref name="ct"/>
-    /// and the message stays Pending in the DB — <see cref="RequeuePendingLogs"/> picks
+    /// and the message stays Pending in the DB - <see cref="RequeuePendingLogs"/> picks
     /// it up on next start.
     /// </summary>
     private void ScheduleRetry(EmailMessage message, TimeSpan delay, CancellationToken ct) {
@@ -196,7 +196,7 @@ public class EmailSendingBackgroundService : BackgroundService {
                 await Task.Delay(delay, ct);
                 _channel.Writer.TryWrite(message);
             } catch (OperationCanceledException) {
-                // Shutdown — log row stays Pending and gets re-enqueued on next start.
+                // Shutdown - log row stays Pending and gets re-enqueued on next start.
             } catch (Exception ex) {
                 _logger.LogWarning(ex, "Scheduled retry for {Recipient} failed to re-enqueue", message.To);
             }

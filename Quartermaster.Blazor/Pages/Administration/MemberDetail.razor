@@ -15,7 +15,7 @@
         <div>
             <h3>@Member.FirstName @Member.LastName</h3>
             @if (Member.IsFloating) {
-                <span class="text-secondary">@(Member.AdmissionReference ?? "—")</span>
+                <span class="text-secondary">@(Member.AdmissionReference ?? "-")</span>
             } else {
                 <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
             }
@@ -40,9 +40,9 @@
                     <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.FirstName]</th><td>@Member.FirstName</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@Member.LastName</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.MemberDetail.DateOfBirthLabel]</th><td><LocalTime DateValue="Member.DateOfBirth" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CitizenshipLabel]</th><td>@(Member.Citizenship ?? "—")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Member.Email ?? "—")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Phone]</th><td>@(Member.Phone ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CitizenshipLabel]</th><td>@(Member.Citizenship ?? "-")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Member.Email ?? "-")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Phone]</th><td>@(Member.Phone ?? "-")</td></tr>
                 </tbody>
             </table>
             </div>
@@ -55,9 +55,9 @@
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.StreetLabel]</th><td>@(Member.Street ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.StreetLabel]</th><td>@(Member.Street ?? "-")</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.MemberDetail.PostCodeCityLabel]</th><td>@Member.PostCode @Member.City</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountryLabel]</th><td>@(Member.Country ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountryLabel]</th><td>@(Member.Country ?? "-")</td></tr>
                     <tr>
                         <th>@I18n[I18nKey.Ui.MemberDetail.AdminDivisionLabel]</th>
                         <td>
@@ -84,7 +84,7 @@
                                     </button>
                                 </div>
                             } else if (string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName)) {
-                                <span>—</span>
+                                <span>-</span>
                             } else {
                                 <span>@Member.ResidenceAdministrativeDivisionName</span>
                                 @if (!string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionAdminCode)) {
@@ -105,10 +105,10 @@
             <div class="table-responsive">
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FederalStateLabel]</th><td>@(Member.FederalState ?? "—")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountyLabel]</th><td>@(Member.County ?? "—")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.MunicipalityLabel]</th><td>@(Member.Municipality ?? "—")</td></tr>
+                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "-" : Member.ChapterName)</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FederalStateLabel]</th><td>@(Member.FederalState ?? "-")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountyLabel]</th><td>@(Member.County ?? "-")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.MunicipalityLabel]</th><td>@(Member.Municipality ?? "-")</td></tr>
                 </tbody>
             </table>
             </div>
@@ -123,7 +123,7 @@
                 <tbody>
                     <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.EntryDateLabel]</th><td><LocalTime DateValue="Member.EntryDate" /></td></tr>
                     <tr><th>@I18n[I18nKey.Ui.MemberDetail.ExitDateLabel]</th><td><LocalTime DateValue="Member.ExitDate" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.AdmissionReferenceLabel]</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.AdmissionReferenceLabel]</th><td>@(Member.AdmissionReference ?? "-")</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.MemberDetail.FeeLabel]</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.MemberDetail.ReducedFeeLabel]</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     @if (Member.FirstFee.HasValue) {

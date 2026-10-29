@@ -49,7 +49,7 @@
                             <td>@RenderStatus(m)</td>
                             <td><LocalTime Value="m.CreatedAt" /></td>
                             <td>@(m.SentAt.HasValue ? null : "")<LocalTime Value="m.SentAt" /></td>
-                            <td>@(m.RecipientCount?.ToString() ?? "—")</td>
+                            <td>@(m.RecipientCount?.ToString() ?? "-")</td>
                         </tr>
                     }
                 </tbody>

@@ -168,7 +168,7 @@ public class TelegramMessageChannelTests : RepositoryTestBase {
         private readonly RecordingHandler _handler;
 
         public StubFactory(RecordingHandler handler) : base(null!, null!) {
-            // Both base ctor args are unused — overrides bypass option lookup and cache entirely.
+            // Both base ctor args are unused - overrides bypass option lookup and cache entirely.
             _handler = handler;
         }
 

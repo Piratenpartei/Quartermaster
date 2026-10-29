@@ -66,7 +66,7 @@ public class MeetingHubCollabTests : IntegrationTestBase {
         await conn1.StartAsync();
         var first = await conn1.InvokeAsync<CollabDocumentSnapshot>("LoadDocument", item.Id);
 
-        // Same user reconnects — should get the same color.
+        // Same user reconnects - should get the same color.
         await using var conn2 = BuildConnection(token);
         await conn2.StartAsync();
         var second = await conn2.InvokeAsync<CollabDocumentSnapshot>("LoadDocument", item.Id);

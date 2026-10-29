@@ -215,7 +215,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
         // Read-only editors (anonymous viewers, ViewMeetings-only users,
         // frozen meetings) never try to push state. They still receive
         // remote updates via the hub relay; this hook is only for their
-        // own local emissions, which shouldn't happen in read-only mode —
+        // own local emissions, which shouldn't happen in read-only mode -
         // but our awareness bootstrap path can still fire it. No-op here
         // to keep the save indicator in its neutral "Saved" state.
         if (IsReadOnly)
@@ -226,7 +226,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
         try {
             await HubClient.SendUpdateAsync(AgendaItemId.Value, updateBase64);
         } catch (Exception ex) {
-            // Hub disconnected — reconnection will re-send via full snapshot load.
+            // Hub disconnected - reconnection will re-send via full snapshot load.
             Console.Error.WriteLine($"CodeMirrorEditor.OnJsCollabUpdate: hub send failed. {ex}");
         }
         // Also feed the preview pane with the latest plain text.
@@ -247,7 +247,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
         try {
             await HubClient.SendAwarenessAsync(AgendaItemId.Value, awarenessBase64);
         } catch (Exception ex) {
-            // Awareness is ephemeral — log but don't surface.
+            // Awareness is ephemeral - log but don't surface.
             Console.Error.WriteLine($"CodeMirrorEditor.OnJsAwarenessUpdate: hub send failed. {ex}");
         }
     }
@@ -267,7 +267,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
         // idle for them.
         if (IsReadOnly)
             return;
-        // Nothing to save — skip the round-trip.
+        // Nothing to save - skip the round-trip.
         if (CurrentSaveState == SaveState.Saved)
             return;
         SetSaveState(SaveState.Saving);
@@ -318,7 +318,7 @@ public partial class CodeMirrorEditor : IAsyncDisposable {
             if (_handle != null)
                 await JS.InvokeVoidAsync("cmEditor.dispose", _handle);
         } catch (Exception ex) {
-            // Usually JS runtime already torn down — best-effort.
+            // Usually JS runtime already torn down - best-effort.
             Console.Error.WriteLine($"CodeMirrorEditor.DisposeAsync: JS dispose failed (best-effort). {ex}");
         }
         _selfRef?.Dispose();

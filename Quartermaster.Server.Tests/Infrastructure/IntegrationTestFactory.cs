@@ -30,7 +30,7 @@ public sealed class IntegrationTestFactory : WebApplicationFactory<Program> {
         builder.ConfigureAppConfiguration((context, config) => {
             config.AddInMemoryCollection(new Dictionary<string, string?> {
                 ["DatabaseSettings:ConnectionString"] = _connectionString,
-                // Disable RootAccountSettings seeding in test environment —
+                // Disable RootAccountSettings seeding in test environment -
                 // tests create their own authenticated users via TestDataBuilder.
                 ["RootAccountSettings:Email"] = "",
                 ["RootAccountSettings:Password"] = ""
@@ -38,7 +38,7 @@ public sealed class IntegrationTestFactory : WebApplicationFactory<Program> {
         });
 
         builder.ConfigureServices(services => {
-            // Remove hosted services — they would spin up background work (file polling,
+            // Remove hosted services - they would spin up background work (file polling,
             // SMTP sending) that interferes with tests and may fail without a filesystem
             // or SMTP server.
             RemoveHostedServices(services);

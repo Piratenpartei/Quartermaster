@@ -9,11 +9,11 @@ Quartermaster splits configuration across two layers:
 | Layer | What goes there | How it's edited |
 |---|---|---|
 | `appsettings.Production.json` | DB connection string, trusted reverse-proxy IPs, log levels | Edit file, restart service |
-| **Options table** (DB-backed) | Everything else — SMTP, branding, SAML/OIDC, rate limits, etc. | Web UI: assistants at `/Administration/Settings`, the full list at `/Administration/Settings/Advanced`. Hot-reload, no restart |
+| **Options table** (DB-backed) | Everything else - SMTP, branding, SAML/OIDC, rate limits, etc. | Web UI: assistants at `/Administration/Settings`, the full list at `/Administration/Settings/Advanced`. Hot-reload, no restart |
 
 A handful of Options are **per-chapter overridable**: setting them at the chapter level overrides the global default for users scoped to that chapter and its descendants. The rest are global only.
 
-All Options have built-in defaults — the app boots without any of them being set. Anything required for a specific feature (email, SSO, Telegram) is called out below.
+All Options have built-in defaults - the app boots without any of them being set. Anything required for a specific feature (email, SSO, Telegram) is called out below.
 
 ## appsettings.Production.json
 
@@ -36,12 +36,12 @@ All Options have built-in defaults — the app boots without any of them being s
 }
 ```
 
-X-Forwarded-* headers are processed **only** for connections coming from the listed proxies / networks. With both lists empty the headers are dropped entirely (this is the safe default — a misconfigured proxy can't spoof client IPs).
+X-Forwarded-* headers are processed **only** for connections coming from the listed proxies / networks. With both lists empty the headers are dropped entirely (this is the safe default - a misconfigured proxy can't spoof client IPs).
 
-- `KnownProxies` — exact IPv4/IPv6 addresses, e.g. `127.0.0.1`, `::1`, `10.0.0.5`
-- `KnownNetworks` — CIDR notation, e.g. `10.0.0.0/8`, `192.168.1.0/24`
+- `KnownProxies` - exact IPv4/IPv6 addresses, e.g. `127.0.0.1`, `::1`, `10.0.0.5`
+- `KnownNetworks` - CIDR notation, e.g. `10.0.0.0/8`, `192.168.1.0/24`
 
-Both lists are additive. The client IP that ends up in audit logs and rate-limit buckets is what the *last* trusted proxy in the chain reports — so make sure your proxy is configured to **append** to `X-Forwarded-For` rather than overwriting it.
+Both lists are additive. The client IP that ends up in audit logs and rate-limit buckets is what the *last* trusted proxy in the chain reports - so make sure your proxy is configured to **append** to `X-Forwarded-For` rather than overwriting it.
 
 ## Global options (DB-backed)
 
@@ -60,7 +60,7 @@ The "Identifier" column is what appears in import/export and audit logs.
 | `general.chaptername.display` | _empty_ | Umbrella organisation display name (per-chapter overridable) |
 | `general.contact.email` | _empty_ | Contact address shown in error pages and notification footers (per-chapter overridable) |
 | `general.error.contact` | German default fallback | Hint text shown on error pages (per-chapter overridable) |
-| `general.error.show_details` | `false` | `true` reveals technical detail in error UI — leave off in production |
+| `general.error.show_details` | `false` | `true` reveals technical detail in error UI - leave off in production |
 
 `system.public_base_url` is required for every outbound notification that contains a link (application-received mails, due-selection confirmations, motion notifications, etc.). Set it before going live.
 
@@ -74,7 +74,7 @@ Required for: all email notifications, including the membership-application conf
 | `email.smtp.port` | `587` | `587` for STARTTLS, `465` for implicit SSL |
 | `email.smtp.username` | _empty_ | SMTP auth username |
 | `email.smtp.password` | _empty_ | SMTP auth password (stored masked) |
-| `email.smtp.use_ssl` | `true` | Encrypted connection — leave `true` unless using a local relay |
+| `email.smtp.use_ssl` | `true` | Encrypted connection - leave `true` unless using a local relay |
 | `email.smtp.sender_address` | _empty_ | `From:` address |
 | `email.smtp.sender_name` | `Quartermaster` | `From:` display name |
 | `email.smtp.batch_size` | `50` | Max messages per opened SMTP connection. Larger = fewer reconnects, smaller = faster recovery on transient failure |
@@ -107,7 +107,7 @@ Required for: third-party SSO login via SAML 2.0 (e.g. Keycloak, ADFS, Authentik
 | `auth.saml.certificate` | Base64-encoded IdP signing certificate (no BEGIN/END headers). Stored masked |
 | `auth.saml.button_text` | Login button label (default: `SSO Login`) |
 | `auth.saml.expected_audience` | Required `<Audience>` value in the assertion. Empty = skip check (not recommended) |
-| `auth.saml.expected_destination` | Required `<Destination>` URL — usually `<public_base_url>/api/users/SamlConsume`. Empty = skip check |
+| `auth.saml.expected_destination` | Required `<Destination>` URL - usually `<public_base_url>/api/users/SamlConsume`. Empty = skip check |
 | `auth.saml.member_number_attribute` | SAML attribute carrying the member number (default: `member_number`). Users are linked to members by this number; when no member exists yet, one is created from first name, last name, email and member number, and the next member import fills in the rest |
 | `auth.saml.department_attribute` | SAML attribute carrying the account's Keycloak department (default: `ekklesia_department`). See [Keycloak departments](#keycloak-departments) |
 | `auth.saml.eligible_attribute` | SAML attribute carrying the account's voting rights (default: `ekklesia_eligible`). See [Keycloak voting rights](#keycloak-voting-rights) |
@@ -492,7 +492,7 @@ OBS overlay:
 
 | Identifier | Default | Purpose |
 |---|---|---|
-| `auth.token.lifetime_days` | `7` | Login-token lifetime in days. Sliding-window — every successful use extends it |
+| `auth.token.lifetime_days` | `7` | Login-token lifetime in days. Sliding-window - every successful use extends it |
 | `auth.lockout.max_attempts` | `5` | Failed login attempts per (IP, user) tuple before lockout |
 | `auth.lockout.duration_minutes` | `15` | Both the rolling window for attempt counting and the lockout duration after the threshold trips |
 
@@ -608,4 +608,4 @@ A third file, `GV100AD.txt`, links every municipality to its Gemeindeverband (Sa
 
 ## Notification templates
 
-Email/Telegram/PDF templates for each trigger (application received, motion approved, etc.) are managed in **Administration → Templates**. They are not in the Options table — they have their own UI with preview, Fluid template syntax, and chapter-specific overrides. See `Quartermaster.Documentation/plans/` for the template engine design notes.
+Email/Telegram/PDF templates for each trigger (application received, motion approved, etc.) are managed in **Administration → Templates**. They are not in the Options table - they have their own UI with preview, Fluid template syntax, and chapter-specific overrides. See `Quartermaster.Documentation/plans/` for the template engine design notes.

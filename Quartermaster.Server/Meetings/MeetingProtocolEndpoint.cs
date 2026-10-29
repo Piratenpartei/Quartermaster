@@ -69,7 +69,7 @@ public class MeetingProtocolEndpoint : Endpoint<MeetingProtocolRequest> {
         }
 
         if (!MeetingAccessHelper.CanUserViewMeeting(_perms.UserId, meeting, _roleRepo, _perms)) {
-            await SendNotFoundAsync(ct); // 404, not 403 — don't leak private meeting existence
+            await SendNotFoundAsync(ct); // 404, not 403 - don't leak private meeting existence
             return;
         }
 

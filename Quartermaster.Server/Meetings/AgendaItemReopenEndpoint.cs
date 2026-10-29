@@ -17,7 +17,7 @@ public class AgendaItemReopenRequest {
 
 /// <summary>
 /// Resets an agenda item's CompletedAt to null, effectively re-opening it.
-/// Meetings sometimes jump around — this lets the minute-taker undo a premature completion.
+/// Meetings sometimes jump around - this lets the minute-taker undo a premature completion.
 /// </summary>
 public class AgendaItemReopenEndpoint : Endpoint<AgendaItemReopenRequest> {
     private readonly MeetingRepository _meetingRepo;

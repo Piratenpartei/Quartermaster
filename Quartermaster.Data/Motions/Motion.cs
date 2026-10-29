@@ -24,7 +24,7 @@ public class Motion {
     /// <summary>Rendered, sanitized HTML for display. Derived from <see cref="TextMarkdown"/>.</summary>
     public string Text { get; set; } = "";
 
-    /// <summary>Markdown source — the canonical edit surface and what's diffed in the audit log.</summary>
+    /// <summary>Markdown source - the canonical edit surface and what's diffed in the audit log.</summary>
     public string TextMarkdown { get; set; } = "";
 
     public bool IsPublic { get; set; }
@@ -38,6 +38,7 @@ public class Motion {
     public Guid? OnBehalfOfChapterId { get; set; }
     public ChapterMark? OnBehalfOfReason { get; set; }
     public Guid? HandedOverToMotionId { get; set; }
+    public MotionHandoverReason? HandoverReason { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }

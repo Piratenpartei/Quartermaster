@@ -14,7 +14,7 @@ namespace Quartermaster.Server.Motions;
 
 /// <summary>
 /// Substantive edit to an existing motion. Gated by <see cref="PermissionIdentifier.EditMotions"/>
-/// on the motion's chapter and locked once <see cref="MotionApprovalStatus.Pending"/> is left —
+/// on the motion's chapter and locked once <see cref="MotionApprovalStatus.Pending"/> is left -
 /// resolved/closed motions are immutable for accountability. Field-level audit via
 /// <see cref="MotionRepository.Update"/>.
 /// </summary>

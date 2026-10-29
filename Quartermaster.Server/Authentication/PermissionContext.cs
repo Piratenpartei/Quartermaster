@@ -98,7 +98,7 @@ public class PermissionContext {
     }
 
     /// <summary>
-    /// True if authenticated and holds the permission on the exact chapter — no inheritance.
+    /// True if authenticated and holds the permission on the exact chapter - no inheritance.
     /// Use for chapter-bound privileges (voting) where parent-chapter holders must NOT inherit.
     /// </summary>
     public bool HasExact(Guid chapterId, string permission) {

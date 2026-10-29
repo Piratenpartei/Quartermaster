@@ -41,7 +41,7 @@ public class MeetingHub : Hub {
     // item). When a user joins we pick the first unused color from the
     // palette; they keep it for the lifetime of the server process. On
     // reconnect they get the same color if it's still in the map. This is
-    // in-memory only — color assignment is ephemeral presence state.
+    // in-memory only - color assignment is ephemeral presence state.
     private static readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, string>> _documentColors = new();
 
     // 8-color Tol Vibrant scheme: colorblind-safe, distinguishable on both
@@ -119,7 +119,7 @@ public class MeetingHub : Hub {
         if (!CanJoin(userId, meeting))
             throw new HubException("forbidden");
 
-        // Documents for meetings that are no longer in progress are frozen —
+        // Documents for meetings that are no longer in progress are frozen -
         // loading still works (so participants and archivers can view the
         // final state) but canEdit is false, which puts the client editor in
         // read-only mode. HasEditPermission already enforces the status check.
@@ -133,7 +133,7 @@ public class MeetingHub : Hub {
             SaveIntervalSeconds = ResolveSaveIntervalSeconds(),
             CanEdit = canEdit,
             // Anonymous users don't get a palette color since they can't
-            // author anything — we return the first color as a placeholder
+            // author anything - we return the first color as a placeholder
             // that never gets used for attribution.
             AssignedColor = userId.HasValue
                 ? AssignColor(agendaItemId, userId.Value)
@@ -144,7 +144,7 @@ public class MeetingHub : Hub {
             snapshot.PlainText = doc.PlainText;
             snapshot.KnownAuthors = ParseKnownAuthors(doc.ClientUserMap);
         } else {
-            // Seed from the legacy Notes column (still empty state for Yjs —
+            // Seed from the legacy Notes column (still empty state for Yjs -
             // the client applies it as the initial text on first load).
             snapshot.PlainText = item.Notes ?? "";
         }
@@ -225,7 +225,7 @@ public class MeetingHub : Hub {
 
     /// <summary>
     /// Persists a snapshot of the current document state. Throttled to at
-    /// most once per save-interval window — if any client has already saved
+    /// most once per save-interval window - if any client has already saved
     /// within the interval, subsequent calls in the same window are no-ops.
     /// Also writes the denormalized plain text back to the legacy
     /// AgendaItem.Notes column so existing read paths (PDF, audit log) keep
@@ -323,7 +323,7 @@ public class MeetingHub : Hub {
     private bool HasEditPermission(Guid userId, Data.Meetings.Meeting meeting) {
         // Freeze edits on meetings that are no longer in progress. Even if
         // the user holds EditMeetings, a Completed/Archived meeting is
-        // immutable — its protocol is considered final.
+        // immutable - its protocol is considered final.
         if (meeting.Status != MeetingStatus.InProgress)
             return false;
         return _perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings);
@@ -342,7 +342,7 @@ public class MeetingHub : Hub {
         try {
             return JsonSerializer.Deserialize<Dictionary<string, CollabAuthorInfo>>(json) ?? new();
         } catch (JsonException) {
-            // Corrupted ClientUserMap on a CollabDocument — start fresh; the next save rewrites it.
+            // Corrupted ClientUserMap on a CollabDocument - start fresh; the next save rewrites it.
             return new();
         }
     }

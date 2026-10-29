@@ -5,10 +5,10 @@ A membership management and dues payment system for the Pirate Party (Piratenpar
 ## Tech Stack
 
 - **.NET 10.0 / C#** with **ASP.NET Core**
-- **FastEndpoints** — lightweight, strongly-typed endpoint routing (one endpoint per class)
-- **LinqToDB** + **MySQL** — data access / ORM
-- **FluentMigrator** — database schema versioning and migrations
-- **Blazor WebAssembly** — client-side frontend with Bootstrap 5
+- **FastEndpoints** - lightweight, strongly-typed endpoint routing (one endpoint per class)
+- **LinqToDB** + **MySQL** - data access / ORM
+- **FluentMigrator** - database schema versioning and migrations
+- **Blazor WebAssembly** - client-side frontend with Bootstrap 5
 - Custom token-based authentication + SAML SSO support
 
 Every shipped third-party package, vendored browser library and data source is credited on the "Sources & licenses" page (`/Attributions`, linked from the footer). The list lives in `Quartermaster.Blazor/Pages/Attributions/OpenSourceLibraries.cs`; `OpenSourceLibrariesTests` fails when a project gains or drops a NuGet package that the list does not reflect. Vendored browser files have no package reference, so add them by hand.
@@ -20,7 +20,7 @@ Every shipped third-party package, vendored browser library and data source is c
 | `Quartermaster.Api` | Shared DTOs, request/response contracts, and permission identifiers |
 | `Quartermaster.Data` | Entities, repositories, migrations, configuration settings |
 | `Quartermaster.Server` | ASP.NET Core host, API endpoints, authentication handlers |
-| `Quartermaster.Blazor` | Blazor WASM frontend — pages, components, services |
+| `Quartermaster.Blazor` | Blazor WASM frontend - pages, components, services |
 | `Quartermaster.Documentation` | Documentation and diagrams |
 
 ## Domain Features
@@ -100,9 +100,9 @@ Each entity has a dedicated repository inheriting from `RepositoryBase<T>`. The 
 
 Settings are in `appsettings.json` / `appsettings.development.json`:
 
-- `DatabaseSettings` — MySQL connection string
-- `RootAccountSettings` — initial admin credentials
-- `SamlSettings` — SAML endpoint configuration
+- `DatabaseSettings` - MySQL connection string
+- `RootAccountSettings` - initial admin credentials
+- `SamlSettings` - SAML endpoint configuration
 
 In debug mode, the database schema is torn down and rebuilt on startup via FluentMigrator.
 

@@ -6,7 +6,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 
 /// <summary>
 /// Base for repo / service / helper tests that need only a DbContext against the
-/// per-worker test database — no in-process HTTP host, no Kestrel. Wipes all tables
+/// per-worker test database - no in-process HTTP host, no Kestrel. Wipes all tables
 /// in the constructor (runs per test under TUnit's default class lifecycle) and
 /// disposes the DbContext via <see cref="IDisposable"/>.
 ///

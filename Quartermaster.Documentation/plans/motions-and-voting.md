@@ -13,36 +13,36 @@
 ## File Structure
 
 ### Data Model (new entities + migration updates)
-- `Quartermaster.Data/Motions/Motion.cs` — Motion entity with enums
-- `Quartermaster.Data/Motions/MotionVote.cs` — Vote entity with enum
-- `Quartermaster.Data/Motions/MotionRepository.cs` — CRUD, list, vote logic, auto-resolution
-- `Quartermaster.Data/ChapterAssociates/ChapterOfficerRepository.cs` — **create**, query officers for a chapter
-- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` — add Motion + MotionVote tables
-- `Quartermaster.Data/DbContext.cs` — register new tables/repositories
+- `Quartermaster.Data/Motions/Motion.cs` - Motion entity with enums
+- `Quartermaster.Data/Motions/MotionVote.cs` - Vote entity with enum
+- `Quartermaster.Data/Motions/MotionRepository.cs` - CRUD, list, vote logic, auto-resolution
+- `Quartermaster.Data/ChapterAssociates/ChapterOfficerRepository.cs` - **create**, query officers for a chapter
+- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` - add Motion + MotionVote tables
+- `Quartermaster.Data/DbContext.cs` - register new tables/repositories
 
 ### API DTOs
-- `Quartermaster.Api/Motions/MotionDTO.cs` — list item DTO
-- `Quartermaster.Api/Motions/MotionDetailDTO.cs` — full detail with votes
-- `Quartermaster.Api/Motions/MotionVoteDTO.cs` — individual vote record
-- `Quartermaster.Api/Motions/MotionCreateRequest.cs` — public creation request
-- `Quartermaster.Api/Motions/MotionListRequest.cs` — list query params
-- `Quartermaster.Api/Motions/MotionListResponse.cs` — paginated response
-- `Quartermaster.Api/Motions/MotionVoteRequest.cs` — cast vote request
+- `Quartermaster.Api/Motions/MotionDTO.cs` - list item DTO
+- `Quartermaster.Api/Motions/MotionDetailDTO.cs` - full detail with votes
+- `Quartermaster.Api/Motions/MotionVoteDTO.cs` - individual vote record
+- `Quartermaster.Api/Motions/MotionCreateRequest.cs` - public creation request
+- `Quartermaster.Api/Motions/MotionListRequest.cs` - list query params
+- `Quartermaster.Api/Motions/MotionListResponse.cs` - paginated response
+- `Quartermaster.Api/Motions/MotionVoteRequest.cs` - cast vote request
 
 ### Server Endpoints
-- `Quartermaster.Server/Motions/MotionListEndpoint.cs` — GET list (public motions for everyone, non-public for officers)
-- `Quartermaster.Server/Motions/MotionDetailEndpoint.cs` — GET detail with votes
-- `Quartermaster.Server/Motions/MotionCreateEndpoint.cs` — POST create (public)
-- `Quartermaster.Server/Motions/MotionVoteEndpoint.cs` — POST vote
-- `Quartermaster.Server/Motions/MotionStatusEndpoint.cs` — POST change status (formally reject / close without action / mark realized)
-- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` — modify to spawn linked motion
-- `Quartermaster.Server/TestData/TestDataSeeder.cs` — seed officers + test motions
+- `Quartermaster.Server/Motions/MotionListEndpoint.cs` - GET list (public motions for everyone, non-public for officers)
+- `Quartermaster.Server/Motions/MotionDetailEndpoint.cs` - GET detail with votes
+- `Quartermaster.Server/Motions/MotionCreateEndpoint.cs` - POST create (public)
+- `Quartermaster.Server/Motions/MotionVoteEndpoint.cs` - POST vote
+- `Quartermaster.Server/Motions/MotionStatusEndpoint.cs` - POST change status (formally reject / close without action / mark realized)
+- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` - modify to spawn linked motion
+- `Quartermaster.Server/TestData/TestDataSeeder.cs` - seed officers + test motions
 
 ### Blazor Pages
-- `Quartermaster.Blazor/Pages/Motions/MotionCreate.razor` + `.cs` — public creation form
-- `Quartermaster.Blazor/Pages/Administration/MotionList.razor` + `.cs` — officer list view
-- `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor` + `.cs` — detail + voting UI
-- `Quartermaster.Blazor/Layout/MainLayout.razor` — add nav links
+- `Quartermaster.Blazor/Pages/Motions/MotionCreate.razor` + `.cs` - public creation form
+- `Quartermaster.Blazor/Pages/Administration/MotionList.razor` + `.cs` - officer list view
+- `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor` + `.cs` - detail + voting UI
+- `Quartermaster.Blazor/Layout/MainLayout.razor` - add nav links
 
 ---
 
@@ -1017,7 +1017,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 7: Blazor — Motion Creation Page (Public)
+## Task 7: Blazor - Motion Creation Page (Public)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Motions/MotionCreate.razor`
@@ -1150,7 +1150,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 8: Blazor — Motion List Page (Vorstandsarbeit)
+## Task 8: Blazor - Motion List Page (Vorstandsarbeit)
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionList.razor`
@@ -1327,7 +1327,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 9: Blazor — Motion Detail + Voting Page
+## Task 9: Blazor - Motion Detail + Voting Page
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor`
@@ -1446,7 +1446,7 @@ Expected: Build succeeded, 0 errors
                 <h6>Stimme abgeben</h6>
                 <div class="d-flex gap-2 align-items-center">
                     <select class="form-select" style="width: auto;" @bind="SelectedVoterId">
-                        <option value="">— Vorstandsmitglied —</option>
+                        <option value="">- Vorstandsmitglied -</option>
                         @foreach (var officer in Officers) {
                             <option value="@officer.UserId">@officer.UserName (@OfficerRoleLabel(officer.OfficerRole))</option>
                         }
@@ -1672,7 +1672,7 @@ Expected: Build succeeded, 0 errors
 | Layer | Files Created | Files Modified |
 |---|---|---|
 | Data | Motion.cs, MotionVote.cs, MotionRepository.cs, ChapterOfficerRepository.cs | M001 migration, DbContext.cs |
-| API | MotionDTO.cs, MotionDetailDTO.cs, MotionVoteDTO.cs, MotionCreateRequest.cs, MotionListRequest.cs, MotionListResponse.cs, MotionVoteRequest.cs, MotionStatusRequest.cs | — |
+| API | MotionDTO.cs, MotionDetailDTO.cs, MotionVoteDTO.cs, MotionCreateRequest.cs, MotionListRequest.cs, MotionListResponse.cs, MotionVoteRequest.cs, MotionStatusRequest.cs | - |
 | Server | MotionListEndpoint.cs, MotionDetailEndpoint.cs, MotionCreateEndpoint.cs, MotionVoteEndpoint.cs, MotionStatusEndpoint.cs | MembershipApplicationCreateEndpoint.cs, TestDataSeeder.cs |
 | Blazor | MotionCreate.razor/.cs, MotionList.razor/.cs, MotionDetail.razor/.cs | MainLayout.razor |
-| Docs | — | Translations.md |
+| Docs | - | Translations.md |

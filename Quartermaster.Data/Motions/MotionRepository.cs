@@ -55,13 +55,26 @@ public class MotionRepository {
             .OrderBy(m => m.CreatedAt)
             .ToList();
 
-    public void SetHandedOverTo(Guid id, Guid newMotionId) {
+    public void SetHandedOverTo(Guid motionId, Guid replacementId, MotionHandoverReason reason) {
         _context.Motions
-            .Where(m => m.Id == id)
-            .Set(m => m.HandedOverToMotionId, (Guid?)newMotionId)
+            .Where(m => m.Id == motionId)
+            .Set(m => m.HandedOverToMotionId, (Guid?)replacementId)
+            .Set(m => m.HandoverReason, (MotionHandoverReason?)reason)
             .Update();
-        _auditLog.Log("Motion", id, "HandedOver", nameof(Motion.HandedOverToMotionId), null, newMotionId.ToString());
+        _auditLog.Log("Motion", motionId, "HandedOver", nameof(Motion.HandedOverToMotionId), null, replacementId.ToString());
     }
+
+    /// <summary>The motion that was closed by handing it over to the given one, or null.</summary>
+    public Motion? GetHandedOverFrom(Guid replacementId)
+        => _context.Motions.Where(m => m.HandedOverToMotionId == replacementId && m.DeletedAt == null).FirstOrDefault();
+
+    /// <summary>Waiting motions linked to a membership application, in every chapter.</summary>
+    public List<Motion> ListPendingLinkedToApplications()
+        => _context.Motions
+            .Where(m => m.LinkedMembershipApplicationId != null && m.ApprovalStatus == MotionApprovalStatus.Pending
+                && m.HandedOverToMotionId == null && m.DeletedAt == null)
+            .OrderBy(m => m.CreatedAt)
+            .ToList();
 
     public (List<Motion> Items, int TotalCount) List(
         Guid? chapterId, MotionApprovalStatus? status, bool includeNonPublic, int page, int pageSize,
@@ -78,11 +91,11 @@ public class MotionRepository {
         if (!includeNonPublic) {
             q = q.Where(m => m.IsPublic);
         } else if (nonPublicChapterIds != null) {
-            // User has ViewMotions on specific chapters only — show public motions
+            // User has ViewMotions on specific chapters only - show public motions
             // everywhere, plus non-public motions from permitted chapters.
             q = q.Where(m => m.IsPublic || nonPublicChapterIds.Contains(m.ChapterId));
         }
-        // nonPublicChapterIds == null means global permission — no filtering needed.
+        // nonPublicChapterIds == null means global permission - no filtering needed.
 
         var totalCount = q.Count();
         var items = q.OrderByDescending(m => m.CreatedAt)
@@ -267,7 +280,7 @@ public class MotionRepository {
 
     /// <summary>
     /// Propagates a motion resolution to its linked membership application and/or due selection.
-    /// <c>ClosedWithoutAction</c> (and any non-terminal status) leaves the linked entity untouched —
+    /// <c>ClosedWithoutAction</c> (and any non-terminal status) leaves the linked entity untouched -
     /// only a real approve/reject decision flips it. Must run inside the caller's transaction.
     /// </summary>
     private void CascadeResolutionToLinkedEntities(Motion motion, MotionApprovalStatus newStatus) {
@@ -337,7 +350,7 @@ public class MotionRepository {
     /// <summary>
     /// Field-level substantive edit. Performs a per-field diff against the stored row, persists
     /// only the changed columns, and emits one <see cref="AuditLogRepository.LogFieldChange"/>
-    /// per change — all inside a single transaction. The caller (endpoint) is responsible for
+    /// per change - all inside a single transaction. The caller (endpoint) is responsible for
     /// the permission and lifecycle gates (e.g. only allow while ApprovalStatus == Pending).
     /// </summary>
     public void Update(

@@ -3,7 +3,7 @@ using System.Threading.Channels;
 namespace Quartermaster.Server.Notifications;
 
 /// <summary>
-/// Production queue — writes requests to an unbounded channel that
+/// Production queue - writes requests to an unbounded channel that
 /// <see cref="NotificationDispatchBackgroundService"/> drains. <see cref="Enqueue"/>
 /// returns immediately so submit endpoints don't block on recipient resolution,
 /// rendering, or (notably) synchronous Telegram HTTP calls.

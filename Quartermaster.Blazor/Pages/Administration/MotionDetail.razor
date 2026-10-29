@@ -34,8 +34,29 @@
     }
     @if (Motion.HandedOverToMotionId != null && Motion.HandedOverToChapterName != null) {
         <div class="alert alert-secondary">
-            @I18n[$"{I18nKey.Ui.ChapterMarks.HandedOverTo}?name={Uri.EscapeDataString(Motion.HandedOverToChapterName)}"]
+            <MotionHandoverText Reason="Motion.HandoverReason" ChapterName="@Motion.HandedOverToChapterName" />
             <a href="/Administration/Motions/@Motion.HandedOverToMotionId" class="alert-link ms-1">@I18n[I18nKey.Ui.ChapterMarks.HandedOverLink]</a>
+        </div>
+    }
+
+    @if (Motion.HandedOverFromChapterName != null && Motion.HandedOverFromReason == MotionHandoverReason.Deadline && Motion.ApplicationSubmittedAt != null) {
+        <div class="alert alert-secondary">
+            @I18n[I18nParams.With(I18nKey.Ui.HandUp.TakenOverFrom, ("name", Motion.HandedOverFromChapterName), ("date", Motion.ApplicationSubmittedAt.Value.LocalDateTime.ToString("dd.MM.yyyy")))]
+        </div>
+    }
+    @if (Motion.NextTakeOverAt != null && Motion.NextTakeOverChapterName != null && VotingOpen) {
+        <NextTakeOverNotice At="Motion.NextTakeOverAt.Value" ChapterName="@Motion.NextTakeOverChapterName" />
+    }
+    @if (Motion.CanTakeOver) {
+        <div class="mb-3">
+            <button class="btn btn-outline-primary btn-hover-scale1" @onclick="TakeOver" disabled="@TakingOver">
+                @if (TakingOver) {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                } else {
+                    <i class="bi bi-box-arrow-in-up me-1"></i>
+                }
+                @I18n[I18nKey.Ui.HandUp.TakeOverButton]
+            </button>
         </div>
     }
 
@@ -148,7 +169,9 @@
                         <th>@I18n[I18nKey.Ui.Common.Role]</th>
                         <th>@I18n[I18nKey.Ui.MotionDetail.VoteColumn]</th>
                         <th>@I18n[I18nKey.Ui.Common.Date]</th>
-                        <th>@I18n[I18nKey.Ui.MotionDetail.CastVoteColumn]</th>
+                        @if (VotingOpen) {
+                            <th>@I18n[I18nKey.Ui.MotionDetail.CastVoteColumn]</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -171,22 +194,24 @@
                                 }
                             </td>
                             <td><LocalTime Value="existingVote?.VotedAt" /></td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
-                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaApprove]" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
-                                        <i class="bi bi-hand-thumbs-up-fill"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm @(existingVote?.Vote == VoteType.Deny ? "active" : "")"
-                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaDeny]" @onclick="() => CastVote(officer.MemberId, VoteType.Deny)">
-                                        <i class="bi bi-hand-thumbs-down-fill"></i>
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm @(existingVote?.Vote == VoteType.Abstain ? "active" : "")"
-                                            aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaAbstain]" @onclick="() => CastVote(officer.MemberId, VoteType.Abstain)">
-                                        <i class="bi bi-dash-circle"></i>
-                                    </button>
-                                </div>
-                            </td>
+                            @if (VotingOpen) {
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
+                                                aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaApprove]" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
+                                            <i class="bi bi-hand-thumbs-up-fill"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm @(existingVote?.Vote == VoteType.Deny ? "active" : "")"
+                                                aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaDeny]" @onclick="() => CastVote(officer.MemberId, VoteType.Deny)">
+                                            <i class="bi bi-hand-thumbs-down-fill"></i>
+                                        </button>
+                                        <button class="btn btn-secondary btn-sm @(existingVote?.Vote == VoteType.Abstain ? "active" : "")"
+                                                aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaAbstain]" @onclick="() => CastVote(officer.MemberId, VoteType.Abstain)">
+                                            <i class="bi bi-dash-circle"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -259,3 +284,5 @@
         </div>
     }
 }
+
+<ConfirmDialog @ref="TakeOverConfirm" Title="@I18n[I18nKey.Ui.HandUp.TakeOverDialogTitle]" ConfirmText="@I18n[I18nKey.Ui.HandUp.TakeOverButton]" />

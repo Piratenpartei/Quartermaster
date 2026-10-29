@@ -37,7 +37,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// </summary>
 public sealed class TestDataBuilder {
     /// <summary>
-    /// Monotonic seed for <c>MemberNumber</c> defaults — replaces `Random.Shared.Next` so
+    /// Monotonic seed for <c>MemberNumber</c> defaults - replaces `Random.Shared.Next` so
     /// concurrent tests can't draw the same number and trip the unique index.
     /// </summary>
     private static int _nextMemberNumber = 100_000;

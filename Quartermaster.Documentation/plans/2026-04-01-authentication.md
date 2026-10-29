@@ -12,13 +12,13 @@
 
 ## Design Decisions (from user)
 
-1. **Bearer token** — `Authorization: Bearer <token>` header (not cookies, not custom headers)
-2. **Granular permissions** — per-entity CRUD, not role-based
-3. **Hierarchical read** — view/read permissions on a parent chapter automatically apply to child chapters; write permissions are NEVER inherited
-4. **Template roles** — future TODO (e.g., "chapter officer" auto-applies a set of permissions)
-5. **Login UI** — two card buttons (SSO + manual), login button in nav, redirect back after login
-6. **SAML** — leave as-is, implement later with real IdP
-7. **Public endpoints** — motions (list/create), applications, due selection, chapters, admin divisions, login, SAML, antiforgery, config
+1. **Bearer token** - `Authorization: Bearer <token>` header (not cookies, not custom headers)
+2. **Granular permissions** - per-entity CRUD, not role-based
+3. **Hierarchical read** - view/read permissions on a parent chapter automatically apply to child chapters; write permissions are NEVER inherited
+4. **Template roles** - future TODO (e.g., "chapter officer" auto-applies a set of permissions)
+5. **Login UI** - two card buttons (SSO + manual), login button in nav, redirect back after login
+6. **SAML** - leave as-is, implement later with real IdP
+7. **Public endpoints** - motions (list/create), applications, due selection, chapters, admin divisions, login, SAML, antiforgery, config
 
 ---
 
@@ -78,7 +78,7 @@
 - `GET /api/config/client` (could optionally return more data when authenticated)
 
 ### Permission-gated (specific permission required)
-- All admin endpoints — mapped to their respective permission identifiers
+- All admin endpoints - mapped to their respective permission identifiers
 - Chapter-scoped endpoints resolve ChapterId from request and check hierarchical permissions
 
 ---
@@ -100,7 +100,7 @@
 **Files:**
 - Modify: `Quartermaster.Server/Authentication/TokenAuthenticationHandler.cs`
 - Modify: `Quartermaster.Server/Program.cs`
-- Modify: `Quartermaster.Server/Users/LoginEndpoint.cs` — return token content + user info in response
+- Modify: `Quartermaster.Server/Users/LoginEndpoint.cs` - return token content + user info in response
 
 ### Task 3: Authorization preprocessor
 
@@ -113,12 +113,12 @@
 
 **Files:**
 - Create: `Quartermaster.Server/Authentication/AuthorizationPreProcessor.cs`
-- Create: `Quartermaster.Server/Authentication/RequirePermissionAttribute.cs` — custom attribute for endpoints
-- Modify: All admin endpoint `Configure()` methods — remove `AllowAnonymous()`, add permission requirement
+- Create: `Quartermaster.Server/Authentication/RequirePermissionAttribute.cs` - custom attribute for endpoints
+- Modify: All admin endpoint `Configure()` methods - remove `AllowAnonymous()`, add permission requirement
 
 ### Task 4: Hierarchical permission checking
 
-**Scope:** Update `UserChapterPermissionRepository` to support hierarchical read. When checking a view/read permission for a chapter, walk the ancestor chain — if the user has the permission on ANY ancestor, grant access. Write permissions are always exact-match only.
+**Scope:** Update `UserChapterPermissionRepository` to support hierarchical read. When checking a view/read permission for a chapter, walk the ancestor chain - if the user has the permission on ANY ancestor, grant access. Write permissions are always exact-match only.
 
 **Files:**
 - Modify: `Quartermaster.Data/UserChapterPermissions/UserChapterPermissionRepository.cs`
@@ -134,29 +134,29 @@
 5. Redirects back to original page after login
 
 **Files:**
-- Create: `Quartermaster.Blazor/Services/AuthService.cs` — token storage, login/logout, user state
-- Create: `Quartermaster.Blazor/wwwroot/js/auth.js` — localStorage interop
-- Modify: `Quartermaster.Blazor/Http/CsrfDelegatingHandler.cs` — also add Bearer header
-- Modify: `Quartermaster.Blazor/Program.cs` — register AuthService
+- Create: `Quartermaster.Blazor/Services/AuthService.cs` - token storage, login/logout, user state
+- Create: `Quartermaster.Blazor/wwwroot/js/auth.js` - localStorage interop
+- Modify: `Quartermaster.Blazor/Http/CsrfDelegatingHandler.cs` - also add Bearer header
+- Modify: `Quartermaster.Blazor/Program.cs` - register AuthService
 
 ### Task 6: Login UI
 
 **Scope:** Create login page with two card buttons (SSO + manual login). Add login button to nav bar. Manual login form with username/password. SSO button checks if SAML is configured (from ClientConfig), disabled if not.
 
 **Files:**
-- Create: `Quartermaster.Blazor/Pages/Login.razor` + `.cs` — login page
-- Create: `Quartermaster.Blazor/Pages/LoginManual.razor` + `.cs` — username/password form
-- Modify: `Quartermaster.Blazor/Layout/MainLayout.razor` — add login/logout button in nav
-- Modify: `Quartermaster.Api/Config/ClientConfigDTO.cs` — add `SamlEnabled` and `SamlButtonText` fields
-- Modify: `Quartermaster.Server/Config/ClientConfigEndpoint.cs` — populate SAML fields
+- Create: `Quartermaster.Blazor/Pages/Login.razor` + `.cs` - login page
+- Create: `Quartermaster.Blazor/Pages/LoginManual.razor` + `.cs` - username/password form
+- Modify: `Quartermaster.Blazor/Layout/MainLayout.razor` - add login/logout button in nav
+- Modify: `Quartermaster.Api/Config/ClientConfigDTO.cs` - add `SamlEnabled` and `SamlButtonText` fields
+- Modify: `Quartermaster.Server/Config/ClientConfigEndpoint.cs` - populate SAML fields
 
 ### Task 7: Wire authenticated user into audit log
 
-**Scope:** Replace all "System" TODO markers with actual authenticated user. The auth preprocessor resolves the user — pass it through to repositories via a scoped service or HttpContext accessor.
+**Scope:** Replace all "System" TODO markers with actual authenticated user. The auth preprocessor resolves the user - pass it through to repositories via a scoped service or HttpContext accessor.
 
 **Files:**
-- Create: `Quartermaster.Server/Authentication/CurrentUserService.cs` — scoped service holding current user
-- Modify: `Quartermaster.Data/AuditLog/AuditLogRepository.cs` — accept user info
+- Create: `Quartermaster.Server/Authentication/CurrentUserService.cs` - scoped service holding current user
+- Modify: `Quartermaster.Data/AuditLog/AuditLogRepository.cs` - accept user info
 - Modify: All repositories with TODO markers (7 files)
 
 ### Task 8: Admin UI for user permission management
@@ -165,7 +165,7 @@
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Administration/UserDetail.razor` + `.cs`
-- Create: `Quartermaster.Server/Users/UserPermissionEndpoints.cs` — CRUD for user permissions
+- Create: `Quartermaster.Server/Users/UserPermissionEndpoints.cs` - CRUD for user permissions
 - Modify: Existing user list page to link to detail
 
 ### Task 9: Drop DB, rebuild, test, verify
@@ -186,9 +186,9 @@
 
 ## Execution Notes
 
-- Tasks 1-4 are server-side foundation — must be done in order
-- Task 5-6 are client-side — can be done in parallel with 7-8
+- Tasks 1-4 are server-side foundation - must be done in order
+- Task 5-6 are client-side - can be done in parallel with 7-8
 - Task 7-8 depend on tasks 1-4
 - Task 9 is final verification
-- This is the largest feature — expect 2-3 sessions to complete
+- This is the largest feature - expect 2-3 sessions to complete
 - Each task should be verified independently before moving to the next

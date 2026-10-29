@@ -1,4 +1,4 @@
-# Event & Email System — Implementation Plan
+# Event & Email System - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -15,67 +15,67 @@
 ### Data Layer (`Quartermaster.Data/`)
 | File | Responsibility |
 |------|---------------|
-| `Events/Event.cs` | **Create** — Event entity |
-| `Events/EventChecklistItem.cs` | **Create** — Checklist item entity with type enum |
-| `Events/EventTemplate.cs` | **Create** — Event template entity |
-| `Events/EventRepository.cs` | **Create** — CRUD for events, checklist items, templates |
-| `Migrations/M001_InitialStructureMigration.cs` | **Modify** — Add Events, EventChecklistItems, EventTemplates tables |
-| `DbContext.cs` | **Modify** — Add ITable properties, register repository |
+| `Events/Event.cs` | **Create** - Event entity |
+| `Events/EventChecklistItem.cs` | **Create** - Checklist item entity with type enum |
+| `Events/EventTemplate.cs` | **Create** - Event template entity |
+| `Events/EventRepository.cs` | **Create** - CRUD for events, checklist items, templates |
+| `Migrations/M001_InitialStructureMigration.cs` | **Modify** - Add Events, EventChecklistItems, EventTemplates tables |
+| `DbContext.cs` | **Modify** - Add ITable properties, register repository |
 
 ### API Layer (`Quartermaster.Api/`)
 | File | Responsibility |
 |------|---------------|
-| `Events/EventDTO.cs` | **Create** — List view DTO |
-| `Events/EventDetailDTO.cs` | **Create** — Detail DTO with checklist items |
-| `Events/EventChecklistItemDTO.cs` | **Create** — Checklist item DTO |
-| `Events/EventCreateRequest.cs` | **Create** — Create event request |
-| `Events/EventUpdateRequest.cs` | **Create** — Update event request |
-| `Events/EventSearchRequest.cs` | **Create** — Search/filter request |
-| `Events/EventSearchResponse.cs` | **Create** — Paginated response |
-| `Events/ChecklistItemCreateRequest.cs` | **Create** — Add checklist item request |
-| `Events/ChecklistItemUpdateRequest.cs` | **Create** — Update checklist item request |
-| `Events/ChecklistItemCheckRequest.cs` | **Create** — Check item request with executeAction flag |
-| `Events/EventTemplateDTO.cs` | **Create** — Template list DTO |
-| `Events/EventTemplateDetailDTO.cs` | **Create** — Template detail with variables + checklist templates |
-| `Events/EventTemplateCreateRequest.cs` | **Create** — Create template from event |
-| `Events/EventFromTemplateRequest.cs` | **Create** — Create event from template with variable values |
-| `Rendering/TemplateRenderer.cs` | **Create** — Shared Fluid+Markdig renderer (moved from Server) |
-| `Rendering/TemplateMockDataProvider.cs` | **Create** — Shared mock data provider (moved from Server) |
-| `Quartermaster.Api.csproj` | **Modify** — Add Fluid.Core and Markdig packages |
+| `Events/EventDTO.cs` | **Create** - List view DTO |
+| `Events/EventDetailDTO.cs` | **Create** - Detail DTO with checklist items |
+| `Events/EventChecklistItemDTO.cs` | **Create** - Checklist item DTO |
+| `Events/EventCreateRequest.cs` | **Create** - Create event request |
+| `Events/EventUpdateRequest.cs` | **Create** - Update event request |
+| `Events/EventSearchRequest.cs` | **Create** - Search/filter request |
+| `Events/EventSearchResponse.cs` | **Create** - Paginated response |
+| `Events/ChecklistItemCreateRequest.cs` | **Create** - Add checklist item request |
+| `Events/ChecklistItemUpdateRequest.cs` | **Create** - Update checklist item request |
+| `Events/ChecklistItemCheckRequest.cs` | **Create** - Check item request with executeAction flag |
+| `Events/EventTemplateDTO.cs` | **Create** - Template list DTO |
+| `Events/EventTemplateDetailDTO.cs` | **Create** - Template detail with variables + checklist templates |
+| `Events/EventTemplateCreateRequest.cs` | **Create** - Create template from event |
+| `Events/EventFromTemplateRequest.cs` | **Create** - Create event from template with variable values |
+| `Rendering/TemplateRenderer.cs` | **Create** - Shared Fluid+Markdig renderer (moved from Server) |
+| `Rendering/TemplateMockDataProvider.cs` | **Create** - Shared mock data provider (moved from Server) |
+| `Quartermaster.Api.csproj` | **Modify** - Add Fluid.Core and Markdig packages |
 
 ### Server Layer (`Quartermaster.Server/`)
 | File | Responsibility |
 |------|---------------|
-| `Events/EventListEndpoint.cs` | **Create** — GET /api/events |
-| `Events/EventCreateEndpoint.cs` | **Create** — POST /api/events |
-| `Events/EventDetailEndpoint.cs` | **Create** — GET /api/events/{id} |
-| `Events/EventUpdateEndpoint.cs` | **Create** — PUT /api/events/{id} |
-| `Events/EventArchiveEndpoint.cs` | **Create** — POST /api/events/{id}/archive |
-| `Events/ChecklistItemAddEndpoint.cs` | **Create** — POST /api/events/{id}/checklist |
-| `Events/ChecklistItemUpdateEndpoint.cs` | **Create** — PUT /api/events/{id}/checklist/{itemId} |
-| `Events/ChecklistItemDeleteEndpoint.cs` | **Create** — DELETE /api/events/{id}/checklist/{itemId} |
-| `Events/ChecklistItemCheckEndpoint.cs` | **Create** — POST /api/events/{id}/checklist/{itemId}/check |
-| `Events/ChecklistItemUncheckEndpoint.cs` | **Create** — POST /api/events/{id}/checklist/{itemId}/uncheck |
-| `Events/EventTemplateListEndpoint.cs` | **Create** — GET /api/eventtemplates |
-| `Events/EventTemplateCreateEndpoint.cs` | **Create** — POST /api/eventtemplates |
-| `Events/EventTemplateDetailEndpoint.cs` | **Create** — GET /api/eventtemplates/{id} |
-| `Events/EventTemplateDeleteEndpoint.cs` | **Create** — DELETE /api/eventtemplates/{id} |
-| `Events/EventFromTemplateEndpoint.cs` | **Create** — POST /api/events/from-template |
-| `Events/MemberEmailService.cs` | **Create** — Stubbed email sending service |
-| `Events/ChecklistItemExecutor.cs` | **Create** — Executes checklist actions (motion creation, email sending) |
-| `Options/TemplateRenderer.cs` | **Modify** — Redirect to shared Api version |
-| `Options/TemplateMockDataProvider.cs` | **Modify** — Redirect to shared Api version |
+| `Events/EventListEndpoint.cs` | **Create** - GET /api/events |
+| `Events/EventCreateEndpoint.cs` | **Create** - POST /api/events |
+| `Events/EventDetailEndpoint.cs` | **Create** - GET /api/events/{id} |
+| `Events/EventUpdateEndpoint.cs` | **Create** - PUT /api/events/{id} |
+| `Events/EventArchiveEndpoint.cs` | **Create** - POST /api/events/{id}/archive |
+| `Events/ChecklistItemAddEndpoint.cs` | **Create** - POST /api/events/{id}/checklist |
+| `Events/ChecklistItemUpdateEndpoint.cs` | **Create** - PUT /api/events/{id}/checklist/{itemId} |
+| `Events/ChecklistItemDeleteEndpoint.cs` | **Create** - DELETE /api/events/{id}/checklist/{itemId} |
+| `Events/ChecklistItemCheckEndpoint.cs` | **Create** - POST /api/events/{id}/checklist/{itemId}/check |
+| `Events/ChecklistItemUncheckEndpoint.cs` | **Create** - POST /api/events/{id}/checklist/{itemId}/uncheck |
+| `Events/EventTemplateListEndpoint.cs` | **Create** - GET /api/eventtemplates |
+| `Events/EventTemplateCreateEndpoint.cs` | **Create** - POST /api/eventtemplates |
+| `Events/EventTemplateDetailEndpoint.cs` | **Create** - GET /api/eventtemplates/{id} |
+| `Events/EventTemplateDeleteEndpoint.cs` | **Create** - DELETE /api/eventtemplates/{id} |
+| `Events/EventFromTemplateEndpoint.cs` | **Create** - POST /api/events/from-template |
+| `Events/MemberEmailService.cs` | **Create** - Stubbed email sending service |
+| `Events/ChecklistItemExecutor.cs` | **Create** - Executes checklist actions (motion creation, email sending) |
+| `Options/TemplateRenderer.cs` | **Modify** - Redirect to shared Api version |
+| `Options/TemplateMockDataProvider.cs` | **Modify** - Redirect to shared Api version |
 
 ### Blazor Layer (`Quartermaster.Blazor/`)
 | File | Responsibility |
 |------|---------------|
-| `Pages/Administration/EventList.razor` + `.cs` | **Create** — Event list page |
-| `Pages/Administration/EventDetail.razor` + `.cs` | **Create** — Event detail with checklist |
-| `Pages/Administration/EventCreate.razor` + `.cs` | **Create** — Create event form |
-| `Pages/Administration/EventCreateFromTemplate.razor` + `.cs` | **Create** — Create event from template |
-| `Pages/Administration/EventTemplateList.razor` + `.cs` | **Create** — Template list page |
-| `Pages/Administration/EventTemplateSave.razor` + `.cs` | **Create** — Save event as template |
-| `Layout/MainLayout.razor` | **Modify** — Add nav links |
+| `Pages/Administration/EventList.razor` + `.cs` | **Create** - Event list page |
+| `Pages/Administration/EventDetail.razor` + `.cs` | **Create** - Event detail with checklist |
+| `Pages/Administration/EventCreate.razor` + `.cs` | **Create** - Create event form |
+| `Pages/Administration/EventCreateFromTemplate.razor` + `.cs` | **Create** - Create event from template |
+| `Pages/Administration/EventTemplateList.razor` + `.cs` | **Create** - Template list page |
+| `Pages/Administration/EventTemplateSave.razor` + `.cs` | **Create** - Save event as template |
+| `Layout/MainLayout.razor` | **Modify** - Add nav links |
 
 ---
 
@@ -262,7 +262,7 @@ services.AddScoped<EventRepository>();
 
 Run: `export DOTNET_ROOT=/usr/lib/dotnet && export PATH="$DOTNET_ROOT:$PATH" && dotnet build Quartermaster.Data/Quartermaster.Data.csproj`
 
-Expected: Build may fail on missing EventRepository — that's fine. Or comment out the registration line temporarily.
+Expected: Build may fail on missing EventRepository - that's fine. Or comment out the registration line temporarily.
 
 ---
 
@@ -800,7 +800,7 @@ Replace `Quartermaster.Server/Options/TemplateRenderer.cs` contents with:
 
 ```csharp
 // Shared implementation moved to Quartermaster.Api.Rendering.TemplateRenderer
-// This file kept for backward compatibility — server code should migrate to the shared version.
+// This file kept for backward compatibility - server code should migrate to the shared version.
 using Quartermaster.Api.Rendering;
 
 namespace Quartermaster.Server.Options;
@@ -1890,15 +1890,15 @@ Expected: 0 errors.
 
 - [x] **Step 1: Create EventList page**
 
-Create `Quartermaster.Blazor/Pages/Administration/EventList.razor` — paginated table with chapter filter, archive toggle, header buttons for "Neues Event" and "Aus Vorlage erstellen" (links to template list). Columns: Public Name (link to detail), Chapter, Date, Progress (e.g. "3/5"), Created. Follow the `MemberList.razor` pattern exactly.
+Create `Quartermaster.Blazor/Pages/Administration/EventList.razor` - paginated table with chapter filter, archive toggle, header buttons for "Neues Event" and "Aus Vorlage erstellen" (links to template list). Columns: Public Name (link to detail), Chapter, Date, Progress (e.g. "3/5"), Created. Follow the `MemberList.razor` pattern exactly.
 
-Create `Quartermaster.Blazor/Pages/Administration/EventList.razor.cs` — code-behind with chapter filter, archive toggle, pagination. Same pattern as `MemberList.razor.cs`.
+Create `Quartermaster.Blazor/Pages/Administration/EventList.razor.cs` - code-behind with chapter filter, archive toggle, pagination. Same pattern as `MemberList.razor.cs`.
 
 - [x] **Step 2: Create EventCreate page**
 
-Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor` — form with chapter picker, internal name, public name, description textarea (markdown), date picker. On submit creates event and navigates to detail page. Follow the `MotionCreate.razor` pattern.
+Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor` - form with chapter picker, internal name, public name, description textarea (markdown), date picker. On submit creates event and navigates to detail page. Follow the `MotionCreate.razor` pattern.
 
-Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor.cs` — code-behind with form fields, chapter list loading, submit handler that POSTs to `/api/events` and navigates to `/Administration/Events/{id}`.
+Create `Quartermaster.Blazor/Pages/Administration/EventCreate.razor.cs` - code-behind with form fields, chapter list loading, submit handler that POSTs to `/api/events` and navigates to `/Administration/Events/{id}`.
 
 - [x] **Step 3: Update MainLayout navigation**
 
@@ -1949,13 +1949,13 @@ Route: `/Administration/Events/{Id:guid}`
 
 Code-behind with:
 - Load event detail on init
-- `CheckItem(Guid itemId, bool executeAction)` — POSTs to check endpoint, reloads
-- `UncheckItem(Guid itemId)` — POSTs to uncheck endpoint, reloads
-- `AddChecklistItem()` — POSTs new item, reloads
-- `DeleteChecklistItem(Guid itemId)` — DELETEs item, reloads
-- `ToggleArchive()` — POSTs to archive endpoint, reloads
-- `ToggleEmailPreview(Guid itemId)` — toggles preview for a specific email item
-- `RenderEmailPreview(string templateIdentifier)` — uses shared `TemplateRenderer` + `TemplateMockDataProvider` client-side to render preview HTML
+- `CheckItem(Guid itemId, bool executeAction)` - POSTs to check endpoint, reloads
+- `UncheckItem(Guid itemId)` - POSTs to uncheck endpoint, reloads
+- `AddChecklistItem()` - POSTs new item, reloads
+- `DeleteChecklistItem(Guid itemId)` - DELETEs item, reloads
+- `ToggleArchive()` - POSTs to archive endpoint, reloads
+- `ToggleEmailPreview(Guid itemId)` - toggles preview for a specific email item
+- `RenderEmailPreview(string templateIdentifier)` - uses shared `TemplateRenderer` + `TemplateMockDataProvider` client-side to render preview HTML
 - Helper methods: `RoleLabel()`, item type labels, confirmation handling
 
 - [x] **Step 3: Build and verify**
@@ -1995,7 +1995,7 @@ Page loads the template detail, parses Variables JSON, renders typed inputs:
 - Date → `<input type="date">`
 - Time → `<input type="time">`
 - Number → `<input type="number">`
-- OptionTemplate → text input (option template identifier) — can be enhanced with search later
+- OptionTemplate → text input (option template identifier) - can be enhanced with search later
 - Chapter → chapter picker dropdown
 
 Also shows chapter picker for the event and live preview of resolved public name.

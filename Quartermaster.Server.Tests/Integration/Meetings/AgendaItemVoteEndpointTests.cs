@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using LinqToDB;
 using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Api.Motions;
@@ -117,6 +118,21 @@ public class AgendaItemVoteEndpointTests : IntegrationTestBase {
         await Assert.That(vote!.Vote).IsEqualTo(VoteType.Approve);
         await Assert.That(vote.CastByUserId).IsEqualTo(user.Id);
         await Assert.That(vote.MeetingId).IsEqualTo(meetingId);
+    }
+
+    [Test]
+    public async Task Returns_400_and_writes_no_vote_for_handed_over_motion() {
+        var (chapterId, meetingId, itemId, motionId) = SeedMotionAgendaItem();
+        var officerMemberId = SeedOfficerMember(chapterId);
+        Db.Motions.Where(m => m.Id == motionId).Set(m => m.HandedOverToMotionId, (Guid?)Guid.NewGuid()).Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            globalPermissions: new[] { PermissionIdentifier.SystemVote });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+        var response = await client.PostAsJsonAsync(
+            $"/api/meetings/{meetingId}/agenda/{itemId}/vote",
+            new AgendaItemVoteRequest { MeetingId = meetingId, ItemId = itemId, MemberId = officerMemberId, Vote = VoteType.Approve });
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
+        await Assert.That(Db.MotionVotes.Count(v => v.MotionId == motionId)).IsEqualTo(0);
     }
 
     [Test]

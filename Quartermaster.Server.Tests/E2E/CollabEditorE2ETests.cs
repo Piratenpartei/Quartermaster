@@ -49,12 +49,12 @@ public class CollabEditorE2ETests : E2ETestBase {
     /// Waits for the collaborative editor to finish bootstrapping. The CM5
     /// DOM element appears almost immediately but the collab handle (and
     /// therefore real JS interop) only exists after <c>createCollabEditor</c>
-    /// finishes its async chain — load Yjs, apply snapshot, attach binding.
+    /// finishes its async chain - load Yjs, apply snapshot, attach binding.
     /// On timeout, dumps the page body text to help diagnose.
     /// </summary>
     private static async Task WaitForCollabEditorAsync(IPage page) {
         // Timeouts are 60s rather than 30s because collab tests run two
-        // browser contexts per test — under parallel load the per-test
+        // browser contexts per test - under parallel load the per-test
         // resource budget (Blazor WASM boot + Yjs import + hub negotiate)
         // can easily push past 30s on shared CI workers.
         try {
@@ -150,7 +150,7 @@ public class CollabEditorE2ETests : E2ETestBase {
     }
 
     /// <summary>
-    /// Waits until the editor's current text matches a predicate — used to
+    /// Waits until the editor's current text matches a predicate - used to
     /// give the SignalR hub a chance to relay updates between tabs. Much
     /// more reliable than a hardcoded sleep.
     /// </summary>
@@ -258,7 +258,7 @@ public class CollabEditorE2ETests : E2ETestBase {
         // the Alice entry but the persistent knownAuthors cache retains her.
         await Page.CloseAsync();
 
-        // Give the awareness timeout a moment to propagate — y-protocols
+        // Give the awareness timeout a moment to propagate - y-protocols
         // removes stale entries after ~30s but the cache should survive.
         await bobPage.WaitForTimeoutAsync(500);
 
@@ -267,7 +267,7 @@ public class CollabEditorE2ETests : E2ETestBase {
         await Assert.That(bobKnownAfter[alice.Id.ToString()]).IsEqualTo(aliceColorBefore);
 
         // Marker on Alice's run must still render with Alice's original
-        // color — not the neutral "Unbekannt" fallback.
+        // color - not the neutral "Unbekannt" fallback.
         var markers = await GetAuthorMarkersAsync(bobPage);
         var aliceMarker = markers.FirstOrDefault(m => m.title == "Geschrieben von " + alice.FirstName + " " + alice.LastName);
         await Assert.That(aliceMarker).IsNotNull();
@@ -290,7 +290,7 @@ public class CollabEditorE2ETests : E2ETestBase {
         await WaitForMarkerCountAsync(Page, 1);
 
         // Wait for the snapshot to land (clamped to a 2s tick in E2E env, see
-        // E2ETestBase) — the "Gespeichert HH:MM:SS" indicator confirms it.
+        // E2ETestBase) - the "Gespeichert HH:MM:SS" indicator confirms it.
         await Page.WaitForFunctionAsync(
             "() => /Gespeichert \\d{2}:\\d{2}:\\d{2}/.test(document.body.textContent)",
             new PageWaitForFunctionOptions { Timeout = 10000 });
@@ -304,7 +304,7 @@ public class CollabEditorE2ETests : E2ETestBase {
         var known = await GetKnownAuthorsAsync(Page);
         await Assert.That(known).ContainsKey(alice.Id.ToString());
 
-        // Alice's text should still have a marker after reload — sourced
+        // Alice's text should still have a marker after reload - sourced
         // from the persistent CollabDocument.ClientUserMap column, not
         // from the live awareness map.
         await WaitForMarkerCountAsync(Page, 1);
@@ -316,7 +316,7 @@ public class CollabEditorE2ETests : E2ETestBase {
     [Test]
     public async Task Public_meeting_allows_anonymous_viewer_to_see_colored_text() {
         // A public meeting with some attributed text, viewed by an anonymous
-        // browser — the authors' colors must be visible, but the editor
+        // browser - the authors' colors must be visible, but the editor
         // must be in read-only mode.
         var (chapterId, meetingId, itemId) = SeedMeetingWithItem(
             status: MeetingStatus.InProgress,
@@ -340,12 +340,12 @@ public class CollabEditorE2ETests : E2ETestBase {
             "() => /Gespeichert \\d{2}:\\d{2}:\\d{2}/.test(document.body.textContent)",
             new PageWaitForFunctionOptions { Timeout = 10000 });
 
-        // Anonymous viewer opens a fresh context — no token injected.
+        // Anonymous viewer opens a fresh context - no token injected.
         var anonPage = await NewAnonymousPageAsync();
         await anonPage.GotoAsync($"/Administration/Meetings/{meetingId}/Live");
 
         // Anonymous users are routed to login when the meeting isn't public
-        // OR when the Live page explicitly requires edit perms — but this
+        // OR when the Live page explicitly requires edit perms - but this
         // meeting is Public + InProgress, so the MeetingAccessHelper allows
         // them to view. The live editor will be in read-only mode.
         await WaitForCollabEditorAsync(anonPage);
@@ -355,7 +355,7 @@ public class CollabEditorE2ETests : E2ETestBase {
         var badgeText = await anonPage.Locator(".alert-secondary").First.TextContentAsync();
         await Assert.That(badgeText ?? "").Contains("Schreibgeschützt");
 
-        // Alice's color should still be in the known-authors cache — loaded
+        // Alice's color should still be in the known-authors cache - loaded
         // from the persistent snapshot.
         var known = await GetKnownAuthorsAsync(anonPage);
         await Assert.That(known).ContainsKey(alice.Id.ToString());
@@ -430,7 +430,7 @@ public class CollabEditorE2ETests : E2ETestBase {
                 }});
             }}");
 
-        // The Phase 1 hub broadcast delivers MeetingStatusChanged — the live
+        // The Phase 1 hub broadcast delivers MeetingStatusChanged - the live
         // page reloads the meeting, sees it's no longer InProgress, and
         // replaces the editor with the "not active" warning.
         await Page.WaitForFunctionAsync(
@@ -482,7 +482,7 @@ public class CollabEditorE2ETests : E2ETestBase {
     [Test]
     public async Task Legacy_seeded_notes_text_is_uncolored() {
         // An agenda item with pre-existing plain-text Notes gets seeded into
-        // the Yjs doc on first LoadDocument without author attributes — those
+        // the Yjs doc on first LoadDocument without author attributes - those
         // runs should render with NO marker. Use Public visibility so the
         // seeded authenticated user doesn't hit the "direct officer only"
         // gate in MeetingAccessHelper for private non-draft meetings.
@@ -506,11 +506,11 @@ public class CollabEditorE2ETests : E2ETestBase {
         await WaitForCollabEditorAsync(Page);
         await WaitForEditorTextAsync(Page, "Legacy notes text.");
 
-        // No author markers — the seeded text has no author attribute.
+        // No author markers - the seeded text has no author attribute.
         var markers = await GetAuthorMarkersAsync(Page);
         await Assert.That(markers.Count).IsEqualTo(0);
 
-        // Now Alice adds her own line — her run gets a marker, legacy stays uncolored.
+        // Now Alice adds her own line - her run gets a marker, legacy stays uncolored.
         await InsertAtEndAsync(Page, "\nAlice's contribution.");
         await WaitForMarkerCountAsync(Page, 1);
         var updated = await GetAuthorMarkersAsync(Page);

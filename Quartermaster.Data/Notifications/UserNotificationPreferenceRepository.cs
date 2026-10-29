@@ -31,7 +31,7 @@ public class UserNotificationPreferenceRepository {
     }
 
     /// <summary>
-    /// Replace all of the user's overrides with the supplied set. Atomic — wipe + insert in a transaction so
+    /// Replace all of the user's overrides with the supplied set. Atomic - wipe + insert in a transaction so
     /// a partial failure doesn't leave the user with a mix of old and new preferences.
     /// </summary>
     public void Replace(Guid userId, IEnumerable<UserNotificationPreference> preferences) {

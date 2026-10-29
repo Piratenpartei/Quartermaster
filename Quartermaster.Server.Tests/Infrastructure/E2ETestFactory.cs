@@ -18,7 +18,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// <summary>
 /// Starts a real Kestrel host (not TestServer) so that external processes like Playwright
 /// can navigate to it. Builds the app via <see cref="Program.ConfigureServices"/> and
-/// <see cref="Program.ConfigureMiddleware"/> — the same configuration the production host uses,
+/// <see cref="Program.ConfigureMiddleware"/> - the same configuration the production host uses,
 /// minus HTTPS redirection, migrations, and hosted background services.
 /// Disposes the host on <see cref="Dispose"/>.
 /// </summary>
@@ -47,7 +47,7 @@ public sealed class E2ETestFactory : IDisposable {
 
         Program.ConfigureServices(builder);
 
-        // Strip hosted services — tests don't need background polling/SMTP.
+        // Strip hosted services - tests don't need background polling/SMTP.
         var hosted = builder.Services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
         foreach (var d in hosted)
             builder.Services.Remove(d);

@@ -17,7 +17,7 @@ public class E2ESmokeTests : E2ETestBase {
 
     [Test]
     public async Task Login_page_is_reachable() {
-        // First, try fetching the root — should return index.html via MapFallbackToFile
+        // First, try fetching the root - should return index.html via MapFallbackToFile
         var rootResp = await Page.GotoAsync("/");
         if (rootResp == null || !rootResp.Ok) {
             var body = rootResp != null ? await rootResp.TextAsync() : "(null response)";

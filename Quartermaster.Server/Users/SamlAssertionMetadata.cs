@@ -19,7 +19,7 @@ public static class SamlAssertionParser {
     /// <summary>
     /// Decodes the base64 SAMLResponse payload and pulls out the security-relevant assertion
     /// metadata. Returns <c>null</c> when any required field (AssertionID, NotBefore,
-    /// NotOnOrAfter) is missing — the caller must treat that as a rejection. Audience and
+    /// NotOnOrAfter) is missing - the caller must treat that as a rejection. Audience and
     /// Destination are optional in the spec and returned as <c>null</c> when absent.
     /// </summary>
     public static SamlAssertionMetadata? TryParse(string base64SamlResponse) {

@@ -49,11 +49,11 @@
                         @if (ds.SelectedValuation == SelectedValuation.Reduced) {
                             @ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))
                         } else {
-                            <span class="text-secondary">—</span>
+                            <span class="text-secondary">-</span>
                         }
                     </td>
                     <td class="text-truncate" style="max-width: 250px;" title="@ds.ReducedJustification">
-                        @(string.IsNullOrEmpty(ds.ReducedJustification) ? "—" : ds.ReducedJustification)
+                        @(string.IsNullOrEmpty(ds.ReducedJustification) ? "-" : ds.ReducedJustification)
                     </td>
                     <td>
                         @if (ds.Status == DueSelectionStatus.Pending) {

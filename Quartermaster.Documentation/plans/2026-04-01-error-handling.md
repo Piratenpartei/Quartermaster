@@ -305,13 +305,13 @@ cd /media/SMB/Quartermaster
 The pages that need fixing (from the exploration):
 
 **Silent failures (catch but no toast):**
-- `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor.cs` — catches HttpRequestException silently
-- `Quartermaster.Blazor/Pages/Administration/EventDetail.razor.cs` — catches HttpRequestException silently in LoadEvent()
-- `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor.cs` — catches HttpRequestException silently
-- `Quartermaster.Blazor/Pages/Administration/EventCreateFromTemplate.razor.cs` — catches HttpRequestException silently
+- `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor.cs` - catches HttpRequestException silently
+- `Quartermaster.Blazor/Pages/Administration/EventDetail.razor.cs` - catches HttpRequestException silently in LoadEvent()
+- `Quartermaster.Blazor/Pages/Administration/MotionDetail.razor.cs` - catches HttpRequestException silently
+- `Quartermaster.Blazor/Pages/Administration/EventCreateFromTemplate.razor.cs` - catches HttpRequestException silently
 
 **No error handling at all:**
-- `Quartermaster.Blazor/Pages/Administration/OptionDetail.razor.cs` — no try/catch on HTTP calls
+- `Quartermaster.Blazor/Pages/Administration/OptionDetail.razor.cs` - no try/catch on HTTP calls
 
 **Pattern to apply:** For each file, read it first, find the API call patterns, and add toast error notifications. Use:
 

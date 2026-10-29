@@ -42,6 +42,10 @@
         <div class="form-text">@I18n[I18nKey.Ui.ChapterCreate.ParentHint]</div>
     </div>
 
+    <ChapterLevelFields IdPrefix="chapter-create" IsRoot="@(string.IsNullOrEmpty(ParentChapterId))"
+                        Level="Level" LevelChanged="OnLevelChanged"
+                        PeriodDays="TakeOverPeriodDays" PeriodDaysChanged="OnPeriodDaysChanged" />
+
     <div class="mb-3">
         <label class="form-label">@I18n[I18nKey.Ui.ChapterCreate.AdminDivisionLabel]</label>
         <AdminDivisionChipsInput Value="AdministrativeDivisionIds" ValueChanged="OnDivisionsChanged" />

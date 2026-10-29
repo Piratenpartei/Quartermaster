@@ -8,7 +8,7 @@ using Quartermaster.Server.Authentication;
 
 namespace Quartermaster.Server.Chapters;
 
-/// <summary>Reverse of <see cref="ChapterArchiveEndpoint"/> — see <see cref="ChapterRepository.SetArchived"/>.</summary>
+/// <summary>Reverse of <see cref="ChapterArchiveEndpoint"/> - see <see cref="ChapterRepository.SetArchived"/>.</summary>
 public class ChapterUnarchiveEndpoint : EndpointWithoutRequest {
     private readonly ChapterRepository _chapterRepo;
     private readonly PermissionContext _perms;

@@ -11,7 +11,7 @@ namespace Quartermaster.Server.Tests.Integration.Users;
 
 /// <summary>
 /// Covers the error paths of the SAML consume endpoint. The happy path requires a
-/// signed SAML XML response against a real X.509 cert — fixture-prep beyond the
+/// signed SAML XML response against a real X.509 cert - fixture-prep beyond the
 /// scope of integration tests here. Replay protection is exercised at the
 /// repository level by <c>UsedSamlAssertionRepositoryTests</c>.
 /// </summary>

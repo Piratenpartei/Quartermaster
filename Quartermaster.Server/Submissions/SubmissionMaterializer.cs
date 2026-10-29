@@ -83,7 +83,7 @@ public class SubmissionMaterializer {
     /// </summary>
     public Guid? MaterializeMotionDirect(MotionCreateRequest req) => MaterializeMotion(req);
 
-    /// <summary>Direct-path overload for authenticated callers — see <see cref="MaterializeMotionDirect"/>.</summary>
+    /// <summary>Direct-path overload for authenticated callers - see <see cref="MaterializeMotionDirect"/>.</summary>
     public Task<Guid> MaterializeApplicationDirectAsync(MembershipApplicationDTO req, CancellationToken ct = default)
         => MaterializeApplicationAsync(req, ct);
 

@@ -96,7 +96,7 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 
 - Never put two top-level classes or structs in one file
 - Exceptions:
-  - Pure data classes (only properties, no logic) — e.g., a DTO file can contain multiple related DTOs
+  - Pure data classes (only properties, no logic) - e.g., a DTO file can contain multiple related DTOs
   - A request class paired with its endpoint class (or similar narrow pairings)
   - Test files may contain multiple test classes when they cover the same region/feature of code (e.g., several validator test classes for the same feature, multiple endpoint test classes for one resource)
 - Enums are not classes/structs and may coexist with a related class in the same file
@@ -112,26 +112,26 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 
 - Default to no comments. Don't restate what the code already says; don't narrate a fix or rule
 - Prefer XML `///` summaries on public types/members over `//` narration; tighter visibility (`private`/`internal`) beats explaining a member
-- Only add a comment when the *why* is non-obvious — a hidden constraint, a workaround, behavior that would surprise a reader. Include enough context that a future reader can judge whether the reason still applies
+- Only add a comment when the *why* is non-obvious - a hidden constraint, a workaround, behavior that would surprise a reader. Include enough context that a future reader can judge whether the reason still applies
 
 ## Members and Language Features
 
-- Always write the intended access modifier explicitly (`private`, `internal`, `public`) — never rely on implicit defaults
+- Always write the intended access modifier explicitly (`private`, `internal`, `public`) - never rely on implicit defaults
 - Prefer `var` everywhere
-- Prefer `using` directives over fully-qualified type names — add the `using` rather than writing `Quartermaster.Server.Cli.AdminInitCommand`. If a name genuinely collides, rename or fully-qualify at the single call site
-- **No type/namespace aliases** (`using X = Y;`) and no `global::` — they paper over a naming or namespace problem rather than fixing it
-- Use fluent/method-chain LINQ (`.Where().Select()`); never query-comprehension syntax (`from x in y select`). Applies to LinqToDB recursive CTEs too — express the recursive part as `self.SelectMany(prev => table.InnerJoin(...).Select(...))`
+- Prefer `using` directives over fully-qualified type names - add the `using` rather than writing `Quartermaster.Server.Cli.AdminInitCommand`. If a name genuinely collides, rename or fully-qualify at the single call site
+- **No type/namespace aliases** (`using X = Y;`) and no `global::` - they paper over a naming or namespace problem rather than fixing it
+- Use fluent/method-chain LINQ (`.Where().Select()`); never query-comprehension syntax (`from x in y select`). Applies to LinqToDB recursive CTEs too - express the recursive part as `self.SelectMany(prev => table.InnerJoin(...).Select(...))`
 - Prefer LINQ `Count(predicate)` over `Where(predicate).Count()`
 - Expression-bodied members for trivial properties/indexers/accessors are fine; not for methods/constructors (matches `.editorconfig`)
-- Avoid expression-bodied properties (`=>`) when the value involves allocation or `GetType()`/`typeof().Name` — use an auto-property with initializer (`{ get; } = ...`) so it's computed once
-- **One statement per line** — never combine declarations or statements with `;` on the same line
-- **Method calls:** no space between the method name and `(` — write `Method()`, not `Method ()`
-- **Extension members:** prefer the C# 14 `extension(...) { … }` block syntax over the legacy `this`-parameter form when a class holds more than one extension on the same receiver — the receiver is named once, the members are grouped, and the shape mirrors a regular type. A single extension on a one-off receiver can stay on the legacy `static Foo(this T x)` form; there's no real readability gain from a one-member block.
+- Avoid expression-bodied properties (`=>`) when the value involves allocation or `GetType()`/`typeof().Name` - use an auto-property with initializer (`{ get; } = ...`) so it's computed once
+- **One statement per line** - never combine declarations or statements with `;` on the same line
+- **Method calls:** no space between the method name and `(` - write `Method()`, not `Method ()`
+- **Extension members:** prefer the C# 14 `extension(...) { … }` block syntax over the legacy `this`-parameter form when a class holds more than one extension on the same receiver - the receiver is named once, the members are grouped, and the shape mirrors a regular type. A single extension on a one-off receiver can stay on the legacy `static Foo(this T x)` form; there's no real readability gain from a one-member block.
 
 ## Switch, Boolean, and Pattern Matching
 
 - Never put curly braces on `case` blocks. If local variable names collide between cases, rename them
-- Use `&&` and `||`, never the `and`/`or` pattern-matching keywords — they're harder to scan. Applies to pattern-matching expressions too: write `x == A || x == B`, not `x is A or B`
+- Use `&&` and `||`, never the `and`/`or` pattern-matching keywords - they're harder to scan. Applies to pattern-matching expressions too: write `x == A || x == B`, not `x is A or B`
 - Null checks use `== null` / `!= null`, never the "is empty pattern" form: write `if (x != null)`, not `if (x is { } y)` or `if (x is not null)`. Pattern-matching syntax for what's conceptually a null check is unreadable. If you need to capture the unwrapped value, use a `var` after the check (or `.Value` on the nullable)
 
 ## Exceptions
@@ -141,18 +141,18 @@ private static Guid? ResolveDbParentId(AdministrativeDivision div, ...) {
 
 ## Locking
 
-- This project is .NET 10. Use `System.Threading.Lock` instead of `object` as a lock target — `.editorconfig` has `csharp_prefer_system_threading_lock = true`
+- This project is .NET 10. Use `System.Threading.Lock` instead of `object` as a lock target - `.editorconfig` has `csharp_prefer_system_threading_lock = true`
 
 ## Blazor Components
 
 - Never use `@code { }` blocks in `.razor` files; always use a code-behind file (`.razor.cs`)
-- This applies to all components and pages — keep markup and logic separated
+- This applies to all components and pages - keep markup and logic separated
 
 ## DTO ↔ Entity Mapping
 
 - All entity-to-DTO and DTO-to-entity mapping is **hand-written**. Do not introduce mapping libraries (Mapperly, AutoMapper, etc.)
-- Prefer mapping **methods on the type itself**: `ToDto()` / `ToDetailDto(...)` on the entity (when entity references the DTO), or `ToEntity()` on the DTO (when DTO references the entity). One side owns the mapping — pick the side that already has the dependency
-- Inline mapping (`new XxxDTO { ... }` at the call site) is acceptable **only when mapping a few fields**. Anything broader belongs on the type, so dispatchers and services don't repeat — and skip — field assignments
+- Prefer mapping **methods on the type itself**: `ToDto()` / `ToDetailDto(...)` on the entity (when entity references the DTO), or `ToEntity()` on the DTO (when DTO references the entity). One side owns the mapping - pick the side that already has the dependency
+- Inline mapping (`new XxxDTO { ... }` at the call site) is acceptable **only when mapping a few fields**. Anything broader belongs on the type, so dispatchers and services don't repeat - and skip - field assignments
 - Explicit `*Mapper` types are acceptable when an on-type method genuinely doesn't fit (e.g., the mapping needs services neither type should reference) or when it materially improves readability. Default to on-type methods first
 - Never bury non-trivial mapping inside a service method (`private static Foo ToFoo(...)`). Move it to the type
 

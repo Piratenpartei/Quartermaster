@@ -13,6 +13,7 @@ using Quartermaster.Api.ChapterAssociates;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Components.Inputs;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -57,6 +58,8 @@ public partial class ChapterDetail {
     private List<Guid> EditAdministrativeDivisionIds = [];
     private List<string> EditAdministrativeDivisionNames = [];
     private string EditParentChapterId = "";
+    private ChapterLevel? EditLevel;
+    private int? EditTakeOverPeriodDays;
 
     private ConfirmDialog DeleteConfirm = default!;
     private ConfirmDialog ArchiveConfirm = default!;
@@ -90,7 +93,33 @@ public partial class ChapterDetail {
         EditAdministrativeDivisionIds = [.. Detail.Chapter.AdministrativeDivisionIds];
         EditAdministrativeDivisionNames = [.. Detail.AdministrativeDivisionNames];
         EditParentChapterId = Detail.Chapter.ParentChapterId?.ToString() ?? "";
+        EditLevel = Detail.Chapter.Level;
+        EditTakeOverPeriodDays = Detail.Chapter.TakeOverPeriodDays;
         Editing = true;
+    }
+
+    private string LevelText => Detail?.Chapter.Level == null
+        ? I18n[I18nKey.Ui.HandUp.LevelUnset]
+        : I18n[ChapterLevelFields.LevelKey(Detail.Chapter.Level.Value)];
+
+    private string PeriodText {
+        get {
+            if (Detail == null)
+                return "";
+            var days = Detail.Chapter.TakeOverPeriodDays
+                ?? ChapterLevelFields.DefaultDays(Detail.Chapter.ParentChapterId == null, Detail.Chapter.Level);
+            if (days == null)
+                return "-";
+            return I18n[I18nParams.With(I18nKey.Ui.HandUp.PeriodEffective, ("days", days.Value.ToString()))];
+        }
+    }
+
+    private void OnLevelChanged(ChapterLevel? level) {
+        EditLevel = level;
+    }
+
+    private void OnPeriodDaysChanged(int? days) {
+        EditTakeOverPeriodDays = days;
     }
 
     private void CancelEdit() {
@@ -99,6 +128,8 @@ public partial class ChapterDetail {
 
     private void OnParentChanged(string id) {
         EditParentChapterId = id;
+        if (!string.IsNullOrEmpty(id) && EditLevel == ChapterLevel.Federal)
+            EditLevel = null;
     }
 
     private void OnExternalCodesChanged(List<string> codes) {
@@ -116,6 +147,7 @@ public partial class ChapterDetail {
         Saving = true;
         StateHasChanged();
         try {
+            Guid? parentId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null;
             var req = new ChapterUpdateRequest {
                 Name = EditName.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
@@ -123,7 +155,9 @@ public partial class ChapterDetail {
                 ContactEmail = string.IsNullOrWhiteSpace(EditContactEmail) ? null : EditContactEmail.Trim(),
                 ExternalCodes = EditExternalCodes,
                 AdministrativeDivisionIds = EditAdministrativeDivisionIds,
-                ParentChapterId = Guid.TryParse(EditParentChapterId, out var parsed) ? parsed : null
+                ParentChapterId = parentId,
+                Level = parentId.HasValue ? EditLevel : null,
+                TakeOverPeriodDays = EditTakeOverPeriodDays
             };
             var resp = await Http.PutAsJsonAsync($"/api/chapters/{Id}", req);
             if (resp.IsSuccessStatusCode) {

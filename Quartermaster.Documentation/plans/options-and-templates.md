@@ -13,13 +13,13 @@
 ## File Structure
 
 ### Data Model
-- `Quartermaster.Data/Chapters/Chapter.cs` — add `ShortCode` field
-- `Quartermaster.Data/Options/SystemOption.cs` — option value entity
-- `Quartermaster.Data/Options/OptionDefinition.cs` — option metadata (what options exist)
-- `Quartermaster.Data/Options/OptionRepository.cs` — CRUD + hierarchy resolution
-- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` — add tables + Chapter.ShortCode
-- `Quartermaster.Data/DbContext.cs` — register tables/repos
-- `Quartermaster.Data/Chapters/ChapterRepository.cs` — update seeding with ShortCodes, add GetAncestorChapters
+- `Quartermaster.Data/Chapters/Chapter.cs` - add `ShortCode` field
+- `Quartermaster.Data/Options/SystemOption.cs` - option value entity
+- `Quartermaster.Data/Options/OptionDefinition.cs` - option metadata (what options exist)
+- `Quartermaster.Data/Options/OptionRepository.cs` - CRUD + hierarchy resolution
+- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` - add tables + Chapter.ShortCode
+- `Quartermaster.Data/DbContext.cs` - register tables/repos
+- `Quartermaster.Data/Chapters/ChapterRepository.cs` - update seeding with ShortCodes, add GetAncestorChapters
 
 ### API DTOs
 - `Quartermaster.Api/Options/OptionDefinitionDTO.cs`
@@ -29,15 +29,15 @@
 - `Quartermaster.Api/Options/TemplatePreviewResponse.cs`
 
 ### Server
-- `Quartermaster.Server/Options/OptionListEndpoint.cs` — GET list all definitions with resolved values
-- `Quartermaster.Server/Options/OptionUpdateEndpoint.cs` — POST update value
-- `Quartermaster.Server/Options/TemplatePreviewEndpoint.cs` — POST render template with mock data
-- `Quartermaster.Server/Options/TemplateRenderer.cs` — Fluid + Markdig rendering logic
-- `Quartermaster.Server/Options/TemplateMockDataProvider.cs` — generates mock data per template model
+- `Quartermaster.Server/Options/OptionListEndpoint.cs` - GET list all definitions with resolved values
+- `Quartermaster.Server/Options/OptionUpdateEndpoint.cs` - POST update value
+- `Quartermaster.Server/Options/TemplatePreviewEndpoint.cs` - POST render template with mock data
+- `Quartermaster.Server/Options/TemplateRenderer.cs` - Fluid + Markdig rendering logic
+- `Quartermaster.Server/Options/TemplateMockDataProvider.cs` - generates mock data per template model
 
 ### Blazor
-- `Quartermaster.Blazor/Pages/Administration/OptionList.razor` + `.cs` — view/edit options
-- `Quartermaster.Blazor/Layout/MainLayout.razor` — add nav link
+- `Quartermaster.Blazor/Pages/Administration/OptionList.razor` + `.cs` - view/edit options
+- `Quartermaster.Blazor/Layout/MainLayout.razor` - add nav link
 
 ---
 
@@ -958,6 +958,6 @@ In the Verwaltung dropdown, add:
 | Layer | Files Created | Files Modified |
 |---|---|---|
 | Data | SystemOption.cs, OptionDefinition.cs, OptionRepository.cs | Chapter.cs, ChapterRepository.cs, M001 migration, DbContext.cs |
-| API | OptionDefinitionDTO.cs, SystemOptionDTO.cs, OptionUpdateRequest.cs, TemplatePreviewRequest.cs, TemplatePreviewResponse.cs | — |
-| Server | OptionListEndpoint.cs, OptionUpdateEndpoint.cs, TemplatePreviewEndpoint.cs, TemplateRenderer.cs, TemplateMockDataProvider.cs | — |
+| API | OptionDefinitionDTO.cs, SystemOptionDTO.cs, OptionUpdateRequest.cs, TemplatePreviewRequest.cs, TemplatePreviewResponse.cs | - |
+| Server | OptionListEndpoint.cs, OptionUpdateEndpoint.cs, TemplatePreviewEndpoint.cs, TemplateRenderer.cs, TemplateMockDataProvider.cs | - |
 | Blazor | OptionList.razor/.cs | MainLayout.razor |

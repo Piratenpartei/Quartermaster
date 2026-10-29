@@ -11,7 +11,7 @@ public class SessionRevokeRequest {
     public Guid Id { get; set; }
 }
 
-/// <summary>Revokes one of the caller's tokens. Idempotent 204 — unowned/missing both 204 to avoid leaking ownership.</summary>
+/// <summary>Revokes one of the caller's tokens. Idempotent 204 - unowned/missing both 204 to avoid leaking ownership.</summary>
 public class SessionRevokeEndpoint : Endpoint<SessionRevokeRequest> {
     private readonly TokenRepository _tokenRepo;
     private readonly PermissionContext _perms;

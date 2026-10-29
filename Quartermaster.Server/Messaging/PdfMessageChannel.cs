@@ -11,7 +11,7 @@ using Quartermaster.Data.Options;
 namespace Quartermaster.Server.Messaging;
 
 /// <summary>
-/// Renders the message to a PDF in the configured output dir — the "channel" is the
+/// Renders the message to a PDF in the configured output dir - the "channel" is the
 /// postal-mail outbox folder. V1 layout: address top, subject H1, body 1:1 (envelope
 /// layout + batch rendering tracked as a feature todo).
 /// </summary>
@@ -29,7 +29,7 @@ public class PdfMessageChannel : IMessageChannel {
 
     public string Id => ChannelId;
 
-    /// <summary>Always true — falls back to a default dir under <see cref="AppContext.BaseDirectory"/> when unconfigured.</summary>
+    /// <summary>Always true - falls back to a default dir under <see cref="AppContext.BaseDirectory"/> when unconfigured.</summary>
     public bool IsConfigured => true;
 
     public NotificationBodyFormat BodyFormat => NotificationBodyFormat.Html;

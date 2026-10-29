@@ -46,7 +46,7 @@ public class MeetingHubClient : IAsyncDisposable {
 
             if (_connection == null) {
                 var hubUrl = _navigation.ToAbsoluteUri("/hubs/meeting");
-                // Auth rides along on the HttpOnly cookie that the browser sends with the WS upgrade —
+                // Auth rides along on the HttpOnly cookie that the browser sends with the WS upgrade -
                 // no AccessTokenProvider needed for browser clients.
                 _connection = new HubConnectionBuilder()
                     .WithUrl(hubUrl)

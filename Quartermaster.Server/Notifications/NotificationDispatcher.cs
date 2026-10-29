@@ -176,7 +176,7 @@ public class NotificationDispatcher {
         return null;
     }
 
-    /// <summary>Subjects are always rendered as plain text — markdown formatting in an email subject line just leaks as literal characters.</summary>
+    /// <summary>Subjects are always rendered as plain text - markdown formatting in an email subject line just leaks as literal characters.</summary>
     private async Task<string?> RenderSubject(string? template, Dictionary<string, object> model, string triggerId, string channelId, NotificationRecipient recipient) {
         if (string.IsNullOrEmpty(template)) {
             return null;

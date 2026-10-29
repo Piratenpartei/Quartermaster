@@ -120,7 +120,7 @@ public class ChapterOfficerAddEndpointTests : IntegrationTestBase {
         });
         await Assert.That(addResponse.StatusCode).IsEqualTo(HttpStatusCode.OK);
 
-        // No user account is minted for the officer — that's SSO's job.
+        // No user account is minted for the officer - that's SSO's job.
         var updatedMember = Db.Members.Single(m => m.Id == member.Id);
         await Assert.That(updatedMember.UserId).IsNull();
 

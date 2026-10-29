@@ -217,6 +217,7 @@ public partial class Program {
         builder.Services.AddScoped<RetentionAnonymizationService>();
         builder.Services.AddHostedService<RetentionAnonymizationHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.AssemblyMotionDeadlineHostedService>();
+        builder.Services.AddHostedService<TakeOverHostedService>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiSync>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiReconcile>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
@@ -321,6 +322,9 @@ public partial class Program {
         builder.Services.AddScoped<ApplicationReduction>();
         builder.Services.AddScoped<FederalApprovalFlow>();
         builder.Services.AddScoped<MotionHandover>();
+        builder.Services.AddScoped<ApplicationHandling>();
+        builder.Services.AddScoped<TakeOverPlanner>();
+        builder.Services.AddScoped<TakeOverSweep>();
         builder.Services.AddScoped<ApplicantRegisterEntryMapper>();
         builder.Services.AddScoped<DueSelectionMailService>();
         builder.Services.AddScoped<MotionResolutionDecisionMailer>();
@@ -445,7 +449,7 @@ public partial class Program {
     public const string AnonymousCreateRateLimitPolicy = "anonymous-create";
     public const string DueSelectionRateLimitPolicy = "due-selection";
 
-    // Safety fallbacks if the Option is missing, unparseable, or non-positive — the
+    // Safety fallbacks if the Option is missing, unparseable, or non-positive - the
     // resolver guards against a fat-fingered admin saving "" or "0" and silently
     // disabling all anonymous signups.
     private const int FallbackAnonymousCreatePermits = 5;
@@ -458,7 +462,7 @@ public partial class Program {
     /// (MotionCreate, MembershipApplicationCreate, ExpenseReimbursementRender, TravelExpenseRender), and a per-account one for
     /// DueSelectionCreate, which requires login and creates a federal Redmine ticket per submission. Sharing one bucket
     /// stops an attacker from multiplying their effective rate across endpoints. Values
-    /// resolve from <c>OptionRepository</c> (admin-tunable at runtime — takes effect for
+    /// resolve from <c>OptionRepository</c> (admin-tunable at runtime - takes effect for
     /// new IP partitions immediately and for active partitions after their window resets).
     /// </summary>
     private static void ConfigureRateLimiter(WebApplicationBuilder builder) {

@@ -56,7 +56,7 @@ public static class HtmlSanitizationService {
         foreach (var tag in FormattingTags) {
             sanitizer.AllowedTags.Add(tag);
         }
-        sanitizer.AllowedTags.Add("a"); // allowed without href — preserves link text as plain text
+        sanitizer.AllowedTags.Add("a"); // allowed without href - preserves link text as plain text
         sanitizer.AllowedAttributes.Add("class");
 
         return sanitizer;

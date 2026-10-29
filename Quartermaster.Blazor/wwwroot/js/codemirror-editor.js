@@ -1,7 +1,7 @@
 // CodeMirror 5 editor wrapper for Blazor interop.
 //
 // Lazy-loads the vendored CM5 UMD bundle (~440KB combined with markdown mode)
-// on first use — meeting live pages are the only consumer, no reason to pay
+// on first use - meeting live pages are the only consumer, no reason to pay
 // that cost on the initial Blazor boot.
 //
 // Exposes a small imperative API under `window.cmEditor` so Blazor interop
@@ -11,7 +11,7 @@
 // plain `UseStaticFiles` middleware doesn't serve.
 //
 // Handles are string ids stored in the `editors` map. Blazor holds onto the
-// id and passes it back on subsequent calls — it never sees the CM instance
+// id and passes it back on subsequent calls - it never sees the CM instance
 // directly (can't be marshaled across JS interop).
 
 (function () {
@@ -243,7 +243,7 @@ function dispose(handle) {
     if (entry.binding) {
         try { entry.binding.destroy(); } catch (_) {}
     }
-    // CM5 doesn't have an explicit destroy — just detach from the DOM and
+    // CM5 doesn't have an explicit destroy - just detach from the DOM and
     // drop the reference.
     const wrapper = entry.cm.getWrapperElement();
     if (wrapper && wrapper.parentNode)
@@ -338,7 +338,7 @@ async function createCollabEditor(element, initialText, initialStateBase64, canE
     const entry = {
         cm, doc, ytext, awareness, binding, libs, dotnetRef, canEdit,
         authorMarkers: [],     // CM5 TextMarker objects for other authors' runs
-        localUserId: null,     // set later via setCollabUser — needed for the known-authors cache
+        localUserId: null,     // set later via setCollabUser - needed for the known-authors cache
         // Persistent map of userId → {name, color}. Accumulates every user
         // we've ever seen (via snapshot load, awareness updates, or
         // setCollabUser) so historical characters stay correctly colored
@@ -387,13 +387,13 @@ async function createCollabEditor(element, initialText, initialStateBase64, canE
             }
         }
         // Step 2: rebuild the marker layer (may be called twice per edit in
-        // the local case — once for the insert, once for the format — but
+        // the local case - once for the insert, once for the format - but
         // rebuild is idempotent and cheap for meeting-note sizes).
         rebuildAuthorMarkers(entry);
     });
 
     // Forward local Yjs updates to the hub. Yjs emits "update" for both
-    // local and remote changes — we mark remote applies via the origin
+    // local and remote changes - we mark remote applies via the origin
     // parameter so we don't echo them back.
     doc.on("update", (update, origin) => {
         if (origin === "remote")
@@ -409,7 +409,7 @@ async function createCollabEditor(element, initialText, initialStateBase64, canE
     });
 
     awareness.on("update", (changes, origin) => {
-        // A new peer joined (or changed their color) — the marker layer
+        // A new peer joined (or changed their color) - the marker layer
         // might need to recolor runs for authors who weren't yet in the
         // awareness map when they were emitted. Cheap to run either way.
         rebuildAuthorMarkers(entry);
@@ -423,7 +423,7 @@ async function createCollabEditor(element, initialText, initialStateBase64, canE
             // 1) Re-emit our local awareness state so they pick up our
             //    name + color (otherwise their knownAuthors cache lacks us).
             // 2) Send a full Yjs state-as-update so they get any document
-            //    content we've typed since their LoadDocument snapshot —
+            //    content we've typed since their LoadDocument snapshot -
             //    the snapshot timer may not have fired yet, and the server
             //    doesn't buffer past updates. Yjs CRDTs are idempotent on
             //    update apply, so the new peer just merges it cleanly.
@@ -449,7 +449,7 @@ async function createCollabEditor(element, initialText, initialStateBase64, canE
                         const stateUpdate = libs.Y.encodeStateAsUpdate(entry.doc);
                         ref.invokeMethodAsync("OnJsCollabUpdate", bytesToBase64(stateUpdate));
                     } catch (_) {
-                        // Ignore — best-effort bootstrap.
+                        // Ignore - best-effort bootstrap.
                     }
                 }
             }
@@ -491,7 +491,7 @@ function applyRemoteAwareness(handle, awarenessBase64) {
         entry.libs.awarenessMod.applyAwarenessUpdate(
             entry.awareness, base64ToBytes(awarenessBase64), "remote");
     } catch (_) {
-        // Malformed payload — ignore.
+        // Malformed payload - ignore.
     }
 }
 
@@ -515,7 +515,7 @@ function setCollabUser(handle, userId, userName, color) {
     entry.localUserId = userId;
     // Keep the known-authors cache in sync with the current local user so
     // the local user's own runs get colored correctly on the very first
-    // rebuild — even before any awareness round-trip happens.
+    // rebuild - even before any awareness round-trip happens.
     entry.knownAuthors.set(userId, { name: userName, color: color });
     entry.awareness.setLocalStateField("user", {
         id: userId,
@@ -571,7 +571,7 @@ function hexToRgba(hex, alpha) {
 
 // Capture any users currently in the awareness map into the entry's
 // persistent knownAuthors cache. Called after every awareness change so
-// that users' display info survives disconnect — once we've seen a user,
+// that users' display info survives disconnect - once we've seen a user,
 // we remember their name and color even after they leave.
 function captureKnownAuthorsFromAwareness(entry) {
     if (!entry || !entry.awareness)
@@ -592,7 +592,7 @@ function captureKnownAuthorsFromAwareness(entry) {
 // Look up a user's display info for the marker layer. Checks the
 // persistent cache first (survives disconnects), falls back to null for
 // truly-unknown authors (legacy data, author deleted before we ever saw
-// them) — the caller renders those with a neutral "Unbekannt" fallback.
+// them) - the caller renders those with a neutral "Unbekannt" fallback.
 function lookupKnownAuthor(entry, userId) {
     if (!entry || !userId)
         return null;
@@ -602,7 +602,7 @@ function lookupKnownAuthor(entry, userId) {
 // Rebuild the per-character authorship marker layer on a collab editor.
 // Walks ytext.toDelta() (runs of text grouped by attributes), emits one
 // CM5 TextMarker per attributed run with a subtle background tint and a
-// native-tooltip `title`. Everyone — including the local user — sees the
+// native-tooltip `title`. Everyone - including the local user - sees the
 // same thing: every character is colored by its author, so all peers
 // share one consistent view. Runs without an author attribute (e.g.,
 // legacy Notes seed text imported before Phase 5) are left uncolored.

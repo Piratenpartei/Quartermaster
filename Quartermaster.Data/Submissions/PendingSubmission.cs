@@ -4,7 +4,7 @@ using LinqToDB.Mapping;
 namespace Quartermaster.Data.Submissions;
 
 /// <summary>
-/// Kind of public submission awaiting email confirmation. Persisted as int — append only,
+/// Kind of public submission awaiting email confirmation. Persisted as int - append only,
 /// never reorder existing members.
 /// </summary>
 public enum PendingSubmissionKind {

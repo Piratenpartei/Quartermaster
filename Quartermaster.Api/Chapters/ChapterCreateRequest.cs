@@ -8,6 +8,8 @@ public class ChapterCreateRequest {
     public string? ShortCode { get; set; }
     public string? KeycloakDepartment { get; set; }
     public Guid? ParentChapterId { get; set; }
+    public ChapterLevel? Level { get; set; }
+    public int? TakeOverPeriodDays { get; set; }
     public List<string> ExternalCodes { get; set; } = [];
     public List<Guid> AdministrativeDivisionIds { get; set; } = [];
 }

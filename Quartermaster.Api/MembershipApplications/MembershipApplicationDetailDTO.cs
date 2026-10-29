@@ -40,6 +40,10 @@ public class MembershipApplicationDetailDTO {
     public bool RequiresFederalApproval { get; set; }
     public Guid? FederalApprovalMotionId { get; set; }
 
+    /// <summary>When and to which chapter the waiting application motion moves next if nobody decides before.</summary>
+    public DateTimeOffset? NextTakeOverAt { get; set; }
+    public string? NextTakeOverChapterName { get; set; }
+
     /// <summary>Only filled for holders of the register permission; null for everyone else.</summary>
     public List<ApplicationRegisterHitDTO>? RegisterHits { get; set; }
 }

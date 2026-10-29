@@ -4,7 +4,7 @@
 
 **Goal:** Add FluentValidation validators for all state-changing (POST/PUT/DELETE) endpoints to enforce required fields, string length limits matching database columns, email format, and enum ranges.
 
-**Architecture:** FastEndpoints' `Validator<T>` base class auto-integrates with the request pipeline — no manual wiring needed. All validators live in the Server project (which references FastEndpoints). `AddFastEndpoints()` in Program.cs discovers them automatically. A test project using xUnit validates each rule.
+**Architecture:** FastEndpoints' `Validator<T>` base class auto-integrates with the request pipeline - no manual wiring needed. All validators live in the Server project (which references FastEndpoints). `AddFastEndpoints()` in Program.cs discovers them automatically. A test project using xUnit validates each rule.
 
 **Tech Stack:** FastEndpoints `Validator<T>`, FluentValidation rules, xUnit, FluentAssertions
 
@@ -12,7 +12,7 @@
 
 ## File Structure
 
-### New files — Validators (Server project)
+### New files - Validators (Server project)
 
 | File | Responsibility |
 |---|---|
@@ -20,22 +20,22 @@
 | `Quartermaster.Server/Events/EventUpdateRequestValidator.cs` | Validates event update (Id, names ≤512) |
 | `Quartermaster.Server/Events/EventFromTemplateRequestValidator.cs` | Validates template instantiation (TemplateId, ChapterId) |
 | `Quartermaster.Server/Events/EventTemplateCreateRequestValidator.cs` | Validates template creation (EventId, Name ≤512) |
-| `Quartermaster.Server/Events/ChecklistItemCreateRequestValidator.cs` | Validates checklist add (EventId, Label ≤1024, ItemType 0–2) |
-| `Quartermaster.Server/Events/ChecklistItemUpdateRequestValidator.cs` | Validates checklist edit (EventId, ItemId, Label ≤1024, ItemType 0–2) |
+| `Quartermaster.Server/Events/ChecklistItemCreateRequestValidator.cs` | Validates checklist add (EventId, Label ≤1024, ItemType 0-2) |
+| `Quartermaster.Server/Events/ChecklistItemUpdateRequestValidator.cs` | Validates checklist edit (EventId, ItemId, Label ≤1024, ItemType 0-2) |
 | `Quartermaster.Server/Events/ChecklistItemReorderRequestValidator.cs` | Validates reorder (EventId, ItemId, Direction ±1) |
 | `Quartermaster.Server/Motions/MotionCreateRequestValidator.cs` | Validates motion creation (all fields required, email contains @, lengths) |
 | `Quartermaster.Server/Motions/MotionStatusRequestValidator.cs` | Validates status change (MotionId) |
-| `Quartermaster.Server/Motions/MotionVoteRequestValidator.cs` | Validates vote (MotionId, UserId, Vote 0–2) |
+| `Quartermaster.Server/Motions/MotionVoteRequestValidator.cs` | Validates vote (MotionId, UserId, Vote 0-2) |
 | `Quartermaster.Server/MembershipApplications/MembershipApplicationDTOValidator.cs` | Validates application (all personal fields, email, lengths) |
 | `Quartermaster.Server/DueSelector/DueSelectionDTOValidator.cs` | Validates due selection (names, IBAN ≤64, AccountHolder ≤256) |
-| `Quartermaster.Server/ChapterAssociates/ChapterOfficerAddRequestValidator.cs` | Validates officer add (MemberId, ChapterId, AssociateType 0–6) |
-| `Quartermaster.Server/Admin/DueSelectionProcessRequestValidator.cs` | Validates process action (Id, Status 1–2) |
-| `Quartermaster.Server/Admin/MembershipApplicationProcessRequestValidator.cs` | Validates process action (Id, Status 1–2) |
+| `Quartermaster.Server/ChapterAssociates/ChapterOfficerAddRequestValidator.cs` | Validates officer add (MemberId, ChapterId, AssociateType 0-6) |
+| `Quartermaster.Server/Admin/DueSelectionProcessRequestValidator.cs` | Validates process action (Id, Status 1-2) |
+| `Quartermaster.Server/Admin/MembershipApplicationProcessRequestValidator.cs` | Validates process action (Id, Status 1-2) |
 | `Quartermaster.Server/Options/OptionUpdateRequestValidator.cs` | Validates option save (Identifier required, Value ≤8192) |
 | `Quartermaster.Server/Options/TemplatePreviewRequestValidator.cs` | Validates preview (TemplateText required) |
 | `Quartermaster.Server/Users/LoginRequestValidator.cs` | Validates login (Username or Email required, Password ≥12) |
 
-### New files — Test project
+### New files - Test project
 
 | File | Responsibility |
 |---|---|
@@ -95,8 +95,8 @@
 | Enum | Valid range |
 |---|---|
 | ChecklistItemType | 0 (Text), 1 (CreateMotion), 2 (SendEmail) |
-| ChapterOfficerType | 0–6 (Captain through Member) |
-| MotionApprovalStatus | 0–4 (Pending through ClosedWithoutAction) |
+| ChapterOfficerType | 0-6 (Captain through Member) |
+| MotionApprovalStatus | 0-4 (Pending through ClosedWithoutAction) |
 | VoteType | 0 (Approve), 1 (Deny), 2 (Abstain) |
 | DueSelectionStatus (process) | 1 (Approved), 2 (Rejected) only |
 | ApplicationStatus (process) | 1 (Approved), 2 (Rejected) only |
@@ -124,7 +124,7 @@ dotnet add Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj package 
 
 - [x] **Step 2: Remove the auto-generated test file**
 
-Delete `Quartermaster.Server.Tests/UnitTest1.cs` (or `Test1.cs`) — it's a template placeholder.
+Delete `Quartermaster.Server.Tests/UnitTest1.cs` (or `Test1.cs`) - it's a template placeholder.
 
 - [x] **Step 3: Verify the project builds**
 
@@ -348,7 +348,7 @@ cd /media/SMB/Quartermaster
 dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~EventValidatorTests" --verbosity normal
 ```
 
-Expected: Compilation errors — validator classes don't exist yet.
+Expected: Compilation errors - validator classes don't exist yet.
 
 - [x] **Step 3: Implement EventCreateRequestValidator**
 
@@ -676,7 +676,7 @@ cd /media/SMB/Quartermaster
 dotnet test Quartermaster.Server.Tests --filter "FullyQualifiedName~ChecklistItem" --verbosity normal
 ```
 
-Expected: Compilation errors — validator classes don't exist yet.
+Expected: Compilation errors - validator classes don't exist yet.
 
 - [x] **Step 3: Implement ChecklistItemCreateRequestValidator**
 
@@ -780,7 +780,7 @@ git commit -m "feat: add validators for checklist item request DTOs"
 - Create: `Quartermaster.Server/Motions/MotionVoteRequestValidator.cs`
 - Test: `Quartermaster.Server.Tests/Motions/MotionValidatorTests.cs`
 
-**Context:** Request DTOs are in `Quartermaster.Api/Motions/`. Email validation: `Contains('@')` is sufficient. DB limits: AuthorName 256, AuthorEMail 256, Title 512, Text 8192. VoteType: 0–2. MotionApprovalStatus: 0–4.
+**Context:** Request DTOs are in `Quartermaster.Api/Motions/`. Email validation: `Contains('@')` is sufficient. DB limits: AuthorName 256, AuthorEMail 256, Title 512, Text 8192. VoteType: 0-2. MotionApprovalStatus: 0-4.
 
 - [x] **Step 1: Write the test file**
 
@@ -1070,7 +1070,7 @@ git commit -m "feat: add validators for motion request DTOs"
 - Test: `Quartermaster.Server.Tests/MembershipApplications/MembershipApplicationDTOValidatorTests.cs`
 - Test: `Quartermaster.Server.Tests/DueSelector/DueSelectionDTOValidatorTests.cs`
 
-**Context:** These are the public-facing forms — highest priority for validation. `MembershipApplicationDTO` is in `Quartermaster.Api/MembershipApplications/`, `DueSelectionDTO` is in `Quartermaster.Api/DueSelector/`. Email validation: `Contains('@')` is sufficient. DB limits listed in the reference table above.
+**Context:** These are the public-facing forms - highest priority for validation. `MembershipApplicationDTO` is in `Quartermaster.Api/MembershipApplications/`, `DueSelectionDTO` is in `Quartermaster.Api/DueSelector/`. Email validation: `Contains('@')` is sufficient. DB limits listed in the reference table above.
 
 - [x] **Step 1: Write MembershipApplicationDTOValidatorTests**
 
@@ -1479,7 +1479,7 @@ git commit -m "feat: add validators for membership application and due selection
 - Test: `Quartermaster.Server.Tests/Users/LoginRequestValidatorTests.cs`
 
 **Context:**
-- `ChapterOfficerAddRequest` is in `Quartermaster.Api/ChapterAssociates/`. ChapterOfficerType: 0–6.
+- `ChapterOfficerAddRequest` is in `Quartermaster.Api/ChapterAssociates/`. ChapterOfficerType: 0-6.
 - `DueSelectionProcessRequest` is defined in `Quartermaster.Server/Admin/DueSelectionProcessEndpoint.cs`. Valid Status: 1 (Approved) or 2 (Rejected).
 - `MembershipApplicationProcessRequest` is defined in `Quartermaster.Server/Admin/MembershipApplicationProcessEndpoint.cs`. Valid Status: 1 or 2.
 - `OptionUpdateRequest` is in `Quartermaster.Api/Options/`. Value max 8192.
@@ -1949,7 +1949,7 @@ git commit -m "chore: remove commented-out validator from LoginRequest"
 | TODO | Status |
 |---|---|
 | Add FluentValidation validators for all request DTOs | ✅ 18 validators |
-| Validate page size limits (prevent requesting 100k records) | Not in scope (search endpoints — generic cap) |
+| Validate page size limits (prevent requesting 100k records) | Not in scope (search endpoints - generic cap) |
 | Email validation: Contains('@') is sufficient | ✅ MotionCreate, MembershipApplication, DueSelection |
 | Validate string lengths match database column sizes | ✅ All string fields validated |
 | Validate required fields (ChapterId, names, etc.) | ✅ All required fields validated |

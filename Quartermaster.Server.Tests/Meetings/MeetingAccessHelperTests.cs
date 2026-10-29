@@ -85,7 +85,7 @@ public class MeetingAccessHelperTests : RepositoryTestBase {
     [Test]
     public async Task Private_meeting_denied_to_officer_of_parent_chapter() {
         // Officer of parent chapter normally inherits view permissions into children,
-        // but private meeting access is direct-only — not inherited.
+        // but private meeting access is direct-only - not inherited.
         var chain = _builder.SeedChapterHierarchy("Parent", "Child");
         var meeting = _builder.SeedMeeting(chain[1].Id, visibility: MeetingVisibility.Private);
         var (user, _) = _builder.SeedAuthenticatedUser();

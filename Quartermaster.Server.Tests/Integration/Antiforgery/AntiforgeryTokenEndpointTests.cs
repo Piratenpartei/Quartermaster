@@ -41,11 +41,11 @@ public class AntiforgeryTokenEndpointTests : IntegrationTestBase {
         // The issued token should validate a subsequent POST request.
         var (_, bearer) = Builder.SeedAuthenticatedUser();
         using var client = await AuthenticatedClientWithCsrfAsync(bearer);
-        // Any auth-requiring POST to exercise the CSRF path — use lockouts/unlock.
+        // Any auth-requiring POST to exercise the CSRF path - use lockouts/unlock.
         var response = await client.PostAsJsonAsync(
             "/api/users/lockouts/unlock",
             new { IpAddress = "127.0.0.1", UsernameOrEmail = "nobody" });
-        // Without ViewUsers it should be 403 — NOT 403 from antiforgery (would be text body).
+        // Without ViewUsers it should be 403 - NOT 403 from antiforgery (would be text body).
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
     }
 

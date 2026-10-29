@@ -7,7 +7,7 @@ namespace Quartermaster.Server.Authentication;
 public static class AuthCookie {
     public const string Name = ".Quartermaster.Auth";
     // Site-wide path: the cookie has to ride along on both /api endpoints AND the SignalR
-    // /hubs WebSocket upgrade — these don't share a tighter prefix. HttpOnly keeps it
+    // /hubs WebSocket upgrade - these don't share a tighter prefix. HttpOnly keeps it
     // out of JS reach so the broader path doesn't widen the attack surface.
     private const string Path = "/";
 

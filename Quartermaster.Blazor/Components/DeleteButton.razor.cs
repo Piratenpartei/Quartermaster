@@ -5,7 +5,7 @@ namespace Quartermaster.Blazor.Components;
 
 public partial class DeleteButton {
     /// <summary>
-    /// Click handler — typically opens a ConfirmDialog and then performs the delete.
+    /// Click handler - typically opens a ConfirmDialog and then performs the delete.
     /// </summary>
     [Parameter, EditorRequired]
     public EventCallback OnClick { get; set; }

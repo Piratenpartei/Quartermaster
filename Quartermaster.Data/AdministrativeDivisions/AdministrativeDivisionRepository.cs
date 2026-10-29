@@ -149,7 +149,7 @@ public class AdministrativeDivisionRepository {
     public List<AdministrativeDivision> GetChildren(Guid parentId)
         => _context.AdministrativeDivisions.Where(ad => ad.ParentId == parentId && ad.Id != parentId).OrderBy(ad => ad.Name).ToList();
 
-    /// <summary>Children of several divisions in one query — for batch resolution of representative data.</summary>
+    /// <summary>Children of several divisions in one query - for batch resolution of representative data.</summary>
     public List<AdministrativeDivision> GetChildrenForParents(List<Guid> parentIds)
         => parentIds.Count == 0
             ? new List<AdministrativeDivision>()

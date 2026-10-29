@@ -25,7 +25,7 @@ public static class MeetingAccessHelper {
             if (IsDirectOfficerOrDelegate(userId, meeting.ChapterId, roleRepo))
                 return true;
             // Users with any meeting permission on the chapter can also see drafts
-            // (they need to view what they create/edit). Skip when perms is null —
+            // (they need to view what they create/edit). Skip when perms is null -
             // callers without DI access (notably the role-only unit tests) only
             // exercise the direct-officer branch.
             if (perms != null && HasAnyMeetingPermission(meeting.ChapterId, perms))
@@ -36,7 +36,7 @@ public static class MeetingAccessHelper {
         if (meeting.Visibility == MeetingVisibility.Public)
             return true;
 
-        // Private non-draft — requires direct officer OR delegate role on the exact chapter.
+        // Private non-draft - requires direct officer OR delegate role on the exact chapter.
         return IsDirectOfficerOrDelegate(userId, meeting.ChapterId, roleRepo);
     }
 

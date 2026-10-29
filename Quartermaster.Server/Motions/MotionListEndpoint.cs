@@ -88,6 +88,7 @@ public class MotionListEndpoint : Endpoint<MotionListRequest, MotionListResponse
             dto.OnBehalfOfChapterName = names.GetValueOrDefault(motion.OnBehalfOfChapterId ?? Guid.Empty);
             dto.OnBehalfOfReason = motion.OnBehalfOfReason;
             dto.HandedOverToMotionId = motion.HandedOverToMotionId;
+            dto.HandoverReason = motion.HandoverReason;
             if (motion.HandedOverToMotionId != null && targetChapterIds.TryGetValue(motion.HandedOverToMotionId.Value, out var targetChapterId))
                 dto.HandedOverToChapterName = names.GetValueOrDefault(targetChapterId);
         }

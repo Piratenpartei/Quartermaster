@@ -12,7 +12,7 @@ namespace Quartermaster.Server.Notifications;
 
 /// <summary>
 /// Generates a fresh short-lived link token for the caller. The returned deeplink
-/// is null when the bot username isn't configured — the client should then show
+/// is null when the bot username isn't configured - the client should then show
 /// the raw token and let the user paste it manually.
 /// </summary>
 public class TelegramLinkStartEndpoint : EndpointWithoutRequest<TelegramLinkStartDTO> {

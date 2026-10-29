@@ -43,7 +43,7 @@ public partial class RequirePermission : IDisposable {
     public List<string>? AnyOfChapterPermissions { get; set; }
 
     /// <summary>
-    /// Show if user has ANY of these permissions — checks both global and chapter-scoped (logical OR).
+    /// Show if user has ANY of these permissions - checks both global and chapter-scoped (logical OR).
     /// </summary>
     [Parameter]
     public List<string>? AnyOfPermissions { get; set; }

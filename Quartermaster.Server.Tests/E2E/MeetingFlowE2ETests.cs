@@ -20,7 +20,7 @@ public class MeetingFlowE2ETests : E2ETestBase {
         await Page.GotoAsync("/Administration/Meetings");
         await Page.WaitForSelectorAsync("body",
             new PageWaitForSelectorOptions { Timeout = 30000 });
-        // Wait for the list to hydrate — look for table or card with meeting data
+        // Wait for the list to hydrate - look for table or card with meeting data
         await Page.WaitForSelectorAsync("table, .card, .list-group",
             new PageWaitForSelectorOptions { Timeout = 45000 });
         var bodyText = await Page.Locator("body").TextContentAsync();
@@ -49,7 +49,7 @@ public class MeetingFlowE2ETests : E2ETestBase {
         var meeting = Builder.SeedMeeting(chapter.Id, title: "Öffentliche Sitzung",
             status: MeetingStatus.Completed, visibility: MeetingVisibility.Public);
 
-        // Anonymous browser hits the detail page — should not be redirected to login
+        // Anonymous browser hits the detail page - should not be redirected to login
         await Page.GotoAsync($"/Administration/Meetings/{meeting.Id}");
         await Page.WaitForSelectorAsync("body",
             new PageWaitForSelectorOptions { Timeout = 30000 });

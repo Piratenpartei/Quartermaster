@@ -21,7 +21,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// Base class for integration tests. Leases a per-worker database (with a shared
 /// <see cref="IntegrationTestFactory"/>), cleans tables, and provides HTTP clients
 /// + a <see cref="TestDataBuilder"/> for seeding entities.
-/// The factory is shared across all tests on the same worker — only DB state is per-test.
+/// The factory is shared across all tests on the same worker - only DB state is per-test.
 /// </summary>
 public abstract class IntegrationTestBase : IDisposable {
     private bool _disposed;
@@ -34,9 +34,9 @@ public abstract class IntegrationTestBase : IDisposable {
     protected IntegrationTestBase() {
         Database = TestDatabaseFixture.Acquire();
         Database.CleanAllTables();
-        Factory = Database.Factory; // shared — not disposed per-test
+        Factory = Database.Factory; // shared - not disposed per-test
         // Re-seed reference data (permissions, system roles, option definitions, the
-        // Null Island admin division) that SupplementDefaults provides — CleanAllTables wipes
+        // Null Island admin division) that SupplementDefaults provides - CleanAllTables wipes
         // them, but the shared factory only runs SupplementDefaults once at startup. Null Island
         // (Id=Guid.Empty) is the FK target for user citizenship/address divisions, so app-side
         // user creation (e.g. promoting a member to officer) needs it present.
@@ -100,7 +100,7 @@ public abstract class IntegrationTestBase : IDisposable {
     protected async Task<HttpClient> AuthenticatedClientWithCsrfAsync(string token) {
         var client = CreateClient();
         // Attach auth first so the antiforgery token request runs in the authenticated
-        // context — identity-bound CSRF tokens must be issued and validated under the
+        // context - identity-bound CSRF tokens must be issued and validated under the
         // same user identity.
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         await AttachAntiforgeryTokenAsync(client);
@@ -130,7 +130,7 @@ public abstract class IntegrationTestBase : IDisposable {
             return;
         _disposed = true;
         Db.Dispose();
-        // Factory is NOT disposed here — it's shared across the worker's lifetime.
+        // Factory is NOT disposed here - it's shared across the worker's lifetime.
         TestDatabaseFixture.Release(Database);
         GC.SuppressFinalize(this);
     }

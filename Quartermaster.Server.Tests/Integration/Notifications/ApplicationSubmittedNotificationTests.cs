@@ -64,7 +64,7 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
             email: "global@test.local",
             globalPermissions: new[] { PermissionIdentifier.ProcessApplications });
 
-        // Without a chapter, the application has no scope — no notification fires
+        // Without a chapter, the application has no scope - no notification fires
         // (matches the existing motion-spawn branch which is also guarded by ChapterId).
         var response = await Submit(Dto(chapterId: null));
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);

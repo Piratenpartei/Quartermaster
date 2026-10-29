@@ -58,7 +58,7 @@ public class GrantGlobalPermissionEndpointTests : IntegrationTestBase {
 
     [Test]
     public async Task Returns_403_for_unauthenticated_but_otherwise_valid_request() {
-        // Second sanity check — caller has ViewUsers but not CreateUser
+        // Second sanity check - caller has ViewUsers but not CreateUser
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.DeleteUsers });
         var target = Builder.SeedUser();

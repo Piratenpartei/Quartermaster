@@ -1,0 +1,25 @@
+@using Quartermaster.Api.Chapters
+@using Quartermaster.Api.I18n
+
+<div class="mb-3">
+    <label class="form-label" for="@IdPrefix-level">@I18n[I18nKey.Ui.HandUp.LevelLabel]</label>
+    @if (IsRoot) {
+        <select class="form-select" id="@IdPrefix-level" readonly disabled>
+            <option selected>@I18n[I18nKey.Ui.HandUp.LevelFederal]</option>
+        </select>
+    } else {
+        <select class="form-select" id="@IdPrefix-level" value="@LevelValue" @onchange="OnLevelChanged">
+            <option value="">@I18n[I18nKey.Ui.HandUp.LevelUnset]</option>
+            @foreach (var level in SelectableLevels) {
+                <option value="@((int)level)">@I18n[LevelKey(level)]</option>
+            }
+        </select>
+    }
+</div>
+
+<div class="mb-3">
+    <label class="form-label" for="@IdPrefix-period">@I18n[I18nKey.Ui.HandUp.PeriodLabel]</label>
+    <input type="number" class="form-control" id="@IdPrefix-period" min="1" max="365"
+           placeholder="@DefaultPlaceholder" value="@PeriodDays" @onchange="OnPeriodChanged" />
+    <div class="form-text">@I18n[I18nKey.Ui.HandUp.PeriodHint]</div>
+</div>

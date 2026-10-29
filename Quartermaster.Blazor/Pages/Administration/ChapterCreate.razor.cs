@@ -29,6 +29,8 @@ public partial class ChapterCreate {
     private List<string> ExternalCodes = [];
     private List<Guid> AdministrativeDivisionIds = [];
     private string ParentChapterId = "";
+    private ChapterLevel? Level;
+    private int? TakeOverPeriodDays;
     private bool Saving;
 
     [SupplyParameterFromQuery]
@@ -44,6 +46,14 @@ public partial class ChapterCreate {
         ParentChapterId = id;
     }
 
+    private void OnLevelChanged(ChapterLevel? level) {
+        Level = level;
+    }
+
+    private void OnPeriodDaysChanged(int? days) {
+        TakeOverPeriodDays = days;
+    }
+
     private void OnExternalCodesChanged(List<string> codes) {
         ExternalCodes = codes;
     }
@@ -56,13 +66,16 @@ public partial class ChapterCreate {
         Saving = true;
         StateHasChanged();
         try {
+            Guid? parentId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null;
             var req = new ChapterCreateRequest {
                 Name = Name.Trim(),
                 ShortCode = string.IsNullOrWhiteSpace(ShortCode) ? null : ShortCode.Trim(),
                 KeycloakDepartment = string.IsNullOrWhiteSpace(KeycloakDepartment) ? null : KeycloakDepartment.Trim(),
                 ExternalCodes = ExternalCodes,
                 AdministrativeDivisionIds = AdministrativeDivisionIds,
-                ParentChapterId = Guid.TryParse(ParentChapterId, out var parsed) ? parsed : null
+                ParentChapterId = parentId,
+                Level = parentId.HasValue ? Level : null,
+                TakeOverPeriodDays = TakeOverPeriodDays
             };
             var resp = await Http.PostAsJsonAsync("/api/chapters", req);
             if (resp.IsSuccessStatusCode) {

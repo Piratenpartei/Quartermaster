@@ -5,7 +5,7 @@ using Quartermaster.Blazor.Services;
 namespace Quartermaster.Blazor.Pages;
 
 // Legacy route: the SSO endpoints now set the auth cookie server-side and redirect straight to /.
-// This page survives only to handle stale bookmarks / cached redirects — re-initialize the session
+// This page survives only to handle stale bookmarks / cached redirects - re-initialize the session
 // from the (now-present) cookie and forward home.
 public partial class LoginSamlCallback {
     [Inject]

@@ -97,18 +97,18 @@ internal static class SystemTemplateSeeds {
             "templates.submission.motion.confirmation.email",
             "E-Mail: Antrag bestätigen",
             "Bitte bestätige deinen Antrag",
-            "Hallo {{ motion.AuthorName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Antrag bearbeitet wird:\n\n**[Antrag jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gliederung:** {{ chapter.Name }}\n- **Titel:** {{ motion.Title }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n"),
+            "Hallo {{ motion.AuthorName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Antrag bearbeitet wird:\n\n**[Antrag jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gliederung:** {{ chapter.Name }}\n- **Titel:** {{ motion.Title }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail - ohne Bestätigung wird nichts gespeichert.\n"),
         new SystemTemplateSeed(
             "templates.submission.dueselection.confirmation.email",
             "E-Mail: Beitragseinstufung bestätigen",
             "Bitte bestätige deine Beitragseinstufung",
-            "Hallo {{ selection.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit deine Beitragseinstufung bearbeitet wird:\n\n**[Einstufung jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gewählter Beitrag:** {{ selection.SelectedDue }}€\n\nWenn du das nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n",
+            "Hallo {{ selection.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit deine Beitragseinstufung bearbeitet wird:\n\n**[Einstufung jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gewählter Beitrag:** {{ selection.SelectedDue }}€\n\nWenn du das nicht eingereicht hast, ignoriere diese E-Mail - ohne Bestätigung wird nichts gespeichert.\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "templates.submission.membershipapplication.confirmation.email",
             "E-Mail: Mitgliedsantrag bestätigen",
             "Bitte bestätige deinen Mitgliedsantrag",
-            "Hallo {{ application.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Mitgliedsantrag bearbeitet wird:\n\n**[Mitgliedsantrag jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Name:** {{ application.FirstName }} {{ application.LastName }}\n- **Gliederung:** {{ chapter.Name }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail – ohne Bestätigung wird nichts gespeichert.\n"),
+            "Hallo {{ application.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Mitgliedsantrag bearbeitet wird:\n\n**[Mitgliedsantrag jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Name:** {{ application.FirstName }} {{ application.LastName }}\n- **Gliederung:** {{ chapter.Name }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail - ohne Bestätigung wird nichts gespeichert.\n"),
         new SystemTemplateSeed(
             "templates.membershipapplication.received.email",
             "E-Mail: Mitgliedsantrag eingegangen",
@@ -149,7 +149,7 @@ internal static class SystemTemplateSeeds {
             "notifications.due_selection_submitted.telegram",
             "Benachrichtigung: Neue Beitragseinstufung (Telegram)",
             null,
-            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}* — {{ selection.ReducedAmount }}€\n\n[Beitragseinstufung öffnen]({{ globals.BaseUrl }}/Administration/DueSelections/{{ selection.Id }})"),
+            "Neue Beitragsminderung in *{{ chapter.Name }}*\n\n*{{ selection.FirstName }} {{ selection.LastName }}* - {{ selection.ReducedAmount }}€\n\n[Beitragseinstufung öffnen]({{ globals.BaseUrl }}/Administration/DueSelections/{{ selection.Id }})"),
         new SystemTemplateSeed(
             "notifications.applicant_register_hit.email",
             "Benachrichtigung: Treffer im Ablehnungsregister (E-Mail)",

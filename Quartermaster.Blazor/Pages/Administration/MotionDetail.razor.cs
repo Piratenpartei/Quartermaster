@@ -9,6 +9,7 @@ using Quartermaster.Api;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Motions;
+using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration;
@@ -31,6 +32,8 @@ public partial class MotionDetail {
     private MotionDetailDTO? Motion;
     private bool Loading = true;
     private bool TogglingPublic;
+    private bool TakingOver;
+    private ConfirmDialog TakeOverConfirm = default!;
 
     private bool EditMode;
     private bool Saving;
@@ -57,6 +60,8 @@ public partial class MotionDetail {
         }
         Loading = false;
     }
+
+    private bool VotingOpen => Motion != null && Motion.HandedOverToMotionId == null;
 
     private bool CanEdit
         => Motion != null
@@ -221,6 +226,28 @@ public partial class MotionDetail {
             ToastService.Error(ex);
         } finally {
             TogglingPublic = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TakeOver() {
+        var ok = await TakeOverConfirm.ShowAsync(I18n[I18nKey.Ui.HandUp.TakeOverDialogMessage]);
+        if (!ok)
+            return;
+        TakingOver = true;
+        StateHasChanged();
+        try {
+            var resp = await Http.PostAsync($"/api/motions/{Id}/take-over", null);
+            if (resp.IsSuccessStatusCode) {
+                var result = await resp.Content.ReadFromJsonAsync<MotionTakeOverResponse>();
+                NavigationManager.NavigateTo($"/Administration/Motions/{result!.MotionId}");
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        } finally {
+            TakingOver = false;
             StateHasChanged();
         }
     }

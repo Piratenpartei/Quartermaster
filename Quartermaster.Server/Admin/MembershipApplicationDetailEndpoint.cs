@@ -14,6 +14,7 @@ using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Chapters;
 using Quartermaster.Server.Forwarding.SageEntry;
 
 namespace Quartermaster.Server.Admin;
@@ -31,6 +32,7 @@ public class MembershipApplicationDetailEndpoint
     private readonly MotionRepository _motionRepo;
     private readonly SageEntryGate _gate;
     private readonly ApplicantRegisterRepository _register;
+    private readonly TakeOverPlanner _planner;
     private readonly PermissionContext _perms;
 
     public MembershipApplicationDetailEndpoint(
@@ -40,6 +42,7 @@ public class MembershipApplicationDetailEndpoint
         MotionRepository motionRepo,
         SageEntryGate gate,
         ApplicantRegisterRepository register,
+        TakeOverPlanner planner,
         PermissionContext perms) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
@@ -47,6 +50,7 @@ public class MembershipApplicationDetailEndpoint
         _motionRepo = motionRepo;
         _gate = gate;
         _register = register;
+        _planner = planner;
         _perms = perms;
     }
 
@@ -84,7 +88,13 @@ public class MembershipApplicationDetailEndpoint
 
         var dto = app.ToDetailDto(chapter?.Name ?? "", isReduced);
         dto.DueSelection = dueSelection?.ToAdminDto();
-        dto.LinkedMotionId = _motionRepo.GetByLinkedApplicationId(app.Id)?.Id;
+        var pendingMotion = _motionRepo.GetByLinkedApplicationId(app.Id);
+        dto.LinkedMotionId = pendingMotion?.Id;
+        if (pendingMotion != null) {
+            var next = _planner.NextFor(pendingMotion, app, DateTime.UtcNow);
+            dto.NextTakeOverAt = next?.DueAt.ToDtoUtc();
+            dto.NextTakeOverChapterName = next?.ChapterName;
+        }
 
         var approvalMail = _gate.StatusOf(app.Id);
         dto.ApprovalMailState = approvalMail.State;

@@ -32,7 +32,7 @@ public class AuthService {
 
     /// <summary>Reads identity from <c>/api/users/session</c>; the auth cookie (if present) rides along automatically.</summary>
     public async Task InitializeAsync() {
-        // Flip Initialized BEFORE the HTTP call — CsrfDelegatingHandler waits on
+        // Flip Initialized BEFORE the HTTP call - CsrfDelegatingHandler waits on
         // WaitForInitialization, and our own request would deadlock otherwise.
         _state.MarkInitialized();
         try {
@@ -67,7 +67,7 @@ public class AuthService {
         } catch (Exception ex) {
             Console.Error.WriteLine($"AuthService.LogoutAsync: server unreachable, clearing local state anyway. {ex}");
         }
-        // Don't reset the Initialized handshake — the app's already past first-load and
+        // Don't reset the Initialized handshake - the app's already past first-load and
         // anyone awaiting WaitForInitialization would hang if we re-armed it.
         _state.SetState(null);
     }

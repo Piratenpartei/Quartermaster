@@ -4,7 +4,7 @@
 
 **Goal:** Replace the stubbed MemberEmailService with actual SMTP email sending via MailKit, with SMTP config in the Options system, per-member Fluid template rendering, a background queue for non-blocking sends, and an EmailLog table tracking every send attempt with source traceability.
 
-**Architecture:** SMTP settings stored as Options (admin UI configurable). `EmailService` replaces `MemberEmailService` — resolves recipients, renders personalized templates via Fluid, enqueues emails into a `Channel<EmailMessage>`. A `EmailSendingBackgroundService` dequeues and sends via MailKit with retry logic. Each send attempt (success/failure) is logged to an `EmailLog` table with source entity reference.
+**Architecture:** SMTP settings stored as Options (admin UI configurable). `EmailService` replaces `MemberEmailService` - resolves recipients, renders personalized templates via Fluid, enqueues emails into a `Channel<EmailMessage>`. A `EmailSendingBackgroundService` dequeues and sends via MailKit with retry logic. Each send attempt (success/failure) is logged to an `EmailLog` table with source entity reference.
 
 **Tech Stack:** MailKit, System.Threading.Channels, Fluid template engine, existing Options system
 
@@ -40,20 +40,20 @@
 - `Create(EmailLog log)`
 - `UpdateStatus(Guid id, string status, string? error, DateTime? sentAt)`
 - `IncrementAttempt(Guid id)`
-- `GetForSource(string entityType, Guid entityId)` — logs for a specific source entity
-- `GetPending()` — all pending logs for retry
-- `GetRecent(int count)` — recent logs for admin view
+- `GetForSource(string entityType, Guid entityId)` - logs for a specific source entity
+- `GetPending()` - all pending logs for retry
+- `GetRecent(int count)` - recent logs for admin view
 
 ### Task 2: SMTP Options + EmailService
 
 **Add SMTP option definitions** to `OptionRepository.SupplementDefaults()`:
-- `email.smtp.host` — "SMTP: Server"
-- `email.smtp.port` — "SMTP: Port" (default "587")
-- `email.smtp.username` — "SMTP: Benutzername"
-- `email.smtp.password` — "SMTP: Passwort"
-- `email.smtp.sender_address` — "SMTP: Absenderadresse"
-- `email.smtp.sender_name` — "SMTP: Absendername"
-- `email.smtp.use_ssl` — "SMTP: SSL verwenden" (default "true")
+- `email.smtp.host` - "SMTP: Server"
+- `email.smtp.port` - "SMTP: Port" (default "587")
+- `email.smtp.username` - "SMTP: Benutzername"
+- `email.smtp.password` - "SMTP: Passwort"
+- `email.smtp.sender_address` - "SMTP: Absenderadresse"
+- `email.smtp.sender_name` - "SMTP: Absendername"
+- `email.smtp.use_ssl` - "SMTP: SSL verwenden" (default "true")
 
 **Create** `Quartermaster.Server/Email/EmailService.cs` replacing `MemberEmailService`:
 - Constructor: `EmailLogRepository`, `OptionRepository`, `MemberRepository`, `ChapterRepository`, `Channel<EmailMessage>`, `ILogger`
@@ -63,7 +63,7 @@
   3. For each recipient: render personalized template via `TemplateRenderer`, create `EmailLog` entry as "Pending", enqueue `EmailMessage` to the channel
   4. Return (count, error)
 
-**Create** `Quartermaster.Server/Email/EmailMessage.cs` — simple record: `Guid EmailLogId, string To, string Subject, string HtmlBody, string? SourceEntityType, Guid? SourceEntityId`
+**Create** `Quartermaster.Server/Email/EmailMessage.cs` - simple record: `Guid EmailLogId, string To, string Subject, string HtmlBody, string? SourceEntityType, Guid? SourceEntityId`
 
 ### Task 3: Background sending service
 
@@ -100,8 +100,8 @@ Drop database, rebuild, run tests, start server, verify SMTP options appear in a
 |---|---|
 | Implement actual SMTP email sending | ✅ MailKit via background service |
 | Add SMTP configuration options | ✅ 7 options in Options system (admin UI) |
-| Design message bus abstraction | Deferred — just EmailService for now, extract when second channel needed |
+| Design message bus abstraction | Deferred - just EmailService for now, extract when second channel needed |
 | Email queue/retry mechanism | ✅ Channel + BackgroundService + 3 retries |
 | Email template rendering with per-member personalization | ✅ Fluid rendering per recipient |
 | Email sending log | ✅ EmailLog table with source entity traceability |
-| Outbox pattern | Deferred — in-memory Channel sufficient for now |
+| Outbox pattern | Deferred - in-memory Channel sufficient for now |

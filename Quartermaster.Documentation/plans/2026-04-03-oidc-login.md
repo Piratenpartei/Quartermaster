@@ -189,7 +189,7 @@ public static class SsoLoginHelper {
 
 - [x] **Step 2: Refactor SamlLoginConsumeEndpoint to use SsoLoginHelper**
 
-Replace lines 88–131 of `SamlLoginConsumeEndpoint.cs` (from `// Find member by email` to `SendRedirectAsync($"/Login/SamlCallback#...") `) with:
+Replace lines 88-131 of `SamlLoginConsumeEndpoint.cs` (from `// Find member by email` to `SendRedirectAsync($"/Login/SamlCallback#...") `) with:
 
 ```csharp
         var (result, tokenContent) = SsoLoginHelper.ProcessSsoLogin(email, _memberRepo, _userRepo, _tokenRepo);

@@ -23,4 +23,7 @@ public class MotionDTO {
     /// <summary>The replacement motion this one was handed over to. Only filled for signed-in callers.</summary>
     public Guid? HandedOverToMotionId { get; set; }
     public string? HandedOverToChapterName { get; set; }
+
+    /// <summary>Why this motion was handed over. Only filled for signed-in callers.</summary>
+    public MotionHandoverReason? HandoverReason { get; set; }
 }

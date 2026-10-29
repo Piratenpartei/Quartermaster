@@ -1,4 +1,4 @@
-# Member Import System — Implementation Plan
+# Member Import System - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -15,45 +15,45 @@
 ### Data Layer (`Quartermaster.Data/`)
 | File | Responsibility |
 |------|---------------|
-| `Members/Member.cs` | **Create** — Member entity with all imported fields + resolved FKs |
-| `Members/MemberImportLog.cs` | **Create** — Import log entity (stats, errors, hash) |
-| `Members/MemberRepository.cs` | **Create** — CRUD, search, upsert by member number |
-| `Chapters/Chapter.cs` | **Modify** — Add `ExternalCode` property |
-| `Chapters/ChapterRepository.cs` | **Modify** — Add `FindByExternalCode()`, extend `SupplementDefaults()` with Bezirk/Kreis chapters |
-| `Migrations/M001_InitialStructureMigration.cs` | **Modify** — Add Members table, MemberImportLogs table, ExternalCode column on Chapters |
-| `DbContext.cs` | **Modify** — Add `Members` and `MemberImportLogs` ITable, register `MemberRepository` |
+| `Members/Member.cs` | **Create** - Member entity with all imported fields + resolved FKs |
+| `Members/MemberImportLog.cs` | **Create** - Import log entity (stats, errors, hash) |
+| `Members/MemberRepository.cs` | **Create** - CRUD, search, upsert by member number |
+| `Chapters/Chapter.cs` | **Modify** - Add `ExternalCode` property |
+| `Chapters/ChapterRepository.cs` | **Modify** - Add `FindByExternalCode()`, extend `SupplementDefaults()` with Bezirk/Kreis chapters |
+| `Migrations/M001_InitialStructureMigration.cs` | **Modify** - Add Members table, MemberImportLogs table, ExternalCode column on Chapters |
+| `DbContext.cs` | **Modify** - Add `Members` and `MemberImportLogs` ITable, register `MemberRepository` |
 
 ### API Layer (`Quartermaster.Api/`)
 | File | Responsibility |
 |------|---------------|
-| `Members/MemberDTO.cs` | **Create** — List view DTO |
-| `Members/MemberDetailDTO.cs` | **Create** — Full detail DTO |
-| `Members/MemberSearchRequest.cs` | **Create** — Search/filter request |
-| `Members/MemberSearchResponse.cs` | **Create** — Paginated response |
-| `Members/MemberImportLogDTO.cs` | **Create** — Import log DTO |
-| `Members/MemberImportLogListResponse.cs` | **Create** — Paginated import history response |
+| `Members/MemberDTO.cs` | **Create** - List view DTO |
+| `Members/MemberDetailDTO.cs` | **Create** - Full detail DTO |
+| `Members/MemberSearchRequest.cs` | **Create** - Search/filter request |
+| `Members/MemberSearchResponse.cs` | **Create** - Paginated response |
+| `Members/MemberImportLogDTO.cs` | **Create** - Import log DTO |
+| `Members/MemberImportLogListResponse.cs` | **Create** - Paginated import history response |
 
 ### Server Layer (`Quartermaster.Server/`)
 | File | Responsibility |
 |------|---------------|
-| `Members/MemberCsvRecord.cs` | **Create** — CsvHelper mapping class |
-| `Members/MemberImportService.cs` | **Create** — Core import logic (parse, resolve chapters, upsert) |
-| `Members/MemberImportHostedService.cs` | **Create** — BackgroundService polling timer |
-| `Members/MemberListEndpoint.cs` | **Create** — GET /api/members |
-| `Members/MemberDetailEndpoint.cs` | **Create** — GET /api/members/{id} |
-| `Members/MemberImportTriggerEndpoint.cs` | **Create** — POST /api/members/import |
-| `Members/MemberImportHistoryEndpoint.cs` | **Create** — GET /api/members/import/history |
+| `Members/MemberCsvRecord.cs` | **Create** - CsvHelper mapping class |
+| `Members/MemberImportService.cs` | **Create** - Core import logic (parse, resolve chapters, upsert) |
+| `Members/MemberImportHostedService.cs` | **Create** - BackgroundService polling timer |
+| `Members/MemberListEndpoint.cs` | **Create** - GET /api/members |
+| `Members/MemberDetailEndpoint.cs` | **Create** - GET /api/members/{id} |
+| `Members/MemberImportTriggerEndpoint.cs` | **Create** - POST /api/members/import |
+| `Members/MemberImportHistoryEndpoint.cs` | **Create** - GET /api/members/import/history |
 
 ### Blazor Layer (`Quartermaster.Blazor/`)
 | File | Responsibility |
 |------|---------------|
-| `Pages/Administration/MemberList.razor` | **Create** — Member list page |
-| `Pages/Administration/MemberList.razor.cs` | **Create** — Member list code-behind |
-| `Pages/Administration/MemberDetail.razor` | **Create** — Member detail page |
-| `Pages/Administration/MemberDetail.razor.cs` | **Create** — Member detail code-behind |
-| `Pages/Administration/MemberImportHistory.razor` | **Create** — Import history page |
-| `Pages/Administration/MemberImportHistory.razor.cs` | **Create** — Import history code-behind |
-| `Layout/MainLayout.razor` | **Modify** — Add "Mitglieder" nav link |
+| `Pages/Administration/MemberList.razor` | **Create** - Member list page |
+| `Pages/Administration/MemberList.razor.cs` | **Create** - Member list code-behind |
+| `Pages/Administration/MemberDetail.razor` | **Create** - Member detail page |
+| `Pages/Administration/MemberDetail.razor.cs` | **Create** - Member detail code-behind |
+| `Pages/Administration/MemberImportHistory.razor` | **Create** - Import history page |
+| `Pages/Administration/MemberImportHistory.razor.cs` | **Create** - Import history code-behind |
+| `Layout/MainLayout.razor` | **Modify** - Add "Mitglieder" nav link |
 
 ---
 
@@ -263,7 +263,7 @@ services.AddScoped<MemberRepository>();
 
 Run: `dotnet build /media/SMB/Quartermaster/Quartermaster.Data/Quartermaster.Data.csproj`
 
-This will fail because `MemberRepository` doesn't exist yet — that's expected and will be created in the next task.
+This will fail because `MemberRepository` doesn't exist yet - that's expected and will be created in the next task.
 
 - [x] **Step 7: Commit**
 
@@ -511,7 +511,7 @@ private void SeedSubChapters(Guid bundesverbandId) {
         .ToList()
         .ToDictionary(c => c.ExternalCode!);
 
-    // Sub-chapter definitions: (LV, Bezirk, Kreis) — NULL means level doesn't exist
+    // Sub-chapter definitions: (LV, Bezirk, Kreis) - NULL means level doesn't exist
     var subChapters = new List<(string Lv, string? Bezirk, string? Kreis)> {
         // Baden-Württemberg
         ("BW", "BW.FR", null),
@@ -1077,7 +1077,7 @@ public class MemberImportService {
                 if (existing != null) {
                     member.Id = existing.Id;
                     member.UserId = existing.UserId; // Preserve SSO link
-                    // TODO: Audit log — compare existing vs new fields for change tracking
+                    // TODO: Audit log - compare existing vs new fields for change tracking
                     memberRepo.Update(member);
                     updatedRecords++;
                 } else {
@@ -1085,7 +1085,7 @@ public class MemberImportService {
                     newRecords++;
                 }
             } catch (Exception ex) {
-                errors.Add($"Row {totalRecords}: Member #{record.USER_Mitgliedsnummer} — {ex.Message}");
+                errors.Add($"Row {totalRecords}: Member #{record.USER_Mitgliedsnummer} - {ex.Message}");
                 _logger.LogWarning(ex, "Failed to import member #{MemberNumber}", record.USER_Mitgliedsnummer);
             }
         }
@@ -1195,7 +1195,7 @@ public class MemberImportService {
                             return kreisChapter.Id;
                     }
                 } else {
-                    // No Bezirk — Kreis parent should be the LV
+                    // No Bezirk - Kreis parent should be the LV
                     if (parent.ExternalCode == lv)
                         return kreisChapter.Id;
                 }
@@ -1763,7 +1763,7 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberList.razor`:
                     <td><a href="/Administration/Members/@m.Id">@m.FirstName @m.LastName</a></td>
                     <td>@m.PostCode @m.City</td>
                     <td>@m.ChapterName</td>
-                    <td>@(m.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td>
+                    <td>@(m.EntryDate?.ToString("dd.MM.yyyy") ?? "-")</td>
                     <td>
                         @if (m.ExitDate != null) {
                             <span class="badge border border-danger text-danger-emphasis">Ausgetreten</span>
@@ -1918,10 +1918,10 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
                 <tbody>
                     <tr><th style="width:200px">Vorname</th><td>@Member.FirstName</td></tr>
                     <tr><th>Nachname</th><td>@Member.LastName</td></tr>
-                    <tr><th>Geburtsdatum</th><td>@(Member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
-                    <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "—")</td></tr>
-                    <tr><th>E-Mail</th><td>@(Member.EMail ?? "—")</td></tr>
-                    <tr><th>Telefon</th><td>@(Member.Phone ?? "—")</td></tr>
+                    <tr><th>Geburtsdatum</th><td>@(Member.DateOfBirth?.ToString("dd.MM.yyyy") ?? "-")</td></tr>
+                    <tr><th>Staatsangehörigkeit</th><td>@(Member.Citizenship ?? "-")</td></tr>
+                    <tr><th>E-Mail</th><td>@(Member.EMail ?? "-")</td></tr>
+                    <tr><th>Telefon</th><td>@(Member.Phone ?? "-")</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1932,10 +1932,10 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
             <h5>Adresse</h5>
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "—")</td></tr>
+                    <tr><th style="width:200px">Straße</th><td>@(Member.Street ?? "-")</td></tr>
                     <tr><th>PLZ / Ort</th><td>@Member.PostCode @Member.City</td></tr>
-                    <tr><th>Land</th><td>@(Member.Country ?? "—")</td></tr>
-                    <tr><th>Verwaltungsbezirk</th><td>@(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "—" : Member.ResidenceAdministrativeDivisionName)</td></tr>
+                    <tr><th>Land</th><td>@(Member.Country ?? "-")</td></tr>
+                    <tr><th>Verwaltungsbezirk</th><td>@(string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionName) ? "-" : Member.ResidenceAdministrativeDivisionName)</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1946,10 +1946,10 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
             <h5>Gliederung</h5>
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Gliederung</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "—" : Member.ChapterName)</td></tr>
-                    <tr><th>Bundesland (CSV)</th><td>@(Member.FederalState ?? "—")</td></tr>
-                    <tr><th>Landkreis (CSV)</th><td>@(Member.County ?? "—")</td></tr>
-                    <tr><th>Gemeinde (CSV)</th><td>@(Member.Municipality ?? "—")</td></tr>
+                    <tr><th style="width:200px">Gliederung</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "-" : Member.ChapterName)</td></tr>
+                    <tr><th>Bundesland (CSV)</th><td>@(Member.FederalState ?? "-")</td></tr>
+                    <tr><th>Landkreis (CSV)</th><td>@(Member.County ?? "-")</td></tr>
+                    <tr><th>Gemeinde (CSV)</th><td>@(Member.Municipality ?? "-")</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1960,9 +1960,9 @@ Create `Quartermaster.Blazor/Pages/Administration/MemberDetail.razor`:
             <h5>Mitgliedschaft</h5>
             <table class="table table-borderless mb-0">
                 <tbody>
-                    <tr><th style="width:200px">Eintrittsdatum</th><td>@(Member.EntryDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
-                    <tr><th>Austrittsdatum</th><td>@(Member.ExitDate?.ToString("dd.MM.yyyy") ?? "—")</td></tr>
-                    <tr><th>Aufnahmereferenz</th><td>@(Member.AdmissionReference ?? "—")</td></tr>
+                    <tr><th style="width:200px">Eintrittsdatum</th><td>@(Member.EntryDate?.ToString("dd.MM.yyyy") ?? "-")</td></tr>
+                    <tr><th>Austrittsdatum</th><td>@(Member.ExitDate?.ToString("dd.MM.yyyy") ?? "-")</td></tr>
+                    <tr><th>Aufnahmereferenz</th><td>@(Member.AdmissionReference ?? "-")</td></tr>
                     <tr><th>Beitrag</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     <tr><th>Geminderter Beitrag</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
                     @if (Member.FirstFee.HasValue) {
@@ -2250,7 +2250,7 @@ public partial class MemberImportHistory {
                 await LoadHistory();
             }
         } catch (Exception) {
-            // Import failed — reload history to see if partial log was created
+            // Import failed - reload history to see if partial log was created
             await LoadHistory();
         }
 

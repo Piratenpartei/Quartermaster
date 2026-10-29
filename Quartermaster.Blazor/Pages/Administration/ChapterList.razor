@@ -59,14 +59,14 @@
                         @if (!string.IsNullOrEmpty(ch.ShortCode)) {
                             <span class="badge bg-secondary">@ch.ShortCode</span>
                         } else {
-                            <span class="text-secondary">—</span>
+                            <span class="text-secondary">-</span>
                         }
                     </td>
                     <td>
                         @if (ch.ExternalCodes.Count > 0) {
                             <code>@string.Join(", ", ch.ExternalCodes)</code>
                         } else {
-                            <span class="text-secondary">—</span>
+                            <span class="text-secondary">-</span>
                         }
                     </td>
                     @if (AuthService.IsAuthenticated) {

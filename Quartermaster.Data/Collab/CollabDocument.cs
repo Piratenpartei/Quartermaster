@@ -21,7 +21,7 @@ public class CollabDocument {
     /// <summary>FK target, no DB-level constraint (soft ref).</summary>
     public Guid EntityId { get; set; }
 
-    /// <summary>Full Yjs binary state snapshot — base64-encoded.</summary>
+    /// <summary>Full Yjs binary state snapshot - base64-encoded.</summary>
     public string DocumentState { get; set; } = "";
 
     /// <summary>Denormalized plain text extracted from the Yjs doc at save time. Read by PDF renderer and audit log.</summary>

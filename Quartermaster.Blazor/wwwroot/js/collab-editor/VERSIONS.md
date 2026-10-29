@@ -1,6 +1,6 @@
 # Vendored files for the collaborative editor
 
-All files in this directory are vendored (committed verbatim) third-party JavaScript, pulled from public CDNs as pre-built bundles. No npm, no build step — they drop straight into `wwwroot` and are served as static assets.
+All files in this directory are vendored (committed verbatim) third-party JavaScript, pulled from public CDNs as pre-built bundles. No npm, no build step - they drop straight into `wwwroot` and are served as static assets.
 
 The loading strategy is:
 
@@ -18,17 +18,17 @@ The loading strategy is:
 | `cm5-markdown.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js | codemirror@5.65.16 markdown mode addon |
 | `cm5-xml.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js | codemirror@5.65.16 xml mode addon (base mode for the PDF template `fluid-xml` editor) |
 | `cm5-overlay.js` | https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/overlay.min.js | codemirror@5.65.16 overlay addon (layers the Fluid `{{ }}`/`{% %}` overlay onto xml mode) |
-| `cm5-esm.js` | hand-written 20-line ESM wrapper around `window.CodeMirror` | — |
+| `cm5-esm.js` | hand-written 20-line ESM wrapper around `window.CodeMirror` | - |
 | `yjs.js` | https://esm.sh/yjs@13.6.27?target=es2022 (bundled) | yjs@13.6.27 |
 | `y-awareness.js` | https://esm.sh/y-protocols@1.0.6/awareness?target=es2022&bundle&external=yjs | y-protocols@1.0.6 |
 | `y-cm5.js` | https://esm.sh/y-codemirror@3.0.1?target=es2022&bundle&external=yjs,codemirror | y-codemirror@3.0.1 (CM5 binding) |
-| `process.js` | hand-written minimal Node `process.env` polyfill | — |
+| `process.js` | hand-written minimal Node `process.env` polyfill | - |
 
 ## Why CodeMirror 5 (not 6)
 
-CodeMirror 6 has a modular architecture (`@codemirror/state`, `@codemirror/view`, `@codemirror/language`, etc.) where each package inlines its own copy of shared dependencies when fetched as individual ESM bundles. Combining them at runtime fails with "Unrecognized extension value in extension set" — the `instanceof` checks break across duplicated `@codemirror/state` copies. Solving this would require either a bundler (no npm toolchain, per user preference) or vendoring ~20 individual transitive files with a fragile import map.
+CodeMirror 6 has a modular architecture (`@codemirror/state`, `@codemirror/view`, `@codemirror/language`, etc.) where each package inlines its own copy of shared dependencies when fetched as individual ESM bundles. Combining them at runtime fails with "Unrecognized extension value in extension set" - the `instanceof` checks break across duplicated `@codemirror/state` copies. Solving this would require either a bundler (no npm toolchain, per user preference) or vendoring ~20 individual transitive files with a fragile import map.
 
-CM5 predates this architecture and ships as single-file UMD, making vendoring trivial. The trade-off is that CM5 is in maintenance mode (no new features, bug fixes only) — but our needs (markdown editor + collaborative cursors + per-character background colors via `markText`) have been stable in CM5 for years.
+CM5 predates this architecture and ships as single-file UMD, making vendoring trivial. The trade-off is that CM5 is in maintenance mode (no new features, bug fixes only) - but our needs (markdown editor + collaborative cursors + per-character background colors via `markText`) have been stable in CM5 for years.
 
 ## How to refresh a vendored file
 
@@ -36,4 +36,4 @@ CM5 predates this architecture and ships as single-file UMD, making vendoring tr
 2. Replace the file in this directory.
 3. Update the version cell in the table.
 4. Re-run the end-to-end tests in `MeetingHubTests` (SignalR pathway) and smoke-test the meeting live page in Chrome.
-5. Check the console for import/loading errors — dependencies between these files are tightly coupled via the import map.
+5. Check the console for import/loading errors - dependencies between these files are tightly coupled via the import map.

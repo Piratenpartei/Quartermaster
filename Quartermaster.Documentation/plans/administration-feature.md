@@ -13,34 +13,34 @@
 ## File Structure
 
 ### Data Model Changes (modify existing)
-- `Quartermaster.Data/MembershipApplications/MembershipApplication.cs` — add Status, ProcessedByUserId, ProcessedAt
-- `Quartermaster.Data/DueSelector/DueSelection.cs` — add Status, ProcessedByUserId, ProcessedAt
-- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` — add new columns to both tables
-- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` — add query/update methods
-- `Quartermaster.Data/DueSelector/DueSelectionRepository.cs` — add query/update methods
-- `Quartermaster.Data/Chapters/ChapterRepository.cs` — add GetDescendantIds()
-- `Quartermaster.Api/PermissionIdentifier.cs` — add admin permission identifiers
-- `Quartermaster.Data/Permissions/PermissionRepository.cs` — seed new permissions
-- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` — set initial status
+- `Quartermaster.Data/MembershipApplications/MembershipApplication.cs` - add Status, ProcessedByUserId, ProcessedAt
+- `Quartermaster.Data/DueSelector/DueSelection.cs` - add Status, ProcessedByUserId, ProcessedAt
+- `Quartermaster.Data/Migrations/M001_InitialStructureMigration.cs` - add new columns to both tables
+- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` - add query/update methods
+- `Quartermaster.Data/DueSelector/DueSelectionRepository.cs` - add query/update methods
+- `Quartermaster.Data/Chapters/ChapterRepository.cs` - add GetDescendantIds()
+- `Quartermaster.Api/PermissionIdentifier.cs` - add admin permission identifiers
+- `Quartermaster.Data/Permissions/PermissionRepository.cs` - seed new permissions
+- `Quartermaster.Server/MembershipApplications/MembershipApplicationCreateEndpoint.cs` - set initial status
 
 ### API DTOs (new + modify)
-- `Quartermaster.Api/MembershipApplications/MembershipApplicationAdminDTO.cs` — admin list item DTO
-- `Quartermaster.Api/MembershipApplications/MembershipApplicationListRequest.cs` — list query params
-- `Quartermaster.Api/MembershipApplications/MembershipApplicationListResponse.cs` — paginated response
-- `Quartermaster.Api/DueSelector/DueSelectionAdminDTO.cs` — admin list item DTO
-- `Quartermaster.Api/DueSelector/DueSelectionListRequest.cs` — list query params
-- `Quartermaster.Api/DueSelector/DueSelectionListResponse.cs` — paginated response
+- `Quartermaster.Api/MembershipApplications/MembershipApplicationAdminDTO.cs` - admin list item DTO
+- `Quartermaster.Api/MembershipApplications/MembershipApplicationListRequest.cs` - list query params
+- `Quartermaster.Api/MembershipApplications/MembershipApplicationListResponse.cs` - paginated response
+- `Quartermaster.Api/DueSelector/DueSelectionAdminDTO.cs` - admin list item DTO
+- `Quartermaster.Api/DueSelector/DueSelectionListRequest.cs` - list query params
+- `Quartermaster.Api/DueSelector/DueSelectionListResponse.cs` - paginated response
 
 ### Server Endpoints (new)
-- `Quartermaster.Server/Admin/MembershipApplicationListEndpoint.cs` — GET list
-- `Quartermaster.Server/Admin/MembershipApplicationProcessEndpoint.cs` — POST approve/reject
-- `Quartermaster.Server/Admin/DueSelectionListEndpoint.cs` — GET list
-- `Quartermaster.Server/Admin/DueSelectionProcessEndpoint.cs` — POST approve/reject
+- `Quartermaster.Server/Admin/MembershipApplicationListEndpoint.cs` - GET list
+- `Quartermaster.Server/Admin/MembershipApplicationProcessEndpoint.cs` - POST approve/reject
+- `Quartermaster.Server/Admin/DueSelectionListEndpoint.cs` - GET list
+- `Quartermaster.Server/Admin/DueSelectionProcessEndpoint.cs` - POST approve/reject
 
 ### Blazor Pages (new)
 - `Quartermaster.Blazor/Pages/Administration/MembershipApplicationAdmin.razor` + `.cs`
 - `Quartermaster.Blazor/Pages/Administration/DueSelectionAdmin.razor` + `.cs`
-- `Quartermaster.Blazor/Layout/MainLayout.razor` — add admin nav links
+- `Quartermaster.Blazor/Layout/MainLayout.razor` - add admin nav links
 
 ---
 
@@ -69,7 +69,7 @@ public enum ApplicationStatus {
 }
 ```
 
-Remove the old closing brace of the class — the enum goes after it. Full tail of the file becomes:
+Remove the old closing brace of the class - the enum goes after it. Full tail of the file becomes:
 
 ```csharp
     // Entry date
@@ -111,7 +111,7 @@ public enum DueSelectionStatus {
 }
 ```
 
-- [x] **Step 3: Update M001 migration — MembershipApplications columns**
+- [x] **Step 3: Update M001 migration - MembershipApplications columns**
 
 In the MembershipApplications table creation, add after `SubmittedAt`:
 
@@ -136,7 +136,7 @@ Add to Down():
             .OnTable(MembershipApplication.TableName);
 ```
 
-- [x] **Step 4: Update M001 migration — DueSelections columns**
+- [x] **Step 4: Update M001 migration - DueSelections columns**
 
 In the DueSelections table creation, add after `PaymentSchedule`:
 
@@ -751,7 +751,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 7: Blazor Admin Page — Membership Applications
+## Task 7: Blazor Admin Page - Membership Applications
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Administration/MembershipApplicationAdmin.razor`
@@ -934,7 +934,7 @@ Expected: Build succeeded, 0 errors
 
 ---
 
-## Task 8: Blazor Admin Page — Due Selections
+## Task 8: Blazor Admin Page - Due Selections
 
 **Files:**
 - Create: `Quartermaster.Blazor/Pages/Administration/DueSelectionAdmin.razor`
@@ -993,11 +993,11 @@ Expected: Build succeeded, 0 errors
                         @if (ds.SelectedValuation == 4) {
                             @ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))
                         } else {
-                            <span class="text-secondary">—</span>
+                            <span class="text-secondary">-</span>
                         }
                     </td>
                     <td class="text-truncate" style="max-width: 250px;" title="@ds.ReducedJustification">
-                        @(string.IsNullOrEmpty(ds.ReducedJustification) ? "—" : ds.ReducedJustification)
+                        @(string.IsNullOrEmpty(ds.ReducedJustification) ? "-" : ds.ReducedJustification)
                     </td>
                     <td>
                         @if (ds.Status == 0) {
@@ -1148,8 +1148,8 @@ Expected: Build succeeded, 0 errors
 
 | Layer | Files Created | Files Modified |
 |---|---|---|
-| Data | — | MembershipApplication.cs, DueSelection.cs, M001 migration, MembershipApplicationRepository.cs, DueSelectionRepository.cs, ChapterRepository.cs |
+| Data | - | MembershipApplication.cs, DueSelection.cs, M001 migration, MembershipApplicationRepository.cs, DueSelectionRepository.cs, ChapterRepository.cs |
 | API | MembershipApplicationAdminDTO.cs, MembershipApplicationListRequest.cs, MembershipApplicationListResponse.cs, DueSelectionAdminDTO.cs, DueSelectionListRequest.cs, DueSelectionListResponse.cs | PermissionIdentifier.cs |
 | Server | MembershipApplicationListEndpoint.cs, MembershipApplicationProcessEndpoint.cs, DueSelectionListEndpoint.cs, DueSelectionProcessEndpoint.cs | MembershipApplicationCreateEndpoint.cs |
 | Blazor | MembershipApplicationAdmin.razor/.cs, DueSelectionAdmin.razor/.cs | MainLayout.razor |
-| Docs | — | Translations.md, PermissionRepository.cs |
+| Docs | - | Translations.md, PermissionRepository.cs |

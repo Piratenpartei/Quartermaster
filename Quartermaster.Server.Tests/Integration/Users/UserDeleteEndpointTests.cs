@@ -62,7 +62,7 @@ public class UserDeleteEndpointTests : IntegrationTestBase {
             globalPermissions: new[] { PermissionIdentifier.DeleteUsers });
         var target = Builder.SeedUser();
         var targetToken = Builder.SeedLoginToken(target.Id);
-        // Sanity — target token should work before deletion
+        // Sanity - target token should work before deletion
         using (var targetClient = AuthenticatedClient(targetToken)) {
             var preResp = await targetClient.GetAsync("/api/users/session");
             await Assert.That(preResp.StatusCode).IsEqualTo(HttpStatusCode.OK);

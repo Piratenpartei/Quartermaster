@@ -50,6 +50,10 @@
         </div>
     }
 
+    @if (App.NextTakeOverAt != null && App.NextTakeOverChapterName != null) {
+        <NextTakeOverNotice At="App.NextTakeOverAt.Value" ChapterName="@App.NextTakeOverChapterName" />
+    }
+
     <RequirePermission GlobalPermission="@PermissionIdentifier.ManageApplicantRegister">
         @if (ShowRegisterCard) {
             <div class="card border-info mb-3">
@@ -139,7 +143,7 @@
                     <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@App.Email</td></tr>
                     <tr>
                         <th>@I18n[I18nKey.Ui.ApplicationDetail.PhoneLabel]</th>
-                        <td>@(string.IsNullOrEmpty(App.PhoneNumber) ? "—" : App.PhoneNumber)</td>
+                        <td>@(string.IsNullOrEmpty(App.PhoneNumber) ? "-" : App.PhoneNumber)</td>
                     </tr>
                 </tbody>
             </table>
@@ -158,7 +162,7 @@
                     @if (!string.IsNullOrEmpty(App.AddressCountry)) {
                         <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.CountryLabel]</th><td>@App.AddressCountry</td></tr>
                     }
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.ChapterLabel]</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "—" : App.ChapterName)</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.ChapterLabel]</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "-" : App.ChapterName)</td></tr>
                 </tbody>
             </table>
             </div>

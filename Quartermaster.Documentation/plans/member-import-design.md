@@ -1,4 +1,4 @@
-# Member Import System — Design Spec
+# Member Import System - Design Spec
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
@@ -18,7 +18,7 @@ New entity `Member` in `Quartermaster.Data/Members/Member.cs`:
 
 | Field | Type | Source CSV Column | Notes |
 |-------|------|-------------------|-------|
-| Id | Guid | — | PK, generated |
+| Id | Guid | - | PK, generated |
 | MemberNumber | int | USER_Mitgliedsnummer | Unique, upsert key |
 | AdmissionReference | string? | USER_refAufnahme | e.g. "NI-??-3" |
 | FirstName | string | Name2 | |
@@ -49,8 +49,8 @@ New entity `Member` in `Quartermaster.Data/Members/Member.cs`:
 | PostBounce | bool | USER_Postbounce | 0/1 in CSV |
 | ChapterId | Guid? | Resolved | FK to Chapters, resolved from USER_LV/Bezirk/Kreis |
 | ResidenceAdministrativeDivisionId | Guid? | Resolved | FK to AdministrativeDivisions, resolved from PLZ |
-| UserId | Guid? | — | FK to Users, nullable, for future SSO linking |
-| LastImportedAt | DateTime | — | Timestamp of last import that touched this record |
+| UserId | Guid? | - | FK to Users, nullable, for future SSO linking |
+| LastImportedAt | DateTime | - | Timestamp of last import that touched this record |
 
 ### 1.2 MemberImportLog Entity
 
@@ -110,7 +110,7 @@ Extend `ChapterRepository.SupplementDefaults()` to create Bezirk and Kreis level
 | ST | st | Sachsen-Anhalt |
 | SH | sh | Schleswig-Holstein |
 | TH | th | Thüringen |
-| Ausland | — | Abroad |
+| Ausland | - | Abroad |
 
 ## 3. Import Pipeline
 
@@ -126,7 +126,7 @@ Singleton service registered in DI. Core method: `ImportFromFile(string filePath
    a. Parse fields, convert NULLs/empty to null
    b. Resolve chapter: try Kreis ExternalCode (under matching Bezirk/LV parent), then Bezirk, then LV
    c. Resolve ResidenceAdministrativeDivisionId from PLZ via AdministrativeDivisionRepository
-   d. Upsert by MemberNumber — insert or update
+   d. Upsert by MemberNumber - insert or update
    e. Track new/updated/error counts
 5. Return MemberImportLog with stats
 
@@ -155,8 +155,8 @@ ASP.NET Core `BackgroundService` that polls for file changes.
 ### 3.3 New Options
 
 Add to `OptionRepository.SupplementDefaults()`:
-- `member_import.file_path` — String, not overridable, default empty string
-- `member_import.polling_interval_minutes` — Number, not overridable, default "10"
+- `member_import.file_path` - String, not overridable, default empty string
+- `member_import.polling_interval_minutes` - Number, not overridable, default "10"
 
 ## 4. CSV Parsing
 
@@ -197,11 +197,11 @@ Add to `OptionRepository.SupplementDefaults()`:
 - `USER_Postbounce` → PostBounce (0/1 → bool)
 
 **Skipped CSV fields:**
-- `Adresse` — external address ID, not needed
-- `USER_Wahlkreis`, `USER_Stimmkreis` — electoral districts, not used currently
-- `USER_OV` — Ortsverband, below Kreis level, not modeled as chapters yet
-- `USER_WahlkreisBTW`, `USER_WahlkreisLTW` — federal/state electoral districts
-- `USER_BeitragBis2011` — financial data past retention period
+- `Adresse` - external address ID, not needed
+- `USER_Wahlkreis`, `USER_Stimmkreis` - electoral districts, not used currently
+- `USER_OV` - Ortsverband, below Kreis level, not modeled as chapters yet
+- `USER_WahlkreisBTW`, `USER_WahlkreisLTW` - federal/state electoral districts
+- `USER_BeitragBis2011` - financial data past retention period
 
 ## 5. Chapter Resolution During Import
 
@@ -298,7 +298,7 @@ For each member row, resolve the administrative division from postal code:
   - **Membership:** entry date, exit date, admission reference, fees (current, reduced, first), reduced fee end, open fee total
   - **Preferences:** surveys, actions, newsletter, post bounce, voting rights
   - **System:** linked user (shows "not linked" for now), last imported at
-  - **Audit Log:** placeholder — "Coming soon" message
+  - **Audit Log:** placeholder - "Coming soon" message
 
 ### 8.3 Import History (`/Administration/Members/Import`)
 

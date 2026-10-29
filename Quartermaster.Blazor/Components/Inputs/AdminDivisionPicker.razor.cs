@@ -21,7 +21,7 @@ public partial class AdminDivisionPicker {
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
-    /// <summary>Fires alongside <see cref="ValueChanged"/> but with the full selected DTO — needed by callers (multi-pickers) that have to remember the display name.</summary>
+    /// <summary>Fires alongside <see cref="ValueChanged"/> but with the full selected DTO - needed by callers (multi-pickers) that have to remember the display name.</summary>
     [Parameter]
     public EventCallback<AdministrativeDivisionDTO> OnSelect { get; set; }
 

@@ -34,10 +34,10 @@
                 <tbody>
                     <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.FirstName]</th><td>@Selection.FirstName</td></tr>
                     <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@Selection.LastName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Selection.Email ?? "—")</td></tr>
+                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Selection.Email ?? "-")</td></tr>
                     <tr>
                         <th>@I18n[I18nKey.Ui.DueSelectionDetail.MemberNumberLabel]</th>
-                        <td>@(Selection.MemberNumber?.ToString() ?? "—")</td>
+                        <td>@(Selection.MemberNumber?.ToString() ?? "-")</td>
                     </tr>
                 </tbody>
             </table>

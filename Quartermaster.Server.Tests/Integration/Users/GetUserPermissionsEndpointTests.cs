@@ -61,7 +61,7 @@ public class GetUserPermissionsEndpointTests : IntegrationTestBase {
             globalPermissions: new[] { PermissionIdentifier.ViewUsers });
         using var client = AuthenticatedClient(token);
         var response = await client.GetAsync($"/api/users/{Guid.NewGuid()}/permissions");
-        // Endpoint does not 404 — it just returns empty lists.
+        // Endpoint does not 404 - it just returns empty lists.
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         var dto = await response.Content.ReadFromJsonAsync<UserPermissionsDTO>();
         await Assert.That(dto!.GlobalPermissions.Count).IsEqualTo(0);

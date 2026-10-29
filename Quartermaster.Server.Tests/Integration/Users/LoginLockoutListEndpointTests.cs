@@ -66,7 +66,7 @@ public class LoginLockoutListEndpointTests : IntegrationTestBase {
 
     [Test]
     public async Task Ignores_entries_below_lockout_threshold() {
-        // Only 3 failures — below the default 5 threshold
+        // Only 3 failures - below the default 5 threshold
         SeedFailedAttempts("10.0.0.2", "minor@example.com", 3);
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.ViewUsers });

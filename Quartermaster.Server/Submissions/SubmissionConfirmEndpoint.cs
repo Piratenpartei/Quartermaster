@@ -43,7 +43,7 @@ public class SubmissionConfirmEndpoint : EndpointWithoutRequest<SubmissionConfir
             return;
         }
         if (!_pendingRepo.TryClaim(token, now)) {
-            // Lost the race to a concurrent confirm — the other one materialized it.
+            // Lost the race to a concurrent confirm - the other one materialized it.
             await SendResult(SubmissionConfirmStatus.AlreadyConfirmed, ct);
             return;
         }

@@ -27,7 +27,7 @@ public partial class MunicipalityPicker {
     [Parameter]
     public EventCallback<AdministrativeDivisionDTO> OnSelect { get; set; }
 
-    /// <summary>Optional initial name query — runs a search on first render (e.g. the application's city).</summary>
+    /// <summary>Optional initial name query - runs a search on first render (e.g. the application's city).</summary>
     [Parameter]
     public string? InitialNameQuery { get; set; }
 

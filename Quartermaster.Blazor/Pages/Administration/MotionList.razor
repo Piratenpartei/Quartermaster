@@ -60,6 +60,11 @@
                                 <MotionOnBehalfText Reason="motion.OnBehalfOfReason.Value" ChapterName="@motion.OnBehalfOfChapterName" />
                             </div>
                         }
+                        @if (motion.HandedOverToMotionId != null && motion.HandedOverToChapterName != null) {
+                            <div class="small text-body-secondary">
+                                <MotionHandoverText Reason="motion.HandoverReason" ChapterName="@motion.HandedOverToChapterName" />
+                            </div>
+                        }
                     </td>
                     <td>@motion.AuthorName</td>
                     <td>@motion.ChapterName</td>

@@ -10,7 +10,7 @@ namespace Quartermaster.Server.Tests.Infrastructure;
 /// Per-worker MySQL database fixture. Workers are leased per test instance from a bounded
 /// pool (<c>quartermaster_test_w{N}</c>), allowing tests to run in parallel without conflicts.
 /// Each worker owns ONE <see cref="IntegrationTestFactory"/> shared across all tests that
-/// lease that worker — avoids ~500 factory boots per test run (now only ~8).
+/// lease that worker - avoids ~500 factory boots per test run (now only ~8).
 /// </summary>
 public static class TestDatabaseFixture {
     private const int PoolSize = 8;

@@ -63,6 +63,8 @@ public class ChapterRepository {
             .Set(c => c.KeycloakDepartment, chapter.KeycloakDepartment)
             .Set(c => c.ContactEmail, chapter.ContactEmail)
             .Set(c => c.ParentChapterId, chapter.ParentChapterId)
+            .Set(c => c.Level, chapter.Level)
+            .Set(c => c.TakeOverPeriodDays, chapter.TakeOverPeriodDays)
             .Update();
     }
 

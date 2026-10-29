@@ -82,6 +82,9 @@
                                    AllowEmpty="true" EmptyLabel="@I18n[I18nKey.Ui.ChapterDetail.ParentEmptyLabel]"
                                    ExcludeIds="@(new List<Guid> { Id })" />
                 </div>
+                <ChapterLevelFields IdPrefix="chapter-edit" IsRoot="@(string.IsNullOrEmpty(EditParentChapterId))"
+                                    Level="EditLevel" LevelChanged="OnLevelChanged"
+                                    PeriodDays="EditTakeOverPeriodDays" PeriodDaysChanged="OnPeriodDaysChanged" />
                 <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</label>
                     <AdminDivisionChipsInput Value="EditAdministrativeDivisionIds" ValueChanged="OnDivisionsChanged"
@@ -104,8 +107,8 @@
                 <table class="table table-borderless mb-0">
                     <tbody>
                         <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Name]</th><td>@Detail.Chapter.Name</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "—")</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "—" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "-")</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "-" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
                         <tr><th>@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</th><td>@(Detail.Chapter.KeycloakDepartment ?? "---")</td></tr>
                         @if (AuthService.IsAuthenticated) {
                             <tr>
@@ -125,13 +128,15 @@
                                 @if (Detail.ParentChapterId.HasValue) {
                                     <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
                                 } else {
-                                    <span>—</span>
+                                    <span>-</span>
                                 }
                             </td>
                         </tr>
+                        <tr><th>@I18n[I18nKey.Ui.HandUp.LevelLabel]</th><td>@LevelText</td></tr>
+                        <tr><th>@I18n[I18nKey.Ui.HandUp.PeriodLabel]</th><td>@PeriodText</td></tr>
                         <tr>
                             <th>@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</th>
-                            <td>@(Detail.AdministrativeDivisionNames.Count == 0 ? "—" : string.Join(", ", Detail.AdministrativeDivisionNames))</td>
+                            <td>@(Detail.AdministrativeDivisionNames.Count == 0 ? "-" : string.Join(", ", Detail.AdministrativeDivisionNames))</td>
                         </tr>
                     </tbody>
                 </table>

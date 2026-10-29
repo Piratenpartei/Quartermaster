@@ -7,6 +7,6 @@ namespace Quartermaster.Server.Messaging;
 public enum NotificationBodyFormat {
     /// <summary>Plain text / channel-native markup (e.g. Telegram-flavored markdown).</summary>
     Text,
-    /// <summary>Sanitized HTML — markdown source is converted via <see cref="Rendering.MarkdownService"/>.</summary>
+    /// <summary>Sanitized HTML - markdown source is converted via <see cref="Rendering.MarkdownService"/>.</summary>
     Html
 }

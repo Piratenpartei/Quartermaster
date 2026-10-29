@@ -24,7 +24,7 @@ public class MotionHandover {
     private readonly MembershipApplicationRepository _applications;
     private readonly DueSelectionRepository _dueSelections;
     private readonly ForwardingCaseRepository _cases;
-    private readonly ForwardingSettingsRepository _settings;
+    private readonly ApplicationHandling _applicationHandling;
     private readonly OptionRepository _options;
     private readonly ApplicationReduction _reduction;
     private readonly ApplicationReviewService _review;
@@ -32,14 +32,14 @@ public class MotionHandover {
     private readonly List<Action> _pendingNotifications = [];
 
     public MotionHandover(ChapterRepository chapters, MotionRepository motions, MembershipApplicationRepository applications,
-        DueSelectionRepository dueSelections, ForwardingCaseRepository cases, ForwardingSettingsRepository settings, OptionRepository options,
+        DueSelectionRepository dueSelections, ForwardingCaseRepository cases, ApplicationHandling applicationHandling, OptionRepository options,
         ApplicationReduction reduction, ApplicationReviewService review, MotionSubmittedNotifier motionNotifier) {
         _chapters = chapters;
         _motions = motions;
         _applications = applications;
         _dueSelections = dueSelections;
         _cases = cases;
-        _settings = settings;
+        _applicationHandling = applicationHandling;
         _options = options;
         _reduction = reduction;
         _review = review;
@@ -67,17 +67,26 @@ public class MotionHandover {
     /// </summary>
     public int HandOver(Guid chapterId) {
         var chain = _chapters.GetAncestorChain(chapterId);
+        if (chain.Count == 0)
+            return 0;
+
         var count = 0;
+        var mark = chain[0].MarkFor(ChapterMarkPurpose.MemberAdministration);
         foreach (var handover in Plan(chain)) {
-            if (HandOver(handover, chain))
+            if (HandOverMotion(handover.Motion, handover.TargetChapterId, MotionHandoverReason.ChapterMark, new ChapterMarkSkip(chain[0].Id, mark!.Value)))
                 count++;
         }
         return count;
     }
 
     public void SendNotifications() {
-        foreach (var notify in _pendingNotifications)
+        var notifications = _pendingNotifications.ToList();
+        _pendingNotifications.Clear();
+        foreach (var notify in notifications)
             notify();
+    }
+
+    public void DiscardNotifications() {
         _pendingNotifications.Clear();
     }
 
@@ -111,42 +120,44 @@ public class MotionHandover {
     /// <summary>A handover never creates tickets, so a chapter handling applications through a Redmine is passed over as well.</summary>
     private Guid ApplicationHandlingChapter(List<Chapter> chain) {
         for (var i = 1; i < chain.Count - 1; i++) {
-            if (HandlesApplicationsInQuartermaster(chain[i]))
+            if (_applicationHandling.HandlesApplicationsInQuartermaster(chain[i]))
                 return chain[i].Id;
         }
         return chain[^1].Id;
     }
 
-    private bool HandlesApplicationsInQuartermaster(Chapter chapter) {
-        if (chapter.MarkFor(ChapterMarkPurpose.MemberAdministration) != null)
+    /// <summary>
+    /// Runs in the caller's transaction. Closes the motion without action and creates its copy in the target chapter; false when the motion was
+    /// decided meanwhile. A motion handed over before keeps naming the chapter it was originally meant for, otherwise <paramref name="onBehalfOf"/> applies.
+    /// </summary>
+    public bool HandOverMotion(Motion motion, Guid targetChapterId, MotionHandoverReason reason, ChapterMarkSkip? onBehalfOf) {
+        var target = _chapters.Get(targetChapterId);
+        if (target == null)
             return false;
-        return _settings.GetChapter(chapter.Id)?.ApplicationMode == ForwardingMode.Quartermaster;
-    }
-
-    private bool HandOver(PlannedHandover handover, List<Chapter> chain) {
-        var old = handover.Motion;
-        if (!_motions.UpdatePendingApprovalStatusInTransaction(old.Id, MotionApprovalStatus.ClosedWithoutAction))
+        if (!_motions.UpdatePendingApprovalStatusInTransaction(motion.Id, MotionApprovalStatus.ClosedWithoutAction))
             return false;
 
-        var replacement = Motion.Create(handover.TargetChapterId, old.AuthorName, old.AuthorEmail, old.Title, old.TextMarkdown, old.Text,
-            DateTime.UtcNow, old.LinkedMembershipApplicationId, old.LinkedDueSelectionId, OnBehalfOf(old, chain[0]));
-        replacement.IsPublic = old.IsPublic;
+        var replacement = Motion.Create(targetChapterId, motion.AuthorName, motion.AuthorEmail, motion.Title, motion.TextMarkdown, motion.Text,
+            DateTime.UtcNow, motion.LinkedMembershipApplicationId, motion.LinkedDueSelectionId, OnBehalfOf(motion, onBehalfOf));
+        replacement.IsPublic = motion.IsPublic;
         _motions.Create(replacement);
-        _motions.SetHandedOverTo(old.Id, replacement.Id);
+        _motions.SetHandedOverTo(motion.Id, replacement.Id, reason);
 
-        foreach (var forwardingCase in _cases.ListByMotion(old.Id))
-            _cases.PointAtMotion(forwardingCase.Id, replacement.Id, handover.TargetChapterId);
+        foreach (var forwardingCase in _cases.ListByMotion(motion.Id))
+            _cases.PointAtMotion(forwardingCase.Id, replacement.Id, targetChapterId);
 
-        MoveLinkedRecord(replacement, chain.First(c => c.Id == handover.TargetChapterId));
+        MoveLinkedRecord(replacement, target);
         return true;
     }
 
-    /// <summary>A motion handed over before keeps naming the chapter it was originally meant for.</summary>
-    private static ChapterMarkSkip OnBehalfOf(Motion motion, Chapter marked) {
-        var mark = marked.MarkFor(ChapterMarkPurpose.MemberAdministration)!.Value;
-        if (motion.OnBehalfOfChapterId != null)
-            return new ChapterMarkSkip(motion.OnBehalfOfChapterId.Value, motion.OnBehalfOfReason ?? mark);
-        return new ChapterMarkSkip(marked.Id, mark);
+    private static ChapterMarkSkip? OnBehalfOf(Motion motion, ChapterMarkSkip? onBehalfOf) {
+        if (motion.OnBehalfOfChapterId == null)
+            return onBehalfOf;
+
+        var reason = motion.OnBehalfOfReason ?? onBehalfOf?.Reason;
+        if (reason == null)
+            return onBehalfOf;
+        return new ChapterMarkSkip(motion.OnBehalfOfChapterId.Value, reason.Value);
     }
 
     private void MoveLinkedRecord(Motion replacement, Chapter target) {

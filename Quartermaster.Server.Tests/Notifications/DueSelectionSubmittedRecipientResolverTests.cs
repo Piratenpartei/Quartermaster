@@ -10,7 +10,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 
 namespace Quartermaster.Server.Tests.Notifications;
 
-/// <summary>Smoke tests — bulk of resolver behavior is covered by <c>MotionSubmittedRecipientResolverTests</c> via the shared base.</summary>
+/// <summary>Smoke tests - bulk of resolver behavior is covered by <c>MotionSubmittedRecipientResolverTests</c> via the shared base.</summary>
 public class DueSelectionSubmittedRecipientResolverTests : RepositoryTestBase {
     private TestDataBuilder _builder = default!;
     private DueSelectionSubmittedRecipientResolver _resolver = default!;

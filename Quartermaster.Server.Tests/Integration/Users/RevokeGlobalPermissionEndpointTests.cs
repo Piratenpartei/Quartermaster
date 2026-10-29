@@ -74,7 +74,7 @@ public class RevokeGlobalPermissionEndpointTests : IntegrationTestBase {
 
     [Test]
     public async Task Returns_ok_when_user_did_not_have_permission() {
-        // Idempotent revoke — permission isn't there anyway
+        // Idempotent revoke - permission isn't there anyway
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.CreateUser });
         Builder.SeedPermission(PermissionIdentifier.ViewUsers, "View Users", global: true);

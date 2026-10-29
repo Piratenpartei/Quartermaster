@@ -24,7 +24,7 @@ public static class Program {
         // I18n: fetch the German translation file from /i18n/de.json (served by
         // the server as a static asset from wwwroot). Single source of truth for
         // both server and client. If the fetch fails (offline, server down) the
-        // app still boots — the I18nService falls back to raw keys for any
+        // app still boots - the I18nService falls back to raw keys for any
         // missing translation.
         using (var bootHttp = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }) {
             var json = "";

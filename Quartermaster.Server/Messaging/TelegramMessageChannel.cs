@@ -15,7 +15,7 @@ namespace Quartermaster.Server.Messaging;
 
 /// <summary>
 /// Outbound Telegram delivery via <see cref="ITelegramBotClient.SendMessage"/>.
-/// Synchronous send — writes a Pending <see cref="NotificationLog"/> row and updates
+/// Synchronous send - writes a Pending <see cref="NotificationLog"/> row and updates
 /// to Sent/Failed inline. <see cref="ChannelMessage.ChannelAddress"/> is the chat id
 /// (numeric for DMs, <c>@channelname</c> for public channels).
 /// </summary>

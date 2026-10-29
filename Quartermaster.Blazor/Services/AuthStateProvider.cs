@@ -21,7 +21,7 @@ public class AuthStateProvider {
     /// <summary>
     /// Completes when <see cref="MarkInitialized"/> is first called. <c>CsrfDelegatingHandler</c>
     /// awaits this to avoid racing the first <c>/api/users/session</c> on boot. Fires BEFORE the
-    /// session response arrives — do NOT use to gate reads of <see cref="CurrentUser"/>.
+    /// session response arrives - do NOT use to gate reads of <see cref="CurrentUser"/>.
     /// </summary>
     public Task WaitForInitialization => _initTcs.Task;
 

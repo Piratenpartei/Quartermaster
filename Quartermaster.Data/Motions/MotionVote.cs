@@ -13,7 +13,7 @@ public class MotionVote {
 
     public Guid MotionId { get; set; }
 
-    /// <summary>The officer (member) whose vote this is — a motion is decided by officers, not login accounts.</summary>
+    /// <summary>The officer (member) whose vote this is - a motion is decided by officers, not login accounts.</summary>
     public Guid MemberId { get; set; }
 
     /// <summary>The user who recorded the vote (the officer themselves, or a chair/admin acting for them). Always set.</summary>

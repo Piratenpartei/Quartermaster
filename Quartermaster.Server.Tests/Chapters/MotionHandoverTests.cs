@@ -113,6 +113,19 @@ public class MotionHandoverTests : IntegrationTestBase {
     }
 
     [Test]
+    public async Task Mark_handover_stores_reason() {
+        var chain = Builder.SeedChapterHierarchy("Bund", "Land", "Kreis");
+        var kreis = chain[2];
+        var application = Builder.SeedMembershipApplication(kreis.Id);
+        var old = SeedMotion(kreis.Id, applicationId: application.Id);
+
+        MarkAndHandOver(kreis.Id, noMemberAdministration: true, unableToAct: false);
+
+        await Assert.That(Reload(old.Id).HandoverReason).IsEqualTo(MotionHandoverReason.ChapterMark);
+        await Assert.That(Reload(Replacement(old).Id).HandoverReason).IsNull();
+    }
+
+    [Test]
     public async Task Votes_do_not_carry_over() {
         var chain = Builder.SeedChapterHierarchy("Bund", "Land", "Kreis");
         var kreis = chain[2];

@@ -14,7 +14,7 @@ public partial class AdminDivisionChipsInput {
     [Parameter]
     public EventCallback<List<Guid>> ValueChanged { get; set; }
 
-    /// <summary>Display names parallel to <see cref="Value"/> for initial render — needed because no by-id endpoint exists, so the parent must supply the names it already knows.</summary>
+    /// <summary>Display names parallel to <see cref="Value"/> for initial render - needed because no by-id endpoint exists, so the parent must supply the names it already knows.</summary>
     [Parameter]
     public List<string> InitialNames { get; set; } = [];
 

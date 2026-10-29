@@ -152,7 +152,7 @@ public class MemberImportService {
 
                     if (existing != null) {
                         member.Id = existing.Id;
-                        // Preserve SSO link — the CSV doesn't know about local user accounts.
+                        // Preserve SSO link - the CSV doesn't know about local user accounts.
                         member.UserId = existing.UserId;
 
                         if (existing.UserId.HasValue && existing.Email != member.Email && !string.IsNullOrEmpty(member.Email))
@@ -413,7 +413,7 @@ public class MemberImportService {
         if (lv != null && chaptersByExtCode.TryGetValue(lv, out var lvChapters))
             return lvChapters.FirstOrDefault()?.Id;
 
-        // Fallback: every member belongs to *some* chapter — if the CSV didn't identify
+        // Fallback: every member belongs to *some* chapter - if the CSV didn't identify
         // a state/district/county, attribute them to the federal root (Direktmitglied).
         return allChapters.FirstOrDefault(c => c.ParentChapterId == null)?.Id;
     }

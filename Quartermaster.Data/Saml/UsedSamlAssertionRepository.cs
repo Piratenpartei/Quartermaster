@@ -13,7 +13,7 @@ public class UsedSamlAssertionRepository {
 
     /// <summary>
     /// Records the AssertionID as consumed. Returns <c>false</c> when the AssertionID has
-    /// already been seen — the caller must reject the SAML response as a replay. The unique
+    /// already been seen - the caller must reject the SAML response as a replay. The unique
     /// constraint on <c>AssertionId</c> remains the integrity backstop if two parallel
     /// requests race past the lookup. Lazily prunes rows past <see cref="UsedSamlAssertion.ExpiresAt"/>.
     /// </summary>

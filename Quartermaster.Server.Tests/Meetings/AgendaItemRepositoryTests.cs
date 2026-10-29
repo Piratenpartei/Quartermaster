@@ -48,7 +48,7 @@ public class AgendaItemRepositoryTests : RepositoryTestBase {
         await Assert.That(children[0].SortOrder).IsEqualTo(0);
         await Assert.That(children[1].SortOrder).IsEqualTo(1);
 
-        // Root item's SortOrder is also 0 — its sibling namespace is separate.
+        // Root item's SortOrder is also 0 - its sibling namespace is separate.
         await Assert.That(root.SortOrder).IsEqualTo(0);
     }
 

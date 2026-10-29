@@ -8,7 +8,7 @@ namespace Quartermaster.Server.Notifications;
 /// / role joins yield the right user set.
 /// </summary>
 public interface IRecipientResolver {
-    /// <summary>Trigger this resolver handles — must match a constant in <see cref="NotificationTriggers"/>.</summary>
+    /// <summary>Trigger this resolver handles - must match a constant in <see cref="NotificationTriggers"/>.</summary>
     string TriggerId { get; }
 
     /// <summary>Resolve recipients for the given payload. Empty list = no one to notify.</summary>

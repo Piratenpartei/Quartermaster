@@ -20,7 +20,7 @@ using Telegram.Bot;
 namespace Quartermaster.Server.Tests.Integration.Notifications;
 
 /// <summary>
-/// Phase 4 — verifies the dispatcher fans out to telegram once the channel is configured
+/// Phase 4 - verifies the dispatcher fans out to telegram once the channel is configured
 /// AND the recipient is linked AND opted in. Uses a per-test host with a stub
 /// <see cref="TelegramBotClientFactory"/> so we never call api.telegram.org.
 /// </summary>
@@ -173,7 +173,7 @@ public class MultiChannelDispatchTests : IntegrationTestBase {
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
         Db.Users.Where(u => u.Id == user.Id).Set(u => u.TelegramChatId, "555").Update();
         Db.Insert(new SystemOption { Identifier = "messaging.telegram.bot_token", Value = "12345:ABC" });
-        // Default for telegram is OFF — no override needed.
+        // Default for telegram is OFF - no override needed.
 
         using var host = HostWithStubBot();
         using var client = host.CreateClient();

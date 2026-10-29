@@ -44,9 +44,9 @@
                             @if (session.IsCurrent) {
                                 <span class="badge bg-primary me-2">@I18n[I18nKey.Ui.UserSessions.ThisSessionBadge]</span>
                             }
-                            <span class="text-secondary">@(string.IsNullOrEmpty(session.IssuedUserAgent) ? "—" : session.IssuedUserAgent)</span>
+                            <span class="text-secondary">@(string.IsNullOrEmpty(session.IssuedUserAgent) ? "-" : session.IssuedUserAgent)</span>
                         </td>
-                        <td><code>@(string.IsNullOrEmpty(session.IssuedIp) ? "—" : session.IssuedIp)</code></td>
+                        <td><code>@(string.IsNullOrEmpty(session.IssuedIp) ? "-" : session.IssuedIp)</code></td>
                         <td><LocalTime Value="session.IssuedAt" /></td>
                         <td><LocalTime Value="session.ExpiresAt" /></td>
                         <td class="text-end">

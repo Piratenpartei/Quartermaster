@@ -1,4 +1,4 @@
-# Meeting System — Design & Implementation Plan
+# Meeting System - Design & Implementation Plan
 
 **Goal:** Add a Meeting entity that organizes chapter business into an ordered agenda. Each agenda item optionally references a Motion (which is voted on live during the meeting). The system supports minute-taking during the meeting, then generates a protocol document (Markdown/PDF) from the completed agenda.
 
@@ -16,7 +16,7 @@
 
 ### Entities (new)
 
-**`Meeting`** — `Quartermaster.Data/Meetings/Meeting.cs`
+**`Meeting`** - `Quartermaster.Data/Meetings/Meeting.cs`
 
 | Field | Type | Notes |
 |---|---|---|
@@ -35,12 +35,12 @@
 | `DeletedAt` | `DateTime?` | soft-delete (same pattern as Event/Motion) |
 
 **`MeetingVisibility` enum:**
-- `Public = 0` — anyone (including anonymous) can read the meeting + agenda + protocol
-- `Private = 1` — only **officers or delegates of the meeting's exact chapter** can read it
+- `Public = 0` - anyone (including anonymous) can read the meeting + agenda + protocol
+- `Private = 1` - only **officers or delegates of the meeting's exact chapter** can read it
 
-Note: Private visibility is stricter than the general `meetings_view` permission. Even a user who would normally inherit `meetings_view` from a parent chapter cannot see a private meeting of a child chapter — they must hold a direct officer-or-delegate role assignment on `meeting.ChapterId` itself. See §8 for the access-control rule.
+Note: Private visibility is stricter than the general `meetings_view` permission. Even a user who would normally inherit `meetings_view` from a parent chapter cannot see a private meeting of a child chapter - they must hold a direct officer-or-delegate role assignment on `meeting.ChapterId` itself. See §8 for the access-control rule.
 
-**`AgendaItem`** — `Quartermaster.Data/Meetings/AgendaItem.cs`
+**`AgendaItem`** - `Quartermaster.Data/Meetings/AgendaItem.cs`
 
 | Field | Type | Notes |
 |---|---|---|
@@ -48,7 +48,7 @@ Note: Private visibility is stricter than the general `meetings_view` permission
 | `MeetingId` | `Guid` FK | cascade delete with meeting |
 | `ParentId` | `Guid?` FK | self-referencing; null = root item; non-null = subitem under parent |
 | `SortOrder` | `int` | position among siblings (scoped within parent), reorderable |
-| `Title` | `string` | e.g. "TOP 3 — Beschluss Mitgliedsbeiträge 2026" |
+| `Title` | `string` | e.g. "TOP 3 - Beschluss Mitgliedsbeiträge 2026" |
 | `ItemType` | `AgendaItemType` enum | Discussion / Motion / Protocol / Break / Information |
 | `MotionId` | `Guid?` FK | nullable; required when `ItemType == Motion` |
 | `Notes` | `string?` | markdown; minute-taker writes during meeting |
@@ -59,21 +59,21 @@ Note: Private visibility is stricter than the general `meetings_view` permission
 **Hierarchy rules:**
 - Items form a tree per meeting: root items have `ParentId = null`, subitems point at a parent in the same meeting.
 - `SortOrder` is scoped to siblings (all items sharing the same `ParentId` within a meeting).
-- Hierarchical numbering ("1 / 1.1 / 1.2 / 2 / 2.1") is computed **client-side** from the tree structure — not stored.
+- Hierarchical numbering ("1 / 1.1 / 1.2 / 2 / 2.1") is computed **client-side** from the tree structure - not stored.
 - Validators enforce: parent (if set) must belong to the same meeting, no cycles, max depth 3 (TOP → Unterpunkt → Detailpunkt is enough for board meetings).
 - Moving items between parents uses a dedicated "Move" endpoint (see §4). Reorder within siblings uses the swap pattern.
 - On parent deletion: children are also deleted (cascade via DB FK).
 
 **`AgendaItemType` enum:**
-- `Discussion = 0` — generic discussion point, no vote
-- `Motion = 1` — discuss + vote on a Motion; `MotionId` FK is required
-- `Protocol = 2` — approving the previous meeting's protocol
-- `Break = 3` — scheduled break
-- `Information = 4` — announcements / reports, no decision
+- `Discussion = 0` - generic discussion point, no vote
+- `Motion = 1` - discuss + vote on a Motion; `MotionId` FK is required
+- `Protocol = 2` - approving the previous meeting's protocol
+- `Break = 3` - scheduled break
+- `Information = 4` - announcements / reports, no decision
 
 ### Changes to existing entities
 
-**`MotionVote`** — add `MeetingId` nullable FK.
+**`MotionVote`** - add `MeetingId` nullable FK.
 
 | Field | Type | Notes |
 |---|---|---|
@@ -134,7 +134,7 @@ NotStarted ──→ InProgress ──→ Completed
 
 When an agenda item of type `Motion` is `InProgress`:
 - Officers vote via the existing motion-vote endpoint, but requests include `MeetingId`
-- The existing `TryAutoResolve` logic runs after each vote — but during a meeting, resolution is usually a human decision after discussion. We'll add a "Close vote" action on the agenda item that:
+- The existing `TryAutoResolve` logic runs after each vote - but during a meeting, resolution is usually a human decision after discussion. We'll add a "Close vote" action on the agenda item that:
   - Tallies current votes for this motion
   - Sets `Motion.ApprovalStatus` based on majority (or explicitly chosen outcome)
   - Sets `Motion.ResolvedAt = now`
@@ -150,14 +150,14 @@ When an agenda item of type `Motion` is `InProgress`:
 2. FK `Meetings.ChapterId` → `Chapters.Id` (RESTRICT)
 3. `Create.Table("AgendaItems")` with columns above + index on `MeetingId, ParentId, SortOrder`
 4. FK `AgendaItems.MeetingId` → `Meetings.Id` (CASCADE)
-5. FK `AgendaItems.ParentId` → `AgendaItems.Id` (CASCADE — deleting a parent deletes its subtree)
-6. FK `AgendaItems.MotionId` → `Motions.Id` (SET NULL — motion may be deleted; agenda item keeps its notes but loses the link)
+5. FK `AgendaItems.ParentId` → `AgendaItems.Id` (CASCADE - deleting a parent deletes its subtree)
+6. FK `AgendaItems.MotionId` → `Motions.Id` (SET NULL - motion may be deleted; agenda item keeps its notes but loses the link)
 7. `Alter.Table("MotionVotes").AddColumn("MeetingId")` nullable Guid
-8. FK `MotionVotes.MeetingId` → `Meetings.Id` (SET NULL — if meeting is deleted, vote record is preserved)
+8. FK `MotionVotes.MeetingId` → `Meetings.Id` (SET NULL - if meeting is deleted, vote record is preserved)
 9. Seed permissions: `meetings_view`, `meetings_create`, `meetings_edit`, `meetings_delete` (chapter-scoped)
 10. Seed new system role: `general_chapter_delegate` (identifier `GeneralChapterDelegate`). Same `DefaultOfficerPermissions` set seeded as role permissions. Role is marked `IsSystem = true` so it can't be edited/deleted via the UI.
 11. Add column `Role.InheritsToChildren` (bool, default `true`). Set to `false` for the `general_chapter_delegate` seeded role, `true` for `chapter_officer`. Controls whether permissions granted via this role are inherited down the chapter tree (see §8).
-12. Extend `PermissionIdentifier.DefaultOfficerPermissions` with `meetings_view`, `meetings_edit` (but NOT `meetings_delete` — scope that to senior officers). Both the officer and delegate system roles get these.
+12. Extend `PermissionIdentifier.DefaultOfficerPermissions` with `meetings_view`, `meetings_edit` (but NOT `meetings_delete` - scope that to senior officers). Both the officer and delegate system roles get these.
 
 Migration notes:
 - `Role.InheritsToChildren` defaults to `true`, preserving existing behavior for custom roles; seeded system roles get explicit values (officer=true, delegate=false).
@@ -170,26 +170,26 @@ Migration notes:
 All endpoints under `Quartermaster.Server/Meetings/`. Standard auth + CSRF. Permission names from step 3.
 
 ### Meeting CRUD
-- `GET /api/meetings` → `MeetingListResponse` — paginated, filter by `ChapterId`, `Status`, date range; chapter-scoped via `ViewMeetings`
-- `GET /api/meetings/{Id}` → `MeetingDetailDTO` (includes full agenda) — chapter-scoped via `ViewMeetings`
-- `POST /api/meetings` → creates Draft meeting — `CreateMeetings`
-- `PUT /api/meetings/{Id}` → updates Title/Location/Description/MeetingDate — `EditMeetings`
-- `DELETE /api/meetings/{Id}` → soft-delete — `DeleteMeetings`
-- `PUT /api/meetings/{Id}/status` → transition matrix — `EditMeetings` (archive uses `DeleteMeetings`, mirror events pattern)
+- `GET /api/meetings` → `MeetingListResponse` - paginated, filter by `ChapterId`, `Status`, date range; chapter-scoped via `ViewMeetings`
+- `GET /api/meetings/{Id}` → `MeetingDetailDTO` (includes full agenda) - chapter-scoped via `ViewMeetings`
+- `POST /api/meetings` → creates Draft meeting - `CreateMeetings`
+- `PUT /api/meetings/{Id}` → updates Title/Location/Description/MeetingDate - `EditMeetings`
+- `DELETE /api/meetings/{Id}` → soft-delete - `DeleteMeetings`
+- `PUT /api/meetings/{Id}/status` → transition matrix - `EditMeetings` (archive uses `DeleteMeetings`, mirror events pattern)
 
 ### Agenda items
-- `POST /api/meetings/{MeetingId}/agenda` — append new agenda item; body includes optional `ParentId` for subitems
-- `PUT /api/meetings/{MeetingId}/agenda/{ItemId}` — update title/type/motion-link/notes
-- `DELETE /api/meetings/{MeetingId}/agenda/{ItemId}` — hard-delete if meeting is Draft/Scheduled (cascades to children), block if Completed+
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/reorder` — body `{ Direction: -1|+1 }`; reorders within siblings (same ParentId) only
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/move` — body `{ NewParentId: Guid? }`; reparents an item (e.g. promote subitem to root, or nest under different parent). Validates no-cycle, same-meeting, depth-limit.
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/start` — sets `StartedAt`, auto-completes any previous in-progress item
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/complete` — sets `CompletedAt`, freezes Notes/Resolution
-- `PUT /api/meetings/{MeetingId}/agenda/{ItemId}/notes` — live-update notes during meeting (separate from full update to allow faster auth path)
+- `POST /api/meetings/{MeetingId}/agenda` - append new agenda item; body includes optional `ParentId` for subitems
+- `PUT /api/meetings/{MeetingId}/agenda/{ItemId}` - update title/type/motion-link/notes
+- `DELETE /api/meetings/{MeetingId}/agenda/{ItemId}` - hard-delete if meeting is Draft/Scheduled (cascades to children), block if Completed+
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/reorder` - body `{ Direction: -1|+1 }`; reorders within siblings (same ParentId) only
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/move` - body `{ NewParentId: Guid? }`; reparents an item (e.g. promote subitem to root, or nest under different parent). Validates no-cycle, same-meeting, depth-limit.
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/start` - sets `StartedAt`, auto-completes any previous in-progress item
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/complete` - sets `CompletedAt`, freezes Notes/Resolution
+- `PUT /api/meetings/{MeetingId}/agenda/{ItemId}/notes` - live-update notes during meeting (separate from full update to allow faster auth path)
 
 ### Voting (extends existing motion-vote flow)
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/vote` — cast vote on the agenda item's linked motion; body `{ UserId, Vote }`. Requires the item to be `InProgress` AND the authenticated user to hold `VoteMotions` on the meeting's chapter. Records vote with `MeetingId` set. Delegation rules identical to `MotionVoteEndpoint`.
-- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/close-vote` — closes voting, sets motion status from tally, auto-fills agenda item Resolution (editable). Requires `EditMeetings`.
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/vote` - cast vote on the agenda item's linked motion; body `{ UserId, Vote }`. Requires the item to be `InProgress` AND the authenticated user to hold `VoteMotions` on the meeting's chapter. Records vote with `MeetingId` set. Delegation rules identical to `MotionVoteEndpoint`.
+- `POST /api/meetings/{MeetingId}/agenda/{ItemId}/close-vote` - closes voting, sets motion status from tally, auto-fills agenda item Resolution (editable). Requires `EditMeetings`.
 
 ### Protocol export
 - `GET /api/meetings/{Id}/protocol?format=md` → markdown text (on-demand regenerated from current data)
@@ -208,25 +208,25 @@ Only meetings in status Completed or Archived expose the export endpoint by defa
 
 All under `Quartermaster.Api/Meetings/`.
 
-- `MeetingDTO` — Id, ChapterId, ChapterName, Title, MeetingDate, Status, Visibility, Location, AgendaItemCount
-- `MeetingDetailDTO` — MeetingDTO fields + Description, StartedAt, CompletedAt, ArchivedPdfPath, AgendaItems list (flat list, frontend reconstructs tree from ParentId)
-- `AgendaItemDTO` — Id, ParentId, SortOrder, Title, ItemType, MotionId, MotionTitle (lookup), Notes, Resolution, StartedAt, CompletedAt, (for Motion items: MotionApprovalStatus, vote counts inline)
-- `MeetingCreateRequest` — ChapterId, Title, Visibility, MeetingDate?, Location?, Description?
-- `MeetingUpdateRequest` — as above minus ChapterId (immutable after creation)
-- `MeetingStatusUpdateRequest` — Id, Status
-- `MeetingListRequest : IPaginatedRequest` — Page, PageSize, ChapterId?, Status?, Visibility?, DateFrom?, DateTo?
-- `AgendaItemCreateRequest` — MeetingId, ParentId?, Title, ItemType, MotionId?
-- `AgendaItemUpdateRequest` — MeetingId, ItemId, Title?, ItemType?, MotionId?, Notes?, Resolution?
-- `AgendaItemNotesRequest` — Notes (just the field, for fast partial updates during meeting)
-- `AgendaItemMoveRequest` — MeetingId, ItemId, NewParentId?
-- `AgendaItemVoteRequest` — MeetingId, ItemId, UserId, Vote (reuses existing `VoteType` enum)
-- `ProtocolExportResponse` — Content (text), Format ("md"|"html")
+- `MeetingDTO` - Id, ChapterId, ChapterName, Title, MeetingDate, Status, Visibility, Location, AgendaItemCount
+- `MeetingDetailDTO` - MeetingDTO fields + Description, StartedAt, CompletedAt, ArchivedPdfPath, AgendaItems list (flat list, frontend reconstructs tree from ParentId)
+- `AgendaItemDTO` - Id, ParentId, SortOrder, Title, ItemType, MotionId, MotionTitle (lookup), Notes, Resolution, StartedAt, CompletedAt, (for Motion items: MotionApprovalStatus, vote counts inline)
+- `MeetingCreateRequest` - ChapterId, Title, Visibility, MeetingDate?, Location?, Description?
+- `MeetingUpdateRequest` - as above minus ChapterId (immutable after creation)
+- `MeetingStatusUpdateRequest` - Id, Status
+- `MeetingListRequest : IPaginatedRequest` - Page, PageSize, ChapterId?, Status?, Visibility?, DateFrom?, DateTo?
+- `AgendaItemCreateRequest` - MeetingId, ParentId?, Title, ItemType, MotionId?
+- `AgendaItemUpdateRequest` - MeetingId, ItemId, Title?, ItemType?, MotionId?, Notes?, Resolution?
+- `AgendaItemNotesRequest` - Notes (just the field, for fast partial updates during meeting)
+- `AgendaItemMoveRequest` - MeetingId, ItemId, NewParentId?
+- `AgendaItemVoteRequest` - MeetingId, ItemId, UserId, Vote (reuses existing `VoteType` enum)
+- `ProtocolExportResponse` - Content (text), Format ("md"|"html")
 
 ### Validators
 One validator per request under `Quartermaster.Server/Meetings/Validators/`:
 - Title max length 200, required
 - Location max 500, optional
-- Description max 10000, markdown-sanitized server-side (Standard profile — same as events)
+- Description max 10000, markdown-sanitized server-side (Standard profile - same as events)
 - ItemType enum range check
 - Visibility enum range check
 - When `ItemType == Motion`, `MotionId` required AND must belong to the same chapter as the meeting
@@ -242,7 +242,7 @@ One validator per request under `Quartermaster.Server/Meetings/Validators/`:
 
 ### Pages
 
-**`/Administration/Meetings` — Meeting list** (`MeetingList.razor` + `.razor.cs`)
+**`/Administration/Meetings` - Meeting list** (`MeetingList.razor` + `.razor.cs`)
 - Status filter tabs: All / Active (Draft+Scheduled+InProgress) / Completed / Archived
 - Chapter filter (`ChapterPicker`) for users with access to multiple chapters
 - Date range filter
@@ -250,12 +250,12 @@ One validator per request under `Quartermaster.Server/Meetings/Validators/`:
 - "Neue Sitzung" button (perm-gated on `meetings_create`)
 - Pagination via existing `Pagination` component
 
-**`/Administration/Meetings/Create` — New meeting form** (`MeetingCreate.razor`)
+**`/Administration/Meetings/Create` - New meeting form** (`MeetingCreate.razor`)
 - Simple form: Chapter (picker), Title, Date/time, Location, **Visibility** (radio: Öffentlich / Privat), Description (MarkdownEditor)
 - Default Visibility = Private for safety
 - "Erstellen und Agenda bearbeiten" → creates then navigates to detail page
 
-**`/Administration/Meetings/{Id}` — Meeting detail** (`MeetingDetail.razor`)
+**`/Administration/Meetings/{Id}` - Meeting detail** (`MeetingDetail.razor`)
 - Header with title, chapter, date/location, status badge, **visibility badge** (Öffentlich/Privat), transition buttons
 - Tabs: **Agenda** (primary) / **Protokoll** (read-only rendered view) / **Audit-Log**
 - Agenda tab:
@@ -274,12 +274,12 @@ One validator per request under `Quartermaster.Server/Meetings/Validators/`:
   - "TOP abschließen" button → marks complete, advances to next item
 
 **Agenda editor components** (reusable, under `Components/`):
-- `AgendaItemEditor.razor` — renders one item in edit mode: title input, type selector, conditional motion picker (new component, see below), + "Unterpunkt hinzufügen" button
-- `AgendaItemTree.razor` — recursive component that renders an agenda tree level with nested children indented
-- `MotionPicker.razor` — searchable dropdown of open motions from the same chapter; also offers "+ Neuen Antrag anlegen" opening a modal with the motion create form inline
-- `AgendaProgressRail.razor` — flattened tree walk with hierarchical numbering and progress icons
+- `AgendaItemEditor.razor` - renders one item in edit mode: title input, type selector, conditional motion picker (new component, see below), + "Unterpunkt hinzufügen" button
+- `AgendaItemTree.razor` - recursive component that renders an agenda tree level with nested children indented
+- `MotionPicker.razor` - searchable dropdown of open motions from the same chapter; also offers "+ Neuen Antrag anlegen" opening a modal with the motion create form inline
+- `AgendaProgressRail.razor` - flattened tree walk with hierarchical numbering and progress icons
 
-**`/Administration/Meetings/{Id}/Protocol` — Protocol view** (`MeetingProtocol.razor`)
+**`/Administration/Meetings/{Id}/Protocol` - Protocol view** (`MeetingProtocol.razor`)
 - Rendered protocol (Markdown → HTML via existing `MarkdownService.ToHtml` with Standard profile)
 - "Als Markdown herunterladen" button → hits `?format=md`
 - "Als PDF herunterladen" button → hits `?format=pdf`
@@ -308,7 +308,7 @@ One validator per request under `Quartermaster.Server/Meetings/Validators/`:
 
 ## Tagesordnung
 
-### TOP 1 — {AgendaItem.Title}
+### TOP 1 - {AgendaItem.Title}
 *({ItemType label})*
 
 {AgendaItem.Notes}
@@ -319,22 +319,22 @@ One validator per request under `Quartermaster.Server/Meetings/Validators/`:
 
 ---
 
-### TOP 2 — ...
+### TOP 2 - ...
 ```
 
 **Markdown generation:** `Quartermaster.Server/Meetings/ProtocolRenderer.cs`
-- Pure C# — takes `MeetingDetailDTO` + related chapter/motion data → returns markdown string
+- Pure C# - takes `MeetingDetailDTO` + related chapter/motion data → returns markdown string
 - Uses Fluid templates (already in the codebase for email) for the template string, so formatting is controlled by an Option setting and can be customized per-chapter
 - Walks the agenda tree recursively (children rendered under their parents with indented numbering)
 - Option: `meetings.protocol.template_md` (global, chapter-override supported later)
 
 **HTML preview:** markdown → `MarkdownService.ToHtml(rendered, SanitizationProfile.Standard)`.
 
-**PDF generation:** **QuestPDF** (chosen — more predictable output than Playwright-print and no browser-process overhead).
+**PDF generation:** **QuestPDF** (chosen - more predictable output than Playwright-print and no browser-process overhead).
 - Service: `Quartermaster.Server/Meetings/ProtocolPdfRenderer.cs`
 - Builds a `Document` fluently from `MeetingDetailDTO`: title page, metadata block, agenda tree with nested sections, per-motion vote tables
 - Runs in-process, no external dependencies at runtime
-- License: QuestPDF Community (MIT) is free for companies under €1M revenue — add a LICENSE note in the project README so future maintainers are aware
+- License: QuestPDF Community (MIT) is free for companies under €1M revenue - add a LICENSE note in the project README so future maintainers are aware
 - Add `QuestPDF` NuGet package to `Quartermaster.Server.csproj`; call `QuestPDF.Settings.License = LicenseType.Community;` in `Program.ConfigureServices`
 
 **Archive-time snapshot:**
@@ -370,7 +370,7 @@ The access rule differs by meeting **Visibility**:
 - List + Detail + Protocol: anonymous access allowed. (The list endpoint auto-filters to Public for anonymous callers.)
 
 **Private meetings:**
-- List + Detail + Protocol: require the user to hold a **direct** `chapter_officer` or `general_chapter_delegate` role assignment on `meeting.ChapterId` — no inheritance. Even if the user would normally inherit `meetings_view` from a parent chapter, private meetings stay hidden unless they're specifically an officer/delegate of that exact chapter.
+- List + Detail + Protocol: require the user to hold a **direct** `chapter_officer` or `general_chapter_delegate` role assignment on `meeting.ChapterId` - no inheritance. Even if the user would normally inherit `meetings_view` from a parent chapter, private meetings stay hidden unless they're specifically an officer/delegate of that exact chapter.
 
 **Mutating endpoints (regardless of visibility):**
 - Create: `CreateMeetings` on the target chapter
@@ -393,8 +393,8 @@ New behavior: inheritance only applies to permissions granted via roles where `I
 
 Implementation lives in `UserChapterPermissionRepository`:
 - Split `GetChapterPermissionsViaRoles(userId, chapterId)` into two paths internally:
-  - **Direct** lookup (all role assignments to `chapterId` regardless of `InheritsToChildren`) — used for exact-chapter checks
-  - **Inheritable** lookup (only role assignments where the role has `InheritsToChildren=true`) — used by `HasPermissionWithInheritance` when walking ancestors
+  - **Direct** lookup (all role assignments to `chapterId` regardless of `InheritsToChildren`) - used for exact-chapter checks
+  - **Inheritable** lookup (only role assignments where the role has `InheritsToChildren=true`) - used by `HasPermissionWithInheritance` when walking ancestors
 - Document the distinction in a code comment near the method, with a reference to this plan
 
 ---
@@ -424,11 +424,11 @@ Meeting detail page gets an "Audit-Log" tab (same pattern as EventDetail / Membe
 - `RoleInheritanceFlagTests`: permissions from `InheritsToChildren=false` role don't propagate via `HasPermissionWithInheritance`; permissions from `InheritsToChildren=true` do
 
 ### Integration tests (`Quartermaster.Server.Tests/Integration/Meetings/`)
-One test class per endpoint, 4–6 tests each (matching existing endpoint test pattern):
+One test class per endpoint, 4-6 tests each (matching existing endpoint test pattern):
 - `MeetingListEndpointTests`, `MeetingDetailEndpointTests`, `MeetingCreateEndpointTests`, `MeetingUpdateEndpointTests`, `MeetingDeleteEndpointTests`, `MeetingStatusUpdateEndpointTests`
 - `AgendaItemAddEndpointTests`, `AgendaItemUpdateEndpointTests`, `AgendaItemDeleteEndpointTests`, `AgendaItemReorderEndpointTests`, `AgendaItemStartEndpointTests`, `AgendaItemCompleteEndpointTests`, `AgendaItemNotesEndpointTests`
 - `AgendaItemVoteEndpointTests`, `AgendaItemCloseVoteEndpointTests`
-- `MeetingProtocolEndpointTests` — exports each format, checks content, permissions, draft-mode
+- `MeetingProtocolEndpointTests` - exports each format, checks content, permissions, draft-mode
 
 Behaviors to pin down specifically:
 - Agenda items of type Motion MUST have a MotionId
@@ -464,7 +464,7 @@ One end-to-end flow test:
 
 Sequential; each phase ends at a point where the system is demoable.
 
-### Phase 0 — Role inheritance flag + delegate role
+### Phase 0 - Role inheritance flag + delegate role
 (prerequisite; touches existing auth code)
 - [x] Add `Role.InheritsToChildren` column (migration step included in M003 below)
 - [x] Update `UserChapterPermissionRepository` to distinguish direct vs inheritable role lookups
@@ -472,7 +472,7 @@ Sequential; each phase ends at a point where the system is demoable.
 - [x] Add `PermissionIdentifier.SystemRole.GeneralChapterDelegate` constant
 - [x] `RoleInheritanceFlagTests` + update existing permission-inheritance tests to cover both role types
 
-### Phase 1 — Core model + CRUD (no UI)
+### Phase 1 - Core model + CRUD (no UI)
 - [x] M003 migration: Meeting, AgendaItem tables + MotionVote.MeetingId column + Role.InheritsToChildren column + new permissions + delegate system role
 - [x] Entities: `Meeting.cs`, `AgendaItem.cs`, `MeetingStatus` enum, `MeetingVisibility` enum, `AgendaItemType` enum
 - [x] Repositories: `MeetingRepository` (CRUD + list with visibility filter + status change + auto-resolve-on-complete + pdf-snapshot-on-archive), `AgendaItemRepository` (CRUD + reorder + move + complete/start timestamps + tree traversal)
@@ -483,27 +483,27 @@ Sequential; each phase ends at a point where the system is demoable.
 - [x] `MeetingAccessHelper` for Public/Private visibility check
 - [x] Unit tests: `MeetingRepositoryTests`, `AgendaItemRepositoryTests`, `MeetingAccessHelperTests`
 
-### Phase 2 — Meeting endpoints + integration tests
+### Phase 2 - Meeting endpoints + integration tests
 - [x] Meeting CRUD endpoints (6 endpoints)
 - [x] Status transition endpoint with matrix validation
 - [x] Validators for meeting request DTOs
 - [x] Integration tests for all meeting endpoints
 
-### Phase 3 — Agenda endpoints + integration tests
+### Phase 3 - Agenda endpoints + integration tests
 - [x] Agenda CRUD + reorder + move (5 endpoints)
 - [x] Start/complete/notes endpoints (3 endpoints)
 - [x] Validators (enforce Motion FK requirements, chapter match, parent cycle/depth/same-meeting checks)
 - [x] Integration tests for all agenda endpoints (including hierarchy validation cases)
 
-### Phase 4 — Voting integration + auto-resolve
-- [x] `AgendaItemVoteEndpoint` — thin wrapper that calls existing motion-vote logic with MeetingId set
-- [x] `AgendaItemCloseVoteEndpoint` — tally + update motion + auto-fill agenda item resolution
+### Phase 4 - Voting integration + auto-resolve
+- [x] `AgendaItemVoteEndpoint` - thin wrapper that calls existing motion-vote logic with MeetingId set
+- [x] `AgendaItemCloseVoteEndpoint` - tally + update motion + auto-fill agenda item resolution
 - [x] `MotionRepository.CloseVoteWithTally` method
 - [x] Auto-resolve-on-Completed: `MeetingRepository.AutoResolveLinkedMotions(meetingId)` called from status transition
 - [x] Disable `TryAutoResolve` for votes cast with non-null `MeetingId` (meetings always require explicit close or the on-complete sweep)
 - [x] Integration tests for vote + close-vote + auto-resolve-on-complete flows
 
-### Phase 5 — Protocol generation (QuestPDF + archive snapshot)
+### Phase 5 - Protocol generation (QuestPDF + archive snapshot)
 - [x] Add `QuestPDF` package to `Quartermaster.Server.csproj`; set `LicenseType.Community` in startup
 - [x] `ProtocolRenderer` service (Fluid template → markdown, walks agenda tree recursively)
 - [x] `ProtocolPdfRenderer` service (QuestPDF Document → PDF bytes)
@@ -513,14 +513,14 @@ Sequential; each phase ends at a point where the system is demoable.
 - [x] Unit tests for `ProtocolRenderer` + `ProtocolPdfRenderer` against various agenda shapes
 - [x] Integration tests for protocol endpoint + archive-time snapshot
 
-### Phase 6 — Frontend: read-only views
+### Phase 6 - Frontend: read-only views
 - [x] `/Administration/Meetings` list page
 - [x] `/Administration/Meetings/{Id}` detail page (read-only initially, agenda as static list)
 - [x] Status badges + transition buttons (wired to existing permission checks)
 - [x] Nav menu entry
 - [x] `MotionPicker` component (selects from existing motions in chapter)
 
-### Phase 7 — Frontend: agenda editor (with tree)
+### Phase 7 - Frontend: agenda editor (with tree)
 - [x] Agenda editor on detail page (visible when Draft/Scheduled)
 - [x] `AgendaItemTree` recursive component with indented rendering + hierarchical numbering
 - [x] Add root item / add subitem buttons; reorder within siblings; move-between-parents dropdown
@@ -528,19 +528,19 @@ Sequential; each phase ends at a point where the system is demoable.
 - [x] Inline "create new motion" modal reusing motion-create flow
 - [x] Delegate-role management UI: extend ChapterOfficer management page to also list/add/remove delegates (or add a sibling tab)
 
-### Phase 8 — Frontend: live minute-taking mode
+### Phase 8 - Frontend: live minute-taking mode
 - [x] InProgress view on detail page: progress rail + active-item panel
 - [x] Auto-save notes (debounced, 3s)
 - [x] Vote buttons + officer status list per motion item
 - [x] Close-vote action with auto-generated resolution preview
 - [x] "Complete item" / "Start next" advance flow
 
-### Phase 9 — Frontend: protocol view + export
+### Phase 9 - Frontend: protocol view + export
 - [x] Protocol preview tab on detail page (HTML-rendered)
-- [x] Download buttons (md / pdf) — pdf button streams archived snapshot for Archived meetings, regenerates for Completed
+- [x] Download buttons (md / pdf) - pdf button streams archived snapshot for Archived meetings, regenerates for Completed
 - [x] Visibility badge + public-access marketing copy on public-visible detail page
 
-### Phase 10 — E2E test + polish
+### Phase 10 - E2E test + polish
 - [x] E2E flow test (full meeting lifecycle)
 - [x] Audit log tab on meeting detail
 - [x] German translations pass (all user-facing strings)
@@ -553,26 +553,26 @@ Sequential; each phase ends at a point where the system is demoable.
 **Decided (from user input):**
 - PDF rendering: **QuestPDF** (not Playwright)
 - PDF snapshot: hard-written to disk on Archive, streamed on subsequent reads
-- Cross-chapter motion references: **no** — validator enforces same-chapter
-- `TryAutoResolve` during meetings: **disabled for votes with non-null `MeetingId`** — meetings always require explicit close. Auto-resolve sweep runs on Completed transition for any still-open linked motions.
-- **Manual resolve is always available** regardless of meeting linkage: existing `MotionStatusEndpoint` (POST /api/motions/status) stays unchanged. If a motion's agenda-item is scheduled for a future meeting but the vote reaches threshold early, a chapter officer can manually resolve it — the auto-sweep on meeting Completed simply skips already-resolved motions.
-- Concurrent note-taking: **last-write-wins for v1** — see deferred item below
+- Cross-chapter motion references: **no** - validator enforces same-chapter
+- `TryAutoResolve` during meetings: **disabled for votes with non-null `MeetingId`** - meetings always require explicit close. Auto-resolve sweep runs on Completed transition for any still-open linked motions.
+- **Manual resolve is always available** regardless of meeting linkage: existing `MotionStatusEndpoint` (POST /api/motions/status) stays unchanged. If a motion's agenda-item is scheduled for a future meeting but the vote reaches threshold early, a chapter officer can manually resolve it - the auto-sweep on meeting Completed simply skips already-resolved motions.
+- Concurrent note-taking: **last-write-wins for v1** - see deferred item below
 - Meeting visibility: **Public/Private** two-state; Private = direct-only officer/delegate access on meeting's chapter
 
 **Deferred to v2 (tracked as follow-up todos, not blockers):**
-- **Collaborative note-taking** — ✅ **Implemented in 2026-04** via Yjs CRDT + SignalR relay hub + per-character authorship. See section 14 below and `2026-04-10-collaborative-meeting-notes.md` for the design and phased implementation plan.
-- **Attendance tracking** — v1 uses free-text in Description. v2 could add a lightweight attendee list entity.
-- **Protocol template per-chapter** — v1 uses one global Fluid template in Options. Per-chapter override can be added later.
-- **Meeting recurrence / series** — v1 supports this via a "Duplicate meeting" action cloning the prior agenda. Full recurrence rules deferred.
-- **Async votes already on motion before the meeting** — the vote panel should surface "X existing votes cast asynchronously" and let the officer decide whether to invalidate them. Low priority.
+- **Collaborative note-taking** - ✅ **Implemented in 2026-04** via Yjs CRDT + SignalR relay hub + per-character authorship. See section 14 below and `2026-04-10-collaborative-meeting-notes.md` for the design and phased implementation plan.
+- **Attendance tracking** - v1 uses free-text in Description. v2 could add a lightweight attendee list entity.
+- **Protocol template per-chapter** - v1 uses one global Fluid template in Options. Per-chapter override can be added later.
+- **Meeting recurrence / series** - v1 supports this via a "Duplicate meeting" action cloning the prior agenda. Full recurrence rules deferred.
+- **Async votes already on motion before the meeting** - the vote panel should surface "X existing votes cast asynchronously" and let the officer decide whether to invalidate them. Low priority.
 
 ---
 
 ## 13. Risks
 
 - **Scope creep:** minute-taking has long-tail UX requirements (templates, speaker queues, amendment tracking). Ship v1 as described, iterate.
-- **Protocol PDF quality:** generated PDF needs to look professional enough to serve as official Vereinsprotokoll. QuestPDF gives us full layout control — budget real effort in Phase 5 for typography, page breaks, table-of-contents. Get officer review before Phase 10.
-- **Vote-during-meeting vs async vote conflicts:** if a motion received async votes before its meeting agenda item runs, the auto-resolve sweep will tally them alongside meeting votes. Whether that's desired is a UX question — surface a warning in the close-vote UI if the motion already has votes when the meeting item starts.
+- **Protocol PDF quality:** generated PDF needs to look professional enough to serve as official Vereinsprotokoll. QuestPDF gives us full layout control - budget real effort in Phase 5 for typography, page breaks, table-of-contents. Get officer review before Phase 10.
+- **Vote-during-meeting vs async vote conflicts:** if a motion received async votes before its meeting agenda item runs, the auto-resolve sweep will tally them alongside meeting votes. Whether that's desired is a UX question - surface a warning in the close-vote UI if the motion already has votes when the meeting item starts.
 - **Protocol disk writes:** archived PDFs accumulate. Plan for the `protocols_dir` to be mounted on durable storage (not ephemeral container FS) and included in backups. Document in deployment guide.
 - **Role inheritance flag is a breaking behavior change for existing custom roles:** existing custom roles are defaulted to `InheritsToChildren=true`, preserving current semantics. But administrators creating *new* custom roles need to understand the flag. Add clear UI copy on the role-create form.
 
@@ -590,18 +590,18 @@ Replaces the Phase 8 debounced REST autosave with real-time CRDT-based collabora
 
 **Stack:**
 - **Client**: CodeMirror 5 (vendored UMD, no npm) + Yjs + y-protocols/awareness + y-codemirror CM5 binding, all served from `wwwroot/js/collab-editor/`. Loaded lazily on first entry to the live meeting page.
-- **Server**: SignalR hub (`MeetingHub`, mapped at `/hubs/meeting`) acts as a **pure relay** — it forwards opaque Yjs update bytes between clients in the same per-agenda-item group. No Yjs code runs server-side.
+- **Server**: SignalR hub (`MeetingHub`, mapped at `/hubs/meeting`) acts as a **pure relay** - it forwards opaque Yjs update bytes between clients in the same per-agenda-item group. No Yjs code runs server-side.
 - **Persistence**: new `CollabDocuments` table (polymorphic on `EntityType`/`EntityId` for future reuse). Stores the Yjs binary snapshot, the denormalized plain text, and the Yjs-clientID → Quartermaster-userID map for authorship resolution. A configurable save interval (default 10 s, option `meetings.collab.save_interval_seconds`) throttles snapshot writes; the server mirrors `PlainText` back to the legacy `AgendaItem.Notes` column so PDF/audit readers keep working unchanged.
 
 **Key behavioral rules:**
-- Edits are only accepted while `Meeting.Status == InProgress`. Transitioning to Completed/Archived freezes the document — `LoadDocument` still returns the state but `canEdit=false`, and `SendUpdate`/`SaveSnapshot` return `forbidden`.
+- Edits are only accepted while `Meeting.Status == InProgress`. Transitioning to Completed/Archived freezes the document - `LoadDocument` still returns the state but `canEdit=false`, and `SendUpdate`/`SaveSnapshot` return `forbidden`.
 - The same live meeting hub broadcasts agenda-item change / status change / presence change notifications to keep the non-editor parts of the live page in sync (votes, agenda transitions, etc.).
 - Read-only users (ViewMeetings but not EditMeetings) connect to the hub and see live updates + cursors + per-char colors, but the editor is in `nocursor` mode and the UI shows a "Schreibgeschützt" badge.
 - Save status and hub connection status are surfaced in the UI: "Wird gespeichert…" / "Gespeichert HH:mm:ss" / "Verbindung wird wiederhergestellt…".
 - Colors are assigned from an 8-color Tol Vibrant palette server-side (first unused color wins; reconnects keep the same color; overflow past 8 users falls back to a deterministic hash).
 
-**Why Yjs instead of OT:** per-character authorship is a hard requirement, and with operational transforms it would have doubled the server-side bug surface (maintaining a parallel author array through every transform). With Yjs, authorship is intrinsic — each character carries the clientID of its inserter, mapped to userID via the awareness protocol.
+**Why Yjs instead of OT:** per-character authorship is a hard requirement, and with operational transforms it would have doubled the server-side bug surface (maintaining a parallel author array through every transform). With Yjs, authorship is intrinsic - each character carries the clientID of its inserter, mapped to userID via the awareness protocol.
 
-**Why CodeMirror 5 instead of CM6:** CM6's modular architecture duplicates `@codemirror/state` across bundled sub-packages when vendored without a bundler, breaking `instanceof` checks at runtime. CM5 ships as a single pre-built UMD file and drops in cleanly. Trade-off: CM5 is in maintenance mode — fine for our use case (markdown editor with collaborative cursors + `markText` for per-char backgrounds, all stable for years).
+**Why CodeMirror 5 instead of CM6:** CM6's modular architecture duplicates `@codemirror/state` across bundled sub-packages when vendored without a bundler, breaking `instanceof` checks at runtime. CM5 ships as a single pre-built UMD file and drops in cleanly. Trade-off: CM5 is in maintenance mode - fine for our use case (markdown editor with collaborative cursors + `markText` for per-char backgrounds, all stable for years).
 
 **Tests:** 8 hub integration tests in `MeetingHubTests.cs` and `MeetingHubCollabTests.cs` cover the SignalR lifecycle (JoinMeeting, hub-broadcast relay of AgendaItemChanged and MeetingStatusChanged, LoadDocument empty snapshot, SendUpdate relay to OthersInGroup, SaveSnapshot persistence + Notes mirror, LoadDocument round-trip, distinct colors per user, color reuse on reconnect).

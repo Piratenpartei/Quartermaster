@@ -14,7 +14,7 @@
 
 **Soft-delete entities** (add `DeletedAt` column): Event, Motion, MembershipApplication, DueSelection, User, EventTemplate
 
-**Hard-delete only** (no soft-delete): Member (legal requirement — must be fully removed), EventChecklistItem, ChapterOfficer, MotionVote, SystemOption, Token
+**Hard-delete only** (no soft-delete): Member (legal requirement - must be fully removed), EventChecklistItem, ChapterOfficer, MotionVote, SystemOption, Token
 
 **CASCADE DELETE FKs:**
 - MotionVotes.MotionId → Motions.Id
@@ -23,16 +23,16 @@
 - Tokens.UserId → Users.Id
 
 **Indexes to add:**
-- Member(MemberNumber) — already unique, verify indexed
-- Member(LastName, FirstName) — name search
-- Event(ChapterId) — events by chapter
-- Motion(ChapterId) — motions by chapter
-- Chapter(ShortCode) — chapter lookup
-- Chapter(ExternalCode) — member import resolution
-- EventChecklistItem(EventId) — checklist by event
-- MotionVote(MotionId) — votes by motion
-- ChapterOfficer(ChapterId) — officers by chapter
-- Token(UserId) — tokens by user
+- Member(MemberNumber) - already unique, verify indexed
+- Member(LastName, FirstName) - name search
+- Event(ChapterId) - events by chapter
+- Motion(ChapterId) - motions by chapter
+- Chapter(ShortCode) - chapter lookup
+- Chapter(ExternalCode) - member import resolution
+- EventChecklistItem(EventId) - checklist by event
+- MotionVote(MotionId) - votes by motion
+- ChapterOfficer(ChapterId) - officers by chapter
+- Token(UserId) - tokens by user
 
 ---
 
@@ -76,11 +76,11 @@ FK names to drop and recreate (from M001):
 - `Quartermaster.Data/Events/EventTemplate.cs`
 
 **Repositories to modify** (add `.Where(x => x.DeletedAt == null)` to all read queries):
-- `Quartermaster.Data/Events/EventRepository.cs` — event list, detail, template list, template detail
-- `Quartermaster.Data/Motions/MotionRepository.cs` — motion list, detail
-- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` — list, detail
-- `Quartermaster.Data/DueSelector/DueSelectionRepository.cs` — list, detail
-- `Quartermaster.Data/Users/UserRepository.cs` — user queries
+- `Quartermaster.Data/Events/EventRepository.cs` - event list, detail, template list, template detail
+- `Quartermaster.Data/Motions/MotionRepository.cs` - motion list, detail
+- `Quartermaster.Data/MembershipApplications/MembershipApplicationRepository.cs` - list, detail
+- `Quartermaster.Data/DueSelector/DueSelectionRepository.cs` - list, detail
+- `Quartermaster.Data/Users/UserRepository.cs` - user queries
 
 **Add soft-delete methods** to repositories for soft-deletable entities:
 ```csharp

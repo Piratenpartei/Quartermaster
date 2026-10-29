@@ -160,7 +160,7 @@ public partial class MemberImportHistory {
                 StateHasChanged();
                 return;
             } catch (HttpRequestException) {
-                // Transient network blip — next tick retries; the row is still pending server-side.
+                // Transient network blip - next tick retries; the row is still pending server-side.
             }
         }
     }

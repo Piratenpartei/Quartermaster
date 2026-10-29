@@ -19,7 +19,7 @@ public class MemberAdminDivisionAuthorizationPendingTests : IntegrationTestBase 
         var chapter = Builder.SeedChapter();
         var member = Builder.SeedMember(chapter.Id);
         var div = Builder.SeedAdminDivision("New Div");
-        // ViewAllMembers is a VIEW permission — should not authorize writes.
+        // ViewAllMembers is a VIEW permission - should not authorize writes.
         var (_, token) = Builder.SeedAuthenticatedUser(
             globalPermissions: new[] { PermissionIdentifier.ViewAllMembers });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
@@ -47,7 +47,7 @@ public class MemberAdminDivisionAuthorizationPendingTests : IntegrationTestBase 
         var chapterB = Builder.SeedChapter("B");
         var member = Builder.SeedMember(chapterA.Id);
         var div = Builder.SeedAdminDivision("New Div");
-        // User has EditMembers on B but member is in A — must be 403.
+        // User has EditMembers on B but member is in A - must be 403.
         var (_, token) = Builder.SeedAuthenticatedUser(
             chapterPermissions: new() { [chapterB.Id] = new[] { PermissionIdentifier.EditMembers } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);

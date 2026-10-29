@@ -4,7 +4,7 @@
 
 **Goal:** Sanitize all HTML rendered via `(MarkupString)` in Blazor by adding profile-based HTML sanitization at the Markdown→HTML conversion layer, eliminating XSS vectors across motions, events, templates, and previews.
 
-**Architecture:** A shared `MarkdownService` in the Api project wraps Markdig conversion + `HtmlSanitizer` sanitization. Two profiles control allowed tags: **Strict** (motions — formatting only, no links/tables) and **Standard** (events/templates — formatting + links + tables). All 5 duplicate `MarkdownPipeline` initializations are replaced with `MarkdownService` calls. Client-side (Blazor WASM) and server-side share the same code path.
+**Architecture:** A shared `MarkdownService` in the Api project wraps Markdig conversion + `HtmlSanitizer` sanitization. Two profiles control allowed tags: **Strict** (motions - formatting only, no links/tables) and **Standard** (events/templates - formatting + links + tables). All 5 duplicate `MarkdownPipeline` initializations are replaced with `MarkdownService` calls. Client-side (Blazor WASM) and server-side share the same code path.
 
 **Tech Stack:** `HtmlSanitizer` NuGet (Ganss.Xss), Markdig, Fluid.Core
 
@@ -42,7 +42,7 @@
 
 ### Strict (Motions)
 
-**Allowed tags:** `p`, `br`, `b`, `i`, `em`, `strong`, `u`, `s`, `del`, `sup`, `sub`, `ul`, `ol`, `li`, `h1`–`h6`, `blockquote`, `pre`, `code`, `hr`
+**Allowed tags:** `p`, `br`, `b`, `i`, `em`, `strong`, `u`, `s`, `del`, `sup`, `sub`, `ul`, `ol`, `li`, `h1`-`h6`, `blockquote`, `pre`, `code`, `hr`
 
 **Allowed attributes:** `class` (on `code` and `pre` only, for syntax highlighting)
 
@@ -256,7 +256,7 @@ cd /media/SMB/Quartermaster
 /usr/lib/dotnet/dotnet test --project Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj
 ```
 
-Expected: Compilation error — `HtmlSanitizationService` doesn't exist yet.
+Expected: Compilation error - `HtmlSanitizationService` doesn't exist yet.
 
 - [x] **Step 5: Implement HtmlSanitizationService**
 
@@ -442,7 +442,7 @@ cd /media/SMB/Quartermaster
 /usr/lib/dotnet/dotnet test --project Quartermaster.Server.Tests/Quartermaster.Server.Tests.csproj
 ```
 
-Expected: Compilation error — `MarkdownService` doesn't exist yet.
+Expected: Compilation error - `MarkdownService` doesn't exist yet.
 
 - [x] **Step 3: Implement MarkdownService**
 
@@ -687,13 +687,13 @@ public partial class MarkdownEditor {
 
 In `Quartermaster.Blazor/Pages/Administration/EventDetail.razor`:
 
-Line 96 — event description (Standard profile, the default):
+Line 96 - event description (Standard profile, the default):
 ```razor
 <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
 ```
-No change needed — default is `Standard`.
+No change needed - default is `Standard`.
 
-Line 163 — motion text in checklist item (Strict profile):
+Line 163 - motion text in checklist item (Strict profile):
 Change:
 ```razor
 <MarkdownEditor @bind-Value="EditingMotionText" Rows="4" />
@@ -709,7 +709,7 @@ Add `@using Quartermaster.Api.Rendering` at the top of the file if not already p
 
 In `Quartermaster.Blazor/Pages/Administration/MotionCreate.razor`:
 
-Line 34 — change:
+Line 34 - change:
 ```razor
 <MarkdownEditor @bind-Value="Text" Rows="8" />
 ```
@@ -738,7 +738,7 @@ Expected: Build succeeded.
 **Files:**
 - Modify: `Quartermaster.Blazor/Pages/Administration/EventDetail.razor.cs`
 
-**Context:** The `LoadEmailPreview` method renders templates via `TemplateRenderer.RenderAsync()` and stores the HTML in `PreviewCache`. `TemplateRenderer` now sanitizes internally (Task 3), so the preview HTML is already sanitized. However, there are two hardcoded HTML strings that bypass `TemplateRenderer` — these need sanitization too: the "no template" hint (line 275) and the error messages (lines 283, 285). Since these are system-generated strings with no user input, they're safe. No changes needed beyond verifying `TemplateRenderer` integration.
+**Context:** The `LoadEmailPreview` method renders templates via `TemplateRenderer.RenderAsync()` and stores the HTML in `PreviewCache`. `TemplateRenderer` now sanitizes internally (Task 3), so the preview HTML is already sanitized. However, there are two hardcoded HTML strings that bypass `TemplateRenderer` - these need sanitization too: the "no template" hint (line 275) and the error messages (lines 283, 285). Since these are system-generated strings with no user input, they're safe. No changes needed beyond verifying `TemplateRenderer` integration.
 
 - [x] **Step 1: Verify TemplateRenderer covers the preview path**
 
@@ -748,7 +748,7 @@ The call `await TemplateRenderer.RenderAsync(templateContent, mockData)` already
 
 The hardcoded HTML strings at lines 275, 283, 285 are safe because they only contain static system text (no user input).
 
-No code changes needed for this task — just verification.
+No code changes needed for this task - just verification.
 
 - [x] **Step 2: Verify build and tests still pass**
 

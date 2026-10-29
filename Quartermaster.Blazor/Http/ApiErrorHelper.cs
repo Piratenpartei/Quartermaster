@@ -54,7 +54,7 @@ public static class ApiErrorHelper {
                 }
             }
         } catch (JsonException) {
-            // Body wasn't JSON — fall through with empty list.
+            // Body wasn't JSON - fall through with empty list.
         }
 
         return result;

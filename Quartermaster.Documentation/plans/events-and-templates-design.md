@@ -1,4 +1,4 @@
-# Event & Email System — Design Spec
+# Event & Email System - Design Spec
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
@@ -6,7 +6,7 @@
 
 **Architecture:** Event entity with ordered checklist items stored as separate entities. Checklist items have a type (Text/CreateMotion/SendEmail) with JSON-serialized type-specific configuration. Event templates store raw text with `{{variable}}` placeholders and variable type definitions. Server-side execution of checklist actions (motion creation, email sending) via a single check endpoint.
 
-**Tech Stack:** Existing stack — LinqToDB, FastEndpoints, Blazor WASM, Markdig for markdown rendering, existing options/template system for email templates.
+**Tech Stack:** Existing stack - LinqToDB, FastEndpoints, Blazor WASM, Markdig for markdown rendering, existing options/template system for email templates.
 
 ---
 
@@ -19,7 +19,7 @@
 | Field | Type | Notes |
 |-------|------|-------|
 | Id | Guid | PK |
-| ChapterId | Guid | FK to Chapters, required — events always belong to a chapter |
+| ChapterId | Guid | FK to Chapters, required - events always belong to a chapter |
 | InternalName | string | Admin/system name |
 | PublicName | string | Subject line / publicly displayed name |
 | Description | string? | Markdown content |
@@ -62,7 +62,7 @@
 | DescriptionTemplate | string? | Markdown with `{{variable}}` placeholders |
 | Variables | string | JSON array of variable definitions |
 | ChecklistItemTemplates | string | JSON array of checklist item definitions |
-| ChapterId | Guid? | FK, optional — if template is chapter-specific |
+| ChapterId | Guid? | FK, optional - if template is chapter-specific |
 | CreatedAt | DateTime | |
 
 **Variables JSON structure:**
@@ -130,7 +130,7 @@ Both resolve to a list of Members with email addresses.
 
 ### 3.2 Stubbed Email Service
 
-`MemberEmailService` — singleton service that:
+`MemberEmailService` - singleton service that:
 1. Resolves recipients from target type + ID
 2. Resolves the email template using the existing option template system (Fluid + Markdig) with each Member as the model
 3. For now: logs what would be sent (recipient count, template used) instead of actually sending
@@ -140,7 +140,7 @@ The template model is always `MemberDetailDTO` (aliased as `member` in Fluid), g
 
 ### 3.3 Email Preview (Client-Side)
 
-Email checklist items have a collapsible preview section on the event detail page. The preview is rendered **client-side in Blazor WASM** — no server round-trip needed.
+Email checklist items have a collapsible preview section on the event detail page. The preview is rendered **client-side in Blazor WASM** - no server round-trip needed.
 
 Implementation:
 - Move `TemplateRenderer` and `TemplateMockDataProvider` (or shared versions) into `Quartermaster.Api` so both Server and Blazor can use them

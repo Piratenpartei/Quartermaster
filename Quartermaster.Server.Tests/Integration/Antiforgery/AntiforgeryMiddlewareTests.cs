@@ -8,7 +8,7 @@ using Quartermaster.Server.Tests.Infrastructure;
 namespace Quartermaster.Server.Tests.Integration.Antiforgery;
 
 /// <summary>
-/// Direct tests for <c>AntiforgeryMiddleware</c>'s gate behavior — safe methods bypass,
+/// Direct tests for <c>AntiforgeryMiddleware</c>'s gate behavior - safe methods bypass,
 /// non-API paths bypass, exempt paths bypass, missing/invalid CSRF token rejects.
 /// </summary>
 public class AntiforgeryMiddlewareTests : IntegrationTestBase {

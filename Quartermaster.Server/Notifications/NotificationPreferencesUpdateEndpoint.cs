@@ -13,7 +13,7 @@ namespace Quartermaster.Server.Notifications;
 
 /// <summary>
 /// Replaces all preference overrides for the caller. Cells that match the channel
-/// default are persisted anyway — the UI sends a full matrix on save. Cells for
+/// default are persisted anyway - the UI sends a full matrix on save. Cells for
 /// channels the caller can't receive on (e.g. email with no address on file) are
 /// dropped so a later address change defaults them on rather than carrying a stale
 /// opt-in/out.

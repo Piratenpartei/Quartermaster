@@ -30,7 +30,7 @@ public class LoginAttemptRepository {
     }
 
     /// <summary>
-    /// Returns the timestamp of the failure whose expiry first releases a lockout — the
+    /// Returns the timestamp of the failure whose expiry first releases a lockout - the
     /// <paramref name="maxAttempts"/>-th most recent failed attempt in the window. When that
     /// row's age exceeds the lockout duration, the count drops below the threshold and the
     /// user can retry. Returns null when fewer than <paramref name="maxAttempts"/> failures exist.
@@ -51,7 +51,7 @@ public class LoginAttemptRepository {
     }
 
     /// <summary>
-    /// Returns all (IpAddress, UsernameOrEmail) pairs currently locked out — i.e., with at least
+    /// Returns all (IpAddress, UsernameOrEmail) pairs currently locked out - i.e., with at least
     /// maxAttempts failed attempts since windowStart AND no successful attempt since the lockout began.
     /// </summary>
     public List<LockedOutEntry> GetCurrentLockouts(DateTime windowStart, int maxAttempts) {

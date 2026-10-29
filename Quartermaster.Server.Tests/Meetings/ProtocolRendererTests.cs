@@ -47,10 +47,10 @@ public class ProtocolRendererTests {
             ]
         };
         var md = ProtocolRenderer.RenderMarkdown(meeting);
-        await Assert.That(md).Contains("1 — Begrüßung");
-        await Assert.That(md).Contains("2 — Hauptpunkt");
-        await Assert.That(md).Contains("2.1 — Unterpunkt A");
-        await Assert.That(md).Contains("2.2 — Unterpunkt B");
+        await Assert.That(md).Contains("1 - Begrüßung");
+        await Assert.That(md).Contains("2 - Hauptpunkt");
+        await Assert.That(md).Contains("2.1 - Unterpunkt A");
+        await Assert.That(md).Contains("2.2 - Unterpunkt B");
     }
 
     [Test]

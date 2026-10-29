@@ -54,6 +54,22 @@ public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> 
             }
         }
 
+        if (!Chapter.IsValidLevel(req.Level)) {
+            AddError(r => r.Level, I18nKey.Error.Chapter.LevelInvalid);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (req.Level == ChapterLevel.Federal && req.ParentChapterId.HasValue) {
+            AddError(r => r.Level, I18nKey.Error.Chapter.FederalRootOnly);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (!Chapter.IsValidTakeOverPeriod(req.TakeOverPeriodDays)) {
+            AddError(r => r.TakeOverPeriodDays, I18nKey.Error.Chapter.TakeOverPeriodRange);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         var externalCodes = NormaliseCodes(req.ExternalCodes);
         var conflict = _chapterRepo.FindCodeConflictUnderParent(externalCodes, req.ParentChapterId);
         if (conflict != null) {
@@ -81,7 +97,9 @@ public class ChapterCreateEndpoint : Endpoint<ChapterCreateRequest, ChapterDTO> 
             Name = name,
             ShortCode = string.IsNullOrWhiteSpace(req.ShortCode) ? null : req.ShortCode.Trim(),
             KeycloakDepartment = keycloakDepartment,
-            ParentChapterId = req.ParentChapterId
+            ParentChapterId = req.ParentChapterId,
+            Level = req.ParentChapterId.HasValue ? req.Level : ChapterLevel.Federal,
+            TakeOverPeriodDays = req.TakeOverPeriodDays
         };
         _chapterRepo.Create(chapter);
         _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);

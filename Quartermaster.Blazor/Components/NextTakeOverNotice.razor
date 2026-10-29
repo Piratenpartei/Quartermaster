@@ -1,0 +1,5 @@
+@using Quartermaster.Api.I18n
+
+<div class="alert alert-info">
+    @I18n[I18nParams.With(I18nKey.Ui.HandUp.NextTakeOver, ("date", At.LocalDateTime.ToString("dd.MM.yyyy")), ("name", ChapterName))]
+</div>

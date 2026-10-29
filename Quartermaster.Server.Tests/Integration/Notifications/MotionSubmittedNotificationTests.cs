@@ -34,7 +34,7 @@ public class MotionSubmittedNotificationTests : IntegrationTestBase {
         var (bob, _) = Builder.SeedAuthenticatedUser(
             email: "bob@test.local",
             chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMotions } });
-        // Charlie has no perm — should not be notified.
+        // Charlie has no perm - should not be notified.
         Builder.SeedAuthenticatedUser(email: "charlie@test.local");
 
         var response = await SubmitMotion(chapter.Id, "Test Motion");

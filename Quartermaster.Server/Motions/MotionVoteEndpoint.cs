@@ -51,6 +51,12 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             return;
         }
 
+        if (motion.HandedOverToMotionId != null) {
+            AddError(I18nKey.Error.Motion.HandedOver);
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
         if (_perms.UserId == null) {
             await SendUnauthorizedAsync(ct);
             return;
@@ -65,7 +71,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
 
         // The vote belongs to an officer (member) of the motion's chapter.
         if (!_officerRepo.IsOfficer(req.MemberId, motion.ChapterId)) {
-            AddError("MemberId", I18nKey.Error.Motion.Vote.TargetNotOfficer);
+            AddError(r => r.MemberId, I18nKey.Error.Motion.Vote.TargetNotOfficer);
             await SendErrorsAsync(400, ct);
             return;
         }
@@ -80,7 +86,7 @@ public class MotionVoteEndpoint : Endpoint<MotionVoteRequest> {
             var callerIsOfficer = _officerRepo.IsOfficerByUserIdForAnyChapter(_perms.UserId.Value, chapterAndAncestors);
             if (!callerIsOfficer &&
                 !_perms.Has(motion.ChapterId, PermissionIdentifier.VoteDelegateMotions)) {
-                AddError("MemberId", I18nKey.Error.Motion.Vote.NoProxyPermission);
+                AddError(r => r.MemberId, I18nKey.Error.Motion.Vote.NoProxyPermission);
                 await SendErrorsAsync(403, ct);
                 return;
             }

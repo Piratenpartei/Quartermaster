@@ -15,7 +15,7 @@ namespace Quartermaster.Server.Chapters;
 
 /// <summary>
 /// Updates an existing chapter. Requires the global <see cref="PermissionIdentifier.EditChapter"/>
-/// permission. Cannot set a chapter as its own ancestor (no cycle detection at depth — the
+/// permission. Cannot set a chapter as its own ancestor (no cycle detection at depth - the
 /// shallow self-reference check is enough for the current UX where re-parenting happens
 /// one step at a time).
 /// </summary>
@@ -70,6 +70,22 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
             }
         }
 
+        if (!Chapter.IsValidLevel(req.Level)) {
+            AddError(r => r.Level, I18nKey.Error.Chapter.LevelInvalid);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (req.Level == ChapterLevel.Federal && req.ParentChapterId.HasValue) {
+            AddError(r => r.Level, I18nKey.Error.Chapter.FederalRootOnly);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+        if (!Chapter.IsValidTakeOverPeriod(req.TakeOverPeriodDays)) {
+            AddError(r => r.TakeOverPeriodDays, I18nKey.Error.Chapter.TakeOverPeriodRange);
+            await SendErrorsAsync(cancellation: ct);
+            return;
+        }
+
         var externalCodes = NormaliseCodes(req.ExternalCodes);
         var conflict = _chapterRepo.FindCodeConflictUnderParent(externalCodes, req.ParentChapterId, excludeChapterId: req.Id);
         if (conflict != null) {
@@ -109,6 +125,8 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
         chapter.KeycloakDepartment = keycloakDepartment;
         chapter.ContactEmail = contactEmail;
         chapter.ParentChapterId = req.ParentChapterId;
+        chapter.Level = req.ParentChapterId.HasValue ? req.Level : ChapterLevel.Federal;
+        chapter.TakeOverPeriodDays = req.TakeOverPeriodDays;
         _chapterRepo.Update(chapter);
         _chapterRepo.ReplaceExternalCodes(chapter.Id, externalCodes);
         _chapterRepo.ReplaceAdministrativeDivisions(chapter.Id, divisionIds);

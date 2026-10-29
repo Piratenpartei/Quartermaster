@@ -53,7 +53,7 @@ public class MotionAccessControlPendingTests : IntegrationTestBase {
 
         using var client = AnonymousClient();
         var response = await client.GetAsync($"/api/motions/{motion.Id}");
-        // Either 404 (don't reveal existence) or 403 is acceptable here — not 200.
+        // Either 404 (don't reveal existence) or 403 is acceptable here - not 200.
         await Assert.That(response.StatusCode).IsNotEqualTo(HttpStatusCode.OK);
     }
 
@@ -84,7 +84,7 @@ public class MotionAccessControlPendingTests : IntegrationTestBase {
 
     [Test]
     public async Task Detail_still_returns_200_for_public_motion_to_anonymous() {
-        // Regression guard — don't break public access while fixing private access.
+        // Regression guard - don't break public access while fixing private access.
         var chapter = Builder.SeedChapter("Chapter");
         var motion = Builder.SeedMotion(chapter.Id, title: "Public");
         using var client = AnonymousClient();
