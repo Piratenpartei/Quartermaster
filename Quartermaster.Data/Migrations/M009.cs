@@ -2,6 +2,7 @@ using FluentMigrator;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.EmailVerification;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
@@ -99,6 +100,17 @@ public class M009 : MigrationBase {
             .WithColumn(nameof(ApplicationRegisterHit.DismissedAt)).AsCustom("DATETIME(6)").Nullable()
             .WithColumn(nameof(ApplicationRegisterHit.DismissedByUserId)).AsGuid().Nullable();
 
+        Create.Table(EmailVerificationCode.TableName)
+            .WithColumn(nameof(EmailVerificationCode.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(EmailVerificationCode.Email)).AsCustom($"VARCHAR({EmailVerificationCode.EmailMaxLength}) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin").NotNullable().Unique()
+            .WithColumn(nameof(EmailVerificationCode.CodeHash)).AsString(EmailVerificationCode.HashMaxLength).NotNullable()
+            .WithColumn(nameof(EmailVerificationCode.CodeSalt)).AsString(EmailVerificationCode.HashMaxLength).NotNullable()
+            .WithColumn(nameof(EmailVerificationCode.ExpiresAt)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(EmailVerificationCode.FailedAttempts)).AsInt32().NotNullable()
+            .WithColumn(nameof(EmailVerificationCode.VerifiedAt)).AsCustom("DATETIME(6)").Nullable()
+            .WithColumn(nameof(EmailVerificationCode.SendCount)).AsInt32().NotNullable()
+            .WithColumn(nameof(EmailVerificationCode.SendWindowStartedAt)).AsCustom("DATETIME(6)").NotNullable();
+
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
@@ -120,6 +132,7 @@ public class M009 : MigrationBase {
     }
 
     public override void Down() {
+        Delete.Table(EmailVerificationCode.TableName);
         Delete.Table(ApplicationRegisterHit.TableName);
         Delete.Table(ApplicantRegisterEntry.TableName);
         Delete.Column(nameof(MembershipApplication.RequiresFederalApproval)).FromTable(MembershipApplication.TableName);

@@ -99,6 +99,16 @@ public partial class FormWizard : IDisposable {
         return last;
     }
 
+    /// <summary>Jumps to a step without validating or advancing, for the hosting page to send the user back after a refused submit.</summary>
+    public async Task ShowStepAsync(int index) {
+        if (Steps == null || index < 0 || index >= Steps.Count)
+            return;
+
+        CurrentStep = index;
+        SyncUrl(replace: false);
+        await InvokeAsync(StateHasChanged);
+    }
+
     private bool IsLastStep => Steps != null && CurrentStep == Steps.Count - 1;
 
     private bool IsStepReachable(int idx) {

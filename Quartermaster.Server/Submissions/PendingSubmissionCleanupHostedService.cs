@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Quartermaster.Data.EmailVerification;
 using Quartermaster.Data.Submissions;
 
 namespace Quartermaster.Server.Submissions;
 
 /// <summary>
 /// Periodically prunes pending submissions: unconfirmed ones past their 48h expiry and
-/// confirmed ones past the same window after confirmation. Per-iteration errors don't kill
+/// confirmed ones past the same window after confirmation, plus long-expired email codes. Per-iteration errors don't kill
 /// the service.
 /// </summary>
 public class PendingSubmissionCleanupHostedService : BackgroundService {
@@ -30,10 +31,12 @@ public class PendingSubmissionCleanupHostedService : BackgroundService {
             try {
                 using var scope = _scopeFactory.CreateScope();
                 var repo = scope.ServiceProvider.GetRequiredService<PendingSubmissionRepository>();
-                var purged = repo.PurgeStale(DateTime.UtcNow);
+                var now = DateTime.UtcNow;
+                var purged = repo.PurgeStale(now);
                 if (purged > 0) {
                     _logger.LogInformation("Pruned {Count} stale pending submission(s)", purged);
                 }
+                scope.ServiceProvider.GetRequiredService<EmailVerificationCodeRepository>().DeleteExpiredBefore(now.AddDays(-1));
             } catch (OperationCanceledException) {
                 break;
             } catch (Exception ex) {

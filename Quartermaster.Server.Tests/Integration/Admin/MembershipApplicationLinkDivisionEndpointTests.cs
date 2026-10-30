@@ -33,8 +33,9 @@ public class MembershipApplicationLinkDivisionEndpointTests : IntegrationTestBas
         SageSetupSeeder.Seed(Factory.Services, root.Id);
         using var anon = AnonymousClient();
         await AttachAntiforgeryTokenAsync(anon);
-        await anon.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapterId: null));
-        await ConfirmAllPendingSubmissionsAsync();
+        var dto = ValidDto(chapterId: null);
+        dto.EmailVerificationCode = IssueEmailCode(dto.Email);
+        await anon.PostAsJsonAsync("/api/membershipapplications", dto);
 
         var app = Db.MembershipApplications.Single(a => a.FirstName == "Mara");
         await Assert.That(app.Status).IsEqualTo(ApplicationStatus.PendingDivisionLinking);

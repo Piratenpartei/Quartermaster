@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using LinqToDB;
@@ -35,13 +36,18 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         };
     }
 
+    private async Task<HttpResponseMessage> PostWithCode(HttpClient client, MembershipApplicationDTO dto) {
+        dto.EmailVerificationCode = IssueEmailCode(dto.Email);
+        return await client.PostAsJsonAsync("/api/membershipapplications", dto);
+    }
+
     [Test]
     public async Task Anonymous_can_submit_application() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+        var response = await PostWithCode(client, ValidDto(chapter.Id));
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
     }
 
@@ -51,11 +57,11 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
 
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+        var response = await PostWithCode(client, ValidDto(chapter.Id));
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Admin.Application.NotSetUp);
-        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
     }
 
     [Test]
@@ -86,25 +92,24 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Submit_stashes_pending_and_does_not_create_application() {
+    public async Task Anonymous_submit_stores_application_without_pending_row() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
+        var response = await PostWithCode(client, ValidDto(chapter.Id));
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
-        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
-        await Assert.That(Db.PendingSubmissions.Count(p => p.ConfirmedAt == null)).IsEqualTo(1);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(1);
+        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
     }
 
     [Test]
-    public async Task Persists_application_with_pending_status_on_confirm() {
+    public async Task Persists_application_with_pending_status() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
-        await ConfirmAllPendingSubmissionsAsync();
+        await PostWithCode(client, ValidDto(chapter.Id));
         var saved = Db.MembershipApplications.First(a => a.FirstName == "Alice");
         await Assert.That(saved.Status).IsEqualTo(ApplicationStatus.Pending);
         await Assert.That(saved.ChapterId).IsEqualTo(chapter.Id);
@@ -141,13 +146,12 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Creates_linked_motion_when_chapter_provided_on_confirm() {
+    public async Task Creates_linked_motion_when_chapter_provided() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
-        await client.PostAsJsonAsync("/api/membershipapplications", ValidDto(chapter.Id));
-        await ConfirmAllPendingSubmissionsAsync();
+        await PostWithCode(client, ValidDto(chapter.Id));
         var savedApp = Db.MembershipApplications.First(a => a.FirstName == "Alice");
         var motion = Db.Motions.FirstOrDefault(m => m.LinkedMembershipApplicationId == savedApp.Id);
         await Assert.That(motion).IsNotNull();
@@ -188,7 +192,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
     }
 
     [Test]
-    public async Task Stores_country_and_other_parties_on_confirm() {
+    public async Task Stores_country_and_other_parties() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         using var client = AnonymousClient();
@@ -198,8 +202,7 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         dto.IsMemberOfAnotherParty = true;
         dto.OtherParties = "Volt";
 
-        await client.PostAsJsonAsync("/api/membershipapplications", dto);
-        await ConfirmAllPendingSubmissionsAsync();
+        await PostWithCode(client, dto);
 
         var saved = Db.MembershipApplications.Single();
         await Assert.That(saved.AddressCountry).IsEqualTo("Österreich");
@@ -227,10 +230,10 @@ public class MembershipApplicationCreateEndpointTests : IntegrationTestBase {
         var dto = ValidDto(chapter.Id);
         dto.DueSelection = ReducedDues(100);
 
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", dto);
+        var response = await PostWithCode(client, dto);
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
-        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
     }
 
     [Test]

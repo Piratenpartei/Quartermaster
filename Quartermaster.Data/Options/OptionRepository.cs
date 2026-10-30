@@ -431,6 +431,26 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "1440",
             description: "Länge des Zeitfensters für das Rate-Limit der Beitragseinstufungen, in Minuten. Standard: 1440 (ein Tag).");
 
+        AddDefinitionIfNotExists("auth.ratelimit.email_code_permits",
+            "Rate-Limit: E-Mail-Codes pro IP-Adresse und Fenster",
+            OptionDataType.Number, false, "", "10",
+            description: "Maximale Anzahl angeforderter E-Mail-Codes für den Mitgliedsantrag je IP-Adresse innerhalb des Zeitfensters. Standard: 10.");
+
+        AddDefinitionIfNotExists("auth.ratelimit.email_code_window_minutes",
+            "Rate-Limit: Zeitfenster für E-Mail-Codes (Minuten)",
+            OptionDataType.Number, false, "", "60",
+            description: "Länge des Zeitfensters für das Rate-Limit der E-Mail-Codes, in Minuten. Standard: 60.");
+
+        AddDefinitionIfNotExists("membership_application.email_code.lifetime_minutes",
+            "Mitgliedsantrag: Gültigkeit des E-Mail-Codes (Minuten)",
+            OptionDataType.Number, false, "", "15",
+            description: "Wie lange ein an die Antragsteller gesendeter Bestätigungscode gültig ist, in Minuten. Nach einer richtigen Eingabe beginnt die Frist erneut. Standard: 15.");
+
+        AddDefinitionIfNotExists("membership_application.email_code.sends_per_address_per_hour",
+            "Mitgliedsantrag: E-Mail-Codes pro Adresse und Stunde",
+            OptionDataType.Number, false, "", "10",
+            description: "Maximale Anzahl an Bestätigungscodes, die innerhalb einer Stunde an dieselbe E-Mail-Adresse gesendet werden. Standard: 10.");
+
         AddDefinitionIfNotExists("meetings.protocol.archive_dir",
             "Sitzungen: Protokoll-Archivpfad",
             OptionDataType.String, false, "", "",

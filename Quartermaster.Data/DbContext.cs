@@ -26,6 +26,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.Saml;
+using Quartermaster.Data.EmailVerification;
 using Quartermaster.Data.Submissions;
 using Quartermaster.Data.Templates;
 using Quartermaster.Data.Tokens;
@@ -65,6 +66,7 @@ public class DbContext : DataConnection {
     public ITable<NotificationLog> NotificationLogs => this.GetTable<NotificationLog>();
     public ITable<UserNotificationPreference> UserNotificationPreferences => this.GetTable<UserNotificationPreference>();
     public ITable<TelegramLinkToken> TelegramLinkTokens => this.GetTable<TelegramLinkToken>();
+    public ITable<EmailVerificationCode> EmailVerificationCodes => this.GetTable<EmailVerificationCode>();
     public ITable<PendingSubmission> PendingSubmissions => this.GetTable<PendingSubmission>();
     public ITable<AuditEntry> AuditLogs => this.GetTable<AuditEntry>();
     public ITable<LoginAttempt> LoginAttempts => this.GetTable<LoginAttempt>();
@@ -139,6 +141,7 @@ public class DbContext : DataConnection {
         services.AddScoped<UserNotificationPreferenceRepository>();
         services.AddScoped<TelegramLinkTokenRepository>();
         services.AddScoped<Submissions.PendingSubmissionRepository>();
+        services.AddScoped<EmailVerification.EmailVerificationCodeRepository>();
         services.AddScoped<AuditLogRepository>();
         services.AddScoped<LoginAttemptRepository>();
         services.AddScoped<RoleRepository>();

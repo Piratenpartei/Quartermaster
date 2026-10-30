@@ -105,10 +105,11 @@ internal static class SystemTemplateSeeds {
             "Hallo {{ selection.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit deine Beitragseinstufung bearbeitet wird:\n\n**[Einstufung jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Gewählter Beitrag:** {{ selection.SelectedDue }}€\n\nWenn du das nicht eingereicht hast, ignoriere diese E-Mail - ohne Bestätigung wird nichts gespeichert.\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
-            "templates.submission.membershipapplication.confirmation.email",
-            "E-Mail: Mitgliedsantrag bestätigen",
-            "Bitte bestätige deinen Mitgliedsantrag",
-            "Hallo {{ application.FirstName }},\n\nbitte bestätige deine E-Mail-Adresse, damit dein Mitgliedsantrag bearbeitet wird:\n\n**[Mitgliedsantrag jetzt bestätigen]({{ confirm.Url }})**\n\n---\n\n**Zusammenfassung**\n\n- **Name:** {{ application.FirstName }} {{ application.LastName }}\n- **Gliederung:** {{ chapter.Name }}\n\nWenn du diesen Antrag nicht eingereicht hast, ignoriere diese E-Mail - ohne Bestätigung wird nichts gespeichert.\n"),
+            "templates.submission.membershipapplication.code.email",
+            "E-Mail: Bestätigungscode für den Mitgliedsantrag",
+            "Bestätigungscode für deinen Mitgliedsantrag - Piratenpartei",
+            "Dein Code lautet **{{ code }}**. Er ist {{ minutes }} Minuten gültig. Falls du keinen Mitgliedsantrag gestellt hast, ignoriere diese E-Mail.\n",
+            AllowsChapterFields: true),
         new SystemTemplateSeed(
             "templates.membershipapplication.received.email",
             "E-Mail: Mitgliedsantrag eingegangen",

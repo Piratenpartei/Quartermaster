@@ -212,6 +212,16 @@ public static class I18nKey {
             public const string TargetIncomplete = "error.forwarding.target_incomplete";
         }
 
+        public static class EmailCode {
+            public const string AddressInvalid = "error.email_code.address_invalid";
+            public const string TooManySends = "error.email_code.too_many_sends";
+            public const string Required = "error.email_code.required";
+            public const string Wrong = "error.email_code.wrong";
+            public const string Expired = "error.email_code.expired";
+            public const string Locked = "error.email_code.locked";
+            public const string ChapterNotFound = "error.email_code.chapter_not_found";
+        }
+
         public static class PublicForm {
             public const string Disabled = "error.public_form.disabled";
             public const string PdfRateLimited = "error.public_form.pdf_rate_limited";
@@ -3181,6 +3191,7 @@ public static class I18nKey {
             public const string StepDues = "ui.public_form_wizard.step.dues";
             public const string StepPayment = "ui.public_form_wizard.step.payment";
             public const string StepDeclarations = "ui.public_form_wizard.step.declarations";
+            public const string StepEmailCode = "ui.public_form_wizard.step.email_code";
             public const string StepSummary = "ui.public_form_wizard.step.summary";
             public const string PersonalDataRequired = "ui.public_form_wizard.personal_data_required";
             public const string AddressRequired = "ui.public_form_wizard.address_required";
@@ -3188,6 +3199,16 @@ public static class I18nKey {
             public const string PaymentRequired = "ui.public_form_wizard.payment_required";
             public const string DeclarationsRequired = "ui.public_form_wizard.declarations_required";
             public const string SearchMunicipalityAgain = "ui.public_form_wizard.search_municipality_again";
+        }
+
+        public static class EmailCodeStep {
+            public const string SentTo = "ui.email_code_step.sent_to";
+            public const string CodeLabel = "ui.email_code_step.code_label";
+            public const string ChangeAddress = "ui.email_code_step.change_address";
+            public const string SaveAddress = "ui.email_code_step.save_address";
+            public const string Resend = "ui.email_code_step.resend";
+            public const string ResendWait = "ui.email_code_step.resend_wait";
+            public const string NotRequired = "ui.email_code_step.not_required";
         }
 
         public static class RedmineSetup {

@@ -35,6 +35,19 @@ public class MembershipApplicationEntryState : EntryStateBase {
 
     public DateTime EntryDate { get; set; } = DateTime.Today;
 
+    public string EmailCode { get; set; } = "";
+    public string? EmailCodeVerifiedFor { get; set; }
+    public string? EmailCodeSentFor { get; set; }
+    public DateTime? EmailCodeSentAt { get; set; }
+
+    public static string NormalizeEmail(string email) {
+        return email.Trim().ToLowerInvariant();
+    }
+
+    public bool IsEmailCodeComplete() {
+        return EmailCodeVerifiedFor != null && EmailCodeVerifiedFor == NormalizeEmail(Email);
+    }
+
     public bool IsPersonalDataComplete() {
         if (string.IsNullOrWhiteSpace(FirstName))
             return false;

@@ -42,6 +42,7 @@ using Quartermaster.Server.Settings;
 using Quartermaster.Server.Settings.Checks;
 using Quartermaster.Server.DueSelector;
 using Quartermaster.Server.MembershipApplications;
+using Quartermaster.Server.MembershipApplications.EmailCodes;
 using Quartermaster.Server.Motions;
 using Quartermaster.Server.Submissions;
 using Quartermaster.Server.Events;
@@ -318,6 +319,9 @@ public partial class Program {
         builder.Services.AddScoped<SubmissionMaterializer>();
         builder.Services.AddScoped<MotionSubmittedNotifier>();
         builder.Services.AddScoped<MembershipApplicationMailService>();
+        builder.Services.AddScoped<EmailCodeService>();
+        builder.Services.AddScoped<EmailCodeFormGate>();
+        builder.Services.AddScoped<EmailCodeMailService>();
         builder.Services.AddScoped<ApplicationReviewService>();
         builder.Services.AddScoped<ApplicationReduction>();
         builder.Services.AddScoped<FederalApprovalFlow>();
@@ -448,6 +452,8 @@ public partial class Program {
 
     public const string AnonymousCreateRateLimitPolicy = "anonymous-create";
     public const string DueSelectionRateLimitPolicy = "due-selection";
+    public const string EmailCodeRateLimitPolicy = "email-code";
+    public const string EmailCodeCheckRateLimitPolicy = "email-code-check";
 
     // Safety fallbacks if the Option is missing, unparseable, or non-positive - the
     // resolver guards against a fat-fingered admin saving "" or "0" and silently
@@ -456,6 +462,8 @@ public partial class Program {
     private const int FallbackAnonymousCreateWindowMinutes = 10;
     private const int FallbackDueSelectionPermits = 5;
     private const int FallbackDueSelectionWindowMinutes = 1440;
+    private const int FallbackEmailCodePermits = 10;
+    private const int FallbackEmailCodeWindowMinutes = 60;
 
     /// <summary>
     /// Per-IP fixed-window throttle shared across the anonymous POST endpoints
@@ -478,6 +486,30 @@ public partial class Program {
                     "auth.ratelimit.anonymous_create_window_minutes", FallbackAnonymousCreateWindowMinutes);
 
                 var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                return FixedWindow(key, permits, windowMinutes);
+            });
+            options.AddPolicy(EmailCodeRateLimitPolicy, httpContext => {
+                var optionRepo = httpContext.RequestServices.GetRequiredService<OptionRepository>();
+                var chapterRepo = httpContext.RequestServices.GetRequiredService<ChapterRepository>();
+
+                var permits = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.email_code_permits", FallbackEmailCodePermits);
+                var windowMinutes = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.email_code_window_minutes", FallbackEmailCodeWindowMinutes);
+
+                var key = $"email-code:{httpContext.Connection.RemoteIpAddress}";
+                return FixedWindow(key, permits, windowMinutes);
+            });
+            options.AddPolicy(EmailCodeCheckRateLimitPolicy, httpContext => {
+                var optionRepo = httpContext.RequestServices.GetRequiredService<OptionRepository>();
+                var chapterRepo = httpContext.RequestServices.GetRequiredService<ChapterRepository>();
+
+                var permits = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.email_code_permits", FallbackEmailCodePermits);
+                var windowMinutes = ResolvePositiveInt(optionRepo, chapterRepo,
+                    "auth.ratelimit.email_code_window_minutes", FallbackEmailCodeWindowMinutes);
+
+                var key = $"email-code-check:{httpContext.Connection.RemoteIpAddress}";
                 return FixedWindow(key, permits, windowMinutes);
             });
             options.AddPolicy(DueSelectionRateLimitPolicy, httpContext => {

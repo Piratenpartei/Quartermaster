@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using LinqToDB;
+using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Submissions;
 using Quartermaster.Data.Submissions;
@@ -101,5 +102,43 @@ public class SubmissionConfirmEndpointTests : IntegrationTestBase {
 
         await Assert.That(dto!.Status).IsEqualTo(SubmissionConfirmStatus.Expired);
         await Assert.That(Db.Motions.Count()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Confirm_materializes_membership_application_from_link_mailed_before_the_deploy() {
+        var chapter = Builder.SeedChapter("C");
+        SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
+        var payload = JsonSerializer.Serialize(new MembershipApplicationDTO {
+            FirstName = "Alice",
+            LastName = "Applicant",
+            DateOfBirth = new DateOnly(1990, 1, 1),
+            Citizenship = "DE",
+            Email = "alice@test.local",
+            PhoneNumber = "0123456789",
+            AddressStreet = "Teststr.",
+            AddressHouseNbr = "1",
+            AddressPostCode = "12345",
+            AddressCity = "Testcity",
+            AddressAdministrativeDivisionId = Builder.SeedDivisionFor(chapter.Id),
+            ConformityDeclarationAccepted = true,
+            ApplicationText = "I want to join.",
+            EntryDate = DateOnly.FromDateTime(DateTime.UtcNow)
+        });
+        Db.Insert(new PendingSubmission {
+            Token = "legacyapplicationtoken",
+            Kind = PendingSubmissionKind.MembershipApplication,
+            PayloadJson = payload,
+            Email = "alice@test.local",
+            CreatedAt = DateTime.UtcNow.AddHours(-30),
+            ExpiresAt = DateTime.UtcNow.AddHours(18),
+            ConfirmedAt = null
+        });
+
+        using var client = await AnonymousClientWithCsrfAsync();
+        var resp = await client.PostAsync("/api/submissions/legacyapplicationtoken/confirm", null);
+        var dto = await resp.Content.ReadFromJsonAsync<SubmissionConfirmResultDTO>();
+
+        await Assert.That(dto!.Status).IsEqualTo(SubmissionConfirmStatus.Confirmed);
+        await Assert.That(Db.MembershipApplications.Count(a => a.Email == "alice@test.local")).IsEqualTo(1);
     }
 }

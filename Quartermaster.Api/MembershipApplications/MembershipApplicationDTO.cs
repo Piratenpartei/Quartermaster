@@ -32,6 +32,9 @@ public class MembershipApplicationDTO {
 
     public DateOnly EntryDate { get; set; }
 
+    /// <summary>Confirmation code mailed to the address; required from anonymous applicants and never stored.</summary>
+    public string EmailVerificationCode { get; set; } = "";
+
     public MembershipApplicationDetailDTO ToDetailDto(string chapterName) => new() {
         FirstName = FirstName,
         LastName = LastName,

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.DueSelector;
-using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api.Motions;
 using Quartermaster.Api.Templates;
 using Quartermaster.Data.Chapters;
@@ -76,7 +75,6 @@ public class SubmissionConfirmationEmailService {
     private static string TemplateIdentifier(PendingSubmissionKind kind) => kind switch {
         PendingSubmissionKind.Motion => "templates.submission.motion.confirmation.email",
         PendingSubmissionKind.DueSelection => "templates.submission.dueselection.confirmation.email",
-        PendingSubmissionKind.MembershipApplication => "templates.submission.membershipapplication.confirmation.email",
         _ => ""
     };
 
@@ -91,12 +89,6 @@ public class SubmissionConfirmationEmailService {
             case PendingSubmissionKind.DueSelection when request is DueSelectionDTO d: {
                 model["selection"] = d.ToDetailDto();
                 return null;
-            }
-            case PendingSubmissionKind.MembershipApplication when request is MembershipApplicationDTO a: {
-                var chapter = a.ChapterId.HasValue ? _chapterRepo.Get(a.ChapterId.Value) : null;
-                model["application"] = a.ToDetailDto(chapter?.Name ?? "");
-                model["chapter"] = _chapterRepo.WithTemplateContact(chapter?.ToDto() ?? new ChapterDTO { Id = a.ChapterId ?? Guid.Empty });
-                return a.ChapterId;
             }
         }
         return null;

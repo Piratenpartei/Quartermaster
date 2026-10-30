@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -7,9 +8,9 @@ using Quartermaster.Api.MembershipApplications;
 using Quartermaster.Api;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Submissions;
-using Quartermaster.Data.Submissions;
 using Quartermaster.Server.Authentication;
 using Quartermaster.Server.DueSelector;
+using Quartermaster.Server.MembershipApplications.EmailCodes;
 using Quartermaster.Server.PublicForms;
 using Quartermaster.Server.Submissions;
 #if DEBUG
@@ -21,12 +22,12 @@ namespace Quartermaster.Server.MembershipApplications;
 
 /// <summary>
 /// Membership-application submission. Authenticated callers (officers entering a paper
-/// application on someone else's behalf) create directly; anonymous applicants go through
-/// the email-confirm pending flow. While the public form is switched off, only holders of applications_process
+/// application on someone else's behalf) create directly; anonymous applicants must enter the
+/// code mailed to their address first. While the public form is switched off, only holders of applications_process
 /// may still submit.
 /// </summary>
 public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicationDTO, SubmissionAcceptedResponse> {
-    private readonly SubmissionIntakeService _intake;
+    private readonly EmailCodeService _codes;
     private readonly SubmissionMaterializer _materializer;
     private readonly PermissionContext _perms;
     private readonly PublicFormSettings _publicForms;
@@ -34,13 +35,13 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
     private readonly OptionRepository _optionRepo;
 #endif
 
-    public MembershipApplicationCreateEndpoint(SubmissionIntakeService intake,
+    public MembershipApplicationCreateEndpoint(EmailCodeService codes,
         SubmissionMaterializer materializer, PermissionContext perms, PublicFormSettings publicForms
 #if DEBUG
         , OptionRepository optionRepo
 #endif
     ) {
-        _intake = intake;
+        _codes = codes;
         _materializer = materializer;
         _perms = perms;
         _publicForms = publicForms;
@@ -69,22 +70,29 @@ public class MembershipApplicationCreateEndpoint : Endpoint<MembershipApplicatio
             ReducedDueRules.ApplyRejectionDefault(req.DueSelection);
         }
 
-        var skipConfirmation = false;
+        var skipCode = false;
 #if DEBUG
-        skipConfirmation = SmtpConfig.ReadFrom(_optionRepo) == null;
+        skipCode = SmtpConfig.ReadFrom(_optionRepo) == null;
 #endif
 
-        if (_perms.UserId != null || skipConfirmation) {
-            var id = await _materializer.MaterializeApplicationDirectAsync(req, ct);
-            await SendAsync(new SubmissionAcceptedResponse {
-                Email = req.Email,
-                RequiresConfirmation = false,
-                CreatedEntityId = id
-            }, cancellation: ct);
-            return;
+        var anonymous = _perms.UserId == null && !skipCode;
+        if (anonymous) {
+            if (string.IsNullOrWhiteSpace(req.EmailVerificationCode))
+                ThrowError(I18nKey.Error.EmailCode.Required, 400);
+
+            var result = _codes.Check(req.Email, req.EmailVerificationCode, DateTime.UtcNow);
+            if (result != EmailCodeCheckResult.Valid)
+                ThrowError(EmailCodeErrors.KeyFor(result), 400);
         }
 
-        await _intake.AcceptAsync(PendingSubmissionKind.MembershipApplication, req, req.Email, ct);
-        await SendAsync(new SubmissionAcceptedResponse { Email = req.Email }, cancellation: ct);
+        var id = await _materializer.MaterializeApplicationDirectAsync(req, ct);
+        if (anonymous)
+            _codes.Consume(req.Email);
+
+        await SendAsync(new SubmissionAcceptedResponse {
+            Email = req.Email,
+            RequiresConfirmation = false,
+            CreatedEntityId = id
+        }, cancellation: ct);
     }
 }

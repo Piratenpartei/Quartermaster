@@ -14,6 +14,7 @@ using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
 using Quartermaster.Data.TravelExpenses;
+using Quartermaster.Server.MembershipApplications.EmailCodes;
 
 namespace Quartermaster.Server.Tests.Infrastructure;
 
@@ -53,7 +54,7 @@ public abstract class IntegrationTestBase : IDisposable {
         // Bump per-worker rate-limit bucket so unrelated tests don't drain each other.
         // Direct write to skip audit-log noise. Rate-limit tests override via WithWebHostBuilder.
         Db.SystemOptions
-            .Where(o => (o.Identifier == "auth.ratelimit.anonymous_create_permits" || o.Identifier == "auth.ratelimit.due_selection_permits") && o.ChapterId == null)
+            .Where(o => (o.Identifier == "auth.ratelimit.anonymous_create_permits" || o.Identifier == "auth.ratelimit.due_selection_permits" || o.Identifier == "auth.ratelimit.email_code_permits") && o.ChapterId == null)
             .Set(o => o.Value, "10000")
             .Update();
 
@@ -123,6 +124,13 @@ public abstract class IntegrationTestBase : IDisposable {
             var response = await client.PostAsync($"/api/submissions/{token}/confirm", null);
             response.EnsureSuccessStatusCode();
         }
+    }
+
+    /// <summary>Issues an email confirmation code for the address through the service, as the send endpoint would, and returns it.</summary>
+    protected string IssueEmailCode(string email) {
+        using var scope = Factory.Services.CreateScope();
+        var issued = scope.ServiceProvider.GetRequiredService<EmailCodeService>().Issue(email, DateTime.UtcNow);
+        return issued.Code ?? throw new InvalidOperationException("Email code send limit reached");
     }
 
     public virtual void Dispose() {

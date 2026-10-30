@@ -84,10 +84,12 @@ public class PublicFormTests : IntegrationTestBase {
         SetOption(PublicFormOptions.MembershipApplication, null, "false");
         using var client = await AnonymousWithCsrfAsync();
 
-        var response = await client.PostAsJsonAsync("/api/membershipapplications", Application(chapter.Id));
+        var application = Application(chapter.Id);
+        application.EmailVerificationCode = IssueEmailCode(application.Email);
+        var response = await client.PostAsJsonAsync("/api/membershipapplications", application);
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.Forbidden);
-        await Assert.That(Db.PendingSubmissions.Count()).IsEqualTo(0);
+        await Assert.That(Db.MembershipApplications.Count()).IsEqualTo(0);
     }
 
     [Test]

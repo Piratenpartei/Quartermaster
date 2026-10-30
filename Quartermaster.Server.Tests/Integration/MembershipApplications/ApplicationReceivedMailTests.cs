@@ -29,25 +29,27 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
     private async Task Submit(MembershipApplicationDTO dto) {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
+        dto.EmailVerificationCode = IssueEmailCode(dto.Email);
         await client.PostAsJsonAsync("/api/membershipapplications", dto);
     }
 
     [Test]
-    public async Task No_received_mail_before_confirmation() {
+    public async Task No_received_mail_without_code() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
-        await Submit(Dto(chapter.Id));
+        using var client = AnonymousClient();
+        await AttachAntiforgeryTokenAsync(client);
+        await client.PostAsJsonAsync("/api/membershipapplications", Dto(chapter.Id));
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "application_received").ToList();
         await Assert.That(logs.Count).IsEqualTo(0);
     }
 
     [Test]
-    public async Task Sends_received_mail_to_applicant_on_confirm() {
+    public async Task Sends_received_mail_to_applicant_on_submit() {
         var chapter = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, chapter.Id, chapter.Id);
         await Submit(Dto(chapter.Id));
-        await ConfirmAllPendingSubmissionsAsync();
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "application_received").ToList();
         await Assert.That(logs.Count).IsEqualTo(1);
@@ -60,7 +62,6 @@ public class ApplicationReceivedMailTests : IntegrationTestBase {
         var root = Builder.SeedChapter("C");
         SageSetupSeeder.Seed(Factory.Services, root.Id);
         await Submit(Dto(chapterId: null));
-        await ConfirmAllPendingSubmissionsAsync();
 
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == "application_received").ToList();
         await Assert.That(logs.Count).IsEqualTo(1);

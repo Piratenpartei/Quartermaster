@@ -32,8 +32,8 @@ public class ApplicationSubmittedNotificationTests : IntegrationTestBase {
     private async Task<HttpResponseMessage> Submit(MembershipApplicationDTO dto) {
         using var client = AnonymousClient();
         await AttachAntiforgeryTokenAsync(client);
+        dto.EmailVerificationCode = IssueEmailCode(dto.Email);
         var response = await client.PostAsJsonAsync("/api/membershipapplications", dto);
-        await ConfirmAllPendingSubmissionsAsync();
         return response;
     }
 
