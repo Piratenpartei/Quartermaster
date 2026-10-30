@@ -88,6 +88,22 @@ public class AssemblyMotionNotificationTemplateTests : RepositoryTestBase {
         }
     }
 
+    [Test]
+    [Arguments(4, false)]
+    [Arguments(5, true)]
+    public async Task Joined_seed_mentions_the_submission_only_at_the_minimum(int submitterCount, bool mentionsSubmission) {
+        foreach (var channel in new[] { "email", "telegram" }) {
+            var template = _templates.GetSystemBase($"notifications.{NotificationTriggers.AssemblyMotionCoSubmitterJoined}.{channel}")!;
+            var model = SampleModel() with { SubmitterCount = submitterCount, MinSubmitters = 5 };
+
+            var (body, error) = await TemplateRenderer.RenderTextAsync(template.Body, ModelOf(model));
+
+            await Assert.That(error).IsNull();
+            await Assert.That(body!).Contains($"{submitterCount} von 5 nötigen Antragstellenden");
+            await Assert.That(body.Contains("Damit ist der Antrag eingereicht.")).IsEqualTo(mentionsSubmission);
+        }
+    }
+
     private const string HostileTitle = "[Klick](https://evil.example) *x* _y_";
 
     [Test]

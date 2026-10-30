@@ -16,6 +16,8 @@ namespace Quartermaster.Server.AssemblyMotions.Notifications;
 public class AssemblyMotionRecipientResolver : IRecipientResolver {
     public static IReadOnlyList<string> TriggerIds { get; } = [
         NotificationTriggers.AssemblyMotionCoSubmitterReset,
+        NotificationTriggers.AssemblyMotionCoSubmitterJoined,
+        NotificationTriggers.AssemblyMotionCoSubmitterLeft,
         NotificationTriggers.AssemblyMotionCollectingReminder,
         NotificationTriggers.AssemblyMotionSubmitted,
         NotificationTriggers.AssemblyMotionLapsed,

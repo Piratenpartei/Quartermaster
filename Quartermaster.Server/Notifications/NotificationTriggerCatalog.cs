@@ -29,6 +29,14 @@ public static class NotificationTriggerCatalog {
             "Antrag geändert, Mitantragstellung zurückgesetzt",
             "Sobald die antragstellende Person einen Antrag ändert, bei dem du Mitantragsteller:in warst."),
         new NotificationTriggerDescriptor(
+            NotificationTriggers.AssemblyMotionCoSubmitterJoined,
+            "Neue:r Mitantragsteller:in",
+            "Sobald jemand deinem Antrag als Mitantragsteller:in beitritt."),
+        new NotificationTriggerDescriptor(
+            NotificationTriggers.AssemblyMotionCoSubmitterLeft,
+            "Mitantragstellung zurückgezogen",
+            "Sobald jemand die Mitantragstellung zu deinem Antrag zurückzieht."),
+        new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCollectingReminder,
             "Erinnerung: Mitantragstellende gesucht",
             "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragstellende hat."),

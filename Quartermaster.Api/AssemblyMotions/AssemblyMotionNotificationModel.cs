@@ -15,6 +15,8 @@ public record AssemblyMotionNotificationModel {
     public string InquiryQuestion { get; set; } = "";
     public string InquiryDueAt { get; set; } = "";
     public string Deadline { get; set; } = "";
+    public int SubmitterCount { get; set; }
+    public int MinSubmitters { get; set; }
     public string Path { get; set; } = "";
     public string OtherDisplayNumber { get; set; } = "";
     public string OtherTitle { get; set; } = "";

@@ -75,18 +75,65 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         JoinNew(motion);
         JoinNew(motion);
         JoinNew(motion);
-        await Assert.That(_queue.Requests.Count).IsEqualTo(0);
+        await Assert.That(_queue.Requests.Count(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted)).IsEqualTo(0);
 
         JoinNew(motion);
 
-        await Assert.That(_queue.Requests.Count).IsEqualTo(1);
-        var request = _queue.Requests[0];
-        await Assert.That(request.TriggerId).IsEqualTo(NotificationTriggers.AssemblyMotionSubmitted);
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted);
         await Assert.That(PayloadOf(request).IncludeCommission).IsTrue();
         await Assert.That(PayloadOf(request).MemberIds.Count).IsEqualTo(0);
         await Assert.That(PayloadOf(request).EventChapterId).IsEqualTo(_chapter.Id);
         await Assert.That(ModelFor(request).Path).IsEqualTo($"/Administration/AssemblyMotions/{motion.Id}");
         await Assert.That(ModelFor(request).DisplayNumber).IsEqualTo("GP001");
+    }
+
+    [Test]
+    public async Task Join_notifies_only_the_author_with_the_count() {
+        var (motion, author, _) = Released(5, TimeSpan.FromDays(7));
+        _queue.Requests.Clear();
+
+        JoinNew(motion);
+
+        var request = _queue.Requests.Single();
+        await Assert.That(request.TriggerId).IsEqualTo(NotificationTriggers.AssemblyMotionCoSubmitterJoined);
+        await Assert.That(PayloadOf(request).MemberIds.Single()).IsEqualTo(author.Id);
+        await Assert.That(PayloadOf(request).IncludeCommission).IsFalse();
+        await Assert.That(ModelFor(request).SubmitterCount).IsEqualTo(2);
+        await Assert.That(ModelFor(request).MinSubmitters).IsEqualTo(5);
+    }
+
+    [Test]
+    public async Task Join_that_completes_the_motion_notifies_author_and_commission() {
+        var (motion, author, _) = Released(5, TimeSpan.FromDays(7));
+        JoinNew(motion);
+        JoinNew(motion);
+        JoinNew(motion);
+        _queue.Requests.Clear();
+
+        JoinNew(motion);
+
+        await Assert.That(_queue.Requests.Select(r => r.TriggerId).Order().ToList())
+            .IsEquivalentTo(new[] { NotificationTriggers.AssemblyMotionCoSubmitterJoined, NotificationTriggers.AssemblyMotionSubmitted }.Order().ToList());
+        var joined = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionCoSubmitterJoined);
+        await Assert.That(PayloadOf(joined).MemberIds.Single()).IsEqualTo(author.Id);
+        await Assert.That(ModelFor(joined).SubmitterCount).IsEqualTo(5);
+        await Assert.That(ModelFor(joined).StatusLabel).IsEqualTo("Eingereicht");
+    }
+
+    [Test]
+    public async Task Leave_notifies_the_author_with_the_count() {
+        var (motion, author, _) = Released(5, TimeSpan.FromDays(7));
+        var joiner = JoinNew(motion);
+        _queue.Requests.Clear();
+
+        var outcome = _service.Leave(motion.Id, joiner, DateTime.UtcNow);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var request = _queue.Requests.Single();
+        await Assert.That(request.TriggerId).IsEqualTo(NotificationTriggers.AssemblyMotionCoSubmitterLeft);
+        await Assert.That(PayloadOf(request).MemberIds.Single()).IsEqualTo(author.Id);
+        await Assert.That(PayloadOf(request).IncludeCommission).IsFalse();
+        await Assert.That(ModelFor(request).SubmitterCount).IsEqualTo(1);
     }
 
     [Test]
@@ -113,6 +160,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         var (motion, author, type) = Released(5, TimeSpan.FromDays(7));
         var first = JoinNew(motion);
         var second = JoinNew(motion);
+        _queue.Requests.Clear();
 
         var outcome = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel") with { TextMarkdown = "Neuer Antragstext" }, motion.Revision, DateTime.UtcNow);
 
@@ -381,10 +429,12 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
 
         var conflict = _service.UpdateByAuthor(motion, author, _userId, NewDraft(type.Id, "Neuer Titel"), motion.Revision + 1, DateTime.UtcNow);
         var alreadyJoined = _service.Join(motion.Id, author, DateTime.UtcNow);
+        var authorLeaving = _service.Leave(motion.Id, author, DateTime.UtcNow);
         var missing = _commission.Check(Guid.NewGuid(), AssemblyMotionStatus.Admitted, null, _userId, DateTime.UtcNow);
 
         await Assert.That(conflict.Succeeded).IsFalse();
         await Assert.That(alreadyJoined.Succeeded).IsFalse();
+        await Assert.That(authorLeaving.Succeeded).IsFalse();
         await Assert.That(missing.Succeeded).IsFalse();
         await Assert.That(_queue.Requests.Count).IsEqualTo(0);
     }

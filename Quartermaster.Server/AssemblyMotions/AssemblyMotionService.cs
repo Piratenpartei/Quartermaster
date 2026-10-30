@@ -356,7 +356,9 @@ public class AssemblyMotionService {
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
         _motions.MarkForumPending(motion.Id, nowUtc);
 
-        if (submitters.Count + 1 >= type.MinSubmitters) {
+        var submitterCount = submitters.Count + 1;
+        notifications.Add(() => _notifier.CoSubmitterJoined(motion, submitterCount));
+        if (submitterCount >= type.MinSubmitters) {
             Submit(motion, nowUtc, notifications);
             notifications.Add(() => _notifier.Submitted(motion));
         }
@@ -388,7 +390,8 @@ public class AssemblyMotionService {
         if (motion == null)
             return AssemblyMotionOutcome.Fail(404, I18nKey.Error.AssemblyMotion.NotFound);
 
-        var isSubmitter = _motions.GetSubmitters(motion.Id).Any(s => s.MemberId == member.Id);
+        var submitters = _motions.GetSubmitters(motion.Id);
+        var isSubmitter = submitters.Any(s => s.MemberId == member.Id);
         var problem = LeaveProblem(motion, member, isSubmitter);
         if (problem != null)
             return problem;
@@ -398,6 +401,7 @@ public class AssemblyMotionService {
         _motions.MarkForumPending(motion.Id, nowUtc);
 
         tx.Commit();
+        _notifier.CoSubmitterLeft(motion, submitters.Count - 1);
         return AssemblyMotionOutcome.Ok(motion);
     }
 

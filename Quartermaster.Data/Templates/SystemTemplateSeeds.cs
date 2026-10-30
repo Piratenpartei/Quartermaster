@@ -170,6 +170,18 @@ internal static class SystemTemplateSeeds {
             "Hallo,\n\nder Antrag *{{ motion.TitleEscaped }}* wurde von der antragstellenden Person geändert. Deine Mitantragstellung wurde deshalb zurückgesetzt.\n\nWenn du den geänderten Antrag weiter unterstützen möchtest, tritt ihm bitte erneut bei:\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
+            "notifications.assembly_motion_cosubmitter_joined.email",
+            "Benachrichtigung: Neue:r Mitantragsteller:in (E-Mail)",
+            "Neue Mitantragstellung: {{ motion.Title }}",
+            "Hallo,\n\njemand ist deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) als Mitantragsteller:in beigetreten. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.assembly_motion_cosubmitter_left.email",
+            "Benachrichtigung: Mitantragstellung zurückgezogen (E-Mail)",
+            "Mitantragstellung zurückgezogen: {{ motion.Title }}",
+            "Hallo,\n\njemand hat die Mitantragstellung zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) zurückgezogen. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.email",
             "Benachrichtigung: Erinnerung: Mitantragstellende gesucht (E-Mail)",
             "Erinnerung: Mitantragstellende für {{ motion.Title }} gesucht",
@@ -228,6 +240,18 @@ internal static class SystemTemplateSeeds {
             "Benachrichtigung: Antrag geändert, Mitantragstellung zurückgesetzt (Telegram)",
             null,
             "Antrag geändert: *{{ motion.TitleEscaped }}*\n\nDeine Mitantragstellung wurde zurückgesetzt. Tritt dem Antrag erneut bei, wenn du ihn weiter unterstützen möchtest.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.assembly_motion_cosubmitter_joined.telegram",
+            "Benachrichtigung: Neue:r Mitantragsteller:in (Telegram)",
+            null,
+            "Neue Mitantragstellung für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.assembly_motion_cosubmitter_left.telegram",
+            "Benachrichtigung: Mitantragstellung zurückgezogen (Telegram)",
+            null,
+            "Mitantragstellung zurückgezogen für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.telegram",

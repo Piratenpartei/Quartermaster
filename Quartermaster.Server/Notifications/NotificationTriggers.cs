@@ -9,6 +9,8 @@ public static class NotificationTriggers {
     public const string ApplicationSubmitted = "application_submitted";
     public const string DueSelectionSubmitted = "due_selection_submitted";
     public const string AssemblyMotionCoSubmitterReset = "assembly_motion_cosubmitter_reset";
+    public const string AssemblyMotionCoSubmitterJoined = "assembly_motion_cosubmitter_joined";
+    public const string AssemblyMotionCoSubmitterLeft = "assembly_motion_cosubmitter_left";
     public const string AssemblyMotionCollectingReminder = "assembly_motion_collecting_reminder";
     public const string AssemblyMotionSubmitted = "assembly_motion_submitted";
     public const string AssemblyMotionLapsed = "assembly_motion_lapsed";

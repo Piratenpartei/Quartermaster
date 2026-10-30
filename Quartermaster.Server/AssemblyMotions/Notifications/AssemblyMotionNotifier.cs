@@ -56,6 +56,22 @@ public class AssemblyMotionNotifier {
         });
     }
 
+    public void CoSubmitterJoined(AssemblyMotion motion, int submitterCount) {
+        Safely(nameof(CoSubmitterJoined), () => {
+            var context = BuildContext(motion);
+            context.Model = context.Model with { SubmitterCount = submitterCount };
+            Enqueue(NotificationTriggers.AssemblyMotionCoSubmitterJoined, context, [motion.CreatedByMemberId], false);
+        });
+    }
+
+    public void CoSubmitterLeft(AssemblyMotion motion, int submitterCount) {
+        Safely(nameof(CoSubmitterLeft), () => {
+            var context = BuildContext(motion);
+            context.Model = context.Model with { SubmitterCount = submitterCount };
+            Enqueue(NotificationTriggers.AssemblyMotionCoSubmitterLeft, context, [motion.CreatedByMemberId], false);
+        });
+    }
+
     public void CollectingReminder(AssemblyMotion motion, DateTime effectiveDeadlineUtc) {
         Safely(nameof(CollectingReminder), () => {
             var context = BuildContext(motion);
@@ -202,7 +218,8 @@ public class AssemblyMotionNotifier {
             TypeName = type.Name,
             EventName = assembly.PublicName,
             StatusLabel = StatusLabel(motion),
-            Deadline = BerlinTime.FormatDeadline(effectiveDeadline)
+            Deadline = BerlinTime.FormatDeadline(effectiveDeadline),
+            MinSubmitters = type.MinSubmitters
         };
         return new NotificationContext(model, assembly.ChapterId);
     }
