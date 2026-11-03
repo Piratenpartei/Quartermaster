@@ -39,6 +39,21 @@ public class Event {
         CreatedAt = nowUtc
     };
 
+    /// <summary>For an event the viewer can no longer see, only the id and status are filled, so they can still unsubscribe.</summary>
+    public EventSubscriptionListItemDTO ToSubscriptionListItemDto(bool isVisible) {
+        if (!isVisible)
+            return new() { EventId = Id, Status = Status };
+
+        return new() {
+            EventId = Id,
+            IsVisible = true,
+            PublicName = PublicName,
+            EventDate = EventDate.ToDtoDate(),
+            StartTime = StartTime.ToDtoTime(),
+            Status = Status
+        };
+    }
+
     public EventDetailDTO ToDetailDto(string chapterName) => new() {
         Id = Id,
         ChapterId = ChapterId,

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using LinqToDB;
+using Quartermaster.Api;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Data;
 using Quartermaster.Data.AssemblyMotions;
@@ -452,5 +453,63 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         await Assert.That(PayloadOf(request).MemberIds.Single()).IsEqualTo(ownAuthor.Id);
         await Assert.That(ModelFor(request, null).Id).IsEqualTo(own.Id);
         await Assert.That(ModelFor(request).OtherTitle).IsEqualTo("Testantrag");
+    }
+
+    private Guid SubscribedUser() {
+        var user = _builder.SeedUser();
+        _context.Insert(new EventSubscription { EventId = _event.Id, UserId = user.Id, CreatedAt = DateTime.UtcNow });
+        return user.Id;
+    }
+
+    [Test]
+    public async Task Submitted_names_the_event_for_subscribers() {
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted);
+
+        await Assert.That(PayloadOf(request).SubscriberEventId).IsEqualTo(_event.Id);
+        await Assert.That(ModelFor(request).Path).IsEqualTo($"/Administration/AssemblyMotions/{motion.Id}");
+    }
+
+    [Test]
+    public async Task Submitted_reaches_subscriber_with_member_link() {
+        var subscriber = SubscribedUser();
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted);
+
+        await Assert.That(ModelFor(request, subscriber).Path).IsEqualTo($"/AssemblyMotions/{motion.Id}");
+    }
+
+    [Test]
+    public async Task Commission_member_also_subscribed_gets_one_with_commission_link() {
+        var (commission, _) = _builder.SeedAuthenticatedUser(chapterPermissions: new() { [_chapter.Id] = [PermissionIdentifier.ManageAssemblyMotions] });
+        _context.Insert(new EventSubscription { EventId = _event.Id, UserId = commission.Id, CreatedAt = DateTime.UtcNow });
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted);
+
+        await Assert.That(ModelFor(request, commission.Id).Path).IsEqualTo($"/Administration/AssemblyMotions/{motion.Id}");
+    }
+
+    [Test]
+    public async Task Other_triggers_ignore_subscribers() {
+        SubscribedUser();
+        Released(5, TimeSpan.FromHours(1));
+
+        _service.LapseOverdue(DateTime.UtcNow.AddHours(2));
+
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionLapsed);
+        await Assert.That(PayloadOf(request).SubscriberEventId).IsNull();
+    }
+
+    [Test]
+    public async Task Subscriber_added_after_enqueue_gets_member_link() {
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+        var request = _queue.Requests.Single(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubmitted);
+
+        var lateSubscriber = SubscribedUser();
+
+        await Assert.That(ModelFor(request, lateSubscriber).Path).IsEqualTo($"/AssemblyMotions/{motion.Id}");
     }
 }

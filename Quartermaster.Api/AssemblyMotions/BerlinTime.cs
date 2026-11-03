@@ -10,6 +10,14 @@ public static class BerlinTime {
         return TimeZoneInfo.ConvertTimeToUtc(unspecified, _zone);
     }
 
+    /// <summary>Like <see cref="ToUtc"/>, but a wall-clock time inside the spring-forward gap, which does not exist, moves one hour later instead of throwing.</summary>
+    public static DateTime ToUtcLenient(DateTime berlinLocal) {
+        var unspecified = DateTime.SpecifyKind(berlinLocal, DateTimeKind.Unspecified);
+        if (_zone.IsInvalidTime(unspecified))
+            unspecified = unspecified.AddHours(1);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, _zone);
+    }
+
     public static DateTime FromUtc(DateTime utc) {
         var asUtc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
         var converted = TimeZoneInfo.ConvertTimeFromUtc(asUtc, _zone);

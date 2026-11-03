@@ -195,7 +195,7 @@ internal static class SystemTemplateSeeds {
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_submitted.email",
-            "Benachrichtigung: Antrag eingereicht (Antragskommission) (E-Mail)",
+            "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (E-Mail)",
             "Antrag eingereicht: {{ motion.DisplayNumber }} {{ motion.Title }}",
             "Hallo,\n\nzur Versammlung {{ motion.EventName }} wurde ein Antrag eingereicht:\n\n*{{ motion.DisplayNumber }} {{ motion.TitleEscaped }}* ({{ motion.TypeName }})\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
@@ -273,7 +273,7 @@ internal static class SystemTemplateSeeds {
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_submitted.telegram",
-            "Benachrichtigung: Antrag eingereicht (Antragskommission) (Telegram)",
+            "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (Telegram)",
             null,
             "Antrag eingereicht ({{ motion.EventName }})\n\n*{{ motion.DisplayNumber }} {{ motion.TitleEscaped }}*\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
@@ -318,6 +318,30 @@ internal static class SystemTemplateSeeds {
             "Benachrichtigung: Antrag zurückgezogen (Telegram)",
             null,
             "Antrag zurückgezogen: *{{ motion.TitleEscaped }}*\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.event_deadline_reminder.email",
+            "Benachrichtigung: Antragsfristen abonnierter Veranstaltungen (E-Mail)",
+            "Antragsfrist endet bald: {{ event.Name }}",
+            "Hallo,\n\ndie Antragsfrist für {{ event.TypeNames }} endet am {{ event.Date }} um {{ event.Time }} Uhr.\n\nVeranstaltung: {{ event.NameEscaped }}\n\n[Zum Antragsportal]({{ globals.BaseUrl }}{{ event.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.event_deadline_reminder.telegram",
+            "Benachrichtigung: Antragsfristen abonnierter Veranstaltungen (Telegram)",
+            null,
+            "Antragsfrist endet bald: *{{ event.NameEscaped }}*\n\n{{ event.TypeNames }}: {{ event.Date }} um {{ event.Time }} Uhr\n\n[Zum Antragsportal]({{ globals.BaseUrl }}{{ event.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.event_reminder.email",
+            "Benachrichtigung: Erinnerungen zu abonnierten Veranstaltungen (E-Mail)",
+            "{% if event.Kind == \"changed\" %}Neuer Termin: {{ event.Name }}{% elsif event.Kind == \"soon\" %}{{ event.Name }} beginnt in 30 Minuten{% elsif event.Kind == \"today\" %}{{ event.Name }} beginnt heute{% else %}{{ event.Name }} beginnt morgen{% endif %}",
+            "Hallo,\n\n{% if event.Kind == \"changed\" %}der Termin von {{ event.NameEscaped }} hat sich geändert: {{ event.Date }}{% if event.Time != \"\" %}, {{ event.Time }} Uhr{% endif %}.{% elsif event.Kind == \"soon\" %}{{ event.NameEscaped }} beginnt in 30 Minuten: {{ event.Date }}{% if event.Time != \"\" %}, {{ event.Time }} Uhr{% endif %}.{% elsif event.Kind == \"today\" %}{{ event.NameEscaped }} beginnt heute: {{ event.Date }}{% if event.Time != \"\" %}, {{ event.Time }} Uhr{% endif %}.{% else %}{{ event.NameEscaped }} beginnt morgen: {{ event.Date }}{% if event.Time != \"\" %}, {{ event.Time }} Uhr{% endif %}.{% endif %}\n\n[Zur Veranstaltung]({{ globals.BaseUrl }}{{ event.Path }}){% if event.MeetingUrl != \"\" %}\n\n[Zum Treffen]({{ event.MeetingUrl }}){% endif %}\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.event_reminder.telegram",
+            "Benachrichtigung: Erinnerungen zu abonnierten Veranstaltungen (Telegram)",
+            null,
+            "{% if event.Kind == \"changed\" %}Neuer Termin: *{{ event.NameEscaped }}*{% elsif event.Kind == \"soon\" %}*{{ event.NameEscaped }}* beginnt in 30 Minuten{% elsif event.Kind == \"today\" %}*{{ event.NameEscaped }}* beginnt heute{% else %}*{{ event.NameEscaped }}* beginnt morgen{% endif %}\n\n{{ event.Date }}{% if event.Time != \"\" %}, {{ event.Time }} Uhr{% endif %}\n\n[Zur Veranstaltung]({{ globals.BaseUrl }}{{ event.Path }}){% if event.MeetingUrl != \"\" %}\n\n[Zum Treffen]({{ event.MeetingUrl }}){% endif %}",
             AllowsChapterFields: false)
     };
 }

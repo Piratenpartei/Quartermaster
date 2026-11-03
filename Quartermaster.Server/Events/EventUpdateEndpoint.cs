@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
@@ -5,15 +6,18 @@ using Quartermaster.Api;
 using Quartermaster.Api.Events;
 using Quartermaster.Data.Events;
 using Quartermaster.Server.Authentication;
+using Quartermaster.Server.Events.Subscriptions;
 
 namespace Quartermaster.Server.Events;
 
 public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
     private readonly EventRepository _eventRepo;
+    private readonly EventScheduleChangeNotice _changeNotice;
     private readonly PermissionContext _perms;
 
-    public EventUpdateEndpoint(EventRepository eventRepo, PermissionContext perms) {
+    public EventUpdateEndpoint(EventRepository eventRepo, EventScheduleChangeNotice changeNotice, PermissionContext perms) {
         _eventRepo = eventRepo;
+        _changeNotice = changeNotice;
         _perms = perms;
     }
 
@@ -49,6 +53,11 @@ public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
         };
 
         _eventRepo.Update(ev);
+
+        var updated = _eventRepo.Get(req.Id);
+        if (updated != null)
+            _changeNotice.NotifyIfChanged(existing, updated, DateTime.UtcNow);
+
         await SendOkAsync(ct);
     }
 }

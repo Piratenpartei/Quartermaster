@@ -46,6 +46,7 @@ using Quartermaster.Server.MembershipApplications.EmailCodes;
 using Quartermaster.Server.Motions;
 using Quartermaster.Server.Submissions;
 using Quartermaster.Server.Events;
+using Quartermaster.Server.Events.Subscriptions;
 using Quartermaster.Server.Meetings;
 using Quartermaster.Server.Members;
 using Quartermaster.Server.Messaging;
@@ -192,6 +193,10 @@ public partial class Program {
             sp.GetRequiredService<ILogger<AssemblyMotions.OpenSlides.HttpOpenSlidesClient>>()));
 
         builder.Services.AddScoped<AssemblyMotionNotifier>();
+        builder.Services.AddScoped<EventUserVisibility>();
+        builder.Services.AddScoped<EventSubscriptionNotifier>();
+        builder.Services.AddScoped<EventReminderService>();
+        builder.Services.AddScoped<EventScheduleChangeNotice>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionEligibility>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionAccess>();
         builder.Services.AddScoped<AssemblyMotions.AssemblyMotionService>();
@@ -218,6 +223,7 @@ public partial class Program {
         builder.Services.AddScoped<RetentionAnonymizationService>();
         builder.Services.AddHostedService<RetentionAnonymizationHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.AssemblyMotionDeadlineHostedService>();
+        builder.Services.AddHostedService<EventReminderHostedService>();
         builder.Services.AddHostedService<TakeOverHostedService>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiSync>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiReconcile>();
@@ -311,7 +317,9 @@ public partial class Program {
         builder.Services.AddScoped<IRecipientResolver, DueSelectionSubmittedRecipientResolver>();
         builder.Services.AddScoped<IRecipientResolver, ApplicantRegisterHitRecipientResolver>();
         foreach (var triggerId in AssemblyMotionRecipientResolver.TriggerIds)
-            builder.Services.AddScoped<IRecipientResolver>(sp => new AssemblyMotionRecipientResolver(triggerId, sp.GetRequiredService<DbContext>()));
+            builder.Services.AddScoped<IRecipientResolver>(sp => new AssemblyMotionRecipientResolver(triggerId, sp.GetRequiredService<DbContext>(), sp.GetRequiredService<EventUserVisibility>()));
+        foreach (var triggerId in EventReminderRecipientResolver.TriggerIds)
+            builder.Services.AddScoped<IRecipientResolver>(sp => new EventReminderRecipientResolver(triggerId, sp.GetRequiredService<DbContext>()));
         builder.Services.AddScoped<NotificationDispatcher>();
         builder.Services.AddSingleton<ChannelNotificationDispatchQueue>();
         builder.Services.AddSingleton<INotificationDispatchQueue>(sp => sp.GetRequiredService<ChannelNotificationDispatchQueue>());

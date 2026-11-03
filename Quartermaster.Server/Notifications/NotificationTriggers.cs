@@ -22,4 +22,6 @@ public static class NotificationTriggers {
     public const string AssemblyMotionCompetitionDeclared = "assembly_motion_competition_declared";
     public const string AssemblyMotionWithdrawn = "assembly_motion_withdrawn";
     public const string ApplicantRegisterHit = "applicant_register_hit";
+    public const string EventDeadlineReminder = "event_deadline_reminder";
+    public const string EventReminder = "event_reminder";
 }

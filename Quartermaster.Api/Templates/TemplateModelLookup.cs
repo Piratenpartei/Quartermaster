@@ -19,6 +19,8 @@ public static class TemplateModelLookup {
             models.Add("ChapterDTO");
         } else if (id.StartsWith("notifications.assembly_motion_")) {
             models.Add("AssemblyMotionNotificationModel");
+        } else if (id.StartsWith("notifications.event_deadline_reminder.") || id.StartsWith("notifications.event_reminder.")) {
+            models.Add("EventReminderNotificationModel");
         } else if (id.StartsWith("templates.member.welcome.")) {
             models.Add("MemberDetailDTO");
             models.Add("ChapterDTO");

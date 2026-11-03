@@ -127,6 +127,19 @@ public static class TemplateMockDataProvider {
                     };
                     break;
 
+                case "EventReminderNotificationModel":
+                    data["event"] = new EventReminderNotificationModel {
+                        Name = "Mitgliederversammlung Q3",
+                        NameEscaped = "Mitgliederversammlung Q3",
+                        Date = "28.11.2026",
+                        Time = "10:00",
+                        Kind = EventReminderNotificationModel.KindDayBefore,
+                        TypeNames = "Satzungsänderungsantrag, Programmantrag",
+                        MeetingUrl = "",
+                        Path = "/Events/00000000-0000-0000-0000-000000000000"
+                    };
+                    break;
+
                 case "MemberDetailDTO":
                     data["member"] = new MemberDetailDTO {
                         Id = Guid.NewGuid(),

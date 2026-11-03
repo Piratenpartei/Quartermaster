@@ -415,6 +415,7 @@ public static class I18nKey {
             public const string PublicNameMaxLength = "error.event.public_name_max_length";
             public const string MeetingUrlMaxLength = "error.event.meeting_url_max_length";
             public const string MeetingUrlInvalid = "error.event.meeting_url_invalid";
+            public const string SubscriptionClosed = "error.event.subscription_closed";
 
             public static class Status {
                 public const string TransitionInvalid = "error.event.status.transition_invalid";
@@ -984,6 +985,18 @@ public static class I18nKey {
             public const string TelegramLinkButton = "ui.notification_preferences.telegram_link_button";
             public const string LoadFailed = "ui.notification_preferences.load_failed";
             public const string TriggerColumn = "ui.notification_preferences.trigger_column";
+        }
+
+        public static class EventSubscription {
+            public const string Subscribe = "ui.event_subscription.subscribe";
+            public const string Subscribed = "ui.event_subscription.subscribed";
+            public const string UnsubscribeTooltip = "ui.event_subscription.unsubscribe_tooltip";
+            public const string Hint = "ui.event_subscription.hint";
+            public const string ChangeFailed = "ui.event_subscription.change_failed";
+            public const string ListTitle = "ui.event_subscription.list_title";
+            public const string ListEmpty = "ui.event_subscription.list_empty";
+            public const string Unsubscribe = "ui.event_subscription.unsubscribe";
+            public const string HiddenEvent = "ui.event_subscription.hidden_event";
         }
 
         public static class PersonalData {
@@ -2451,6 +2464,7 @@ public static class I18nKey {
             public const string ModelExpenseReimbursement = "ui.template_field_palette.model_expense_reimbursement";
             public const string ModelTravelExpense = "ui.template_field_palette.model_travel_expense";
             public const string ModelAssemblyMotionNotification = "ui.template_field_palette.model_assembly_motion_notification";
+            public const string ModelEventReminderNotification = "ui.template_field_palette.model_event_reminder_notification";
         }
 
         public static class TemplateList {

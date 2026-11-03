@@ -46,8 +46,8 @@ public static class NotificationTriggerCatalog {
             "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragstellende hat."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionSubmitted,
-            "Antrag eingereicht (Antragskommission)",
-            "Sobald ein Antrag zu einer Versammlung deiner betreuten Gliederung eingereicht wird."),
+            "Antrag eingereicht (Antragskommission und Abonnements)",
+            "Sobald ein Antrag zu einer Versammlung eingereicht wird: für die Antragskommission der Gliederung und für alle, die die Veranstaltung abonniert haben."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionLapsed,
             "Antrag verfallen",
@@ -76,6 +76,14 @@ public static class NotificationTriggerCatalog {
             NotificationTriggers.AssemblyMotionWithdrawn,
             "Antrag zurückgezogen",
             "Sobald ein Antrag zurückgezogen wird, an dem du beteiligt bist oder den du als Antragskommission betreust."),
+        new NotificationTriggerDescriptor(
+            NotificationTriggers.EventDeadlineReminder,
+            "Antragsfristen abonnierter Veranstaltungen",
+            "36 Stunden vor jeder Antragsfrist einer Veranstaltung, die du abonniert hast."),
+        new NotificationTriggerDescriptor(
+            NotificationTriggers.EventReminder,
+            "Erinnerungen zu abonnierten Veranstaltungen",
+            "24 Stunden und 30 Minuten vor Beginn einer Veranstaltung, die du abonniert hast, und wenn sich ihr Termin ändert."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.ApplicantRegisterHit,
             "Treffer im Ablehnungsregister",

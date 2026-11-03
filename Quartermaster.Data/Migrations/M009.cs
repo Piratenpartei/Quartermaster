@@ -4,6 +4,7 @@ using Quartermaster.Data.ApplicantRegister;
 using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.EmailVerification;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
@@ -30,6 +31,13 @@ public class M009 : MigrationBase {
     public const string JustificationTag = "{{ dues.Justification }}";
     public const string ApplicationRejectionAmount = ", bei Ablehnung {{ dues.RejectedReductionAmount }} €";
     public const string ReductionRejectionLine = "- Jahresbeitrag bei Ablehnung: {{ dues.RejectedReductionAmount }} €";
+
+    public const string SubmittedEmailIdentifier = "notifications.assembly_motion_submitted.email";
+    public const string SubmittedTelegramIdentifier = "notifications.assembly_motion_submitted.telegram";
+    public const string SubmittedEmailOldName = "Benachrichtigung: Antrag eingereicht (Antragskommission) (E-Mail)";
+    public const string SubmittedEmailNewName = "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (E-Mail)";
+    public const string SubmittedTelegramOldName = "Benachrichtigung: Antrag eingereicht (Antragskommission) (Telegram)";
+    public const string SubmittedTelegramNewName = "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (Telegram)";
 
     public static readonly string PrefillFederalLevelSql = $@"
             UPDATE `{Chapter.TableName}` SET `{nameof(Chapter.Level)}` = {(int)ChapterLevel.Federal}
@@ -119,6 +127,32 @@ public class M009 : MigrationBase {
         Alter.Table(User.TableName)
             .AddColumn(nameof(User.KeycloakUserId)).AsString(User.KeycloakUserIdMaxLength).Nullable();
 
+        Create.Table(EventSubscription.TableName)
+            .WithColumn(nameof(EventSubscription.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(EventSubscription.EventId)).AsGuid().NotNullable()
+            .WithColumn(nameof(EventSubscription.UserId)).AsGuid().NotNullable().Indexed()
+            .WithColumn(nameof(EventSubscription.CreatedAt)).AsCustom("DATETIME(6)").NotNullable();
+
+        Create.Index("UX_EventSubscriptions_EventId_UserId")
+            .OnTable(EventSubscription.TableName)
+            .OnColumn(nameof(EventSubscription.EventId)).Ascending()
+            .OnColumn(nameof(EventSubscription.UserId)).Ascending()
+            .WithOptions().Unique();
+
+        Create.Table(EventReminderDelivery.TableName)
+            .WithColumn(nameof(EventReminderDelivery.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(EventReminderDelivery.SubscriptionId)).AsGuid().NotNullable()
+            .WithColumn(nameof(EventReminderDelivery.Kind)).AsInt32().NotNullable()
+            .WithColumn(nameof(EventReminderDelivery.TargetAt)).AsCustom("DATETIME(6)").NotNullable()
+            .WithColumn(nameof(EventReminderDelivery.SentAt)).AsCustom("DATETIME(6)").NotNullable();
+
+        Create.Index("UX_EventReminderDeliveries_SubscriptionId_Kind_TargetAt")
+            .OnTable(EventReminderDelivery.TableName)
+            .OnColumn(nameof(EventReminderDelivery.SubscriptionId)).Ascending()
+            .OnColumn(nameof(EventReminderDelivery.Kind)).Ascending()
+            .OnColumn(nameof(EventReminderDelivery.TargetAt)).Ascending()
+            .WithOptions().Unique();
+
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
@@ -137,9 +171,16 @@ public class M009 : MigrationBase {
                 '{FailureLegacyPhrase}', '{FailureActionPhrase}'),
                 '{FailureLegacyRemedy}', '{FailureRemedyTag}')
             WHERE `{nameof(Template.Identifier)}` = '{FailureMailIdentifier}' AND `{nameof(Template.Body)}` NOT LIKE '%failure.Remedy%'");
+
+        Execute.Sql(RenameSql(SubmittedEmailIdentifier, SubmittedEmailOldName, SubmittedEmailNewName));
+        Execute.Sql(RenameSql(SubmittedTelegramIdentifier, SubmittedTelegramOldName, SubmittedTelegramNewName));
     }
 
     public override void Down() {
+        Execute.Sql(RenameSql(SubmittedEmailIdentifier, SubmittedEmailNewName, SubmittedEmailOldName));
+        Execute.Sql(RenameSql(SubmittedTelegramIdentifier, SubmittedTelegramNewName, SubmittedTelegramOldName));
+        Delete.Table(EventReminderDelivery.TableName);
+        Delete.Table(EventSubscription.TableName);
         Delete.Column(nameof(User.KeycloakUserId)).FromTable(User.TableName);
         Delete.Column(nameof(AssemblyMotion.ForumSeenPostNumber)).FromTable(AssemblyMotion.TableName);
         Delete.Table(EmailVerificationCode.TableName);
@@ -180,5 +221,12 @@ public class M009 : MigrationBase {
         Delete.Column(nameof(Motion.HandoverReason)).FromTable(Motion.TableName);
         Delete.Column(nameof(Chapter.Level)).FromTable(Chapter.TableName);
         Delete.Column(nameof(Chapter.TakeOverPeriodDays)).FromTable(Chapter.TableName);
+    }
+
+    /// <summary>Seeds are only inserted once, so existing templates get a changed display name here; renamed copies stay as they are.</summary>
+    private static string RenameSql(string identifier, string oldName, string newName) {
+        return $@"
+            UPDATE `{Template.TableName}` SET `{nameof(Template.DisplayName)}` = '{newName}'
+            WHERE `{nameof(Template.Identifier)}` = '{identifier}' AND `{nameof(Template.DisplayName)}` = '{oldName}'";
     }
 }

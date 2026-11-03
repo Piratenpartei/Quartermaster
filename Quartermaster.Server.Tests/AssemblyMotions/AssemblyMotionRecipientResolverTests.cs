@@ -1,12 +1,18 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
+using LinqToDB;
+using Quartermaster.Api.Events;
 using Quartermaster.Api;
-using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.UserChapterPermissions;
+using Quartermaster.Data.UserGlobalPermissions;
+using Quartermaster.Data;
 using Quartermaster.Server.AssemblyMotions.Notifications;
+using Quartermaster.Server.Events;
 using Quartermaster.Server.Notifications;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -17,6 +23,7 @@ public class AssemblyMotionRecipientResolverTests : RepositoryTestBase {
     private TestDataBuilder _builder = default!;
     private RoleRepository _roleRepo = default!;
     private AssemblyMotionRecipientResolver _resolver = default!;
+    private EventUserVisibility _visibility = default!;
 
     [Before(Test)]
     public void Setup() {
@@ -25,7 +32,17 @@ public class AssemblyMotionRecipientResolverTests : RepositoryTestBase {
         new PermissionRepository(_context).SupplementDefaults();
         _roleRepo = new RoleRepository(_context);
         _roleRepo.SupplementDefaults();
-        _resolver = new AssemblyMotionRecipientResolver(NotificationTriggers.AssemblyMotionLapsed, _context);
+        _visibility = new EventUserVisibility(
+            new UserGlobalPermissionRepository(_context, _roleRepo),
+            new UserChapterPermissionRepository(_context, _roleRepo),
+            new ChapterRepository(_context, AuditLog));
+        _resolver = new AssemblyMotionRecipientResolver(NotificationTriggers.AssemblyMotionLapsed, _context, _visibility);
+    }
+
+    private Guid SubscribedUser(Event ev) {
+        var user = _builder.SeedUser();
+        _context.Insert(new EventSubscription { EventId = ev.Id, UserId = user.Id, CreatedAt = DateTime.UtcNow });
+        return user.Id;
     }
 
     private static AssemblyMotionNotificationPayload PayloadFor(Guid chapterId, Guid[] memberIds, bool includeCommission)
@@ -129,7 +146,52 @@ public class AssemblyMotionRecipientResolverTests : RepositoryTestBase {
 
     [Test]
     public async Task Every_trigger_has_a_resolver_id() {
-        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Count).IsEqualTo(10);
-        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Distinct().Count()).IsEqualTo(10);
+        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Count).IsEqualTo(13);
+        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Distinct().Count()).IsEqualTo(13);
+    }
+
+    [Test]
+    public async Task Subscribers_are_added_when_the_event_is_given() {
+        var chapter = _builder.SeedChapter("C");
+        var ev = _builder.SeedEvent(chapter.Id, visibility: EventVisibility.Public);
+        var subscriber = SubscribedUser(ev);
+
+        var result = _resolver.Resolve(new AssemblyMotionNotificationPayload(Guid.NewGuid(), chapter.Id, [], true, ev.Id));
+
+        await Assert.That(result.Select(r => r.UserId).Contains(subscriber)).IsTrue();
+    }
+
+    [Test]
+    public async Task Subscriber_without_visibility_is_left_out() {
+        var chapter = _builder.SeedChapter("C");
+        var ev = _builder.SeedEvent(chapter.Id, visibility: EventVisibility.Private);
+        var subscriber = SubscribedUser(ev);
+
+        var result = _resolver.Resolve(new AssemblyMotionNotificationPayload(Guid.NewGuid(), chapter.Id, [], true, ev.Id));
+
+        await Assert.That(result.Select(r => r.UserId).Contains(subscriber)).IsFalse();
+    }
+
+    [Test]
+    public async Task Commission_member_also_subscribed_resolves_once() {
+        var chapter = _builder.SeedChapter("C");
+        var ev = _builder.SeedEvent(chapter.Id, visibility: EventVisibility.Public);
+        var (commission, _) = _builder.SeedAuthenticatedUser(chapterPermissions: new() { [chapter.Id] = [PermissionIdentifier.ManageAssemblyMotions] });
+        _context.Insert(new EventSubscription { EventId = ev.Id, UserId = commission.Id, CreatedAt = DateTime.UtcNow });
+
+        var result = _resolver.Resolve(new AssemblyMotionNotificationPayload(Guid.NewGuid(), chapter.Id, [], true, ev.Id));
+
+        await Assert.That(result.Count(r => r.UserId == commission.Id)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Subscribers_ignored_without_event_id() {
+        var chapter = _builder.SeedChapter("C");
+        var ev = _builder.SeedEvent(chapter.Id, visibility: EventVisibility.Public);
+        var subscriber = SubscribedUser(ev);
+
+        var result = _resolver.Resolve(PayloadFor(chapter.Id, [], true));
+
+        await Assert.That(result.Select(r => r.UserId).Contains(subscriber)).IsFalse();
     }
 }

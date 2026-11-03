@@ -2,6 +2,7 @@
 @using Quartermaster.Api.AssemblyMotions
 @using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.AssemblyMotions
+@using Quartermaster.Blazor.Components.Events
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.PortalPageTitle]</PageTitle>
 
@@ -19,6 +20,8 @@
         @I18n[I18nKey.Ui.AssemblyMotion.PortalWindowTo]
         <strong><DeadlineText Value="@Portal.ClosesAt" /></strong>
     </div>
+
+    <EventSubscriptionToggle EventId="EventId" />
 
     @if (!string.IsNullOrEmpty(Portal.IntroHtml)) {
         <div class="card mb-3">

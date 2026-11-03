@@ -59,7 +59,8 @@ public partial class TemplateFieldPalette {
         ["EventDetailDTO"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEvent, typeof(EventDetailDTO)),
         ["ExpenseReimbursementInputDTO"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelExpenseReimbursement, typeof(ExpenseReimbursementInputDTO)),
         ["TravelExpensePdfModel"] = ("form", I18nKey.Ui.TemplateFieldPalette.ModelTravelExpense, typeof(TravelExpensePdfModel)),
-        ["AssemblyMotionNotificationModel"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelAssemblyMotionNotification, typeof(AssemblyMotionNotificationModel))
+        ["AssemblyMotionNotificationModel"] = ("motion", I18nKey.Ui.TemplateFieldPalette.ModelAssemblyMotionNotification, typeof(AssemblyMotionNotificationModel)),
+        ["EventReminderNotificationModel"] = ("event", I18nKey.Ui.TemplateFieldPalette.ModelEventReminderNotification, typeof(EventReminderNotificationModel))
     };
 
     private static List<TemplateModelSchemaDTO> BuildSchemas(string models, bool includeGlobals) {

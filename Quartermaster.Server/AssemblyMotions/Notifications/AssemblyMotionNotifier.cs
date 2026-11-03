@@ -91,7 +91,7 @@ public class AssemblyMotionNotifier {
     public void Submitted(AssemblyMotion motion) {
         Safely(nameof(Submitted), () => {
             var context = BuildContext(motion);
-            Enqueue(NotificationTriggers.AssemblyMotionSubmitted, context, [], true);
+            Enqueue(NotificationTriggers.AssemblyMotionSubmitted, context, [], true, context.EventId);
         });
     }
 
@@ -174,29 +174,40 @@ public class AssemblyMotionNotifier {
         }
     }
 
-    private void Enqueue(string triggerId, NotificationContext context, IReadOnlyList<Guid> memberIds, bool includeCommission) {
-        if (memberIds.Count == 0 && !includeCommission)
+    private void Enqueue(string triggerId, NotificationContext context, IReadOnlyList<Guid> memberIds, bool includeCommission, Guid? subscriberEventId = null) {
+        if (memberIds.Count == 0 && !includeCommission && subscriberEventId == null)
             return;
 
         var model = context.Model;
         var memberUserIds = MemberUserIds(memberIds);
-        var payload = new AssemblyMotionNotificationPayload(model.Id, context.EventChapterId, memberIds, includeCommission);
+        var commissionUserIds = subscriberEventId == null
+            ? null
+            : AssemblyMotionCommissionUsers.UserIds(_db, context.EventChapterId).ToHashSet();
+        var payload = new AssemblyMotionNotificationPayload(model.Id, context.EventChapterId, memberIds, includeCommission, subscriberEventId);
 
         _queue.Enqueue(new NotificationDispatchRequest(
             triggerId,
             payload,
             recipient => new Dictionary<string, object> {
-                ["motion"] = model with { Path = PathFor(model.Id, recipient, memberUserIds) }
+                ["motion"] = model with { Path = PathFor(model.Id, recipient, memberUserIds, commissionUserIds) }
             },
             SourceEntityType: EntityType,
             SourceEntityId: model.Id));
     }
 
-    private static string PathFor(Guid motionId, NotificationRecipient recipient, HashSet<Guid> memberUserIds) {
-        if (recipient.UserId != null && memberUserIds.Contains(recipient.UserId.Value))
+    /// <summary>
+    /// Members get the member view. Without subscribers everyone else gets the commission view; with subscribers only the
+    /// commission does, so a subscriber added after enqueueing still gets a page they can open.
+    /// </summary>
+    private static string PathFor(Guid motionId, NotificationRecipient recipient, HashSet<Guid> memberUserIds, HashSet<Guid>? commissionUserIds) {
+        if (recipient.UserId == null)
+            return CommissionPathPrefix + motionId;
+        if (memberUserIds.Contains(recipient.UserId.Value))
             return MemberPathPrefix + motionId;
+        if (commissionUserIds == null || commissionUserIds.Contains(recipient.UserId.Value))
+            return CommissionPathPrefix + motionId;
 
-        return CommissionPathPrefix + motionId;
+        return MemberPathPrefix + motionId;
     }
 
     private HashSet<Guid> MemberUserIds(IReadOnlyList<Guid> memberIds) {
@@ -229,7 +240,7 @@ public class AssemblyMotionNotifier {
             Deadline = BerlinTime.FormatDeadline(effectiveDeadline),
             MinSubmitters = type.MinSubmitters
         };
-        return new NotificationContext(model, assembly.ChapterId);
+        return new NotificationContext(model, assembly.Id, assembly.ChapterId);
     }
 
     private static string DisplayNumber(AssemblyMotion motion, AssemblyMotionType type) {
@@ -250,12 +261,14 @@ public class AssemblyMotionNotifier {
     }
 
     private class NotificationContext {
-        public NotificationContext(AssemblyMotionNotificationModel model, Guid eventChapterId) {
+        public NotificationContext(AssemblyMotionNotificationModel model, Guid eventId, Guid eventChapterId) {
             Model = model;
+            EventId = eventId;
             EventChapterId = eventChapterId;
         }
 
         public AssemblyMotionNotificationModel Model { get; set; }
+        public Guid EventId { get; }
         public Guid EventChapterId { get; }
     }
 }
