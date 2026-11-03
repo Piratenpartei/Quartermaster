@@ -441,6 +441,7 @@ public static class I18nKey {
                 public const string ReorderDirectionInvalid = "error.event.checklist.reorder_direction_invalid";
                 public const string AlreadyCompleted = "error.event.checklist.already_completed";
                 public const string OnlyTextCanBeUnchecked = "error.event.checklist.only_text_can_be_unchecked";
+                public const string TargetOutOfReach = "error.event.checklist.target_out_of_reach";
             }
         }
 

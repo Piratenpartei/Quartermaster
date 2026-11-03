@@ -183,6 +183,17 @@ public class HttpDiscourseClientTests {
     }
 
     [Test]
+    public async Task Post_of_a_removed_account_has_no_user_id() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"post_stream":{"posts":[{"id":601,"post_number":3,"post_type":1,"user_id":null,"username":"system","deleted_at":null,"hidden":false}]}}""");
+        using var client = Client(handler);
+
+        var posts = await client.ListPostsAfterAsync(Settings(), 77, 2, CancellationToken.None);
+
+        await Assert.That(posts.Single().UserId).IsNull();
+    }
+
+    [Test]
     public async Task Posts_after_a_number_are_read_in_order() {
         var handler = new RecordingDiscourseHandler();
         handler.EnqueueOk("""{"post_stream":{"posts":[{"id":601,"post_number":3,"post_type":1,"user_id":43,"username":"bernd","deleted_at":null,"hidden":false},{"id":602,"post_number":4,"post_type":3,"user_id":2,"username":"mod","deleted_at":"2027-03-01T10:00:00.000Z","hidden":true}]}}""");

@@ -175,8 +175,8 @@
                 @if (ExpandedRecipientItemId == item.Id) {
                     <div class="card my-1 bg-body-secondary">
                         <div class="card-body py-2">
-                            @if (RecipientFailed.Contains(item.Id)) {
-                                <p class="text-danger mb-0">@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewFailed]</p>
+                            @if (RecipientErrors.TryGetValue(item.Id, out var recipientError)) {
+                                <p class="text-danger mb-0" style="white-space: pre-line;">@recipientError</p>
                             } else if (RecipientCache.TryGetValue(item.Id, out var recipients) && recipients != null) {
                                 @if (recipients.Count == 0) {
                                     <p class="text-secondary mb-0">@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewEmpty]</p>

@@ -342,6 +342,24 @@ public class MotionHandoverTests : IntegrationTestBase {
         await Assert.That(Db.ForwardingSteps.Count()).IsEqualTo(0);
     }
 
+    /// <summary>The application dialog stores its decision before it closes the motion; a hand-over in between must not move the decided application.</summary>
+    [Test]
+    public async Task Application_decided_before_its_motion_was_closed_aborts_the_handover() {
+        var chain = Builder.SeedChapterHierarchy("Bund", "Land", "Kreis");
+        var kreis = chain[2];
+        var application = Builder.SeedMembershipApplication(kreis.Id, status: ApplicationStatus.Rejected);
+        var pending = SeedMotion(kreis.Id, applicationId: application.Id);
+
+        await Assert.That(() => MarkAndHandOver(kreis.Id, noMemberAdministration: true, unableToAct: false)).Throws<InvalidOperationException>();
+
+        var reloaded = Reload(pending.Id);
+        await Assert.That(reloaded.ApprovalStatus).IsEqualTo(MotionApprovalStatus.Pending);
+        await Assert.That(reloaded.HandedOverToMotionId).IsNull();
+        await Assert.That(Db.Motions.Count()).IsEqualTo(1);
+        await Assert.That(Db.MembershipApplications.Single(a => a.Id == application.Id).ChapterId).IsEqualTo(kreis.Id);
+        await Assert.That(Db.Chapters.Single(c => c.Id == kreis.Id).NoMemberAdministration).IsFalse();
+    }
+
     [Test]
     public async Task Decided_motion_is_skipped() {
         var chain = Builder.SeedChapterHierarchy("Bund", "Land", "Kreis");

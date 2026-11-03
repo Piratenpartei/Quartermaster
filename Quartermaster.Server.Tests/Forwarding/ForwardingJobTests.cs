@@ -334,7 +334,7 @@ public class ForwardingJobTests : RepositoryTestBase {
 
         await _job.RunAsync(_now, CancellationToken.None);
         var waiting = _cases.GetSteps(forwardingCase.Id)[1].State;
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.Approved);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.Approved);
         new ForwardingOutcomeHook(_cases, _motions, new MembershipApplicationRepository(Db, AuditLog)).OnMotionResolved(motion.Id, _now);
         await _job.RunAsync(_now.AddMinutes(1), CancellationToken.None);
 
@@ -723,7 +723,7 @@ public class ForwardingJobTests : RepositoryTestBase {
         var issue = await DecideAsync(application, ApplicationStatus.Approved);
         var waitingNote = StepOf(forwardingCase, ForwardingStepKind.AddOutcomeNote);
         if (viaMotion) {
-            _motions.UpdateApprovalStatus(motion.Id, reductionResult == DueSelectionStatus.Approved ? MotionApprovalStatus.Approved : MotionApprovalStatus.Rejected);
+            _motions.UpdatePendingApprovalStatus(motion.Id, reductionResult == DueSelectionStatus.Approved ? MotionApprovalStatus.Approved : MotionApprovalStatus.Rejected);
             _hook.OnMotionResolved(motion.Id, _now.AddMinutes(2));
         } else {
             _dueSelections.UpdateStatus(dueRecordId, reductionResult, null);
@@ -774,7 +774,7 @@ public class ForwardingJobTests : RepositoryTestBase {
         await _job.RunAsync(_now, CancellationToken.None);
         var issue = FakeRedmineClient.Issues.Single();
 
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
         _hook.OnMotionResolved(motion.Id, _now);
         await _job.RunAsync(_now.AddMinutes(1), CancellationToken.None);
         var noteAfterClose = StepOf(forwardingCase, ForwardingStepKind.AddOutcomeNote).State;
@@ -808,7 +808,7 @@ public class ForwardingJobTests : RepositoryTestBase {
         _motions.Create(motion);
         var forwardingCase = SeedApplicationCase(application, motion.Id);
         await _job.RunAsync(_now, CancellationToken.None);
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
         foreach (var step in _cases.GetSteps(forwardingCase.Id).Where(s => s.State == ForwardingStepState.Waiting)) {
             step.State = ForwardingStepState.Pending;
             _cases.UpdateStep(step, ForwardingStepState.Waiting);

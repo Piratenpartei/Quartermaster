@@ -185,43 +185,15 @@ public class MotionRepository {
             return false;
 
         using var tx = _context.BeginTransaction();
-
-        _context.Motions
-            .Where(m => m.Id == motionId)
-            .Set(m => m.ApprovalStatus, newStatus.Value)
-            .Set(m => m.ResolvedAt, DateTime.UtcNow)
-            .Update();
-
-        _auditLog.LogFieldChange("Motion", motionId, "ApprovalStatus", motion.ApprovalStatus.ToString(), newStatus.Value.ToString());
-
-        CascadeResolutionToLinkedEntities(motion, newStatus.Value);
+        if (!UpdatePendingApprovalStatus(motion, newStatus.Value))
+            return false;
 
         tx.Commit();
         return true;
     }
 
-    public void UpdateApprovalStatus(Guid id, MotionApprovalStatus status) {
-        var existing = _context.Motions.Where(m => m.Id == id).FirstOrDefault();
-        if (existing == null)
-            return;
-
-        using var tx = _context.BeginTransaction();
-
-        _context.Motions
-            .Where(m => m.Id == id)
-            .Set(m => m.ApprovalStatus, status)
-            .Set(m => m.ResolvedAt, DateTime.UtcNow)
-            .Update();
-
-        _auditLog.LogFieldChange("Motion", id, "ApprovalStatus", existing.ApprovalStatus.ToString(), status.ToString());
-
-        CascadeResolutionToLinkedEntities(existing, status);
-
-        tx.Commit();
-    }
-
     /// <summary>
-    /// <see cref="UpdateApprovalStatus"/> only while the motion is still Pending; false when a vote or another closing got there first.
+    /// Resolves the motion and cascades to its linked records, only while it is still Pending; false when a vote or another closing got there first.
     /// </summary>
     public bool UpdatePendingApprovalStatus(Guid id, MotionApprovalStatus status) {
         // Read before the transaction: under snapshot isolation a read inside it would turn a lost race into an error instead of false.

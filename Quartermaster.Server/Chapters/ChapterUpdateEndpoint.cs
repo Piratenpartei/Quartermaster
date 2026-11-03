@@ -50,6 +50,11 @@ public class ChapterUpdateEndpoint : Endpoint<ChapterUpdateEndpoint.Request, Cha
             await SendNotFoundAsync(ct);
             return;
         }
+        if (!req.IncludesContactAndTakeOver) {
+            req.ContactEmail = chapter.ContactEmail;
+            req.Level = chapter.Level;
+            req.TakeOverPeriodDays = chapter.TakeOverPeriodDays;
+        }
         var name = req.Name?.Trim() ?? "";
         if (string.IsNullOrEmpty(name)) {
             AddError(r => r.Name, I18nKey.Error.Chapter.NameRequired);

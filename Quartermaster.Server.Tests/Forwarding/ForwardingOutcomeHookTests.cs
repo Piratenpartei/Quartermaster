@@ -37,7 +37,7 @@ public class ForwardingOutcomeHookTests : RepositoryTestBase {
     [Test]
     public async Task Resolved_motion_activates_note() {
         var (motion, note) = Seed();
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.Approved);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.Approved);
 
         _hook.OnMotionResolved(motion.Id, DateTime.UtcNow);
 
@@ -56,7 +56,7 @@ public class ForwardingOutcomeHookTests : RepositoryTestBase {
     [Test]
     public async Task Motion_closed_without_action_still_releases_a_due_selection_note() {
         var (motion, note) = Seed();
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
 
         _hook.OnMotionResolved(motion.Id, DateTime.UtcNow);
 
@@ -70,7 +70,7 @@ public class ForwardingOutcomeHookTests : RepositoryTestBase {
         var motion = Motion.Create(chapter.Id, "Anna", "anna@example.org", "Mitgliedsantrag", "x", "<p>x</p>", DateTime.UtcNow, application.Id, null);
         _motions.Create(motion);
         var steps = SeedApplicationCase(chapter.Id, application.Id, motion.Id);
-        _motions.UpdateApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
+        _motions.UpdatePendingApprovalStatus(motion.Id, MotionApprovalStatus.ClosedWithoutAction);
 
         _hook.OnMotionResolved(motion.Id, DateTime.UtcNow);
 

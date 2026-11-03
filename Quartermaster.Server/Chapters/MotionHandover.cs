@@ -175,7 +175,9 @@ public class MotionHandover {
         if (application == null)
             return;
 
-        _applications.SetChapter(applicationId, targetChapterId);
+        // The motion is already closed in this transaction; only throwing rolls that back.
+        if (!_applications.SetPendingChapter(applicationId, targetChapterId))
+            throw new InvalidOperationException($"Application {applicationId} was decided while its motion was being handed over");
         application.ChapterId = targetChapterId;
         var isReduced = _reduction.IsReduced(application);
         _pendingNotifications.Add(() => _review.NotifyApplicationSubmitted(application, targetChapterId, isReduced));

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Quartermaster.Api;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Api.Members;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
@@ -20,16 +21,22 @@ public class ChecklistItemExecutor {
     private readonly ChapterRepository _chapterRepo;
     private readonly EmailService _emailService;
     private readonly NotificationTemplateGlobals _globals;
+    private readonly ChecklistTargetValidator _targets;
 
     public ChecklistItemExecutor(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        EmailService emailService, NotificationTemplateGlobals globals) {
+        EmailService emailService, NotificationTemplateGlobals globals, ChecklistTargetValidator targets) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _emailService = emailService;
         _globals = globals;
+        _targets = targets;
     }
 
+    /// <summary>Re-checks the reach because stored items predate the check or came from a template.</summary>
     public Task<(Guid? ResultId, string? Error)> ExecuteAsync(EventChecklistItem item, Event? parentEvent = null) {
+        if (parentEvent == null || !_targets.IsWithinReach(parentEvent.ChapterId, EventConfigSerializer.ParseConfig(item.Configuration)))
+            return Task.FromResult<(Guid?, string?)>((null, I18nKey.Error.Event.Checklist.TargetOutOfReach));
+
         return item.ItemType switch {
             ChecklistItemType.CreateMotion => Task.FromResult(ExecuteCreateMotion(item)),
             ChecklistItemType.SendEmail => ExecuteSendEmailAsync(item, parentEvent),

@@ -76,7 +76,8 @@ public class MeetingLifecycleService {
             var abstain = votes.Count(v => v.Vote == VoteType.Abstain);
 
             var newStatus = DetermineApprovalStatus(approve, deny, abstain);
-            _motionRepo.UpdateApprovalStatus(motion.Id, newStatus);
+            if (!_motionRepo.UpdatePendingApprovalStatus(motion.Id, newStatus))
+                continue;
             await _decisionMailer.NotifyAsync(motion.Id, ct);
             await _federalApproval.OnMotionResolvedAsync(motion.Id);
             _forwarding.OnMotionResolved(motion.Id, DateTime.UtcNow);

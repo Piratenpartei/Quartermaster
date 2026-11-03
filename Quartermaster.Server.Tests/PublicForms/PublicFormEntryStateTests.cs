@@ -165,6 +165,27 @@ public class DueSelectorEntryStateTests {
 }
 
 public class MembershipApplicationEntryStateTests {
+    /// <summary>Returning to the code step must not replace a code the applicant may already have in their mailbox.</summary>
+    [Test]
+    public async Task A_code_sent_to_the_address_counts_until_it_expires() {
+        var now = new DateTime(2026, 11, 4, 12, 0, 0, DateTimeKind.Utc);
+        var state = new MembershipApplicationEntryState { Email = " Anna@Example.org " };
+        state.RecordCodeSent("anna@example.org", now, lifetimeMinutes: 15);
+
+        await Assert.That(state.HasUnexpiredCode(now.AddMinutes(14))).IsTrue();
+        await Assert.That(state.HasUnexpiredCode(now.AddMinutes(15))).IsFalse();
+    }
+
+    [Test]
+    public async Task A_code_sent_to_another_address_does_not_count() {
+        var now = new DateTime(2026, 11, 4, 12, 0, 0, DateTimeKind.Utc);
+        var state = new MembershipApplicationEntryState { Email = "anna@example.org" };
+        state.RecordCodeSent("anna@example.org", now, lifetimeMinutes: 15);
+        state.Email = "bernd@example.org";
+
+        await Assert.That(state.HasUnexpiredCode(now.AddMinutes(1))).IsFalse();
+    }
+
     private static MembershipApplicationEntryState GermanAddress() {
         var state = new MembershipApplicationEntryState();
         state.SelectCountry(true, "Deutschland");

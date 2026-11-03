@@ -346,6 +346,7 @@ public partial class Program {
         builder.Services.AddHostedService<PendingSubmissionCleanupHostedService>();
 
         builder.Services.AddScoped<ChecklistItemExecutor>();
+        builder.Services.AddScoped<ChecklistTargetValidator>();
         builder.Services.AddScoped<MeetingLifecycleService>();
 
         builder.Services.AddHttpClient();

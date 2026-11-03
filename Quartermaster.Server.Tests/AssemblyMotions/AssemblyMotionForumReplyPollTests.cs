@@ -264,7 +264,7 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Listing_pages_on_while_topics_grew_and_stops_at_a_page_without_growth() {
+    public async Task Listing_pages_on_until_every_watched_topic_was_listed() {
         var (_, _, oldest) = await MirroredMotion("Erster");
         var (_, _, middle) = await MirroredMotion("Zweiter");
         await MirroredMotion("Dritter");
@@ -276,6 +276,33 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
 
         await Assert.That(notified).IsEqualTo(2);
         await Assert.That(FakeDiscourseClient.Count("List")).IsEqualTo(3);
+    }
+
+    /// <summary>Topics of other events or without a motion can be more active than a watched topic with a new reply.</summary>
+    [Test]
+    public async Task A_grown_topic_below_a_page_of_other_topics_is_read() {
+        var (_, _, topicId) = await MirroredMotion();
+        FakeDiscourseClient.ListPageSize = 1;
+        FakeDiscourseClient.AddReply(topicId, "bernd", 43);
+        FakeDiscourseClient.AddTopic("Allgemeine Diskussion", "Text");
+
+        var notified = await Poll();
+
+        await Assert.That(notified).IsEqualTo(1);
+    }
+
+    /// <summary>Discourse sends no user id for posts of a removed account; that must not stop the topic or pass for the author's own reply.</summary>
+    [Test]
+    public async Task Reply_of_a_removed_account_notifies_author_and_subscribers() {
+        var (motion, _, topicId) = await MirroredMotion();
+        Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "geloescht", null);
+
+        var notified = await Poll();
+
+        await Assert.That(notified).IsEqualTo(1);
+        await Assert.That(ReplyNotifications().Count).IsEqualTo(1);
+        await Assert.That(SubscriberNotifications().Count).IsEqualTo(1);
     }
 
     [Test]

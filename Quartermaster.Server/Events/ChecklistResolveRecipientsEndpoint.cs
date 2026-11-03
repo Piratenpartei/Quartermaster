@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.Events;
+using Quartermaster.Api.I18n;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Events;
@@ -20,18 +21,21 @@ public class ChecklistResolveRecipientsEndpoint : Endpoint<RecipientPreviewReque
     private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly EmailService _emailService;
     private readonly PermissionContext _perms;
+    private readonly ChecklistTargetValidator _targets;
 
     public ChecklistResolveRecipientsEndpoint(
         EventRepository eventRepo,
         ChapterRepository chapterRepo,
         AdministrativeDivisionRepository adminDivRepo,
         EmailService emailService,
-        PermissionContext perms) {
+        PermissionContext perms,
+        ChecklistTargetValidator targets) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
         _emailService = emailService;
         _perms = perms;
+        _targets = targets;
     }
 
     public override void Configure() {
@@ -51,6 +55,10 @@ public class ChecklistResolveRecipientsEndpoint : Endpoint<RecipientPreviewReque
         }
         if (!_perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents)) {
             await SendForbiddenAsync(ct);
+            return;
+        }
+        if (!_targets.IsWithinReach(ev.ChapterId, req.Configuration)) {
+            ThrowError(I18nKey.Error.Event.Checklist.TargetOutOfReach);
             return;
         }
 

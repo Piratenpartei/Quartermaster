@@ -84,9 +84,9 @@ public class ChapterContactEmailUpdateTests : IntegrationTestBase {
         var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
-        var set = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "OV", ContactEmail = "  vorstand@ov.example " });
+        var set = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "OV", ContactEmail = "  vorstand@ov.example " });
         var stored = Db.Chapters.Single(c => c.Id == chapter.Id).ContactEmail;
-        var cleared = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "OV", ContactEmail = " " });
+        var cleared = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "OV", ContactEmail = " " });
 
         await Assert.That(set.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(stored).IsEqualTo("vorstand@ov.example");
@@ -104,7 +104,7 @@ public class ChapterContactEmailUpdateTests : IntegrationTestBase {
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var contact = value == "long" ? new string('a', 250) + "@ov.example" : value;
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "OV", ContactEmail = contact });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "OV", ContactEmail = contact });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains(error);

@@ -106,14 +106,19 @@ public class MembershipApplicationRepository {
     }
 
     /// <summary>Moves the application to the chapter that now decides on it; its status stays. Runs inside the caller's transaction.</summary>
-    public void SetChapter(Guid id, Guid chapterId) {
+    /// <summary>Moves the application only while it is still Pending; false when a decision got there first.</summary>
+    public bool SetPendingChapter(Guid id, Guid chapterId) {
         var existing = Get(id);
-        _context.MembershipApplications
-            .Where(a => a.Id == id)
+        var updated = _context.MembershipApplications
+            .Where(a => a.Id == id && a.Status == ApplicationStatus.Pending)
             .Set(a => a.ChapterId, (Guid?)chapterId)
             .Update();
+        if (updated == 0)
+            return false;
+
         if (existing != null)
             _auditLog.LogFieldChange("MembershipApplication", id, "ChapterId", existing.ChapterId?.ToString(), chapterId.ToString());
+        return true;
     }
 
     /// <summary>Removes the row for good; for data that only Redmine keeps from now on. Runs inside the caller's transaction.</summary>

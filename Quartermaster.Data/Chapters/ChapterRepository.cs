@@ -55,7 +55,12 @@ public class ChapterRepository {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    /// <summary>Audits the contact and take-over fields, which steer where applications and notices go.</summary>
     public void Update(Chapter chapter) {
+        var existing = _context.Chapters.Where(c => c.Id == chapter.Id).FirstOrDefault();
+        if (existing == null)
+            return;
+
         _context.Chapters
             .Where(c => c.Id == chapter.Id)
             .Set(c => c.Name, chapter.Name)
@@ -66,6 +71,9 @@ public class ChapterRepository {
             .Set(c => c.Level, chapter.Level)
             .Set(c => c.TakeOverPeriodDays, chapter.TakeOverPeriodDays)
             .Update();
+        _auditLog.LogFieldChange("Chapter", chapter.Id, nameof(Chapter.ContactEmail), existing.ContactEmail, chapter.ContactEmail);
+        _auditLog.LogFieldChange("Chapter", chapter.Id, nameof(Chapter.Level), existing.Level?.ToString(), chapter.Level?.ToString());
+        _auditLog.LogFieldChange("Chapter", chapter.Id, nameof(Chapter.TakeOverPeriodDays), existing.TakeOverPeriodDays?.ToString(), chapter.TakeOverPeriodDays?.ToString());
     }
 
     /// <summary>The chapter whose Keycloak department equals <paramref name="department"/>, ignoring case and surrounding spaces.</summary>

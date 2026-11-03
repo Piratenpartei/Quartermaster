@@ -114,6 +114,7 @@ public partial class MembershipApplicationWizard {
         State.EmailCode = "";
         State.EmailCodeVerifiedFor = null;
         State.EmailCodeSentAt = null;
+        State.EmailCodeExpiresAt = null;
         await Wizard.ShowStepAsync(CodeStepIndex);
     }
 

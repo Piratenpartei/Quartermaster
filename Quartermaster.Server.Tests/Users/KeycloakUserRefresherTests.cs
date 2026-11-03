@@ -54,20 +54,24 @@ public class KeycloakUserRefresherTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Assigns_the_department_chapter_but_keeps_a_finer_one() {
+    public async Task Assigns_the_department_chapter_only_to_members_without_one() {
         var department = $"Piratenpartei {Guid.NewGuid():N}";
         var state = _builder.SeedChapter("LV", keycloakDepartment: department);
         var county = _builder.SeedChapter("KV", parentChapterId: state.Id);
+        var otherState = _builder.SeedChapter("Other LV");
         var (pending, _) = SeedLinkedMember();
         var (placed, _) = SeedLinkedMember(chapterId: county.Id);
+        var (elsewhere, _) = SeedLinkedMember(chapterId: otherState.Id);
         FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "anna.pirat", pending.MemberNumber.ToString(), department: department);
         FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "bernd.pirat", placed.MemberNumber.ToString(), department: department);
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "carla.pirat", elsewhere.MemberNumber.ToString(), department: department);
 
         var result = await _refresher.RefreshAsync(_now, CancellationToken.None);
 
         await Assert.That(result.ChaptersAssigned).IsEqualTo(1);
         await Assert.That(MemberOf(pending.Id).ChapterId).IsEqualTo(state.Id);
         await Assert.That(MemberOf(placed.Id).ChapterId).IsEqualTo(county.Id);
+        await Assert.That(MemberOf(elsewhere.Id).ChapterId).IsEqualTo(otherState.Id);
     }
 
     [Test]

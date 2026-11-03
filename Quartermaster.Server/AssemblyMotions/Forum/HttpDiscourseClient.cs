@@ -113,7 +113,7 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
             .Select(p => new DiscourseReply(
                 IntProperty(p, "post_number"),
                 IntProperty(p, "post_type"),
-                IntProperty(p, "user_id"),
+                OptionalIntProperty(p, "user_id"),
                 StringProperty(p, "username"),
                 IsSet(p, "deleted_at"),
                 BoolProperty(p, "hidden")))

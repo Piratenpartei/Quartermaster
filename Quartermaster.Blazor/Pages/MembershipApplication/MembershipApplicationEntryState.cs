@@ -39,9 +39,23 @@ public class MembershipApplicationEntryState : EntryStateBase {
     public string? EmailCodeVerifiedFor { get; set; }
     public string? EmailCodeSentFor { get; set; }
     public DateTime? EmailCodeSentAt { get; set; }
+    public DateTime? EmailCodeExpiresAt { get; set; }
 
     public static string NormalizeEmail(string email) {
         return email.Trim().ToLowerInvariant();
+    }
+
+    public void RecordCodeSent(string email, DateTime nowUtc, int lifetimeMinutes) {
+        EmailCodeSentFor = NormalizeEmail(email);
+        EmailCodeSentAt = nowUtc;
+        EmailCodeExpiresAt = nowUtc.AddMinutes(lifetimeMinutes);
+    }
+
+    /// <summary>A new code would replace this one, which may already be in the applicant's mailbox.</summary>
+    public bool HasUnexpiredCode(DateTime nowUtc) {
+        if (EmailCodeSentFor != NormalizeEmail(Email) || EmailCodeExpiresAt == null)
+            return false;
+        return EmailCodeExpiresAt.Value > nowUtc;
     }
 
     public bool IsEmailCodeComplete() {

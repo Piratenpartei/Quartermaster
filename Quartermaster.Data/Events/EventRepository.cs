@@ -176,8 +176,9 @@ public class EventRepository {
             .OrderBy(i => i.SortOrder)
             .ToList();
 
-    public EventChecklistItem? GetChecklistItem(Guid itemId)
-        => _context.EventChecklistItems.Where(i => i.Id == itemId).FirstOrDefault();
+    /// <summary>The item only when it belongs to the event; callers check permissions on that event.</summary>
+    public EventChecklistItem? GetChecklistItem(Guid eventId, Guid itemId)
+        => _context.EventChecklistItems.Where(i => i.Id == itemId && i.EventId == eventId).FirstOrDefault();
 
     public void CreateChecklistItem(EventChecklistItem item) {
         _context.Insert(item);
@@ -185,10 +186,10 @@ public class EventRepository {
     }
 
     public void UpdateChecklistItem(EventChecklistItem item) {
-        var existing = _context.EventChecklistItems.Where(i => i.Id == item.Id).FirstOrDefault();
+        var existing = _context.EventChecklistItems.Where(i => i.Id == item.Id && i.EventId == item.EventId).FirstOrDefault();
 
         _context.EventChecklistItems
-            .Where(i => i.Id == item.Id)
+            .Where(i => i.Id == item.Id && i.EventId == item.EventId)
             .Set(i => i.SortOrder, item.SortOrder)
             .Set(i => i.ItemType, item.ItemType)
             .Set(i => i.Label, item.Label)
@@ -228,9 +229,10 @@ public class EventRepository {
             .Update();
     }
 
-    public void DeleteChecklistItem(Guid itemId) {
-        _context.EventChecklistItems.Where(i => i.Id == itemId).Delete();
-        _auditLog.LogDeleted("EventChecklistItem", itemId);
+    /// <summary>A no-op for an item that does not exist or belongs to another event.</summary>
+    public void DeleteChecklistItem(Guid eventId, Guid itemId) {
+        if (_context.EventChecklistItems.Where(i => i.Id == itemId && i.EventId == eventId).Delete() > 0)
+            _auditLog.LogDeleted("EventChecklistItem", itemId);
     }
 
     public void CheckItem(Guid itemId, Guid? resultId) {

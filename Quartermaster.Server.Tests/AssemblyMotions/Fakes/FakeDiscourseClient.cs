@@ -57,7 +57,7 @@ public class FakeDiscourseClient : IDiscourseClient {
     }
 
     /// <summary>Appends a post to the topic and makes it the most recently active one.</summary>
-    public static DiscourseReply AddReply(int topicId, string username, int userId, int postType = DiscourseReply.RegularPostType, bool deleted = false, bool hidden = false) {
+    public static DiscourseReply AddReply(int topicId, string username, int? userId, int postType = DiscourseReply.RegularPostType, bool deleted = false, bool hidden = false) {
         using (StateLock.EnterScope()) {
             var topic = Topics[topicId];
             var reply = new DiscourseReply(topic.HighestPostNumber + 1, postType, userId, username, deleted, hidden);

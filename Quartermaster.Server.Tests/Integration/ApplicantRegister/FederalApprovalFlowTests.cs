@@ -476,7 +476,7 @@ public class FederalApprovalFlowTests : IntegrationTestBase {
         var chapterMotionId = ChapterMotion(applicationId).Id;
 
         using (var scope = Factory.Services.CreateScope()) {
-            scope.ServiceProvider.GetRequiredService<MotionRepository>().UpdateApprovalStatus(chapterMotionId, MotionApprovalStatus.FormallyRejected);
+            scope.ServiceProvider.GetRequiredService<MotionRepository>().UpdatePendingApprovalStatus(chapterMotionId, MotionApprovalStatus.FormallyRejected);
         }
         await WithFlowAsync(flow => flow.OnMotionResolvedAsync(chapterMotionId));
 
@@ -490,7 +490,7 @@ public class FederalApprovalFlowTests : IntegrationTestBase {
         var chapterMotionId = ChapterMotion(applicationId).Id;
 
         using (var scope = Factory.Services.CreateScope()) {
-            scope.ServiceProvider.GetRequiredService<MotionRepository>().UpdateApprovalStatus(chapterMotionId, MotionApprovalStatus.ClosedWithoutAction);
+            scope.ServiceProvider.GetRequiredService<MotionRepository>().UpdatePendingApprovalStatus(chapterMotionId, MotionApprovalStatus.ClosedWithoutAction);
         }
         await WithFlowAsync(flow => flow.OnMotionResolvedAsync(chapterMotionId));
 

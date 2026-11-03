@@ -434,9 +434,7 @@ public class ApplicantRegisterVisibilityTests : IntegrationTestBase {
             email: "officer@test.local",
             chapterPermissions: new() { [root.Id] = new[] { PermissionIdentifier.ProcessApplications, PermissionIdentifier.ViewApplications } });
 
-        var payload = new ApplicantRegisterHitPayload(
-            root.Id, "Erika", "Musterfrau", "Teststadt", "/Administration/MembershipApplications/abc",
-            new[] { "Aufnahme abgelehnt am 03.05.2021: Anna Muster (übereinstimmend: Vorname, Nachname, Straße)" });
+        var payload = new ApplicantRegisterHitPayload(root.Id, "/Administration/MembershipApplications/abc", 2);
         using var scope = Factory.Services.CreateScope();
         var queue = scope.ServiceProvider.GetRequiredService<INotificationDispatchQueue>();
         queue.Enqueue(new NotificationDispatchRequest(
@@ -449,8 +447,7 @@ public class ApplicantRegisterVisibilityTests : IntegrationTestBase {
         var logs = Db.NotificationLogs.Where(l => l.TriggerId == TriggerId).ToList();
         await Assert.That(logs.Count).IsEqualTo(1);
         await Assert.That(logs[0].RecipientUserId).IsEqualTo(holder.Id);
-        await Assert.That(logs[0].Subject.Contains("Erika")).IsTrue();
-        await Assert.That(logs[0].Body!.Contains("Anna Muster")).IsTrue();
+        await Assert.That(logs[0].Body!.Contains("2 Einträgen")).IsTrue();
         await Assert.That(logs[0].Body!.Contains("/Administration/MembershipApplications/abc")).IsTrue();
     }
 
@@ -471,9 +468,7 @@ public class ApplicantRegisterVisibilityTests : IntegrationTestBase {
             email: "officer@test.local",
             chapterPermissions: new() { [root.Id] = new[] { PermissionIdentifier.ProcessApplications, PermissionIdentifier.ViewApplications } });
 
-        var payload = new ApplicantRegisterHitPayload(
-            root.Id, "Erika", "Musterfrau", "Teststadt", "/Administration/MembershipApplications/abc",
-            new[] { "Aufnahme abgelehnt am 03.05.2021: Anna Muster (übereinstimmend: Vorname, Nachname, Straße)" });
+        var payload = new ApplicantRegisterHitPayload(root.Id, "/Administration/MembershipApplications/abc", 2);
         using var scope = Factory.Services.CreateScope();
         var queue = scope.ServiceProvider.GetRequiredService<INotificationDispatchQueue>();
         queue.Enqueue(new NotificationDispatchRequest(

@@ -131,7 +131,24 @@ public class RegisterIntakeTests : IntegrationTestBase {
         await Assert.That(log.SourceEntityType).IsEqualTo("MembershipApplication");
         await Assert.That(log.SourceEntityId).IsEqualTo(application.Id);
         await Assert.That(log.Body!).Contains($"/Administration/MembershipApplications/{application.Id}");
-        await Assert.That(log.Body!).Contains("Aufnahme abgelehnt am 07.06.2024");
+        await Assert.That(log.Body!).Contains("einem Eintrag");
+    }
+
+    /// <summary>Mail and Telegram are unencrypted, so neither the applicant nor the register entry is named.</summary>
+    [Test]
+    public async Task Hit_notification_names_nobody() {
+        var (root, state) = SeedQuartermasterPath();
+        SeedMatchingEntry(root);
+
+        await Submit(Dto(Builder.SeedDivisionFor(state)));
+
+        var log = Db.NotificationLogs.Single(l => l.TriggerId == HitTriggerId);
+        foreach (var text in new[] { log.Subject, log.Body! }) {
+            await Assert.That(text).DoesNotContain("Bea");
+            await Assert.That(text).DoesNotContain("Neu");
+            await Assert.That(text).DoesNotContain("Hannover");
+            await Assert.That(text).DoesNotContain("07.06.2024");
+        }
     }
 
     [Test]

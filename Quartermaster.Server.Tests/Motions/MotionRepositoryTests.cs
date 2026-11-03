@@ -216,6 +216,37 @@ public class MotionRepositoryTests : RepositoryTestBase {
         await Assert.That(motion!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.Approved);
     }
 
+    /// <summary>A hand-over can close the motion between the read and the vote's update; the closing must win.</summary>
+    [Test]
+    public async Task TryAutoResolve_keeps_a_status_set_while_it_counted() {
+        var appId = Guid.NewGuid();
+        _context.Insert(new MembershipApplication {
+            Id = appId,
+            FirstName = "Test",
+            LastName = "Applicant",
+            Email = "test@example.com",
+            Status = ApplicationStatus.Pending,
+            SubmittedAt = DateTime.UtcNow,
+            EntryDate = DateTime.UtcNow
+        });
+        var officers = SeedOfficers(3);
+        var motionId = SeedMotion(linkedAppId: appId);
+        CastVote(motionId, officers[0], VoteType.Approve);
+        CastVote(motionId, officers[1], VoteType.Approve);
+        using var officerContext = Worker.CreateDbContext();
+        officerContext.AddInterceptor(new OnFirstCommandInterceptor(() => _context.Motions
+            .Where(m => m.Id == motionId)
+            .Set(m => m.ApprovalStatus, MotionApprovalStatus.ClosedWithoutAction)
+            .Update()));
+        var officerRepo = new ChapterOfficerRepository(officerContext, AuditLog, new RoleRepository(officerContext));
+
+        var result = _motionRepo.TryAutoResolve(motionId, officerRepo);
+
+        await Assert.That(result).IsFalse();
+        await Assert.That(_motionRepo.Get(motionId)!.ApprovalStatus).IsEqualTo(MotionApprovalStatus.ClosedWithoutAction);
+        await Assert.That(_context.MembershipApplications.Single(a => a.Id == appId).Status).IsEqualTo(ApplicationStatus.Pending);
+    }
+
     [Test]
     public async Task TryAutoResolve_LinkedApplicationUpdatedOnApproval() {
         var appId = Guid.NewGuid();
@@ -324,7 +355,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Pending, true);
         var motionId = SeedMotion(linkedAppId: appId);
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
     }
@@ -334,7 +365,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.PendingFederalApproval, true);
         var motionId = SeedFederalMotion(appId);
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
     }
@@ -344,7 +375,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Rejected, false);
         var motionId = SeedMotion(linkedAppId: appId);
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Rejected);
     }
@@ -354,7 +385,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(SeedStateChapter(), ApplicationStatus.Approved, true);
         var federalMotionId = SeedFederalMotion(appId);
 
-        _motionRepo.UpdateApprovalStatus(federalMotionId, MotionApprovalStatus.Rejected);
+        _motionRepo.UpdatePendingApprovalStatus(federalMotionId, MotionApprovalStatus.Rejected);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
     }
@@ -365,7 +396,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var chapterMotionId = SeedMotion(linkedAppId: appId);
         SeedFederalMotion(appId);
 
-        _motionRepo.UpdateApprovalStatus(chapterMotionId, MotionApprovalStatus.Rejected);
+        _motionRepo.UpdatePendingApprovalStatus(chapterMotionId, MotionApprovalStatus.Rejected);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
     }
@@ -375,7 +406,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(_chapterId, ApplicationStatus.Pending, true);
         var motionId = SeedMotion(linkedAppId: appId);
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Approved);
     }
@@ -386,8 +417,8 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var pendingId = SeedApplication(stateChapterId, ApplicationStatus.Pending, true);
         var federalId = SeedApplication(stateChapterId, ApplicationStatus.PendingFederalApproval, true);
 
-        _motionRepo.UpdateApprovalStatus(SeedMotion(linkedAppId: pendingId), MotionApprovalStatus.Rejected);
-        _motionRepo.UpdateApprovalStatus(SeedFederalMotion(federalId), MotionApprovalStatus.Rejected);
+        _motionRepo.UpdatePendingApprovalStatus(SeedMotion(linkedAppId: pendingId), MotionApprovalStatus.Rejected);
+        _motionRepo.UpdatePendingApprovalStatus(SeedFederalMotion(federalId), MotionApprovalStatus.Rejected);
 
         await Assert.That(StatusOf(pendingId)).IsEqualTo(ApplicationStatus.Rejected);
         await Assert.That(StatusOf(federalId)).IsEqualTo(ApplicationStatus.Rejected);
@@ -398,7 +429,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
         var appId = SeedApplication(null, ApplicationStatus.PendingDivisionLinking, true);
         var motionId = SeedMotion(linkedAppId: appId);
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.PendingFederalApproval);
     }
@@ -428,7 +459,7 @@ public class MotionRepositoryTests : RepositoryTestBase {
             other.MembershipApplications.Where(a => a.Id == appId).Set(a => a.Status, ApplicationStatus.Rejected).Update();
         }));
 
-        _motionRepo.UpdateApprovalStatus(motionId, MotionApprovalStatus.Approved);
+        _motionRepo.UpdatePendingApprovalStatus(motionId, MotionApprovalStatus.Approved);
 
         await Assert.That(StatusOf(appId)).IsEqualTo(ApplicationStatus.Rejected);
     }

@@ -154,14 +154,14 @@ internal static class SystemTemplateSeeds {
         new SystemTemplateSeed(
             "notifications.applicant_register_hit.email",
             "Benachrichtigung: Treffer im Ablehnungsregister (E-Mail)",
-            "Treffer im Ablehnungsregister: {{ hit.FirstName }} {{ hit.LastName }}",
-            "Hallo,\n\nder Mitgliedsantrag von *{{ hit.FirstName }} {{ hit.LastName }}* ({{ hit.City }}) entspricht einem Eintrag im Ablehnungsregister:\n\n{% for entry in hit.Entries %}- {{ entry }}\n{% endfor %}\n[Mitgliedsantrag öffnen]({{ globals.BaseUrl }}{{ hit.Path }})\n",
+            "Treffer im Ablehnungsregister",
+            "Hallo,\n\nein neuer Mitgliedsantrag entspricht {% if hit.EntryCount == 1 %}einem Eintrag{% else %}{{ hit.EntryCount }} Einträgen{% endif %} im Ablehnungsregister. Die Einzelheiten stehen in Quartermaster.\n\n[Treffer öffnen]({{ globals.BaseUrl }}{{ hit.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.applicant_register_hit.telegram",
             "Benachrichtigung: Treffer im Ablehnungsregister (Telegram)",
             null,
-            "Treffer im Ablehnungsregister\n\n*{{ hit.FirstName }} {{ hit.LastName }}* ({{ hit.City }})\n\n{% for entry in hit.Entries %}- {{ entry }}\n{% endfor %}\n[Mitgliedsantrag öffnen]({{ globals.BaseUrl }}{{ hit.Path }})",
+            "Treffer im Ablehnungsregister\n\nEin neuer Mitgliedsantrag entspricht {% if hit.EntryCount == 1 %}einem Eintrag{% else %}{{ hit.EntryCount }} Einträgen{% endif %} im Ablehnungsregister.\n\n[Treffer öffnen]({{ globals.BaseUrl }}{{ hit.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_reset.email",

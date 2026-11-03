@@ -55,7 +55,7 @@ public partial class MembershipEmailCodeStep : IDisposable {
     protected override async Task OnInitializedAsync() {
         if (WasSentRecently())
             StartTimer();
-        if (WasSentRecently() || State.IsEmailCodeComplete())
+        if (State.HasUnexpiredCode(DateTime.UtcNow) || State.IsEmailCodeComplete())
             return;
 
         await SendAsync(State.Email.Trim());
@@ -154,8 +154,7 @@ public partial class MembershipEmailCodeStep : IDisposable {
             var normalized = MembershipApplicationEntryState.NormalizeEmail(email);
             State.Email = email;
             State.EmailCode = "";
-            State.EmailCodeSentFor = normalized;
-            State.EmailCodeSentAt = DateTime.UtcNow;
+            State.RecordCodeSent(email, DateTime.UtcNow, body?.LifetimeMinutes ?? 0);
             State.EmailCodeVerifiedFor = body?.CodeRequired == false ? normalized : null;
             StartTimer();
             return true;

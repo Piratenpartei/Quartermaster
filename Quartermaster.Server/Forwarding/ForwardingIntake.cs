@@ -359,8 +359,8 @@ public class ForwardingIntake {
         if (hits.Count == 0 || root == null)
             return;
 
-        var lines = RegisterNoticeText.HitLines(hits, registerEntries);
-        var payload = new ApplicantRegisterHitPayload(root.Id, dto.FirstName, dto.LastName, dto.AddressCity, RegisterHitPath(application, hits[0].EntryId), lines);
+        var entryCount = hits.Count(h => registerEntries.Any(e => e.Id == h.EntryId));
+        var payload = new ApplicantRegisterHitPayload(root.Id, RegisterHitPath(application, hits[0].EntryId), entryCount);
         string? sourceType = null;
         if (application != null) {
             sourceType = ApplicationSourceType;

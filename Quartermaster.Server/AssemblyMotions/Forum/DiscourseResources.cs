@@ -19,6 +19,7 @@ public record DiscourseTopicActivity(int TopicId, int HighestPostNumber);
 public record DiscourseTopicListPage(IReadOnlyList<DiscourseTopicActivity> Topics, bool HasMore);
 
 /// <param name="PostType">1 regular, 2 moderator action, 3 small action (closed, pinned and the like), 4 whisper.</param>
-public record DiscourseReply(int PostNumber, int PostType, int UserId, string Username, bool Deleted, bool Hidden) {
+/// <param name="UserId">Null for a post whose account was removed.</param>
+public record DiscourseReply(int PostNumber, int PostType, int? UserId, string Username, bool Deleted, bool Hidden) {
     public const int RegularPostType = 1;
 }

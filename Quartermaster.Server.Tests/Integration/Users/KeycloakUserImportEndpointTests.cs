@@ -186,8 +186,9 @@ public class KeycloakUserImportEndpointTests : IntegrationTestBase {
         await Assert.That(search!.Single().ChapterName).IsEqualTo("Landesverband Test");
     }
 
+    /// <summary>The member import is the authority for chapters; Keycloak only fills members that have none.</summary>
     [Test]
-    public async Task A_chapter_below_the_department_chapter_is_kept_but_one_in_another_state_is_replaced() {
+    public async Task A_member_with_a_chapter_keeps_it_even_in_another_state() {
         var department = $"Piratenpartei {Guid.NewGuid():N}";
         var state = Builder.SeedChapter("LV", keycloakDepartment: department);
         var district = Builder.SeedChapter("KV", parentChapterId: state.Id);
@@ -202,6 +203,6 @@ public class KeycloakUserImportEndpointTests : IntegrationTestBase {
         await ImportAsync(client, second);
 
         await Assert.That(Db.Members.Single(m => m.Id == inDistrict.Id).ChapterId).IsEqualTo(district.Id);
-        await Assert.That(Db.Members.Single(m => m.Id == elsewhere.Id).ChapterId).IsEqualTo(state.Id);
+        await Assert.That(Db.Members.Single(m => m.Id == elsewhere.Id).ChapterId).IsEqualTo(otherState.Id);
     }
 }

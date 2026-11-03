@@ -6,7 +6,7 @@ using Quartermaster.Data.ApplicantRegister;
 
 namespace Quartermaster.Server.ApplicantRegister;
 
-/// <summary>German texts about register entries for the federal ticket and the hit notification.</summary>
+/// <summary>German texts about register entries for the federal ticket.</summary>
 public static class RegisterNoticeText {
     public const string Header = "Zustimmung des Bundesvorstands erforderlich (§ 3 Abs. 2 BS):";
     public const string SelfDeclarationLine = "nach eigener Angabe: frühere Ablehnung";
@@ -35,7 +35,7 @@ public static class RegisterNoticeText {
     }
 
     /// <summary>One line per hit whose entry still exists.</summary>
-    public static List<string> HitLines(IReadOnlyList<ApplicationRegisterHit> hits, IReadOnlyList<ApplicantRegisterEntry> entries) {
+    private static List<string> HitLines(IReadOnlyList<ApplicationRegisterHit> hits, IReadOnlyList<ApplicantRegisterEntry> entries) {
         var lines = new List<string>();
         foreach (var hit in hits) {
             var entry = entries.FirstOrDefault(e => e.Id == hit.EntryId);

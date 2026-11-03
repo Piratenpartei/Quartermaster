@@ -37,7 +37,7 @@ public class ChecklistItemDeleteEndpoint : Endpoint<ChecklistItemDeleteRequest> 
             return;
         }
 
-        _eventRepo.DeleteChecklistItem(req.ItemId);
+        _eventRepo.DeleteChecklistItem(req.EventId, req.ItemId);
         await SendOkAsync(ct);
     }
 }

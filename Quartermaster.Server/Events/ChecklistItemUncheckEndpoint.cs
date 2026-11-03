@@ -38,7 +38,7 @@ public class ChecklistItemUncheckEndpoint : Endpoint<ChecklistItemUncheckRequest
             return;
         }
 
-        var item = _eventRepo.GetChecklistItem(req.ItemId);
+        var item = _eventRepo.GetChecklistItem(req.EventId, req.ItemId);
         if (item == null) {
             await SendNotFoundAsync(ct);
             return;

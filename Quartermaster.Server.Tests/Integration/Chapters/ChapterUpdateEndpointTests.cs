@@ -44,6 +44,52 @@ public class ChapterUpdateEndpointTests : IntegrationTestBase {
         await Assert.That(codes).IsEquivalentTo(new[] { "EXT-LEGACY", "EXT-NEW" });
     }
 
+    /// <summary>A browser tab still running the previous client sends none of the three fields.</summary>
+    [Test]
+    public async Task Request_from_an_older_client_keeps_contact_level_and_period() {
+        var root = Builder.SeedChapter("Bund");
+        var chapter = Builder.SeedChapter("LV", parentChapterId: root.Id, contactEmail: "lv@example.org");
+        Db.Chapters.Where(c => c.Id == chapter.Id)
+            .Set(c => c.Level, ChapterLevel.State)
+            .Set(c => c.TakeOverPeriodDays, 40)
+            .Update();
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV neu", ParentChapterId = root.Id });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var stored = Db.Chapters.Single(c => c.Id == chapter.Id);
+        await Assert.That(stored.Name).IsEqualTo("LV neu");
+        await Assert.That(stored.ContactEmail).IsEqualTo("lv@example.org");
+        await Assert.That(stored.Level).IsEqualTo(ChapterLevel.State);
+        await Assert.That(stored.TakeOverPeriodDays).IsEqualTo(40);
+    }
+
+    [Test]
+    public async Task Changes_to_contact_level_and_period_are_audited() {
+        var root = Builder.SeedChapter("Bund");
+        var chapter = Builder.SeedChapter("LV", parentChapterId: root.Id);
+        var (_, token) = Builder.SeedAuthenticatedUser(globalPermissions: new[] { PermissionIdentifier.EditChapter });
+        using var client = await AuthenticatedClientWithCsrfAsync(token);
+
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
+            Name = "LV",
+            ParentChapterId = root.Id,
+            IncludesContactAndTakeOver = true,
+            ContactEmail = "lv@example.org",
+            Level = ChapterLevel.State,
+            TakeOverPeriodDays = 40
+        });
+
+        await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        var fields = Db.AuditLogs
+            .Where(a => a.EntityType == "Chapter" && a.EntityId == chapter.Id)
+            .Select(a => a.FieldName)
+            .ToList();
+        await Assert.That(fields).IsEquivalentTo(new[] { "ContactEmail", "Level", "TakeOverPeriodDays" });
+    }
+
     [Test]
     public async Task Stores_the_keycloak_department_trimmed() {
         var department = $"Landesverband {Guid.NewGuid():N}";

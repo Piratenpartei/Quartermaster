@@ -105,7 +105,12 @@ public class AssemblyMotionForumReplyPoll {
         }
     }
 
+    /// <summary>
+    /// Pages through the category until every watched topic was listed. A page without a grown watched topic proves nothing:
+    /// topics of other events or without a motion can be more active than a watched one with a new reply.
+    /// </summary>
     private async Task PollCategoryAsync(PollRun run, int categoryId, Dictionary<int, ForumWatchedMotion> byTopic, CancellationToken ct) {
+        var unlisted = byTopic.Keys.ToHashSet();
         for (var page = 0; page < MaxPagesPerCategory; page++) {
             DiscourseTopicListPage listing;
             try {
@@ -121,8 +126,8 @@ public class AssemblyMotionForumReplyPoll {
             foreach (var topic in grown)
                 await ReadRepliesAsync(run, byTopic[topic.TopicId], topic.HighestPostNumber, ct);
 
-            // The listing is ordered by activity, so a page without a grown topic means the older ones did not grow either.
-            if (grown.Count == 0 || !listing.HasMore)
+            unlisted.ExceptWith(listing.Topics.Select(t => t.TopicId));
+            if (unlisted.Count == 0 || !listing.HasMore)
                 return;
         }
     }
@@ -171,10 +176,10 @@ public class AssemblyMotionForumReplyPoll {
 
         // Every lookup runs before anything is queued, so a rate limit in between leaves the reply unread and nothing sent twice.
         var authorForumUserId = watched.AuthorUserId == null ? null : await UserForumUserIdAsync(run, watched.AuthorUserId.Value, ct);
-        var notifyAuthor = authorForumUserId != post.UserId;
+        var notifyAuthor = !IsOwnReply(authorForumUserId, post);
         var subscribers = new List<Guid>();
         foreach (var userId in VisibleSubscribers(run, watched)) {
-            if (await SubscriberForumUserIdAsync(run, userId, ct) != post.UserId)
+            if (!IsOwnReply(await SubscriberForumUserIdAsync(run, userId, ct), post))
                 subscribers.Add(userId);
         }
 
@@ -185,6 +190,11 @@ public class AssemblyMotionForumReplyPoll {
             _notifier.SubscribedForumReply(motion, replyUrl, subscribers);
         if (notifyAuthor || subscribers.Count > 0)
             run.Notified++;
+    }
+
+    /// <summary>Only a known forum account can be recognised; an unknown one or a removed post author counts as someone else.</summary>
+    private static bool IsOwnReply(int? forumUserId, DiscourseReply post) {
+        return forumUserId != null && forumUserId == post.UserId;
     }
 
     /// <summary>The motion's subscribers without its author who can still see the event, loaded once per run.</summary>

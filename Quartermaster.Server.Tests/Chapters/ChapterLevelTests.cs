@@ -85,7 +85,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("LV", root.Id);
         using var client = await EditorClientAsync();
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", ParentChapterId = root.Id, Level = (ChapterLevel)99 });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "LV", ParentChapterId = root.Id, Level = (ChapterLevel)99 });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Chapter.LevelInvalid);
@@ -98,7 +98,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("LV", root.Id);
         using var client = await EditorClientAsync();
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", Level = ChapterLevel.State });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "LV", Level = ChapterLevel.State });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(Db.Chapters.Single(c => c.Id == chapter.Id).Level).IsEqualTo(ChapterLevel.Federal);
@@ -110,7 +110,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("LV", root.Id);
         using var client = await EditorClientAsync();
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", ParentChapterId = root.Id, Level = ChapterLevel.Federal });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "LV", ParentChapterId = root.Id, Level = ChapterLevel.Federal });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Chapter.FederalRootOnly);
@@ -125,7 +125,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("LV", root.Id);
         using var client = await EditorClientAsync();
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", ParentChapterId = root.Id, TakeOverPeriodDays = days });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "LV", ParentChapterId = root.Id, TakeOverPeriodDays = days });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.BadRequest);
         await Assert.That(await response.Content.ReadAsStringAsync()).Contains(I18nKey.Error.Chapter.TakeOverPeriodRange);
@@ -139,7 +139,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("LV", root.Id);
         using var client = await EditorClientAsync();
 
-        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { Name = "LV", ParentChapterId = root.Id, TakeOverPeriodDays = days });
+        var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest { IncludesContactAndTakeOver = true, Name = "LV", ParentChapterId = root.Id, TakeOverPeriodDays = days });
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That(Db.Chapters.Single(c => c.Id == chapter.Id).TakeOverPeriodDays).IsEqualTo(days);
@@ -165,6 +165,7 @@ public class ChapterLevelTests : IntegrationTestBase {
         using var client = await EditorClientAsync();
 
         var response = await client.PutAsJsonAsync($"/api/chapters/{chapter.Id}", new ChapterUpdateRequest {
+            IncludesContactAndTakeOver = true,
             Name = "LV",
             ParentChapterId = root.Id,
             Level = ChapterLevel.State,

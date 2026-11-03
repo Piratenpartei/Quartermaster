@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Quartermaster.Api.Events;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Components;
+using Quartermaster.Blazor.Http;
 using Quartermaster.Blazor.Services;
 using Quartermaster.Rendering;
 
@@ -61,7 +62,7 @@ public partial class EventChecklistEditor {
 
     private Guid? ExpandedRecipientItemId;
     private Dictionary<Guid, List<RecipientPreviewItem>?> RecipientCache = new();
-    private HashSet<Guid> RecipientFailed = new();
+    private Dictionary<Guid, string> RecipientErrors = new();
 
     private static readonly MarkdownPipeline MarkdownPipeline = new MarkdownPipelineBuilder()
         .UseAdvancedExtensions()
@@ -80,8 +81,12 @@ public partial class EventChecklistEditor {
     private async Task CheckTextItem(Guid itemId) {
         try {
             await RunBeforeAction();
-            await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/check",
+            var response = await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/check",
                 new { executeAction = false });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
             await NotifyChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -91,7 +96,11 @@ public partial class EventChecklistEditor {
     private async Task UncheckItem(Guid itemId) {
         try {
             await RunBeforeAction();
-            await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/uncheck", new { });
+            var response = await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/uncheck", new { });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
             await NotifyChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -101,8 +110,12 @@ public partial class EventChecklistEditor {
     private async Task CheckActionItem(Guid itemId, bool executeAction) {
         try {
             await RunBeforeAction();
-            await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/check",
+            var response = await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/check",
                 new { executeAction });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
             await NotifyChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -117,12 +130,16 @@ public partial class EventChecklistEditor {
 
         try {
             await RunBeforeAction();
-            await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist", new ChecklistItemCreateRequest {
+            var response = await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist", new ChecklistItemCreateRequest {
                 EventId = EventId,
                 SortOrder = nextSortOrder,
                 ItemType = itemType,
                 Label = NewItemLabel,
             });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
 
             NewItemLabel = "";
             ToastService.ToastKey(I18nKey.Ui.Toast.ChecklistItemAdded);
@@ -184,7 +201,7 @@ public partial class EventChecklistEditor {
 
         try {
             await RunBeforeAction();
-            await Http.PutAsJsonAsync($"/api/events/{EventId}/checklist/{item.Id}", new ChecklistItemUpdateRequest {
+            var response = await Http.PutAsJsonAsync($"/api/events/{EventId}/checklist/{item.Id}", new ChecklistItemUpdateRequest {
                 EventId = EventId,
                 ItemId = item.Id,
                 SortOrder = item.SortOrder,
@@ -192,6 +209,10 @@ public partial class EventChecklistEditor {
                 Label = EditingItemLabel,
                 Configuration = config
             });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
 
             EditingItemId = null;
             PreviewCache.Clear();
@@ -205,8 +226,12 @@ public partial class EventChecklistEditor {
     private async Task MoveItem(Guid itemId, int direction) {
         try {
             await RunBeforeAction();
-            await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/reorder",
+            var response = await Http.PostAsJsonAsync($"/api/events/{EventId}/checklist/{itemId}/reorder",
                 new { eventId = EventId, itemId, direction });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return;
+            }
             await NotifyChanged();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
@@ -282,7 +307,7 @@ public partial class EventChecklistEditor {
         }
 
         ExpandedRecipientItemId = itemId;
-        RecipientFailed.Remove(itemId);
+        RecipientErrors.Remove(itemId);
 
         if (RecipientCache.ContainsKey(itemId)) {
             StateHasChanged();
@@ -300,10 +325,11 @@ public partial class EventChecklistEditor {
                 var body = await response.Content.ReadFromJsonAsync<RecipientPreviewResponse>();
                 RecipientCache[itemId] = body?.Recipients ?? new List<RecipientPreviewItem>();
             } else {
-                RecipientFailed.Add(itemId);
+                RecipientErrors[itemId] = await ApiErrorHelper.GetCombinedErrorMessageAsync(response, I18n)
+                    ?? I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewFailed];
             }
         } catch (HttpRequestException) {
-            RecipientFailed.Add(itemId);
+            RecipientErrors[itemId] = I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewFailed];
         }
 
         StateHasChanged();

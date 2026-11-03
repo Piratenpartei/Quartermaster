@@ -153,6 +153,7 @@ public partial class ChapterDetail {
                 ShortCode = string.IsNullOrWhiteSpace(EditShortCode) ? null : EditShortCode.Trim(),
                 KeycloakDepartment = string.IsNullOrWhiteSpace(EditKeycloakDepartment) ? null : EditKeycloakDepartment.Trim(),
                 ContactEmail = string.IsNullOrWhiteSpace(EditContactEmail) ? null : EditContactEmail.Trim(),
+                IncludesContactAndTakeOver = true,
                 ExternalCodes = EditExternalCodes,
                 AdministrativeDivisionIds = EditAdministrativeDivisionIds,
                 ParentChapterId = parentId,
