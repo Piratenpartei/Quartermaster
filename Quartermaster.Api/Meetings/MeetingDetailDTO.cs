@@ -17,4 +17,6 @@ public class MeetingDetailDTO {
     public DateTimeOffset? CompletedAt { get; set; }
     public string? ArchivedPdfPath { get; set; }
     public List<AgendaItemDTO> AgendaItems { get; set; } = new();
+    public bool CanEdit { get; set; }
+    public bool CanDelete { get; set; }
 }

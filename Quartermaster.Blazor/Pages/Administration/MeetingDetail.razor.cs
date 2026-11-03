@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -42,12 +43,15 @@ public partial class MeetingDetail {
     private bool Loading = true;
     private bool SavingMeta;
     private List<AuditLogDTO>? AuditLogs;
+    private bool AuditUnavailable;
     private string ActiveTab = "agenda";
     private string? ProtocolHtml;
     private bool ProtocolLoading;
 
     private bool IsEditableMode =>
         Meeting?.Status == MeetingStatus.Draft || Meeting?.Status == MeetingStatus.Scheduled;
+
+    private bool CanEditDetails => IsEditableMode && Meeting?.CanEdit == true;
 
     private bool RequiresDraft =>
         Meeting?.Status != MeetingStatus.Completed && Meeting?.Status != MeetingStatus.Archived;
@@ -63,6 +67,8 @@ public partial class MeetingDetail {
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
+        if (Meeting != null)
+            await LoadAuditLogs();
         Loading = false;
         _detailsForm?.Reset();
         StateHasChanged();
@@ -92,7 +98,9 @@ public partial class MeetingDetail {
 
     private async Task LoadAuditLogs() {
         try {
-            AuditLogs = await Http.GetFromJsonAsync<List<AuditLogDTO>>($"/api/auditlog?entityType=Meeting&entityId={Id}");
+            var response = await Http.GetAsync($"/api/auditlog?entityType=Meeting&entityId={Id}");
+            AuditUnavailable = !response.IsSuccessStatusCode;
+            AuditLogs = AuditUnavailable ? null : await response.Content.ReadFromJsonAsync<List<AuditLogDTO>>();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -205,25 +213,44 @@ public partial class MeetingDetail {
         }
     }
 
-    private List<(MeetingStatus Target, string Label, string Icon)> AllowedTransitions => Meeting?.Status switch {
-        MeetingStatus.Draft => [
-            (MeetingStatus.Scheduled, I18n[I18nKey.Ui.MeetingDetail.TransitionFinalize], "bi-calendar-check")
-        ],
-        MeetingStatus.Scheduled => [
-            (MeetingStatus.Draft, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToDraft], "bi-arrow-counterclockwise"),
-            (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionStart], "bi-play-circle")
-        ],
-        MeetingStatus.InProgress => [
-            (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionComplete], "bi-check-circle")
-        ],
-        MeetingStatus.Completed => [
-            (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToInProgress], "bi-arrow-counterclockwise"),
-            (MeetingStatus.Archived, I18n[I18nKey.Ui.MeetingDetail.TransitionArchive], "bi-archive")
-        ],
-        MeetingStatus.Archived => [
-            (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionUnarchive], "bi-box-arrow-up")
-        ],
-        _ => new List<(MeetingStatus, string, string)>()
-    };
+    private List<(MeetingStatus Target, string Label, string Icon)> AllowedTransitions {
+        get {
+            if (Meeting == null)
+                return [];
+            return TransitionsFrom(Meeting.Status)
+                .Where(t => CanChangeStatus(Meeting, t.Target))
+                .ToList();
+        }
+    }
+
+    /// <summary>Mirrors <c>MeetingStatusUpdateEndpoint</c>: anything into or out of Archived needs DeleteMeetings.</summary>
+    private static bool CanChangeStatus(MeetingDetailDTO meeting, MeetingStatus target) {
+        if (target == MeetingStatus.Archived || meeting.Status == MeetingStatus.Archived)
+            return meeting.CanDelete;
+        return meeting.CanEdit;
+    }
+
+    private List<(MeetingStatus Target, string Label, string Icon)> TransitionsFrom(MeetingStatus status) {
+        return status switch {
+            MeetingStatus.Draft => [
+                (MeetingStatus.Scheduled, I18n[I18nKey.Ui.MeetingDetail.TransitionFinalize], "bi-calendar-check")
+            ],
+            MeetingStatus.Scheduled => [
+                (MeetingStatus.Draft, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToDraft], "bi-arrow-counterclockwise"),
+                (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionStart], "bi-play-circle")
+            ],
+            MeetingStatus.InProgress => [
+                (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionComplete], "bi-check-circle")
+            ],
+            MeetingStatus.Completed => [
+                (MeetingStatus.InProgress, I18n[I18nKey.Ui.MeetingDetail.TransitionBackToInProgress], "bi-arrow-counterclockwise"),
+                (MeetingStatus.Archived, I18n[I18nKey.Ui.MeetingDetail.TransitionArchive], "bi-archive")
+            ],
+            MeetingStatus.Archived => [
+                (MeetingStatus.Completed, I18n[I18nKey.Ui.MeetingDetail.TransitionUnarchive], "bi-box-arrow-up")
+            ],
+            _ => new List<(MeetingStatus, string, string)>()
+        };
+    }
 
 }

@@ -62,6 +62,11 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
 
         var dto = ev.ToDetailDto(chapter?.Name ?? "");
         dto.ChecklistItems = itemDtos;
+        if (_perms.UserId != null) {
+            dto.CanEdit = _perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents);
+            dto.CanArchive = _perms.Has(ev.ChapterId, PermissionIdentifier.DeleteEvents);
+            dto.CanSaveAsTemplate = _perms.Has(ev.ChapterId, PermissionIdentifier.EditTemplates);
+        }
         await SendAsync(dto, cancellation: ct);
     }
 }

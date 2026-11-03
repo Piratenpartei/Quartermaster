@@ -7,6 +7,8 @@ using FastEndpoints;
 using Quartermaster.Api;
 using Quartermaster.Api.AuditLog;
 using Quartermaster.Data.AuditLog;
+using Quartermaster.Data.Events;
+using Quartermaster.Data.Meetings;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
 
@@ -19,13 +21,22 @@ public class AuditLogRequest {
     public Guid EntityId { get; set; }
 }
 
+/// <summary>
+/// Global ViewAudit sees every audit log. Otherwise events, meetings and motions show theirs to whoever may
+/// edit them on their chapter; every other entity type, members included, needs ViewAudit.
+/// </summary>
 public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
     private readonly AuditLogRepository _auditLogRepo;
+    private readonly EventRepository _eventRepo;
+    private readonly MeetingRepository _meetingRepo;
     private readonly MotionRepository _motionRepo;
     private readonly PermissionContext _perms;
 
-    public AuditLogEndpoint(AuditLogRepository auditLogRepo, MotionRepository motionRepo, PermissionContext perms) {
+    public AuditLogEndpoint(AuditLogRepository auditLogRepo, EventRepository eventRepo, MeetingRepository meetingRepo,
+        MotionRepository motionRepo, PermissionContext perms) {
         _auditLogRepo = auditLogRepo;
+        _eventRepo = eventRepo;
+        _meetingRepo = meetingRepo;
         _motionRepo = motionRepo;
         _perms = perms;
     }
@@ -62,11 +73,28 @@ public class AuditLogEndpoint : Endpoint<AuditLogRequest, List<AuditLogDTO>> {
     private bool IsAuthorizedFor(AuditLogRequest req) {
         if (_perms.HasGlobal(PermissionIdentifier.ViewAudit))
             return true;
-        if (req.EntityType == "Motion") {
-            var motion = _motionRepo.Get(req.EntityId);
-            if (motion != null && _perms.Has(motion.ChapterId, PermissionIdentifier.ViewMotions))
-                return true;
-        }
-        return false;
+
+        var chapterId = EditableChapterId(req.EntityType, req.EntityId);
+        if (chapterId == null)
+            return false;
+        return _perms.Has(chapterId.Value, EditPermissionFor(req.EntityType));
+    }
+
+    private Guid? EditableChapterId(string entityType, Guid entityId) {
+        return entityType switch {
+            "Event" => _eventRepo.Get(entityId)?.ChapterId,
+            "Meeting" => _meetingRepo.Get(entityId)?.ChapterId,
+            "Motion" => _motionRepo.Get(entityId)?.ChapterId,
+            _ => null
+        };
+    }
+
+    private static string EditPermissionFor(string entityType) {
+        return entityType switch {
+            "Event" => PermissionIdentifier.EditEvents,
+            "Meeting" => PermissionIdentifier.EditMeetings,
+            "Motion" => PermissionIdentifier.EditMotions,
+            _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, null)
+        };
     }
 }

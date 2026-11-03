@@ -25,6 +25,9 @@ public partial class MarkdownEditor {
     public int Rows { get; set; } = 8;
 
     [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
     public SanitizationProfile Profile { get; set; } = SanitizationProfile.Standard;
 
     /// <summary>Optional pre-processor applied to the markdown source before it is rendered for the preview pane.</summary>

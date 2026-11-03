@@ -25,13 +25,17 @@ public partial class MemberDetail {
     private MemberDetailDTO? Member;
     private bool Loading = true;
     private List<AuditLogDTO>? AuditLogs;
+    private bool AuditUnavailable;
     private string NewAdminDivId = "";
     private bool SavingAdminDiv;
 
     protected override async Task OnInitializedAsync() {
         try {
             Member = await Http.GetFromJsonAsync<MemberDetailDTO>($"/api/members/{Id}");
-            AuditLogs = await Http.GetFromJsonAsync<List<AuditLogDTO>>($"/api/auditlog?entityType=Member&entityId={Id}");
+            var auditResponse = await Http.GetAsync($"/api/auditlog?entityType=Member&entityId={Id}");
+            AuditUnavailable = !auditResponse.IsSuccessStatusCode;
+            if (!AuditUnavailable)
+                AuditLogs = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogDTO>>();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }

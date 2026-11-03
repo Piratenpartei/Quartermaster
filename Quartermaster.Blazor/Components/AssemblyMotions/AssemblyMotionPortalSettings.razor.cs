@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
-using Quartermaster.Api;
 using Quartermaster.Api.AssemblyMotions;
 using Quartermaster.Api.I18n;
 using Quartermaster.Blazor.Services;
@@ -20,16 +19,13 @@ public partial class AssemblyMotionPortalSettings {
     public required ToastService ToastService { get; set; }
 
     [Inject]
-    public required AuthService AuthService { get; set; }
-
-    [Inject]
     public required I18nService I18n { get; set; }
 
     [Parameter, EditorRequired]
     public Guid EventId { get; set; }
 
     [Parameter, EditorRequired]
-    public Guid ChapterId { get; set; }
+    public bool CanEdit { get; set; }
 
     private AssemblyMotionPortalSettingsDTO? Settings;
     private AssemblyMotionConnectionCheckDTO? ConnectionCheck;
@@ -56,8 +52,6 @@ public partial class AssemblyMotionPortalSettings {
     private int? OpenSlidesMeetingId;
     private bool ForumMirrorEnabled;
     private int? ForumCategoryId;
-
-    private bool CanEdit => AuthService.HasPermission(ChapterId, PermissionIdentifier.EditEvents);
 
     private TypeEdit EditModel => Editing!;
 

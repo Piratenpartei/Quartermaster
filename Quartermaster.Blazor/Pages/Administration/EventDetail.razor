@@ -32,10 +32,12 @@
                 </div>
             } else {
                 <h3 class="mb-0">@Event.InternalName</h3>
-                <button class="btn btn-sm btn-outline-secondary border-0" @onclick="() => EditingTitle = true"
-                        title="@I18n[I18nKey.Ui.EventDetail.EditAria]" aria-label="@I18n[I18nKey.Ui.EventDetail.EditAria]">
-                    <i class="bi bi-pencil"></i>
-                </button>
+                @if (!ReadOnly) {
+                    <button class="btn btn-sm btn-outline-secondary border-0" @onclick="() => EditingTitle = true"
+                            title="@I18n[I18nKey.Ui.EventDetail.EditAria]" aria-label="@I18n[I18nKey.Ui.EventDetail.EditAria]">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                }
             }
         </div>
         <div class="d-flex gap-2">
@@ -62,34 +64,36 @@
                 <div class="row g-3 mb-3">
                     <div class="col">
                         <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.PublicNameLabel]</label>
-                        <FormInput @bind-Value="Event.PublicName" />
+                        <FormInput @bind-Value="Event.PublicName" ReadOnly="ReadOnly" />
                     </div>
                     <div class="col-auto">
                         <label class="form-label small text-secondary">@I18n[I18nKey.Ui.Common.Date]</label>
                         <FormInput Type="date" Value="@(Event.EventDate?.ToString("yyyy-MM-dd") ?? "")"
-                                   ValueChanged="OnDateChanged" CssClass="w-auto" />
+                                   ValueChanged="OnDateChanged" CssClass="w-auto" ReadOnly="ReadOnly" />
                     </div>
                     <div class="col-auto">
                         <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.StartTimeLabel]</label>
                         <FormInput Type="time" Value="@(Event.StartTime?.ToString("HH:mm") ?? "")"
-                                   ValueChanged="OnStartTimeChanged" CssClass="w-auto" />
+                                   ValueChanged="OnStartTimeChanged" CssClass="w-auto" ReadOnly="ReadOnly" />
                     </div>
                     <div class="col-auto">
                         <label class="form-label small text-secondary">@I18n[I18nKey.Ui.Common.Visibility]</label>
-                        <FormSelect Value="@(((int)Event.Visibility).ToString())" ValueChanged="OnVisibilityChanged" CssClass="w-auto">
+                        <FormSelect Value="@(((int)Event.Visibility).ToString())" ValueChanged="OnVisibilityChanged" CssClass="w-auto" Disabled="ReadOnly">
                             <option value="0">@I18n[I18nKey.Ui.EventVisibility.Public]</option>
                             <option value="1">@I18n[I18nKey.Ui.EventVisibility.MembersOnly]</option>
                             <option value="2">@I18n[I18nKey.Ui.EventVisibility.Private]</option>
                         </FormSelect>
                     </div>
-                    <div class="col-auto d-flex align-items-end">
-                        <FormSaveButton OnClick="SaveDetails" Saving="Saving"
-                                        ButtonClass="btn-primary" Text="" SavingText="" />
-                    </div>
+                    @if (!ReadOnly) {
+                        <div class="col-auto d-flex align-items-end">
+                            <FormSaveButton OnClick="SaveDetails" Saving="Saving"
+                                            ButtonClass="btn-primary" Text="" SavingText="" />
+                        </div>
+                    }
                 </div>
                 <div class="mb-3">
                     <label class="form-label small text-secondary">@I18n[I18nKey.Ui.EventDetail.MeetingUrlLabel]</label>
-                    <FormInput Type="url" Value="@(Event.MeetingUrl ?? "")" ValueChanged="OnMeetingUrlChanged" Placeholder="https://" />
+                    <FormInput Type="url" Value="@(Event.MeetingUrl ?? "")" ValueChanged="OnMeetingUrlChanged" Placeholder="https://" ReadOnly="ReadOnly" />
                     <div class="form-text">@I18n[I18nKey.Ui.EventDetail.MeetingUrlHint]</div>
                 </div>
                 <div class="row mb-1">
@@ -100,7 +104,7 @@
                         <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.EventDetail.PreviewLabel]</label>
                     </div>
                 </div>
-                <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" />
+                <MarkdownEditor Value="@Event.Description" ValueChanged="OnDescriptionChanged" Rows="6" ReadOnly="ReadOnly" />
                 <small class="text-secondary mt-1 d-block">
                     @I18n[$"{I18nKey.Ui.EventDetail.AvailableVariablesHint}?vars=%3Ccode%3E%7B%7Bdate%7D%7D%3C%2Fcode%3E+%2F+%3Ccode%3E%7B%7Bdatum%7D%7D%3C%2Fcode%3E"]
                 </small>
@@ -108,47 +112,49 @@
         </div>
     </DirtyForm>
 
-    <EventChecklistEditor EventId="@Id" Event="@Event" OnChanged="@LoadEvent" OnBeforeAction="@SaveIfDirty" />
+    <EventChecklistEditor EventId="@Id" Event="@Event" ReadOnly="ReadOnly" OnChanged="@LoadEvent" OnBeforeAction="@SaveIfDirty" />
 
-    <AssemblyMotionPortalSettings EventId="@Id" ChapterId="@Event.ChapterId" />
+    <AssemblyMotionPortalSettings EventId="@Id" CanEdit="Event.CanEdit" />
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@I18n[I18nKey.Ui.EventDetail.AuditLogTitle]</h5>
-            @if (AuditLogs == null) {
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-            } else if (AuditLogs.Count == 0) {
-                <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
-            } else {
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditTimestampColumn]</th>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditActionColumn]</th>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditFieldColumn]</th>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditOldValueColumn]</th>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditNewValueColumn]</th>
-                                <th>@I18n[I18nKey.Ui.EventDetail.AuditUserColumn]</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var log in AuditLogs) {
+    @if (!AuditUnavailable) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.EventDetail.AuditLogTitle]</h5>
+                @if (AuditLogs == null) {
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                } else if (AuditLogs.Count == 0) {
+                    <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
+                } else {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
                                 <tr>
-                                    <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
-                                    <td>@log.Action</td>
-                                    <td>@(log.FieldName ?? "-")</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="@log.NewValue">@(log.NewValue ?? "-")</td>
-                                    <td>@(log.UserDisplayName ?? "-")</td>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditTimestampColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditActionColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditFieldColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditOldValueColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditNewValueColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.EventDetail.AuditUserColumn]</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                            </thead>
+                            <tbody>
+                                @foreach (var log in AuditLogs) {
+                                    <tr>
+                                        <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
+                                        <td>@log.Action</td>
+                                        <td>@(log.FieldName ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.NewValue">@(log.NewValue ?? "-")</td>
+                                        <td>@(log.UserDisplayName ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
         </div>
-    </div>
+    }
 
     <div class="d-flex gap-2 flex-wrap">
         <RequirePermission AnyOfPermissions="@(new List<string> { PermissionIdentifier.AssemblyChair, PermissionIdentifier.AssemblyView })">
@@ -156,7 +162,7 @@
                 <i class="bi bi-mic"></i> @I18n[I18nKey.Ui.AssemblyConsole.OpenConsole]
             </a>
         </RequirePermission>
-        @if (Event.Status == EventStatus.Draft) {
+        @if (Event.Status == EventStatus.Draft && Event.CanSaveAsTemplate) {
             <a href="/Administration/Events/@Id/SaveAsTemplate" class="btn btn-outline-secondary">
                 <i class="bi bi-clipboard"></i> @I18n[I18nKey.Ui.EventDetail.SaveAsTemplate]
             </a>

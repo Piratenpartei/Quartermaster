@@ -192,6 +192,10 @@ public class MeetingDetailEndpoint : Endpoint<MeetingDetailRequest, MeetingDetai
             ArchivedPdfPath = meeting.ArchivedPdfPath,
             AgendaItems = itemDtos
         };
+        if (_perms.UserId != null) {
+            dto.CanEdit = _perms.Has(meeting.ChapterId, PermissionIdentifier.EditMeetings);
+            dto.CanDelete = _perms.Has(meeting.ChapterId, PermissionIdentifier.DeleteMeetings);
+        }
 
         await SendAsync(dto, cancellation: ct);
     }

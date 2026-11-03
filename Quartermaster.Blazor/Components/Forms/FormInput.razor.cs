@@ -24,6 +24,9 @@ public partial class FormInput {
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
     private async Task OnInput(ChangeEventArgs e) {
         Value = e.Value?.ToString() ?? "";
         await ValueChanged.InvokeAsync(Value);

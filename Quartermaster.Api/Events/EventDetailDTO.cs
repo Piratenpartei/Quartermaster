@@ -18,4 +18,7 @@ public class EventDetailDTO {
     public Guid? EventTemplateId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public List<EventChecklistItemDTO> ChecklistItems { get; set; } = new();
+    public bool CanEdit { get; set; }
+    public bool CanArchive { get; set; }
+    public bool CanSaveAsTemplate { get; set; }
 }

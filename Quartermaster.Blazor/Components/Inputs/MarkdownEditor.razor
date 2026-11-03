@@ -1,7 +1,7 @@
 <div class="row">
     <div class="col-md-6">
         <textarea @ref="_textarea" class="form-control font-monospace" rows="@Rows"
-                  value="@Value" @oninput="OnInput"></textarea>
+                  value="@Value" @oninput="OnInput" readonly="@ReadOnly" disabled="@ReadOnly"></textarea>
     </div>
     <div class="col-md-6 d-flex flex-column">
         <div class="card bg-body-secondary flex-grow-1">

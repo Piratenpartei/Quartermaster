@@ -77,7 +77,7 @@
                         <div class="me-3" style="min-width: 28px;">
                             @if (item.ItemType == ChecklistItemType.Text) {
                                 <input type="checkbox" class="form-check-input" style="width: 1.5em; height: 1.5em;"
-                                       checked="@item.IsCompleted"
+                                       checked="@item.IsCompleted" readonly="@ReadOnly" disabled="@ReadOnly"
                                        @onchange="() => { if (item.IsCompleted) { UncheckItem(item.Id); } else { CheckTextItem(item.Id); } }" />
                             } else if (item.IsCompleted) {
                                 <input type="checkbox" class="form-check-input" style="width: 1.5em; height: 1.5em;"
@@ -104,52 +104,60 @@
                             }
                         </div>
 
-                        <div class="input-group input-group-sm ms-2" style="width: auto;">
-                            @if (item.ItemType == ChecklistItemType.CreateMotion && !item.IsCompleted) {
-                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
-                                    @I18n[I18nKey.Ui.EventChecklistEditor.CreateAndCheck]
-                                </button>
-                                <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
-                                    @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
-                                </button>
-                            } else if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
-                                <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-primary">
+                        @if (ReadOnly) {
+                            @if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
+                                <a href="/Administration/Motions/@item.ResultId" class="btn btn-sm btn-outline-primary ms-2">
                                     <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.EventChecklistEditor.GoToMotion]
                                 </a>
                             }
+                        } else {
+                            <div class="input-group input-group-sm ms-2" style="width: auto;">
+                                @if (item.ItemType == ChecklistItemType.CreateMotion && !item.IsCompleted) {
+                                    <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
+                                        @I18n[I18nKey.Ui.EventChecklistEditor.CreateAndCheck]
+                                    </button>
+                                    <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
+                                        @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
+                                    </button>
+                                } else if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
+                                    <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-primary">
+                                        <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.EventChecklistEditor.GoToMotion]
+                                    </a>
+                                }
 
-                            @if (item.ItemType == ChecklistItemType.SendEmail && !item.IsCompleted) {
-                                <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)"
-                                        disabled="@HasNoEmailContent(item.Configuration)"
-                                        title="@(HasNoEmailContent(item.Configuration) ? I18n[I18nKey.Ui.EventChecklistEditor.SendDisabledNoContent] : null)"
-                                        style="@(HasNoEmailContent(item.Configuration) ? "pointer-events: auto; cursor: not-allowed;" : null)">
-                                    @I18n[I18nKey.Ui.EventChecklistEditor.SendAndCheck]
-                                </button>
-                                <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
-                                    @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
-                                </button>
-                                <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" @onclick="() => ToggleRecipientPreview(item.Id, item.Configuration)">
-                                    <i class="bi bi-people"></i>
-                                </button>
-                            }
+                                @if (item.ItemType == ChecklistItemType.SendEmail && !item.IsCompleted) {
+                                    <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)"
+                                            disabled="@HasNoEmailContent(item.Configuration)"
+                                            title="@(HasNoEmailContent(item.Configuration) ? I18n[I18nKey.Ui.EventChecklistEditor.SendDisabledNoContent] : null)"
+                                            style="@(HasNoEmailContent(item.Configuration) ? "pointer-events: auto; cursor: not-allowed;" : null)">
+                                        @I18n[I18nKey.Ui.EventChecklistEditor.SendAndCheck]
+                                    </button>
+                                    <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
+                                        @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
+                                    </button>
+                                    <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" @onclick="() => ToggleRecipientPreview(item.Id, item.Configuration)">
+                                        <i class="bi bi-people"></i>
+                                    </button>
+                                }
 
-                            <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, -1)"
-                                    title="@I18n[I18nKey.Ui.EventChecklistEditor.MoveUp]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.MoveUp]">
-                                <i class="bi bi-chevron-up"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, 1)"
-                                    title="@I18n[I18nKey.Ui.EventChecklistEditor.MoveDown]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.MoveDown]">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" @onclick="() => StartEditing(item)"
-                                    title="@I18n[I18nKey.Ui.EventChecklistEditor.EditTooltip]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EditTooltip]">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <DeleteButton OnClick="() => DeleteChecklistItem(item.Id)" Text="" AriaLabel="@I18n[I18nKey.Ui.EventChecklistEditor.RemoveAria]" Small="false" />
-                        </div>
+                                <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, -1)"
+                                        title="@I18n[I18nKey.Ui.EventChecklistEditor.MoveUp]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.MoveUp]">
+                                    <i class="bi bi-chevron-up"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="() => MoveItem(item.Id, 1)"
+                                        title="@I18n[I18nKey.Ui.EventChecklistEditor.MoveDown]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.MoveDown]">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" @onclick="() => StartEditing(item)"
+                                        title="@I18n[I18nKey.Ui.EventChecklistEditor.EditTooltip]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EditTooltip]">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <DeleteButton OnClick="() => DeleteChecklistItem(item.Id)" Text="" AriaLabel="@I18n[I18nKey.Ui.EventChecklistEditor.RemoveAria]" Small="false" />
+                            </div>
+                        }
                     }
                 </div>
 
@@ -196,20 +204,22 @@
                 }
             }
 
-            <div class="input-group input-group-sm pt-2">
-                <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.EventChecklistEditor.NewItemPlaceholder]"
-                       @bind="NewItemLabel" @bind:event="oninput"
-                       @onkeydown="OnNewItemKeyDown" />
-                <select class="form-select" style="max-width: 200px;" @bind="NewItemType">
-                    <option value="@ChecklistItemType.Text">@I18n[I18nKey.Ui.EventChecklistEditor.TypeText]</option>
-                    <option value="@ChecklistItemType.CreateMotion">@I18n[I18nKey.Ui.EventChecklistEditor.TypeCreateMotion]</option>
-                    <option value="@ChecklistItemType.SendEmail">@I18n[I18nKey.Ui.EventChecklistEditor.TypeSendEmail]</option>
-                </select>
-                <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.AddItemAria]" @onclick="() => AddItem(NewItemType)"
-                        disabled="@string.IsNullOrWhiteSpace(NewItemLabel)">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-            </div>
+            @if (!ReadOnly) {
+                <div class="input-group input-group-sm pt-2">
+                    <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.EventChecklistEditor.NewItemPlaceholder]"
+                           @bind="NewItemLabel" @bind:event="oninput"
+                           @onkeydown="OnNewItemKeyDown" />
+                    <select class="form-select" style="max-width: 200px;" @bind="NewItemType">
+                        <option value="@ChecklistItemType.Text">@I18n[I18nKey.Ui.EventChecklistEditor.TypeText]</option>
+                        <option value="@ChecklistItemType.CreateMotion">@I18n[I18nKey.Ui.EventChecklistEditor.TypeCreateMotion]</option>
+                        <option value="@ChecklistItemType.SendEmail">@I18n[I18nKey.Ui.EventChecklistEditor.TypeSendEmail]</option>
+                    </select>
+                    <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.AddItemAria]" @onclick="() => AddItem(NewItemType)"
+                            disabled="@string.IsNullOrWhiteSpace(NewItemLabel)">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            }
         </div>
     </div>
 

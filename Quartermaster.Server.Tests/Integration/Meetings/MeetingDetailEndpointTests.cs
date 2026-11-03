@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
@@ -77,5 +78,51 @@ public class MeetingDetailEndpointTests : IntegrationTestBase {
         var response = await client.GetAsync($"/api/meetings/{meeting.Id}");
         var dto = await response.Content.ReadFromJsonAsync<MeetingDetailDTO>();
         await Assert.That(dto!.AgendaItems.Count).IsEqualTo(2);
+    }
+
+    private async Task<MeetingDetailDTO> DetailFor(Guid meetingId, Guid chapterId, params string[] permissions) {
+        var (_, token) = Builder.SeedAuthenticatedUser(chapterPermissions: new Dictionary<Guid, string[]> {
+            [chapterId] = permissions
+        });
+        using var client = AuthenticatedClient(token);
+        var dto = await client.GetFromJsonAsync<MeetingDetailDTO>($"/api/meetings/{meetingId}");
+        return dto!;
+    }
+
+    [Test]
+    public async Task View_only_user_gets_no_edit_flags() {
+        var chapter = Builder.SeedChapter("C");
+        var meeting = Builder.SeedMeeting(chapter.Id, visibility: MeetingVisibility.Public);
+
+        var dto = await DetailFor(meeting.Id, chapter.Id, PermissionIdentifier.ViewMeetings);
+
+        await Assert.That(dto.CanEdit).IsFalse();
+        await Assert.That(dto.CanDelete).IsFalse();
+    }
+
+    [Test]
+    public async Task Edit_flags_follow_the_permissions() {
+        var chapter = Builder.SeedChapter("C");
+        var meeting = Builder.SeedMeeting(chapter.Id, visibility: MeetingVisibility.Public);
+
+        var edit = await DetailFor(meeting.Id, chapter.Id, PermissionIdentifier.EditMeetings);
+        var delete = await DetailFor(meeting.Id, chapter.Id, PermissionIdentifier.DeleteMeetings);
+
+        await Assert.That(edit.CanEdit).IsTrue();
+        await Assert.That(edit.CanDelete).IsFalse();
+        await Assert.That(delete.CanDelete).IsTrue();
+        await Assert.That(delete.CanEdit).IsFalse();
+    }
+
+    [Test]
+    public async Task Anonymous_gets_no_edit_flags() {
+        var chapter = Builder.SeedChapter("C");
+        var meeting = Builder.SeedMeeting(chapter.Id, visibility: MeetingVisibility.Public);
+        using var client = AnonymousClient();
+
+        var dto = await client.GetFromJsonAsync<MeetingDetailDTO>($"/api/meetings/{meeting.Id}");
+
+        await Assert.That(dto!.CanEdit).IsFalse();
+        await Assert.That(dto.CanDelete).IsFalse();
     }
 }

@@ -32,6 +32,9 @@ public partial class EventChecklistEditor {
     public required EventDetailDTO Event { get; set; }
 
     [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
     public EventCallback OnChanged { get; set; }
 
     [Parameter]

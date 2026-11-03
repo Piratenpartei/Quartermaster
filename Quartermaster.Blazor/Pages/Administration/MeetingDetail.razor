@@ -29,7 +29,7 @@
         }
     </div>
 
-    @if (IsEditableMode) {
+    @if (CanEditDetails) {
         <DirtyForm @ref="_detailsForm">
             <div class="card mb-3">
                 <div class="card-body">
@@ -79,15 +79,17 @@
                 @I18n[I18nKey.Ui.MeetingDetail.TabProtocol]
             </button>
         </li>
-        <li class="nav-item">
-            <button class="nav-link @(ActiveTab == "audit" ? "active" : "")" @onclick="@(() => OnTabChanged("audit"))">
-                @I18n[I18nKey.Ui.MeetingDetail.TabAudit]
-            </button>
-        </li>
+        @if (!AuditUnavailable) {
+            <li class="nav-item">
+                <button class="nav-link @(ActiveTab == "audit" ? "active" : "")" @onclick="@(() => OnTabChanged("audit"))">
+                    @I18n[I18nKey.Ui.MeetingDetail.TabAudit]
+                </button>
+            </li>
+        }
     </ul>
 
     @if (ActiveTab == "agenda") {
-        @if (IsEditableMode) {
+        @if (CanEditDetails) {
             <AgendaItemListEditor MeetingId="@Id" Meeting="@Meeting" OnChanged="@LoadMeeting" />
         } else {
             <div class="card">
@@ -120,7 +122,7 @@
                 }
             </div>
         </div>
-    } else if (ActiveTab == "audit") {
+    } else if (ActiveTab == "audit" && !AuditUnavailable) {
         <div class="card">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.MeetingDetail.AuditCardTitle]</h5>
@@ -176,7 +178,7 @@
                 <i class="bi @transition.Icon"></i> @transition.Label
             </button>
         }
-        @if (Meeting.Status == MeetingStatus.Draft) {
+        @if (Meeting.Status == MeetingStatus.Draft && Meeting.CanDelete) {
             <DeleteButton OnClick="DeleteMeeting" Small="false" CssClass="ms-auto" />
         }
     </div>

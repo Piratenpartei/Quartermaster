@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -36,6 +37,9 @@ public partial class EventDetail {
     private bool Saving;
     private bool EditingTitle;
     private List<AuditLogDTO>? AuditLogs;
+    private bool AuditUnavailable;
+
+    private bool ReadOnly => Event?.CanEdit != true;
 
     protected override async Task OnInitializedAsync() {
         await LoadEvent();
@@ -45,7 +49,10 @@ public partial class EventDetail {
         Loading = true;
         try {
             Event = await Http.GetFromJsonAsync<EventDetailDTO>($"/api/events/{Id}");
-            AuditLogs = await Http.GetFromJsonAsync<List<AuditLogDTO>>($"/api/auditlog?entityType=Event&entityId={Id}");
+            var auditResponse = await Http.GetAsync($"/api/auditlog?entityType=Event&entityId={Id}");
+            AuditUnavailable = !auditResponse.IsSuccessStatusCode;
+            if (!AuditUnavailable)
+                AuditLogs = await auditResponse.Content.ReadFromJsonAsync<List<AuditLogDTO>>();
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
         }
@@ -183,17 +190,36 @@ public partial class EventDetail {
         }
     }
 
-    private List<(EventStatus Target, string LabelKey, string Icon)> AllowedTransitions => Event?.Status switch {
-        EventStatus.Draft => [(EventStatus.Active, I18nKey.Ui.EventDetail.TransitionActivate, "bi-play-circle")],
-        EventStatus.Active => [
-            (EventStatus.Draft, I18nKey.Ui.EventDetail.TransitionBackToDraft, "bi-arrow-counterclockwise"),
-            (EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionMarkCompleted, "bi-check-circle")
-        ],
-        EventStatus.Completed => [
-            (EventStatus.Active, I18nKey.Ui.EventDetail.TransitionBackToActive, "bi-arrow-counterclockwise"),
-            (EventStatus.Archived, I18nKey.Ui.EventDetail.TransitionArchive, "bi-archive")
-        ],
-        EventStatus.Archived => [(EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionUnarchive, "bi-box-arrow-up")],
-        _ => []
-    };
+    private List<(EventStatus Target, string LabelKey, string Icon)> AllowedTransitions {
+        get {
+            if (Event == null)
+                return [];
+            return TransitionsFrom(Event.Status)
+                .Where(t => CanChangeStatus(Event, t.Target))
+                .ToList();
+        }
+    }
+
+    /// <summary>Mirrors <c>EventStatusUpdateEndpoint</c>: anything into or out of Archived needs DeleteEvents.</summary>
+    private static bool CanChangeStatus(EventDetailDTO ev, EventStatus target) {
+        if (target == EventStatus.Archived || ev.Status == EventStatus.Archived)
+            return ev.CanArchive;
+        return ev.CanEdit;
+    }
+
+    private static List<(EventStatus Target, string LabelKey, string Icon)> TransitionsFrom(EventStatus status) {
+        return status switch {
+            EventStatus.Draft => [(EventStatus.Active, I18nKey.Ui.EventDetail.TransitionActivate, "bi-play-circle")],
+            EventStatus.Active => [
+                (EventStatus.Draft, I18nKey.Ui.EventDetail.TransitionBackToDraft, "bi-arrow-counterclockwise"),
+                (EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionMarkCompleted, "bi-check-circle")
+            ],
+            EventStatus.Completed => [
+                (EventStatus.Active, I18nKey.Ui.EventDetail.TransitionBackToActive, "bi-arrow-counterclockwise"),
+                (EventStatus.Archived, I18nKey.Ui.EventDetail.TransitionArchive, "bi-archive")
+            ],
+            EventStatus.Archived => [(EventStatus.Completed, I18nKey.Ui.EventDetail.TransitionUnarchive, "bi-box-arrow-up")],
+            _ => []
+        };
+    }
 }

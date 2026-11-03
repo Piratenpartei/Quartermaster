@@ -217,41 +217,43 @@
         </div>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@I18n[I18nKey.Ui.MemberDetail.AuditLogSection]</h5>
-            @if (AuditLogs == null) {
-                <div class="spinner-border spinner-border-sm" role="status"></div>
-            } else if (AuditLogs.Count == 0) {
-                <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
-            } else {
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped mb-0">
-                        <thead>
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditTimestampColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditActionColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditFieldColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditOldValueColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditNewValueColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MemberDetail.AuditUserColumn]</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var log in AuditLogs) {
+    @if (!AuditUnavailable) {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>@I18n[I18nKey.Ui.MemberDetail.AuditLogSection]</h5>
+                @if (AuditLogs == null) {
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                } else if (AuditLogs.Count == 0) {
+                    <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
+                } else {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
                                 <tr>
-                                    <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
-                                    <td>@log.Action</td>
-                                    <td>@(log.FieldName ?? "-")</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>
-                                    <td class="text-truncate" style="max-width: 200px;" title="@log.NewValue">@(log.NewValue ?? "-")</td>
-                                    <td>@(log.UserDisplayName ?? "-")</td>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditTimestampColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditActionColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditFieldColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditOldValueColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditNewValueColumn]</th>
+                                    <th>@I18n[I18nKey.Ui.MemberDetail.AuditUserColumn]</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                            </thead>
+                            <tbody>
+                                @foreach (var log in AuditLogs) {
+                                    <tr>
+                                        <td class="text-nowrap"><LocalTime Value="log.Timestamp" /></td>
+                                        <td>@log.Action</td>
+                                        <td>@(log.FieldName ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.OldValue">@(log.OldValue ?? "-")</td>
+                                        <td class="text-truncate" style="max-width: 200px;" title="@log.NewValue">@(log.NewValue ?? "-")</td>
+                                        <td>@(log.UserDisplayName ?? "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
         </div>
-    </div>
+    }
 }
