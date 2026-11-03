@@ -38,7 +38,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         _portalRepo = new AssemblyMotionPortalRepository(_context, AuditLog);
         _motionRepo = new AssemblyMotionRepository(_context, AuditLog);
         var notifier = new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, notifier);
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, notifier, new AssemblyMotionSubscriptionRepository(_context));
         _commission = new AssemblyMotionCommissionService(_motionRepo, AuditLog, notifier);
         _inquiries = new AssemblyMotionInquiryService(_motionRepo, new AssemblyMotionInquiryRepository(_context), AuditLog, notifier);
         _chapter = _builder.SeedChapter();
@@ -292,7 +292,7 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
     public async Task Failing_queue_does_not_change_the_outcome() {
         var queue = new ThrowingNotificationQueue();
         var notifier = new AssemblyMotionNotifier(queue, _context, NullLogger<AssemblyMotionNotifier>.Instance);
-        var service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, notifier);
+        var service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, notifier, new AssemblyMotionSubscriptionRepository(_context));
         var commission = new AssemblyMotionCommissionService(_motionRepo, AuditLog, notifier);
         var now = DateTime.UtcNow;
         var portal = _portalRepo.Create(_event.Id, now.AddHours(-1), now.AddDays(7), now);
@@ -511,5 +511,35 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
         var lateSubscriber = SubscribedUser();
 
         await Assert.That(ModelFor(request, lateSubscriber).Path).IsEqualTo($"/AssemblyMotions/{motion.Id}");
+    }
+
+    [Test]
+    public async Task Subscribed_forum_reply_carries_users_and_member_link() {
+        var (commission, _) = _builder.SeedAuthenticatedUser(chapterPermissions: new() { [_chapter.Id] = [PermissionIdentifier.ManageAssemblyMotions] });
+        var subscriber = _builder.SeedUser();
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+        _queue.Requests.Clear();
+        var notifier = new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance);
+
+        notifier.SubscribedForumReply(motion, "https://forum.test/t/9/3", [subscriber.Id, commission.Id]);
+
+        var request = _queue.Requests.Single();
+        await Assert.That(request.TriggerId).IsEqualTo(NotificationTriggers.AssemblyMotionSubscribedForumReply);
+        await Assert.That(PayloadOf(request).UserIds!.ToHashSet().SetEquals([subscriber.Id, commission.Id])).IsTrue();
+        await Assert.That(PayloadOf(request).MemberIds).IsEmpty();
+        await Assert.That(PayloadOf(request).IncludeCommission).IsFalse();
+        await Assert.That(ModelFor(request, commission.Id).Path).IsEqualTo($"/AssemblyMotions/{motion.Id}");
+        await Assert.That(ModelFor(request, subscriber.Id).ForumReplyUrl).IsEqualTo("https://forum.test/t/9/3");
+    }
+
+    [Test]
+    public async Task Subscribed_forum_reply_without_users_enqueues_nothing() {
+        var (motion, _, _) = Released(1, TimeSpan.FromDays(7));
+        _queue.Requests.Clear();
+        var notifier = new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance);
+
+        notifier.SubscribedForumReply(motion, "https://forum.test/t/9/3", []);
+
+        await Assert.That(_queue.Requests).IsEmpty();
     }
 }

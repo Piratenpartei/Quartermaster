@@ -28,6 +28,9 @@ public class FakeDiscourseClient : IDiscourseClient {
     /// <summary>Forum user ids by Keycloak id, for the account lookup.</summary>
     public static Dictionary<string, int> KeycloakUsers { get; } = [];
 
+    /// <summary>Lookups of these Keycloak ids throw instead of answering.</summary>
+    public static Dictionary<string, Exception> ThrowOnKeycloakId { get; } = [];
+
     /// <summary>Topics per page of the category listing.</summary>
     public static int ListPageSize { get; set; } = 30;
 
@@ -39,6 +42,7 @@ public class FakeDiscourseClient : IDiscourseClient {
             ThrowOn.Clear();
             Categories.Clear();
             KeycloakUsers.Clear();
+            ThrowOnKeycloakId.Clear();
             ListPageSize = 30;
             RejectRawLongerThan = null;
             CurrentUser = new DiscourseCurrentUser("antragsbot", true);
@@ -171,6 +175,8 @@ public class FakeDiscourseClient : IDiscourseClient {
     public Task<int?> FindUserIdByKeycloakIdAsync(DiscourseSettings settings, string keycloakUserId, CancellationToken ct) {
         Record("User");
         using (StateLock.EnterScope()) {
+            if (ThrowOnKeycloakId.TryGetValue(keycloakUserId, out var exception))
+                throw exception;
             return Task.FromResult(KeycloakUsers.TryGetValue(keycloakUserId, out var id) ? id : (int?)null);
         }
     }

@@ -35,7 +35,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         _builder = new TestDataBuilder(_context);
         _portalRepo = new AssemblyMotionPortalRepository(_context, AuditLog);
         _motionRepo = new AssemblyMotionRepository(_context, AuditLog);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance));
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(_context));
         _chapter = _builder.SeedChapter();
         _event = _builder.SeedEvent(_chapter.Id);
     }
@@ -60,7 +60,7 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
 
     private static AssemblyMotionService NewServiceOn(DbContext context) {
         var auditLog = new AuditLogRepository(context);
-        return new AssemblyMotionService(new AssemblyMotionRepository(context, auditLog), new AssemblyMotionPortalRepository(context, auditLog), auditLog, context, new AssemblyMotionNotifier(new CapturingNotificationQueue(), context, NullLogger<AssemblyMotionNotifier>.Instance));
+        return new AssemblyMotionService(new AssemblyMotionRepository(context, auditLog), new AssemblyMotionPortalRepository(context, auditLog), auditLog, context, new AssemblyMotionNotifier(new CapturingNotificationQueue(), context, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(context));
     }
 
     [Test]
@@ -1163,5 +1163,59 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
         var reloaded = _motionRepo.Get(motion.Id)!;
         await Assert.That(reloaded.ForumSyncState).IsEqualTo(ForumSyncState.Pending);
         await Assert.That(reloaded.WikiSyncState).IsEqualTo(WikiSyncState.NotMirrored);
+    }
+
+    private (AssemblyMotion Motion, Member Supporter) MotionWithSupporter(DateTime now, bool supporterHasUser = true) {
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = _service.CreateDraft(portal, author, Guid.NewGuid(), NewDraft(type.Id), now).Motion!;
+        _service.Release(motion.Id, author, now);
+        Guid? userId = supporterHasUser ? _builder.SeedUser().Id : null;
+        return (motion, _builder.SeedMember(chapterId: _chapter.Id, userId: userId));
+    }
+
+    [Test]
+    public async Task Join_subscribes_the_supporter() {
+        var now = DateTime.UtcNow;
+        var (motion, supporter) = MotionWithSupporter(now);
+
+        _service.Join(motion.Id, supporter, now);
+
+        await Assert.That(new AssemblyMotionSubscriptionRepository(_context).IsSubscribed(motion.Id, supporter.UserId!.Value)).IsTrue();
+    }
+
+    [Test]
+    public async Task Leave_unsubscribes_the_supporter() {
+        var now = DateTime.UtcNow;
+        var (motion, supporter) = MotionWithSupporter(now);
+        _service.Join(motion.Id, supporter, now);
+
+        _service.Leave(motion.Id, supporter, now);
+
+        await Assert.That(new AssemblyMotionSubscriptionRepository(_context).IsSubscribed(motion.Id, supporter.UserId!.Value)).IsFalse();
+    }
+
+    [Test]
+    public async Task Join_after_leave_subscribes_again() {
+        var now = DateTime.UtcNow;
+        var (motion, supporter) = MotionWithSupporter(now);
+        _service.Join(motion.Id, supporter, now);
+        _service.Leave(motion.Id, supporter, now);
+
+        _service.Join(motion.Id, supporter, now);
+
+        await Assert.That(_context.AssemblyMotionSubscriptions.Count(s => s.MotionId == motion.Id && s.UserId == supporter.UserId)).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Join_of_member_without_user_succeeds_without_subscription() {
+        var now = DateTime.UtcNow;
+        var (motion, supporter) = MotionWithSupporter(now, supporterHasUser: false);
+
+        var outcome = _service.Join(motion.Id, supporter, now);
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(_context.AssemblyMotionSubscriptions.Count(s => s.MotionId == motion.Id)).IsEqualTo(0);
     }
 }

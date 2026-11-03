@@ -106,7 +106,7 @@ public class AssemblyMotionMemberActions {
         if (motion == null || type == null)
             return AssemblyMotionActionResult.Done;
 
-        var detail = _detailBuilder.Build(motion, portal, type, ev, eligibility, nowUtc);
+        var detail = _detailBuilder.Build(motion, portal, type, ev, eligibility, nowUtc, _perms.UserId);
         return detail == null ? AssemblyMotionActionResult.Done : AssemblyMotionActionResult.Ok(detail);
     }
 }

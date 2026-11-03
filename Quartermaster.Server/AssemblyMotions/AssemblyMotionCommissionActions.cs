@@ -49,7 +49,7 @@ public class AssemblyMotionCommissionActions {
             return AssemblyMotionActionResult.Done;
 
         var eligibility = _eligibility.Check(_perms.UserId, ev, nowUtc);
-        var detail = _detailBuilder.Build(updated, portal, type, ev, eligibility, nowUtc);
+        var detail = _detailBuilder.Build(updated, portal, type, ev, eligibility, nowUtc, _perms.UserId);
         return detail == null ? AssemblyMotionActionResult.Done : AssemblyMotionActionResult.Ok(detail);
     }
 }

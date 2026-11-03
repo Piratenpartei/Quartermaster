@@ -64,6 +64,7 @@ public class DbContext : DataConnection {
     public ITable<EventChecklistItem> EventChecklistItems => this.GetTable<EventChecklistItem>();
     public ITable<EventSubscription> EventSubscriptions => this.GetTable<EventSubscription>();
     public ITable<EventReminderDelivery> EventReminderDeliveries => this.GetTable<EventReminderDelivery>();
+    public ITable<AssemblyMotionSubscription> AssemblyMotionSubscriptions => this.GetTable<AssemblyMotionSubscription>();
     public ITable<EventTemplate> EventTemplates => this.GetTable<EventTemplate>();
     public ITable<NotificationLog> NotificationLogs => this.GetTable<NotificationLog>();
     public ITable<UserNotificationPreference> UserNotificationPreferences => this.GetTable<UserNotificationPreference>();
@@ -140,6 +141,7 @@ public class DbContext : DataConnection {
         services.AddScoped<MemberRepository>();
         services.AddScoped<EventRepository>();
         services.AddScoped<EventSubscriptionRepository>();
+        services.AddScoped<AssemblyMotionSubscriptionRepository>();
         services.AddScoped<NotificationLogRepository>();
         services.AddScoped<UserNotificationPreferenceRepository>();
         services.AddScoped<TelegramLinkTokenRepository>();

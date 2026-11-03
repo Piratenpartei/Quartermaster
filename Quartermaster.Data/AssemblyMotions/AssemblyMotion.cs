@@ -102,4 +102,17 @@ public class AssemblyMotion {
             UpvoteCount = upvoteCount
         };
     }
+
+    public AssemblyMotionSubscriptionListItemDTO ToSubscriptionListItemDto(bool isVisible, string eventName) {
+        if (!isVisible)
+            return new AssemblyMotionSubscriptionListItemDTO { MotionId = Id };
+
+        return new AssemblyMotionSubscriptionListItemDTO {
+            MotionId = Id,
+            IsVisible = true,
+            Title = Title,
+            EventName = eventName,
+            Status = Status
+        };
+    }
 }

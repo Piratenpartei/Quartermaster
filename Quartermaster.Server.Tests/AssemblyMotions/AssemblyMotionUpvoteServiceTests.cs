@@ -35,7 +35,7 @@ public class AssemblyMotionUpvoteServiceTests : RepositoryTestBase {
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
         _upvoteRepo = new AssemblyMotionUpvoteRepository(Db);
         _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db,
-            new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance));
+            new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(Db));
         _upvotes = new AssemblyMotionUpvoteService(_motionRepo, _portalRepo, _upvoteRepo);
         _chapter = _builder.SeedChapter();
         var ev = _builder.SeedEvent(_chapter.Id);

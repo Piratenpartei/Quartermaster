@@ -44,7 +44,7 @@ public class AssemblyMotionDetailEndpoint : Endpoint<AssemblyMotionIdRequest, As
 
         var nowUtc = DateTime.UtcNow;
         var eligibility = _eligibility.Check(_perms.UserId, ev, nowUtc);
-        var detail = _detailBuilder.Build(motion, portal, type, ev, eligibility, nowUtc);
+        var detail = _detailBuilder.Build(motion, portal, type, ev, eligibility, nowUtc, _perms.UserId);
         if (detail == null) {
             await SendNotFoundAsync(ct);
             return;

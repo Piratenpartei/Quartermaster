@@ -168,6 +168,12 @@ public partial class AssemblyMotionDetail {
         }
     }
 
+    private async Task ReloadDetailAsync() {
+        var response = await Http.GetAsync($"/api/assemblymotions/motions/{Id}");
+        if (response.IsSuccessStatusCode)
+            Apply(await response.Content.ReadFromJsonAsync<AssemblyMotionDetailDTO>());
+    }
+
     private void Apply(AssemblyMotionDetailDTO? detail) {
         Member = detail;
         Motion = detail;

@@ -18,6 +18,7 @@ public class AssemblyMotionDetailBuilder {
     private readonly AssemblyMotionRepository _motions;
     private readonly AssemblyMotionInquiryRepository _inquiries;
     private readonly AssemblyMotionUpvoteRepository _upvotes;
+    private readonly AssemblyMotionSubscriptionRepository _subscriptions;
     private readonly AssemblyMotionService _service;
     private readonly AssemblyMotionCompetitionViewBuilder _competitionViews;
     private readonly AssemblyMotionAccess _access;
@@ -25,11 +26,12 @@ public class AssemblyMotionDetailBuilder {
     private readonly DiscourseSettings _forumSettings;
 
     public AssemblyMotionDetailBuilder(AssemblyMotionRepository motions, AssemblyMotionInquiryRepository inquiries,
-        AssemblyMotionUpvoteRepository upvotes, AssemblyMotionService service, AssemblyMotionCompetitionViewBuilder competitionViews, AssemblyMotionAccess access, DbContext db,
-        DiscourseSettings forumSettings) {
+        AssemblyMotionUpvoteRepository upvotes, AssemblyMotionSubscriptionRepository subscriptions, AssemblyMotionService service,
+        AssemblyMotionCompetitionViewBuilder competitionViews, AssemblyMotionAccess access, DbContext db, DiscourseSettings forumSettings) {
         _motions = motions;
         _inquiries = inquiries;
         _upvotes = upvotes;
+        _subscriptions = subscriptions;
         _service = service;
         _competitionViews = competitionViews;
         _access = access;
@@ -41,9 +43,9 @@ public class AssemblyMotionDetailBuilder {
         return AssemblyMotionVisibility.CanSee(motion, CreateViewer(ev, eligibility));
     }
 
-    /// <summary>Returns null when the viewer may not see the motion.</summary>
+    /// <summary>Returns null when the viewer may not see the motion. The caller has checked that the viewer can see the event.</summary>
     public AssemblyMotionDetailDTO? Build(AssemblyMotion motion, AssemblyMotionPortal portal, AssemblyMotionType type,
-        Event ev, EligibilityResult eligibility, DateTime nowUtc) {
+        Event ev, EligibilityResult eligibility, DateTime nowUtc, Guid? viewerUserId) {
         var submitters = _motions.GetSubmitters(motion.Id);
         var viewerMember = eligibility.Member;
         var viewerIsSubmitter = IsSubmitter(submitters, viewerMember);
@@ -82,6 +84,12 @@ public class AssemblyMotionDetailBuilder {
 
         if (viewerMember != null)
             ApplyActionFlags(dto, motion, portal, type, viewerMember, eligibility.IsEligible, viewerIsSubmitter, nowUtc);
+
+        if (viewerUserId != null) {
+            var viewerIsAuthor = _motions.IsCreatedByUser(motion, viewerUserId.Value);
+            dto.IsSubscribed = !viewerIsAuthor && _subscriptions.IsSubscribed(motion.Id, viewerUserId.Value);
+            dto.CanSubscribe = AssemblyMotionSubscriptionRules.Problem(motion, ev, viewerIsAuthor) == null;
+        }
 
         return dto;
     }

@@ -2,6 +2,7 @@
 @using Quartermaster.Api
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Notifications
+@using Quartermaster.Blazor.Components.AssemblyMotions
 @using Quartermaster.Blazor.Components.Events
 
 <PageTitle>@I18n[I18nKey.Ui.NotificationPreferences.PageTitle]</PageTitle>
@@ -80,6 +81,7 @@
 </div>
 
 <EventSubscriptionList />
+<AssemblyMotionSubscriptionList />
 
 @if (Loading) {
     <LoadingSpinner />

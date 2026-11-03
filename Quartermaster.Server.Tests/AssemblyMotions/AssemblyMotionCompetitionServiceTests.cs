@@ -37,7 +37,7 @@ public class AssemblyMotionCompetitionServiceTests : RepositoryTestBase {
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
         _competitionRepo = new AssemblyMotionCompetitionRepository(Db);
         var notifier = new AssemblyMotionNotifier(_queue, Db, NullLogger<AssemblyMotionNotifier>.Instance);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, notifier);
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, notifier, new AssemblyMotionSubscriptionRepository(Db));
         _competitions = new AssemblyMotionCompetitionService(_motionRepo, _competitionRepo, _portalRepo, _service, AuditLog, notifier);
         _chapter = _builder.SeedChapter();
         var ev = _builder.SeedEvent(_chapter.Id);

@@ -80,6 +80,18 @@ public class AssemblyMotionNotifier {
         });
     }
 
+    /// <summary>The caller has left out the author, users who wrote the reply and users who can no longer see the event.</summary>
+    public void SubscribedForumReply(AssemblyMotion motion, string replyUrl, IReadOnlyList<Guid> userIds) {
+        if (userIds.Count == 0)
+            return;
+
+        Safely(nameof(SubscribedForumReply), () => {
+            var context = BuildContext(motion);
+            context.Model = context.Model with { ForumReplyUrl = replyUrl };
+            Enqueue(NotificationTriggers.AssemblyMotionSubscribedForumReply, context, [], false, userIds: userIds);
+        });
+    }
+
     public void CollectingReminder(AssemblyMotion motion, DateTime effectiveDeadlineUtc) {
         Safely(nameof(CollectingReminder), () => {
             var context = BuildContext(motion);
@@ -174,16 +186,20 @@ public class AssemblyMotionNotifier {
         }
     }
 
-    private void Enqueue(string triggerId, NotificationContext context, IReadOnlyList<Guid> memberIds, bool includeCommission, Guid? subscriberEventId = null) {
-        if (memberIds.Count == 0 && !includeCommission && subscriberEventId == null)
+    /// <param name="userIds">Direct recipients; they get the member view like members do.</param>
+    private void Enqueue(string triggerId, NotificationContext context, IReadOnlyList<Guid> memberIds, bool includeCommission,
+        Guid? subscriberEventId = null, IReadOnlyList<Guid>? userIds = null) {
+        if (memberIds.Count == 0 && !includeCommission && subscriberEventId == null && (userIds == null || userIds.Count == 0))
             return;
 
         var model = context.Model;
         var memberUserIds = MemberUserIds(memberIds);
+        if (userIds != null)
+            memberUserIds.UnionWith(userIds);
         var commissionUserIds = subscriberEventId == null
             ? null
             : AssemblyMotionCommissionUsers.UserIds(_db, context.EventChapterId).ToHashSet();
-        var payload = new AssemblyMotionNotificationPayload(model.Id, context.EventChapterId, memberIds, includeCommission, subscriberEventId);
+        var payload = new AssemblyMotionNotificationPayload(model.Id, context.EventChapterId, memberIds, includeCommission, subscriberEventId, userIds);
 
         _queue.Enqueue(new NotificationDispatchRequest(
             triggerId,

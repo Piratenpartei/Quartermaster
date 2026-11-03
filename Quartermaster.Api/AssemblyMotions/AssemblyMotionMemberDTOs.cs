@@ -58,6 +58,8 @@ public class AssemblyMotionDetailDTO : AssemblyMotionPublicDTO {
     public bool CanDelete { get; set; }
     public bool CanUpvote { get; set; }
     public bool HasUpvoted { get; set; }
+    public bool IsSubscribed { get; set; }
+    public bool CanSubscribe { get; set; }
     public AssemblyMotionCommissionInfoDTO? Commission { get; set; }
     public string? ForumTopicUrl { get; set; }
     public List<AssemblyMotionInquiryDTO> Inquiries { get; set; } = [];

@@ -303,6 +303,8 @@ public static class I18nKey {
             public const string AlreadySubmitter = "error.assembly_motion.already_submitter";
             public const string NotSubmitter = "error.assembly_motion.not_submitter";
             public const string AuthorCannotLeave = "error.assembly_motion.author_cannot_leave";
+            public const string SubscriptionAuthor = "error.assembly_motion.subscription_author";
+            public const string SubscriptionClosed = "error.assembly_motion.subscription_closed";
             public const string TypeNotInPortal = "error.assembly_motion.type_not_in_portal";
             public const string NotEligible = "error.assembly_motion.not_eligible";
             public const string TitleRequired = "error.assembly_motion.title_required";
@@ -997,6 +999,18 @@ public static class I18nKey {
             public const string ListEmpty = "ui.event_subscription.list_empty";
             public const string Unsubscribe = "ui.event_subscription.unsubscribe";
             public const string HiddenEvent = "ui.event_subscription.hidden_event";
+        }
+
+        public static class AssemblyMotionSubscription {
+            public const string Subscribe = "ui.assembly_motion_subscription.subscribe";
+            public const string Subscribed = "ui.assembly_motion_subscription.subscribed";
+            public const string UnsubscribeTooltip = "ui.assembly_motion_subscription.unsubscribe_tooltip";
+            public const string Hint = "ui.assembly_motion_subscription.hint";
+            public const string ChangeFailed = "ui.assembly_motion_subscription.change_failed";
+            public const string ListTitle = "ui.assembly_motion_subscription.list_title";
+            public const string ListEmpty = "ui.assembly_motion_subscription.list_empty";
+            public const string Unsubscribe = "ui.assembly_motion_subscription.unsubscribe";
+            public const string HiddenMotion = "ui.assembly_motion_subscription.hidden_motion";
         }
 
         public static class PersonalData {

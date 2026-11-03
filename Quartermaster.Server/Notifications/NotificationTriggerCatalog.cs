@@ -41,6 +41,10 @@ public static class NotificationTriggerCatalog {
             "Antwort im Forum",
             "Sobald jemand im Forum auf deinen Antrag antwortet."),
         new NotificationTriggerDescriptor(
+            NotificationTriggers.AssemblyMotionSubscribedForumReply,
+            "Antworten im Forum zu abonnierten Anträgen",
+            "Sobald jemand im Forum auf einen Antrag antwortet, den du abonniert oder unterstützt hast."),
+        new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCollectingReminder,
             "Erinnerung: Mitantragstellende gesucht",
             "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragstellende hat."),

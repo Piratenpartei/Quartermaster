@@ -69,6 +69,8 @@
             }
         </div>
 
+        <AssemblyMotionSubscriptionToggle MotionId="Id" IsSubscribed="Member.IsSubscribed" CanSubscribe="Member.CanSubscribe" OnChanged="ReloadDetailAsync" />
+
         @if (ShowEditLockedHint()) {
             <div class="alert alert-secondary">
                 @I18n[I18nKey.Ui.AssemblyMotion.EditLockedHint]

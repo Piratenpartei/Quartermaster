@@ -37,7 +37,7 @@ public class AssemblyMotionOpenSlidesPushTests : RepositoryTestBase {
         _builder = new TestDataBuilder(Db);
         _portalRepo = new AssemblyMotionPortalRepository(Db, AuditLog);
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance));
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(Db));
         _options = new OptionRepository(Db, AuditLog);
         _options.SupplementDefaults();
         _options.SetValue("openslides.url", null, "https://os.test");

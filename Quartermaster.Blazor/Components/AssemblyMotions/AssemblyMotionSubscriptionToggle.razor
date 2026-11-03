@@ -1,0 +1,28 @@
+@using Quartermaster.Api.I18n
+
+@if (CanSubscribe || IsSubscribed) {
+    <div class="mb-3">
+        @if (IsSubscribed) {
+            <button type="button" class="btn btn-primary btn-sm btn-hover-scale1" @onclick="Unsubscribe" disabled="@Busy" title="@I18n[I18nKey.Ui.AssemblyMotionSubscription.UnsubscribeTooltip]">
+                @if (Busy) {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                } else {
+                    <i class="bi bi-bell-fill me-1"></i>
+                }
+                @I18n[I18nKey.Ui.AssemblyMotionSubscription.Subscribed]
+            </button>
+        } else {
+            <button type="button" class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="Subscribe" disabled="@Busy">
+                @if (Busy) {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                } else {
+                    <i class="bi bi-bell me-1"></i>
+                }
+                @I18n[I18nKey.Ui.AssemblyMotionSubscription.Subscribe]
+            </button>
+        }
+        @if (CanSubscribe) {
+            <div class="text-secondary small mt-1">@I18n[I18nKey.Ui.AssemblyMotionSubscription.Hint]</div>
+        }
+    </div>
+}

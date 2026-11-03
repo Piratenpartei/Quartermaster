@@ -10,11 +10,13 @@ using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.Roles;
+using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.AssemblyMotions;
 using Quartermaster.Server.AssemblyMotions.Forum;
 using Quartermaster.Server.AssemblyMotions.Notifications;
+using Quartermaster.Server.Events;
 using Quartermaster.Server.Notifications;
 using Quartermaster.Server.Tests.AssemblyMotions.Fakes;
 using Quartermaster.Server.Tests.Infrastructure;
@@ -37,6 +39,7 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
     private Chapter _chapter = default!;
     private Event _event = default!;
     private AssemblyMotionPortal _portal = default!;
+    private AssemblyMotionSubscriptionRepository _subscriptions = default!;
 
     [Before(Test)]
     public void Setup() {
@@ -49,7 +52,7 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
         _portalRepo = new AssemblyMotionPortalRepository(Db, AuditLog);
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
         var notifier = new AssemblyMotionNotifier(_queue, Db, NullLogger<AssemblyMotionNotifier>.Instance);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, notifier);
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, notifier, new AssemblyMotionSubscriptionRepository(Db));
         var options = new OptionRepository(Db, AuditLog);
         options.SupplementDefaults();
         options.SetValue("discourse.base_url", null, "https://forum.test");
@@ -59,10 +62,16 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
         _sync = new AssemblyMotionForumSync(_motionRepo, _portalRepo, new EventRepository(Db, AuditLog), Db, new FakeDiscourseClient(),
             new FakeWikiBotClient(), options, AuditLog, new I18nService("{}"), NullLogger<AssemblyMotionForumSync>.Instance);
         var users = new UserRepository(Db, new UserGlobalPermissionRepository(Db, new RoleRepository(Db)), new PermissionRepository(Db));
-        _poll = new AssemblyMotionForumReplyPoll(_motionRepo, users, new FakeDiscourseClient(), notifier, options,
-            NullLogger<AssemblyMotionForumReplyPoll>.Instance);
+        new PermissionRepository(Db).SupplementDefaults();
+        var roles = new RoleRepository(Db);
+        roles.SupplementDefaults();
+        var visibility = new EventUserVisibility(new UserGlobalPermissionRepository(Db, roles), new UserChapterPermissionRepository(Db, roles),
+            new ChapterRepository(Db, AuditLog));
+        _subscriptions = new AssemblyMotionSubscriptionRepository(Db);
+        _poll = new AssemblyMotionForumReplyPoll(_motionRepo, users, new FakeDiscourseClient(), notifier, options, _subscriptions,
+            new EventRepository(Db, AuditLog), visibility, NullLogger<AssemblyMotionForumReplyPoll>.Instance);
         _chapter = _builder.SeedChapter();
-        _event = _builder.SeedEvent(_chapter.Id, publicName: "Bundesparteitag 2027.1", status: EventStatus.Active);
+        _event = _builder.SeedEvent(_chapter.Id, publicName: "Bundesparteitag 2027.1", status: EventStatus.Active, visibility: EventVisibility.Public);
         _portal = SeedPortal();
     }
 
@@ -97,6 +106,19 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
 
     private List<NotificationDispatchRequest> ReplyNotifications()
         => _queue.Requests.Where(r => r.TriggerId == NotificationTriggers.AssemblyMotionForumReply).ToList();
+
+    private List<NotificationDispatchRequest> SubscriberNotifications()
+        => _queue.Requests.Where(r => r.TriggerId == NotificationTriggers.AssemblyMotionSubscribedForumReply).ToList();
+
+    private Guid Subscriber(Guid motionId, string keycloakId = "kc-bernd") {
+        var user = _builder.SeedUser();
+        Db.Users
+            .Where(u => u.Id == user.Id)
+            .Set(u => u.KeycloakUserId, keycloakId)
+            .Update();
+        _subscriptions.Subscribe(motionId, user.Id, DateTime.UtcNow);
+        return user.Id;
+    }
 
     private static AssemblyMotionNotificationModel ModelFor(NotificationDispatchRequest request)
         => (AssemblyMotionNotificationModel)request.ModelFactory(new NotificationRecipient(null, "x@test.local"))["motion"];
@@ -266,5 +288,126 @@ public class AssemblyMotionForumReplyPollTests : RepositoryTestBase {
 
         await Assert.That(notified).IsEqualTo(25);
         await Assert.That(Seen(motion.Id)).IsEqualTo(26);
+    }
+
+    [Test]
+    public async Task Reply_notifies_author_and_subscribers_separately() {
+        var (motion, author, topicId) = await MirroredMotion();
+        var subscriber = Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "carla", 44);
+
+        var notified = await Poll();
+
+        var forSubscribers = SubscriberNotifications().Single();
+        await Assert.That(notified).IsEqualTo(1);
+        await Assert.That(((AssemblyMotionNotificationPayload)ReplyNotifications().Single().Payload).MemberIds.Single()).IsEqualTo(author.Id);
+        await Assert.That(((AssemblyMotionNotificationPayload)forSubscribers.Payload).UserIds!.Single()).IsEqualTo(subscriber);
+        await Assert.That(ModelFor(forSubscribers).ForumReplyUrl).IsEqualTo($"https://forum.test/t/{topicId}/2");
+    }
+
+    [Test]
+    public async Task Author_reply_still_notifies_subscribers() {
+        FakeDiscourseClient.CurrentUser = new DiscourseCurrentUser("antragsbot", true, true);
+        FakeDiscourseClient.KeycloakUsers[AuthorKeycloakId] = AuthorForumUserId;
+        var (motion, _, topicId) = await MirroredMotion();
+        var subscriber = Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "anna", AuthorForumUserId);
+
+        var notified = await Poll();
+
+        await Assert.That(notified).IsEqualTo(1);
+        await Assert.That(ReplyNotifications()).IsEmpty();
+        await Assert.That(((AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload).UserIds!.Single()).IsEqualTo(subscriber);
+    }
+
+    [Test]
+    public async Task Subscriber_reply_does_not_notify_them() {
+        FakeDiscourseClient.CurrentUser = new DiscourseCurrentUser("antragsbot", true, true);
+        FakeDiscourseClient.KeycloakUsers[AuthorKeycloakId] = AuthorForumUserId;
+        FakeDiscourseClient.KeycloakUsers["kc-bernd"] = 43;
+        var (motion, _, topicId) = await MirroredMotion();
+        Subscriber(motion.Id);
+        var other = Subscriber(motion.Id, "kc-dora");
+        FakeDiscourseClient.AddReply(topicId, "bernd", 43);
+
+        await Poll();
+
+        await Assert.That(ReplyNotifications().Count).IsEqualTo(1);
+        await Assert.That(((AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload).UserIds!.Single()).IsEqualTo(other);
+    }
+
+    [Test]
+    public async Task Subscriber_reply_notifies_them_without_admin_bot() {
+        FakeDiscourseClient.KeycloakUsers["kc-bernd"] = 43;
+        var (motion, _, topicId) = await MirroredMotion();
+        var subscriber = Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "bernd", 43);
+
+        await Poll();
+
+        await Assert.That(((AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload).UserIds!.Single()).IsEqualTo(subscriber);
+    }
+
+    [Test]
+    public async Task Subscriber_who_lost_visibility_gets_nothing() {
+        var (motion, _, topicId) = await MirroredMotion();
+        Subscriber(motion.Id);
+        Db.Events.Where(e => e.Id == _event.Id).Set(e => e.Visibility, EventVisibility.Private).Update();
+        FakeDiscourseClient.AddReply(topicId, "carla", 44);
+
+        var notified = await Poll();
+
+        await Assert.That(notified).IsEqualTo(1);
+        await Assert.That(ReplyNotifications().Count).IsEqualTo(1);
+        await Assert.That(SubscriberNotifications()).IsEmpty();
+    }
+
+    [Test]
+    public async Task Author_who_subscribed_is_not_in_the_subscriber_request() {
+        var (motion, author, topicId) = await MirroredMotion();
+        _subscriptions.Subscribe(motion.Id, author.UserId!.Value, DateTime.UtcNow);
+        var subscriber = Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "carla", 44);
+
+        await Poll();
+
+        await Assert.That(((AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload).UserIds!.Single()).IsEqualTo(subscriber);
+    }
+
+    [Test]
+    public async Task Rate_limited_subscriber_lookup_does_not_resend_the_author_notification() {
+        FakeDiscourseClient.CurrentUser = new DiscourseCurrentUser("antragsbot", true, true);
+        FakeDiscourseClient.KeycloakUsers[AuthorKeycloakId] = AuthorForumUserId;
+        var (motion, _, topicId) = await MirroredMotion();
+        var subscriber = Subscriber(motion.Id);
+        FakeDiscourseClient.AddReply(topicId, "carla", 44);
+        FakeDiscourseClient.ThrowOnKeycloakId["kc-bernd"] = new DiscourseException("Das Forum begrenzt die Anfragen gerade.", DiscourseException.RateLimited, 429);
+
+        var limited = await Poll();
+        FakeDiscourseClient.ThrowOnKeycloakId.Clear();
+        var later = await Poll();
+
+        await Assert.That(limited).IsEqualTo(0);
+        await Assert.That(later).IsEqualTo(1);
+        await Assert.That(ReplyNotifications().Count).IsEqualTo(1);
+        await Assert.That(((AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload).UserIds!.Single()).IsEqualTo(subscriber);
+        await Assert.That(Seen(motion.Id)).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task Subscriber_lookups_are_capped_per_run() {
+        FakeDiscourseClient.CurrentUser = new DiscourseCurrentUser("antragsbot", true, true);
+        FakeDiscourseClient.KeycloakUsers[AuthorKeycloakId] = AuthorForumUserId;
+        var (motion, _, topicId) = await MirroredMotion();
+        var subscribers = Enumerable.Range(0, AssemblyMotionForumReplyPoll.MaxSubscriberLookupsPerRun + 5)
+            .Select(i => Subscriber(motion.Id, $"kc-sub-{i}"))
+            .ToList();
+        FakeDiscourseClient.AddReply(topicId, "carla", 44);
+
+        await Poll();
+
+        var payload = (AssemblyMotionNotificationPayload)SubscriberNotifications().Single().Payload;
+        await Assert.That(FakeDiscourseClient.Count("User")).IsEqualTo(AssemblyMotionForumReplyPoll.MaxSubscriberLookupsPerRun + 1);
+        await Assert.That(payload.UserIds!.ToHashSet().SetEquals(subscribers)).IsTrue();
     }
 }

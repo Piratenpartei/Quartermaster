@@ -23,14 +23,16 @@ public class AssemblyMotionService {
     private readonly AuditLogRepository _auditLog;
     private readonly DbContext _db;
     private readonly AssemblyMotionNotifier _notifier;
+    private readonly AssemblyMotionSubscriptionRepository _subscriptions;
 
     public AssemblyMotionService(AssemblyMotionRepository motions, AssemblyMotionPortalRepository portals,
-        AuditLogRepository auditLog, DbContext db, AssemblyMotionNotifier notifier) {
+        AuditLogRepository auditLog, DbContext db, AssemblyMotionNotifier notifier, AssemblyMotionSubscriptionRepository subscriptions) {
         _motions = motions;
         _portals = portals;
         _auditLog = auditLog;
         _db = db;
         _notifier = notifier;
+        _subscriptions = subscriptions;
     }
 
     public AssemblyMotionOutcome CreateDraft(AssemblyMotionPortal portal, Member author, Guid userId, AssemblyMotionDraft draft, DateTime nowUtc) {
@@ -355,6 +357,8 @@ public class AssemblyMotionService {
 
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterJoined");
         _motions.MarkForumPending(motion.Id, nowUtc);
+        if (member.UserId != null)
+            _subscriptions.Subscribe(motion.Id, member.UserId.Value, nowUtc);
 
         var submitterCount = submitters.Count + 1;
         notifications.Add(() => _notifier.CoSubmitterJoined(motion, submitterCount));
@@ -399,6 +403,8 @@ public class AssemblyMotionService {
         _motions.RemoveSubmitter(motion.Id, member.Id);
         _auditLog.Log("AssemblyMotion", motion.Id, "CoSubmitterLeft");
         _motions.MarkForumPending(motion.Id, nowUtc);
+        if (member.UserId != null)
+            _subscriptions.Unsubscribe(motion.Id, member.UserId.Value);
 
         tx.Commit();
         _notifier.CoSubmitterLeft(motion, submitters.Count - 1);

@@ -188,6 +188,12 @@ internal static class SystemTemplateSeeds {
             "Hallo,\n\nim Forum gibt es eine neue Antwort zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}).\n\n[Antwort im Forum lesen]({{ motion.ForumReplyUrl }})\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
+            "notifications.assembly_motion_subscribed_forum_reply.email",
+            "Benachrichtigung: Antworten im Forum zu abonnierten Anträgen (E-Mail)",
+            "Neue Antwort im Forum: {{ motion.Title }}",
+            "Hallo,\n\nim Forum gibt es eine neue Antwort zu einem Antrag, den du abonniert hast: *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}).\n\n[Antwort im Forum lesen]({{ motion.ForumReplyUrl }})\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.email",
             "Benachrichtigung: Erinnerung: Mitantragstellende gesucht (E-Mail)",
             "Erinnerung: Mitantragstellende für {{ motion.Title }} gesucht",
@@ -264,6 +270,12 @@ internal static class SystemTemplateSeeds {
             "Benachrichtigung: Antwort im Forum (Telegram)",
             null,
             "Neue Antwort im Forum zu *{{ motion.TitleEscaped }}*.\n\n[Antwort lesen]({{ motion.ForumReplyUrl }})\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.assembly_motion_subscribed_forum_reply.telegram",
+            "Benachrichtigung: Antworten im Forum zu abonnierten Anträgen (Telegram)",
+            null,
+            "Neue Antwort im Forum zu *{{ motion.TitleEscaped }}* (abonniert).\n\n[Antwort lesen]({{ motion.ForumReplyUrl }})\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.telegram",

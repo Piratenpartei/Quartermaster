@@ -40,6 +40,11 @@ public class AssemblyMotionRepository {
         return _context.AssemblyMotions.Where(m => m.Id == id && m.DeletedAt == null).FirstOrDefault();
     }
 
+    /// <summary>True when any member linked to the user created the motion; a user can be linked to several members.</summary>
+    public bool IsCreatedByUser(AssemblyMotion motion, Guid userId) {
+        return _context.Members.Any(m => m.Id == motion.CreatedByMemberId && m.UserId == userId);
+    }
+
     public AssemblyMotion? GetForUpdate(Guid id) {
         return _context.Query<AssemblyMotion>(
             $"SELECT * FROM {AssemblyMotion.TableName} WHERE Id = @id AND DeletedAt IS NULL FOR UPDATE",
@@ -373,12 +378,15 @@ public class AssemblyMotionRepository {
                 && x.Portal.ForumCategoryId != null
                 && x.Event.DeletedAt == null
                 && (x.Event.Status == EventStatus.Draft || x.Event.Status == EventStatus.Active))
+            .LeftJoin(_context.Members, (x, m) => x.Motion.CreatedByMemberId == m.Id, (x, m) => new { x.Motion, x.Portal, x.Event, AuthorUserId = m.UserId })
             .Select(x => new ForumWatchedMotion(
                 x.Motion.Id,
                 x.Motion.ForumTopicId!.Value,
                 x.Portal.ForumCategoryId!.Value,
                 x.Motion.ForumSeenPostNumber,
-                x.Motion.CreatedByMemberId))
+                x.Motion.CreatedByMemberId,
+                x.Event.Id,
+                x.AuthorUserId))
             .ToList();
     }
 

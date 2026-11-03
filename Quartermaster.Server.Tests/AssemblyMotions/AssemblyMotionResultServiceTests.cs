@@ -32,7 +32,7 @@ public class AssemblyMotionResultServiceTests : RepositoryTestBase {
         _portalRepo = new AssemblyMotionPortalRepository(Db, AuditLog);
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
         _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db,
-            new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance));
+            new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(Db));
         _results = new AssemblyMotionResultService(_motionRepo, _portalRepo, new EventRepository(Db, AuditLog), AuditLog);
         _chapter = _builder.SeedChapter();
         SeedPortal(BerlinTime.FromUtc(_now).Date);

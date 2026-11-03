@@ -146,8 +146,8 @@ public class AssemblyMotionRecipientResolverTests : RepositoryTestBase {
 
     [Test]
     public async Task Every_trigger_has_a_resolver_id() {
-        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Count).IsEqualTo(13);
-        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Distinct().Count()).IsEqualTo(13);
+        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Count).IsEqualTo(14);
+        await Assert.That(AssemblyMotionRecipientResolver.TriggerIds.Distinct().Count()).IsEqualTo(14);
     }
 
     [Test]
@@ -193,5 +193,21 @@ public class AssemblyMotionRecipientResolverTests : RepositoryTestBase {
         var result = _resolver.Resolve(PayloadFor(chapter.Id, [], true));
 
         await Assert.That(result.Select(r => r.UserId).Contains(subscriber)).IsFalse();
+    }
+
+    [Test]
+    public async Task Resolves_payload_user_ids() {
+        var chapter = _builder.SeedChapter("C");
+        var kept = _builder.SeedUser(email: "kept@test.local");
+        var deleted = _builder.SeedUser(email: "deleted@test.local");
+        var noEmail = _builder.SeedUser(email: "");
+        _context.Users.Where(u => u.Id == deleted.Id).Set(u => u.DeletedAt, DateTime.UtcNow).Update();
+        var payload = new AssemblyMotionNotificationPayload(Guid.NewGuid(), chapter.Id, [], false, UserIds: [kept.Id, deleted.Id, noEmail.Id, kept.Id]);
+
+        var result = _resolver.Resolve(payload);
+
+        await Assert.That(result.Count).IsEqualTo(1);
+        await Assert.That(result[0].UserId).IsEqualTo(kept.Id);
+        await Assert.That(result[0].ChannelAddress).IsEqualTo("kept@test.local");
     }
 }

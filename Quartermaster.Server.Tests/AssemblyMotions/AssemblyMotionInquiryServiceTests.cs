@@ -36,7 +36,7 @@ public class AssemblyMotionInquiryServiceTests : RepositoryTestBase {
         _portalRepo = new AssemblyMotionPortalRepository(_context, AuditLog);
         _motionRepo = new AssemblyMotionRepository(_context, AuditLog);
         _inquiryRepo = new AssemblyMotionInquiryRepository(_context);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance));
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, _context, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(_context));
         _inquiries = new AssemblyMotionInquiryService(_motionRepo, _inquiryRepo, AuditLog, new AssemblyMotionNotifier(_queue, _context, NullLogger<AssemblyMotionNotifier>.Instance));
         _chapter = _builder.SeedChapter();
         _event = _builder.SeedEvent(_chapter.Id);

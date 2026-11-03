@@ -44,7 +44,7 @@ public class AssemblyMotionWikiSyncTests : RepositoryTestBase {
         _portalRepo = new AssemblyMotionPortalRepository(Db, AuditLog);
         _motionRepo = new AssemblyMotionRepository(Db, AuditLog);
         _inquiryRepo = new AssemblyMotionInquiryRepository(Db);
-        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance));
+        _service = new AssemblyMotionService(_motionRepo, _portalRepo, AuditLog, Db, new AssemblyMotionNotifier(new CapturingNotificationQueue(), Db, NullLogger<AssemblyMotionNotifier>.Instance), new AssemblyMotionSubscriptionRepository(Db));
         _options = new OptionRepository(Db, AuditLog);
         _options.SupplementDefaults();
         _options.SetValue("wiki.bot_username", null, "Antragsbot");

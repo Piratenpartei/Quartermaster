@@ -106,6 +106,7 @@ public sealed class WorkerDatabase {
             TRUNCATE TABLE EmailVerificationCodes;
             TRUNCATE TABLE EventReminderDeliveries;
             TRUNCATE TABLE EventSubscriptions;
+            TRUNCATE TABLE AssemblyMotionSubscriptions;
             TRUNCATE TABLE EventChecklistItems;
             TRUNCATE TABLE Events;
             TRUNCATE TABLE EventTemplates;

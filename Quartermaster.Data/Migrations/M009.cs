@@ -6,6 +6,7 @@ using Quartermaster.Data.Chapters;
 using Quartermaster.Data.EmailVerification;
 using Quartermaster.Data.Events;
 using Quartermaster.Data.Forwarding;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Templates;
@@ -38,6 +39,27 @@ public class M009 : MigrationBase {
     public const string SubmittedEmailNewName = "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (E-Mail)";
     public const string SubmittedTelegramOldName = "Benachrichtigung: Antrag eingereicht (Antragskommission) (Telegram)";
     public const string SubmittedTelegramNewName = "Benachrichtigung: Antrag eingereicht (Antragskommission und Abonnements) (Telegram)";
+
+    /// <summary>
+    /// Subscribes every supporter who is not the author and has a user account to the motions they support, once per user even when several of the
+    /// user's members support the same motion, dated by the earliest support.
+    /// </summary>
+    public const string BackfillSubscriptionsSql = $@"
+        INSERT INTO `{AssemblyMotionSubscription.TableName}`
+            (`{nameof(AssemblyMotionSubscription.Id)}`, `{nameof(AssemblyMotionSubscription.MotionId)}`, `{nameof(AssemblyMotionSubscription.UserId)}`, `{nameof(AssemblyMotionSubscription.CreatedAt)}`)
+        SELECT UUID(), s.`{nameof(AssemblyMotionSubmitter.MotionId)}`, mem.`{nameof(Member.UserId)}`, MIN(s.`{nameof(AssemblyMotionSubmitter.JoinedAt)}`)
+        FROM `{AssemblyMotionSubmitter.TableName}` s
+        JOIN `{AssemblyMotion.TableName}` m ON m.`{nameof(AssemblyMotion.Id)}` = s.`{nameof(AssemblyMotionSubmitter.MotionId)}`
+        JOIN `{Member.TableName}` mem ON mem.`{nameof(Member.Id)}` = s.`{nameof(AssemblyMotionSubmitter.MemberId)}`
+        WHERE s.`{nameof(AssemblyMotionSubmitter.IsAuthor)}` = 0
+            AND m.`{nameof(AssemblyMotion.DeletedAt)}` IS NULL
+            AND mem.`{nameof(Member.UserId)}` IS NOT NULL
+            AND m.`{nameof(AssemblyMotion.CreatedByMemberId)}` <> s.`{nameof(AssemblyMotionSubmitter.MemberId)}`
+            AND NOT EXISTS (
+                SELECT 1 FROM `{AssemblyMotionSubscription.TableName}` x
+                WHERE x.`{nameof(AssemblyMotionSubscription.MotionId)}` = s.`{nameof(AssemblyMotionSubmitter.MotionId)}`
+                    AND x.`{nameof(AssemblyMotionSubscription.UserId)}` = mem.`{nameof(Member.UserId)}`)
+        GROUP BY s.`{nameof(AssemblyMotionSubmitter.MotionId)}`, mem.`{nameof(Member.UserId)}`";
 
     public static readonly string PrefillFederalLevelSql = $@"
             UPDATE `{Chapter.TableName}` SET `{nameof(Chapter.Level)}` = {(int)ChapterLevel.Federal}
@@ -153,6 +175,20 @@ public class M009 : MigrationBase {
             .OnColumn(nameof(EventReminderDelivery.TargetAt)).Ascending()
             .WithOptions().Unique();
 
+        Create.Table(AssemblyMotionSubscription.TableName)
+            .WithColumn(nameof(AssemblyMotionSubscription.Id)).AsGuid().PrimaryKey()
+            .WithColumn(nameof(AssemblyMotionSubscription.MotionId)).AsGuid().NotNullable()
+            .WithColumn(nameof(AssemblyMotionSubscription.UserId)).AsGuid().NotNullable().Indexed()
+            .WithColumn(nameof(AssemblyMotionSubscription.CreatedAt)).AsCustom("DATETIME(6)").NotNullable();
+
+        Create.Index("UX_AssemblyMotionSubscriptions_MotionId_UserId")
+            .OnTable(AssemblyMotionSubscription.TableName)
+            .OnColumn(nameof(AssemblyMotionSubscription.MotionId)).Ascending()
+            .OnColumn(nameof(AssemblyMotionSubscription.UserId)).Ascending()
+            .WithOptions().Unique();
+
+        Execute.Sql(BackfillSubscriptionsSql);
+
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
@@ -179,6 +215,7 @@ public class M009 : MigrationBase {
     public override void Down() {
         Execute.Sql(RenameSql(SubmittedEmailIdentifier, SubmittedEmailNewName, SubmittedEmailOldName));
         Execute.Sql(RenameSql(SubmittedTelegramIdentifier, SubmittedTelegramNewName, SubmittedTelegramOldName));
+        Delete.Table(AssemblyMotionSubscription.TableName);
         Delete.Table(EventReminderDelivery.TableName);
         Delete.Table(EventSubscription.TableName);
         Delete.Column(nameof(User.KeycloakUserId)).FromTable(User.TableName);

@@ -19,6 +19,7 @@ public class AssemblyMotionRecipientResolver : IRecipientResolver {
         NotificationTriggers.AssemblyMotionCoSubmitterJoined,
         NotificationTriggers.AssemblyMotionCoSubmitterLeft,
         NotificationTriggers.AssemblyMotionForumReply,
+        NotificationTriggers.AssemblyMotionSubscribedForumReply,
         NotificationTriggers.AssemblyMotionCollectingReminder,
         NotificationTriggers.AssemblyMotionSubmitted,
         NotificationTriggers.AssemblyMotionLapsed,
@@ -50,6 +51,8 @@ public class AssemblyMotionRecipientResolver : IRecipientResolver {
             recipients.AddRange(ResolveCommission(typed.EventChapterId));
         if (typed.SubscriberEventId != null)
             recipients.AddRange(ResolveSubscribers(typed.SubscriberEventId.Value));
+        if (typed.UserIds != null)
+            recipients.AddRange(ResolveUsers(typed.UserIds));
 
         return recipients
             .GroupBy(r => r.UserId)
@@ -66,6 +69,10 @@ public class AssemblyMotionRecipientResolver : IRecipientResolver {
             .Select(m => m.UserId!.Value)
             .Distinct()
             .ToList();
+        return ResolveUsers(userIds);
+    }
+
+    private List<NotificationRecipient> ResolveUsers(IReadOnlyList<Guid> userIds) {
         if (userIds.Count == 0)
             return [];
 

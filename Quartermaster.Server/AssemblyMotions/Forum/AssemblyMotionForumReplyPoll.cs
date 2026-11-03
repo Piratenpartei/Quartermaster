@@ -5,20 +5,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Quartermaster.Data.AssemblyMotions;
+using Quartermaster.Data.Events;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Users;
 using Quartermaster.Server.AssemblyMotions.Notifications;
+using Quartermaster.Server.Events;
 
 namespace Quartermaster.Server.AssemblyMotions.Forum;
 
 /// <summary>
-/// Notifies motion authors about new replies in their mirrored forum topics. One listing per category shows which topics grew, only those are read post by post.
-/// The first look at a topic only records how far it goes, so replies written before never notify.
+/// Notifies motion authors and subscribers about new replies in mirrored forum topics. One listing per category shows which topics grew, only those are read post by
+/// post. The first look at a topic only records how far it goes, so replies written before never notify. Nobody is notified about their own reply when the bot can
+/// tell who wrote it.
 /// </summary>
 public class AssemblyMotionForumReplyPoll {
     public const int MaxPagesPerCategory = 5;
     public const int BaselineBatchSize = 20;
     public const int MaxChunksPerTopic = 10;
+    public const int MaxSubscriberLookupsPerRun = 20;
 
     private static readonly TimeSpan NotAdminWarningInterval = TimeSpan.FromHours(1);
     private static readonly Lock WarningLock = new();
@@ -29,15 +33,22 @@ public class AssemblyMotionForumReplyPoll {
     private readonly IDiscourseClient _forum;
     private readonly AssemblyMotionNotifier _notifier;
     private readonly OptionRepository _options;
+    private readonly AssemblyMotionSubscriptionRepository _subscriptions;
+    private readonly EventRepository _events;
+    private readonly EventUserVisibility _visibility;
     private readonly ILogger<AssemblyMotionForumReplyPoll> _logger;
 
     public AssemblyMotionForumReplyPoll(AssemblyMotionRepository motions, UserRepository users, IDiscourseClient forum, AssemblyMotionNotifier notifier,
-        OptionRepository options, ILogger<AssemblyMotionForumReplyPoll> logger) {
+        OptionRepository options, AssemblyMotionSubscriptionRepository subscriptions, EventRepository events, EventUserVisibility visibility,
+        ILogger<AssemblyMotionForumReplyPoll> logger) {
         _motions = motions;
         _users = users;
         _forum = forum;
         _notifier = notifier;
         _options = options;
+        _subscriptions = subscriptions;
+        _events = events;
+        _visibility = visibility;
         _logger = logger;
     }
 
@@ -48,7 +59,7 @@ public class AssemblyMotionForumReplyPoll {
         }
     }
 
-    /// <summary>Returns how many replies were notified. A rate limit ends the run; what was read until then stays recorded.</summary>
+    /// <summary>Returns how many replies notified anyone. A rate limit ends the run; what was read until then stays recorded.</summary>
     public async Task<int> PollAsync(DateTime nowUtc, CancellationToken ct) {
         var settings = DiscourseSettings.ReadFrom(_options);
         if (!settings.IsConfigured())
@@ -135,59 +146,98 @@ public class AssemblyMotionForumReplyPoll {
             }
 
             foreach (var post in fresh) {
-                if (await IsNotifiedReplyAsync(run, watched, post, ct))
-                    Notify(run, watched, post);
+                if (IsCandidate(run, post))
+                    await NotifyAsync(run, watched, post, ct);
                 seen = post.PostNumber;
             }
             _motions.SetForumSeenPostNumber(watched.MotionId, seen);
         }
     }
 
-    private async Task<bool> IsNotifiedReplyAsync(PollRun run, ForumWatchedMotion watched, DiscourseReply post, CancellationToken ct) {
+    private static bool IsCandidate(PollRun run, DiscourseReply post) {
         if (post.PostNumber <= 1)
             return false;
         if (post.PostType != DiscourseReply.RegularPostType)
             return false;
         if (post.Deleted || post.Hidden)
             return false;
-        if (string.Equals(post.Username, run.Bot.Username, StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        var authorForumUserId = await AuthorForumUserIdAsync(run, watched.AuthorMemberId, ct);
-        return authorForumUserId != post.UserId;
+        return !string.Equals(post.Username, run.Bot.Username, StringComparison.OrdinalIgnoreCase);
     }
 
-    private void Notify(PollRun run, ForumWatchedMotion watched, DiscourseReply post) {
+    private async Task NotifyAsync(PollRun run, ForumWatchedMotion watched, DiscourseReply post, CancellationToken ct) {
         var motion = _motions.Get(watched.MotionId);
         if (motion == null)
             return;
 
-        _notifier.ForumReply(motion, $"{run.Settings.BaseUrl}/t/{watched.TopicId}/{post.PostNumber}");
-        run.Notified++;
+        // Every lookup runs before anything is queued, so a rate limit in between leaves the reply unread and nothing sent twice.
+        var authorForumUserId = watched.AuthorUserId == null ? null : await UserForumUserIdAsync(run, watched.AuthorUserId.Value, ct);
+        var notifyAuthor = authorForumUserId != post.UserId;
+        var subscribers = new List<Guid>();
+        foreach (var userId in VisibleSubscribers(run, watched)) {
+            if (await SubscriberForumUserIdAsync(run, userId, ct) != post.UserId)
+                subscribers.Add(userId);
+        }
+
+        var replyUrl = $"{run.Settings.BaseUrl}/t/{watched.TopicId}/{post.PostNumber}";
+        if (notifyAuthor)
+            _notifier.ForumReply(motion, replyUrl);
+        if (subscribers.Count > 0)
+            _notifier.SubscribedForumReply(motion, replyUrl, subscribers);
+        if (notifyAuthor || subscribers.Count > 0)
+            run.Notified++;
     }
 
-    /// <summary>Null when the author's forum account cannot be told, so their own replies notify them too.</summary>
-    private async Task<int?> AuthorForumUserIdAsync(PollRun run, Guid memberId, CancellationToken ct) {
-        if (run.AuthorForumUserIds.TryGetValue(memberId, out var cached))
+    /// <summary>The motion's subscribers without its author who can still see the event, loaded once per run.</summary>
+    private List<Guid> VisibleSubscribers(PollRun run, ForumWatchedMotion watched) {
+        if (run.VisibleSubscribers.TryGetValue(watched.MotionId, out var cached))
             return cached;
 
-        var forumUserId = await LookUpAuthorAsync(run, memberId, ct);
-        run.AuthorForumUserIds[memberId] = forumUserId;
+        var ev = _events.Get(watched.EventId);
+        var visible = ev == null
+            ? []
+            : _subscriptions.ListUserIdsForMotion(watched.MotionId)
+                .Where(userId => userId != watched.AuthorUserId && _visibility.IsVisibleTo(ev, userId))
+                .ToList();
+        run.VisibleSubscribers[watched.MotionId] = visible;
+        return visible;
+    }
+
+    /// <summary>
+    /// Like <see cref="UserForumUserIdAsync"/>, but only <see cref="MaxSubscriberLookupsPerRun"/> subscribers are looked up per run, so a motion with many
+    /// subscribers cannot exhaust the forum's rate limit; the others count as unknown.
+    /// </summary>
+    private async Task<int?> SubscriberForumUserIdAsync(PollRun run, Guid userId, CancellationToken ct) {
+        if (run.UserForumUserIds.TryGetValue(userId, out var cached))
+            return cached;
+        if (run.SubscriberLookups >= MaxSubscriberLookupsPerRun)
+            return null;
+
+        run.SubscriberLookups++;
+        return await UserForumUserIdAsync(run, userId, ct);
+    }
+
+    /// <summary>Null when the user's forum account cannot be told, so their own replies notify them too.</summary>
+    private async Task<int?> UserForumUserIdAsync(PollRun run, Guid userId, CancellationToken ct) {
+        if (run.UserForumUserIds.TryGetValue(userId, out var cached))
+            return cached;
+
+        var forumUserId = await LookUpUserAsync(run, userId, ct);
+        run.UserForumUserIds[userId] = forumUserId;
         return forumUserId;
     }
 
-    private async Task<int?> LookUpAuthorAsync(PollRun run, Guid memberId, CancellationToken ct) {
+    private async Task<int?> LookUpUserAsync(PollRun run, Guid userId, CancellationToken ct) {
         if (!run.Bot.IsAdmin)
             return null;
 
-        var keycloakUserId = _users.GetKeycloakUserIdOfMember(memberId);
-        if (keycloakUserId == null)
+        var keycloakUserId = _users.Get(userId)?.KeycloakUserId;
+        if (string.IsNullOrEmpty(keycloakUserId))
             return null;
 
         try {
             return await _forum.FindUserIdByKeycloakIdAsync(run.Settings, keycloakUserId, ct);
         } catch (DiscourseException ex) when (ex.Code != DiscourseException.RateLimited) {
-            _logger.LogWarning("Forum reply poll could not look up the forum account of member {MemberId}: {Code}", memberId, ex.Code);
+            _logger.LogWarning("Forum reply poll could not look up the forum account of user {UserId}: {Code}", userId, ex.Code);
             return null;
         }
     }
@@ -203,7 +253,7 @@ public class AssemblyMotionForumReplyPoll {
             lastNotAdminWarning = nowUtc;
         }
 
-        _logger.LogWarning("The forum bot account is no admin, so replies by a motion's author notify the author too");
+        _logger.LogWarning("The forum bot account is no admin, so replies by a motion's author or subscribers notify them too");
     }
 
     private class PollRun {
@@ -214,7 +264,9 @@ public class AssemblyMotionForumReplyPoll {
 
         public DiscourseSettings Settings { get; }
         public DiscourseCurrentUser Bot { get; }
-        public Dictionary<Guid, int?> AuthorForumUserIds { get; } = [];
+        public Dictionary<Guid, int?> UserForumUserIds { get; } = [];
+        public Dictionary<Guid, List<Guid>> VisibleSubscribers { get; } = [];
+        public int SubscriberLookups { get; set; }
         public int Notified { get; set; }
     }
 }
