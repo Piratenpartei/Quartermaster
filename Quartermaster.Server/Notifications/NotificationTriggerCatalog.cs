@@ -37,6 +37,10 @@ public static class NotificationTriggerCatalog {
             "Mitantragstellung zurückgezogen",
             "Sobald jemand die Mitantragstellung zu deinem Antrag zurückzieht."),
         new NotificationTriggerDescriptor(
+            NotificationTriggers.AssemblyMotionForumReply,
+            "Antwort im Forum",
+            "Sobald jemand im Forum auf deinen Antrag antwortet."),
+        new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCollectingReminder,
             "Erinnerung: Mitantragstellende gesucht",
             "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragstellende hat."),

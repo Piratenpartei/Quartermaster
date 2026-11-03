@@ -1,12 +1,14 @@
 using FluentMigrator;
 using Quartermaster.Api.Chapters;
 using Quartermaster.Data.ApplicantRegister;
+using Quartermaster.Data.AssemblyMotions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.EmailVerification;
 using Quartermaster.Data.Forwarding;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Data.Templates;
+using Quartermaster.Data.Users;
 
 namespace Quartermaster.Data.Migrations;
 
@@ -111,6 +113,12 @@ public class M009 : MigrationBase {
             .WithColumn(nameof(EmailVerificationCode.SendCount)).AsInt32().NotNullable()
             .WithColumn(nameof(EmailVerificationCode.SendWindowStartedAt)).AsCustom("DATETIME(6)").NotNullable();
 
+        Alter.Table(AssemblyMotion.TableName)
+            .AddColumn(nameof(AssemblyMotion.ForumSeenPostNumber)).AsInt32().Nullable();
+
+        Alter.Table(User.TableName)
+            .AddColumn(nameof(User.KeycloakUserId)).AsString(User.KeycloakUserIdMaxLength).Nullable();
+
         // Seeds are only inserted once, so the system templates and the chapter copies get the new lines here.
         Execute.Sql($@"
             UPDATE `{Template.TableName}` SET `{nameof(Template.Body)}` = REPLACE(REPLACE(REPLACE(`{nameof(Template.Body)}`,
@@ -132,6 +140,8 @@ public class M009 : MigrationBase {
     }
 
     public override void Down() {
+        Delete.Column(nameof(User.KeycloakUserId)).FromTable(User.TableName);
+        Delete.Column(nameof(AssemblyMotion.ForumSeenPostNumber)).FromTable(AssemblyMotion.TableName);
         Delete.Table(EmailVerificationCode.TableName);
         Delete.Table(ApplicationRegisterHit.TableName);
         Delete.Table(ApplicantRegisterEntry.TableName);

@@ -1991,6 +1991,9 @@ public static class I18nKey {
             public const string TotalCount = "ui.user_list.total_count";
             public const string UsernameColumn = "ui.user_list.username_column";
             public const string AddFromKeycloak = "ui.user_list.add_from_keycloak";
+            public const string RefreshFromKeycloak = "ui.user_list.refresh_from_keycloak";
+            public const string RefreshFromKeycloakHint = "ui.user_list.refresh_from_keycloak_hint";
+            public const string RefreshResult = "ui.user_list.refresh_result";
         }
 
         public static class UserKeycloakAdd {

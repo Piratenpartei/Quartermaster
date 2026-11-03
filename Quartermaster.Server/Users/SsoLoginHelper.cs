@@ -35,14 +35,16 @@ public static class SsoLoginHelper {
         return member;
     }
 
-    private static void FollowAccountVotingRights(Member member, bool? eligible, MemberRepository memberRepo) {
+    /// <summary>Sets the voting rights of a member the import hasn't delivered yet to the account's; returns whether they changed.</summary>
+    public static bool FollowAccountVotingRights(Member member, bool? eligible, MemberRepository memberRepo) {
         if (member.IsImported)
-            return;
+            return false;
         if (eligible == null || member.HasVotingRights == eligible.Value)
-            return;
+            return false;
 
         memberRepo.SetVotingRights(member.Id, member.HasVotingRights, eligible.Value);
         member.HasVotingRights = eligible.Value;
+        return true;
     }
 
     /// <summary>The <c>ekklesia_eligible</c> value as Keycloak sends it ("true"/"false"); anything else is unknown.</summary>

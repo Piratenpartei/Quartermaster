@@ -72,6 +72,11 @@ public class FakeKeycloakAdminClient : IKeycloakAdminClient {
         return Task.FromResult(Users.Where(u => u.Attribute("member_number") == memberNumber.Trim()).ToList());
     }
 
+    public Task<List<KeycloakUserRepresentation>> ListUsersAsync(int first, int max, CancellationToken ct) {
+        ThrowIfFailing();
+        return Task.FromResult(Users.Skip(first).Take(max).ToList());
+    }
+
     public Task<List<KeycloakUserRepresentation>> SearchAsync(string text, int max, CancellationToken ct) {
         ThrowIfFailing();
         var value = text.Trim();

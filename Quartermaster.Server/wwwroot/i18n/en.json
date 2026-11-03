@@ -1614,6 +1614,9 @@
   "ui.user_list.total_count": "{count} users",
   "ui.user_list.username_column": "Username",
   "ui.user_list.add_from_keycloak": "Add from Keycloak",
+  "ui.user_list.refresh_from_keycloak": "Refresh from Keycloak",
+  "ui.user_list.refresh_from_keycloak_hint": "Applies Keycloak id, voting rights and chapter to all existing users, as a login does.",
+  "ui.user_list.refresh_result": "{read} Keycloak accounts read: {ids} Keycloak ids stored, {chapters} chapters assigned, {voting} voting rights changed, {without} accounts without a Quartermaster user.",
 
   "ui.user_keycloak_add.page_title": "Add users from Keycloak",
   "ui.user_keycloak_add.back": "Back to users",

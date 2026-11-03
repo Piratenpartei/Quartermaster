@@ -132,6 +132,106 @@ public class HttpDiscourseClientTests {
     }
 
     [Test]
+    public async Task Admin_flag_of_the_current_user_is_read() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"current_user":{"id":3,"username":"antragsbot","moderator":false,"admin":true}}""");
+        using var client = Client(handler);
+
+        var user = await client.GetCurrentUserAsync(Settings(), CancellationToken.None);
+
+        await Assert.That(user.IsAdmin).IsTrue();
+        await Assert.That(user.IsStaff).IsTrue();
+    }
+
+    [Test]
+    public async Task Category_listing_follows_the_slug_redirect_and_reads_topics() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueRedirect("https://forum.invalid/c/antraege/7/l/latest.json?page=1");
+        handler.EnqueueOk("""{"topic_list":{"more_topics_url":"/c/antraege/7/l/latest?page=2","topics":[{"id":77,"highest_post_number":5},{"id":78,"highest_post_number":1}]}}""");
+        using var client = Client(handler);
+
+        var page = await client.ListCategoryTopicsAsync(Settings(), 7, 1, CancellationToken.None);
+
+        await Assert.That(handler.Requests[0].Url).IsEqualTo("https://forum.invalid/c/7/l/latest.json?page=1");
+        await Assert.That(handler.Requests[1].Url).IsEqualTo("https://forum.invalid/c/antraege/7/l/latest.json?page=1");
+        await Assert.That(page.HasMore).IsTrue();
+        await Assert.That(page.Topics).IsEquivalentTo([new DiscourseTopicActivity(77, 5), new DiscourseTopicActivity(78, 1)]);
+    }
+
+    [Test]
+    public async Task Category_listing_without_more_topics_url_has_no_more() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"topic_list":{"topics":[]}}""");
+        using var client = Client(handler);
+
+        var page = await client.ListCategoryTopicsAsync(Settings(), 7, 0, CancellationToken.None);
+
+        await Assert.That(page.HasMore).IsFalse();
+        await Assert.That(page.Topics).IsEmpty();
+    }
+
+    [Test]
+    public async Task Category_listing_refuses_foreign_redirect_host() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueRedirect("https://evil.invalid/c/antraege/7/l/latest.json");
+        using var client = Client(handler);
+
+        var ex = await Capture(() => client.ListCategoryTopicsAsync(Settings(), 7, 0, CancellationToken.None));
+
+        await Assert.That(ex.Code).IsEqualTo(DiscourseException.InvalidResponse);
+        await Assert.That(handler.Requests.Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Posts_after_a_number_are_read_in_order() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"post_stream":{"posts":[{"id":601,"post_number":3,"post_type":1,"user_id":43,"username":"bernd","deleted_at":null,"hidden":false},{"id":602,"post_number":4,"post_type":3,"user_id":2,"username":"mod","deleted_at":"2027-03-01T10:00:00.000Z","hidden":true}]}}""");
+        using var client = Client(handler);
+
+        var posts = await client.ListPostsAfterAsync(Settings(), 77, 2, CancellationToken.None);
+
+        await Assert.That(handler.Requests.Single().Url).IsEqualTo("https://forum.invalid/t/77/posts.json?post_number=2&asc=true");
+        await Assert.That(posts).IsEquivalentTo([
+            new DiscourseReply(3, 1, 43, "bernd", false, false),
+            new DiscourseReply(4, 3, 2, "mod", true, true)
+        ]);
+    }
+
+    [Test]
+    public async Task Keycloak_lookup_asks_for_the_oidc_account() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"user":{"id":42,"username":"anna"}}""");
+        using var client = Client(handler);
+
+        var id = await client.FindUserIdByKeycloakIdAsync(Settings(), "1b2c-3d", CancellationToken.None);
+
+        await Assert.That(handler.Requests.Single().Url).IsEqualTo("https://forum.invalid/u/by-external/oidc/1b2c-3d.json");
+        await Assert.That(id).IsEqualTo(42);
+    }
+
+    [Test]
+    public async Task Keycloak_lookup_returns_null_on_404() {
+        var handler = new RecordingDiscourseHandler();
+        handler.Enqueue(HttpStatusCode.NotFound, """{"errors":["Nicht gefunden"],"error_type":"not_found"}""");
+        using var client = Client(handler);
+
+        var id = await client.FindUserIdByKeycloakIdAsync(Settings(), "1b2c-3d", CancellationToken.None);
+
+        await Assert.That(id).IsNull();
+    }
+
+    [Test]
+    public async Task Topic_highest_post_number_is_read() {
+        var handler = new RecordingDiscourseHandler();
+        handler.EnqueueOk("""{"id":77,"title":"PA001: Titel","highest_post_number":9,"post_stream":{"posts":[{"id":501}]}}""");
+        using var client = Client(handler);
+
+        var topic = await client.GetTopicAsync(Settings(), 77, CancellationToken.None);
+
+        await Assert.That(topic.HighestPostNumber).IsEqualTo(9);
+    }
+
+    [Test]
     public async Task Topic_deleted_at_is_read() {
         var handler = new RecordingDiscourseHandler();
         handler.EnqueueOk("""{"id":77,"title":"PA001: Titel","deleted_at":"2026-10-19T10:00:00.000Z","post_stream":{"posts":[{"id":501}]}}""");

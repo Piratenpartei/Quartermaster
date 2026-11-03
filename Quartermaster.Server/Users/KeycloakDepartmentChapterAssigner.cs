@@ -20,14 +20,16 @@ public class KeycloakDepartmentChapterAssigner {
         return string.IsNullOrWhiteSpace(department) ? null : _chapters.GetByKeycloakDepartment(department);
     }
 
-    public void Assign(Member member, string? department) {
+    /// <summary>Returns whether the member's chapter changed.</summary>
+    public bool Assign(Member member, string? department) {
         var chapter = ChapterFor(department);
         if (chapter == null)
-            return;
+            return false;
         if (member.ChapterId != null && _chapters.GetDescendantIds(chapter.Id).Contains(member.ChapterId.Value))
-            return;
+            return false;
 
         _members.SetChapterId(member.Id, member.ChapterId, chapter.Id);
         member.ChapterId = chapter.Id;
+        return true;
     }
 }

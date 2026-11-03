@@ -212,6 +212,10 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         }
 
         _departments.Assign(member, identity.Department);
+        var keycloakUserId = FindClaim(principal, "sub", ClaimTypes.NameIdentifier);
+        if (token!.UserId != null && keycloakUserId != null && keycloakUserId.Length <= Quartermaster.Data.Users.User.KeycloakUserIdMaxLength)
+            _userRepo.SetKeycloakUserId(token.UserId.Value, keycloakUserId);
+
         AuthCookie.Set(HttpContext, token!.Content, token.Expires);
         await SendRedirectAsync("/", allowRemoteRedirects: false);
     }

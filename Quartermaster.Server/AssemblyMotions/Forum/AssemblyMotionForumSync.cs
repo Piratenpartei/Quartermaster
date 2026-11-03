@@ -208,6 +208,7 @@ public class AssemblyMotionForumSync {
         }
 
         _motions.SetForumTopic(motion.Id, created.TopicId, created.FirstPostId);
+        _motions.SetForumSeenPostNumber(motion.Id, 1);
         return AssemblyMotionForumPost.Hash(title, written);
     }
 

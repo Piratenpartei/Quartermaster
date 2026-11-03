@@ -224,6 +224,7 @@ public partial class Program {
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiConnectionCheck>();
         builder.Services.AddScoped<AssemblyMotions.Wiki.AssemblyMotionWikiResync>();
         builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumSync>();
+        builder.Services.AddScoped<AssemblyMotions.Forum.AssemblyMotionForumReplyPoll>();
         builder.Services.AddScoped<Forwarding.ForwardingSettingsResolver>();
         builder.Services.AddScoped<Forwarding.ForwardingTicketRenderer>();
         builder.Services.AddScoped<Forwarding.ForwardingIntake>();
@@ -262,6 +263,7 @@ public partial class Program {
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiSyncHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Wiki.AssemblyMotionWikiReconcileHostedService>();
         builder.Services.AddHostedService<AssemblyMotions.Forum.AssemblyMotionForumSyncHostedService>();
+        builder.Services.AddHostedService<AssemblyMotions.Forum.AssemblyMotionForumReplyHostedService>();
         builder.Services.AddHostedService<Forwarding.ForwardingJobHostedService>();
 
         builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
@@ -273,6 +275,7 @@ public partial class Program {
         builder.Services.AddScoped<TravelExpenses.TravelExpenseService>();
         builder.Services.AddScoped<Users.KeycloakDepartmentChapterAssigner>();
         builder.Services.AddScoped<Users.KeycloakUserImporter>();
+        builder.Services.AddScoped<Users.KeycloakUserRefresher>();
         builder.Services.AddScoped<TravelExpenses.TravelExpensePdfService>();
         builder.Services.AddSingleton<TravelExpenses.ReceiptAppender>();
         builder.Services.AddSingleton<Forms.PdfTemplating.IFormMockData, TravelExpenses.TravelExpenseMockData>();

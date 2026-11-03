@@ -34,6 +34,18 @@ public class HttpKeycloakAdminClientTests {
     }
 
     [Test]
+    public async Task ListUsers_pages_with_full_representation() {
+        var handler = new StubHttpMessageHandler();
+        handler.Enqueue(HttpStatusCode.OK, Token);
+        handler.Enqueue(HttpStatusCode.OK, """[{"id":"u1","username":"a","enabled":true,"attributes":{"member_number":["12"],"ekklesia_department":["Piratenpartei Bayern"]}}]""");
+
+        var users = await Client(handler).ListUsersAsync(400, 200, CancellationToken.None);
+
+        await Assert.That(handler.Requests[1].RequestUri!.ToString()).IsEqualTo("https://sso.test/admin/realms/users/users?first=400&max=200&briefRepresentation=false");
+        await Assert.That(users.Single().Attribute("ekklesia_department")).IsEqualTo("Piratenpartei Bayern");
+    }
+
+    [Test]
     public async Task Token_is_cached_between_calls() {
         var handler = new StubHttpMessageHandler();
         handler.Enqueue(HttpStatusCode.OK, Token);

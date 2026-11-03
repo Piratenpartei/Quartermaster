@@ -1614,6 +1614,9 @@
   "ui.user_list.total_count": "{count} Benutzer",
   "ui.user_list.username_column": "Benutzername",
   "ui.user_list.add_from_keycloak": "Aus Keycloak hinzufügen",
+  "ui.user_list.refresh_from_keycloak": "Aus Keycloak aktualisieren",
+  "ui.user_list.refresh_from_keycloak_hint": "Übernimmt für alle vorhandenen Benutzer Keycloak-ID, Stimmrecht und Gliederung wie bei einer Anmeldung.",
+  "ui.user_list.refresh_result": "{read} Keycloak-Konten gelesen: {ids} Keycloak-IDs gespeichert, {chapters} Gliederungen zugeordnet, {voting} Stimmrechte geändert, {without} Konten ohne Benutzer in Quartermaster.",
 
   "ui.user_keycloak_add.page_title": "Benutzer aus Keycloak hinzufügen",
   "ui.user_keycloak_add.back": "Zurück zu den Benutzern",

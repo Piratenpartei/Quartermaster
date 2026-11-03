@@ -6,6 +6,7 @@ namespace Quartermaster.Data.Users;
 [Table(TableName, IsColumnAttributeRequired = false)]
 public class User {
     public const string TableName = "Users";
+    public const int KeycloakUserIdMaxLength = 64;
 
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -32,4 +33,7 @@ public class User {
 
     /// <summary>Telegram chat id (numeric string) once the user has consumed a link token via the bot's <c>/start</c> deeplink. Null = not linked.</summary>
     public string? TelegramChatId { get; set; }
+
+    /// <summary>The <c>sub</c> claim of the last OIDC login, which the forum stores as the account's external id.</summary>
+    public string? KeycloakUserId { get; set; }
 }

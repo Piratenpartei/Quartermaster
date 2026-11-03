@@ -18,6 +18,7 @@ public class AssemblyMotionRecipientResolver : IRecipientResolver {
         NotificationTriggers.AssemblyMotionCoSubmitterReset,
         NotificationTriggers.AssemblyMotionCoSubmitterJoined,
         NotificationTriggers.AssemblyMotionCoSubmitterLeft,
+        NotificationTriggers.AssemblyMotionForumReply,
         NotificationTriggers.AssemblyMotionCollectingReminder,
         NotificationTriggers.AssemblyMotionSubmitted,
         NotificationTriggers.AssemblyMotionLapsed,

@@ -40,6 +40,11 @@ public class HttpKeycloakAdminClient : IKeycloakAdminClient {
         return ParseUsersOrThrow(await SendAsync(HttpMethod.Get, url, null, ct));
     }
 
+    public async Task<List<KeycloakUserRepresentation>> ListUsersAsync(int first, int max, CancellationToken ct) {
+        var url = $"{AdminBase}/users?first={first}&max={max}&briefRepresentation=false";
+        return ParseUsersOrThrow(await SendAsync(HttpMethod.Get, url, null, ct));
+    }
+
     public async Task<KeycloakUserRepresentation?> GetUserAsync(string userId, CancellationToken ct) {
         var url = $"{AdminBase}/users/{Uri.EscapeDataString(userId)}";
         using var response = await SendWithRetryAsync(HttpMethod.Get, url, null, ct);

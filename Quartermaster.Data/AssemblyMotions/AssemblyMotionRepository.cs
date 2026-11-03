@@ -361,6 +361,35 @@ public class AssemblyMotionRepository {
             .ToList();
     }
 
+    /// <summary>Motions whose forum topic is watched for replies: the topic exists, the portal mirrors into a category and the event is neither completed nor archived.</summary>
+    public List<ForumWatchedMotion> ListForumWatched() {
+        return _context.AssemblyMotions
+            .InnerJoin(_context.AssemblyMotionPortals, (m, p) => m.PortalId == p.Id, (m, p) => new { Motion = m, Portal = p })
+            .InnerJoin(_context.Events, (x, e) => x.Portal.EventId == e.Id, (x, e) => new { x.Motion, x.Portal, Event = e })
+            .Where(x => x.Motion.ForumTopicId != null
+                && x.Motion.DeletedAt == null
+                && x.Motion.ForumSyncState != ForumSyncState.Deleted
+                && x.Portal.ForumMirrorEnabled
+                && x.Portal.ForumCategoryId != null
+                && x.Event.DeletedAt == null
+                && (x.Event.Status == EventStatus.Draft || x.Event.Status == EventStatus.Active))
+            .Select(x => new ForumWatchedMotion(
+                x.Motion.Id,
+                x.Motion.ForumTopicId!.Value,
+                x.Portal.ForumCategoryId!.Value,
+                x.Motion.ForumSeenPostNumber,
+                x.Motion.CreatedByMemberId))
+            .ToList();
+    }
+
+    /// <summary>Raises the highest forum post number checked for replies; never lowers it.</summary>
+    public void SetForumSeenPostNumber(Guid motionId, int postNumber) {
+        _context.AssemblyMotions
+                .Where(m => m.Id == motionId && (m.ForumSeenPostNumber == null || m.ForumSeenPostNumber < postNumber))
+                .Set(m => m.ForumSeenPostNumber, (int?)postNumber)
+                .Update();
+    }
+
     public void SetForumTopic(Guid motionId, int topicId, int postId) {
         _context.AssemblyMotions
                 .Where(m => m.Id == motionId)

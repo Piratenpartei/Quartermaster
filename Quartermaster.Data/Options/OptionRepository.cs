@@ -624,6 +624,11 @@ public class OptionRepository {
             OptionDataType.Number, false, "", "32000",
             description: "Muss der Discourse-Einstellung max_post_length entsprechen. Passt der Antragstext nicht hinein, steht im Forum stattdessen ein Hinweis auf Antragsportal und Wiki.");
 
+        AddDefinitionIfNotExists("discourse.reply_poll_minutes",
+            "Forum: Abstand der Abfrage neuer Antworten (Minuten)",
+            OptionDataType.Number, false, "", "5",
+            description: "So oft fragt Quartermaster das Forum nach neuen Antworten auf gespiegelte Anträge, solange die Veranstaltung weder abgeschlossen noch archiviert ist. Eigene Antworten der Antragstellenden erkennt Quartermaster nur, wenn das Bot-Konto Admin ist.");
+
         AddDefinitionIfNotExists("openslides.url",
             "OpenSlides: Basis-URL",
             OptionDataType.String, false, "", "",

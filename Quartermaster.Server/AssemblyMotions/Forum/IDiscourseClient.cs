@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,4 +22,12 @@ public interface IDiscourseClient {
     Task EditPostAsync(DiscourseSettings settings, int postId, string raw, string editReason, CancellationToken ct);
 
     Task UpdateTopicTitleAsync(DiscourseSettings settings, int topicId, string title, CancellationToken ct);
+
+    Task<DiscourseTopicListPage> ListCategoryTopicsAsync(DiscourseSettings settings, int categoryId, int page, CancellationToken ct);
+
+    /// <summary>The next chunk (up to 20) of posts after <paramref name="afterPostNumber"/>, in topic order.</summary>
+    Task<IReadOnlyList<DiscourseReply>> ListPostsAfterAsync(DiscourseSettings settings, int topicId, int afterPostNumber, CancellationToken ct);
+
+    /// <summary>The forum user id of the account that signs in through Keycloak with this id, null when there is none. Needs an admin account.</summary>
+    Task<int?> FindUserIdByKeycloakIdAsync(DiscourseSettings settings, string keycloakUserId, CancellationToken ct);
 }

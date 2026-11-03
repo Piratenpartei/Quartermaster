@@ -72,6 +72,9 @@ public class AssemblyMotion {
     public int ForumFailureCount { get; set; }
     public DateTime? ForumNextAttemptAt { get; set; }
     public DateTime? ForumSyncRequestedAt { get; set; }
+
+    /// <summary>Highest forum post number already checked for replies; null until the topic was first looked at, so replies from before that never notify.</summary>
+    public int? ForumSeenPostNumber { get; set; }
     public DateTime? DeletedAt { get; set; }
 
     public AssemblyMotionExportItemDTO ToExportItemDto(AssemblyMotionType type, List<string> competingDisplayNumbers, List<string> submitters, int? rank, int? upvoteCount) {

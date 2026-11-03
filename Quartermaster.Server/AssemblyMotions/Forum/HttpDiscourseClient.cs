@@ -13,10 +13,12 @@ using Microsoft.Extensions.Logging;
 namespace Quartermaster.Server.AssemblyMotions.Forum;
 
 /// <summary>
-/// Discourse REST client. Requests never follow redirects on their own; only the external id lookup follows one redirect to the same host.
+/// Discourse REST client. Requests never follow redirects on their own; only the external id lookup and the category listing follow one redirect to the same host.
 /// Response bodies are never logged, so neither the API key nor member data from a post ends up in the log.
 /// </summary>
 public class HttpDiscourseClient : IDiscourseClient, IDisposable {
+    private const string KeycloakProvider = "oidc";
+
     private readonly HttpClient _http;
     private readonly bool _allowLoopbackHttp;
     private readonly ILogger<HttpDiscourseClient> _logger;
@@ -33,7 +35,8 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
         var user = Property(doc.RootElement, "current_user");
         return new DiscourseCurrentUser(
             StringProperty(user, "username"),
-            BoolProperty(user, "moderator") || BoolProperty(user, "admin"));
+            BoolProperty(user, "moderator") || BoolProperty(user, "admin"),
+            BoolProperty(user, "admin"));
     }
 
     public async Task<DiscourseCategory> GetCategoryAsync(DiscourseSettings settings, int categoryId, CancellationToken ct) {
@@ -48,23 +51,8 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
     }
 
     public async Task<DiscourseTopic?> FindTopicByExternalIdAsync(DiscourseSettings settings, string externalId, CancellationToken ct) {
-        var path = $"/t/external_id/{Uri.EscapeDataString(externalId)}.json";
-        using var response = await SendRawAsync(settings, HttpMethod.Get, Url(settings, path), null, ct);
-        if (response.StatusCode == HttpStatusCode.NotFound)
-            return null;
-
-        if (!IsRedirect(response.StatusCode)) {
-            using var direct = await ReadAsync(response, ct);
-            return ReadTopic(direct.RootElement);
-        }
-
-        var target = RedirectTarget(settings, response);
-        using var redirected = await SendRawAsync(settings, HttpMethod.Get, target, null, ct);
-        if (redirected.StatusCode == HttpStatusCode.NotFound)
-            return null;
-
-        using var doc = await ReadAsync(redirected, ct);
-        return ReadTopic(doc.RootElement);
+        using var doc = await GetFollowingOneRedirectAsync(settings, $"/t/external_id/{Uri.EscapeDataString(externalId)}.json", ct);
+        return doc == null ? null : ReadTopic(doc.RootElement);
     }
 
     public async Task<DiscourseTopic> GetTopicAsync(DiscourseSettings settings, int topicId, CancellationToken ct) {
@@ -106,6 +94,44 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
         using var doc = await SendAsync(settings, HttpMethod.Put, $"/t/-/{topicId}.json", body, ct);
     }
 
+    public async Task<DiscourseTopicListPage> ListCategoryTopicsAsync(DiscourseSettings settings, int categoryId, int page, CancellationToken ct) {
+        // Discourse redirects an id-only category path to the one with the slug.
+        using var doc = await GetFollowingOneRedirectAsync(settings, $"/c/{categoryId}/l/latest.json?page={page}", ct)
+            ?? throw new DiscourseException("Im Forum nicht gefunden.", DiscourseException.NotFound, 404);
+        var list = Property(doc.RootElement, "topic_list");
+        var topics = ArrayProperty(list, "topics");
+        var activities = topics.EnumerateArray()
+            .Select(t => new DiscourseTopicActivity(IntProperty(t, "id"), IntProperty(t, "highest_post_number")))
+            .ToList();
+        return new DiscourseTopicListPage(activities, IsSet(list, "more_topics_url"));
+    }
+
+    public async Task<IReadOnlyList<DiscourseReply>> ListPostsAfterAsync(DiscourseSettings settings, int topicId, int afterPostNumber, CancellationToken ct) {
+        using var doc = await SendAsync(settings, HttpMethod.Get, $"/t/{topicId}/posts.json?post_number={afterPostNumber}&asc=true", null, ct);
+        var posts = ArrayProperty(Property(doc.RootElement, "post_stream"), "posts");
+        return posts.EnumerateArray()
+            .Select(p => new DiscourseReply(
+                IntProperty(p, "post_number"),
+                IntProperty(p, "post_type"),
+                IntProperty(p, "user_id"),
+                StringProperty(p, "username"),
+                IsSet(p, "deleted_at"),
+                BoolProperty(p, "hidden")))
+            .ToList();
+    }
+
+    public async Task<int?> FindUserIdByKeycloakIdAsync(DiscourseSettings settings, string keycloakUserId, CancellationToken ct) {
+        var path = $"/u/by-external/{KeycloakProvider}/{Uri.EscapeDataString(keycloakUserId)}.json";
+        using var response = await SendRawAsync(settings, HttpMethod.Get, Url(settings, path), null, ct);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+        if (IsRedirect(response.StatusCode))
+            throw Fail(HttpMethod.Get, path, new DiscourseException("Das Forum hat unerwartet weitergeleitet.", DiscourseException.InvalidResponse, (int)response.StatusCode));
+
+        using var doc = await ReadAsync(response, ct);
+        return IntProperty(Property(doc.RootElement, "user"), "id");
+    }
+
     public void Dispose() {
         _http.Dispose();
         GC.SuppressFinalize(this);
@@ -145,6 +171,22 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
         using (response) {
             throw Fail(method, url.AbsolutePath, await ErrorAsync(settings, response, ct));
         }
+    }
+
+    /// <returns>Null on a 404.</returns>
+    private async Task<JsonDocument?> GetFollowingOneRedirectAsync(DiscourseSettings settings, string path, CancellationToken ct) {
+        using var response = await SendRawAsync(settings, HttpMethod.Get, Url(settings, path), null, ct);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
+        if (!IsRedirect(response.StatusCode))
+            return await ReadAsync(response, ct);
+
+        var target = RedirectTarget(settings, response);
+        using var redirected = await SendRawAsync(settings, HttpMethod.Get, target, null, ct);
+        if (redirected.StatusCode == HttpStatusCode.NotFound)
+            return null;
+
+        return await ReadAsync(redirected, ct);
     }
 
     private static async Task<JsonDocument> ReadAsync(HttpResponseMessage response, CancellationToken ct) {
@@ -240,7 +282,15 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
             IntProperty(topic, "id"),
             IntProperty(posts[0], "id"),
             StringProperty(topic, "title"),
-            IsSet(topic, "deleted_at"));
+            IsSet(topic, "deleted_at"),
+            OptionalIntProperty(topic, "highest_post_number") ?? 1);
+    }
+
+    private static JsonElement ArrayProperty(JsonElement element, string name) {
+        var value = Property(element, name);
+        if (value.ValueKind != JsonValueKind.Array)
+            throw new DiscourseException($"Das Forum hat unerwartet geantwortet (Feld {name}).", DiscourseException.InvalidResponse);
+        return value;
     }
 
     private static JsonElement Property(JsonElement element, string name) {
@@ -254,6 +304,12 @@ public class HttpDiscourseClient : IDiscourseClient, IDisposable {
         if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out var number))
             throw new DiscourseException($"Das Forum hat unerwartet geantwortet (Feld {name}).", DiscourseException.InvalidResponse);
         return number;
+    }
+
+    private static int? OptionalIntProperty(JsonElement element, string name) {
+        if (!element.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.Number)
+            return null;
+        return value.TryGetInt32(out var number) ? number : null;
     }
 
     private static string StringProperty(JsonElement element, string name) {

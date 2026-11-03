@@ -27,6 +27,23 @@ public class UserRepository {
     public User? GetByUsername(string username)
         => _context.Users.Where(u => u.Username == username && u.DeletedAt == null).FirstOrDefault();
 
+    public void SetKeycloakUserId(Guid userId, string keycloakUserId) {
+        _context.Users
+            .Where(u => u.Id == userId && (u.KeycloakUserId == null || u.KeycloakUserId != keycloakUserId))
+            .Set(u => u.KeycloakUserId, keycloakUserId)
+            .Update();
+    }
+
+    /// <summary>The Keycloak id of the user linked to the member, null when there is none or it was never recorded.</summary>
+    public string? GetKeycloakUserIdOfMember(Guid memberId) {
+        return _context.Members
+            .Where(m => m.Id == memberId && m.UserId != null)
+            .InnerJoin(_context.Users, (m, u) => m.UserId == u.Id, (m, u) => u)
+            .Where(u => u.DeletedAt == null)
+            .Select(u => u.KeycloakUserId)
+            .FirstOrDefault();
+    }
+
     /// <summary>Includes soft-deleted users, because the unique username index still covers their rows.</summary>
     public bool IsUsernameTaken(string username)
         => _context.Users.Any(u => u.Username == username);

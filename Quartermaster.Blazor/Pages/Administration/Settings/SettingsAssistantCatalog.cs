@@ -187,7 +187,8 @@ public static class SettingsAssistantCatalog {
                 new("discourse.base_url") { FullWidth = true },
                 new("discourse.api_username"),
                 new("discourse.api_key"),
-                new("discourse.max_post_length")
+                new("discourse.max_post_length"),
+                new("discourse.reply_poll_minutes")
             ]) { Check = SettingsCheckKind.Forum }
         ],
         RequiredKeys = ["discourse.base_url", "discourse.api_username", "discourse.api_key"]
@@ -308,7 +309,11 @@ public static class SettingsAssistantCatalog {
         "meetings.motion_notes_template",
         "messaging.pdf.output_dir",
         "meetings.protocol.archive_dir",
-        "support_signatures.form_max_megabytes"
+        "support_signatures.form_max_megabytes",
+        "auth.ratelimit.email_code_permits",
+        "auth.ratelimit.email_code_window_minutes",
+        "membership_application.email_code.lifetime_minutes",
+        "membership_application.email_code.sends_per_address_per_hour"
     ];
 
     public static SettingsAssistant? BySlug(string slug) {

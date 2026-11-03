@@ -104,6 +104,19 @@ public class AssemblyMotionNotificationTemplateTests : RepositoryTestBase {
         }
     }
 
+    [Test]
+    public async Task Forum_reply_seeds_link_the_reply() {
+        foreach (var channel in new[] { "email", "telegram" }) {
+            var template = _templates.GetSystemBase($"notifications.{NotificationTriggers.AssemblyMotionForumReply}.{channel}")!;
+            var model = SampleModel() with { ForumReplyUrl = "https://forum.test/t/77/3" };
+
+            var (body, error) = await TemplateRenderer.RenderTextAsync(template.Body, ModelOf(model));
+
+            await Assert.That(error).IsNull();
+            await Assert.That(body!).Contains("(https://forum.test/t/77/3)");
+        }
+    }
+
     private const string HostileTitle = "[Klick](https://evil.example) *x* _y_";
 
     [Test]

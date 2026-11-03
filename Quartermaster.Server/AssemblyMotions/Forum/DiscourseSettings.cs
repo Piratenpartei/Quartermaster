@@ -1,3 +1,4 @@
+using System;
 using Quartermaster.Data.Options;
 using Quartermaster.Server.AssemblyMotions.Wiki;
 
@@ -5,6 +6,8 @@ namespace Quartermaster.Server.AssemblyMotions.Forum;
 
 public record DiscourseSettings(string BaseUrl, string ApiUsername, string ApiKey, int MaxPostLength) {
     public const int DefaultMaxPostLength = 32000;
+
+    public const int DefaultReplyPollMinutes = 5;
 
     private const int MinMaxPostLength = 1000;
 
@@ -35,6 +38,13 @@ public record DiscourseSettings(string BaseUrl, string ApiUsername, string ApiKe
             Value("discourse.api_username"),
             Value("discourse.api_key"),
             ParseMaxPostLength(Value("discourse.max_post_length")));
+    }
+
+    public static TimeSpan ReplyPollInterval(OptionRepository options) {
+        var value = options.GetGlobalValue("discourse.reply_poll_minutes")?.Value?.Trim();
+        if (!int.TryParse(value, out var minutes) || minutes < 1)
+            minutes = DefaultReplyPollMinutes;
+        return TimeSpan.FromMinutes(minutes);
     }
 
     private static int ParseMaxPostLength(string value) {

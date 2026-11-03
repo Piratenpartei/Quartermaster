@@ -11,6 +11,9 @@ public interface IKeycloakAdminClient {
     /// <summary>Accounts whose username, first or last name, or email contains <paramref name="text"/>, ignoring case; at most <paramref name="max"/>.</summary>
     Task<List<KeycloakUserRepresentation>> SearchAsync(string text, int max, CancellationToken ct);
 
+    /// <summary>One page of all accounts of the realm with their attributes, in Keycloak's order.</summary>
+    Task<List<KeycloakUserRepresentation>> ListUsersAsync(int first, int max, CancellationToken ct);
+
     /// <summary>The account with the Keycloak user id; null when it doesn't exist.</summary>
     Task<KeycloakUserRepresentation?> GetUserAsync(string userId, CancellationToken ct);
 

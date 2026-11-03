@@ -72,6 +72,14 @@ public class AssemblyMotionNotifier {
         });
     }
 
+    public void ForumReply(AssemblyMotion motion, string replyUrl) {
+        Safely(nameof(ForumReply), () => {
+            var context = BuildContext(motion);
+            context.Model = context.Model with { ForumReplyUrl = replyUrl };
+            Enqueue(NotificationTriggers.AssemblyMotionForumReply, context, [motion.CreatedByMemberId], false);
+        });
+    }
+
     public void CollectingReminder(AssemblyMotion motion, DateTime effectiveDeadlineUtc) {
         Safely(nameof(CollectingReminder), () => {
             var context = BuildContext(motion);

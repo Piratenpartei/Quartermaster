@@ -5,11 +5,25 @@
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
     <h3 class="mb-0">@I18n[I18nKey.Ui.UserList.PageTitle]</h3>
     <RequirePermission GlobalPermission="@PermissionIdentifier.CreateUser">
-        <a class="btn btn-primary" href="/Administration/Users/AddFromKeycloak">
-            <i class="bi bi-person-plus me-1"></i>@I18n[I18nKey.Ui.UserList.AddFromKeycloak]
-        </a>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-primary" disabled="@Refreshing" title="@I18n[I18nKey.Ui.UserList.RefreshFromKeycloakHint]" @onclick="RefreshAsync">
+                @if (Refreshing) {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                } else {
+                    <i class="bi bi-arrow-repeat me-1"></i>
+                }
+                @I18n[I18nKey.Ui.UserList.RefreshFromKeycloak]
+            </button>
+            <a class="btn btn-primary" href="/Administration/Users/AddFromKeycloak">
+                <i class="bi bi-person-plus me-1"></i>@I18n[I18nKey.Ui.UserList.AddFromKeycloak]
+            </a>
+        </div>
     </RequirePermission>
 </div>
+
+@if (RefreshResult != null) {
+    <div class="alert alert-info">@RefreshSummary(RefreshResult)</div>
+}
 
 @if (Loading) {
     <LoadingSpinner />

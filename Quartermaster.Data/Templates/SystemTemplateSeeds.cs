@@ -182,6 +182,12 @@ internal static class SystemTemplateSeeds {
             "Hallo,\n\njemand hat die Mitantragstellung zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) zurückgezogen. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
+            "notifications.assembly_motion_forum_reply.email",
+            "Benachrichtigung: Antwort im Forum (E-Mail)",
+            "Neue Antwort im Forum: {{ motion.Title }}",
+            "Hallo,\n\nim Forum gibt es eine neue Antwort zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}).\n\n[Antwort im Forum lesen]({{ motion.ForumReplyUrl }})\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.email",
             "Benachrichtigung: Erinnerung: Mitantragstellende gesucht (E-Mail)",
             "Erinnerung: Mitantragstellende für {{ motion.Title }} gesucht",
@@ -252,6 +258,12 @@ internal static class SystemTemplateSeeds {
             "Benachrichtigung: Mitantragstellung zurückgezogen (Telegram)",
             null,
             "Mitantragstellung zurückgezogen für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            AllowsChapterFields: false),
+        new SystemTemplateSeed(
+            "notifications.assembly_motion_forum_reply.telegram",
+            "Benachrichtigung: Antwort im Forum (Telegram)",
+            null,
+            "Neue Antwort im Forum zu *{{ motion.TitleEscaped }}*.\n\n[Antwort lesen]({{ motion.ForumReplyUrl }})\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.telegram",
