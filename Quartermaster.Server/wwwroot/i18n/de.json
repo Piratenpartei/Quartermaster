@@ -2871,7 +2871,7 @@
   "ui.accreditation.created_note": "Wird nur einmal angezeigt; der Zugang wird in der kommenden Nacht automatisch geschlossen.",
   "ui.accreditation.existing_account": "Für diese Mitgliedsnummer existiert bereits ein Konto. Bitte oben die Stimmberechtigung prüfen.",
   "ui.assembly_motion.add_type": "Antragsart hinzufügen",
-  "ui.assembly_motion.author_marker": "(Antragsteller)",
+  "ui.assembly_motion.author_marker": "(Verfasser)",
   "ui.assembly_motion.berlin_time_hint": "Alle Zeitangaben in deutscher Zeit (Europe/Berlin).",
   "ui.assembly_motion.check_note": "Begründung der Formprüfung:",
   "ui.assembly_motion.closes_at": "Antragsfrist endet",
