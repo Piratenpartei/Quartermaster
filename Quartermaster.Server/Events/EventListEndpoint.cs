@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -28,11 +29,15 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
     }
 
     public override async Task HandleAsync(EventSearchRequest req, CancellationToken ct) {
-        var allowedVisibilities = GetAllowedVisibilities();
-        var (items, totalCount) = _eventRepo.Search(req.ChapterId, req.IncludeArchived, req.Page, req.PageSize, allowedVisibilities);
+        if (req.Managed && _perms.UserId == null) {
+            await SendUnauthorizedAsync(ct);
+            return;
+        }
+
+        var (items, totalCount) = req.Managed ? SearchManaged(req) : SearchPublic(req);
         var chapters = _chapterRepo.GetAll().ToDictionary(c => c.Id, c => c.Name);
 
-        var eventIds = items.Select(e => e.Id).ToList();
+        var eventIds = req.Managed ? items.Select(e => e.Id).ToList() : new List<Guid>();
         var checklistCounts = eventIds.ToDictionary(
             id => id,
             id => {
@@ -64,6 +69,31 @@ public class EventListEndpoint : Endpoint<EventSearchRequest, EventSearchRespons
             Page = req.Page,
             PageSize = req.PageSize
         }, cancellation: ct);
+    }
+
+    private (List<Event> Items, int TotalCount) SearchManaged(EventSearchRequest req) {
+        var chapterIds = ManagedChapterIds();
+        if (chapterIds is { Count: 0 })
+            return (new List<Event>(), 0);
+        return _eventRepo.Search(req.ChapterId, req.IncludeArchived, req.Page, req.PageSize, chapterIds: chapterIds);
+    }
+
+    /// <summary>Private events only of the chapters whose events the caller may view, as on the event page.</summary>
+    private (List<Event> Items, int TotalCount) SearchPublic(EventSearchRequest req) {
+        var allowedVisibilities = GetAllowedVisibilities();
+        var privateChapterIds = allowedVisibilities.Contains(EventVisibility.Private)
+            ? _perms.GetPermittedChapterIds(PermissionIdentifier.ViewEvents)
+            : null;
+        return _eventRepo.Search(req.ChapterId, req.IncludeArchived, req.Page, req.PageSize, allowedVisibilities, privateChapterIds);
+    }
+
+    /// <summary>Chapters whose events the caller may view or edit, including those below where the grant passes down; null for all.</summary>
+    private List<Guid>? ManagedChapterIds() {
+        var viewable = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewEvents);
+        var editable = _perms.GetPermittedChapterIds(PermissionIdentifier.EditEvents);
+        if (viewable == null || editable == null)
+            return null;
+        return viewable.Union(editable).ToList();
     }
 
     /// <summary>

@@ -49,6 +49,10 @@ public partial class EventDetail {
         Loading = true;
         try {
             Event = await Http.GetFromJsonAsync<EventDetailDTO>($"/api/events/{Id}");
+            if (Event != null && !Event.CanManage) {
+                Navigation.NavigateTo($"/Events/{Id}", replace: true);
+                return;
+            }
             var auditResponse = await Http.GetAsync($"/api/auditlog?entityType=Event&entityId={Id}");
             AuditUnavailable = !auditResponse.IsSuccessStatusCode;
             if (!AuditUnavailable)

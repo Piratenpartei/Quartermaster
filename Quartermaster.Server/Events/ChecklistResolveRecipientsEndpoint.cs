@@ -53,7 +53,7 @@ public class ChecklistResolveRecipientsEndpoint : Endpoint<RecipientPreviewReque
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents)) {
+        if (!_perms.HasOnChapterOrAncestors(ev.ChapterId, PermissionIdentifier.EditEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

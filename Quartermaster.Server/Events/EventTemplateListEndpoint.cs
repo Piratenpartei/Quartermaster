@@ -15,10 +15,12 @@ namespace Quartermaster.Server.Events;
 public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTemplateDTO>> {
     private readonly EventRepository _eventRepo;
     private readonly PermissionContext _perms;
+    private readonly EventTemplateAccess _templateAccess;
 
-    public EventTemplateListEndpoint(EventRepository eventRepo, PermissionContext perms) {
+    public EventTemplateListEndpoint(EventRepository eventRepo, PermissionContext perms, EventTemplateAccess templateAccess) {
         _eventRepo = eventRepo;
         _perms = perms;
+        _templateAccess = templateAccess;
     }
 
     public override void Configure() {
@@ -31,7 +33,7 @@ public class EventTemplateListEndpoint : EndpointWithoutRequest<List<EventTempla
             return;
         }
 
-        var allowedChapterIds = _perms.GetPermittedChapterIds(PermissionIdentifier.ViewTemplates);
+        var allowedChapterIds = _templateAccess.VisibleChapterIds();
         if (allowedChapterIds is { Count: 0 }) {
             await SendForbiddenAsync(ct);
             return;

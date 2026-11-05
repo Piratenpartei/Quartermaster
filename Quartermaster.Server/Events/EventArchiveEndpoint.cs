@@ -37,7 +37,7 @@ public class EventArchiveEndpoint : Endpoint<EventArchiveRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(ev.ChapterId, PermissionIdentifier.DeleteEvents)) {
+        if (!_perms.HasOnChapterOrAncestors(ev.ChapterId, PermissionIdentifier.DeleteEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

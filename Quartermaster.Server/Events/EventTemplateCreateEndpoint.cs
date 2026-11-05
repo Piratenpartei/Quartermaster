@@ -14,10 +14,12 @@ namespace Quartermaster.Server.Events;
 public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, EventTemplateDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly PermissionContext _perms;
+    private readonly EventTemplateAccess _templateAccess;
 
-    public EventTemplateCreateEndpoint(EventRepository eventRepo, PermissionContext perms) {
+    public EventTemplateCreateEndpoint(EventRepository eventRepo, PermissionContext perms, EventTemplateAccess templateAccess) {
         _eventRepo = eventRepo;
         _perms = perms;
+        _templateAccess = templateAccess;
     }
 
     public override void Configure() {
@@ -35,7 +37,7 @@ public class EventTemplateCreateEndpoint : Endpoint<EventTemplateCreateRequest, 
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(ev.ChapterId, PermissionIdentifier.EditTemplates)) {
+        if (!_templateAccess.CanEditTemplatesOf(ev.ChapterId)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -119,7 +119,8 @@ public class PermissionContext {
     }
 
     /// <summary>
-    /// Chapter IDs (and inheriting descendants) the caller may act on. <c>null</c> = all chapters
+    /// Chapter IDs the caller may act on: every chapter with a grant, and the chapters below it when the grant passes down
+    /// (direct grants and roles with InheritsToChildren; a delegate covers only the delegated chapter). <c>null</c> = all chapters
     /// (global form held); empty list = nothing.
     /// </summary>
     public List<Guid>? GetPermittedChapterIds(string globalPermission, string chapterPermission) {
@@ -129,15 +130,29 @@ public class PermissionContext {
         if (HasGlobal(globalPermission))
             return null;
 
-        var allChapterPerms = _chapterPermRepo.GetAllForUser(uid.Value);
         var permitted = new HashSet<Guid>();
-        foreach (var (chapterId, identifiers) in allChapterPerms) {
+        foreach (var (chapterId, identifiers) in _chapterPermRepo.GetAllForUser(uid.Value)) {
+            if (identifiers.Contains(chapterPermission))
+                permitted.Add(chapterId);
+        }
+        foreach (var (chapterId, identifiers) in _chapterPermRepo.GetInheritingForUser(uid.Value)) {
             if (!identifiers.Contains(chapterPermission))
                 continue;
             foreach (var descendantId in _chapterRepo.GetDescendantIds(chapterId))
                 permitted.Add(descendantId);
         }
         return permitted.ToList();
+    }
+
+    /// <summary>The chapters the caller holds the permission on themselves, without the chapters below; global grants are not included.</summary>
+    public List<Guid> GetGrantedChapterIds(string permission) {
+        var uid = UserId;
+        if (uid == null)
+            return new List<Guid>();
+        return _chapterPermRepo.GetAllForUser(uid.Value)
+            .Where(kvp => kvp.Value.Contains(permission))
+            .Select(kvp => kvp.Key)
+            .ToList();
     }
 
     /// <summary>Single-permission overload of <see cref="GetPermittedChapterIds(string, string)"/>.</summary>

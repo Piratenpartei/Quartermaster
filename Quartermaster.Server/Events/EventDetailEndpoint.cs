@@ -19,11 +19,13 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly PermissionContext _perms;
+    private readonly EventTemplateAccess _templateAccess;
 
-    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms) {
+    public EventDetailEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms, EventTemplateAccess templateAccess) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
         _perms = perms;
+        _templateAccess = templateAccess;
     }
 
     public override void Configure() {
@@ -55,18 +57,26 @@ public class EventDetailEndpoint : Endpoint<EventDetailRequest, EventDetailDTO> 
         }
 
         var chapter = _chapterRepo.Get(ev.ChapterId);
-        var checklistItems = _eventRepo.GetChecklistItems(ev.Id);
-        var itemDtos = checklistItems
-            .Select(i => i.ToDto(EventConfigSerializer.ParseConfig(i.Configuration)))
-            .ToList();
-
         var dto = ev.ToDetailDto(chapter?.Name ?? "");
-        dto.ChecklistItems = itemDtos;
+        dto.CanManage = CanManage(ev);
+        if (dto.CanManage) {
+            dto.ChecklistItems = _eventRepo.GetChecklistItems(ev.Id)
+                .Select(i => i.ToDto(EventConfigSerializer.ParseConfig(i.Configuration)))
+                .ToList();
+        } else {
+            dto.InternalName = "";
+        }
         if (_perms.UserId != null) {
-            dto.CanEdit = _perms.Has(ev.ChapterId, PermissionIdentifier.EditEvents);
-            dto.CanArchive = _perms.Has(ev.ChapterId, PermissionIdentifier.DeleteEvents);
-            dto.CanSaveAsTemplate = _perms.Has(ev.ChapterId, PermissionIdentifier.EditTemplates);
+            dto.CanEdit = _perms.HasOnChapterOrAncestors(ev.ChapterId, PermissionIdentifier.EditEvents);
+            dto.CanArchive = _perms.HasOnChapterOrAncestors(ev.ChapterId, PermissionIdentifier.DeleteEvents);
+            dto.CanSaveAsTemplate = _templateAccess.CanEditTemplatesOf(ev.ChapterId);
         }
         await SendAsync(dto, cancellation: ct);
+    }
+
+    /// <summary>The internal name and the checklist are for those who may view or edit the chapter's events, directly or from a chapter above.</summary>
+    private bool CanManage(Event ev) {
+        return _perms.Has(ev.ChapterId, PermissionIdentifier.ViewEvents)
+            || _perms.HasOnChapterOrAncestors(ev.ChapterId, PermissionIdentifier.EditEvents);
     }
 }

@@ -98,6 +98,35 @@ public class PermissionContextTests : RepositoryTestBase {
         }
     }
 
+    private Role SystemRole(string identifier) {
+        var roleRepo = new RoleRepository(_context);
+        roleRepo.SupplementDefaults();
+        return roleRepo.GetByIdentifier(identifier)!;
+    }
+
+    [Test]
+    public async Task GetPermittedChapterIds_gives_a_board_member_the_chapters_below() {
+        var chain = _builder.SeedChapterHierarchy("Land", "Kreis");
+        var (user, _) = _builder.SeedAuthenticatedUser();
+        _builder.AssignRoleToUser(user.Id, SystemRole(PermissionIdentifier.SystemRole.ChapterOfficer).Id, chain[0].Id);
+
+        var result = ContextFor(user.Id).GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
+
+        await Assert.That(result!).IsEquivalentTo(new[] { chain[0].Id, chain[1].Id });
+    }
+
+    /// <summary>The delegate role does not pass its rights down; a delegate needs a delegation for each chapter.</summary>
+    [Test]
+    public async Task GetPermittedChapterIds_gives_a_delegate_only_the_delegated_chapter() {
+        var chain = _builder.SeedChapterHierarchy("Land", "Kreis");
+        var (user, _) = _builder.SeedAuthenticatedUser();
+        _builder.AssignRoleToUser(user.Id, SystemRole(PermissionIdentifier.SystemRole.GeneralChapterDelegate).Id, chain[0].Id);
+
+        var result = ContextFor(user.Id).GetPermittedChapterIds(PermissionIdentifier.ViewApplications);
+
+        await Assert.That(result!).IsEquivalentTo(new[] { chain[0].Id });
+    }
+
     [Test]
     public async Task GetPermittedChapterIds_only_grant_at_leaf_returns_just_that_chapter() {
         var chain = _builder.SeedChapterHierarchy("Root", "Mid", "Leaf");

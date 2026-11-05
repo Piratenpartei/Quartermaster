@@ -347,6 +347,7 @@ public partial class Program {
 
         builder.Services.AddScoped<ChecklistItemExecutor>();
         builder.Services.AddScoped<ChecklistTargetValidator>();
+        builder.Services.AddScoped<EventTemplateAccess>();
         builder.Services.AddScoped<MeetingLifecycleService>();
 
         builder.Services.AddHttpClient();

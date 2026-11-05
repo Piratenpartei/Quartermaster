@@ -31,7 +31,7 @@ public class EventCreateEndpoint : Endpoint<EventCreateRequest, EventDetailDTO> 
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(req.ChapterId, PermissionIdentifier.CreateEvents)) {
+        if (!_perms.HasOnChapterOrAncestors(req.ChapterId, PermissionIdentifier.CreateEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

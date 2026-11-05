@@ -73,7 +73,7 @@ public class EventFromTemplateEndpointTests : IntegrationTestBase {
         var chapter = Builder.SeedChapter("C");
         var template = Builder.SeedEventTemplate(chapterId: chapter.Id, name: "Tpl");
         var (_, token) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.CreateEvents } });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.CreateEvents, PermissionIdentifier.ViewTemplates } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
         var response = await client.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {
             TemplateId = template.Id,
@@ -96,7 +96,7 @@ public class EventFromTemplateEndpointTests : IntegrationTestBase {
             .Set(t => t.PublicNameTemplate, "Stammtisch {{datum}} um {{uhrzeit}}")
             .Update();
         var (_, token) = Builder.SeedAuthenticatedUser(
-            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.CreateEvents } });
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.CreateEvents, PermissionIdentifier.ViewTemplates } });
         using var client = await AuthenticatedClientWithCsrfAsync(token);
 
         var response = await client.PostAsJsonAsync("/api/events/from-template", new EventFromTemplateRequest {

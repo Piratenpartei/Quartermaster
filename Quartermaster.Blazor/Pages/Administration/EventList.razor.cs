@@ -53,7 +53,7 @@ public partial class EventList {
         StateHasChanged();
 
         try {
-            var url = $"/api/events?page={CurrentPage}&pageSize={PageSize}&includeArchived={IncludeArchived}";
+            var url = $"/api/events?page={CurrentPage}&pageSize={PageSize}&includeArchived={IncludeArchived}&managed=true";
             if (Guid.TryParse(SelectedChapterIdString, out var chapterId))
                 url += $"&chapterId={chapterId}";
 

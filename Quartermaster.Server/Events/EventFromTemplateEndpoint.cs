@@ -16,11 +16,13 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
     private readonly EventRepository _eventRepo;
     private readonly ChapterRepository _chapterRepo;
     private readonly PermissionContext _perms;
+    private readonly EventTemplateAccess _templateAccess;
 
-    public EventFromTemplateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms) {
+    public EventFromTemplateEndpoint(EventRepository eventRepo, ChapterRepository chapterRepo, PermissionContext perms, EventTemplateAccess templateAccess) {
         _eventRepo = eventRepo;
         _chapterRepo = chapterRepo;
         _perms = perms;
+        _templateAccess = templateAccess;
     }
 
     public override void Configure() {
@@ -32,7 +34,7 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(req.ChapterId, PermissionIdentifier.CreateEvents)) {
+        if (!_perms.HasOnChapterOrAncestors(req.ChapterId, PermissionIdentifier.CreateEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }
@@ -50,6 +52,10 @@ public class EventFromTemplateEndpoint : Endpoint<EventFromTemplateRequest, Even
         var template = _eventRepo.GetTemplate(req.TemplateId);
         if (template == null) {
             await SendNotFoundAsync(ct);
+            return;
+        }
+        if (!_templateAccess.CanView(template)) {
+            await SendForbiddenAsync(ct);
             return;
         }
 

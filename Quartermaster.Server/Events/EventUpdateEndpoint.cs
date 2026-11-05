@@ -36,7 +36,7 @@ public class EventUpdateEndpoint : Endpoint<EventUpdateRequest> {
             await SendUnauthorizedAsync(ct);
             return;
         }
-        if (!_perms.Has(existing.ChapterId, PermissionIdentifier.EditEvents)) {
+        if (!_perms.HasOnChapterOrAncestors(existing.ChapterId, PermissionIdentifier.EditEvents)) {
             await SendForbiddenAsync(ct);
             return;
         }

@@ -41,7 +41,7 @@ public class EventStatusUpdateEndpoint : Endpoint<EventStatusUpdateRequest> {
             ? PermissionIdentifier.DeleteEvents
             : PermissionIdentifier.EditEvents;
 
-        if (!_perms.Has(ev.ChapterId, requiredPerm)) {
+        if (!_perms.HasOnChapterOrAncestors(ev.ChapterId, requiredPerm)) {
             await SendForbiddenAsync(ct);
             return;
         }

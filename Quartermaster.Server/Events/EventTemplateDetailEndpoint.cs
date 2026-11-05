@@ -16,10 +16,12 @@ public class EventTemplateDetailRequest {
 public class EventTemplateDetailEndpoint : Endpoint<EventTemplateDetailRequest, EventTemplateDetailDTO> {
     private readonly EventRepository _eventRepo;
     private readonly PermissionContext _perms;
+    private readonly EventTemplateAccess _templateAccess;
 
-    public EventTemplateDetailEndpoint(EventRepository eventRepo, PermissionContext perms) {
+    public EventTemplateDetailEndpoint(EventRepository eventRepo, PermissionContext perms, EventTemplateAccess templateAccess) {
         _eventRepo = eventRepo;
         _perms = perms;
+        _templateAccess = templateAccess;
     }
 
     public override void Configure() {
@@ -38,16 +40,9 @@ public class EventTemplateDetailEndpoint : Endpoint<EventTemplateDetailRequest, 
             return;
         }
 
-        if (template.ChapterId.HasValue) {
-            if (!_perms.Has(template.ChapterId.Value, PermissionIdentifier.ViewTemplates)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else {
-            if (!_perms.HasGlobal(PermissionIdentifier.ViewTemplates)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
+        if (!_templateAccess.CanView(template)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         await SendAsync(new EventTemplateDetailDTO {

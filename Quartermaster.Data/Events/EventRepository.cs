@@ -110,8 +110,12 @@ public class EventRepository {
         _auditLog.LogFieldChange("Event", id, "Visibility", existing?.Visibility.ToString(), visibility.ToString());
     }
 
+    /// <summary>
+    /// <paramref name="privateChapterIds"/> limits private events to those chapters, <paramref name="chapterIds"/> limits all events to them;
+    /// null leaves either unlimited.
+    /// </summary>
     public (List<Event> Items, int TotalCount) Search(Guid? chapterId, bool includeArchived, int page, int pageSize,
-        List<EventVisibility>? allowedVisibilities = null) {
+        List<EventVisibility>? allowedVisibilities = null, List<Guid>? privateChapterIds = null, List<Guid>? chapterIds = null) {
         var q = _context.Events.Where(e => e.DeletedAt == null).AsQueryable();
 
         if (chapterId.HasValue)
@@ -122,6 +126,12 @@ public class EventRepository {
 
         if (allowedVisibilities != null)
             q = q.Where(e => allowedVisibilities.Contains(e.Visibility));
+
+        if (privateChapterIds != null)
+            q = q.Where(e => e.Visibility != EventVisibility.Private || privateChapterIds.Contains(e.ChapterId));
+
+        if (chapterIds != null)
+            q = q.Where(e => chapterIds.Contains(e.ChapterId));
 
         var totalCount = q.Count();
         var items = q.OrderByDescending(e => e.CreatedAt)

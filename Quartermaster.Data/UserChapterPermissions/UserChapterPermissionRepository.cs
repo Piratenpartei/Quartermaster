@@ -87,6 +87,15 @@ public class UserChapterPermissionRepository {
     }
 
     public Dictionary<Guid, List<string>> GetAllForUser(Guid userId) {
+        return CollectForUser(userId, false);
+    }
+
+    /// <summary>The grants that pass down to the chapters below: direct grants, and roles with InheritsToChildren.</summary>
+    public Dictionary<Guid, List<string>> GetInheritingForUser(Guid userId) {
+        return CollectForUser(userId, true);
+    }
+
+    private Dictionary<Guid, List<string>> CollectForUser(Guid userId, bool inheritingOnly) {
         // Direct chapter grants
         var directs = _context.UserChapterPermissions
             .Where(ucp => ucp.UserId == userId)
@@ -113,6 +122,12 @@ public class UserChapterPermissionRepository {
 
         if (chapterAssignments.Count > 0) {
             var roleIds = chapterAssignments.Select(a => a.RoleId).Distinct().ToList();
+            if (inheritingOnly) {
+                roleIds = _context.Roles
+                    .Where(r => roleIds.Contains(r.Id) && r.InheritsToChildren)
+                    .Select(r => r.Id)
+                    .ToList();
+            }
             var rolePerms = _context.RolePermissions
                 .Where(rp => roleIds.Contains(rp.RoleId))
                 .ToList()
