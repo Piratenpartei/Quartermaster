@@ -30,7 +30,7 @@ internal static class SystemTemplateSeeds {
             "**Bitte um Bescheinigung des Wahlrechts: {{ letter.Campaign.Name }}**\n\n" +
             "Sehr geehrte Damen und Herren,\n\n" +
             "anbei senden wir Ihnen {{ letter.Total }} Formblätter mit Unterstützungsunterschriften für den Wahlvorschlag „{{ letter.Campaign.Name }}“. " +
-            "Wir bitten Sie, das Wahlrecht der Unterzeichnenden zu bescheinigen und uns die Formblätter zurückzusenden.\n\n" +
+            "Wir bitten Sie, das Wahlrecht der Unterzeichner zu bescheinigen und uns die Formblätter zurückzusenden.\n\n" +
             "{% for line in letter.Lines %}- {{ line.Municipality }}: {{ line.Count }}\n{% endfor %}\n" +
             "Die Unterlagen müssen bis zum {{ letter.Campaign.Deadline }} eingereicht werden; wir bitten daher um eine zügige Rücksendung.\n\n" +
             "Vielen Dank für Ihre Unterstützung.\n\n" +
@@ -167,19 +167,19 @@ internal static class SystemTemplateSeeds {
             "notifications.assembly_motion_cosubmitter_reset.email",
             "Benachrichtigung: Antrag geändert, Mitantragstellung zurückgesetzt (E-Mail)",
             "Antrag geändert: {{ motion.Title }}",
-            "Hallo,\n\nder Antrag *{{ motion.TitleEscaped }}* wurde von der antragstellenden Person geändert. Deine Mitantragstellung wurde deshalb zurückgesetzt.\n\nWenn du den geänderten Antrag weiter unterstützen möchtest, tritt ihm bitte erneut bei:\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            "Hallo,\n\nder Antrag *{{ motion.TitleEscaped }}* wurde vom Verfasser geändert. Deine Mitantragstellung wurde deshalb zurückgesetzt.\n\nWenn du den geänderten Antrag weiter unterstützen möchtest, tritt ihm bitte erneut bei:\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_joined.email",
-            "Benachrichtigung: Neue:r Mitantragsteller:in (E-Mail)",
+            "Benachrichtigung: Neuer Mitantragsteller (E-Mail)",
             "Neue Mitantragstellung: {{ motion.Title }}",
-            "Hallo,\n\njemand ist deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) als Mitantragsteller:in beigetreten. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            "Hallo,\n\njemand ist deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) als Mitantragsteller beigetreten. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellern.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_left.email",
             "Benachrichtigung: Mitantragstellung zurückgezogen (E-Mail)",
             "Mitantragstellung zurückgezogen: {{ motion.Title }}",
-            "Hallo,\n\njemand hat die Mitantragstellung zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) zurückgezogen. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            "Hallo,\n\njemand hat die Mitantragstellung zu deinem Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) zurückgezogen. Damit hat er jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellern. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_forum_reply.email",
@@ -195,9 +195,9 @@ internal static class SystemTemplateSeeds {
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.email",
-            "Benachrichtigung: Erinnerung: Mitantragstellende gesucht (E-Mail)",
-            "Erinnerung: Mitantragstellende für {{ motion.Title }} gesucht",
-            "Hallo,\n\nfür deinen Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) fehlen noch Mitantragstellende. Die Frist endet am {{ motion.Deadline }}.\n\nWerden bis dahin nicht genug Mitantragstellende gefunden, verfällt der Antrag.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            "Benachrichtigung: Erinnerung: Mitantragsteller gesucht (E-Mail)",
+            "Erinnerung: Mitantragsteller für {{ motion.Title }} gesucht",
+            "Hallo,\n\nfür deinen Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) fehlen noch Mitantragsteller. Die Frist endet am {{ motion.Deadline }}.\n\nWerden bis dahin nicht genug Mitantragsteller gefunden, verfällt der Antrag.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_submitted.email",
@@ -209,7 +209,7 @@ internal static class SystemTemplateSeeds {
             "notifications.assembly_motion_lapsed.email",
             "Benachrichtigung: Antrag verfallen (E-Mail)",
             "Antrag verfallen: {{ motion.Title }}",
-            "Hallo,\n\nder Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) ist verfallen, weil die Frist am {{ motion.Deadline }} ohne genug Mitantragstellende abgelaufen ist.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
+            "Hallo,\n\nder Antrag *{{ motion.TitleEscaped }}* ({{ motion.TypeName }}, {{ motion.EventName }}) ist verfallen, weil die Frist am {{ motion.Deadline }} ohne genug Mitantragsteller abgelaufen ist.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})\n",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_checked.email",
@@ -255,15 +255,15 @@ internal static class SystemTemplateSeeds {
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_joined.telegram",
-            "Benachrichtigung: Neue:r Mitantragsteller:in (Telegram)",
+            "Benachrichtigung: Neuer Mitantragsteller (Telegram)",
             null,
-            "Neue Mitantragstellung für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            "Neue Mitantragstellung für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellern.{% if motion.SubmitterCount >= motion.MinSubmitters %} Damit ist der Antrag eingereicht.{% endif %}\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_cosubmitter_left.telegram",
             "Benachrichtigung: Mitantragstellung zurückgezogen (Telegram)",
             null,
-            "Mitantragstellung zurückgezogen für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellenden. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            "Mitantragstellung zurückgezogen für *{{ motion.TitleEscaped }}*: jetzt {{ motion.SubmitterCount }} von {{ motion.MinSubmitters }} nötigen Antragstellern. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_forum_reply.telegram",
@@ -279,9 +279,9 @@ internal static class SystemTemplateSeeds {
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_collecting_reminder.telegram",
-            "Benachrichtigung: Erinnerung: Mitantragstellende gesucht (Telegram)",
+            "Benachrichtigung: Erinnerung: Mitantragsteller gesucht (Telegram)",
             null,
-            "Erinnerung: Für deinen Antrag *{{ motion.TitleEscaped }}* fehlen noch Mitantragstellende. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            "Erinnerung: Für deinen Antrag *{{ motion.TitleEscaped }}* fehlen noch Mitantragsteller. Die Frist endet am {{ motion.Deadline }}.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_submitted.telegram",
@@ -293,7 +293,7 @@ internal static class SystemTemplateSeeds {
             "notifications.assembly_motion_lapsed.telegram",
             "Benachrichtigung: Antrag verfallen (Telegram)",
             null,
-            "Antrag verfallen: *{{ motion.TitleEscaped }}*\n\nDie Frist ist ohne genug Mitantragstellende abgelaufen.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
+            "Antrag verfallen: *{{ motion.TitleEscaped }}*\n\nDie Frist ist ohne genug Mitantragsteller abgelaufen.\n\n[Antrag öffnen]({{ globals.BaseUrl }}{{ motion.Path }})",
             AllowsChapterFields: false),
         new SystemTemplateSeed(
             "notifications.assembly_motion_checked.telegram",

@@ -31,88 +31,51 @@ public class RoleRepository {
 
     public void Create(Role role) => _context.Insert(role);
 
+    /// <summary>Creates the system roles and keeps their names, descriptions and inheritance as the code defines them; system roles cannot be edited.</summary>
     public void SupplementDefaults() {
-        var officer = GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer);
-        if (officer == null) {
-            officer = new Role {
-                Id = Guid.NewGuid(),
-                Identifier = PermissionIdentifier.SystemRole.ChapterOfficer,
-                Name = "Vorstand",
-                Description = "Systemrolle: Automatisch zugewiesen an eingetragene Vorstandsmitglieder.",
-                Scope = RoleScope.ChapterScoped,
-                IsSystem = true,
-                InheritsToChildren = true
-            };
-            Create(officer);
-        } else if (!officer.InheritsToChildren) {
-            _context.Roles.Where(r => r.Id == officer.Id)
-                .Set(r => r.InheritsToChildren, true).Update();
-        }
-
-        var delegateRole = GetByIdentifier(PermissionIdentifier.SystemRole.GeneralChapterDelegate);
-        if (delegateRole == null) {
-            delegateRole = new Role {
-                Id = Guid.NewGuid(),
-                Identifier = PermissionIdentifier.SystemRole.GeneralChapterDelegate,
-                Name = "Delegierter",
-                Description = "Systemrolle: Delegierter einer Gliederung. Gleiche Rechte wie Vorstand, aber ohne Vererbung in untergeordnete Gliederungen.",
-                Scope = RoleScope.ChapterScoped,
-                IsSystem = true,
-                InheritsToChildren = false
-            };
-            Create(delegateRole);
-        } else if (delegateRole.InheritsToChildren) {
-            _context.Roles.Where(r => r.Id == delegateRole.Id)
-                .Set(r => r.InheritsToChildren, false).Update();
-        }
-
-        var motionCommission = GetByIdentifier(PermissionIdentifier.SystemRole.MotionCommission);
-        if (motionCommission == null) {
-            motionCommission = new Role {
-                Id = Guid.NewGuid(),
-                Identifier = PermissionIdentifier.SystemRole.MotionCommission,
-                Name = "Antragskommission",
-                Description = "Systemrolle: Mitglieder der Antragskommission für Versammlungsanträge.",
-                Scope = RoleScope.ChapterScoped,
-                IsSystem = true,
-                InheritsToChildren = false
-            };
-            Create(motionCommission);
-        }
-
-        var assemblyChair = GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyChair);
-        if (assemblyChair == null) {
-            assemblyChair = new Role {
-                Id = Guid.NewGuid(),
-                Identifier = PermissionIdentifier.SystemRole.AssemblyChair,
-                Name = "Versammlungsleitung",
-                Description = "Systemrolle: Versammlungsleitung und VL-Helfende einer Versammlung, steuern den Versammlungsassistenten.",
-                Scope = RoleScope.ChapterScoped,
-                IsSystem = true,
-                InheritsToChildren = false
-            };
-            Create(assemblyChair);
-        }
-
-        var assemblyMinutes = GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyMinutes);
-        if (assemblyMinutes == null) {
-            assemblyMinutes = new Role {
-                Id = Guid.NewGuid(),
-                Identifier = PermissionIdentifier.SystemRole.AssemblyMinutes,
-                Name = "Protokoll Versammlung",
-                Description = "Systemrolle: sieht den Versammlungsassistenten nur lesend und exportiert die Protokollhilfe.",
-                Scope = RoleScope.ChapterScoped,
-                IsSystem = true,
-                InheritsToChildren = false
-            };
-            Create(assemblyMinutes);
-        }
+        var officer = EnsureSystemRole(PermissionIdentifier.SystemRole.ChapterOfficer, "Vorstand",
+            "Systemrolle: Automatisch zugewiesen an eingetragene Vorstandsmitglieder.", true);
+        var delegateRole = EnsureSystemRole(PermissionIdentifier.SystemRole.GeneralChapterDelegate, "Delegierter",
+            "Systemrolle: Delegierter einer Gliederung. Gleiche Rechte wie Vorstand, aber ohne Vererbung in untergeordnete Gliederungen.", false);
+        var motionCommission = EnsureSystemRole(PermissionIdentifier.SystemRole.MotionCommission, "Antragskommission",
+            "Systemrolle: Mitglieder der Antragskommission für Versammlungsanträge.", false);
+        var assemblyChair = EnsureSystemRole(PermissionIdentifier.SystemRole.AssemblyChair, "Versammlungsleitung",
+            "Systemrolle: Versammlungsleitung und VL-Helfer einer Versammlung, steuern den Versammlungsassistenten.", false);
+        var assemblyMinutes = EnsureSystemRole(PermissionIdentifier.SystemRole.AssemblyMinutes, "Protokoll Versammlung",
+            "Systemrolle: sieht den Versammlungsassistenten nur lesend und exportiert die Protokollhilfe.", false);
 
         SetPermissions(officer.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(delegateRole.Id, PermissionIdentifier.DefaultOfficerPermissions);
         SetPermissions(motionCommission.Id, [PermissionIdentifier.ManageAssemblyMotions]);
         SetPermissions(assemblyChair.Id, [PermissionIdentifier.AssemblyChair, PermissionIdentifier.AssemblyView]);
         SetPermissions(assemblyMinutes.Id, [PermissionIdentifier.AssemblyView]);
+    }
+
+    private Role EnsureSystemRole(string identifier, string name, string description, bool inheritsToChildren) {
+        var role = GetByIdentifier(identifier);
+        if (role == null) {
+            role = new Role {
+                Id = Guid.NewGuid(),
+                Identifier = identifier,
+                Name = name,
+                Description = description,
+                Scope = RoleScope.ChapterScoped,
+                IsSystem = true,
+                InheritsToChildren = inheritsToChildren
+            };
+            Create(role);
+            return role;
+        }
+
+        if (role.Name != name || role.Description != description || role.InheritsToChildren != inheritsToChildren) {
+            _context.Roles
+                .Where(r => r.Id == role.Id)
+                .Set(r => r.Name, name)
+                .Set(r => r.Description, description)
+                .Set(r => r.InheritsToChildren, inheritsToChildren)
+                .Update();
+        }
+        return role;
     }
 
     public void Update(Role role) {

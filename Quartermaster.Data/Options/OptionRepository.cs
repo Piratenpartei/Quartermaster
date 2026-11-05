@@ -627,7 +627,7 @@ public class OptionRepository {
         AddDefinitionIfNotExists("discourse.reply_poll_minutes",
             "Forum: Abstand der Abfrage neuer Antworten (Minuten)",
             OptionDataType.Number, false, "", "5",
-            description: "So oft fragt Quartermaster das Forum nach neuen Antworten auf gespiegelte Anträge, solange die Veranstaltung weder abgeschlossen noch archiviert ist. Eigene Antworten der Antragstellenden erkennt Quartermaster nur, wenn das Bot-Konto Admin ist.");
+            description: "So oft fragt Quartermaster das Forum nach neuen Antworten auf gespiegelte Anträge, solange die Veranstaltung weder abgeschlossen noch archiviert ist. Eigene Antworten des Verfassers erkennt Quartermaster nur, wenn das Bot-Konto Admin ist.");
 
         AddDefinitionIfNotExists("openslides.url",
             "OpenSlides: Basis-URL",
@@ -753,14 +753,14 @@ public class OptionRepository {
             description: "Standardredezeit in Sekunden für eine erneute Kandidatenvorstellung.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_question",
-            "Versammlung: Redezeit Frage an Kandidierende",
+            "Versammlung: Redezeit Frage an Kandidaten",
             OptionDataType.Number, false, "", "30",
-            description: "Standardredezeit in Sekunden für eine Frage an Kandidierende.");
+            description: "Standardredezeit in Sekunden für eine Frage an Kandidaten.");
 
         AddDefinitionIfNotExists("assembly.times.candidate_answer",
-            "Versammlung: Redezeit Antwort von Kandidierenden",
+            "Versammlung: Redezeit Antwort von Kandidaten",
             OptionDataType.Number, false, "", "120",
-            description: "Standardredezeit in Sekunden für eine Antwort von Kandidierenden.");
+            description: "Standardredezeit in Sekunden für eine Antwort von Kandidaten.");
 
         AddDefinitionIfNotExists("assembly.grace_seconds",
             "Versammlung: Karenzzeit Wortmeldung",
@@ -780,12 +780,12 @@ public class OptionRepository {
         AddDefinitionIfNotExists("assembly.messages.warning",
             "Versammlung: Text Redezeitwarnung",
             OptionDataType.String, false, "", "Noch 30 Sekunden",
-            description: "Mumble-Nachricht an die redende Person 30 Sekunden vor Ende der Redezeit.");
+            description: "Mumble-Nachricht an den Redner 30 Sekunden vor Ende der Redezeit.");
 
         AddDefinitionIfNotExists("assembly.messages.expired",
             "Versammlung: Text Redezeit abgelaufen",
             OptionDataType.String, false, "", "Die Redezeit ist abgelaufen",
-            description: "Mumble-Nachricht an die redende Person bei Ablauf der Redezeit.");
+            description: "Mumble-Nachricht an den Redner bei Ablauf der Redezeit.");
 
         AddDefinitionIfNotExists("assembly.openslides.delegates_group_id",
             "Versammlung: OpenSlides-Gruppe Stimmberechtigte",

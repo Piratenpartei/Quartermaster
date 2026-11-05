@@ -22,6 +22,9 @@ public class Template {
     public bool AllowsEventFields { get; set; }
     public bool AllowsChapterFields { get; set; }
     public TemplateRenderMode RenderMode { get; set; }
+
+    /// <summary>Hash of the seed text a system template was last written from; null for chapter copies and rows seeded before V9.1.</summary>
+    public string? SeedHash { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
 }

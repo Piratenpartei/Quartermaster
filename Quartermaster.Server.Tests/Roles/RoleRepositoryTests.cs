@@ -68,6 +68,23 @@ public class RoleRepositoryTests : RepositoryTestBase {
         await Assert.That(perms.Count).IsEqualTo(PermissionIdentifier.DefaultOfficerPermissions.Count);
     }
 
+    /// <summary>System roles cannot be edited, so their name and description follow the code on every start.</summary>
+    [Test]
+    public async Task SupplementDefaults_brings_a_system_roles_texts_up_to_date() {
+        var chair = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyChair)!;
+        _context.Roles
+            .Where(r => r.Id == chair.Id)
+            .Set(r => r.Name, "Alter Name")
+            .Set(r => r.Description, "Alte Beschreibung")
+            .Update();
+
+        _roleRepo.SupplementDefaults();
+
+        var stored = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.AssemblyChair)!;
+        await Assert.That(stored.Name).IsEqualTo(chair.Name);
+        await Assert.That(stored.Description).IsEqualTo(chair.Description);
+    }
+
     [Test]
     public async Task Assign_CreatesUniqueAssignment() {
         var role = _roleRepo.GetByIdentifier(PermissionIdentifier.SystemRole.ChapterOfficer)!;

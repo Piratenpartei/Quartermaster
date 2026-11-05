@@ -99,7 +99,7 @@ public class AssemblyMotionNotificationTemplateTests : RepositoryTestBase {
             var (body, error) = await TemplateRenderer.RenderTextAsync(template.Body, ModelOf(model));
 
             await Assert.That(error).IsNull();
-            await Assert.That(body!).Contains($"{submitterCount} von 5 nötigen Antragstellenden");
+            await Assert.That(body!).Contains($"{submitterCount} von 5 nötigen Antragstellern");
             await Assert.That(body.Contains("Damit ist der Antrag eingereicht.")).IsEqualTo(mentionsSubmission);
         }
     }

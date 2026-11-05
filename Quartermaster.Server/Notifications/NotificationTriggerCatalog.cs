@@ -27,11 +27,11 @@ public static class NotificationTriggerCatalog {
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCoSubmitterReset,
             "Antrag geändert, Mitantragstellung zurückgesetzt",
-            "Sobald die antragstellende Person einen Antrag ändert, bei dem du Mitantragsteller:in warst."),
+            "Sobald der Verfasser einen Antrag ändert, bei dem du Mitantragsteller warst."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCoSubmitterJoined,
-            "Neue:r Mitantragsteller:in",
-            "Sobald jemand deinem Antrag als Mitantragsteller:in beitritt."),
+            "Neuer Mitantragsteller",
+            "Sobald jemand deinem Antrag als Mitantragsteller beitritt."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCoSubmitterLeft,
             "Mitantragstellung zurückgezogen",
@@ -46,8 +46,8 @@ public static class NotificationTriggerCatalog {
             "Sobald jemand im Forum auf einen Antrag antwortet, den du abonniert oder unterstützt hast."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionCollectingReminder,
-            "Erinnerung: Mitantragstellende gesucht",
-            "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragstellende hat."),
+            "Erinnerung: Mitantragsteller gesucht",
+            "48 Stunden vor Ablauf der Frist, wenn dein Antrag noch nicht genug Mitantragsteller hat."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionSubmitted,
             "Antrag eingereicht (Antragskommission und Abonnements)",
@@ -55,7 +55,7 @@ public static class NotificationTriggerCatalog {
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionLapsed,
             "Antrag verfallen",
-            "Sobald dein Antrag verfällt, weil die Frist ohne genug Mitantragstellende abgelaufen ist."),
+            "Sobald dein Antrag verfällt, weil die Frist ohne genug Mitantragsteller abgelaufen ist."),
         new NotificationTriggerDescriptor(
             NotificationTriggers.AssemblyMotionChecked,
             "Antrag geprüft",

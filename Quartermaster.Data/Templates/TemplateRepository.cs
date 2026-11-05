@@ -91,23 +91,62 @@ public class TemplateRepository {
             .Update();
     }
 
+    /// <summary>
+    /// Creates missing system templates and brings every unedited one to its current seed text; a row counts as unedited while its
+    /// text still matches the seed hash it was written with. Edited rows and chapter copies are never touched.
+    /// </summary>
     public void SupplementDefaults() {
         foreach (var seed in SystemTemplateSeeds.All) {
+            var seedHash = TemplateSeedHash.Compute(seed.DisplayName, seed.Subject, seed.Body);
             var existing = GetSystemBase(seed.Identifier);
-            if (existing != null)
+            if (existing == null) {
+                Create(new Template {
+                    Identifier = seed.Identifier,
+                    DisplayName = seed.DisplayName,
+                    IsSystem = true,
+                    ChapterId = null,
+                    Subject = seed.Subject,
+                    Body = seed.Body,
+                    AllowsMemberFields = seed.AllowsMemberFields,
+                    AllowsEventFields = seed.AllowsEventFields,
+                    AllowsChapterFields = seed.AllowsChapterFields,
+                    RenderMode = seed.RenderMode,
+                    SeedHash = seedHash
+                });
                 continue;
-            Create(new Template {
-                Identifier = seed.Identifier,
-                DisplayName = seed.DisplayName,
-                IsSystem = true,
-                ChapterId = null,
-                Subject = seed.Subject,
-                Body = seed.Body,
-                AllowsMemberFields = seed.AllowsMemberFields,
-                AllowsEventFields = seed.AllowsEventFields,
-                AllowsChapterFields = seed.AllowsChapterFields,
-                RenderMode = seed.RenderMode
-            });
+            }
+
+            var storedHash = TemplateSeedHash.Compute(existing);
+            if (storedHash == seedHash) {
+                if (existing.SeedHash != seedHash)
+                    SetSeedHash(existing.Id, seedHash);
+                continue;
+            }
+            if (IsUnedited(existing, storedHash))
+                ApplySeed(existing.Id, seed, seedHash);
         }
+    }
+
+    private static bool IsUnedited(Template existing, string storedHash) {
+        if (existing.SeedHash != null)
+            return existing.SeedHash == storedHash;
+        return SystemTemplateLegacySeeds.Contains(existing.Identifier!, storedHash);
+    }
+
+    private void SetSeedHash(Guid id, string seedHash) {
+        _context.Templates
+            .Where(t => t.Id == id)
+            .Set(t => t.SeedHash, seedHash)
+            .Update();
+    }
+
+    private void ApplySeed(Guid id, SystemTemplateSeed seed, string seedHash) {
+        _context.Templates
+            .Where(t => t.Id == id)
+            .Set(t => t.DisplayName, seed.DisplayName)
+            .Set(t => t.Subject, seed.Subject)
+            .Set(t => t.Body, seed.Body)
+            .Set(t => t.SeedHash, seedHash)
+            .Update();
     }
 }
