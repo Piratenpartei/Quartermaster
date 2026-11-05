@@ -79,14 +79,13 @@ public static class AssemblyMotionContent {
     }
 
     /// <summary>
-    /// True when the draft changes what co-submitters back: the type, the section, the text or the reason. Title, summary, keywords
+    /// True when the draft changes what co-submitters back: the type, the section or the text. Title, reason, summary, keywords
     /// and prior discussion only describe the motion.
     /// </summary>
     public static bool HasBindingChange(AssemblyMotion motion, AssemblyMotionDraft draft) {
         return motion.TypeId != draft.TypeId
             || motion.Section != draft.Section
-            || motion.TextMarkdown != draft.TextMarkdown
-            || motion.ReasonMarkdown != draft.ReasonMarkdown;
+            || motion.TextMarkdown != draft.TextMarkdown;
     }
 
     public static AssemblyMotionDraft Snapshot(AssemblyMotion motion) {

@@ -489,23 +489,43 @@ public class AssemblyMotionServiceTests : RepositoryTestBase {
     }
 
     [Test]
-    [Arguments("Section")]
-    [Arguments("Reason")]
-    public async Task Edit_of_section_or_reason_removes_cosubmitters(string field) {
+    public async Task Edit_of_section_removes_cosubmitters() {
         var now = DateTime.UtcNow;
         var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
         var type = TypeWithMinSubmitters(portal.Id, 5);
         var author = SeedEligibleMember();
         var motion = SeedReleased(portal, type, author, now);
         _service.Join(motion.Id, SeedEligibleMember(), now);
-        var draft = field == "Section"
-            ? NewDraft(type.Id) with { Section = "Kapitel 2" }
-            : NewDraft(type.Id) with { ReasonMarkdown = "Neue Begründung" };
 
-        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), draft, baseRevision: 1, now);
+        var outcome = _service.UpdateByAuthor(motion, author, Guid.NewGuid(), NewDraft(type.Id) with { Section = "Kapitel 2" }, baseRevision: 1, now);
 
         await Assert.That(outcome.Succeeded).IsTrue();
         await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(1);
+    }
+
+    /// <summary>The reason explains the motion but is not what the supporters sign, so changing it keeps them.</summary>
+    [Test]
+    public async Task Edit_of_reason_keeps_cosubmitters_and_submission() {
+        var now = DateTime.UtcNow;
+        var portal = SeedPortal(now.AddHours(-1), now.AddDays(7));
+        var type = TypeWithMinSubmitters(portal.Id, 5);
+        var author = SeedEligibleMember();
+        var motion = SeedReleased(portal, type, author, now);
+        for (var i = 0; i < 4; i++)
+            _service.Join(motion.Id, SeedEligibleMember(), now);
+        var submitted = _motionRepo.Get(motion.Id)!;
+
+        var outcome = _service.UpdateByAuthor(submitted, author, Guid.NewGuid(), NewDraft(type.Id) with { ReasonMarkdown = "Neue Begründung" }, baseRevision: 1, now.AddMinutes(5));
+
+        await Assert.That(outcome.Succeeded).IsTrue();
+        var reloaded = _motionRepo.Get(motion.Id)!;
+        await Assert.That(reloaded.ReasonMarkdown).IsEqualTo("Neue Begründung");
+        await Assert.That(reloaded.Status).IsEqualTo(AssemblyMotionStatus.Submitted);
+        await Assert.That(reloaded.SubmittedAt).IsEqualTo(submitted.SubmittedAt);
+        await Assert.That(reloaded.IsInRevision).IsFalse();
+        await Assert.That(_motionRepo.GetSubmitters(motion.Id).Count).IsEqualTo(5);
+        await Assert.That(_motionRepo.GetRevisions(motion.Id).Count).IsEqualTo(2);
+        await Assert.That(AuditLog.GetForEntity("AssemblyMotion", motion.Id).Count(a => a.Action == "CoSubmittersReset")).IsEqualTo(0);
     }
 
     [Test]
