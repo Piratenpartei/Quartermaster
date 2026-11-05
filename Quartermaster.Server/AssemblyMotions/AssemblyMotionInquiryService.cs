@@ -55,12 +55,13 @@ public class AssemblyMotionInquiryService {
 
         _auditLog.Log(EntityType, inquiry.Id, "Asked", nameof(AssemblyMotionInquiry.QuestionMarkdown), null, questionMarkdown);
 
-        var submitterIds = _motions.GetSubmitters(motion.Id)
+        var authorIds = _motions.GetSubmitters(motion.Id)
+            .Where(s => s.IsAuthor)
             .Select(s => s.MemberId)
             .ToList();
 
         tx.Commit();
-        _notifier.InquiryAsked(motion, inquiry, submitterIds);
+        _notifier.InquiryAsked(motion, inquiry, authorIds);
         return AssemblyMotionOutcome.Ok(motion);
     }
 
@@ -83,8 +84,11 @@ public class AssemblyMotionInquiryService {
         inquiry = _inquiries.Get(inquiryId);
         if (inquiry == null)
             return AssemblyMotionOutcome.Fail(404, I18nKey.Error.AssemblyMotion.InquiryNotFound);
-        if (!_motions.GetSubmitters(motion.Id).Any(s => s.MemberId == member.Id))
+        var submitter = _motions.GetSubmitters(motion.Id).FirstOrDefault(s => s.MemberId == member.Id);
+        if (submitter == null)
             return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.NotSubmitter);
+        if (!submitter.IsAuthor)
+            return AssemblyMotionOutcome.Fail(403, I18nKey.Error.AssemblyMotion.InquiryAuthorOnly);
         if (inquiry.ClosedAt != null)
             return AssemblyMotionOutcome.Fail(409, I18nKey.Error.AssemblyMotion.InvalidState);
 

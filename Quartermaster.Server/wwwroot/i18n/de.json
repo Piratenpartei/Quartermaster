@@ -180,6 +180,7 @@
   "error.assembly_motion.inquiry_answer_required": "Die Antwort darf nicht leer sein.",
   "error.assembly_motion.inquiry_answer_max_length": "Die Antwort darf maximal 20.000 Zeichen lang sein.",
   "error.assembly_motion.inquiry_not_found": "Rückfrage nicht gefunden.",
+  "error.assembly_motion.inquiry_author_only": "Nur der Verfasser kann Rückfragen beantworten.",
   "error.assembly_motion.competition_exists": "Diese beiden Anträge sind bereits als konkurrierend verknüpft.",
   "error.assembly_motion.competition_not_found": "Verknüpfung nicht gefunden.",
   "error.assembly_motion.competing_flag_requires_link": "Ein konkurrierender Antrag braucht die Verknüpfung mit einem zuvor eingereichten Antrag.",

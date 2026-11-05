@@ -180,6 +180,7 @@
   "error.assembly_motion.inquiry_answer_required": "The answer must not be empty.",
   "error.assembly_motion.inquiry_answer_max_length": "The answer must be at most 20000 characters long.",
   "error.assembly_motion.inquiry_not_found": "Inquiry not found.",
+  "error.assembly_motion.inquiry_author_only": "Only the author can answer inquiries.",
   "error.assembly_motion.competition_exists": "These two motions are already linked as competing.",
   "error.assembly_motion.competition_not_found": "Link not found.",
   "error.assembly_motion.competing_flag_requires_link": "A competing motion requires a link to a previously submitted motion.",

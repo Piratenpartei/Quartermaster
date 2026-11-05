@@ -151,7 +151,7 @@
 
         <AssemblyMotionSubmitterList Submitters="@Member.Submitters" />
 
-        <AssemblyMotionInquiries MotionId="@Id" Inquiries="@Member.Inquiries" CanAnswer="@Member.IsSubmitter" OnChanged="Apply" />
+        <AssemblyMotionInquiries MotionId="@Id" Inquiries="@Member.Inquiries" CanAnswer="@Member.IsAuthor" OnChanged="Apply" />
 
         <AssemblyMotionRevisionHistory MotionId="@Id" CurrentRevision="@Member.Revision" />
     }

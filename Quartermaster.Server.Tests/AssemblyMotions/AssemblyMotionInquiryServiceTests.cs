@@ -121,8 +121,9 @@ public class AssemblyMotionInquiryServiceTests : RepositoryTestBase {
         await Assert.That(_inquiryRepo.HasOpen(motion.Id)).IsTrue();
     }
 
+    /// <summary>The commission asks the author; co-submitters see the inquiry but do not answer it.</summary>
     [Test]
-    public async Task Any_submitter_can_answer() {
+    public async Task Only_the_author_answers() {
         var now = DateTime.UtcNow;
         var portal = _portalRepo.Create(_event.Id, now.AddHours(-1), now.AddDays(7), now);
         var type = _portalRepo.GetTypes(portal.Id).First(t => t.MinSubmitters == 5);
@@ -138,14 +139,18 @@ public class AssemblyMotionInquiryServiceTests : RepositoryTestBase {
         var motion = _motionRepo.Get(created.Id)!;
         var inquiry = AskedInquiry(motion);
 
-        var outcome = _inquiries.Answer(inquiry.Id, second, "Antwort", DateTime.UtcNow);
+        var bySecond = _inquiries.Answer(inquiry.Id, second, "Antwort", DateTime.UtcNow);
+        var byAuthor = _inquiries.Answer(inquiry.Id, author, "Antwort", DateTime.UtcNow);
         var stored = _inquiryRepo.Get(inquiry.Id)!;
 
         await Assert.That(motion.Number).IsNotNull();
-        await Assert.That(outcome.Succeeded).IsTrue();
+        await Assert.That(bySecond.Succeeded).IsFalse();
+        await Assert.That(bySecond.StatusCode).IsEqualTo(403);
+        await Assert.That(bySecond.ErrorKey).IsEqualTo(I18nKey.Error.AssemblyMotion.InquiryAuthorOnly);
+        await Assert.That(byAuthor.Succeeded).IsTrue();
         await Assert.That(stored.AnswerMarkdown).IsEqualTo("Antwort");
         await Assert.That(stored.AnswerHtml).Contains("Antwort");
-        await Assert.That(stored.AnsweredByMemberId).IsEqualTo(second.Id);
+        await Assert.That(stored.AnsweredByMemberId).IsEqualTo(author.Id);
         await Assert.That(stored.AnsweredAt).IsNotNull();
     }
 

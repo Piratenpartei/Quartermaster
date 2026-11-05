@@ -325,6 +325,7 @@ public static class I18nKey {
             public const string InquiryAnswerRequired = "error.assembly_motion.inquiry_answer_required";
             public const string InquiryAnswerMaxLength = "error.assembly_motion.inquiry_answer_max_length";
             public const string InquiryNotFound = "error.assembly_motion.inquiry_not_found";
+            public const string InquiryAuthorOnly = "error.assembly_motion.inquiry_author_only";
             public const string CompetitionExists = "error.assembly_motion.competition_exists";
             public const string CompetitionNotFound = "error.assembly_motion.competition_not_found";
             public const string CompetingFlagRequiresLink = "error.assembly_motion.competing_flag_requires_link";

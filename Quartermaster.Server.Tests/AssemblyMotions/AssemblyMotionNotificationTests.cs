@@ -390,8 +390,10 @@ public class AssemblyMotionNotificationTests : RepositoryTestBase {
     }
 
     [Test]
-    public async Task Inquiry_asked_goes_to_submitters_with_question() {
-        var (motion, author, _) = Released(1, TimeSpan.FromDays(7));
+    public async Task Inquiry_asked_goes_only_to_the_author_with_question() {
+        var (motion, author, _) = Released(5, TimeSpan.FromDays(7));
+        JoinNew(motion);
+        Db.AssemblyMotions.Where(m => m.Id == motion.Id).Set(m => m.Number, 1).Update();
         _queue.Requests.Clear();
 
         var outcome = _inquiries.Ask(motion.Id, "Warum diese Frist?", DateTime.UtcNow.AddDays(3), _userId, DateTime.UtcNow);
