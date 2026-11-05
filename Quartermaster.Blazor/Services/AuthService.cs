@@ -46,6 +46,13 @@ public class AuthService {
         }
     }
 
+    /// <summary>Reads the session again after the user changed something it carries, such as the display name.</summary>
+    public async Task ReloadSessionAsync() {
+        var response = await _http.GetAsync("/api/users/session");
+        if (response.IsSuccessStatusCode)
+            _state.SetState(await response.Content.ReadFromJsonAsync<LoginResponse>());
+    }
+
     public async Task<bool> LoginAsync(string usernameOrEmail, string password) {
         var request = new LoginRequest { Password = password };
         if (usernameOrEmail.Contains('@'))

@@ -1,5 +1,6 @@
 ﻿using System;
 using LinqToDB.Mapping;
+using Quartermaster.Api.Users;
 
 namespace Quartermaster.Data.Users;
 
@@ -7,6 +8,7 @@ namespace Quartermaster.Data.Users;
 public class User {
     public const string TableName = "Users";
     public const int KeycloakUserIdMaxLength = 64;
+    public const int UsernameMaxLength = 255;
 
     [PrimaryKey]
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -36,4 +38,6 @@ public class User {
 
     /// <summary>The <c>sub</c> claim of the last OIDC login, which the forum stores as the account's external id.</summary>
     public string? KeycloakUserId { get; set; }
+
+    public DisplayNameMode DisplayNameMode { get; set; }
 }

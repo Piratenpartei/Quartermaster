@@ -64,6 +64,8 @@ public class KeycloakUserImporter {
             return new KeycloakUserImportResult(null, ProblemFor(result));
 
         _audit.LogCreated("User", user!.Id);
+        if (!string.IsNullOrWhiteSpace(account.Username))
+            _users.SetUsernameFromSso(user.Id, account.Username);
         _departments.Assign(member, department);
         return new KeycloakUserImportResult(user.Id, null);
     }

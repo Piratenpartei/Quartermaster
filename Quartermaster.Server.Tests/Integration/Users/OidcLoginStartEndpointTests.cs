@@ -51,6 +51,16 @@ public class OidcLoginStartEndpointTests : IntegrationTestBase {
         await Assert.That(location.Contains("nonce=")).IsTrue();
     }
 
+    /// <summary>Keycloak sends <c>preferred_username</c> with the profile scope; asking for it does not depend on the client's default scopes.</summary>
+    [Test]
+    public async Task Asks_for_the_profile_scope_that_carries_the_username() {
+        SetOidcConfig(authority: "https://idp.example.com", clientId: "my-client");
+        using var client = AnonymousClient();
+        var response = await client.GetAsync("/api/users/OidcLoginStart");
+
+        await Assert.That(response.Headers.Location!.ToString()).Contains("scope=openid profile email");
+    }
+
     [Test]
     public async Task Sets_PKCE_state_and_nonce_cookies() {
         SetOidcConfig(authority: "https://idp.example.com", clientId: "my-client");

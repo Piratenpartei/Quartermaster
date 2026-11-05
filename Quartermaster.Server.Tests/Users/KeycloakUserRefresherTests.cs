@@ -1,4 +1,5 @@
 using LinqToDB;
+using Microsoft.Extensions.Logging.Abstractions;
 using Quartermaster.Data.Chapters;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Permissions;
@@ -25,7 +26,7 @@ public class KeycloakUserRefresherTests : RepositoryTestBase {
         var members = new MemberRepository(Db, AuditLog);
         var users = new UserRepository(Db, new UserGlobalPermissionRepository(Db, new RoleRepository(Db)), new PermissionRepository(Db));
         var departments = new KeycloakDepartmentChapterAssigner(new ChapterRepository(Db, AuditLog), members);
-        _refresher = new KeycloakUserRefresher(new FakeKeycloakAdminClient(), members, users, departments);
+        _refresher = new KeycloakUserRefresher(new FakeKeycloakAdminClient(), members, users, departments, NullLogger<KeycloakUserRefresher>.Instance);
     }
 
     private (Member Member, User User) SeedLinkedMember(Guid? chapterId = null, DateTime? exitDate = null) {
@@ -51,6 +52,48 @@ public class KeycloakUserRefresherTests : RepositoryTestBase {
         await Assert.That(first.AccountsRead).IsEqualTo(1);
         await Assert.That(first.KeycloakIdsStored).IsEqualTo(1);
         await Assert.That(second.KeycloakIdsStored).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Sets_the_keycloak_username_of_a_linked_user() {
+        var (member, user) = SeedLinkedMember();
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "anna.pirat", member.MemberNumber.ToString());
+
+        var result = await _refresher.RefreshAsync(_now, CancellationToken.None);
+
+        await Assert.That(UserOf(user.Id).Username).IsEqualTo("anna.pirat");
+        await Assert.That(result.UsernamesSet).IsEqualTo(1);
+        await Assert.That(result.UsernamesSkipped).IsEqualTo(0);
+    }
+
+    /// <summary>A rename in Keycloak can hand an account's old name to an account listed before it; that one gets it in the second pass.</summary>
+    [Test]
+    public async Task A_name_freed_later_in_the_same_run_is_taken_in_the_second_pass() {
+        var (firstMember, firstUser) = SeedLinkedMember();
+        var (secondMember, secondUser) = SeedLinkedMember();
+        Db.Users.Where(u => u.Id == secondUser.Id).Set(u => u.Username, "anna.pirat").Update();
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "anna.pirat", firstMember.MemberNumber.ToString());
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "anna.pirat2", secondMember.MemberNumber.ToString());
+
+        var result = await _refresher.RefreshAsync(_now, CancellationToken.None);
+
+        await Assert.That(UserOf(firstUser.Id).Username).IsEqualTo("anna.pirat");
+        await Assert.That(UserOf(secondUser.Id).Username).IsEqualTo("anna.pirat2");
+        await Assert.That(result.UsernamesSet).IsEqualTo(2);
+        await Assert.That(result.UsernamesSkipped).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task A_name_another_account_keeps_is_counted_as_skipped() {
+        var (member, user) = SeedLinkedMember();
+        _builder.SeedUser(username: "anna.pirat");
+        FakeKeycloakAdminClient.AddUser(Guid.NewGuid().ToString(), "anna.pirat", member.MemberNumber.ToString());
+
+        var result = await _refresher.RefreshAsync(_now, CancellationToken.None);
+
+        await Assert.That(UserOf(user.Id).Username).IsNotEqualTo("anna.pirat");
+        await Assert.That(result.UsernamesSet).IsEqualTo(0);
+        await Assert.That(result.UsernamesSkipped).IsEqualTo(1);
     }
 
     [Test]

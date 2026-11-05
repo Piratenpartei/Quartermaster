@@ -192,7 +192,8 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
             FindClaim(principal, "given_name", ClaimTypes.GivenName),
             FindClaim(principal, "family_name", ClaimTypes.Surname),
             FindClaim(principal, departmentClaim, departmentClaim),
-            SsoLoginHelper.ParseEligible(FindClaim(principal, eligibleClaim, eligibleClaim)));
+            SsoLoginHelper.ParseEligible(FindClaim(principal, eligibleClaim, eligibleClaim)),
+            FindClaim(principal, "preferred_username", "preferred_username"));
 
         Logger.LogInformation("OIDC login attempt for member number {MemberNumber}", memberNumber);
 
@@ -215,6 +216,8 @@ public class OidcCallbackEndpoint : Endpoint<OidcCallbackRequest> {
         var keycloakUserId = FindClaim(principal, "sub", ClaimTypes.NameIdentifier);
         if (token!.UserId != null && keycloakUserId != null && keycloakUserId.Length <= Quartermaster.Data.Users.User.KeycloakUserIdMaxLength)
             _userRepo.SetKeycloakUserId(token.UserId.Value, keycloakUserId);
+        if (token.UserId != null)
+            SsoLoginHelper.ApplyUsername(_userRepo, token.UserId.Value, identity.Username, Logger);
 
         AuthCookie.Set(HttpContext, token!.Content, token.Expires);
         await SendRedirectAsync("/", allowRemoteRedirects: false);

@@ -1,4 +1,5 @@
 using LinqToDB;
+using Microsoft.Extensions.Logging.Abstractions;
 using Quartermaster.Data.AdministrativeDivisions;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
@@ -52,6 +53,24 @@ public class SsoLoginHelperTests : RepositoryTestBase {
         };
         _memberRepo.Insert(member);
         return member;
+    }
+
+    [Test]
+    public async Task The_sso_username_replaces_the_email_username_at_login() {
+        var (_, token) = Login(new SsoIdentity("erika@example.org", 4712, "Erika", "Mustermann"));
+
+        SsoLoginHelper.ApplyUsername(_userRepo, token!.UserId!.Value, "erika.mustermann", NullLogger.Instance);
+
+        await Assert.That(_userRepo.Get(token.UserId.Value)!.Username).IsEqualTo("erika.mustermann");
+    }
+
+    [Test]
+    public async Task A_login_without_username_claim_keeps_the_existing_username() {
+        var (_, token) = Login(new SsoIdentity("erika@example.org", 4713, "Erika", "Mustermann"));
+
+        SsoLoginHelper.ApplyUsername(_userRepo, token!.UserId!.Value, null, NullLogger.Instance);
+
+        await Assert.That(_userRepo.Get(token.UserId.Value)!.Username).IsEqualTo("erika@example.org");
     }
 
     [Test]

@@ -1,5 +1,7 @@
 ﻿using LinqToDB;
+using MySqlConnector;
 using Quartermaster.Api;
+using Quartermaster.Api.Users;
 using Quartermaster.Data.Permissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using System;
@@ -31,6 +33,46 @@ public class UserRepository {
         _context.Users
             .Where(u => u.Id == userId && (u.KeycloakUserId == null || u.KeycloakUserId != keycloakUserId))
             .Set(u => u.KeycloakUserId, keycloakUserId)
+            .Update();
+    }
+
+    /// <summary>
+    /// Sets the username the SSO delivers. A name held by another active account stays there (it may still carry a name renamed in
+    /// Keycloak until it changes too); a name held only by a deleted account moves over, since the unique index covers deleted rows.
+    /// </summary>
+    public UsernameUpdate SetUsernameFromSso(Guid userId, string username) {
+        if (username.Length > User.UsernameMaxLength)
+            return UsernameUpdate.TooLong;
+
+        var holder = _context.Users.Where(u => u.Username == username).FirstOrDefault();
+        if (holder != null && holder.Id == userId)
+            return UsernameUpdate.Unchanged;
+        if (holder != null && holder.DeletedAt == null)
+            return UsernameUpdate.Taken;
+
+        using var tx = _context.BeginTransaction();
+        if (holder != null) {
+            _context.Users
+                .Where(u => u.Id == holder.Id)
+                .Set(u => u.Username, (string?)null)
+                .Update();
+        }
+        try {
+            _context.Users
+                .Where(u => u.Id == userId)
+                .Set(u => u.Username, username)
+                .Update();
+        } catch (MySqlException ex) when (ex.ErrorCode == MySqlErrorCode.DuplicateKeyEntry) {
+            return UsernameUpdate.Taken;
+        }
+        tx.Commit();
+        return UsernameUpdate.Set;
+    }
+
+    public void SetDisplayNameMode(Guid userId, DisplayNameMode mode) {
+        _context.Users
+            .Where(u => u.Id == userId)
+            .Set(u => u.DisplayNameMode, mode)
             .Update();
     }
 

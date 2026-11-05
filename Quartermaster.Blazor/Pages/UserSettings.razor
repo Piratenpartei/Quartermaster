@@ -20,13 +20,34 @@
                     <div class="table-responsive">
                     <table class="table table-borderless mb-0">
                         <tbody>
-                            <tr><th style="width:180px">@I18n[I18nKey.Ui.UserSettings.DisplayName]</th><td>@Settings.User.DisplayName</td></tr>
+                            <tr>
+                                <th style="width:180px">@I18n[I18nKey.Ui.UserSettings.DisplayName]</th>
+                                <td>
+                                    <div class="mb-1">@Settings.User.DisplayName</div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="displayNameMode" id="displayNameRealName"
+                                               checked="@(Settings.DisplayNameMode == DisplayNameMode.RealName)" disabled="@SavingDisplayName"
+                                               @onchange="() => ChooseDisplayName(DisplayNameMode.RealName)" />
+                                        <label class="form-check-label" for="displayNameRealName">@I18n[I18nKey.Ui.UserSettings.DisplayNameRealName]</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="displayNameMode" id="displayNameUsername"
+                                               checked="@(Settings.DisplayNameMode == DisplayNameMode.Username)" disabled="@(SavingDisplayName || !Settings.CanUseUsername)"
+                                               @onchange="() => ChooseDisplayName(DisplayNameMode.Username)" />
+                                        <label class="form-check-label" for="displayNameUsername">@I18n[I18nKey.Ui.UserSettings.DisplayNameUsername]</label>
+                                    </div>
+                                    @if (!Settings.CanUseUsername) {
+                                        <div class="form-text">@I18n[I18nKey.Ui.UserSettings.DisplayNameUsernamePending]</div>
+                                    }
+                                    <div class="form-text">@I18n[I18nKey.Ui.UserSettings.DisplayNameHint]</div>
+                                </td>
+                            </tr>
                             <tr><th>@I18n[I18nKey.Ui.UserSettings.Username]</th><td>@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</td></tr>
                             <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</td></tr>
                             <tr>
                                 <th>@I18n[I18nKey.Ui.UserSettings.LoginMethod]</th>
                                 <td>
-                                    @if (Settings.User.Username == Settings.User.Email) {
+                                    @if (Settings.IsSsoAccount) {
                                         <span class="badge bg-primary"><i class="bi bi-shield-lock me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodSso]</span>
                                     } else {
                                         <span class="badge bg-secondary"><i class="bi bi-person-fill me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodManual]</span>

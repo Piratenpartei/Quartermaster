@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Logging;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Members;
 using Quartermaster.Data.Tokens;
@@ -45,6 +46,17 @@ public static class SsoLoginHelper {
         memberRepo.SetVotingRights(member.Id, member.HasVotingRights, eligible.Value);
         member.HasVotingRights = eligible.Value;
         return true;
+    }
+
+    /// <summary>Sets the username the SSO delivered; without one, or when another account still holds it, the account keeps its username.</summary>
+    public static void ApplyUsername(UserRepository userRepo, Guid userId, string? username, ILogger logger) {
+        if (string.IsNullOrWhiteSpace(username)) {
+            logger.LogWarning("SSO login of user {UserId} carried no username; the account keeps its username", userId);
+            return;
+        }
+        var outcome = userRepo.SetUsernameFromSso(userId, username);
+        if (outcome == UsernameUpdate.Taken || outcome == UsernameUpdate.TooLong)
+            logger.LogWarning("SSO username of user {UserId} not set: {Outcome}", userId, outcome);
     }
 
     /// <summary>The <c>ekklesia_eligible</c> value as Keycloak sends it ("true"/"false"); anything else is unknown.</summary>

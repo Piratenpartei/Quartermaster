@@ -105,6 +105,7 @@ public class KeycloakUserImportEndpointTests : IntegrationTestBase {
         await Assert.That(member.UserId).IsEqualTo(userId);
         await Assert.That(member.ChapterId).IsEqualTo(state.Id);
         await Assert.That(Db.Users.Single(u => u.Id == userId).Email).IsEqualTo("anna@example.org");
+        await Assert.That(Db.Users.Single(u => u.Id == userId).Username).IsEqualTo($"anna.pirat{number}");
     }
 
     [Test]

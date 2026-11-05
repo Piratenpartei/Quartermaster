@@ -68,7 +68,7 @@ public class NewsPublicationListEndpoint : EndpointWithoutRequest<List<PostPubli
                     : new DateTimeOffset(DateTime.SpecifyKind(p.ScheduledFor.Value, DateTimeKind.Utc)),
                 Succeeded = p.Status == PostPublicationStatus.Sent,
                 Error = p.Error,
-                ApprovedBy = approvers.TryGetValue(p.ApprovedByUserId, out var approver) ? $"{approver.FirstName} {approver.LastName}" : "",
+                ApprovedBy = approvers.TryGetValue(p.ApprovedByUserId, out var approver) ? approver.DisplayName() : "",
                 ApprovedAt = new DateTimeOffset(DateTime.SpecifyKind(p.ApprovedAt, DateTimeKind.Utc))
             })
             .ToList();

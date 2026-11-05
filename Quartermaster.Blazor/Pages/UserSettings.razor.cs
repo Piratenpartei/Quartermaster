@@ -28,6 +28,7 @@ public partial class UserSettings {
     private UserSettingsDTO? Settings;
     private bool Loading = true;
     private bool Seeding;
+    private bool SavingDisplayName;
     private bool IsDebug => ConfigService.IsDebug;
 
     protected override async Task OnInitializedAsync() {
@@ -39,6 +40,26 @@ public partial class UserSettings {
         }
 
         Loading = false;
+    }
+
+    private async Task ChooseDisplayName(DisplayNameMode mode) {
+        if (Settings == null || Settings.DisplayNameMode == mode)
+            return;
+
+        SavingDisplayName = true;
+        try {
+            var response = await Http.PutAsJsonAsync("/api/users/settings/display-name", new DisplayNameUpdateRequest { Mode = mode });
+            if (response.IsSuccessStatusCode) {
+                Settings = await Http.GetFromJsonAsync<UserSettingsDTO>("/api/users/settings");
+                await AuthService.ReloadSessionAsync();
+                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            } else {
+                await ToastService.ErrorAsync(response);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+        SavingDisplayName = false;
     }
 
     private async Task SeedTestData() {

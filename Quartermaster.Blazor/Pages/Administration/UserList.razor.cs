@@ -63,6 +63,8 @@ public partial class UserList {
             ("ids", result.KeycloakIdsStored.ToString()),
             ("chapters", result.ChaptersAssigned.ToString()),
             ("voting", result.VotingRightsChanged.ToString()),
+            ("usernames", result.UsernamesSet.ToString()),
+            ("skipped", result.UsernamesSkipped.ToString()),
             ("without", result.AccountsWithoutUser.ToString()))];
     }
 }

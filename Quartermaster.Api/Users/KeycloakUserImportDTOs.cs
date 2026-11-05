@@ -27,6 +27,10 @@ public class KeycloakUserRefreshDTO {
     public int KeycloakIdsStored { get; set; }
     public int ChaptersAssigned { get; set; }
     public int VotingRightsChanged { get; set; }
+    public int UsernamesSet { get; set; }
+
+    /// <summary>Accounts whose Keycloak username another account here still holds; they keep their old one.</summary>
+    public int UsernamesSkipped { get; set; }
 
     /// <summary>Open accounts with a member number whose member has no Quartermaster user.</summary>
     public int AccountsWithoutUser { get; set; }

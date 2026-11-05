@@ -50,7 +50,7 @@ public class OidcLoginStartEndpoint : Endpoint<EmptyRequest> {
         var authorizeUrl = $"{authority.TrimEnd('/')}/protocol/openid-connect/auth"
             + $"?client_id={Uri.EscapeDataString(clientId)}"
             + $"&response_type=code"
-            + $"&scope=openid%20email"
+            + $"&scope=openid%20profile%20email"
             + $"&redirect_uri={Uri.EscapeDataString(redirectUri)}"
             + $"&code_challenge={codeChallenge}"
             + $"&code_challenge_method=S256"

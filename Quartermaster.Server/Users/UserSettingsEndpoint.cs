@@ -109,7 +109,10 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
             },
             Member = memberInfo,
             GlobalPermissions = globalPerms,
-            ChapterPermissions = chapterPerms
+            ChapterPermissions = chapterPerms,
+            DisplayNameMode = user.DisplayNameMode,
+            CanUseUsername = user.HasUsername(),
+            IsSsoAccount = user.PasswordHash == null
         }, cancellation: ct);
     }
 }

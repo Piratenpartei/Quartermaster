@@ -51,6 +51,7 @@ public static class I18nKey {
 
         public static class User {
             public const string DeleteSelfForbidden = "error.user.delete_self_forbidden";
+            public const string DisplayNameUsernameMissing = "error.user.display_name_username_missing";
 
             public static class Login {
                 public const string UsernameOrEmailRequired = "error.user.login.username_or_email_required";
@@ -890,6 +891,10 @@ public static class I18nKey {
             public const string MyAccount = "ui.user_settings.my_account";
             public const string UserDataTitle = "ui.user_settings.user_data_title";
             public const string DisplayName = "ui.user_settings.display_name";
+            public const string DisplayNameRealName = "ui.user_settings.display_name_real_name";
+            public const string DisplayNameUsername = "ui.user_settings.display_name_username";
+            public const string DisplayNameHint = "ui.user_settings.display_name_hint";
+            public const string DisplayNameUsernamePending = "ui.user_settings.display_name_username_pending";
             public const string Username = "ui.user_settings.username";
             public const string LoginMethod = "ui.user_settings.login_method";
             public const string LoginMethodSso = "ui.user_settings.login_method.sso";

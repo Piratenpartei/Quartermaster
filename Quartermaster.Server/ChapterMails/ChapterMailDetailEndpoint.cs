@@ -96,19 +96,12 @@ public class ChapterMailDetailEndpoint : Endpoint<ChapterMailIdRequest, ChapterM
             Content = mail.Content,
             CreatedAt = new DateTimeOffset(mail.CreatedAt, TimeSpan.Zero),
             CreatedByUserId = mail.CreatedByUserId,
-            CreatedByDisplayName = DisplayName(createdBy),
+            CreatedByDisplayName = createdBy?.DisplayName(),
             SentAt = mail.SentAt.HasValue ? new DateTimeOffset(mail.SentAt.Value, TimeSpan.Zero) : null,
             SentByUserId = mail.SentByUserId,
-            SentByDisplayName = DisplayName(sentBy),
+            SentByDisplayName = sentBy?.DisplayName(),
             RecipientCount = mail.RecipientCount,
             DeletedAt = mail.DeletedAt.HasValue ? new DateTimeOffset(mail.DeletedAt.Value, TimeSpan.Zero) : null
         };
-    }
-
-    private static string? DisplayName(User? user) {
-        if (user == null)
-            return null;
-        var full = $"{user.FirstName} {user.LastName}".Trim();
-        return string.IsNullOrEmpty(full) ? user.Username : full;
     }
 }

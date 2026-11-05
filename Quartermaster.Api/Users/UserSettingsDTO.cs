@@ -8,6 +8,17 @@ public class UserSettingsDTO {
     public UserSettingsMemberInfo? Member { get; set; }
     public List<UserSettingsPermissionInfo> GlobalPermissions { get; set; } = [];
     public List<UserSettingsChapterPermissions> ChapterPermissions { get; set; } = [];
+    public DisplayNameMode DisplayNameMode { get; set; }
+
+    /// <summary>The account has a username from the login, not the e-mail address it held before, so it can serve as display name.</summary>
+    public bool CanUseUsername { get; set; }
+
+    /// <summary>The account signs in through the SSO; it has no password of its own.</summary>
+    public bool IsSsoAccount { get; set; }
+}
+
+public class DisplayNameUpdateRequest {
+    public DisplayNameMode Mode { get; set; }
 }
 
 public class UserSettingsMemberInfo {

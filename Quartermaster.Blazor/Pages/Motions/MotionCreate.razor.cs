@@ -32,7 +32,8 @@ public partial class MotionCreate {
         await AuthService.WaitForInitializationAsync();
         var user = AuthService.CurrentUser;
         if (user != null) {
-            AuthorName = user.DisplayName;
+            var realName = $"{user.FirstName} {user.LastName}".Trim();
+            AuthorName = realName.Length > 0 ? realName : user.DisplayName;
             AuthorEmail = user.Email;
         }
     }
