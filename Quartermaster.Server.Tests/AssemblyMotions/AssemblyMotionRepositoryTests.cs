@@ -125,20 +125,26 @@ public class AssemblyMotionRepositoryTests : RepositoryTestBase {
         await Assert.That(submitters[1].MemberId).IsEqualTo(coSubmitter.Id);
     }
 
+    /// <summary>A type whose only motions are deleted drafts can be deleted; the drafts still reference it and go with it.</summary>
     [Test]
-    public async Task TypeHasMotions_counts_soft_deleted_drafts_because_they_still_reference_the_type() {
+    public async Task TypeHasMotions_ignores_soft_deleted_drafts_and_DeleteType_removes_them() {
         var portal = SeedPortal();
         var member = _builder.SeedMember();
         var types = _portalRepo.GetTypes(portal.Id);
         var typeWithDeletedDraft = types[0];
         var typeWithLiveDraft = types[1];
 
-        InsertMotion(portal.Id, typeWithDeletedDraft.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft, deletedAt: DateTime.UtcNow);
+        var deletedDraft = InsertMotion(portal.Id, typeWithDeletedDraft.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft, deletedAt: DateTime.UtcNow);
         InsertMotion(portal.Id, typeWithLiveDraft.Id, member.Id, number: null, status: AssemblyMotionStatus.Draft);
 
-        await Assert.That(_portalRepo.TypeHasMotions(typeWithDeletedDraft.Id)).IsTrue();
+        await Assert.That(_portalRepo.TypeHasMotions(typeWithDeletedDraft.Id)).IsFalse();
         await Assert.That(_portalRepo.TypeHasMotions(typeWithLiveDraft.Id)).IsTrue();
         await Assert.That(_portalRepo.TypeHasMotions(types[2].Id)).IsFalse();
+
+        _portalRepo.DeleteType(typeWithDeletedDraft.Id);
+
+        await Assert.That(_context.AssemblyMotionTypes.Any(t => t.Id == typeWithDeletedDraft.Id)).IsFalse();
+        await Assert.That(_context.AssemblyMotions.Any(m => m.Id == deletedDraft.Id)).IsFalse();
     }
 
     [Test]

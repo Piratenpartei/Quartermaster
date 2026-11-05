@@ -117,6 +117,32 @@ public class AssemblyMotionMemberEndpointTests : IntegrationTestBase {
             .IsEquivalentTo(new[] { "Anna Autor", "Bert Zweiter" });
     }
 
+    /// <summary>A binding edit sends a submitted motion back to collecting support; it keeps its number and needs support again.</summary>
+    [Test]
+    public async Task Collecting_list_shows_a_numbered_motion_that_needs_support_again() {
+        var (chapter, portal, type) = SeedPortal(minSubmitters: 2);
+        var author = SeedParticipant(chapter, "Anna", "Autor");
+        var second = SeedParticipant(chapter, "Bert", "Zweiter");
+        var created = await CreateMotion(author, portal, type);
+        await Post(author, $"/api/assemblymotions/motions/{created.Id}/release");
+        await Post(second, $"/api/assemblymotions/motions/{created.Id}/join");
+        var submitted = await GetDetail(author.Token, created.Id);
+
+        using var authorClient = await AuthenticatedClientWithCsrfAsync(author.Token);
+        var edit = SaveRequest(type);
+        edit.TextMarkdown = "Geänderter Text";
+        edit.BaseRevision = submitted!.Revision;
+        var edited = await authorClient.PutAsJsonAsync($"/api/assemblymotions/motions/{created.Id}", edit);
+        var list = await (await authorClient.GetAsync($"/api/assemblymotions/portals/{portal.Id}/collecting"))
+            .Content.ReadFromJsonAsync<AssemblyMotionCollectingListResponse>();
+
+        await Assert.That(edited.StatusCode).IsEqualTo(HttpStatusCode.OK);
+        await Assert.That((await GetDetail(author.Token, created.Id))!.Status).IsEqualTo(AssemblyMotionStatus.CollectingCoSubmitters);
+        await Assert.That(list!.Items.Select(i => i.Id).ToArray()).IsEquivalentTo(new[] { created.Id });
+        await Assert.That(list.Items[0].DisplayNumber).IsEqualTo("SÄA001");
+        await Assert.That(list.TotalCount).IsEqualTo(1);
+    }
+
     [Test]
     public async Task Collecting_list_hidden_from_ineligible_member() {
         var (chapter, portal, type) = SeedPortal(minSubmitters: 2);
