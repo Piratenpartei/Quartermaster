@@ -1,0 +1,16 @@
+@using Quartermaster.Api.I18n
+
+<button type="button" class="@CssClasses" disabled="@((Disabled && _state.Phase == AsyncButtonPhase.Ready) || _state.Phase == AsyncButtonPhase.Busy)" @onclick="RunAsync">
+    <span class="async-button-label" aria-live="polite">
+        <span aria-hidden="@IsHidden(AsyncButtonPhase.Ready, AsyncButtonPhase.Busy)">
+            @if (_state.Phase == AsyncButtonPhase.Busy) {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            } else if (!string.IsNullOrEmpty(Icon)) {
+                <i class="bi bi-@Icon me-1"></i>
+            }
+            @Text
+        </span>
+        <span aria-hidden="@IsHidden(AsyncButtonPhase.Done)"><i class="bi bi-check-lg me-1"></i>@(DoneText ?? I18n[I18nKey.Ui.AsyncButton.Done])</span>
+        <span aria-hidden="@IsHidden(AsyncButtonPhase.Failed)"><i class="bi bi-x-lg me-1"></i>@I18n[I18nKey.Ui.AsyncButton.Failed]</span>
+    </span>
+</button>

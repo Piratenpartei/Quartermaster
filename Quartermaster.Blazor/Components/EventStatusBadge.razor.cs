@@ -11,12 +11,10 @@ public partial class EventStatusBadge {
     [Parameter, EditorRequired]
     public EventStatus Status { get; set; }
 
-    private string CssClass => Status switch {
-        EventStatus.Draft => "border-secondary text-secondary-emphasis",
-        EventStatus.Active => "border-primary text-primary-emphasis",
-        EventStatus.Completed => "border-success text-success-emphasis",
-        EventStatus.Archived => "border-secondary text-body-tertiary",
-        _ => "border-secondary"
+    private StatusTone Tone => Status switch {
+        EventStatus.Active => StatusTone.Info,
+        EventStatus.Completed => StatusTone.Success,
+        _ => StatusTone.Neutral
     };
 
     private string Label => Status switch {

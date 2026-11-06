@@ -9,7 +9,7 @@
             <img src="img/PPDE_Signet.png" alt="" width="32" height="32" class="me-2" />
             Quartermaster
         </a>
-        <button class="navbar-toggler btn-hover-scale1" type="button" @onclick=ToggleMenu>
+        <button class="navbar-toggler" type="button" @onclick=ToggleMenu>
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -169,31 +169,59 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 @if (AuthService.IsAuthenticated) {
-                    <a href="/Settings" class="btn btn-outline-secondary btn-sm btn-hover-scale1 text-nowrap">
-                        <i class="bi bi-person-fill"></i> @AuthService.CurrentUser?.DisplayName
-                    </a>
-                    <a href="/Sessions" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.MySessionsTitle]">
-                        <i class="bi bi-shield-lock"></i>
-                    </a>
-                    <a href="/Account/Notifications" class="btn btn-outline-secondary btn-sm btn-hover-scale1" title="@I18n[I18nKey.Ui.MainNavBar.NotificationsTitle]">
-                        <i class="bi bi-bell"></i>
-                    </a>
-                    <button class="btn btn-outline-secondary btn-sm btn-hover-scale1" @onclick=HandleLogout>
-                        @I18n[I18nKey.Ui.MainNavBar.Logout]
-                    </button>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <NavMenuDropdown AlignEnd="true">
+                                <ButtonContent>
+                                    <i class="bi bi-person-circle"></i> @AuthService.CurrentUser?.DisplayName
+                                    @if (AuthService.CurrentUser?.HasVotingRights == true) {
+                                        <i class="bi bi-check-circle-fill text-success ms-1" title="@I18n[I18nKey.Ui.MainNavBar.VotingRights]" aria-label="@I18n[I18nKey.Ui.MainNavBar.VotingRights]"></i>
+                                    }
+                                </ButtonContent>
+                                <DropdownContent>
+                                    @if (AuthService.CurrentUser?.HasVotingRights != null) {
+                                        <li><span class="dropdown-item-text small text-secondary">@VotingRightsText</span></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                    }
+                                    <li><a class="dropdown-item" href="/Settings"><i class="bi bi-gear"></i> @I18n[I18nKey.Ui.MainNavBar.Settings]</a></li>
+                                    <li><a class="dropdown-item" href="/Sessions"><i class="bi bi-shield-lock"></i> @I18n[I18nKey.Ui.MainNavBar.MySessionsTitle]</a></li>
+                                    <li><a class="dropdown-item" href="/Account/Notifications"><i class="bi bi-bell"></i> @I18n[I18nKey.Ui.MainNavBar.NotificationsTitle]</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    @foreach (var language in Quartermaster.Blazor.Services.LanguageService.AvailableLanguages) {
+                                        <li>
+                                            <button type="button" class="dropdown-item @(language == LanguageService.CurrentLanguage ? "active" : "")" @onclick="() => SwitchLanguage(language)">
+                                                <i class="bi bi-translate"></i> @LanguageSwitcher.Label(language)
+                                            </button>
+                                        </li>
+                                    }
+                                    <li>
+                                        <button type="button" class="dropdown-item" @onclick=ToggleDarkMode>
+                                            @if (AppState.SelectedTheme == Theme.Dark) {
+                                                <i class="bi bi-brightness-high-fill"></i> @I18n[I18nKey.Ui.MainNavBar.LightMode]
+                                            } else {
+                                                <i class="bi bi-moon-fill"></i> @I18n[I18nKey.Ui.MainNavBar.DarkMode]
+                                            }
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><button type="button" class="dropdown-item" @onclick=HandleLogout><i class="bi bi-box-arrow-right"></i> @I18n[I18nKey.Ui.MainNavBar.Logout]</button></li>
+                                </DropdownContent>
+                            </NavMenuDropdown>
+                        </li>
+                    </ul>
                 } else {
-                    <a href="/Login" class="btn btn-outline-primary btn-sm btn-hover-scale1">
-                        @I18n[I18nKey.Ui.MainNavBar.Login]
+                    <a href="/Login" class="btn btn-primary btn-sm">
+                        <i class="bi bi-box-arrow-in-right"></i> @I18n[I18nKey.Ui.MainNavBar.Login]
                     </a>
+                    <LanguageSwitcher />
+                    <button type="button" class="btn btn-hover-color-body-bg" @onclick=ToggleDarkMode title="@(AppState.SelectedTheme == Theme.Dark ? I18n[I18nKey.Ui.MainNavBar.LightMode] : I18n[I18nKey.Ui.MainNavBar.DarkMode])">
+                        @if (AppState.SelectedTheme == Theme.Dark) {
+                            <i class="bi bi-brightness-high-fill"></i>
+                        } else {
+                            <i class="bi bi-moon-fill"></i>
+                        }
+                    </button>
                 }
-                <LanguageSwitcher />
-                <button class="btn btn-hover-color-body-bg btn-hover-scale1" @onclick=ToggleDarkMode>
-                    @if (AppState.SelectedTheme == Theme.Dark) {
-                        <i class="bi bi-brightness-high-fill"></i>
-                    } else {
-                        <i class="bi bi-moon-fill"></i>
-                    }
-                </button>
             </div>
         </div>
     </div>

@@ -3,7 +3,15 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Permissions
 
-<PageBackLink Href="/Administration/Users" />
+<PageBackLink Href="/Administration/Users">
+    <Links>
+        @if (UserInfo?.ViewableMemberId != null) {
+            <a href="/Administration/Members/@UserInfo.ViewableMemberId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-person-vcard"></i> @I18n[I18nKey.Ui.LinkedPages.Member]
+            </a>
+        }
+    </Links>
+</PageBackLink>
 
 @if (Loading) {
     <LoadingSpinner />
@@ -18,23 +26,23 @@
         </Actions>
     </PageHeader>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.UserDetail.UserDataSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.UserDetail.UsernameLabel]</th><td>@(string.IsNullOrEmpty(UserInfo.Username) ? "---" : UserInfo.Username)</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(string.IsNullOrEmpty(UserInfo.Email) ? "---" : UserInfo.Email)</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.FirstName]</th><td>@UserInfo.FirstName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@UserInfo.LastName</td></tr>
-                </tbody>
-            </table>
-            </div>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.UserDetail.UsernameLabel]</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(UserInfo.Username) ? "---" : UserInfo.Username)</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Email]</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(UserInfo.Email) ? "---" : UserInfo.Email)</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.FirstName]</dt>
+                    <dd class="col-sm-8">@UserInfo.FirstName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.LastName]</dt>
+                    <dd class="col-sm-8">@UserInfo.LastName</dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.UserDetail.GlobalPermissionsSection]</h5>
             @if (GlobalPermissions != null && GlobalPermissions.Count > 0) {
@@ -59,7 +67,7 @@
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.UserDetail.ChapterPermissionsSection]</h5>
 
@@ -69,7 +77,7 @@
                         <div class="card-body py-2">
                             <h6 class="mb-2">@GetChapterName(kvp.Key)</h6>
                             @foreach (var permId in kvp.Value) {
-                                <span class="badge bg-primary me-1 mb-1">
+                                <span class="badge rounded-pill border bg-info-subtle text-info-emphasis border-info-subtle me-1 mb-1">
                                     @GetPermissionDisplayName(permId)
                                     <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.5em;"
                                             @onclick="() => RevokeChapterPermission(kvp.Key, permId)"></button>
@@ -101,7 +109,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-success w-100" @onclick="AddChapterPermission"
+                    <button class="btn btn-primary w-100" @onclick="AddChapterPermission"
                             disabled="@(string.IsNullOrEmpty(NewChapterId) || string.IsNullOrEmpty(NewPermissionIdentifier))">
                         <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.Common.Add]
                     </button>

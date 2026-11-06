@@ -5,15 +5,16 @@
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.RankingPageTitle]</PageTitle>
 
-<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
-
 @if (Loading) {
+    <PageBackLink Href="@($"/Events/{EventId}/Motions")" />
     <LoadingSpinner />
 } else if (Portal == null) {
+    <PageBackLink Href="@($"/Events/{EventId}/Motions")" />
     <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.PortalNotFound]</div>
 } else {
-    <h1>@I18n[I18nKey.Ui.AssemblyMotion.RankingPageTitle]</h1>
-    <div class="text-secondary mb-3">@Portal.EventName</div>
+    <PageHeader Title="@I18n[I18nKey.Ui.AssemblyMotion.RankingPageTitle]" BackHref="@($"/Events/{EventId}/Motions")">
+        <Subtitle>@Portal.EventName</Subtitle>
+    </PageHeader>
 
     @if (NotAvailable) {
         <div class="alert alert-info">@NotAvailableText</div>
@@ -32,11 +33,19 @@
         @if (ByType) {
             @foreach (var group in Groups) {
                 var first = group.First();
-                <h5 class="mt-3" @key="group.Key">@first.TypeName (@first.TypeCode)</h5>
-                <AssemblyMotionRankingTable Items="@group.ToList()" />
+                <div class="card mb-4" @key="group.Key">
+                    <div class="card-body">
+                        <h5 class="mb-3">@first.TypeName (@first.TypeCode)</h5>
+                        <AssemblyMotionRankingTable Items="@group.ToList()" />
+                    </div>
+                </div>
             }
         } else {
-            <AssemblyMotionRankingTable Items="@Items" />
+            <div class="card mb-4">
+                <div class="card-body">
+                    <AssemblyMotionRankingTable Items="@Items" />
+                </div>
+            </div>
         }
     }
 }

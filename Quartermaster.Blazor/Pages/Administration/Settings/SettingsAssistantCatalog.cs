@@ -100,7 +100,7 @@ public static class SettingsAssistantCatalog {
         ]
     };
 
-    public static readonly SettingsAssistant Smtp = new("Smtp", SettingsGroup.Communication, "bi-envelope-gear", I18nKey.Ui.Settings.SmtpTitle, I18nKey.Ui.Settings.SmtpDescription) {
+    public static readonly SettingsAssistant Smtp = new("Smtp", SettingsGroup.Communication, "bi-envelope-at", I18nKey.Ui.Settings.SmtpTitle, I18nKey.Ui.Settings.SmtpDescription) {
         Sections = [
             new([
                 new("email.smtp.host"),

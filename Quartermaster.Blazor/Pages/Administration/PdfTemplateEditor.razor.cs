@@ -107,21 +107,18 @@ public partial class PdfTemplateEditor : IDisposable {
         }
     }
 
-    private async Task Save() {
-        Busy = true;
-        StateHasChanged();
+    private async Task<bool> Save() {
         try {
             var resp = await Http.PutAsJsonAsync($"/api/pdf-templates/{Key}", new PdfTemplateSaveRequest { Body = _body });
-            if (resp.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-            } else {
+            if (!resp.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(resp);
+                return false;
             }
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
-        Busy = false;
-        StateHasChanged();
     }
 
     private async Task ResetToDefault() {

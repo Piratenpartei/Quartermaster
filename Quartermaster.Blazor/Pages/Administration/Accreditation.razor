@@ -6,7 +6,7 @@
 <PageTitle>@I18n[I18nKey.Ui.Accreditation.PageTitle]</PageTitle>
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageAccreditation">
-    <h3 class="mb-3">@I18n[I18nKey.Ui.Accreditation.PageTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.Accreditation.PageTitle]" />
 
     <div class="card mb-4">
         <div class="card-body">
@@ -55,7 +55,7 @@
                     @if (account.Eligible) {
                         <div class="text-secondary">@I18n[I18nKey.Ui.Accreditation.AlreadyEligible]</div>
                     } else if (!SharesMemberNumber(account)) {
-                        <button type="button" class="btn btn-success" disabled="@setEligibleBusy" @onclick="() => SetEligibleAsync(account)">
+                        <button type="button" class="btn btn-primary" disabled="@setEligibleBusy" @onclick="() => SetEligibleAsync(account)">
                             @I18n[I18nKey.Ui.Accreditation.SetEligible]
                         </button>
                     }
@@ -130,8 +130,8 @@
                 <div class="alert alert-success py-2">@I18n[I18nKey.Ui.Accreditation.CheckPassed]</div>
             }
 
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary" disabled="@(checkBusy || createBusy)" @onclick="CheckAsync">@I18n[I18nKey.Ui.Accreditation.Check]</button>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary" disabled="@(checkBusy || createBusy)" @onclick="CheckAsync">@I18n[I18nKey.Ui.Accreditation.Check]</button>
                 <button type="button" class="btn btn-primary" disabled="@(!CanCreate)" @onclick="CreateAsync">@I18n[I18nKey.Ui.Accreditation.Create]</button>
             </div>
 
@@ -161,7 +161,7 @@
                             <div><strong>@I18n[I18nKey.Ui.Accreditation.Username]:</strong> <span class="fs-4 font-monospace">@created.Username</span></div>
                             <div><strong>@I18n[I18nKey.Ui.Accreditation.Password]:</strong> <span class="fs-4 font-monospace">@created.Password</span></div>
                         </div>
-                        <div class="d-flex gap-2 align-items-center">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
                             <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CopyCredentialsAsync">@I18n[I18nKey.Ui.Accreditation.Copy]</button>
                             @if (copied) {
                                 <span class="text-success small">@I18n[I18nKey.Ui.Accreditation.Copied]</span>

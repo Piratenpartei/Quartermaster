@@ -25,6 +25,7 @@ public class PublicPagesE2ETests : E2ETestBase {
 
     [Test]
     public async Task Membership_application_form_renders() {
+        CompleteSageSetup();
         await Page.GotoAsync("/MembershipApplication");
         // The form exists with input fields for personal data
         await Page.WaitForSelectorAsync("input, select, textarea", new PageWaitForSelectorOptions {

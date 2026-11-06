@@ -3,7 +3,7 @@
 @using Quartermaster.Rendering
 
 @if (Inquiries.Count > 0 || CanManage) {
-    <div class="card mb-3" id="inquiries">
+    <div class="card mb-4" id="inquiries">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.AssemblyMotion.InquiriesTitle]</h5>
 
@@ -20,9 +20,9 @@
                             @I18n[I18nKey.Ui.AssemblyMotion.InquiryDueAt] <strong><DeadlineText Value="@inquiry.ResponseDueAt" /></strong>
                         </div>
                         @if (isOpen) {
-                            <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.InquiryOpen]</span>
+                            <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.AssemblyMotion.InquiryOpen]" />
                         } else {
-                            <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.InquiryClosed]</span>
+                            <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.AssemblyMotion.InquiryClosed]" />
                         }
                     </div>
                     <div class="rendered-markdown mb-2">

@@ -11,6 +11,10 @@ public partial class NavMenuDropdown {
     [Parameter]
     public required RenderFragment DropdownContent { get; set; }
 
+    /// <summary>Opens the menu towards the left, for a dropdown at the right edge of the navbar.</summary>
+    [Parameter]
+    public bool AlignEnd { get; set; }
+
     private void ToggleDropdown() => Collapsed = !Collapsed;
 
     private void Close() => Collapsed = true;

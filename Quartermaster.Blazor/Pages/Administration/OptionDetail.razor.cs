@@ -43,20 +43,25 @@ public partial class OptionDetail {
         Loading = false;
     }
 
-    private async Task SaveGlobal() {
+    private async Task<bool> SaveGlobal() {
         if (Option == null)
-            return;
+            return false;
 
         try {
-            await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
+            var response = await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
                 Identifier = Option.Identifier,
                 ChapterId = null,
                 Value = Option.GlobalValue
             });
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return false;
+            }
             _globalForm.Reset();
-            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
     }
 

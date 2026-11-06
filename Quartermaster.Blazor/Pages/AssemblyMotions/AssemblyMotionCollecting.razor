@@ -5,9 +5,7 @@
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.CollectingPageTitle]</PageTitle>
 
-<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
-
-<h2>@I18n[I18nKey.Ui.AssemblyMotion.CollectingPageTitle]</h2>
+<PageHeader Title="@I18n[I18nKey.Ui.AssemblyMotion.CollectingPageTitle]" BackHref="@($"/Events/{EventId}/Motions")" />
 
 @if (Loading) {
     <LoadingSpinner />
@@ -21,29 +19,34 @@
 } else if (Items.Count == 0) {
     <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoCollecting]" />
 } else {
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
-                    <th>@I18n[I18nKey.Ui.Common.Title]</th>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</th>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Items) {
+    <div class="card mb-4">
+        <div class="card-body">
+            <ResponsiveList Items="@Items">
+                <Header>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.AssemblyMotion.Submitters]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                    </tr>
+                </Header>
+                <Row Context="item">
                     <tr>
                         <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                         <td>@item.TypeName (@item.TypeCode)</td>
                         <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
-                        <td>@item.SubmitterCount / @item.MinSubmitters</td>
+                        <td class="text-end">@item.SubmitterCount / @item.MinSubmitters</td>
                         <td><DeadlineText Value="@item.EffectiveDeadline" /></td>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </Row>
+                <Stacked Context="item">
+                    <a class="fw-semibold" href="/AssemblyMotions/@item.Id">@item.Title</a>
+                    <div class="small text-secondary mt-1">@(item.NumberLabel ?? "-") · @item.TypeName (@item.TypeCode)</div>
+                    <div class="small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.Submitters]: @item.SubmitterCount / @item.MinSubmitters · <DeadlineText Value="@item.EffectiveDeadline" /></div>
+                </Stacked>
+            </ResponsiveList>
+        </div>
     </div>
     <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />
 }

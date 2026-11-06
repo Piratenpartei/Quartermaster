@@ -3,9 +3,7 @@
 @using Quartermaster.Api.AdministrativeDivisions
 @using Quartermaster.Api.I18n
 
-<div class="mb-3">
-    <h3>@I18n[I18nKey.Ui.AdminDivisionTree.PageTitle]</h3>
-</div>
+<PageHeader Title="@I18n[I18nKey.Ui.AdminDivisionTree.PageTitle]" />
 
 @if (RootNodes == null) {
     <LoadingSpinner />
@@ -18,7 +16,7 @@
                     @if (!string.IsNullOrEmpty(context.AdminCode)) {
                         <code class="small text-secondary me-2">@context.AdminCode</code>
                     }
-                    <span class="badge bg-secondary">@DepthLabel(context.Depth)</span>
+                    <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">@DepthLabel(context.Depth)</span>
                     @if (!string.IsNullOrEmpty(context.PostCodes)) {
                         <span class="ms-2 text-secondary small text-truncate" style="max-width: 200px;"
                               title="@context.PostCodes">

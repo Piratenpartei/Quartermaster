@@ -22,13 +22,15 @@ public class DueSelectionDetailEndpoint
     private readonly MotionRepository _motionRepo;
     private readonly MembershipApplicationRepository _applicationRepo;
     private readonly PermissionContext _perms;
+    private readonly DetailPageAccess _pageAccess;
 
     public DueSelectionDetailEndpoint(DueSelectionRepository dueSelectionRepo, MotionRepository motionRepo,
-        MembershipApplicationRepository applicationRepo, PermissionContext perms) {
+        MembershipApplicationRepository applicationRepo, PermissionContext perms, DetailPageAccess pageAccess) {
         _dueSelectionRepo = dueSelectionRepo;
         _motionRepo = motionRepo;
         _applicationRepo = applicationRepo;
         _perms = perms;
+        _pageAccess = pageAccess;
     }
 
     public override void Configure() {
@@ -47,22 +49,18 @@ public class DueSelectionDetailEndpoint
             return;
         }
 
-        // The deciding chapter owns the selection; older rows without one belong to their application's chapter.
-        var chapterId = ds.ChapterId ?? _applicationRepo.GetByDueSelectionId(ds.Id)?.ChapterId;
-        if (chapterId.HasValue) {
-            if (!_perms.Has(chapterId.Value, PermissionIdentifier.ViewDueSelections)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else {
-            if (!_perms.HasGlobal(PermissionIdentifier.ViewDueSelections)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
+        var application = _applicationRepo.GetByDueSelectionId(ds.Id);
+        if (!_pageAccess.CanViewDueSelection(ds, application)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         var dto = ds.ToDetailDto();
-        dto.LinkedMotionId = _motionRepo.GetByLinkedDueSelectionId(ds.Id)?.Id;
+        var motion = _motionRepo.GetByLinkedDueSelectionId(ds.Id);
+        if (motion != null && _pageAccess.CanViewMotion(motion))
+            dto.ViewableMotionId = motion.Id;
+        if (application != null && _pageAccess.CanViewApplication(application))
+            dto.ViewableApplicationId = application.Id;
         await SendAsync(dto, cancellation: ct);
     }
 }

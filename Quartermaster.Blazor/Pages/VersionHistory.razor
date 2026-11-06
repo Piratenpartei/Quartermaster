@@ -3,12 +3,12 @@
 
 <PageTitle>@I18n[I18nKey.Ui.VersionHistory.PageTitle]</PageTitle>
 
-<h1 class="mb-4">@I18n[I18nKey.Ui.VersionHistory.PageTitle]</h1>
+<PageHeader Title="@I18n[I18nKey.Ui.VersionHistory.PageTitle]" />
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Entries == null || Entries.Count == 0) {
-    <p class="text-secondary">@I18n[I18nKey.Ui.VersionHistory.Empty]</p>
+    <EmptyState Message="@I18n[I18nKey.Ui.VersionHistory.Empty]" />
 } else {
     @foreach (var entry in Entries) {
         <section class="version-history-entry mb-5">

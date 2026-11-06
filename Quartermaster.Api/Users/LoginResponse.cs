@@ -15,6 +15,11 @@ public class LoginUserInfo {
     public string LastName { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Email { get; set; } = "";
+
+    /// <summary>Null when the account is not linked to a member.</summary>
+    public bool? HasVotingRights { get; set; }
+
+    public decimal? OpenFeeTotal { get; set; }
 }
 
 public class LoginPermissions {

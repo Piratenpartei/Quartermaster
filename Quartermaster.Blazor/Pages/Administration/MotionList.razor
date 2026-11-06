@@ -12,7 +12,7 @@
     </Actions>
 </PageHeader>
 
-<div class="mb-3 d-flex gap-3">
+<div class="mb-3 d-flex flex-wrap gap-3">
     <div>
         <label class="form-label">@I18n[I18nKey.Ui.Common.Chapter]</label>
         <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
@@ -38,7 +38,7 @@
     </div>
 
     <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>@I18n[I18nKey.Ui.Common.Title]</th>
@@ -70,9 +70,9 @@
                     <td>@motion.ChapterName</td>
                     <td>
                         @if (motion.IsPublic) {
-                            <span class="badge border border-info text-info-emphasis">@I18n[I18nKey.Ui.Common.Public]</span>
+                            <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.Common.Public]" />
                         } else {
-                            <span class="badge border border-secondary text-secondary-emphasis">@I18n[I18nKey.Ui.Common.NotPublic]</span>
+                            <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.Common.NotPublic]" />
                         }
                     </td>
                     <td>

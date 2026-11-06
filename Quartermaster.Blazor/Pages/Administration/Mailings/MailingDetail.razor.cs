@@ -29,7 +29,6 @@ public partial class MailingDetail {
 
     private ChapterMailDTO? Mail;
     private bool Loading = true;
-    private bool Saving;
 
     private string EditTitle = "";
     private string EditSubject = "";
@@ -67,8 +66,9 @@ public partial class MailingDetail {
         await LoadMail();
     }
 
-    private async Task LoadMail() {
-        Loading = true;
+    /// <param name="showSpinner">False after a save, so the form (and its save button's result) stays on screen.</param>
+    private async Task LoadMail(bool showSpinner = true) {
+        Loading = showSpinner;
         Recipients = null;
         StateHasChanged();
         try {
@@ -142,16 +142,14 @@ public partial class MailingDetail {
         EditContent = value;
     }
 
-    private async Task Save() {
+    private async Task<bool> Save() {
         if (Mail == null)
-            return;
+            return false;
         if (!Guid.TryParse(EditTargetId, out var targetId)) {
             ToastService.Error("Bitte ein Ziel auswählen.");
-            return;
+            return false;
         }
 
-        Saving = true;
-        StateHasChanged();
         try {
             var resp = await Http.PutAsJsonAsync($"/api/chapter-mail/{Mail.Id}", new ChapterMailUpdateRequest {
                 Title = EditTitle.Trim(),
@@ -162,17 +160,16 @@ public partial class MailingDetail {
                 TemplateId = UseTemplateMode ? EditTemplateId : null,
                 Content = UseTemplateMode ? null : EditContent
             });
-            if (resp.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-                await LoadMail();
-            } else {
+            if (!resp.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(resp);
+                return false;
             }
+            await LoadMail(showSpinner: false);
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
-        Saving = false;
-        StateHasChanged();
     }
 
     private async Task LoadRecipients() {

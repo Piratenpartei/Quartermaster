@@ -11,11 +11,7 @@ public partial class MeetingVisibilityBadge {
     [Parameter, EditorRequired]
     public MeetingVisibility Visibility { get; set; }
 
-    private string CssClass => Visibility switch {
-        MeetingVisibility.Public => "border-info text-info-emphasis",
-        MeetingVisibility.Private => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary"
-    };
+    private StatusTone Tone => Visibility == MeetingVisibility.Public ? StatusTone.Info : StatusTone.Neutral;
 
     private string Label => Visibility switch {
         MeetingVisibility.Public => I18n[I18nKey.Ui.MeetingVisibility.Public],

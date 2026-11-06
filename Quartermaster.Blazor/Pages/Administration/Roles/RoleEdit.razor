@@ -10,19 +10,20 @@
 } else if (Role == null) {
     <div class="alert alert-warning">@I18n[I18nKey.Ui.RoleEdit.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>@Role.Name</h3>
-        <div class="d-flex gap-2">
-            @if (Role.Scope == 0) {
-                <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.RoleEdit.ScopeGlobal]</span>
-            } else {
-                <span class="badge border border-primary text-primary-emphasis fs-6">@I18n[I18nKey.Ui.RoleEdit.ScopeChapterFull]</span>
-            }
-            @if (Role.IsSystem) {
-                <span class="badge bg-secondary fs-6">@I18n[I18nKey.Ui.RoleEdit.SystemBadge]</span>
-            }
-        </div>
-    </div>
+    <PageHeader Title="@Role.Name">
+        <Subtitle>
+            <div class="d-flex flex-wrap gap-2">
+                @if (Role.Scope == 0) {
+                    <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.RoleEdit.ScopeGlobal]" />
+                } else {
+                    <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.RoleEdit.ScopeChapterFull]" />
+                }
+                @if (Role.IsSystem) {
+                    <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.RoleEdit.SystemBadge]" />
+                }
+            </div>
+        </Subtitle>
+    </PageHeader>
 
     @if (Role.IsSystem) {
         <div class="alert alert-info">
@@ -59,12 +60,7 @@
                 }
             </div>
             @if (!Role.IsSystem) {
-                <button class="btn btn-primary" @onclick="SaveRole" disabled="@Saving">
-                    @if (Saving) {
-                        <span class="spinner-border spinner-border-sm"></span>
-                    }
-                    <span> @I18n[I18nKey.Ui.Common.Save]</span>
-                </button>
+                <AsyncButton Text="@I18n[I18nKey.Ui.Common.Save]" Icon="check-circle" Action="SaveRole" />
             }
         </div>
     </div>

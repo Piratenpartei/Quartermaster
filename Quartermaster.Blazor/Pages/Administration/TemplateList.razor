@@ -3,10 +3,10 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Api.Templates
 
-<div class="mb-3 d-flex justify-content-between align-items-center">
-    <h3>@I18n[I18nKey.Ui.TemplateList.PageTitle]</h3>
+<div class="mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <PageHeader Title="@I18n[I18nKey.Ui.TemplateList.PageTitle]" />
     <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditTemplates">
-        <a href="/Administration/Templates/New" class="btn btn-outline-primary btn-hover-scale1">
+        <a href="/Administration/Templates/New" class="btn btn-outline-secondary">
             <i class="bi bi-plus-lg me-1"></i> @I18n[I18nKey.Ui.TemplateList.CreateButton]
         </a>
     </RequirePermission>
@@ -16,7 +16,7 @@
     <LoadingSpinner />
 } else if (Templates != null) {
     <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>@I18n[I18nKey.Ui.Common.Name]</th>

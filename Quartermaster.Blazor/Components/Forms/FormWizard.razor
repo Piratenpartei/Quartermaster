@@ -4,7 +4,7 @@
     @if (Steps != null && Steps.Count > 0) {
         <FormStepper Steps="@StepperSteps" CurrentStep="@CurrentStep" IsReachable="IsStepReachable" OnStepClick="GoToStep" Busy="@Busy" />
 
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 @if (Steps[CurrentStep].Content != null) {
                     @Steps[CurrentStep].Content

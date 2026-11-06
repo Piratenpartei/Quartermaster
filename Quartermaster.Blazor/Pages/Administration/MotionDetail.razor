@@ -5,27 +5,35 @@
 @using Quartermaster.Api.Motions
 @using Quartermaster.Rendering
 
-<PageBackLink Href="/Administration/Motions" />
+<PageBackLink Href="/Administration/Motions">
+    <Links>
+        @if (Motion?.ViewableApplicationId != null) {
+            <a href="/Administration/MembershipApplications/@Motion.ViewableApplicationId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-person-plus"></i> @I18n[I18nKey.Ui.LinkedPages.MembershipApplication]
+            </a>
+        }
+        @if (Motion?.ViewableReductionId != null) {
+            <a href="/Administration/DueSelections/@Motion.ViewableReductionId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-currency-euro"></i> @I18n[I18nKey.Ui.LinkedPages.Reduction]
+            </a>
+        }
+    </Links>
+</PageBackLink>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Motion == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.MotionDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>@Motion.Title</h3>
-        <div class="d-flex gap-2 align-items-center">
-            @if (Motion.IsRealized) {
-                <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.MotionDetail.RealizedBadge]</span>
-            }
-            <MotionApprovalBadge Status="@Motion.ApprovalStatus" Class="fs-6" />
+    <PageHeader Title="@Motion.Title">
+        <Actions>
             @if (CanEdit && !EditMode) {
-                <button class="btn btn-outline-primary btn-sm btn-hover-scale1" @onclick="BeginEdit">
+                <button class="btn btn-outline-secondary" @onclick="BeginEdit">
                     <i class="bi bi-pencil me-1"></i> @I18n[I18nKey.Ui.Common.Edit]
                 </button>
             }
-        </div>
-    </div>
+        </Actions>
+    </PageHeader>
 
     @if (Motion.OnBehalfOfReason != null && Motion.OnBehalfOfChapterName != null) {
         <div class="alert alert-info">
@@ -49,7 +57,7 @@
     }
     @if (Motion.CanTakeOver) {
         <div class="mb-3">
-            <button class="btn btn-outline-primary btn-hover-scale1" @onclick="TakeOver" disabled="@TakingOver">
+            <button class="btn btn-outline-secondary" @onclick="TakeOver" disabled="@TakingOver">
                 @if (TakingOver) {
                     <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                 } else {
@@ -61,7 +69,7 @@
     }
 
     @if (EditMode) {
-        <div class="card mb-3 border-primary">
+        <div class="card mb-4 border-primary">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.MotionDetail.EditCardTitle]</h5>
                 <div class="mb-3">
@@ -82,7 +90,7 @@
                     <label class="form-label">@I18n[I18nKey.Ui.MotionDetail.BodyMarkdownLabel]</label>
                     <MarkdownEditor @bind-Value="EditTextMarkdown" Rows="8" Profile="SanitizationProfile.Strict" />
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <button class="btn btn-primary" @onclick="SaveEdit" disabled="@Saving">
                         @if (Saving) {
                             <span class="spinner-border spinner-border-sm me-1" role="status"></span>
@@ -98,22 +106,29 @@
             </div>
         </div>
     } else {
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.Common.Details]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MotionDetail.AuthorLabel]</th><td>@Motion.AuthorName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@Motion.AuthorEmail</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Chapter]</th><td>@Motion.ChapterName</td></tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.Common.Visibility]</th>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Status]</dt>
+                    <dd class="col-sm-8 d-flex flex-wrap gap-2">
+                        <MotionApprovalBadge Status="@Motion.ApprovalStatus" />
+                        @if (Motion.IsRealized) {
+                            <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MotionDetail.RealizedBadge]" />
+                        }
+                    </dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MotionDetail.AuthorLabel]</dt>
+                    <dd class="col-sm-8">@Motion.AuthorName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Email]</dt>
+                    <dd class="col-sm-8">@Motion.AuthorEmail</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Chapter]</dt>
+                    <dd class="col-sm-8">@Motion.ChapterName</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Visibility]</dt>
+                        <dd class="col-sm-8">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
                                 <span>@(Motion.IsPublic ? I18n[I18nKey.Ui.Common.Public] : I18n[I18nKey.Ui.MotionDetail.PiiWarning])</span>
                                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditMotions">
-                                    <button class="btn btn-sm btn-outline-secondary btn-hover-scale1" @onclick="TogglePublic" disabled="@TogglingPublic"
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePublic" disabled="@TogglingPublic"
                                             title="@(Motion.IsPublic ? I18n[I18nKey.Ui.MotionDetail.MakePrivate] : I18n[I18nKey.Ui.MotionDetail.MakePublic])">
                                         @if (TogglingPublic) {
                                             <span class="spinner-border spinner-border-sm" role="status"></span>
@@ -125,31 +140,18 @@
                                     </button>
                                 </RequirePermission>
                             </div>
-                        </td>
-                    </tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Created]</th><td><LocalTime Value="Motion.CreatedAt" /></td></tr>
+                        </dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Created]</dt>
+                    <dd class="col-sm-8"><LocalTime Value="Motion.CreatedAt" /></dd>
                     @if (Motion.ResolvedAt != null) {
-                        <tr><th>@I18n[I18nKey.Ui.MotionDetail.ResolvedLabel]</th><td><LocalTime Value="Motion.ResolvedAt" /></td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MotionDetail.ResolvedLabel]</dt>
+                        <dd class="col-sm-8"><LocalTime Value="Motion.ResolvedAt" /></dd>
                     }
-                    @if (Motion.LinkedMembershipApplicationId != null) {
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.MotionDetail.LinkLabel]</th>
-                            <td><a href="/Administration/MembershipApplications/@Motion.LinkedMembershipApplicationId">@I18n[I18nKey.Ui.MotionDetail.ViewApplication]</a></td>
-                        </tr>
-                    }
-                    @if (Motion.LinkedDueSelectionId != null) {
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.MotionDetail.LinkLabel]</th>
-                            <td><a href="/Administration/DueSelections/@Motion.LinkedDueSelectionId">@I18n[I18nKey.Ui.MotionDetail.ViewDueSelection]</a></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MotionDetail.BodyLabel]</h5>
             <div>@((MarkupString)Motion.Text)</div>
@@ -157,7 +159,7 @@
     </div>
     }
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[$"{I18nKey.Ui.MotionDetail.VotesTitle}?cast={Motion.Votes.Count}&total={Motion.TotalOfficers}"]</h5>
 
@@ -196,7 +198,7 @@
                             <td><LocalTime Value="existingVote?.VotedAt" /></td>
                             @if (VotingOpen) {
                                 <td>
-                                    <div class="d-flex gap-1">
+                                    <div class="d-flex flex-wrap gap-1">
                                         <button class="btn btn-success btn-sm @(existingVote?.Vote == VoteType.Approve ? "active" : "")"
                                                 aria-label="@I18n[I18nKey.Ui.MotionDetail.AriaApprove]" @onclick="() => CastVote(officer.MemberId, VoteType.Approve)">
                                             <i class="bi bi-hand-thumbs-up-fill"></i>
@@ -221,11 +223,11 @@
     </div>
 
     @if (Motion.ApprovalStatus == MotionApprovalStatus.Pending) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.Common.Management]</h5>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-warning btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.FormallyRejected)">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-danger btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.FormallyRejected)">
                         <span>@I18n[I18nKey.Ui.MotionDetail.FormallyReject]</span>
                     </button>
                     <button class="btn btn-outline-secondary btn-sm" @onclick="() => SetStatus(MotionApprovalStatus.ClosedWithoutAction)">
@@ -238,7 +240,7 @@
 
     @if (Motion.ApprovalStatus == MotionApprovalStatus.Approved && !Motion.IsRealized) {
         <div class="d-flex">
-            <button class="btn btn-success" @onclick="MarkRealized">
+            <button class="btn btn-primary" @onclick="MarkRealized">
                 <i class="bi bi-check-circle"></i> @I18n[I18nKey.Ui.MotionDetail.MarkRealized]
             </button>
         </div>

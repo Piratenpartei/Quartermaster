@@ -5,9 +5,7 @@
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.MinePageTitle]</PageTitle>
 
-<PageBackLink Href="@($"/Events/{EventId}/Motions")" />
-
-<h2>@I18n[I18nKey.Ui.AssemblyMotion.MinePageTitle]</h2>
+<PageHeader Title="@I18n[I18nKey.Ui.AssemblyMotion.MinePageTitle]" BackHref="@($"/Events/{EventId}/Motions")" />
 
 @if (Loading) {
     <LoadingSpinner />
@@ -21,32 +19,43 @@
 } else if (Items.Count == 0) {
     <EmptyState Message="@I18n[I18nKey.Ui.AssemblyMotion.NoOwnMotions]" />
 } else {
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
-                    <th>@I18n[I18nKey.Ui.Common.Title]</th>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRole]</th>
-                    <th>@I18n[I18nKey.Ui.Common.Status]</th>
-                    <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnInquiries]</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Items) {
+    <div class="card mb-4">
+        <div class="card-body">
+            <ResponsiveList Items="@Items">
+                <Header>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnRole]</th>
+                        <th>@I18n[I18nKey.Ui.Common.Status]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.AssemblyMotion.ColumnInquiries]</th>
+                    </tr>
+                </Header>
+                <Row Context="item">
                     <tr>
                         <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                         <td><a href="/AssemblyMotions/@item.Id">@item.Title</a></td>
-                        <td>@(item.IsAuthor ? I18n[I18nKey.Ui.AssemblyMotion.RoleAuthor] : I18n[I18nKey.Ui.AssemblyMotion.RoleCoSubmitter])</td>
+                        <td>@RoleLabel(item.IsAuthor)</td>
                         <td><AssemblyMotionStatusBadge Status="@item.Status" /></td>
-                        <td>
+                        <td class="text-end">
                             @if (item.OpenInquiryCount > 0) {
-                                <span class="badge border border-warning text-warning-emphasis">@item.OpenInquiryCount</span>
+                                <StatusBadge Tone="StatusTone.Warning" Text="@item.OpenInquiryCount.ToString()" />
                             }
                         </td>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </Row>
+                <Stacked Context="item">
+                    <a class="fw-semibold" href="/AssemblyMotions/@item.Id">@item.Title</a>
+                    <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary mt-1">
+                        <span class="text-nowrap">@(item.NumberLabel ?? "-")</span>
+                        <span>@RoleLabel(item.IsAuthor)</span>
+                        <AssemblyMotionStatusBadge Status="@item.Status" />
+                        @if (item.OpenInquiryCount > 0) {
+                            <StatusBadge Tone="StatusTone.Warning" Icon="question-circle" Text="@item.OpenInquiryCount.ToString()" />
+                        }
+                    </div>
+                </Stacked>
+            </ResponsiveList>
+        </div>
     </div>
 }

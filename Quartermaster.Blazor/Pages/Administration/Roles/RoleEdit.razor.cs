@@ -26,7 +26,6 @@ public partial class RoleEdit {
     private RoleDTO? Role;
     private List<PermissionDTO>? AvailablePermissions;
     private bool Loading = true;
-    private bool Saving;
 
     private IEnumerable<PermissionDTO> FilteredPermissions =>
         AvailablePermissions?.Where(p => Role != null && p.Global == (Role.Scope == 0)) ?? [];
@@ -53,11 +52,9 @@ public partial class RoleEdit {
         }
     }
 
-    private async Task SaveRole() {
+    private async Task<bool> SaveRole() {
         if (Role == null)
-            return;
-        Saving = true;
-        StateHasChanged();
+            return false;
         try {
             var response = await Http.PutAsJsonAsync($"/api/roles/{Role.Id}", new RoleUpdateRequest {
                 Id = Role.Id,
@@ -65,15 +62,14 @@ public partial class RoleEdit {
                 Description = Role.Description,
                 Permissions = Role.Permissions
             });
-            if (response.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-            } else {
+            if (!response.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(response);
+                return false;
             }
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
-        Saving = false;
-        StateHasChanged();
     }
 }

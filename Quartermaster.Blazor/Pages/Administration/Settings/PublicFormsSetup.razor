@@ -5,8 +5,9 @@
 <PageBackLink Href="/Administration/Settings" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-1"><i class="bi @SettingsAssistantCatalog.PublicForms.Icon me-2"></i>@I18n[SettingsAssistantCatalog.PublicForms.TitleKey]</h3>
-    <p class="text-secondary">@I18n[I18nKey.Ui.PublicFormsSetup.Intro]</p>
+    <PageHeader Title="@I18n[SettingsAssistantCatalog.PublicForms.TitleKey]" Icon="@SettingsAssistantCatalog.PublicForms.Icon">
+        <Subtitle>@I18n[I18nKey.Ui.PublicFormsSetup.Intro]</Subtitle>
+    </PageHeader>
 
     @if (Loading) {
         <LoadingSpinner />
@@ -69,7 +70,7 @@
                                     <tr>
                                         <td>
                                             @if (!string.IsNullOrEmpty(ov.ChapterShortCode)) {
-                                                <span class="badge bg-secondary me-1">@ov.ChapterShortCode</span>
+                                                <StatusBadge Tone="StatusTone.Neutral" Text="@ov.ChapterShortCode" Class="me-1" />
                                             }
                                             @ov.ChapterName
                                         </td>
@@ -102,7 +103,7 @@
                         <option value="@TrueValue">@I18n[I18nKey.Ui.PublicFormsSetup.Open]</option>
                         <option value="@FalseValue">@I18n[I18nKey.Ui.PublicFormsSetup.Closed]</option>
                     </select>
-                    <button type="button" class="btn btn-outline-primary" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="AddOverride">
+                    <button type="button" class="btn btn-outline-secondary" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="AddOverride">
                         <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.PublicFormsSetup.AddButton]
                     </button>
                 </div>

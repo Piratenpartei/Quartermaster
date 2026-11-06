@@ -6,14 +6,15 @@
 <PageTitle>@I18n[I18nKey.Ui.NewsPosts.PageTitle]</PageTitle>
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.ReviewNewsPosts">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h3 class="mb-0">@I18n[I18nKey.Ui.NewsPosts.PageTitle]</h3>
-        <RequirePermission GlobalPermission="@PermissionIdentifier.ManageNewsPosts">
-            <a class="btn btn-outline-secondary btn-sm" href="/Administration/NewsPosts/Settings">
-                <i class="bi bi-gear me-1"></i>@I18n[I18nKey.Ui.NewsPosts.SettingsLink]
-            </a>
-        </RequirePermission>
-    </div>
+    <PageHeader Title="@I18n[I18nKey.Ui.NewsPosts.PageTitle]">
+        <Actions>
+            <RequirePermission GlobalPermission="@PermissionIdentifier.ManageNewsPosts">
+                <a class="btn btn-outline-secondary" href="/Administration/NewsPosts/Settings">
+                    <i class="bi bi-gear me-1"></i>@I18n[I18nKey.Ui.NewsPosts.SettingsLink]
+                </a>
+            </RequirePermission>
+        </Actions>
+    </PageHeader>
 
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item"><button type="button" class="nav-link @(view == "suggestions" ? "active" : "")" @onclick='() => SwitchViewAsync("suggestions")'>@I18n[I18nKey.Ui.NewsPosts.TabSuggestions]</button></li>
@@ -25,7 +26,7 @@
         <LoadingSpinner />
     } else if (view == "posted") {
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table class="table table-hover align-middle">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.NewsPosts.PostedAt]</th>
@@ -44,7 +45,7 @@
                             <td>@publication.ApprovedBy</td>
                             <td>
                                 @if (!publication.Succeeded) {
-                                    <span class="badge text-bg-danger" title="@publication.Error">@I18n[I18nKey.Ui.NewsPosts.PostFailed]</span>
+                                    <span class="badge rounded-pill border bg-danger-subtle text-danger-emphasis border-danger-subtle" title="@publication.Error">@I18n[I18nKey.Ui.NewsPosts.PostFailed]</span>
                                     <button type="button" class="btn btn-link btn-sm" @onclick="() => RetryPublicationAsync(publication)">@I18n[I18nKey.Ui.NewsPosts.Retry]</button>
                                 }
                             </td>
@@ -68,7 +69,7 @@
         }
 
         @foreach (var item in items) {
-            <div class="card mb-3">
+            <div class="card mb-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between gap-2 flex-wrap">
                         <div>
@@ -76,9 +77,9 @@
                             <div class="small text-secondary">
                                 @item.FeedName &middot; <LocalTime Value="item.PublishedAt" Format="dd.MM.yyyy HH:mm" />
                                 @if (!item.HasFullText) {
-                                    <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.NewsPosts.TeaserOnly]</span>
+                                    <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.NewsPosts.TeaserOnly]" Class="ms-1" />
                                 }
-                                <span class="badge text-bg-secondary ms-1">@StatusLabel(item.Status)</span>
+                                <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle ms-1">@StatusLabel(item.Status)</span>
                             </div>
                             @if (!string.IsNullOrEmpty(item.TriageReason)) {
                                 <div class="small mt-1">@item.TriageReason</div>
@@ -87,11 +88,11 @@
                                 <div class="small text-danger mt-1">@item.LastError</div>
                             }
                         </div>
-                        <div class="d-flex gap-2 align-items-start">
+                        <div class="d-flex flex-wrap gap-2 align-items-start">
                             @if (item.Status == NewsItemStatusDTO.Failed) {
                                 <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "retry")'>@I18n[I18nKey.Ui.NewsPosts.Retry]</button>
                             } else if (CanGenerate(item)) {
-                                <button type="button" class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "generate")'>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick='() => PostActionAsync(item, "generate")'>
                                     @(item.Status == NewsItemStatusDTO.Generated ? I18n[I18nKey.Ui.NewsPosts.Regenerate] : I18n[I18nKey.Ui.NewsPosts.Generate])
                                 </button>
                             }
@@ -108,7 +109,7 @@
                     @foreach (var candidate in item.Candidates) {
                         <div class="border rounded p-2 mt-3">
                             <div>@candidate.Text</div>
-                            <div class="d-flex justify-content-between align-items-center mt-1">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mt-1 gap-2">
                                 <span class="small text-secondary">@PostText.Length(candidate.Text) / @PostText.MaxLength</span>
                                 <button type="button" class="btn btn-primary btn-sm" @onclick="() => OpenEditor(item, candidate)">@I18n[I18nKey.Ui.NewsPosts.UseCandidate]</button>
                             </div>
@@ -154,8 +155,8 @@
                                 }
                             </div>
 
-                            <div class="mt-3 d-flex gap-2">
-                                <button type="button" class="btn btn-success" disabled="@(!CanPublish)" @onclick="PublishAsync">@I18n[I18nKey.Ui.NewsPosts.PublishButton]</button>
+                            <div class="mt-3 d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-primary" disabled="@(!CanPublish)" @onclick="PublishAsync">@I18n[I18nKey.Ui.NewsPosts.PublishButton]</button>
                                 <button type="button" class="btn btn-outline-secondary" @onclick="CloseEditor">@I18n[I18nKey.Ui.NewsPosts.Cancel]</button>
                             </div>
                         </div>

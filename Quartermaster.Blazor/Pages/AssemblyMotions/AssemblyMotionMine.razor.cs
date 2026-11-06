@@ -57,4 +57,8 @@ public partial class AssemblyMotionMine {
             Loading = false;
         }
     }
+
+    private string RoleLabel(bool isAuthor) {
+        return isAuthor ? I18n[I18nKey.Ui.AssemblyMotion.RoleAuthor] : I18n[I18nKey.Ui.AssemblyMotion.RoleCoSubmitter];
+    }
 }

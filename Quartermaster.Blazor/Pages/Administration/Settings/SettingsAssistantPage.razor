@@ -8,13 +8,14 @@
     @if (Assistant == null) {
         <div class="alert alert-warning">@I18n[I18nKey.Ui.Settings.NotFound]</div>
     } else {
-        <h3 class="mb-1"><i class="bi @Assistant.Icon me-2"></i>@I18n[Assistant.TitleKey]</h3>
-        <p class="text-secondary">@I18n[Assistant.DescriptionKey]</p>
+        <PageHeader Title="@I18n[Assistant.TitleKey]" Icon="@Assistant.Icon">
+            <Subtitle>@I18n[Assistant.DescriptionKey]</Subtitle>
+        </PageHeader>
 
         @if (Assistant.Links.Count > 0) {
             <div class="d-flex flex-wrap gap-2 mb-3">
                 @foreach (var link in Assistant.Links) {
-                    <a href="@link.Href" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>@I18n[link.LabelKey]</a>
+                    <a href="@link.Href" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>@I18n[link.LabelKey]</a>
                 }
             </div>
         }

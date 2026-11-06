@@ -13,7 +13,7 @@
                 </span>
             }
             @if (MissingCount() > 0) {
-                <span class="badge text-bg-warning">@I18n[I18nParams.With(I18nKey.Ui.Receipts.Missing, ("count", MissingCount().ToString()))]</span>
+                <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nParams.With(I18nKey.Ui.Receipts.Missing, ("count", MissingCount().ToString()))]" />
             }
             <div class="dropdown">
                 <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" @onclick="ToggleMenu">
@@ -31,7 +31,7 @@
                             <div class="small text-secondary px-2 pb-2">@I18n[I18nKey.Ui.Receipts.NoneAvailable]</div>
                         }
                         <div class="dropdown-divider"></div>
-                        <label class="btn btn-sm btn-outline-primary w-100 mb-0">
+                        <label class="btn btn-sm btn-outline-secondary w-100 mb-0">
                             <i class="bi bi-upload me-1"></i>@I18n[I18nKey.Ui.Receipts.UploadNew]
                             <InputFile class="d-none" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" OnChange="Upload" />
                         </label>

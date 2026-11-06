@@ -33,7 +33,7 @@
                 @if (Input.DonatedAmount > 0m) {
                     <span>@I18n[I18nKey.Ui.ExpenseReimbursement.DonatedAmountLabel]: @Input.DonatedAmount.ToString("N2", De) €</span>
                     @if (Input.RequestsDonationReceipt) {
-                        <span class="badge text-bg-info ms-2">@I18n[I18nKey.Ui.ExpenseReimbursement.RequestDonationReceipt]</span>
+                        <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.ExpenseReimbursement.RequestDonationReceipt]" Class="ms-2" />
                     }
                     <br />
                 }

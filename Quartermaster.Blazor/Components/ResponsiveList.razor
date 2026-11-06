@@ -1,0 +1,19 @@
+@typeparam TItem
+
+<div class="d-none d-md-block table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            @Header
+        </thead>
+        <tbody>
+            @foreach (var item in Items) {
+                @Row(item)
+            }
+        </tbody>
+    </table>
+</div>
+<ul class="list-group d-md-none mb-3">
+    @foreach (var item in Items) {
+        <li class="list-group-item">@Stacked(item)</li>
+    }
+</ul>

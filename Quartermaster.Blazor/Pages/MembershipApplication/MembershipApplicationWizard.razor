@@ -5,7 +5,7 @@
 <PageTitle>@I18n[I18nKey.Ui.PublicFormWizard.MembershipApplicationTitle]</PageTitle>
 
 <PublicFormGate Forms="@([PublicFormKind.MembershipApplication])">
-    <h3 class="mb-3">@I18n[I18nKey.Ui.PublicFormWizard.MembershipApplicationTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.PublicFormWizard.MembershipApplicationTitle]" />
 
     @if (SubmittedDirect) {
         <div class="alert alert-success">

@@ -22,7 +22,7 @@
             @I18n[$"{I18nKey.Ui.LoginLockouts.TotalCount}?count={Response.Items.Count}"]
         </div>
         <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>@I18n[I18nKey.Ui.LoginLockouts.IpAddressColumn]</th>
@@ -38,11 +38,11 @@
                     <tr>
                         <td class="font-monospace">@lockout.IpAddress</td>
                         <td>@lockout.UsernameOrEmail</td>
-                        <td><span class="badge bg-danger">@lockout.FailedAttempts</span></td>
+                        <td><StatusBadge Tone="StatusTone.Danger" Text="@(lockout.FailedAttempts.ToString())" /></td>
                         <td><LocalTime Value="lockout.LastAttemptAt" Format="dd.MM.yyyy HH:mm:ss" /></td>
                         <td><LocalTime Value="lockout.LockedUntil" Format="dd.MM.yyyy HH:mm:ss" /></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-success"
+                            <button class="btn btn-sm btn-outline-secondary"
                                     @onclick="() => Unlock(lockout)"
                                     disabled="@(UnlockingKey == $"{lockout.IpAddress}|{lockout.UsernameOrEmail}")">
                                 @if (UnlockingKey == $"{lockout.IpAddress}|{lockout.UsernameOrEmail}") {

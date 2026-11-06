@@ -12,13 +12,14 @@
 } else if (Meeting == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.MeetingDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-1">
-        <h3 class="mb-0">@Meeting.Title</h3>
-        <div class="d-flex gap-2">
-            <MeetingStatusBadge Status="@Meeting.Status" />
-            <MeetingVisibilityBadge Visibility="@Meeting.Visibility" />
-        </div>
-    </div>
+    <PageHeader Title="@Meeting.Title">
+        <Subtitle>
+            <div class="d-flex flex-wrap gap-2">
+                <MeetingStatusBadge Status="@Meeting.Status" />
+                <MeetingVisibilityBadge Visibility="@Meeting.Visibility" />
+            </div>
+        </Subtitle>
+    </PageHeader>
     <div class="text-secondary mb-3">
         @Meeting.ChapterName
         @if (Meeting.MeetingDate != null) {
@@ -31,7 +32,7 @@
 
     @if (CanEditDetails) {
         <DirtyForm @ref="_detailsForm">
-            <div class="card mb-3">
+            <div class="card mb-4">
                 <div class="card-body">
                     <div class="row g-3 mb-2">
                         <div class="col-md-4">
@@ -39,9 +40,9 @@
                             <FormInput Value="@Meeting.Title" ValueChanged="OnTitleChanged" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.MeetingDetail.DateTimeLabel]</label>
-                            <FormInput Type="datetime-local"
-                                       Value="@(Meeting.MeetingDate?.ToString("yyyy-MM-ddTHH:mm") ?? "")"
+                            <label class="form-label small text-secondary mb-0">@I18n[I18nKey.Ui.Common.Date]</label>
+                            <FormInput Type="date"
+                                       Value="@(Meeting.MeetingDate?.ToString("yyyy-MM-dd") ?? "")"
                                        ValueChanged="OnDateChanged" />
                         </div>
                         <div class="col-md-2">
@@ -56,7 +57,7 @@
                             </FormSelect>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
-                            <FormSaveButton OnClick="SaveMeta" Saving="SavingMeta" />
+                            <FormSaveButton Action="SaveMeta" />
                         </div>
                     </div>
                     <div class="mb-1">
@@ -102,9 +103,9 @@
     } else if (ActiveTab == "protocol") {
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                     <h5 class="mb-0">@I18n[I18nKey.Ui.MeetingDetail.ProtocolCardTitle]</h5>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
                         <a class="btn btn-sm btn-outline-secondary" href="@($"/api/meetings/{Id}/protocol?format=md{(RequiresDraft ? "&draft=true" : "")}")" target="_blank">
                             <i class="bi bi-download"></i> @I18n[I18nKey.Ui.MeetingDetail.ProtocolDownloadMarkdown]
                         </a>
@@ -132,7 +133,7 @@
                     <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
                 } else {
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped mb-0">
+                        <table class="table table-sm table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>@I18n[I18nKey.Ui.MeetingDetail.AuditTimestampColumn]</th>
@@ -164,17 +165,17 @@
 
     <div class="d-flex gap-2 flex-wrap mt-3">
         @if (Meeting.Status == MeetingStatus.InProgress) {
-            <a href="/Administration/Meetings/@Id/Live" class="btn btn-outline-warning">
+            <a href="/Administration/Meetings/@Id/Live" class="btn btn-primary">
                 <i class="bi bi-broadcast"></i> @I18n[I18nKey.Ui.MeetingDetail.GoToLiveMeeting]
             </a>
         }
         @if (Meeting.Status == MeetingStatus.Archived && !string.IsNullOrEmpty(Meeting.ArchivedPdfPath)) {
-            <a class="btn btn-outline-primary" href="@($"/api/meetings/{Id}/protocol?format=pdf")" target="_blank">
+            <a class="btn btn-outline-secondary" href="@($"/api/meetings/{Id}/protocol?format=pdf")" target="_blank">
                 <i class="bi bi-file-earmark-pdf"></i> @I18n[I18nKey.Ui.MeetingDetail.DownloadPdfSnapshot]
             </a>
         }
         @foreach (var transition in AllowedTransitions) {
-            <button class="btn btn-outline-primary" @onclick="() => ChangeStatus(transition.Target)">
+            <button class="btn btn-outline-secondary" @onclick="() => ChangeStatus(transition.Target)">
                 <i class="bi @transition.Icon"></i> @transition.Label
             </button>
         }

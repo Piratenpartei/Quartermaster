@@ -22,7 +22,7 @@ public partial class LanguageSwitcher : IDisposable {
         await Language.SetLanguageAsync(lang);
     }
 
-    private static string Label(string lang) => lang switch {
+    internal static string Label(string lang) => lang switch {
         "de" => "Deutsch",
         "en" => "English",
         _ => lang

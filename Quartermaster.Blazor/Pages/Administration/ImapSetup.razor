@@ -6,11 +6,11 @@
 <PageBackLink Href="/Administration/Settings" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-3">@I18n[I18nKey.Ui.ImapSetup.PageTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.ImapSetup.PageTitle]" />
 
     <div class="card mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
                 <h5 class="card-title mb-0">@I18n[I18nKey.Ui.ImapSetup.ServerSettingsTitle]</h5>
                 <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="CopyFromSmtp" disabled="@(Copying)">
                     <i class="bi bi-arrow-down-left-square me-1"></i> @I18n[I18nKey.Ui.ImapSetup.CopyFromSmtpButton]

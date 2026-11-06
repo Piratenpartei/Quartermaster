@@ -4,55 +4,56 @@
 
 <PageTitle>@I18n[I18nKey.Ui.Login.PageTitle]</PageTitle>
 
-@if (!string.IsNullOrEmpty(ErrorMessage)) {
-    <div class="alert alert-danger mx-auto mt-4" style="max-width: 700px;">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
-    </div>
-}
-
-<div class="d-flex justify-content-center mt-5">
-    <div class="row g-4" style="max-width: 700px; width: 100%;">
-        @if (ConfigService.SamlEnabled) {
+<div class="row justify-content-center mt-5">
+    <div class="col-12 col-lg-8">
+        @if (!string.IsNullOrEmpty(ErrorMessage)) {
+            <div class="alert alert-danger mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@ErrorMessage
+            </div>
+        }
+        <div class="row g-4">
+            @if (ConfigService.SamlEnabled) {
+                <div class="col-12 col-md-6">
+                    <a href="/api/users/SamlLoginStart" class="card text-decoration-none h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                            <h5 class="card-title">@ConfigService.SamlButtonText</h5>
+                            <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.SsoSubtitle]</p>
+                        </div>
+                    </a>
+                </div>
+            }
+            @if (ConfigService.OidcEnabled) {
+                <div class="col-12 col-md-6">
+                    <a href="/api/users/OidcLoginStart" class="card text-decoration-none h-100">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <i class="bi bi-key fs-1 mb-2"></i>
+                            <h5 class="card-title">@ConfigService.OidcButtonText</h5>
+                            <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.OpenIdSubtitle]</p>
+                        </div>
+                    </a>
+                </div>
+            }
+            @if (!ConfigService.SamlEnabled && !ConfigService.OidcEnabled) {
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 text-body-tertiary" title="@I18n[I18nKey.Ui.Login.SsoNotConfiguredTooltip]">
+                        <div class="card-body text-center d-flex flex-column justify-content-center">
+                            <i class="bi bi-shield-lock fs-1 mb-2"></i>
+                            <h5 class="card-title">@I18n[I18nKey.Ui.Login.SsoTitle]</h5>
+                            <p class="card-text">@I18n[I18nKey.Ui.Login.NotAvailable]</p>
+                        </div>
+                    </div>
+                </div>
+            }
             <div class="col-12 col-md-6">
-                <a href="/api/users/SamlLoginStart" class="card text-decoration-none h-100 btn-hover-scale1">
-                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
-                        <i class="bi bi-shield-lock fs-1 mb-2"></i>
-                        <h5 class="card-title">@ConfigService.SamlButtonText</h5>
-                        <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.SsoSubtitle]</p>
+                <a href="/Login/Manual" class="card text-decoration-none h-100">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <i class="bi bi-person-fill fs-1 mb-2"></i>
+                        <h5 class="card-title">@I18n[I18nKey.Ui.Login.ManualTitle]</h5>
+                        <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.ManualSubtitle]</p>
                     </div>
                 </a>
             </div>
-        }
-        @if (ConfigService.OidcEnabled) {
-            <div class="col-12 col-md-6">
-                <a href="/api/users/OidcLoginStart" class="card text-decoration-none h-100 btn-hover-scale1">
-                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
-                        <i class="bi bi-key fs-1 mb-2"></i>
-                        <h5 class="card-title">@ConfigService.OidcButtonText</h5>
-                        <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.OpenIdSubtitle]</p>
-                    </div>
-                </a>
-            </div>
-        }
-        @if (!ConfigService.SamlEnabled && !ConfigService.OidcEnabled) {
-            <div class="col-12 col-md-6">
-                <div class="card h-100 text-body-tertiary" title="@I18n[I18nKey.Ui.Login.SsoNotConfiguredTooltip]">
-                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
-                        <i class="bi bi-shield-lock fs-1 mb-2"></i>
-                        <h5 class="card-title">@I18n[I18nKey.Ui.Login.SsoTitle]</h5>
-                        <p class="card-text">@I18n[I18nKey.Ui.Login.NotAvailable]</p>
-                    </div>
-                </div>
-            </div>
-        }
-        <div class="col-12 col-md-6">
-            <a href="/Login/Manual" class="card text-decoration-none h-100 btn-hover-scale1">
-                <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 160px;">
-                    <i class="bi bi-person-fill fs-1 mb-2"></i>
-                    <h5 class="card-title">@I18n[I18nKey.Ui.Login.ManualTitle]</h5>
-                    <p class="card-text text-body-secondary">@I18n[I18nKey.Ui.Login.ManualSubtitle]</p>
-                </div>
-            </a>
         </div>
     </div>
 </div>

@@ -9,8 +9,9 @@
 <PageBackLink Href="/Administration/Settings" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-1"><i class="bi @SettingsAssistantCatalog.Forwarding.Icon me-2"></i>@I18n[SettingsAssistantCatalog.Forwarding.TitleKey]</h3>
-    <p class="text-secondary">@I18n[I18nKey.Ui.ForwardingSetup.Intro]</p>
+    <PageHeader Title="@I18n[SettingsAssistantCatalog.Forwarding.TitleKey]" Icon="@SettingsAssistantCatalog.Forwarding.Icon">
+        <Subtitle>@I18n[I18nKey.Ui.ForwardingSetup.Intro]</Subtitle>
+    </PageHeader>
 
     @if (Loading) {
         <LoadingSpinner />
@@ -43,7 +44,7 @@
                         <input id="forwarding-sage-check-minutes" type="number" min="@ForwardingOptionKeys.MinimumSageCheckMinutes" step="1" class="form-control" @bind="SageCheckMinutes" />
                     </div>
                     <div class="col-md-4">
-                        <button class="btn btn-outline-primary" disabled="@Busy" @onclick="SaveThresholdsAsync"><i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]</button>
+                        <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="SaveThresholdsAsync"><i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Common.Save]</button>
                     </div>
                 </div>
             </div>
@@ -76,8 +77,8 @@
                                     }
                                 </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary" disabled="@Busy" @onclick="() => EditingChapterId = chapter.ChapterId"><i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.ForwardingSetup.Edit]</button>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="() => EditingChapterId = chapter.ChapterId"><i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.ForwardingSetup.Edit]</button>
                                 <button class="btn btn-sm btn-outline-danger" disabled="@Busy" @onclick="() => RemoveAsync(chapter.ChapterId)"><i class="bi bi-trash"></i> @I18n[I18nKey.Ui.ForwardingSetup.Remove]</button>
                             </div>
                         </div>
@@ -103,7 +104,7 @@
                             <ChapterPicker @bind-Value="NewChapterId" ExcludeIds="@ConfiguredChapterIds()" AllowEmpty="true" />
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-outline-primary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="StartNewAsync"
+                            <button class="btn btn-outline-secondary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="StartNewAsync"
                                     title="@I18n[I18nKey.Ui.ForwardingSetup.AddChapter]" aria-label="@I18n[I18nKey.Ui.ForwardingSetup.AddChapter]"><i class="bi bi-plus-lg"></i></button>
                         </div>
                     </div>
@@ -114,8 +115,10 @@
         <div class="card mb-4">
             <div class="card-body">
                 <p class="text-secondary small mb-2">@I18n[I18nKey.Ui.ForwardingSetup.TemplatesHint]</p>
-                <a href="/Administration/Templates" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.ForwardingSetup.TemplatesLink]</a>
-                <a href="/Administration/Forwarding" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-check"></i> @I18n[I18nKey.Ui.Settings.LinkForwardingCases]</a>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/Administration/Templates" class="btn btn-sm btn-outline-secondary"><i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.ForwardingSetup.TemplatesLink]</a>
+                    <a href="/Administration/Forwarding" class="btn btn-sm btn-outline-secondary"><i class="bi bi-list-check"></i> @I18n[I18nKey.Ui.Settings.LinkForwardingCases]</a>
+                </div>
             </div>
         </div>
     }

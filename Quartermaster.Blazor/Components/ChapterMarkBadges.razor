@@ -1,7 +1,7 @@
 @using Quartermaster.Api.I18n
 @if (NoMemberAdministration) {
-    <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterMarks.BadgeNoMemberAdministration]</span>
+    <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.ChapterMarks.BadgeNoMemberAdministration]" Class="ms-1" />
 }
 @if (UnableToAct) {
-    <span class="badge text-bg-danger ms-1">@I18n[I18nKey.Ui.ChapterMarks.BadgeUnableToAct]</span>
+    <StatusBadge Tone="StatusTone.Danger" Text="@I18n[I18nKey.Ui.ChapterMarks.BadgeUnableToAct]" Class="ms-1" />
 }

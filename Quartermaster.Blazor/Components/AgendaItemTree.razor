@@ -43,7 +43,7 @@
                         <option value="5">@I18n[I18nKey.Ui.AgendaItemType.Section]</option>
                         <option value="6">@I18n[I18nKey.Ui.AgendaItemType.Presence]</option>
                     </select>
-                    <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.SaveAria]" @onclick="() => SaveEdit(item)">
+                    <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.SaveAria]" @onclick="() => SaveEdit(item)">
                         <i class="bi bi-check-lg"></i>
                     </button>
                     <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.CancelAria]" @onclick="CancelEdit">
@@ -73,14 +73,14 @@
         </div>
 
         @if (Mode == AgendaTreeMode.Editor && !isEditing) {
-            <div class="d-flex gap-1 ms-2" style="flex-shrink: 0;">
+            <div class="d-flex gap-1 ms-2 flex-shrink-0">
                 @if (item.ItemType == AgendaItemType.Section) {
-                    <button class="btn btn-sm btn-outline-primary" @onclick="() => OnImportMotions.InvokeAsync(item.Id)"
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => OnImportMotions.InvokeAsync(item.Id)"
                             title="@I18n[I18nKey.Ui.AgendaItemEditor.ImportMotionsTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.ImportMotionsTooltip]">
                         <i class="bi bi-download"></i>
                     </button>
                 }
-                <div class="input-group input-group-sm" style="width: auto;">
+                <div class="input-group input-group-sm w-auto">
                     <button class="btn btn-outline-secondary" @onclick="() => OnAddChild.InvokeAsync(item.Id)"
                             title="@I18n[I18nKey.Ui.AgendaItemEditor.AddChildTooltip]" aria-label="@I18n[I18nKey.Ui.AgendaItemEditor.AddChildTooltip]">
                         <i class="bi bi-plus-lg"></i>

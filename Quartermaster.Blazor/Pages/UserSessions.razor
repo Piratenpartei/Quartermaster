@@ -5,21 +5,21 @@
 
 <PageTitle>@I18n[I18nKey.Ui.UserSessions.PageTitle]</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">@I18n[I18nKey.Ui.UserSessions.PageTitle]</h3>
-    @if (Sessions != null && Sessions.Count > 1) {
-        <button class="btn btn-outline-danger btn-sm" @onclick="RevokeOthers" disabled="@RevokingOthers">
-            @if (RevokingOthers) {
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            } else {
-                <i class="bi bi-box-arrow-right me-1"></i>
-            }
-            @I18n[I18nKey.Ui.UserSessions.LogOutAllOthers]
-        </button>
-    }
-</div>
-
-<p class="text-secondary">@I18n[I18nKey.Ui.UserSessions.Description]</p>
+<PageHeader Title="@I18n[I18nKey.Ui.UserSessions.PageTitle]">
+    <Subtitle>@I18n[I18nKey.Ui.UserSessions.Description]</Subtitle>
+    <Actions>
+        @if (Sessions != null && Sessions.Count > 1) {
+            <button class="btn btn-outline-danger" @onclick="RevokeOthers" disabled="@RevokingOthers">
+                @if (RevokingOthers) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                } else {
+                    <i class="bi bi-box-arrow-right me-1"></i>
+                }
+                @I18n[I18nKey.Ui.UserSessions.LogOutAllOthers]
+            </button>
+        }
+    </Actions>
+</PageHeader>
 
 @if (Loading) {
     <LoadingSpinner />
@@ -42,7 +42,7 @@
                     <tr>
                         <td>
                             @if (session.IsCurrent) {
-                                <span class="badge bg-primary me-2">@I18n[I18nKey.Ui.UserSessions.ThisSessionBadge]</span>
+                                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.UserSessions.ThisSessionBadge]" Class="me-2" />
                             }
                             <span class="text-secondary">@(string.IsNullOrEmpty(session.IssuedUserAgent) ? "-" : session.IssuedUserAgent)</span>
                         </td>

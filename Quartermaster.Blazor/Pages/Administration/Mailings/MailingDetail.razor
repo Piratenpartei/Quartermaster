@@ -10,21 +10,18 @@
 } else if (Mail == null) {
     <div class="alert alert-danger">Mail not found.</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h3>@Mail.Title</h3>
-            <span class="text-secondary">@Mail.ChapterName</span>
-        </div>
-        <div>
+    <PageHeader Title="@Mail.Title">
+        <Subtitle>
+            <span>@Mail.ChapterName</span>
             @if (Mail.IsArchived) {
-                <span class="badge border border-secondary text-secondary-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusArchived]</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.Mailings.StatusArchived]" />
             } else if (Mail.IsSent) {
-                <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusSent]</span>
+                <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.Mailings.StatusSent]" />
             } else {
-                <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.Mailings.StatusDraft]</span>
+                <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.Mailings.StatusDraft]" />
             }
-        </div>
-    </div>
+        </Subtitle>
+    </PageHeader>
 
     @if (Mail.IsSent) {
         <div class="alert alert-info">
@@ -38,7 +35,7 @@
     }
 
     <fieldset disabled="@ReadOnly">
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label">@I18n[I18nKey.Ui.Mailings.EditTitleLabel] <RequiredStar /></label>
@@ -47,7 +44,7 @@
             </div>
         </div>
 
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.Mailings.TargetSection]</h5>
                 <div class="row g-3">
@@ -78,17 +75,17 @@
             </div>
         </div>
 
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label me-3">@I18n[I18nKey.Ui.Mailings.ModeLabel]</label>
                     <div class="btn-group" role="group">
                         <input type="radio" class="btn-check" id="mode-template" name="mailing-mode"
                                checked="@UseTemplateMode" @onchange="() => SwitchMode(true)" />
-                        <label class="btn btn-outline-primary" for="mode-template">@I18n[I18nKey.Ui.Mailings.ModeTemplate]</label>
+                        <label class="btn btn-outline-secondary" for="mode-template">@I18n[I18nKey.Ui.Mailings.ModeTemplate]</label>
                         <input type="radio" class="btn-check" id="mode-manual" name="mailing-mode"
                                checked="@(!UseTemplateMode)" @onchange="() => SwitchMode(false)" />
-                        <label class="btn btn-outline-primary" for="mode-manual">@I18n[I18nKey.Ui.Mailings.ModeManual]</label>
+                        <label class="btn btn-outline-secondary" for="mode-manual">@I18n[I18nKey.Ui.Mailings.ModeManual]</label>
                     </div>
                 </div>
                 @if (UseTemplateMode) {
@@ -132,15 +129,13 @@
 
     <div class="d-flex gap-2 flex-wrap mb-4">
         @if (!ReadOnly) {
-            <button class="btn btn-primary" @onclick="Save" disabled="@(Saving || string.IsNullOrWhiteSpace(EditTitle))">
-                <i class="bi bi-check-lg"></i> @I18n[I18nKey.Ui.Mailings.SaveButton]
-            </button>
+            <AsyncButton Text="@I18n[I18nKey.Ui.Mailings.SaveButton]" Icon="check-lg" Action="Save" Disabled="@string.IsNullOrWhiteSpace(EditTitle)" />
         }
-        <button class="btn btn-outline-info" @onclick="LoadRecipients">
+        <button class="btn btn-outline-secondary" @onclick="LoadRecipients">
             <i class="bi bi-people"></i> @I18n[I18nKey.Ui.Mailings.RecipientPreviewButton]
         </button>
         @if (!Mail.IsSent && !Mail.IsArchived) {
-            <button class="btn btn-success" @onclick="ConfirmSend"
+            <button class="btn btn-primary" @onclick="ConfirmSend"
                     disabled="@SendDisabled"
                     title="@SendDisabledReason"
                     style="@(SendDisabled ? "pointer-events: auto; cursor: not-allowed;" : null)">

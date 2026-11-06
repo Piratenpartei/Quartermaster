@@ -11,19 +11,17 @@
     } else if (Template != null) {
         <div class="pdf-tpl-workspace">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex flex-wrap align-items-center gap-3">
                     <a href="/Administration/PdfTemplates" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-chevron-left me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.PageTitle]
                     </a>
                     <h4 class="mb-0">@I18n[I18nKey.Ui.PdfTemplates.EditorTitle]: @I18n[Template.DisplayNameI18nKey]</h4>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <button class="btn btn-outline-danger btn-sm" @onclick="ResetToDefault" disabled="@Busy">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.ResetButton]
                     </button>
-                    <button class="btn btn-primary btn-sm" @onclick="Save" disabled="@Busy">
-                        <i class="bi bi-floppy me-1"></i> @I18n[I18nKey.Ui.PdfTemplates.SaveButton]
-                    </button>
+                    <AsyncButton Text="@I18n[I18nKey.Ui.PdfTemplates.SaveButton]" Icon="floppy" Action="Save" Disabled="@Busy" Small="true" />
                 </div>
             </div>
 

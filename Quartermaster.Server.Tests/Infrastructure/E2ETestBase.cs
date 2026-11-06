@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToDB;
@@ -91,11 +92,16 @@ public abstract class E2ETestBase : PageTest, IDisposable {
             .Update();
 
         // The public forms ship switched off; the E2E tests open them.
-        string[] publicForms = [PublicFormOptions.MembershipApplication, PublicFormOptions.DueSelection, PublicFormOptions.Motion];
+        List<string> publicForms = [PublicFormOptions.MembershipApplication, PublicFormOptions.DueSelection, PublicFormOptions.Motion];
         Db.SystemOptions
             .Where(o => publicForms.Contains(o.Identifier) && o.ChapterId == null)
             .Set(o => o.Value, "true")
             .Update();
+    }
+
+    /// <summary>The membership form also stays closed until the federal SAGE entry setup is complete.</summary>
+    protected void CompleteSageSetup() {
+        SageSetupSeeder.Seed(Factory.Services, Builder.SeedChapter("Bund").Id);
     }
 
     public virtual void Dispose() {

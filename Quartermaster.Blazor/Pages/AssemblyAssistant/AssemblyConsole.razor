@@ -8,14 +8,17 @@
 <PageBackLink Href="@($"/Administration/Events/{EventId}")" />
 
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-    <div class="d-flex align-items-baseline gap-2 assembly-shrink">
-        <h3 class="mb-0">@I18n[I18nKey.Ui.AssemblyConsole.PageTitle]</h3>
-        @if (Join?.EventName != null) {
-            <span class="fs-5 text-secondary text-truncate">@Join.EventName</span>
-        }
+    <div class="assembly-shrink">
+        <PageHeader Title="@I18n[I18nKey.Ui.AssemblyConsole.PageTitle]">
+            <Subtitle>
+                @if (Join?.EventName != null) {
+                    <span class="text-truncate">@Join.EventName</span>
+                }
+            </Subtitle>
+        </PageHeader>
     </div>
     @if (Join?.Allowed == true && Snapshot != null) {
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             @if (!Join.CanControl) {
                 <span class="assembly-status">@I18n[I18nKey.Ui.AssemblyConsole.ReadOnly]</span>
             }
@@ -35,14 +38,14 @@
 @if (Join == null) {
     <LoadingSpinner />
 } else if (!Join.Allowed && !Auth.IsAuthenticated) {
-    <div class="alert alert-info d-flex align-items-center justify-content-between">
+    <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
         <span>@I18n[I18nKey.Ui.AssemblyConsole.NotSignedIn]</span>
         <a class="btn btn-primary btn-sm" href="/Login">@I18n[I18nKey.Ui.AssemblyConsole.SignIn]</a>
     </div>
 } else if (!Join.Allowed) {
     <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyConsole.NoAccess]</div>
 } else if (Snapshot == null) {
-    <div class="alert alert-info d-flex align-items-center justify-content-between">
+    <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2">
         <span>@I18n[I18nKey.Ui.AssemblyConsole.NoSession]</span>
         @if (Join.CanControl) {
             <button type="button" class="btn btn-primary btn-sm" @onclick="StartSession" disabled="@Busy">
@@ -52,7 +55,7 @@
     </div>
 } else {
     var now = ServerNow();
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="row g-0 assembly-controls">
             <div class="col p-3">
                 <div class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.Item]</div>
@@ -69,7 +72,7 @@
                 @if (Join.CanControl) {
                     <div class="input-group input-group-sm">
                         <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.AssemblyConsole.ItemPlaceholder]" @bind="ItemInput" />
-                        <button type="button" class="btn btn-outline-primary" @onclick="SetItem">@I18n[I18nKey.Ui.AssemblyConsole.SetItem]</button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="SetItem">@I18n[I18nKey.Ui.AssemblyConsole.SetItem]</button>
                     </div>
                 }
             </div>
@@ -79,7 +82,7 @@
                 @if (Join.CanControl) {
                     <div class="input-group input-group-sm" title="@I18n[I18nKey.Ui.AssemblyConsole.MotionMinutes]">
                         <input type="number" class="form-control" min="1" max="60" @bind="MotionMinutesInput" placeholder="min" />
-                        <button type="button" class="btn btn-outline-primary" @onclick="ApplyMotionMinutes">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="ApplyMotionMinutes">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
                         <button type="button" class="btn btn-outline-secondary" @onclick="ClearMotionMinutes" disabled="@(Snapshot.MotionSpeechMinutes == null)">
                             @I18n[I18nKey.Ui.AssemblyConsole.Clear]
                         </button>
@@ -88,7 +91,7 @@
             </div>
             <div class="col p-3">
                 <div class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.ListStatus]</div>
-                <div class="fs-5 fw-semibold mb-2 d-flex align-items-center gap-2">
+                <div class="fs-5 fw-semibold mb-2 d-flex flex-wrap align-items-center gap-2">
                     <span class="assembly-dot @(Snapshot.ListClosedAt != null ? "bg-danger" : Snapshot.ListClosesAt != null ? "bg-warning" : "bg-success")"></span>
                     @ListStatusText()
                 </div>
@@ -99,7 +102,7 @@
                             <div class="input-group input-group-sm w-auto">
                                 <span class="input-group-text">@I18n[I18nKey.Ui.AssemblyConsole.CloseAt]</span>
                                 <input type="time" class="form-control" @bind="CloseAtInput" />
-                                <button type="button" class="btn btn-outline-primary" @onclick="CloseAt">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
+                                <button type="button" class="btn btn-outline-secondary" @onclick="CloseAt">@I18n[I18nKey.Ui.AssemblyConsole.Apply]</button>
                             </div>
                         }
                         @if (Snapshot.ListClosedAt != null || Snapshot.ListClosesAt != null) {

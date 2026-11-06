@@ -17,15 +17,12 @@ public partial class AssemblyMotionStatusBadge {
     [Inject]
     public required I18nService I18n { get; set; }
 
-    private string CssClass => IsInRevision ? "border-warning text-warning-emphasis" : Status switch {
-        AssemblyMotionStatus.Draft => "border-secondary text-secondary-emphasis",
-        AssemblyMotionStatus.CollectingCoSubmitters => "border-info text-info-emphasis",
-        AssemblyMotionStatus.Submitted => "border-primary text-primary-emphasis",
-        AssemblyMotionStatus.Admitted => "border-success text-success-emphasis",
-        AssemblyMotionStatus.FormallyInsufficient => "border-danger text-danger-emphasis",
-        AssemblyMotionStatus.Withdrawn => "border-secondary text-secondary-emphasis",
-        AssemblyMotionStatus.Lapsed => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary text-secondary-emphasis"
+    private StatusTone Tone => IsInRevision ? StatusTone.Warning : Status switch {
+        AssemblyMotionStatus.CollectingCoSubmitters => StatusTone.Warning,
+        AssemblyMotionStatus.Submitted => StatusTone.Info,
+        AssemblyMotionStatus.Admitted => StatusTone.Success,
+        AssemblyMotionStatus.FormallyInsufficient => StatusTone.Danger,
+        _ => StatusTone.Neutral
     };
 
     private string Label => AssemblyMotionDisplay.StatusLabel(I18n, Status, IsInRevision);

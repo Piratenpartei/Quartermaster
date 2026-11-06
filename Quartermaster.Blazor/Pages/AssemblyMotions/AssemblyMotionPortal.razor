@@ -6,44 +6,54 @@
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.PortalPageTitle]</PageTitle>
 
-<PageBackLink Href="@($"/Events/{EventId}")" />
-
 @if (Loading) {
+    <PageBackLink Href="@($"/Events/{EventId}")" />
     <LoadingSpinner />
 } else if (Portal == null) {
+    <PageBackLink Href="@($"/Events/{EventId}")" />
     <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.PortalNotFound]</div>
 } else {
-    <h1>@Portal.EventName</h1>
-    <div class="text-secondary mb-3">
-        @I18n[I18nKey.Ui.AssemblyMotion.PortalWindow]
-        <strong>@AssemblyMotionDisplay.Berlin(Portal.OpensAt)</strong>
-        @I18n[I18nKey.Ui.AssemblyMotion.PortalWindowTo]
-        <strong><DeadlineText Value="@Portal.ClosesAt" /></strong>
-    </div>
-
-    <EventSubscriptionToggle EventId="EventId" />
-
-    @if (!string.IsNullOrEmpty(Portal.IntroHtml)) {
-        <div class="card mb-3">
-            <div class="card-body rendered-markdown">
-                @((MarkupString)Portal.IntroHtml)
-            </div>
-        </div>
-    }
-
-    @if (PrioritizationOpen && Portal.PrioritizationEndsAt != null) {
-        <div class="alert alert-info">
-            @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.PrioritizationOpenHint, ("date", AssemblyMotionDisplay.Deadline(I18n, Portal.PrioritizationEndsAt.Value)))]
-        </div>
-    }
-
-    @if (RankingAvailable) {
-        <div class="mb-3">
-            <a href="/Events/@EventId/Motions/Ranking" class="btn btn-outline-primary">
-                <i class="bi bi-list-ol"></i> @I18n[I18nKey.Ui.AssemblyMotion.RankingLink]
-            </a>
-        </div>
-    }
+    <PageHeader Title="@Portal.EventName" BackHref="@($"/Events/{EventId}")">
+        <Subtitle>
+            <span>
+                @I18n[I18nKey.Ui.AssemblyMotion.PortalWindow]
+                <strong>@AssemblyMotionDisplay.Berlin(Portal.OpensAt)</strong>
+                @I18n[I18nKey.Ui.AssemblyMotion.PortalWindowTo]
+                <strong><DeadlineText Value="@Portal.ClosesAt" /></strong>
+            </span>
+            @if (Context != null && Context.IsEligible && !AssemblyMotionDisplay.IsPortalOpen(Portal)) {
+                <span>@AssemblyMotionDisplay.PortalClosedText(I18n, Portal)</span>
+            }
+        </Subtitle>
+        <Actions>
+            @if (Context != null && Context.IsEligible) {
+                @if (AssemblyMotionDisplay.IsPortalOpen(Portal)) {
+                    <a href="/Events/@EventId/Motions/New" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.NewMotion]
+                    </a>
+                }
+                <a href="/Events/@EventId/Motions/Collecting" class="btn btn-outline-secondary">
+                    <i class="bi bi-people"></i> @I18n[I18nKey.Ui.AssemblyMotion.CollectingButton]
+                </a>
+                <a href="/Events/@EventId/Motions/Mine" class="btn btn-outline-secondary">
+                    <i class="bi bi-person"></i> @I18n[I18nKey.Ui.AssemblyMotion.MineButton]
+                </a>
+            }
+            @if (RankingAvailable) {
+                <a href="/Events/@EventId/Motions/Ranking" class="btn btn-outline-secondary">
+                    <i class="bi bi-list-ol"></i> @I18n[I18nKey.Ui.AssemblyMotion.RankingLink]
+                </a>
+            }
+            <EventSubscriptionToggle EventId="EventId" />
+        </Actions>
+        <Links>
+            @if (Context != null && Context.IsCommission) {
+                <a href="/Administration/Events/@EventId/Motions" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-clipboard-check"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionButton]
+                </a>
+            }
+        </Links>
+    </PageHeader>
 
     @if (Context != null && Context.IsSignedIn && !Context.IsEligible) {
         <div class="alert alert-info">
@@ -57,62 +67,55 @@
         </div>
     }
 
-    @if (Context != null && (Context.IsEligible || Context.IsCommission)) {
-        <div class="d-flex gap-2 flex-wrap mb-3">
-            @if (Context.IsEligible) {
-                @if (AssemblyMotionDisplay.IsPortalOpen(Portal)) {
-                    <a href="/Events/@EventId/Motions/New" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.NewMotion]
-                    </a>
-                } else {
-                    <span class="text-secondary align-self-center">@AssemblyMotionDisplay.PortalClosedText(I18n, Portal)</span>
-                }
-                <a href="/Events/@EventId/Motions/Collecting" class="btn btn-outline-primary">
-                    <i class="bi bi-people"></i> @I18n[I18nKey.Ui.AssemblyMotion.CollectingButton]
-                </a>
-                <a href="/Events/@EventId/Motions/Mine" class="btn btn-outline-primary">
-                    <i class="bi bi-person"></i> @I18n[I18nKey.Ui.AssemblyMotion.MineButton]
-                </a>
-            }
-            @if (Context.IsCommission) {
-                <a href="/Administration/Events/@EventId/Motions" class="btn btn-outline-secondary">
-                    <i class="bi bi-clipboard-check"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionButton]
-                </a>
-            }
+    @if (PrioritizationOpen && Portal.PrioritizationEndsAt != null) {
+        <div class="alert alert-info">
+            @I18n[I18nParams.With(I18nKey.Ui.AssemblyMotion.PrioritizationOpenHint, ("date", AssemblyMotionDisplay.Deadline(I18n, Portal.PrioritizationEndsAt.Value)))]
         </div>
     }
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@I18n[I18nKey.Ui.AssemblyMotion.DeadlinesTitle]</h5>
-            <div class="table-responsive">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
-                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCode]</th>
-                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnMinSubmitters]</th>
-                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
-                            <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCompetingDeadline]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var type in Portal.Types) {
-                            <tr>
-                                <td>@type.Name</td>
-                                <td>@type.Code</td>
-                                <td>@type.MinSubmitters</td>
-                                <td><DeadlineText Value="@(type.Deadline ?? Portal.ClosesAt)" /></td>
-                                <td><DeadlineText Value="@type.CompetingDeadline" /></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    @if (!string.IsNullOrEmpty(Portal.IntroHtml)) {
+        <div class="card mb-4">
+            <div class="card-body rendered-markdown">
+                @((MarkupString)Portal.IntroHtml)
             </div>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">@I18n[I18nKey.Ui.AssemblyMotion.DeadlinesTitle]</h5>
+            <ResponsiveList Items="@Portal.Types">
+                <Header>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnType]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCode]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.AssemblyMotion.ColumnMinSubmitters]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]</th>
+                        <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnCompetingDeadline]</th>
+                    </tr>
+                </Header>
+                <Row Context="type">
+                    <tr>
+                        <td>@type.Name</td>
+                        <td>@type.Code</td>
+                        <td class="text-end">@type.MinSubmitters</td>
+                        <td><DeadlineText Value="@(type.Deadline ?? Portal.ClosesAt)" /></td>
+                        <td><DeadlineText Value="@type.CompetingDeadline" /></td>
+                    </tr>
+                </Row>
+                <Stacked Context="type">
+                    <div class="fw-semibold">@type.Name (@type.Code)</div>
+                    <div class="small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ColumnMinSubmitters]: @type.MinSubmitters</div>
+                    <div class="small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ColumnDeadline]: <DeadlineText Value="@(type.Deadline ?? Portal.ClosesAt)" /></div>
+                    @if (type.CompetingDeadline != null) {
+                        <div class="small text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ColumnCompetingDeadline]: <DeadlineText Value="@type.CompetingDeadline" /></div>
+                    }
+                </Stacked>
+            </ResponsiveList>
         </div>
     </div>
 
-    <div class="row g-2 mb-3">
+    <div class="row g-2 mb-4">
         <div class="col-md-3">
             <FormSelect Value="@FilterTypeId" ValueChanged="OnTypeFilterChanged">
                 <option value="">@I18n[I18nKey.Ui.AssemblyMotion.FilterAllTypes]</option>
@@ -147,38 +150,51 @@
     } else {
         @foreach (var group in GetGroups()) {
             var first = group.First();
-            <h5 class="mt-3">@first.TypeName (@first.TypeCode)</h5>
-            <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th style="width: 8rem;">@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
-                            <th>@I18n[I18nKey.Ui.Common.Title]</th>
-                            <th class="text-end">@I18n[I18nKey.Ui.Common.Status]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in group) {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">@first.TypeName (@first.TypeCode)</h5>
+                    <ResponsiveList Items="@group.ToList()">
+                        <Header>
+                            <tr>
+                                <th>@I18n[I18nKey.Ui.AssemblyMotion.ColumnNumber]</th>
+                                <th>@I18n[I18nKey.Ui.Common.Title]</th>
+                                <th class="text-end">@I18n[I18nKey.Ui.Common.Status]</th>
+                            </tr>
+                        </Header>
+                        <Row Context="item">
                             <tr>
                                 <td class="text-nowrap">@(item.NumberLabel ?? "-")</td>
                                 <td>
                                     <a href="/AssemblyMotions/@item.Id">@item.Title</a>
                                     @if (UpvotedIds.Contains(item.Id)) {
-                                        <span class="badge border border-warning text-warning-emphasis ms-1">
-                                            <i class="bi bi-star-fill"></i> @I18n[I18nKey.Ui.AssemblyMotion.UpvotedMarker]
-                                        </span>
+                                        <StatusBadge Tone="StatusTone.Warning" Icon="star-fill" Text="@I18n[I18nKey.Ui.AssemblyMotion.UpvotedMarker]" Class="ms-1" />
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
-                                    @if (item.Result != AssemblyMotionResult.None) {
-                                        <span class="badge border border-secondary text-secondary-emphasis">@AssemblyMotionDisplay.ResultLabel(I18n, item.Result)</span>
-                                    }
+                                    <div class="d-flex flex-wrap justify-content-end gap-1">
+                                        <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
+                                        @if (item.Result != AssemblyMotionResult.None) {
+                                            <StatusBadge Tone="StatusTone.Neutral" Text="@AssemblyMotionDisplay.ResultLabel(I18n, item.Result)" />
+                                        }
+                                    </div>
                                 </td>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </Row>
+                        <Stacked Context="item">
+                            <a class="fw-semibold" href="/AssemblyMotions/@item.Id">@item.Title</a>
+                            <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary mt-1">
+                                <span class="text-nowrap">@(item.NumberLabel ?? "-")</span>
+                                <AssemblyMotionStatusBadge Status="@item.Status" IsInRevision="@item.IsInRevision" />
+                                @if (item.Result != AssemblyMotionResult.None) {
+                                    <StatusBadge Tone="StatusTone.Neutral" Text="@AssemblyMotionDisplay.ResultLabel(I18n, item.Result)" />
+                                }
+                                @if (UpvotedIds.Contains(item.Id)) {
+                                    <StatusBadge Tone="StatusTone.Warning" Icon="star-fill" Text="@I18n[I18nKey.Ui.AssemblyMotion.UpvotedMarker]" />
+                                }
+                            </div>
+                        </Stacked>
+                    </ResponsiveList>
+                </div>
             </div>
         }
         <Pagination CurrentPage="@CurrentPage" TotalPages="@TotalPages" OnPageChanged="OnPageChanged" />

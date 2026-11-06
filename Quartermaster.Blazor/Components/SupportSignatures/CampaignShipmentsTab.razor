@@ -20,7 +20,7 @@
                                        @onchange="() => ToggleOffice(office.OfficeId)" />
                                 <label class="form-check-label fw-semibold" for="plan-@office.OfficeId">@office.OfficeName</label>
                                 @if (office.IsOfficial) {
-                                    <span class="badge text-bg-light border ms-1">@I18n[I18nKey.Ui.SupportSignatures.OfficialAddress]</span>
+                                    <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.SupportSignatures.OfficialAddress]" Class="ms-1" />
                                 }
                             </div>
                             <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartSingle(office)">@I18n[I18nKey.Ui.SupportSignatures.AdjustSingle]</button>
@@ -34,8 +34,10 @@
                                         <span class="small text-secondary">/ @line.Max</span>
                                     </div>
                                 }
-                                <button class="btn btn-sm btn-primary mt-1" @onclick="CreateSingle" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.CreateSingle]</button>
-                                <button class="btn btn-sm btn-outline-secondary mt-1" @onclick="() => SingleOfficeId = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <button class="btn btn-sm btn-primary" @onclick="CreateSingle" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.CreateSingle]</button>
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => SingleOfficeId = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                                </div>
                             </div>
                         } else {
                             <div class="small text-secondary">
@@ -50,7 +52,7 @@
                         @foreach (var line in Plan.Unassigned) {
                             <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
                                 <span>@line.MunicipalityName: @line.Count</span>
-                                <button class="btn btn-sm btn-outline-dark" @onclick="() => AssigningMunicipalityId = line.MunicipalityId">@I18n[I18nKey.Ui.SupportSignatures.AssignOffice]</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => AssigningMunicipalityId = line.MunicipalityId">@I18n[I18nKey.Ui.SupportSignatures.AssignOffice]</button>
                             </div>
                             @if (AssigningMunicipalityId == line.MunicipalityId) {
                                 <OfficeAssignPanel MunicipalityId="@line.MunicipalityId" Assigned="OnOfficeAssigned" Cancelled="() => AssigningMunicipalityId = null" />
@@ -79,7 +81,7 @@
                     }
                 </ul>
                 <div class="d-flex flex-wrap align-items-end gap-2">
-                    <button class="btn btn-outline-primary" @onclick="PrintPrepared" disabled="@Busy">
+                    <button class="btn btn-outline-secondary" @onclick="PrintPrepared" disabled="@Busy">
                         <i class="bi bi-printer me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.PrintLetters]
                     </button>
                     <div>
@@ -105,16 +107,16 @@
                     <span class="fw-semibold">@shipment.OfficeName</span>
                     <span class="small text-secondary ms-2">@I18n[I18nKey.Ui.SupportSignatures.SentOn] @shipment.SentOn?.ToString("dd.MM.yyyy")</span>
                     @if (shipment.IsOverdue) {
-                        <span class="badge bg-warning text-dark ms-2">@I18n[I18nKey.Ui.SupportSignatures.Overdue]</span>
+                        <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.SupportSignatures.Overdue]" Class="ms-2" />
                     }
                     @if (shipment.Open == 0) {
-                        <span class="badge bg-success ms-2">@I18n[I18nKey.Ui.SupportSignatures.Complete]</span>
+                        <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.SupportSignatures.Complete]" Class="ms-2" />
                     }
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-secondary" @onclick="() => Signatures.DownloadLettersAsync(CampaignId, [shipment.Id], CampaignName)" title="@I18n[I18nKey.Ui.SupportSignatures.PrintLetters]"><i class="bi bi-printer"></i></button>
                     @if (shipment.Open > 0) {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => StartReturn(shipment)">@I18n[I18nKey.Ui.SupportSignatures.RecordReturn]</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartReturn(shipment)">@I18n[I18nKey.Ui.SupportSignatures.RecordReturn]</button>
                     }
                 </div>
             </div>
@@ -186,8 +188,10 @@
                             </div>
                         </div>
                     }
-                    <button class="btn btn-sm btn-primary mt-2" @onclick="SaveReturn" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
-                    <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="CancelReturn">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button class="btn btn-sm btn-primary" @onclick="SaveReturn" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="CancelReturn">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                    </div>
                 </div>
             }
         </div>

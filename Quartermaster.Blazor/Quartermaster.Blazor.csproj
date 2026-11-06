@@ -15,10 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\css\bootstrap-5.3.3-dist\css\bootstrap.css">
+    <Content Update="wwwroot\css\bootstrap-5.3.8-dist\css\bootstrap.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Update="wwwroot\css\bootstrap-5.3.3-dist\css\bootstrap.min.css">
+    <Content Update="wwwroot\css\bootstrap-5.3.8-dist\css\bootstrap.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

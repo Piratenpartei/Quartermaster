@@ -34,7 +34,6 @@ public partial class EventDetail {
     private DirtyForm _detailsForm = default!;
     private EventDetailDTO? Event;
     private bool Loading = true;
-    private bool Saving;
     private bool EditingTitle;
     private List<AuditLogDTO>? AuditLogs;
     private bool AuditUnavailable;
@@ -99,27 +98,22 @@ public partial class EventDetail {
         }
     }
 
-    private async Task SaveDetails() {
+    private async Task<bool> SaveDetails() {
         if (Event == null)
-            return;
-
-        Saving = true;
-        StateHasChanged();
+            return false;
 
         try {
             var response = await Http.PutAsJsonAsync($"/api/events/{Id}", UpdateRequest(Event));
-            if (response.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-                _detailsForm.Reset();
-            } else {
+            if (!response.IsSuccessStatusCode) {
                 await ToastService.ErrorAsync(response);
+                return false;
             }
+            _detailsForm.Reset();
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
-
-        Saving = false;
-        StateHasChanged();
     }
 
     private EventUpdateRequest UpdateRequest(EventDetailDTO ev) {
@@ -138,7 +132,8 @@ public partial class EventDetail {
     private async Task SaveTitleEdit() {
         EditingTitle = false;
         _detailsForm.MarkDirty();
-        await SaveDetails();
+        if (await SaveDetails())
+            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
     }
 
     private async Task SaveIfDirty() {

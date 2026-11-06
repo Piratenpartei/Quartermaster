@@ -10,19 +10,16 @@
 } else if (Settings == null) {
     <div class="alert alert-warning">@I18n[I18nKey.Ui.UserSettings.NotLoggedIn]</div>
 } else {
-    <h3>@I18n[I18nKey.Ui.UserSettings.MyAccount]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.UserSettings.MyAccount]" />
 
-    <div class="row mb-3">
-        <div class="@(Settings.Member != null ? "col-12 col-lg-6 mb-3 mb-lg-0" : "col-12")">
+    <div class="row mb-4">
+        <div class="@(Settings.Member != null ? "col-12 col-lg-6 mb-4 mb-lg-0" : "col-12")">
             <div class="card h-100">
                 <div class="card-body">
                     <h5>@I18n[I18nKey.Ui.UserSettings.UserDataTitle]</h5>
-                    <div class="table-responsive">
-                    <table class="table table-borderless mb-0">
-                        <tbody>
-                            <tr>
-                                <th style="width:180px">@I18n[I18nKey.Ui.UserSettings.DisplayName]</th>
-                                <td>
+                    <dl class="row mb-0">
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.DisplayName]</dt>
+                                <dd class="col-sm-8">
                                     <div class="mb-1">@Settings.User.DisplayName</div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="displayNameMode" id="displayNameRealName"
@@ -40,23 +37,20 @@
                                         <div class="form-text">@I18n[I18nKey.Ui.UserSettings.DisplayNameUsernamePending]</div>
                                     }
                                     <div class="form-text">@I18n[I18nKey.Ui.UserSettings.DisplayNameHint]</div>
-                                </td>
-                            </tr>
-                            <tr><th>@I18n[I18nKey.Ui.UserSettings.Username]</th><td>@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</td></tr>
-                            <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</td></tr>
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.UserSettings.LoginMethod]</th>
-                                <td>
+                                </dd>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.Username]</dt>
+                            <dd class="col-sm-8">@(string.IsNullOrEmpty(Settings.User.Username) ? "---" : Settings.User.Username)</dd>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Email]</dt>
+                            <dd class="col-sm-8">@(string.IsNullOrEmpty(Settings.User.Email) ? "---" : Settings.User.Email)</dd>
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.LoginMethod]</dt>
+                                <dd class="col-sm-8">
                                     @if (Settings.IsSsoAccount) {
-                                        <span class="badge bg-primary"><i class="bi bi-shield-lock me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodSso]</span>
+                                        <span class="badge rounded-pill border bg-info-subtle text-info-emphasis border-info-subtle"><i class="bi bi-shield-lock me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodSso]</span>
                                     } else {
-                                        <span class="badge bg-secondary"><i class="bi bi-person-fill me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodManual]</span>
+                                        <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle"><i class="bi bi-person-fill me-1"></i>@I18n[I18nKey.Ui.UserSettings.LoginMethodManual]</span>
                                     }
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
+                                </dd>
+                    </dl>
                 </div>
             </div>
         </div>
@@ -65,56 +59,53 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5>@I18n[I18nKey.Ui.UserSettings.MembershipTitle]</h5>
-                        <div class="table-responsive">
-                        <table class="table table-borderless mb-0">
-                            <tbody>
-                                <tr><th style="width:180px">@I18n[I18nKey.Ui.UserSettings.MemberNumber]</th><td>@Settings.Member.MemberNumber</td></tr>
-                                <tr><th>@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</td></tr>
+                        <dl class="row mb-0">
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.MemberNumber]</dt>
+                                <dd class="col-sm-8">@Settings.Member.MemberNumber</dd>
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Chapter]</dt>
+                                <dd class="col-sm-8">@(string.IsNullOrEmpty(Settings.Member.ChapterName) ? "---" : Settings.Member.ChapterName)</dd>
                                 @if (Settings.Member.EntryDate.HasValue) {
-                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.EntryDate]</th><td><LocalTime DateValue="Settings.Member.EntryDate" /></td></tr>
+                                    <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.EntryDate]</dt>
+                                    <dd class="col-sm-8"><LocalTime DateValue="Settings.Member.EntryDate" /></dd>
                                 }
                                 @if (Settings.Member.MembershipFee > 0) {
-                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.MembershipFee]</th><td>@Settings.Member.MembershipFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
+                                    <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.MembershipFee]</dt>
+                                    <dd class="col-sm-8">@Settings.Member.MembershipFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</dd>
                                 }
                                 @if (Settings.Member.ReducedFee > 0) {
-                                    <tr><th>@I18n[I18nKey.Ui.UserSettings.ReducedFee]</th><td>@Settings.Member.ReducedFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</td></tr>
+                                    <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.ReducedFee]</dt>
+                                    <dd class="col-sm-8">@Settings.Member.ReducedFee.ToString("0.00") @I18n[I18nKey.Ui.UserSettings.FeeSuffix]</dd>
                                 }
-                                <tr>
-                                    <th>@I18n[I18nKey.Ui.UserSettings.VotingRights]</th>
-                                    <td>
+                                    <dt class="col-sm-4">@I18n[I18nKey.Ui.UserSettings.VotingRights]</dt>
+                                    <dd class="col-sm-8">
                                         @if (Settings.Member.HasVotingRights) {
-                                            <span class="badge bg-success">@I18n[I18nKey.Ui.Common.Yes]</span>
+                                            <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.Common.Yes]" />
                                         } else if (Settings.Member.OpenFeeTotal.HasValue && Settings.Member.OpenFeeTotal.Value > 0) {
-                                            <span class="badge bg-danger">@I18n[$"{I18nKey.Ui.UserSettings.VotingRightsNoOpenFee}?amount={Settings.Member.OpenFeeTotal.Value.ToString("0.00")}"]</span>
+                                            <StatusBadge Tone="StatusTone.Danger" Text="@I18n[$"{I18nKey.Ui.UserSettings.VotingRightsNoOpenFee}?amount={Settings.Member.OpenFeeTotal.Value.ToString("0.00")}"]" />
                                         } else {
-                                            <span class="badge bg-secondary">@I18n[I18nKey.Ui.Common.No]</span>
+                                            <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.Common.No]" />
                                         }
-                                    </td>
-                                </tr>
+                                    </dd>
                                 @if (Settings.Member.IsPending) {
-                                    <tr>
-                                        <th>@I18n[I18nKey.Ui.Common.Status]</th>
-                                        <td><span class="badge bg-warning text-dark">@I18n[I18nKey.Ui.UserSettings.PendingBadge]</span></td>
-                                    </tr>
+                                        <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Status]</dt>
+                                        <dd class="col-sm-8"><StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.UserSettings.PendingBadge]" /></dd>
                                 }
-                            </tbody>
-                        </table>
-                        </div>
+                        </dl>
                     </div>
                 </div>
             </div>
         }
     </div>
 
-    <div class="row mb-3">
-        <div class="col-12 col-lg-6 mb-3 mb-lg-0">
+    <div class="row mb-4">
+        <div class="col-12 col-lg-6 mb-4 mb-lg-0">
             <div class="card h-100">
                 <div class="card-body">
                     <h5>@I18n[I18nKey.Ui.UserSettings.GlobalPermissionsTitle]</h5>
                     @if (Settings.GlobalPermissions.Count > 0) {
                         <div class="d-flex flex-wrap gap-1">
                             @foreach (var perm in Settings.GlobalPermissions) {
-                                <span class="badge bg-success" title="@perm.Identifier">@perm.DisplayName</span>
+                                <span class="badge rounded-pill border bg-success-subtle text-success-emphasis border-success-subtle" title="@perm.Identifier">@perm.DisplayName</span>
                             }
                         </div>
                     } else {
@@ -133,7 +124,7 @@
                                 <strong>@chapter.ChapterName</strong>
                                 <div class="d-flex flex-wrap gap-1 mt-1">
                                     @foreach (var perm in chapter.Permissions) {
-                                        <span class="badge bg-primary" title="@perm.Identifier">@perm.DisplayName</span>
+                                        <span class="badge rounded-pill border bg-info-subtle text-info-emphasis border-info-subtle" title="@perm.Identifier">@perm.DisplayName</span>
                                     }
                                 </div>
                             </div>
@@ -147,16 +138,21 @@
     </div>
 
     @if (IsDebug) {
-        <div class="card mt-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.UserSettings.DevelopmentTitle]</h5>
                 <p class="text-secondary small mb-2">@I18n[I18nKey.Ui.UserSettings.DevelopmentNotice]</p>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="SeedTestData" disabled="@Seeding">
+                <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-secondary" @onclick="SeedTestData" disabled="@Seeding">
                     @if (Seeding) {
                         <span class="spinner-border spinner-border-sm"></span>
                     }
                     <i class="bi bi-database-add"></i> @I18n[I18nKey.Ui.UserSettings.CreateTestData]
                 </button>
+                <button class="btn btn-outline-secondary" @onclick="LinkTestMember" disabled="@Seeding">
+                    <i class="bi bi-person-badge"></i> @I18n[I18nKey.Ui.UserSettings.LinkTestMember]
+                </button>
+                </div>
             </div>
         </div>
     }

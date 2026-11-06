@@ -12,22 +12,21 @@
 } else if (Template == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.TemplateDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-start mb-3">
-        <div>
-            <h3 class="mb-1">@Template.DisplayName</h3>
+    <PageHeader Title="@Template.DisplayName">
+        <Subtitle>
             @if (!string.IsNullOrEmpty(Template.Identifier)) {
-                <code class="text-secondary small">@Template.Identifier</code>
+                <code class="text-secondary small text-break">@Template.Identifier</code>
             }
             @if (Template.IsSystem && Template.ChapterId == null) {
-                <span class="badge border border-info text-info-emphasis ms-2">@I18n[I18nKey.Ui.TemplateDetail.SystemBadge]</span>
+                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.TemplateDetail.SystemBadge]" Class="ms-2" />
             } else if (!string.IsNullOrEmpty(Template.ChapterName)) {
-                <span class="badge bg-secondary ms-2">@Template.ChapterName</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@Template.ChapterName" Class="ms-2" />
             }
-        </div>
-        <div class="d-flex gap-2">
+        </Subtitle>
+        <Actions>
             @if (IsFormDirty) {
                 <span title="@I18n[I18nKey.Ui.TemplateDetail.PdfPreviewUnsavedTooltip]" tabindex="0">
-                    <button type="button" class="btn btn-outline-secondary" disabled style="pointer-events: none;">
+                    <button type="button" class="pe-none btn btn-outline-secondary" disabled>
                         <i class="bi bi-file-earmark-pdf me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.PdfPreviewButton]
                     </button>
                 </span>
@@ -41,13 +40,13 @@
                     <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.DeleteButton]
                 </button>
             }
-        </div>
-    </div>
+        </Actions>
+    </PageHeader>
 
     <div class="row">
         <div class="col-lg-9">
             <DirtyForm @ref="_form">
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-9">
@@ -57,7 +56,7 @@
                                 </div>
 
                                 <div class="mb-0">
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                         <label class="form-label">@I18n[I18nKey.Ui.TemplateDetail.SubjectLabel]</label>
                                         <div class="form-check form-switch">
                                             <input class="form-check-input" type="checkbox" id="noSubjectToggle"
@@ -114,7 +113,7 @@
                                             PreviewTransform="PreviewTransform" />
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <div>
                                 @if (Template.RenderMode == TemplateRenderMode.Envelope) {
                                     <button type="button" class="btn btn-outline-secondary"
@@ -124,14 +123,14 @@
                                     </button>
                                 }
                             </div>
-                            <FormSaveButton OnClick="Save" Text="@I18n[I18nKey.Ui.TemplateDetail.SaveButton]" />
+                            <FormSaveButton Action="Save" Text="@I18n[I18nKey.Ui.TemplateDetail.SaveButton]" />
                         </div>
                     </div>
                 </div>
             </DirtyForm>
 
             @if (Template.BaseTemplateId == null) {
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body">
                         <h5>@I18n[I18nKey.Ui.TemplateDetail.OverridesHeading]</h5>
 
@@ -142,7 +141,7 @@
                                     <tr>
                                         <th>@I18n[I18nKey.Ui.TemplateDetail.ChapterColumn]</th>
                                         <th>@I18n[I18nKey.Ui.TemplateDetail.SubjectColumn]</th>
-                                        <th style="width: 60%;">@I18n[I18nKey.Ui.TemplateDetail.BodyLabel]</th>
+                                        <th class="w-50">@I18n[I18nKey.Ui.TemplateDetail.BodyLabel]</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -150,7 +149,7 @@
                                     @foreach (var ov in Template.Overrides) {
                                         <tr>
                                             <td>
-                                                <span class="badge bg-secondary me-1">@ov.ChapterShortCode</span>
+                                                <StatusBadge Tone="StatusTone.Neutral" Text="@ov.ChapterShortCode" Class="me-1" />
                                                 @ov.ChapterName
                                             </td>
                                             <td><small class="text-secondary">@(ov.Subject ?? "")</small></td>
@@ -191,7 +190,7 @@
                                                 Profile="SanitizationProfile.Strict"
                                                 PreviewTransform="PreviewTransform" />
                             </div>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex flex-wrap gap-2">
                                 <button class="btn btn-primary btn-sm" @onclick="SaveOverride">
                                     @I18n[I18nKey.Ui.TemplateDetail.SaveButton]
                                 </button>
@@ -200,7 +199,7 @@
                                 </button>
                             </div>
                         } else {
-                            <button class="btn btn-outline-success btn-sm" @onclick="StartAddOverride">
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="StartAddOverride">
                                 <i class="bi bi-plus-lg me-1"></i> @I18n[I18nKey.Ui.TemplateDetail.AddOverrideButton]
                             </button>
                         }

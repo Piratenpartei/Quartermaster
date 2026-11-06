@@ -121,6 +121,7 @@ public partial class Program {
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<PermissionContext>();
+        builder.Services.AddScoped<DetailPageAccess>();
         builder.Services.AddScoped<PublicForms.PublicFormSettings>();
 
         // I18n: load the German translation file from wwwroot at startup. The

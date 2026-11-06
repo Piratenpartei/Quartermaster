@@ -6,7 +6,7 @@
 <PageBackLink Href="/Administration/Settings" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-3">@I18n[I18nKey.Ui.SmtpSetup.PageTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.SmtpSetup.PageTitle]" />
 
     <div class="card mb-4">
         <div class="card-body">
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5 class="card-title mb-3">@I18n[I18nKey.Ui.SmtpSetup.TestSectionTitle]</h5>
             <p class="text-secondary">@I18n[I18nKey.Ui.SmtpSetup.TestDescription]</p>
@@ -23,7 +23,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" class="form-control" placeholder="@I18n[I18nKey.Ui.SmtpSetup.RecipientPlaceholder]"
                        value="@TestRecipient" @oninput="e => TestRecipient = e.Value?.ToString() ?? string.Empty" />
-                <button class="btn btn-primary btn-hover-scale1" @onclick="SendTest" disabled="@(Sending || string.IsNullOrWhiteSpace(TestRecipient))">
+                <button class="btn btn-primary" @onclick="SendTest" disabled="@(Sending || string.IsNullOrWhiteSpace(TestRecipient))">
                     @if (Sending) {
                         <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                     }

@@ -20,7 +20,7 @@
                        Title="@I18n[I18nKey.Ui.Home.UpcomingEventsTitle]"
                        AllUrl="/Events">
             <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Common.Name]</th>
@@ -42,16 +42,18 @@
                                 }
                             </td>
                             <td class="text-end text-nowrap">
-                                @if (!string.IsNullOrWhiteSpace(ev.MeetingUrl)) {
-                                    <a href="@ev.MeetingUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
-                                    </a>
-                                }
-                                @if (ev.HasMotionPortal) {
-                                    <a href="/Events/@ev.Id/Motions" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
-                                    </a>
-                                }
+                                <div class="d-flex justify-content-end gap-1">
+                                    @if (!string.IsNullOrWhiteSpace(ev.MeetingUrl)) {
+                                        <a href="@ev.MeetingUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
+                                        </a>
+                                    }
+                                    @if (ev.HasMotionPortal) {
+                                        <a href="/Events/@ev.Id/Motions" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
+                                        </a>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -70,7 +72,7 @@
                        TotalCount="@Dashboard.OpenMotions.TotalCount"
                        AllUrl="/Administration/Motions">
             <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Common.Title]</th>
@@ -98,7 +100,7 @@
                        TotalCount="@Dashboard.PendingApplications.TotalCount"
                        AllUrl="/Administration/MembershipApplications">
             <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Common.Name]</th>
@@ -126,7 +128,7 @@
                        TotalCount="@Dashboard.PendingDueSelections.TotalCount"
                        AllUrl="/Administration/DueSelections">
             <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Common.Name]</th>

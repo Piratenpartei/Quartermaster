@@ -15,15 +15,14 @@
             <div class="alert alert-warning mt-3">@I18n[I18nKey.Ui.SupportSignatures.CampaignNotFound]</div>
         }
     } else {
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mt-2">
-            <div>
-                <h3 class="mb-0">@Campaign.Name</h3>
-                <div class="text-secondary">@Campaign.ChapterName</div>
-            </div>
+        <PageHeader Title="@Campaign.Name">
+            <Subtitle>
+                <span>@Campaign.ChapterName</span>
             @if (Campaign.ArchivedAt != null) {
-                <span class="badge bg-secondary">@I18n[I18nKey.Ui.SupportSignatures.Archived]</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.SupportSignatures.Archived]" />
             }
-        </div>
+            </Subtitle>
+        </PageHeader>
         <SupportSignatureProgress Certified="@Campaign.Totals.Certified" Collected="@(Campaign.Totals.Received - Campaign.Totals.Rejected)" Target="@Campaign.Target" Goal="@Campaign.Totals.Goal" />
 
         <ul class="nav nav-tabs mt-4 mb-3">

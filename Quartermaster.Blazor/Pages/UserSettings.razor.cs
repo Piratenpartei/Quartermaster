@@ -62,6 +62,22 @@ public partial class UserSettings {
         SavingDisplayName = false;
     }
 
+    private async Task LinkTestMember() {
+        Seeding = true;
+        try {
+            var resp = await Http.PostAsync("/api/testdata/link-member", null);
+            if (resp.IsSuccessStatusCode) {
+                Settings = await Http.GetFromJsonAsync<UserSettingsDTO>("/api/users/settings");
+                ToastService.ToastKey(I18nKey.Ui.Toast.TestMemberLinked);
+            } else {
+                await ToastService.ErrorAsync(resp);
+            }
+        } catch (HttpRequestException ex) {
+            ToastService.Error(ex);
+        }
+        Seeding = false;
+    }
+
     private async Task SeedTestData() {
         Seeding = true;
         StateHasChanged();

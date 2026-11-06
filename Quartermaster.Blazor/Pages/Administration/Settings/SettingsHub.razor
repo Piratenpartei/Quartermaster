@@ -2,7 +2,7 @@
 @using Quartermaster.Api.I18n
 
 <div class="mb-3">
-    <h3>@I18n[I18nKey.Ui.Settings.PageTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.Settings.PageTitle]" />
     <p class="text-secondary mb-0">@I18n[I18nKey.Ui.Settings.Intro]</p>
 </div>
 
@@ -17,12 +17,12 @@
                 <div class="col">
                     <a href="@assistant.Route" class="card h-100 text-decoration-none text-body hover-interact qm-bg-body qm-hover-bg-secondary">
                         <div class="card-body d-flex gap-3">
-                            <i class="bi @assistant.Icon fs-3 text-primary"></i>
+                            <i class="bi @assistant.Icon fs-3 text-primary flex-shrink-0"></i>
                             <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-1">
                                     <h6 class="mb-0">@I18n[assistant.TitleKey]</h6>
                                     @if (status != SettingsStatus.None) {
-                                        <span class="badge border @StatusBadge(status)">@I18n[StatusKey(status)]</span>
+                                        <StatusBadge Tone="@ToneOf(status)" Text="@I18n[StatusKey(status)]" />
                                     }
                                 </div>
                                 <p class="small text-secondary mb-0">@I18n[assistant.DescriptionKey]</p>

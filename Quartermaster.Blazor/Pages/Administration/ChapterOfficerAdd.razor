@@ -6,9 +6,9 @@
 
 <PageBackLink Href="@($"/Administration/Chapters/{ChapterId}")" Text="@I18n[I18nKey.Ui.ChapterOfficerAdd.BackToChapter]" />
 
-<h3 class="mb-3">@I18n[I18nKey.Ui.ChapterOfficerAdd.PageTitle]</h3>
+<PageHeader Title="@I18n[I18nKey.Ui.ChapterOfficerAdd.PageTitle]" />
 
-<div class="card mb-3">
+<div class="card mb-4">
     <div class="card-body">
         <h5>@I18n[I18nKey.Ui.ChapterOfficerAdd.SearchSection]</h5>
         <div class="input-group mb-3">
@@ -40,7 +40,7 @@
                                 <td>@m.FirstName @m.LastName</td>
                                 <td>@m.PostCode @m.City</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => SelectMember(m)">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => SelectMember(m)">
                                         <i class="bi bi-check"></i> @I18n[I18nKey.Ui.ChapterOfficerAdd.SelectButton]
                                     </button>
                                 </td>
@@ -55,7 +55,7 @@
 </div>
 
 @if (SelectedMember != null) {
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.ChapterOfficerAdd.SelectedMemberSection]</h5>
             <p class="mb-2">
@@ -77,7 +77,7 @@
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <button class="btn btn-success" @onclick="AddOfficer" disabled="@Submitting">
+                    <button class="btn btn-primary" @onclick="AddOfficer" disabled="@Submitting">
                         @if (Submitting) {
                             <span class="spinner-border spinner-border-sm" role="status"></span>
                             <span> @I18n[I18nKey.Ui.ChapterOfficerAdd.Adding]</span>

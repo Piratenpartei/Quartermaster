@@ -5,7 +5,7 @@
 @if (Loading) {
     <LoadingSpinner Small="true" />
 } else if (!Forbidden) {
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">@I18n[I18nKey.Ui.AssemblyMotion.SettingsTitle]</h5>
@@ -164,12 +164,14 @@
                                 </select>
                             </td>
                             <td class="text-nowrap">
-                                <button class="btn btn-sm btn-primary" disabled="@Busy" @onclick="SaveTypeAsync" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]">
-                                    <i class="bi bi-check-lg"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="CancelTypeEdit" title="@I18n[I18nKey.Ui.Common.Cancel]" aria-label="@I18n[I18nKey.Ui.Common.Cancel]">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-primary" disabled="@Busy" @onclick="SaveTypeAsync" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="CancelTypeEdit" title="@I18n[I18nKey.Ui.Common.Cancel]" aria-label="@I18n[I18nKey.Ui.Common.Cancel]">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -210,15 +212,17 @@
                                         <td><DeadlineText Value="@type.CompetingDeadline" /></td>
                                         <td>@AssemblyMotionDisplay.MajorityLabel(I18n, type.RequiredMajority)</td>
                                         <td class="text-nowrap">
-                                            <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || !CanEdit)" @onclick="() => BeginEditType(type)"
-                                                    title="@I18n[I18nKey.Ui.Common.Edit]" aria-label="@I18n[I18nKey.Ui.Common.Edit]">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" disabled="@(Busy || !CanEdit || type.HasMotions)" @onclick="() => DeleteTypeAsync(type)"
-                                                    title="@(type.HasMotions ? I18n[I18nKey.Ui.AssemblyMotion.TypeHasMotions] : I18n[I18nKey.Ui.Common.Delete])"
-                                                    aria-label="@I18n[I18nKey.Ui.Common.Delete]">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || !CanEdit)" @onclick="() => BeginEditType(type)"
+                                                        title="@I18n[I18nKey.Ui.Common.Edit]" aria-label="@I18n[I18nKey.Ui.Common.Edit]">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" disabled="@(Busy || !CanEdit || type.HasMotions)" @onclick="() => DeleteTypeAsync(type)"
+                                                        title="@(type.HasMotions ? I18n[I18nKey.Ui.AssemblyMotion.TypeHasMotions] : I18n[I18nKey.Ui.Common.Delete])"
+                                                        aria-label="@I18n[I18nKey.Ui.Common.Delete]">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -229,7 +233,7 @@
                         </tbody>
                     </table>
                 </div>
-                <button class="btn btn-sm btn-outline-primary" disabled="@(Busy || !CanEdit || Editing != null)" @onclick="BeginAddType">
+                <button class="btn btn-sm btn-outline-secondary" disabled="@(Busy || !CanEdit || Editing != null)" @onclick="BeginAddType">
                     <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.AssemblyMotion.AddType]
                 </button>
             }

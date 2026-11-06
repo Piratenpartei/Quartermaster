@@ -77,6 +77,21 @@ public partial class MainNavBar : IDisposable {
         });
     }
 
+    private string VotingRightsText {
+        get {
+            var user = AuthService.CurrentUser;
+            if (user?.HasVotingRights == true)
+                return I18n[I18nKey.Ui.MainNavBar.VotingRights];
+            if (user?.OpenFeeTotal > 0)
+                return $"{I18n[I18nKey.Ui.MainNavBar.NoVotingRights]}, {I18n[$"{I18nKey.Ui.MainNavBar.OpenFee}?amount={user.OpenFeeTotal.Value.ToString("0.00")}"]}";
+            return I18n[I18nKey.Ui.MainNavBar.NoVotingRights];
+        }
+    }
+
+    private async Task SwitchLanguage(string language) {
+        await LanguageService.SetLanguageAsync(language);
+    }
+
     private async Task HandleLogout() {
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/", forceLoad: false);

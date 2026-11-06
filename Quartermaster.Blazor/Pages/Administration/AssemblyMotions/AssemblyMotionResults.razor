@@ -14,10 +14,11 @@
 } else if (Forbidden) {
     <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.CommissionOnly]</div>
 } else {
-    <div class="mb-3">
-        <div class="text-secondary">@I18n[I18nKey.Ui.AssemblyMotion.ResultsPageTitle]</div>
-        <h3 class="mb-0">@Portal.EventName</h3>
-    </div>
+    <PageHeader Title="@Portal.EventName">
+        <Subtitle>
+            <span>@I18n[I18nKey.Ui.AssemblyMotion.ResultsPageTitle]</span>
+        </Subtitle>
+    </PageHeader>
 
     @if (!EventReached) {
         <div class="alert alert-info">@LockedText</div>
@@ -58,7 +59,7 @@
             </table>
         </div>
 
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
             <button class="btn btn-primary" disabled="@(Busy || !EventReached)" @onclick="Save">
                 <i class="bi bi-save"></i> @I18n[I18nKey.Ui.AssemblyMotion.ResultsSave]
             </button>

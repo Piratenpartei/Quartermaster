@@ -7,7 +7,7 @@
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.ManageNewsPosts">
     <PageBackLink Href="/Administration/NewsPosts" />
-    <h3 class="mb-3">@I18n[I18nKey.Ui.NewsPosts.SettingsTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.NewsPosts.SettingsTitle]" />
 
     @if (status != null) {
         <div class="card mb-4">
@@ -67,10 +67,12 @@
                             }
                         </td>
                         <td class="text-end text-nowrap">
-                            <button type="button" class="btn btn-outline-primary btn-sm" disabled="@busy" @onclick="() => SaveFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Save]</button>
-                            @if (feed.Id != Guid.Empty) {
-                                <button type="button" class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => DeleteFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Delete]</button>
-                            }
+                            <div class="d-flex justify-content-end gap-1">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" disabled="@busy" @onclick="() => SaveFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Save]</button>
+                                @if (feed.Id != Guid.Empty) {
+                                    <button type="button" class="btn btn-outline-danger btn-sm" disabled="@busy" @onclick="() => DeleteFeedAsync(feed)">@I18n[I18nKey.Ui.NewsPosts.Delete]</button>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }

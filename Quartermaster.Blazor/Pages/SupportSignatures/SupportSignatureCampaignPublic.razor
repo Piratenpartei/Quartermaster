@@ -10,21 +10,20 @@
 } else if (Campaign == null) {
     <div class="alert alert-warning">@I18n[I18nKey.Ui.SupportSignatures.CampaignNotFound]</div>
 } else {
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-        <div>
-            <div class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.CardSubtitle] · @Campaign.ChapterName</div>
-            <h3>@Campaign.Name</h3>
-        </div>
-        @if (Campaign.CanManage) {
-            <a class="btn btn-sm btn-outline-primary" href="/Administration/SupportSignatures/@Campaign.Id"><i class="bi bi-pen me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.OpenInAssistant]</a>
-        }
-    </div>
+    <PageHeader Title="@Campaign.Name">
+        <Subtitle>@I18n[I18nKey.Ui.SupportSignatures.CardSubtitle] · @Campaign.ChapterName</Subtitle>
+        <Actions>
+            @if (Campaign.CanManage) {
+                <a class="btn btn-outline-secondary" href="/Administration/SupportSignatures/@Campaign.Id"><i class="bi bi-pen me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.OpenInAssistant]</a>
+            }
+        </Actions>
+    </PageHeader>
     <div class="row g-4">
         <div class="col-12 col-lg-8">
             <SupportSignatureProgress Certified="@Campaign.CertifiedTotal" Collected="@Campaign.CollectedTotal" Target="@Campaign.Target" Goal="@Campaign.Goal" />
             <p class="small text-secondary mt-2">@I18n[I18nKey.Ui.SupportSignatures.Deadline]: <DeadlineText Value="@Campaign.Deadline" /></p>
             @if (NoticeHtml != null) {
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body">@NoticeHtml</div>
                 </div>
             }

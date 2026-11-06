@@ -560,6 +560,7 @@ public static class I18nKey {
             public const string MotionStatusUpdated = "ui.toast.motion.status_updated";
             public const string MotionMarkedRealized = "ui.toast.motion.marked_realized";
             public const string TestdataCreated = "ui.toast.testdata.created";
+            public const string TestMemberLinked = "ui.toast.testdata.member_linked";
             public const string DueSelectionThanks = "ui.toast.due_selection.thanks";
             public const string MembershipApplicationSubmitted = "ui.toast.membership_application.submitted";
             public const string PublicMotionSubmitted = "ui.toast.motion.public_submitted";
@@ -603,6 +604,17 @@ public static class I18nKey {
             public const string EventStatusActive = "ui.label.event_status.active";
             public const string EventStatusCompleted = "ui.label.event_status.completed";
             public const string EventStatusArchived = "ui.label.event_status.archived";
+        }
+
+        /// <summary>Buttons in a page header that lead to a linked page.</summary>
+        public static class LinkedPages {
+            public const string Motion = "ui.linked_pages.motion";
+            public const string MembershipApplication = "ui.linked_pages.membership_application";
+            public const string Reduction = "ui.linked_pages.reduction";
+            public const string Member = "ui.linked_pages.member";
+            public const string UserAccount = "ui.linked_pages.user_account";
+            public const string ManageEvent = "ui.linked_pages.manage_event";
+            public const string PublicPage = "ui.linked_pages.public_page";
         }
 
         public static class Common {
@@ -715,9 +727,6 @@ public static class I18nKey {
             public const string MakePrivate = "ui.motion_detail.make_private";
             public const string MakePublic = "ui.motion_detail.make_public";
             public const string ResolvedLabel = "ui.motion_detail.resolved_label";
-            public const string LinkLabel = "ui.motion_detail.link_label";
-            public const string ViewApplication = "ui.motion_detail.view_application";
-            public const string ViewDueSelection = "ui.motion_detail.view_due_selection";
             public const string BodyLabel = "ui.motion_detail.body_label";
             public const string VotesTitle = "ui.motion_detail.votes_title";
             public const string VoteColumn = "ui.motion_detail.vote_column";
@@ -800,6 +809,12 @@ public static class I18nKey {
             public const string NotificationsTitle = "ui.main_nav_bar.notifications_title";
             public const string Logout = "ui.main_nav_bar.logout";
             public const string Login = "ui.main_nav_bar.login";
+            public const string Settings = "ui.main_nav_bar.settings";
+            public const string VotingRights = "ui.main_nav_bar.voting_rights";
+            public const string NoVotingRights = "ui.main_nav_bar.no_voting_rights";
+            public const string OpenFee = "ui.main_nav_bar.open_fee";
+            public const string DarkMode = "ui.main_nav_bar.dark_mode";
+            public const string LightMode = "ui.main_nav_bar.light_mode";
         }
 
         public static class NewsPosts {
@@ -885,6 +900,11 @@ public static class I18nKey {
             public const string ErrorSsoGeneric = "ui.login.error.sso_generic";
         }
 
+        public static class AsyncButton {
+            public const string Done = "ui.async_button.done";
+            public const string Failed = "ui.async_button.failed";
+        }
+
         public static class UserSettings {
             public const string PageTitle = "ui.user_settings.page_title";
             public const string NotLoggedIn = "ui.user_settings.not_logged_in";
@@ -915,6 +935,7 @@ public static class I18nKey {
             public const string DevelopmentTitle = "ui.user_settings.development_title";
             public const string DevelopmentNotice = "ui.user_settings.development_notice";
             public const string CreateTestData = "ui.user_settings.create_test_data";
+            public const string LinkTestMember = "ui.user_settings.link_test_member";
         }
 
         public static class UserSessions {
@@ -1160,7 +1181,6 @@ public static class I18nKey {
             public const string ActivateInstruction = "ui.application_detail.activate_instruction";
             public const string MemberNumberLabel = "ui.application_detail.member_number_label";
             public const string SendWelcomeButton = "ui.application_detail.send_welcome_button";
-            public const string LinkedMotionButton = "ui.application_detail.linked_motion_button";
             public const string ApprovalWaitingSage = "ui.application_detail.approval_waiting_sage";
             public const string ApprovalWaitingReduction = "ui.application_detail.approval_waiting_reduction";
             public const string ApprovalSent = "ui.application_detail.approval_sent";
@@ -1326,7 +1346,6 @@ public static class I18nKey {
             public const string PaymentScheduleLabel = "ui.due_selection_detail.payment_schedule_label";
             public const string ProcessingSection = "ui.due_selection_detail.processing_section";
             public const string ProcessedAtPrefix = "ui.due_selection_detail.processed_at_prefix";
-            public const string LinkedMotionButton = "ui.due_selection_detail.linked_motion_button";
             public const string ValuationMonthlyPay = "ui.due_selection_detail.valuation.monthly_pay";
             public const string ValuationOnePercent = "ui.due_selection_detail.valuation.one_percent";
             public const string ValuationUnderage = "ui.due_selection_detail.valuation.underage";
@@ -1365,7 +1384,6 @@ public static class I18nKey {
 
         public static class MeetingDetail {
             public const string NotFound = "ui.meeting_detail.not_found";
-            public const string DateTimeLabel = "ui.meeting_detail.date_time_label";
             public const string LocationLabel = "ui.meeting_detail.location_label";
             public const string DescriptionMarkdownLabel = "ui.meeting_detail.description_markdown_label";
             public const string TabAgenda = "ui.meeting_detail.tab_agenda";
@@ -1400,7 +1418,6 @@ public static class I18nKey {
 
         public static class MeetingCreate {
             public const string PageTitle = "ui.meeting_create.page_title";
-            public const string DateTimeLabel = "ui.meeting_create.date_time_label";
             public const string LocationLabel = "ui.meeting_create.location_label";
             public const string TitlePlaceholder = "ui.meeting_create.title_placeholder";
             public const string LocationPlaceholder = "ui.meeting_create.location_placeholder";

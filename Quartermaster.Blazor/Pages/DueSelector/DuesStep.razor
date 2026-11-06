@@ -6,7 +6,7 @@
 <div class="d-grid gap-2 mb-3" role="radiogroup">
     <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.OnePercentYearlyPay)" OnSelect="() => Select(SelectedValuation.OnePercentYearlyPay)">
         <span>@I18n[I18nKey.Ui.DuesTypeSelection.OnePercentLabel]</span>
-        <span class="badge text-bg-primary ms-1">@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]</span>
+        <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.DuesTypeSelection.RecommendedBadge]" Class="ms-1" />
     </ChoiceCard>
     <ChoiceCard Name="dues-valuation" Selected="@IsSelected(SelectedValuation.MonthlyPayGroup)" OnSelect="() => Select(SelectedValuation.MonthlyPayGroup)">
         @I18n[I18nKey.Ui.DuesTypeSelection.MonthlyPayLabel]

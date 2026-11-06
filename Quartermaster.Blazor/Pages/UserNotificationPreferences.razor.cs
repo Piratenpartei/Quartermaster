@@ -31,7 +31,6 @@ public partial class UserNotificationPreferences : IDisposable {
     private NotificationPreferencesDTO? Data;
     private Dictionary<(string TriggerId, string ChannelId), bool> _state = new();
     private bool Loading = true;
-    private bool Saving;
 
     private TelegramLinkStatusDTO? TelegramStatus;
     private TelegramLinkStartDTO? TelegramLinkStart;
@@ -157,9 +156,7 @@ public partial class UserNotificationPreferences : IDisposable {
         _state[key] = enabled;
     }
 
-    private async Task Save() {
-        Saving = true;
-        StateHasChanged();
+    private async Task<bool> SaveAsync() {
         try {
             var req = new UpdateNotificationPreferencesRequest {
                 Cells = _state.Select(kv => new NotificationPreferenceCellDTO {
@@ -169,16 +166,13 @@ public partial class UserNotificationPreferences : IDisposable {
                 }).ToList()
             };
             var resp = await Http.PutAsJsonAsync("/api/users/notification-preferences", req);
-            if (resp.IsSuccessStatusCode) {
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-            } else {
-                await ToastService.ErrorAsync(resp);
-            }
+            if (resp.IsSuccessStatusCode)
+                return true;
+            await ToastService.ErrorAsync(resp);
+            return false;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
-        } finally {
-            Saving = false;
-            StateHasChanged();
+            return false;
         }
     }
 

@@ -7,7 +7,7 @@
     var completedCount = Event.ChecklistItems.Count(i => i.IsCompleted);
     var totalCount = Event.ChecklistItems.Count;
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">@I18n[$"{I18nKey.Ui.EventChecklistEditor.Heading}?completed={completedCount}&total={totalCount}"]</h5>
@@ -38,7 +38,7 @@
                                     <input type="text" class="form-control" placeholder="@I18n[I18nKey.Ui.EventChecklistEditor.MotionTitlePlaceholder]"
                                            @bind="EditingMotionTitle" @bind:event="oninput" />
                                 }
-                                <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.SaveAria]" @onclick="SaveEditingItem">
+                                <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.SaveAria]" @onclick="SaveEditingItem">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                                 <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.CancelAria]" @onclick="CancelEditing">
@@ -92,11 +92,11 @@
                                 @item.Label
                             </span>
                             @if (item.ItemType == ChecklistItemType.CreateMotion) {
-                                <span class="badge border border-primary text-primary-emphasis ms-1">@I18n[I18nKey.Ui.EventChecklistEditor.MotionBadge]</span>
+                                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.EventChecklistEditor.MotionBadge]" Class="ms-1" />
                             } else if (item.ItemType == ChecklistItemType.SendEmail) {
-                                <span class="badge border border-warning text-warning-emphasis ms-1">@I18n[I18nKey.Ui.EventChecklistEditor.EmailBadge]</span>
+                                <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.EventChecklistEditor.EmailBadge]" Class="ms-1" />
                                 @if (item.Configuration?.UseDescription == true) {
-                                    <span class="badge border border-info text-info-emphasis ms-1">@I18n[I18nKey.Ui.EventChecklistEditor.DescriptionBadge]</span>
+                                    <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.EventChecklistEditor.DescriptionBadge]" Class="ms-1" />
                                 }
                             }
                             @if (item.IsCompleted && item.CompletedAt != null) {
@@ -106,12 +106,12 @@
 
                         @if (ReadOnly) {
                             @if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
-                                <a href="/Administration/Motions/@item.ResultId" class="btn btn-sm btn-outline-primary ms-2">
+                                <a href="/Administration/Motions/@item.ResultId" class="btn btn-sm btn-outline-secondary ms-2">
                                     <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.EventChecklistEditor.GoToMotion]
                                 </a>
                             }
                         } else {
-                            <div class="input-group input-group-sm ms-2" style="width: auto;">
+                            <div class="input-group input-group-sm ms-2 w-auto">
                                 @if (item.ItemType == ChecklistItemType.CreateMotion && !item.IsCompleted) {
                                     <button class="btn btn-primary" @onclick="() => CheckActionItem(item.Id, true)">
                                         @I18n[I18nKey.Ui.EventChecklistEditor.CreateAndCheck]
@@ -120,7 +120,7 @@
                                         @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
                                     </button>
                                 } else if (item.ItemType == ChecklistItemType.CreateMotion && item.IsCompleted && item.ResultId != null) {
-                                    <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-primary">
+                                    <a href="/Administration/Motions/@item.ResultId" class="btn btn-outline-secondary">
                                         <i class="bi bi-box-arrow-up-right"></i> @I18n[I18nKey.Ui.EventChecklistEditor.GoToMotion]
                                     </a>
                                 }
@@ -135,10 +135,10 @@
                                     <button class="btn btn-outline-secondary" @onclick="() => CheckActionItem(item.Id, false)">
                                         @I18n[I18nKey.Ui.EventChecklistEditor.AlreadyDone]
                                     </button>
-                                    <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
+                                    <button class="btn btn-outline-secondary" title="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.EmailPreviewAria]" @onclick="() => ToggleEmailPreview(item.Id, item.Configuration)">
                                         <i class="bi bi-eye"></i>
                                     </button>
-                                    <button class="btn btn-outline-info" title="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" @onclick="() => ToggleRecipientPreview(item.Id, item.Configuration)">
+                                    <button class="btn btn-outline-secondary" title="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" aria-label="@I18n[I18nKey.Ui.EventChecklistEditor.RecipientPreviewAria]" @onclick="() => ToggleRecipientPreview(item.Id, item.Configuration)">
                                         <i class="bi bi-people"></i>
                                     </button>
                                 }

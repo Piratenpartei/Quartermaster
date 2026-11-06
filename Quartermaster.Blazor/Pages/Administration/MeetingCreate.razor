@@ -6,7 +6,7 @@
 
 <PageBackLink Href="/Administration/Meetings" />
 
-<h3 class="mb-3">@I18n[I18nKey.Ui.MeetingCreate.PageTitle]</h3>
+<PageHeader Title="@I18n[I18nKey.Ui.MeetingCreate.PageTitle]" />
 
 <div class="card">
     <div class="card-body">
@@ -20,8 +20,8 @@
         </div>
         <div class="row g-3 mb-3">
             <div class="col-md-6">
-                <label for="meetingDate" class="form-label">@I18n[I18nKey.Ui.MeetingCreate.DateTimeLabel]</label>
-                <input type="datetime-local" class="form-control" id="meetingDate" @bind="MeetingDate" />
+                <label for="meetingDate" class="form-label">@I18n[I18nKey.Ui.Common.Date]</label>
+                <input type="date" class="form-control" id="meetingDate" @bind="MeetingDate" />
             </div>
             <div class="col-md-6">
                 <label for="location" class="form-label">@I18n[I18nKey.Ui.MeetingCreate.LocationLabel]</label>

@@ -3,7 +3,7 @@
 
 <div class="form-control d-flex flex-wrap align-items-center gap-1" style="min-height: calc(2.25rem + 2px);">
     @foreach (var chip in Value) {
-        <span class="badge text-bg-secondary d-inline-flex align-items-center">
+        <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle d-inline-flex align-items-center">
             @chip
             <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;"
                     aria-label="@I18n[I18nKey.Ui.ChipsInput.RemoveAriaLabel]"

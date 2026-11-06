@@ -5,8 +5,10 @@
         <LoadingSpinner />
     } else if (ExistingOffice != null) {
         <p class="mb-2">@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.AddToExistingOffice, ("office", ExistingOffice.Name))]</p>
-        <button class="btn btn-sm btn-primary" @onclick="AddToExisting" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.AddToOffice]</button>
-        <button class="btn btn-sm btn-outline-secondary" @onclick="Cancelled">@I18n[I18nKey.Ui.Common.Cancel]</button>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-primary" @onclick="AddToExisting" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.AddToOffice]</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="Cancelled">@I18n[I18nKey.Ui.Common.Cancel]</button>
+        </div>
     } else {
         <p class="small text-secondary mb-2">@I18n[I18nKey.Ui.SupportSignatures.NewOfficeIntro]</p>
         <OfficeFields Request="@Request" />
@@ -18,7 +20,7 @@
                 <label class="form-check-label" for="assign-@municipality.Id">@municipality.Name</label>
             </div>
         }
-        <div class="mt-2">
+        <div class="d-flex flex-wrap gap-2 mt-2">
             <button class="btn btn-sm btn-primary" @onclick="CreateOffice" disabled="@Busy">@I18n[I18nKey.Ui.SupportSignatures.CreateOffice]</button>
             <button class="btn btn-sm btn-outline-secondary" @onclick="Cancelled">@I18n[I18nKey.Ui.Common.Cancel]</button>
         </div>

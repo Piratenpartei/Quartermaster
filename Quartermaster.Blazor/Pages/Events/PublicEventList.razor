@@ -6,14 +6,14 @@
 
 <PageTitle>@I18n[I18nKey.Ui.PublicEventList.PageTitle]</PageTitle>
 
-<h1 class="mb-4">@I18n[I18nKey.Ui.PublicEventList.PageTitle]</h1>
+<PageHeader Title="@I18n[I18nKey.Ui.PublicEventList.PageTitle]" />
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Response == null || Response.Items.Count == 0) {
-    <p class="text-secondary">@I18n[I18nKey.Ui.PublicEventList.EmptyMessage]</p>
+    <EmptyState Message="@I18n[I18nKey.Ui.PublicEventList.EmptyMessage]" />
 } else {
-    <div class="list-group">
+    <div class="list-group mb-4">
         @foreach (var ev in Response.Items) {
             <div class="list-group-item list-group-item-action position-relative">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
@@ -29,7 +29,7 @@
                             </span>
                         }
                         @if (!string.IsNullOrWhiteSpace(ev.MeetingUrl)) {
-                            <a href="@ev.MeetingUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary position-relative z-2">
+                            <a href="@ev.MeetingUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary position-relative z-2">
                                 <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
                             </a>
                         }

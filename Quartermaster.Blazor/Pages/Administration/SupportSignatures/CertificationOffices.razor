@@ -9,20 +9,21 @@
 <RequirePermission AnyChapterPermission="@PermissionIdentifier.ManageSupportSignatures">
     <ConfirmDialog @ref="DeleteConfirm" />
     <a href="/Administration/SupportSignatures" class="small"><i class="bi bi-arrow-left me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.BackToList]</a>
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2 mb-2">
-        <h3 class="mb-0">@I18n[I18nKey.Ui.SupportSignatures.OfficesTitle]</h3>
-        <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-outline-primary" @onclick="OpenImport" disabled="@ImportOpen">
-                <i class="bi bi-upload me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.ImportCsv]
-            </button>
-            <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Editing != null)">
-                <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewOffice]
-            </button>
-        </div>
-    </div>
+    <PageHeader Title="@I18n[I18nKey.Ui.SupportSignatures.OfficesTitle]">
+        <Actions>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-secondary" @onclick="OpenImport" disabled="@ImportOpen">
+                    <i class="bi bi-upload me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.ImportCsv]
+                </button>
+                <button class="btn btn-primary" @onclick="StartCreate" disabled="@(Editing != null)">
+                    <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.NewOffice]
+                </button>
+            </div>
+        </Actions>
+    </PageHeader>
     <p class="text-secondary">@I18n[I18nKey.Ui.SupportSignatures.OfficesIntro]</p>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <div class="fw-semibold mb-1">@I18n[I18nKey.Ui.SupportSignatures.LookupTitle]</div>
             <MunicipalityPicker @key="LookupPickerKey" OnSelect="Lookup" />
@@ -35,9 +36,7 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                             <div>
                                 <span class="fw-semibold">@LookupOffice.Name</span>
-                                <span class="badge text-bg-light border ms-1">
-                                    @(LookupOffice.IsOfficial ? I18n[I18nKey.Ui.SupportSignatures.OfficialAddress] : I18n[I18nKey.Ui.SupportSignatures.CustomAddress])
-                                </span>
+                                <StatusBadge Tone="StatusTone.Neutral" Text="@(LookupOffice.IsOfficial ? I18n[I18nKey.Ui.SupportSignatures.OfficialAddress] : I18n[I18nKey.Ui.SupportSignatures.CustomAddress])" Class="ms-1" />
                                 @if (!string.IsNullOrEmpty(LookupOffice.AddressAddition)) {
                                     <div>@LookupOffice.AddressAddition</div>
                                 }
@@ -47,11 +46,11 @@
                                 }
                             </div>
                             @if (LookupOffice.IsOfficial) {
-                                <button class="btn btn-sm btn-outline-primary" @onclick="CreateFromLookup" disabled="@(Editing != null)">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="CreateFromLookup" disabled="@(Editing != null)">
                                     <i class="bi bi-signpost-split me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.CreateCustomAddress]
                                 </button>
                             } else {
-                                <button class="btn btn-sm btn-outline-primary" @onclick="EditFromLookup" disabled="@(Editing != null)">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EditFromLookup" disabled="@(Editing != null)">
                                     <i class="bi bi-pencil me-1"></i>@I18n[I18nKey.Ui.SupportSignatures.EditOffice]
                                 </button>
                             }
@@ -63,7 +62,7 @@
     </div>
 
     @if (ImportOpen) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <div class="fw-semibold mb-1">@I18n[I18nKey.Ui.SupportSignatures.ImportCsv]</div>
                 <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.ImportIntro]</p>
@@ -93,7 +92,7 @@
                                             <td>
                                                 @entry.Name
                                                 @if (entry.IsNew) {
-                                                    <span class="badge text-bg-success ms-1">@I18n[I18nKey.Ui.SupportSignatures.ImportNew]</span>
+                                                    <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.SupportSignatures.ImportNew]" Class="ms-1" />
                                                 }
                                                 @if (!string.IsNullOrEmpty(entry.AddressAddition)) {
                                                     <div class="text-secondary">@entry.AddressAddition</div>
@@ -124,7 +123,7 @@
                         </div>
                     }
                 }
-                <div class="mt-2">
+                <div class="d-flex flex-wrap gap-2 mt-2">
                     <button class="btn btn-primary" @onclick="ApplyImport" disabled="@(ImportResult == null || Busy)">@I18n[I18nKey.Ui.SupportSignatures.ImportApply]</button>
                     <button class="btn btn-outline-secondary" @onclick="CloseImport">@I18n[I18nKey.Ui.Common.Cancel]</button>
                 </div>
@@ -133,7 +132,7 @@
     }
 
     @if (Editing != null) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 @if (Editing.Id == Guid.Empty) {
                     <p class="small text-secondary">@I18n[I18nKey.Ui.SupportSignatures.OfficePickFirstHint]</p>
@@ -145,7 +144,7 @@
                 <div class="small mt-3 mb-1">@I18n[I18nKey.Ui.SupportSignatures.OfficeMunicipalities]</div>
                 <div class="d-flex flex-wrap gap-1 mb-2">
                     @foreach (var municipality in EditingMunicipalities) {
-                        <span class="badge bg-secondary">
+                        <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle">
                             @municipality.Name
                             <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem;" @onclick="() => RemoveMunicipality(municipality.Id)"
                                     aria-label="@I18n[I18nKey.Ui.Common.Delete]"></button>
@@ -156,11 +155,13 @@
                 @if (ResponsibleOffice != null) {
                     <div class="alert alert-info small d-flex flex-wrap align-items-center gap-2">
                         <span>@I18n[I18nParams.With(I18nKey.Ui.SupportSignatures.MunicipalityHasOffice, ("municipality", ResponsibleMunicipalityName), ("office", ResponsibleOffice.Name))]</span>
-                        <button class="btn btn-sm btn-outline-primary" @onclick="EditResponsibleOffice">@I18n[I18nKey.Ui.SupportSignatures.EditOffice]</button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="EditResponsibleOffice">@I18n[I18nKey.Ui.SupportSignatures.EditOffice]</button>
                     </div>
                 }
-                <button class="btn btn-primary" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
-                <button class="btn btn-outline-secondary" @onclick="() => Editing = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary" @onclick="Save" disabled="@Busy">@I18n[I18nKey.Ui.Common.Save]</button>
+                    <button class="btn btn-outline-secondary" @onclick="() => Editing = null">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                </div>
             </div>
         </div>
     }
@@ -192,9 +193,11 @@
                             <td class="small">@office.Street, @office.PostCode @office.City</td>
                             <td class="small">@string.Join(", ", office.Municipalities.Select(m => m.Name))</td>
                             <td class="text-end text-nowrap">
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => StartEdit(office)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(office)" disabled="@office.HasShipments"
-                                        title="@(office.HasShipments ? I18n[I18nKey.Ui.SupportSignatures.OfficeHasShipments] : I18n[I18nKey.Ui.Common.Delete])"><i class="bi bi-trash"></i></button>
+                                <div class="d-flex justify-content-end gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEdit(office)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Delete(office)" disabled="@office.HasShipments"
+                                            title="@(office.HasShipments ? I18n[I18nKey.Ui.SupportSignatures.OfficeHasShipments] : I18n[I18nKey.Ui.Common.Delete])"><i class="bi bi-trash"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }

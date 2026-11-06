@@ -3,7 +3,7 @@
 
 <PageTitle>@I18n[I18nKey.Ui.Attributions.PageTitle]</PageTitle>
 
-<h1 class="mb-3">@I18n[I18nKey.Ui.Attributions.PageTitle]</h1>
+<PageHeader Title="@I18n[I18nKey.Ui.Attributions.PageTitle]" />
 
 <section class="mb-4">
     <h2 class="h4">Quartermaster</h2>
@@ -43,7 +43,7 @@
     @foreach (var scope in Scopes) {
         <h3 class="h6 mt-3">@ScopeLabel(scope)</h3>
         <div class="table-responsive">
-            <table class="table table-sm table-striped mb-0 attribution-table">
+            <table class="table table-sm table-hover mb-0 attribution-table">
                 <colgroup>
                     <col class="attribution-project" />
                     <col />

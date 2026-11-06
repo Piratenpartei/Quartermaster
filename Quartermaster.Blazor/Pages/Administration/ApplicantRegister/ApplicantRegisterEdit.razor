@@ -17,10 +17,10 @@
     } else if (Request == null) {
         <div class="alert alert-danger">@I18n[I18nKey.Ui.ApplicantRegister.NotFound]</div>
     } else {
-        <h3 class="mb-3">@I18n[IsNew ? I18nKey.Ui.ApplicantRegister.NewTitle : I18nKey.Ui.ApplicantRegister.EditTitle]</h3>
+        <PageHeader Title="@I18n[IsNew ? I18nKey.Ui.ApplicantRegister.NewTitle : I18nKey.Ui.ApplicantRegister.EditTitle]" />
         <div class="alert alert-info small">@I18n[I18nKey.Ui.ApplicantRegister.IdentifyingHint]</div>
 
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -84,7 +84,7 @@
             <a href="/Administration/ApplicantRegister" class="btn btn-outline-secondary">@I18n[I18nKey.Ui.Common.Cancel]</a>
             @if (!IsNew) {
                 @if (Entry?.SourceApplicationId != null) {
-                    <a href="/Administration/MembershipApplications/@Entry.SourceApplicationId" class="btn btn-outline-primary">
+                    <a href="/Administration/MembershipApplications/@Entry.SourceApplicationId" class="btn btn-outline-secondary">
                         <i class="bi bi-person-lines-fill me-1"></i>@I18n[I18nKey.Ui.ApplicantRegister.SourceApplication]
                     </a>
                 }

@@ -1,7 +1,7 @@
 @using Quartermaster.Api.I18n
 
 @if (IsVisible) {
-    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal show d-block bg-black bg-opacity-50" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -15,7 +15,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="Cancel">@I18n[I18nKey.Ui.Common.Cancel]</button>
+                    <button class="btn btn-outline-secondary" @onclick="Cancel">@I18n[I18nKey.Ui.Common.Cancel]</button>
                     <button class="btn btn-primary" @onclick="Confirm">@I18n[I18nKey.Ui.AssemblyMotion.OpenSlidesPush]</button>
                 </div>
             </div>

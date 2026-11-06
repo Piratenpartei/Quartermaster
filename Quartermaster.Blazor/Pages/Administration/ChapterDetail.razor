@@ -6,50 +6,50 @@
 @using Quartermaster.Api.I18n
 @using Quartermaster.Blazor.Components.Inputs
 
-<PageBackLink Href="/Administration/Chapters" />
 
 @if (Loading) {
+    <PageBackLink Href="/Administration/Chapters" />
     <LoadingSpinner />
 } else if (Detail == null) {
+    <PageBackLink Href="/Administration/Chapters" />
     <div class="alert alert-danger">@I18n[I18nKey.Ui.ChapterDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex align-items-center gap-2">
-            <h3 class="mb-0">@Detail.Chapter.Name</h3>
+    <PageHeader Title="@Detail.Chapter.Name" BackHref="/Administration/Chapters">
+        <Subtitle>
             @if (Detail.Chapter.IsArchived) {
-                <span class="badge text-bg-warning">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]" />
             }
             <ChapterMarkBadges NoMemberAdministration="Detail.Chapter.NoMemberAdministration" UnableToAct="Detail.Chapter.UnableToAct" />
-        </div>
-        <div class="d-flex gap-2">
+        </Subtitle>
+        <Actions>
             @if (!Editing) {
                 <RequirePermission GlobalPermission="@PermissionIdentifier.EditChapter">
-                    <button class="btn btn-sm btn-outline-primary btn-hover-scale1" @onclick="BeginEdit">
+                    <button class="btn btn-outline-secondary" @onclick="BeginEdit">
                         <i class="bi bi-pencil me-1"></i> @I18n[I18nKey.Ui.Common.Edit]
                     </button>
                 </RequirePermission>
                 <RequirePermission GlobalPermission="@PermissionIdentifier.ArchiveChapter">
                     @if (Detail.Chapter.IsArchived) {
-                        <button class="btn btn-sm btn-outline-success btn-hover-scale1" @onclick="ConfirmUnarchive">
+                        <button class="btn btn-outline-secondary" @onclick="ConfirmUnarchive">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> @I18n[I18nKey.Ui.ChapterDetail.UnarchiveButton]
                         </button>
                     } else {
-                        <button class="btn btn-sm btn-outline-warning btn-hover-scale1" @onclick="ConfirmArchive">
+                        <button class="btn btn-outline-secondary" @onclick="ConfirmArchive">
                             <i class="bi bi-archive me-1"></i> @I18n[I18nKey.Ui.ChapterDetail.ArchiveButton]
                         </button>
                     }
                 </RequirePermission>
                 <RequirePermission GlobalPermission="@PermissionIdentifier.DeleteChapter">
-                    <button class="btn btn-sm btn-outline-danger btn-hover-scale1" @onclick="ConfirmDelete" disabled="@Detail.Children.Any()"
+                    <button class="btn btn-outline-danger" @onclick="ConfirmDelete" disabled="@Detail.Children.Any()"
                             title="@(Detail.Children.Any() ? I18n[I18nKey.Ui.ChapterDetail.DeleteDisabledHasChildren] : I18n[I18nKey.Ui.ChapterDetail.DeleteTooltip])">
                         <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.Common.Delete]
                     </button>
                 </RequirePermission>
             }
-        </div>
-    </div>
+        </Actions>
+    </PageHeader>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.Common.Details]</h5>
             @if (Editing) {
@@ -91,9 +91,9 @@
                                              InitialNames="EditAdministrativeDivisionNames" />
                     <div class="form-text">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionHint]</div>
                 </div>
-                <div class="d-flex justify-content-end gap-2">
+                <div class="d-flex flex-wrap justify-content-end gap-2">
                     <button class="btn btn-outline-secondary" @onclick="CancelEdit">@I18n[I18nKey.Ui.Common.Cancel]</button>
-                    <button class="btn btn-primary btn-hover-scale1" @onclick="SaveEdit" disabled="@(Saving || string.IsNullOrWhiteSpace(EditName))">
+                    <button class="btn btn-primary" @onclick="SaveEdit" disabled="@(Saving || string.IsNullOrWhiteSpace(EditName))">
                         @if (Saving) {
                             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                         } else {
@@ -103,54 +103,50 @@
                     </button>
                 </div>
             } else {
-                <div class="table-responsive">
-                <table class="table table-borderless mb-0">
-                    <tbody>
-                        <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Name]</th><td>@Detail.Chapter.Name</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</th><td>@(Detail.Chapter.ShortCode ?? "-")</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</th><td>@(Detail.Chapter.ExternalCodes.Count == 0 ? "-" : string.Join(", ", Detail.Chapter.ExternalCodes))</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</th><td>@(Detail.Chapter.KeycloakDepartment ?? "---")</td></tr>
+                <dl class="row mb-0">
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Name]</dt>
+                        <dd class="col-sm-8">@Detail.Chapter.Name</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.ShortCodeLabel]</dt>
+                        <dd class="col-sm-8">@(Detail.Chapter.ShortCode ?? "-")</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.ExternalCodeLabel]</dt>
+                        <dd class="col-sm-8">@(Detail.Chapter.ExternalCodes.Count == 0 ? "-" : string.Join(", ", Detail.Chapter.ExternalCodes))</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.KeycloakDepartmentLabel]</dt>
+                        <dd class="col-sm-8">@(Detail.Chapter.KeycloakDepartment ?? "---")</dd>
                         @if (AuthService.IsAuthenticated) {
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.ChapterDetail.ContactEmailLabel]</th>
-                                <td>
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.ContactEmailLabel]</dt>
+                                <dd class="col-sm-8">
                                     @if (string.IsNullOrEmpty(Detail.Chapter.ContactEmail)) {
                                         <span>-</span>
                                     } else {
                                         <a href="mailto:@Detail.Chapter.ContactEmail">@Detail.Chapter.ContactEmail</a>
                                     }
-                                </td>
-                            </tr>
+                                </dd>
                         }
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</th>
-                            <td>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.ParentChapterLabel]</dt>
+                            <dd class="col-sm-8">
                                 @if (Detail.ParentChapterId.HasValue) {
                                     <a href="/Administration/Chapters/@Detail.ParentChapterId">@Detail.ParentChapterName</a>
                                 } else {
                                     <span>-</span>
                                 }
-                            </td>
-                        </tr>
-                        <tr><th>@I18n[I18nKey.Ui.HandUp.LevelLabel]</th><td>@LevelText</td></tr>
-                        <tr><th>@I18n[I18nKey.Ui.HandUp.PeriodLabel]</th><td>@PeriodText</td></tr>
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</th>
-                            <td>@(Detail.AdministrativeDivisionNames.Count == 0 ? "-" : string.Join(", ", Detail.AdministrativeDivisionNames))</td>
-                        </tr>
-                    </tbody>
-                </table>
-                </div>
+                            </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.HandUp.LevelLabel]</dt>
+                        <dd class="col-sm-8">@LevelText</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.HandUp.PeriodLabel]</dt>
+                        <dd class="col-sm-8">@PeriodText</dd>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.ChapterDetail.AdminDivisionLabel]</dt>
+                            <dd class="col-sm-8">@(Detail.AdministrativeDivisionNames.Count == 0 ? "-" : string.Join(", ", Detail.AdministrativeDivisionNames))</dd>
+                </dl>
             }
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
                 <h5 class="mb-0">@I18n[I18nKey.Ui.ChapterDetail.BoardSection]</h5>
                 <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditOfficers">
-                    <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-success">
+                    <a href="/Administration/Chapters/@Detail.Chapter.Id/AddOfficer" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.Common.Add]
                     </a>
                 </RequirePermission>
@@ -163,7 +159,7 @@
                             <th>@I18n[I18nKey.Ui.Common.Name]</th>
                             <th>@I18n[I18nKey.Ui.Common.Role]</th>
                             <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditOfficers">
-                                <th class="text-end" style="width: 1%;">@I18n[I18nKey.Ui.ChapterDetail.OfficerActionColumn]</th>
+                                <th class="text-end text-nowrap">@I18n[I18nKey.Ui.ChapterDetail.OfficerActionColumn]</th>
                             </RequirePermission>
                         </tr>
                     </thead>
@@ -193,7 +189,7 @@
     </div>
 
     @if (CanManageMarks()) {
-        <div class="card mb-3" @key="MarksVersion">
+        <div class="card mb-4" @key="MarksVersion">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.ChapterMarks.CardTitle]</h5>
                 <div class="form-check form-switch mb-2">
@@ -215,7 +211,7 @@
     }
 
     @if (Detail.Children.Count > 0) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.ChapterDetail.ChildrenSection]</h5>
                 <div class="list-group list-group-flush">
@@ -223,7 +219,7 @@
                         <a href="/Administration/Chapters/@child.Id" class="list-group-item list-group-item-action">
                             @child.Name
                             @if (!string.IsNullOrEmpty(child.ShortCode)) {
-                                <span class="badge bg-secondary ms-1">@child.ShortCode</span>
+                                <StatusBadge Tone="StatusTone.Neutral" Text="@child.ShortCode" Class="ms-1" />
                             }
                         </a>
                     }

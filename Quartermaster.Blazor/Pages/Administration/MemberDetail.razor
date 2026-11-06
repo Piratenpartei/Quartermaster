@@ -4,74 +4,83 @@
 @using Quartermaster.Api.Members
 @using System.Globalization
 
-<PageBackLink Href="/Administration/Members" />
+<PageBackLink Href="/Administration/Members">
+    <Links>
+        @if (Member?.ViewableUserId != null) {
+            <a href="/Administration/Users/@Member.ViewableUserId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-person-gear"></i> @I18n[I18nKey.Ui.LinkedPages.UserAccount]
+            </a>
+        }
+    </Links>
+</PageBackLink>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (Member == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.MemberDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h3>@Member.FirstName @Member.LastName</h3>
+    <PageHeader Title="@($"{Member.FirstName} {Member.LastName}")">
+        <Subtitle>
             @if (Member.IsFloating) {
-                <span class="text-secondary">@(Member.AdmissionReference ?? "-")</span>
+                <span>@(Member.AdmissionReference ?? "-")</span>
             } else {
-                <span class="text-secondary">@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
+                <span>@I18n[$"{I18nKey.Ui.MemberDetail.MemberNumberPrefix}?number={Member.MemberNumber}"]</span>
             }
-        </div>
         @if (Member.IsFloating) {
-            <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.FloatingBadge]</span>
+            <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.MemberDetail.FloatingBadge]" />
         } else if (Member.IsExited) {
-            <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusExited]</span>
+            <StatusBadge Tone="StatusTone.Danger" Text="@I18n[I18nKey.Ui.MemberDetail.StatusExited]" />
         } else if (Member.IsPending) {
-            <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusPending]</span>
+            <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.MemberDetail.StatusPending]" />
         } else {
-            <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.MemberDetail.StatusActive]</span>
+            <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MemberDetail.StatusActive]" />
         }
-    </div>
+        </Subtitle>
+    </PageHeader>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.PersonalDataSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.FirstName]</th><td>@Member.FirstName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.LastName]</th><td>@Member.LastName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.DateOfBirthLabel]</th><td><LocalTime DateValue="Member.DateOfBirth" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CitizenshipLabel]</th><td>@(Member.Citizenship ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@(Member.Email ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Phone]</th><td>@(Member.Phone ?? "-")</td></tr>
-                </tbody>
-            </table>
-            </div>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.FirstName]</dt>
+                    <dd class="col-sm-8">@Member.FirstName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.LastName]</dt>
+                    <dd class="col-sm-8">@Member.LastName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.DateOfBirthLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime DateValue="Member.DateOfBirth" /></dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.CitizenshipLabel]</dt>
+                    <dd class="col-sm-8">@(Member.Citizenship ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Email]</dt>
+                    <dd class="col-sm-8">@(Member.Email ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Phone]</dt>
+                    <dd class="col-sm-8">@(Member.Phone ?? "-")</dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.AddressSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.StreetLabel]</th><td>@(Member.Street ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.PostCodeCityLabel]</th><td>@Member.PostCode @Member.City</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountryLabel]</th><td>@(Member.Country ?? "-")</td></tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.MemberDetail.AdminDivisionLabel]</th>
-                        <td>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.StreetLabel]</dt>
+                    <dd class="col-sm-8">@(Member.Street ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.PostCodeCityLabel]</dt>
+                    <dd class="col-sm-8">@Member.PostCode @Member.City</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.CountryLabel]</dt>
+                    <dd class="col-sm-8">@(Member.Country ?? "-")</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.AdminDivisionLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.IsAdminDivisionOrphaned) {
-                                <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                     <span>@Member.ResidenceAdministrativeDivisionName</span>
                                     @if (!string.IsNullOrEmpty(Member.ResidenceAdministrativeDivisionAdminCode)) {
                                         <span class="badge border text-secondary-emphasis">@Member.ResidenceAdministrativeDivisionAdminCode</span>
                                     }
-                                    <span class="badge bg-warning text-dark">
+                                    <span class="badge rounded-pill border bg-warning-subtle text-warning-emphasis border-warning-subtle">
                                         <i class="bi bi-exclamation-triangle"></i> @I18n[I18nKey.Ui.MemberDetail.OrphanedBadge]
                                     </span>
                                 </div>
-                                <div class="d-flex align-items-end gap-2">
+                                <div class="d-flex flex-wrap align-items-end gap-2">
                                     <div class="flex-grow-1">
                                         <AdminDivisionPicker Value="@NewAdminDivId" ValueChanged="OnAdminDivChanged" />
                                     </div>
@@ -91,134 +100,119 @@
                                     <span class="badge border text-secondary-emphasis ms-2">@Member.ResidenceAdministrativeDivisionAdminCode</span>
                                 }
                             }
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
+                        </dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.ChapterSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.Common.Chapter]</th><td>@(string.IsNullOrEmpty(Member.ChapterName) ? "-" : Member.ChapterName)</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FederalStateLabel]</th><td>@(Member.FederalState ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.CountyLabel]</th><td>@(Member.County ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.MunicipalityLabel]</th><td>@(Member.Municipality ?? "-")</td></tr>
-                </tbody>
-            </table>
-            </div>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Chapter]</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(Member.ChapterName) ? "-" : Member.ChapterName)</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.FederalStateLabel]</dt>
+                    <dd class="col-sm-8">@(Member.FederalState ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.CountyLabel]</dt>
+                    <dd class="col-sm-8">@(Member.County ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.MunicipalityLabel]</dt>
+                    <dd class="col-sm-8">@(Member.Municipality ?? "-")</dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.MembershipSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.EntryDateLabel]</th><td><LocalTime DateValue="Member.EntryDate" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.ExitDateLabel]</th><td><LocalTime DateValue="Member.ExitDate" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.AdmissionReferenceLabel]</th><td>@(Member.AdmissionReference ?? "-")</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.FeeLabel]</th><td>@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.ReducedFeeLabel]</th><td>@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.EntryDateLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime DateValue="Member.EntryDate" /></dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.ExitDateLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime DateValue="Member.ExitDate" /></dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.AdmissionReferenceLabel]</dt>
+                    <dd class="col-sm-8">@(Member.AdmissionReference ?? "-")</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.FeeLabel]</dt>
+                    <dd class="col-sm-8">@Member.MembershipFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.ReducedFeeLabel]</dt>
+                    <dd class="col-sm-8">@Member.ReducedFee.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
                     @if (Member.FirstFee.HasValue) {
-                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.FirstFeeLabel]</th><td>@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.FirstFeeLabel]</dt>
+                        <dd class="col-sm-8">@Member.FirstFee.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
                     }
                     @if (Member.ReducedFeeEnd.HasValue) {
-                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.ReducedFeeEndLabel]</th><td><LocalTime DateValue="Member.ReducedFeeEnd" /></td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.ReducedFeeEndLabel]</dt>
+                        <dd class="col-sm-8"><LocalTime DateValue="Member.ReducedFeeEnd" /></dd>
                     }
                     @if (Member.OpenFeeTotal.HasValue) {
-                        <tr><th>@I18n[I18nKey.Ui.MemberDetail.OpenFeesLabel]</th><td>@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.OpenFeesLabel]</dt>
+                        <dd class="col-sm-8">@Member.OpenFeeTotal.Value.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
                     }
-                </tbody>
-            </table>
-            </div>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.PreferencesSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr>
-                        <th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.VotingRightsLabel]</th>
-                        <td>
+            <dl class="row mb-0">
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.VotingRightsLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.HasVotingRights) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             } else {
                                 <i class="bi bi-x-circle-fill text-danger"></i>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.MemberDetail.SurveysLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.SurveysLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.ReceivesSurveys) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             } else {
                                 <i class="bi bi-x-circle-fill text-danger"></i>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.MemberDetail.ActionsLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.ActionsLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.ReceivesActions) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             } else {
                                 <i class="bi bi-x-circle-fill text-danger"></i>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.MemberDetail.NewsletterLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.NewsletterLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.ReceivesNewsletter) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             } else {
                                 <i class="bi bi-x-circle-fill text-danger"></i>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.MemberDetail.PostBounceLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.PostBounceLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (Member.PostBounce) {
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             } else {
                                 <i class="bi bi-x-circle-fill text-danger"></i>
                             }
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
+                        </dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.MemberDetail.SystemSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.MemberDetail.LinkedUserLabel]</th><td>@(Member.UserId.HasValue ? Member.UserId.ToString() : I18n[I18nKey.Ui.MemberDetail.NotLinked])</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.MemberDetail.LastImportLabel]</th><td><LocalTime Value="Member.LastImportedAt" /></td></tr>
-                </tbody>
-            </table>
-            </div>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.LinkedUserLabel]</dt>
+                    <dd class="col-sm-8">@(Member.UserId.HasValue ? Member.UserId.ToString() : I18n[I18nKey.Ui.MemberDetail.NotLinked])</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.MemberDetail.LastImportLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime Value="Member.LastImportedAt" /></dd>
+            </dl>
         </div>
     </div>
 
     @if (!AuditUnavailable) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.MemberDetail.AuditLogSection]</h5>
                 @if (AuditLogs == null) {
@@ -227,7 +221,7 @@
                     <EmptyState Message="@I18n[I18nKey.Ui.Common.NoEntries]" />
                 } else {
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped mb-0">
+                        <table class="table table-sm table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>@I18n[I18nKey.Ui.MemberDetail.AuditTimestampColumn]</th>

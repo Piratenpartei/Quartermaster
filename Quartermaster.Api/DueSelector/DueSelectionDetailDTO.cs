@@ -21,5 +21,9 @@ public class DueSelectionDetailDTO {
     public PaymentSchedule PaymentSchedule { get; set; }
     public DueSelectionStatus Status { get; set; }
     public DateTimeOffset? ProcessedAt { get; set; }
-    public Guid? LinkedMotionId { get; set; }
+    /// <summary>The motion deciding this due selection; set only when the viewer may open it.</summary>
+    public Guid? ViewableMotionId { get; set; }
+
+    /// <summary>The membership application this due selection came with; set only when the viewer may open it.</summary>
+    public Guid? ViewableApplicationId { get; set; }
 }

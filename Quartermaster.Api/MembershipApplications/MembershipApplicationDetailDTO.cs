@@ -30,7 +30,12 @@ public class MembershipApplicationDetailDTO {
     public DateTimeOffset SubmittedAt { get; set; }
     public ApplicationStatus Status { get; set; }
     public DateTimeOffset? ProcessedAt { get; set; }
-    public Guid? LinkedMotionId { get; set; }
+    /// <summary>The motion deciding this application; set only when the viewer may open it.</summary>
+    public Guid? ViewableMotionId { get; set; }
+
+    /// <summary>The application's due selection when it is a reduction; set only when the viewer may open it.</summary>
+    public Guid? ViewableReductionId { get; set; }
+
     public int? MemberNumber { get; set; }
     public DateTimeOffset? WelcomeSentAt { get; set; }
     public bool HasReducedDueSelection { get; set; }

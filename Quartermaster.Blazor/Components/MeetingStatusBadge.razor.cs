@@ -11,13 +11,11 @@ public partial class MeetingStatusBadge {
     [Parameter, EditorRequired]
     public MeetingStatus Status { get; set; }
 
-    private string CssClass => Status switch {
-        MeetingStatus.Draft => "border-secondary text-secondary-emphasis",
-        MeetingStatus.Scheduled => "border-primary text-primary-emphasis",
-        MeetingStatus.InProgress => "border-warning text-warning-emphasis",
-        MeetingStatus.Completed => "border-success text-success-emphasis",
-        MeetingStatus.Archived => "border-secondary text-body-tertiary",
-        _ => "border-secondary"
+    private StatusTone Tone => Status switch {
+        MeetingStatus.Scheduled => StatusTone.Info,
+        MeetingStatus.InProgress => StatusTone.Warning,
+        MeetingStatus.Completed => StatusTone.Success,
+        _ => StatusTone.Neutral
     };
 
     private string Label => Status switch {

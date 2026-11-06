@@ -6,42 +6,46 @@
 
 <PageTitle>@I18n[I18nKey.Ui.PublicEventDetail.PageTitle]</PageTitle>
 
-<PageBackLink Href="/Events" />
-
 @if (Loading) {
+    <PageBackLink Href="/Events" />
     <LoadingSpinner />
 } else if (NotFound) {
+    <PageBackLink Href="/Events" />
     <div class="alert alert-warning">
         @I18n[I18nKey.Ui.PublicEventDetail.NotPubliclyAvailable]
     </div>
 } else if (Event != null) {
-    <h1>@Event.PublicName</h1>
-    <div class="text-secondary mb-4">
-        @Event.ChapterName
-        @if (Event.EventDate.HasValue) {
-            <span> &mdash; <EventDateText Date="Event.EventDate" StartTime="Event.StartTime" /></span>
-        }
-    </div>
-
-    <EventSubscriptionToggle EventId="Id" />
-
-    @if (HasMotionPortal || !string.IsNullOrWhiteSpace(Event.MeetingUrl)) {
-        <div class="d-flex flex-wrap gap-2 mb-3">
+    <PageHeader Title="@Event.PublicName" BackHref="/Events">
+        <Subtitle>
+            <span>@Event.ChapterName</span>
+            @if (Event.EventDate.HasValue) {
+                <span>· <EventDateText Date="Event.EventDate" StartTime="Event.StartTime" /></span>
+            }
+        </Subtitle>
+        <Actions>
             @if (!string.IsNullOrWhiteSpace(Event.MeetingUrl)) {
                 <a href="@Event.MeetingUrl" target="_blank" rel="noopener" class="btn btn-primary">
                     <i class="bi bi-camera-video"></i> @I18n[I18nKey.Ui.Events.JoinOnline]
                 </a>
             }
+            <EventSubscriptionToggle EventId="Id" />
+        </Actions>
+        <Links>
             @if (HasMotionPortal) {
-                <a href="/Events/@Id/Motions" class="btn btn-primary">
+                <a href="/Events/@Id/Motions" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.PortalButton]
                 </a>
             }
-        </div>
-    }
+            @if (Event.CanManage) {
+                <a href="/Administration/Events/@Id" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil-square"></i> @I18n[I18nKey.Ui.LinkedPages.ManageEvent]
+                </a>
+            }
+        </Links>
+    </PageHeader>
 
     @if (!string.IsNullOrEmpty(DescriptionHtml)) {
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-body">
                 @((MarkupString)DescriptionHtml)
             </div>

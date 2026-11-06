@@ -5,7 +5,7 @@
 
 <PageBackLink Href="/Administration/Templates" />
 
-<h3 class="mb-3">@I18n[I18nKey.Ui.TemplateCreate.PageTitle]</h3>
+<PageHeader Title="@I18n[I18nKey.Ui.TemplateCreate.PageTitle]" />
 
 <RequirePermission AnyChapterPermission="@PermissionIdentifier.EditTemplates">
     <div class="card">
@@ -43,7 +43,7 @@
                 </div>
             }
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 <button class="btn btn-primary" @onclick="Create" disabled="@(!CanCreate || Saving)">
                     @I18n[I18nKey.Ui.TemplateCreate.CreateConfirm]
                 </button>

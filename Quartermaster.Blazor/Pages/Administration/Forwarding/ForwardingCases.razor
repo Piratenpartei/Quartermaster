@@ -6,8 +6,9 @@
 <PageTitle>@I18n[I18nKey.Ui.ForwardingCases.Title]</PageTitle>
 
 <RequirePermission AnyOfPermissions="@([PermissionIdentifier.ProcessApplications, PermissionIdentifier.ProcessDueSelections])">
-    <h3 class="mb-1"><i class="bi bi-signpost-split me-2"></i>@I18n[I18nKey.Ui.ForwardingCases.Title]</h3>
-    <p class="text-secondary">@I18n[I18nKey.Ui.ForwardingCases.Intro]</p>
+    <PageHeader Title="@I18n[I18nKey.Ui.ForwardingCases.Title]" Icon="bi-signpost-split">
+        <Subtitle>@I18n[I18nKey.Ui.ForwardingCases.Intro]</Subtitle>
+    </PageHeader>
 
     <div class="mb-3" style="max-width: 16rem">
         <FormSelect Value="@Filter" ValueChanged="OnFilterChanged">
@@ -39,14 +40,14 @@
                 <tbody>
                     @foreach (var item in Cases) {
                         <tr>
-                            <td class="text-nowrap"><code>@item.Reference</code><div><span class="badge border @StatusClass(item.Status)">@StatusLabel(item.Status)</span></div></td>
+                            <td class="text-nowrap"><code>@item.Reference</code><div><StatusBadge Tone="@ToneOf(item.Status)" Text="@StatusLabel(item.Status)" /></div></td>
                             <td>@KindLabel(item.Kind)</td>
                             <td>@item.ChapterName</td>
                             <td class="text-nowrap">@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                             <td>
                                 @foreach (var step in item.Steps) {
                                     <div class="small mb-1">
-                                        <span class="badge border @StepClass(step.State)">@StepLabel(step.State)</span>
+                                        <StatusBadge Tone="@StepTone(step.State)" Text="@StepLabel(step.State)" />
                                         @StepTitle(step) · @step.TargetChapterName
                                         @if (!string.IsNullOrEmpty(step.TicketUrl)) {
                                             <a href="@step.TicketUrl" target="_blank" rel="noopener" class="ms-1"><i class="bi bi-box-arrow-up-right"></i></a>
@@ -61,12 +62,14 @@
                                 }
                             </td>
                             <td class="text-nowrap">
-                                @if (item.Status == ForwardingCaseStatus.Failed) {
-                                    <button class="btn btn-sm btn-outline-primary mb-1" disabled="@Busy" @onclick="() => RetryAsync(item.Id)"><i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.ForwardingCases.Retry]</button>
-                                }
-                                @if (item.Status == ForwardingCaseStatus.Failed || item.Status == ForwardingCaseStatus.Open) {
-                                    <button class="btn btn-sm btn-outline-secondary mb-1" disabled="@Busy" @onclick="() => ResolveAsync(item)"><i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.ForwardingCases.Resolve]</button>
-                                }
+                                <div class="d-flex gap-1">
+                                    @if (item.Status == ForwardingCaseStatus.Failed) {
+                                        <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="() => RetryAsync(item.Id)"><i class="bi bi-arrow-repeat"></i> @I18n[I18nKey.Ui.ForwardingCases.Retry]</button>
+                                    }
+                                    @if (item.Status == ForwardingCaseStatus.Failed || item.Status == ForwardingCaseStatus.Open) {
+                                        <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" @onclick="() => ResolveAsync(item)"><i class="bi bi-check2-square"></i> @I18n[I18nKey.Ui.ForwardingCases.Resolve]</button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

@@ -57,7 +57,7 @@
                 </div>
                 <div class="d-flex flex-wrap gap-1">
                     @foreach (var template in Templates()) {
-                        <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => Create(template)">@I18n[TemplateKey(template)]</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => Create(template)">@I18n[TemplateKey(template)]</button>
                     }
                 </div>
                 @if (CurrentIsMotion || ItemKind == AssemblyItemKind.Other) {

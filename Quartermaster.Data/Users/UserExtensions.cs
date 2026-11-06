@@ -1,4 +1,5 @@
 using Quartermaster.Api.Users;
+using Quartermaster.Data.Members;
 
 namespace Quartermaster.Data.Users;
 
@@ -16,6 +17,20 @@ public static class UserExtensions {
             if (!string.IsNullOrEmpty(user.Username))
                 return user.Username;
             return user.Email;
+        }
+
+        /// <summary>The account as the session and settings show it; voting rights and open fees only when linked to a member.</summary>
+        public LoginUserInfo ToLoginUserInfo(Member? member) {
+            return new LoginUserInfo {
+                Id = user.Id,
+                Username = user.Username ?? "",
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DisplayName = user.DisplayName(),
+                Email = user.Email,
+                HasVotingRights = member?.HasVotingRights,
+                OpenFeeTotal = member == null ? null : member.OpenFeeTotal
+            };
         }
 
         /// <summary>A username of its own, not the e-mail address SSO accounts held as username before V9.1.</summary>

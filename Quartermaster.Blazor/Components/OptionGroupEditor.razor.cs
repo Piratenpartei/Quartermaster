@@ -51,7 +51,6 @@ public partial class OptionGroupEditor {
     private readonly Dictionary<string, string> _original = new();
     private readonly HashSet<string> _filled = new();
     private IReadOnlyList<string> _appliedCheckItems = [];
-    private bool Saving;
 
     private record Row(SettingsField Field, OptionDefinitionDTO Definition);
 
@@ -119,8 +118,6 @@ public partial class OptionGroupEditor {
             changes.Add((row.Field.Key, stored));
         }
 
-        Saving = true;
-        StateHasChanged();
         try {
             foreach (var (key, value) in changes) {
                 var resp = await Http.PostAsJsonAsync("/api/options", new OptionUpdateRequest {
@@ -136,9 +133,6 @@ public partial class OptionGroupEditor {
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
             return false;
-        } finally {
-            Saving = false;
-            StateHasChanged();
         }
 
         await ReloadAsync();
@@ -146,10 +140,6 @@ public partial class OptionGroupEditor {
         return true;
     }
 
-    private async Task SaveClicked() {
-        if (await SaveAsync())
-            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-    }
 
     private string ColumnClass(Row row) {
         if (FullWidthFields || row.Field.FullWidth || row.Field.Kind == SettingsFieldKind.Multiline)

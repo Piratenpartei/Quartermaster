@@ -11,14 +11,14 @@
 } else if (Option == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.OptionDetail.NotFound]</div>
 } else {
-    <h3 class="mb-3">@Option.FriendlyName</h3>
+    <PageHeader Title="@Option.FriendlyName" />
 
     <div class="row">
         <div class="col-12">
             <DirtyForm @ref="_globalForm">
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
                             <div>
                                 <h5 class="mb-1">@I18n[I18nKey.Ui.OptionDetail.GlobalValueTitle]</h5>
                                 <code class="text-secondary small">@Option.Identifier</code>
@@ -30,14 +30,14 @@
                         }
                         <div class="input-group mb-2">
                             <FormInput @bind-Value="Option.GlobalValue" Type="@(Option.DataType == OptionDataType.Number ? "number" : "text")" />
-                            <FormSaveButton OnClick="SaveGlobal" />
+                            <FormSaveButton Action="SaveGlobal" />
                         </div>
                     </div>
                 </div>
             </DirtyForm>
 
             @if (Option.IsOverridable) {
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body">
                         <h5>@I18n[I18nKey.Ui.OptionDetail.ChapterOverridesTitle]</h5>
 
@@ -54,14 +54,14 @@
                                 <tbody>
                                     @foreach (var ov in Option.Overrides) {
                                         <tr>
-                                            <td><span class="badge bg-secondary">@ov.ChapterShortCode</span></td>
+                                            <td><StatusBadge Tone="StatusTone.Neutral" Text="@ov.ChapterShortCode" /></td>
                                             <td>@ov.ChapterName</td>
                                             <td>
                                                 <div class="input-group input-group-sm" style="max-width: 300px;">
                                                     <input type="@(Option.DataType == OptionDataType.Number ? "number" : "text")"
                                                            class="form-control" value="@ov.Value"
                                                            @onchange="(e) => SaveOverride(ov.ChapterId, e.Value?.ToString() ?? string.Empty)" />
-                                                    <button class="btn btn-outline-primary" aria-label="@I18n[I18nKey.Ui.OptionDetail.SaveAriaLabel]" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
+                                                    <button class="btn btn-outline-secondary" aria-label="@I18n[I18nKey.Ui.OptionDetail.SaveAriaLabel]" @onclick="() => SaveOverride(ov.ChapterId, ov.Value)">
                                                         <i class="bi bi-save"></i>
                                                     </button>
                                                 </div>
@@ -76,8 +76,8 @@
                         }
 
                         <hr />
-                        <div class="d-flex gap-2 align-items-center">
-                            <select class="form-select form-select-sm" style="width: auto;" @bind="NewOverrideChapterId">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <select class="w-auto form-select form-select-sm" @bind="NewOverrideChapterId">
                                 <option value="">@I18n[I18nKey.Ui.OptionDetail.AddChapterOption]</option>
                                 @if (Chapters != null) {
                                     @foreach (var ch in Chapters.Where(c => !string.IsNullOrEmpty(c.ShortCode))) {
@@ -87,14 +87,14 @@
                                     }
                                 }
                             </select>
-                            <button class="btn btn-sm btn-outline-success" @onclick="AddOverride">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="AddOverride">
                                 <i class="bi bi-plus"></i> @I18n[I18nKey.Ui.OptionDetail.AddButton]
                             </button>
                         </div>
                     </div>
                 </div>
             } else {
-                <div class="card mb-3">
+                <div class="card mb-4">
                     <div class="card-body text-secondary">
                         <i class="bi bi-info-circle me-1"></i> @I18n[I18nKey.Ui.OptionDetail.NotOverridableNotice]
                     </div>

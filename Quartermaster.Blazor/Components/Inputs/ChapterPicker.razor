@@ -32,7 +32,7 @@
         <ItemTemplate Context="chapter">
             @chapter.Name
             @if (!string.IsNullOrEmpty(chapter.ShortCode)) {
-                <span class="badge bg-secondary ms-1">@chapter.ShortCode</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@chapter.ShortCode" Class="ms-1" />
             }
         </ItemTemplate>
         <ListFooter>

@@ -3,7 +3,7 @@
 
 <PageTitle>@I18n[I18nKey.Ui.TravelExpenseRules.PageTitle]</PageTitle>
 
-<h3 class="mb-2">@I18n[I18nKey.Ui.TravelExpenseRules.PageTitle]</h3>
+<PageHeader Title="@I18n[I18nKey.Ui.TravelExpenseRules.PageTitle]" />
 <p class="text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.PageIntro]</p>
 
 <ConfirmDialog @ref="DeleteConfirm" />
@@ -17,9 +17,9 @@
         @if (Scopes.CanEditGlobal) {
             <div class="btn-group" role="radiogroup">
                 <input type="radio" class="btn-check" name="rules-scope" id="scope-global" checked="@GlobalSelected" @onchange="SelectGlobal" />
-                <label class="btn btn-outline-primary" for="scope-global">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeGlobal]</label>
+                <label class="btn btn-outline-secondary" for="scope-global">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeGlobal]</label>
                 <input type="radio" class="btn-check" name="rules-scope" id="scope-chapter" checked="@(!GlobalSelected)" @onchange="SelectChapterScope" />
-                <label class="btn btn-outline-primary" for="scope-chapter">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeChapter]</label>
+                <label class="btn btn-outline-secondary" for="scope-chapter">@I18n[I18nKey.Ui.TravelExpenseRules.ScopeChapter]</label>
             </div>
         }
         @if (!GlobalSelected) {
@@ -50,7 +50,7 @@
                     <p class="small text-secondary">@I18n[I18nKey.Ui.TravelExpenseRules.NoVersions]</p>
                 }
                 <div class="dropdown">
-                    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" @onclick="ToggleNewMenu">
+                    <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" @onclick="ToggleNewMenu">
                         <i class="bi bi-plus-lg me-1"></i>@I18n[I18nKey.Ui.TravelExpenseRules.NewVersion]
                     </button>
                     @if (NewMenuOpen) {
@@ -75,7 +75,7 @@
                     @if (Editing.Id != Guid.Empty) {
                         <div class="alert alert-info small mt-3">@I18n[I18nKey.Ui.TravelExpenseRules.EditWarning]</div>
                     }
-                    <div class="d-flex gap-2 mt-3">
+                    <div class="d-flex flex-wrap gap-2 mt-3">
                         <button type="button" class="btn btn-primary" @onclick="Save" disabled="@Busy"><i class="bi bi-check-lg me-1"></i>@I18n[I18nKey.Ui.Common.Save]</button>
                         @if (Editing.Id != Guid.Empty) {
                             <button type="button" class="btn btn-outline-danger ms-auto" @onclick="Delete" disabled="@Busy"><i class="bi bi-trash me-1"></i>@I18n[I18nKey.Ui.Common.Delete]</button>

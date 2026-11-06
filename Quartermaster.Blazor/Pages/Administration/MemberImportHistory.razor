@@ -20,10 +20,10 @@
     </Actions>
 </PageHeader>
 
-<div class="card mb-3">
+<div class="card mb-4">
     <div class="card-body">
         <h5 class="card-title mb-3">@I18n[I18nKey.Ui.MemberImportHistory.UploadCardTitle]</h5>
-        <div class="d-flex align-items-end gap-3">
+        <div class="d-flex flex-wrap align-items-end gap-3">
             <div class="flex-grow-1">
                 <label class="form-label small text-secondary">@I18n[I18nKey.Ui.MemberImportHistory.ChooseCsvFile]</label>
                 <InputFile @key="FileInputKey" class="form-control" OnChange="OnFileSelected" accept=".csv" disabled="@Uploading" />
@@ -60,7 +60,7 @@
         <p class="text-secondary">@I18n[I18nKey.Ui.MemberImportHistory.NoImportsYet]</p>
     } else {
         <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>@I18n[I18nKey.Ui.MemberImportHistory.TimestampColumn]</th>
@@ -91,12 +91,12 @@
                         <td>@log.PromotedRecords</td>
                         <td>
                             @if (log.ErrorCount > 0) {
-                                <button class="badge border border-danger text-danger-emphasis btn p-1"
+                                <button class="badge rounded-pill border bg-danger-subtle text-danger-emphasis border-danger-subtle btn p-1"
                                         @onclick="() => ToggleErrors(log.Id)">
                                     @log.ErrorCount
                                 </button>
                             } else {
-                                <span class="badge border border-success text-success-emphasis">0</span>
+                                <span class="badge rounded-pill border bg-success-subtle text-success-emphasis border-success-subtle">0</span>
                             }
                         </td>
                     </tr>

@@ -13,7 +13,7 @@
         }
     </button>
 
-    <ul class="dropdown-menu @(Collapsed ? "" : "show")" @onclick=Close>
+    <ul class="dropdown-menu @(AlignEnd ? "dropdown-menu-end" : "") @(Collapsed ? "" : "show")" data-bs-popper="@(AlignEnd ? "static" : null)" @onclick=Close>
         @DropdownContent
     </ul>
 </div>

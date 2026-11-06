@@ -1,7 +1,7 @@
 @using Quartermaster.Api.AssemblyAssistant
 @using Quartermaster.Api.I18n
 
-<div class="card mb-3">
+<div class="card mb-4">
     <div class="card-body py-2">
         <div class="d-flex flex-wrap align-items-center gap-3">
             <div class="d-flex align-items-baseline gap-3">
@@ -34,7 +34,7 @@
                 <div class="col-md-5">
                     <label class="assembly-label">@I18n[I18nKey.Ui.AssemblyConsole.CandidatesTitle]</label>
                     <textarea class="form-control form-control-sm" rows="3" @bind="CandidateInput"></textarea>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" @onclick="ApplyCandidates">@I18n[I18nKey.Ui.AssemblyConsole.ApplyCandidates]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-1" @onclick="ApplyCandidates">@I18n[I18nKey.Ui.AssemblyConsole.ApplyCandidates]</button>
                 </div>
                 <div class="col-md-7">
                     <ol class="list-group list-group-numbered">
@@ -46,7 +46,7 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnPresentCandidate.InvokeAsync(position)">
                                     @I18n[I18nKey.Ui.AssemblyConsole.CandidatePresent]
                                 </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => OnCandidateSupport.InvokeAsync(name)">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnCandidateSupport.InvokeAsync(name)">
                                     @I18n[I18nKey.Ui.AssemblyConsole.CandidateSupport]
                                 </button>
                             </li>
@@ -81,7 +81,7 @@
                         <button type="button" class="btn btn-success btn-sm" @onclick="() => OnGoAccepted.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoAccept]</button>
                         <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnGoObjection.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoObjectionButton]</button>
                     }
-                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="() => OnGoEnded.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoEnd]</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="() => OnGoEnded.InvokeAsync()">@I18n[I18nKey.Ui.AssemblyConsole.GoEnd]</button>
                 }
             </div>
         }

@@ -34,6 +34,7 @@ public class MembershipApplicationDetailEndpoint
     private readonly ApplicantRegisterRepository _register;
     private readonly TakeOverPlanner _planner;
     private readonly PermissionContext _perms;
+    private readonly DetailPageAccess _pageAccess;
 
     public MembershipApplicationDetailEndpoint(
         MembershipApplicationRepository applicationRepo,
@@ -43,7 +44,8 @@ public class MembershipApplicationDetailEndpoint
         SageEntryGate gate,
         ApplicantRegisterRepository register,
         TakeOverPlanner planner,
-        PermissionContext perms) {
+        PermissionContext perms,
+        DetailPageAccess pageAccess) {
         _applicationRepo = applicationRepo;
         _chapterRepo = chapterRepo;
         _dueSelectionRepo = dueSelectionRepo;
@@ -52,6 +54,7 @@ public class MembershipApplicationDetailEndpoint
         _register = register;
         _planner = planner;
         _perms = perms;
+        _pageAccess = pageAccess;
     }
 
     public override void Configure() {
@@ -70,16 +73,9 @@ public class MembershipApplicationDetailEndpoint
             return;
         }
 
-        if (app.ChapterId.HasValue) {
-            if (!_perms.Has(app.ChapterId.Value, PermissionIdentifier.ViewApplications)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else {
-            if (!_perms.HasGlobal(PermissionIdentifier.ViewApplications)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
+        if (!_pageAccess.CanViewApplication(app)) {
+            await SendForbiddenAsync(ct);
+            return;
         }
 
         var chapter = app.ChapterId.HasValue ? _chapterRepo.Get(app.ChapterId.Value) : null;
@@ -89,7 +85,10 @@ public class MembershipApplicationDetailEndpoint
         var dto = app.ToDetailDto(chapter?.Name ?? "", isReduced);
         dto.DueSelection = dueSelection?.ToAdminDto();
         var pendingMotion = _motionRepo.GetByLinkedApplicationId(app.Id);
-        dto.LinkedMotionId = pendingMotion?.Id;
+        if (pendingMotion != null && _pageAccess.CanViewMotion(pendingMotion))
+            dto.ViewableMotionId = pendingMotion.Id;
+        if (dueSelection != null && isReduced && _pageAccess.CanViewDueSelection(dueSelection, app))
+            dto.ViewableReductionId = dueSelection.Id;
         if (pendingMotion != null) {
             var next = _planner.NextFor(pendingMotion, app, DateTime.UtcNow);
             dto.NextTakeOverAt = next?.DueAt.ToDtoUtc();

@@ -41,6 +41,10 @@ public class MemberDetailDTO {
     public string? ResidenceAdministrativeDivisionAdminCode { get; set; }
     public bool IsAdminDivisionOrphaned { get; set; }
     public Guid? UserId { get; set; }
+
+    /// <summary>The member's user account; set only when the viewer may open user accounts.</summary>
+    public Guid? ViewableUserId { get; set; }
+
     public DateTimeOffset LastImportedAt { get; set; }
 
     /// <summary>True if <see cref="ExitDate"/> has arrived or passed. Future exit dates leave the member active until the date hits.</summary>

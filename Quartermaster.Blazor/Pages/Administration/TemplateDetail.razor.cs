@@ -108,9 +108,9 @@ public partial class TemplateDetail {
         _form?.MarkDirty();
     }
 
-    private async Task Save() {
+    private async Task<bool> Save() {
         if (Template == null)
-            return;
+            return false;
 
         try {
             var response = await Http.PutAsJsonAsync($"/api/templates/{Template.Id}", new TemplateUpdateRequest {
@@ -123,11 +123,15 @@ public partial class TemplateDetail {
                 AllowsChapterFields = Template.AllowsChapterFields,
                 RenderMode = Template.RenderMode
             });
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return false;
+            }
             _form.Reset();
-            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
     }
 

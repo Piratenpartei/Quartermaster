@@ -6,8 +6,8 @@
 
 <PageTitle>@I18n[I18nKey.Ui.MyForms.PageTitle]</PageTitle>
 
-<h3 class="mb-2">@I18n[I18nKey.Ui.MyForms.PageTitle]</h3>
-<p class="text-secondary">
+<PageHeader Title="@I18n[I18nKey.Ui.MyForms.PageTitle]" />
+<p class="text-secondary mb-4">
     @if (AuthService.IsAuthenticated) {
         @I18n[I18nKey.Ui.MyForms.PageIntroAuth]
     } else {
@@ -29,57 +29,93 @@
             } else if (ServerItems.Count == 0) {
                 <p class="text-secondary mb-0">@I18n[I18nKey.Ui.MyForms.EmptyState]</p>
             } else {
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
-                                <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
-                                <th>@I18n[I18nKey.Ui.MyForms.UpdatedColumn]</th>
-                                <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in ServerItems) {
-                                <tr>
-                                    <td>@I18n[item.Entry.DisplayNameI18nKey] <span class="text-secondary small">@item.Detail</span></td>
-                                    <td>
-                                        @if (!item.IsSubmitted) {
-                                            <span class="badge text-bg-secondary">@I18n[I18nKey.Ui.MyForms.StatusDraft]</span>
-                                        } else {
-                                            <span class="badge text-bg-success">@I18n[I18nKey.Ui.MyForms.StatusSubmitted]</span>
-                                        }
-                                    </td>
-                                    <td>@item.ChapterName</td>
-                                    <td class="text-end">@item.Total.ToString("N2", De) €</td>
-                                    <td>@item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a class="btn btn-outline-primary" href="@($"{item.Entry.Route}/{item.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                            @if (item.IsSubmitted) {
-                                                <button class="btn btn-outline-secondary" @onclick="() => DownloadServer(item)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]">
-                                                    <i class="bi bi-download"></i>
-                                                </button>
-                                            }
-                                            <button class="btn btn-outline-secondary" @onclick="() => CopyServer(item)" title="@I18n[I18nKey.Ui.MyForms.CopyAction]">
-                                                <i class="bi bi-files"></i>
-                                            </button>
-                                            @if (!item.IsSubmitted) {
-                                                <button class="btn btn-outline-danger" @onclick="() => DeleteServer(item)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
+                <ResponsiveList Items="@ServerItems">
+                    <Header>
+                        <tr>
+                            <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
+                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
+                            <th>@I18n[I18nKey.Ui.MyForms.UpdatedColumn]</th>
+                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
+                        </tr>
+                    </Header>
+                    <Row Context="item">
+                        <tr>
+                            <td>@I18n[item.Entry.DisplayNameI18nKey] <span class="text-secondary small">@item.Detail</span></td>
+                            <td>
+                                @if (!item.IsSubmitted) {
+                                    <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.MyForms.StatusDraft]" />
+                                } else {
+                                    <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MyForms.StatusSubmitted]" />
+                                }
+                            </td>
+                            <td>@item.ChapterName</td>
+                            <td class="text-end">@item.Total.ToString("N2", De) €</td>
+                            <td>@item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a class="btn btn-outline-secondary" href="@($"{item.Entry.Route}/{item.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]" aria-label="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    @if (item.IsSubmitted) {
+                                        <button class="btn btn-outline-secondary" @onclick="() => DownloadServer(item)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DownloadAction]">
+                                            <i class="bi bi-download"></i>
+                                        </button>
+                                    }
+                                    <button class="btn btn-outline-secondary" @onclick="() => CopyServer(item)" title="@I18n[I18nKey.Ui.MyForms.CopyAction]" aria-label="@I18n[I18nKey.Ui.MyForms.CopyAction]">
+                                        <i class="bi bi-files"></i>
+                                    </button>
+                                    @if (!item.IsSubmitted) {
+                                        <button class="btn btn-outline-danger" @onclick="() => DeleteServer(item)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    </Row>
+                    <Stacked Context="item">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="fw-semibold">@I18n[item.Entry.DisplayNameI18nKey]</div>
+                                <div class="text-secondary small">@item.Detail</div>
+                            </div>
+                            @if (!item.IsSubmitted) {
+                                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.MyForms.StatusDraft]" />
+                            } else {
+                                <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MyForms.StatusSubmitted]" />
                             }
-                        </tbody>
-                    </table>
-                </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 small text-secondary mt-1">
+                            @if (!string.IsNullOrEmpty(item.ChapterName)) {
+                                <span>@item.ChapterName</span>
+                            }
+                            <span>@item.Total.ToString("N2", De) €</span>
+                            <span>@item.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a class="btn btn-outline-secondary" href="@($"{item.Entry.Route}/{item.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]" aria-label="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                @if (item.IsSubmitted) {
+                                    <button class="btn btn-outline-secondary" @onclick="() => DownloadServer(item)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DownloadAction]">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                }
+                                <button class="btn btn-outline-secondary" @onclick="() => CopyServer(item)" title="@I18n[I18nKey.Ui.MyForms.CopyAction]" aria-label="@I18n[I18nKey.Ui.MyForms.CopyAction]">
+                                    <i class="bi bi-files"></i>
+                                </button>
+                                @if (!item.IsSubmitted) {
+                                    <button class="btn btn-outline-danger" @onclick="() => DeleteServer(item)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </Stacked>
+                </ResponsiveList>
             }
         </div>
     </div>
@@ -97,47 +133,73 @@
         } else if (LocalDrafts.Count == 0) {
             <p class="text-secondary mb-0">@I18n[I18nKey.Ui.MyForms.EmptyStateLocal]</p>
         } else {
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
-                            <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
-                            <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
-                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
-                            <th>@I18n[I18nKey.Ui.MyForms.SavedAtColumn]</th>
-                            <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var draft in LocalDrafts) {
-                            <tr>
-                                <td>@I18n[draft.Entry.DisplayNameI18nKey] <span class="badge border border-warning text-warning bg-transparent ms-1">@I18n[I18nKey.Ui.MyForms.StatusLocal]</span></td>
-                                <td>
-                                    @if (draft.Metadata.Status == LocalDraftStatus.Draft) {
-                                        <span class="badge text-bg-secondary">@I18n[I18nKey.Ui.MyForms.StatusDraft]</span>
-                                    } else {
-                                        <span class="badge text-bg-success">@I18n[I18nKey.Ui.MyForms.StatusSubmitted]</span>
-                                    }
-                                </td>
-                                <td>@draft.Metadata.Summary.Chapter</td>
-                                <td class="text-end">@draft.Metadata.Summary.Total.ToString("N2", De) €</td>
-                                <td>@draft.Metadata.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
-                                <td class="text-end">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a class="btn btn-outline-primary" href="@($"{draft.Entry.Route}?localId={draft.Metadata.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button class="btn btn-outline-danger" @onclick="() => DeleteLocal(draft)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+            <ResponsiveList Items="@LocalDrafts">
+                <Header>
+                    <tr>
+                        <th>@I18n[I18nKey.Ui.MyForms.FormColumn]</th>
+                        <th>@I18n[I18nKey.Ui.MyForms.StatusColumn]</th>
+                        <th>@I18n[I18nKey.Ui.MyForms.ChapterColumn]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.MyForms.TotalColumn]</th>
+                        <th>@I18n[I18nKey.Ui.MyForms.SavedAtColumn]</th>
+                        <th class="text-end">@I18n[I18nKey.Ui.MyForms.ActionsColumn]</th>
+                    </tr>
+                </Header>
+                <Row Context="draft">
+                    <tr>
+                        <td>@I18n[draft.Entry.DisplayNameI18nKey] <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.MyForms.StatusLocal]" /></td>
+                        <td>
+                            @if (draft.Metadata.Status == LocalDraftStatus.Draft) {
+                                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.MyForms.StatusDraft]" />
+                            } else {
+                                <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MyForms.StatusSubmitted]" />
+                            }
+                        </td>
+                        <td>@draft.Metadata.Summary.Chapter</td>
+                        <td class="text-end">@draft.Metadata.Summary.Total.ToString("N2", De) €</td>
+                        <td>@draft.Metadata.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a class="btn btn-outline-secondary" href="@($"{draft.Entry.Route}?localId={draft.Metadata.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]" aria-label="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button class="btn btn-outline-danger" @onclick="() => DeleteLocal(draft)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </Row>
+                <Stacked Context="draft">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <span class="fw-semibold">@I18n[draft.Entry.DisplayNameI18nKey]</span>
+                        <div class="d-flex flex-wrap gap-1">
+                            <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.MyForms.StatusLocal]" />
+                            @if (draft.Metadata.Status == LocalDraftStatus.Draft) {
+                                <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.MyForms.StatusDraft]" />
+                            } else {
+                                <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MyForms.StatusSubmitted]" />
+                            }
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 small text-secondary mt-1">
+                        @if (!string.IsNullOrEmpty(draft.Metadata.Summary.Chapter)) {
+                            <span>@draft.Metadata.Summary.Chapter</span>
                         }
-                    </tbody>
-                </table>
-            </div>
+                        <span>@draft.Metadata.Summary.Total.ToString("N2", De) €</span>
+                        <span>@draft.Metadata.UpdatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm", De)</span>
+                    </div>
+                    <div class="mt-2">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a class="btn btn-outline-secondary" href="@($"{draft.Entry.Route}?localId={draft.Metadata.Id}")" title="@I18n[I18nKey.Ui.MyForms.OpenAction]" aria-label="@I18n[I18nKey.Ui.MyForms.OpenAction]">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <button class="btn btn-outline-danger" @onclick="() => DeleteLocal(draft)" title="@I18n[I18nKey.Ui.MyForms.DeleteAction]" aria-label="@I18n[I18nKey.Ui.MyForms.DeleteAction]">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </Stacked>
+            </ResponsiveList>
         }
     </div>
 </div>

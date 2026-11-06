@@ -16,7 +16,7 @@
 } else if (Loading) {
     <LoadingSpinner />
 } else {
-    <h3 class="mb-3">@I18n[I18nKey.Ui.ExpenseReimbursement.PageTitle]</h3>
+    <PageHeader Title="@I18n[I18nKey.Ui.ExpenseReimbursement.PageTitle]" />
 
     @if (IsSubmitted) {
         <div class="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -25,10 +25,10 @@
                 @I18n[$"{I18nKey.Ui.ExpenseReimbursement.SubmittedNotice}?submittedAt={FormatTimestamp(SubmittedAt)}"]
             </span>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm" @onclick="DownloadAgain" disabled="@Busy">
+                <button class="btn btn-outline-secondary" @onclick="DownloadAgain" disabled="@Busy">
                     <i class="bi bi-download me-1"></i> @I18n[I18nKey.Ui.ExpenseReimbursement.DownloadAgainButton]
                 </button>
-                <button class="btn btn-outline-secondary btn-sm" @onclick="CopyToDraft" disabled="@Busy">
+                <button class="btn btn-outline-secondary" @onclick="CopyToDraft" disabled="@Busy">
                     <i class="bi bi-files me-1"></i> @I18n[I18nKey.Ui.ExpenseReimbursement.CopyToDraftButton]
                 </button>
             </div>
@@ -44,7 +44,7 @@
                     OnSubmit="Submit" />
         @if (HasPersistentBacking) {
             <div class="text-end">
-                <button class="btn btn-outline-danger btn-sm" @onclick="DeleteDraft" disabled="@Busy">
+                <button class="btn btn-outline-danger" @onclick="DeleteDraft" disabled="@Busy">
                     <i class="bi bi-trash me-1"></i> @I18n[I18nKey.Ui.ExpenseReimbursement.DeleteDraftButton]
                 </button>
             </div>
@@ -112,8 +112,8 @@
             <thead>
                 <tr>
                     <th>@I18n[I18nKey.Ui.ExpenseReimbursement.LineItemDescription]</th>
-                    <th style="width: 160px;" class="text-end">@I18n[I18nKey.Ui.ExpenseReimbursement.LineItemValue]</th>
-                    <th style="width: 40px;"></th>
+                    <th class="text-end">@I18n[I18nKey.Ui.ExpenseReimbursement.LineItemValue]</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -123,7 +123,7 @@
                         <td><input class="form-control" @bind="Input.LineItems[index].Description" /></td>
                         <td><input type="number" step="0.01" class="form-control text-end" @bind="Input.LineItems[index].Value" /></td>
                         <td>
-                            <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveLineItem(index)">
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveLineItem(index)" title="@I18n[I18nKey.Ui.Common.Delete]" aria-label="@I18n[I18nKey.Ui.Common.Delete]">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                         </td>
@@ -138,7 +138,7 @@
                 </tr>
             </tfoot>
         </table>
-        <button class="btn btn-outline-secondary btn-sm" @onclick="AddLineItem">
+        <button class="btn btn-outline-secondary" @onclick="AddLineItem">
             <i class="bi bi-plus-lg me-1"></i> @I18n[I18nKey.Ui.ExpenseReimbursement.LineItemAdd]
         </button>
     </text>;
@@ -192,7 +192,7 @@
                     <label class="form-check-label" for="payoutTransfer">@I18n[I18nKey.Ui.ExpenseReimbursement.PayoutBankTransfer]</label>
                 </div>
                 @if (Input.PayoutMethod == ExpensePayoutMethodDTO.BankTransfer) {
-                    <div class="mt-2" style="max-width: 480px;">
+                    <div class="mt-2 col-md-6 px-0">
                         <label class="form-label">@I18n[I18nKey.Ui.ExpenseReimbursement.IbanLabel]</label>
                         <input class="form-control" @bind="Input.Iban" placeholder="DE..." />
                         <div class="form-text">

@@ -14,5 +14,9 @@ public partial class PageBackLink {
     [Parameter]
     public string? Text { get; set; }
 
+    /// <summary>Small buttons to linked pages, on the right of the back link.</summary>
+    [Parameter]
+    public RenderFragment? Links { get; set; }
+
     private string ResolvedText => Text ?? I18n.Translate(I18nKey.Ui.Label.BackToOverview);
 }

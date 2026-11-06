@@ -5,16 +5,16 @@
 
 <PageTitle>@I18n[I18nKey.Ui.FormCatalog.PageTitle]</PageTitle>
 
-<h3 class="mb-2">@I18n[I18nKey.Ui.FormCatalog.PageTitle]</h3>
-<p class="text-secondary">@I18n[I18nKey.Ui.FormCatalog.PageIntro]</p>
-
-<RequirePermission RequireAuth="true">
-    <div class="mb-3">
-        <a class="btn btn-outline-secondary btn-sm" href="/Forms/Mine">
-            <i class="bi bi-folder2-open me-1"></i> @I18n[I18nKey.Ui.FormCatalog.MyFormsLink]
-        </a>
-    </div>
-</RequirePermission>
+<PageHeader Title="@I18n[I18nKey.Ui.FormCatalog.PageTitle]">
+    <Subtitle>@I18n[I18nKey.Ui.FormCatalog.PageIntro]</Subtitle>
+    <Actions>
+        <RequirePermission RequireAuth="true">
+            <a class="btn btn-outline-secondary" href="/Forms/Mine">
+                <i class="bi bi-folder2-open"></i> @I18n[I18nKey.Ui.FormCatalog.MyFormsLink]
+            </a>
+        </RequirePermission>
+    </Actions>
+</PageHeader>
 
 <div class="row g-3">
     @foreach (var entry in FormCatalog.Entries) {

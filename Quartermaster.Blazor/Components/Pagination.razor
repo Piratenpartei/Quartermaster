@@ -23,7 +23,7 @@
         </nav>
 
         <div class="d-flex align-items-center gap-2">
-            <select class="form-select" style="width: auto;"
+            <select class="form-select w-auto"
                     value="@CurrentPage" @onchange="OnJumpToPage">
                 @for (var i = 1; i <= TotalPages; i++) {
                     <option value="@i">@i</option>

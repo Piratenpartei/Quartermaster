@@ -46,7 +46,7 @@
     </div>
 
     <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>@I18n[I18nKey.Ui.MemberList.MemberNumberColumn]</th>
@@ -62,7 +62,7 @@
                 <tr>
                     <td>
                         @if (m.IsFloating) {
-                            <span class="badge border border-info text-info-emphasis">@I18n[I18nKey.Ui.MemberList.FloatingBadge]</span>
+                            <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.MemberList.FloatingBadge]" />
                         } else {
                             @m.MemberNumber
                         }
@@ -73,11 +73,11 @@
                     <td><LocalTime DateValue="m.EntryDate" /></td>
                     <td>
                         @if (m.IsExited) {
-                            <span class="badge border border-danger text-danger-emphasis">@I18n[I18nKey.Ui.MemberList.StatusExited]</span>
+                            <StatusBadge Tone="StatusTone.Danger" Text="@I18n[I18nKey.Ui.MemberList.StatusExited]" />
                         } else if (m.IsPending) {
-                            <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.MemberList.StatusPending]</span>
+                            <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.MemberList.StatusPending]" />
                         } else {
-                            <span class="badge border border-success text-success-emphasis">@I18n[I18nKey.Ui.MemberList.StatusActive]</span>
+                            <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.MemberList.StatusActive]" />
                         }
                     </td>
                 </tr>

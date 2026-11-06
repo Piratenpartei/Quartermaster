@@ -8,7 +8,7 @@
             : idx < CurrentStep
                 ? "form-wizard-step completed text-success"
                 : "form-wizard-step text-secondary";
-        var badgeClass = isCurrent ? "text-bg-primary" : idx < CurrentStep ? "text-bg-success" : "text-bg-light border";
+        var badgeClass = isCurrent ? "text-bg-primary" : idx < CurrentStep ? "text-bg-success" : "bg-body-tertiary text-body border";
         <li class="@stateClass d-flex align-items-center gap-2">
             @if (IsClickable(idx) && step.Href != null) {
                 <a href="@step.Href" class="text-reset text-decoration-none d-flex align-items-center gap-2">

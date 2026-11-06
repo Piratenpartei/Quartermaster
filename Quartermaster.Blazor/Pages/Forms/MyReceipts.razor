@@ -3,8 +3,9 @@
 
 <PageTitle>@I18n[I18nKey.Ui.Receipts.PageTitle]</PageTitle>
 
-<h3 class="mb-2">@I18n[I18nKey.Ui.Receipts.PageTitle]</h3>
-<p class="text-secondary">@I18n[I18nKey.Ui.Receipts.PageIntro]</p>
+<PageHeader Title="@I18n[I18nKey.Ui.Receipts.PageTitle]">
+    <Subtitle>@I18n[I18nKey.Ui.Receipts.PageIntro]</Subtitle>
+</PageHeader>
 
 <ConfirmDialog @ref="DeleteConfirm" />
 
@@ -26,7 +27,7 @@
         <p class="text-secondary">@I18n[I18nKey.Ui.Receipts.Empty]</p>
     } else {
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table class="table table-hover align-middle">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Receipts.LabelColumn]</th>
@@ -42,7 +43,7 @@
                                 @if (EditingId == receipt.Id) {
                                     <div class="input-group input-group-sm">
                                         <input class="form-control" maxlength="200" @bind="EditingLabel" />
-                                        <button class="btn btn-outline-primary" @onclick="SaveLabel" title="@I18n[I18nKey.Ui.Common.Save]"><i class="bi bi-check-lg"></i></button>
+                                        <button class="btn btn-outline-secondary" @onclick="SaveLabel" title="@I18n[I18nKey.Ui.Common.Save]"><i class="bi bi-check-lg"></i></button>
                                         <button class="btn btn-outline-secondary" @onclick="CancelEdit" title="@I18n[I18nKey.Ui.Common.Cancel]"><i class="bi bi-x-lg"></i></button>
                                     </div>
                                 } else {
@@ -56,7 +57,7 @@
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button class="btn btn-outline-secondary" @onclick="() => Receipts.DownloadAsync(receipt)" title="@I18n[I18nKey.Ui.MyForms.DownloadAction]"><i class="bi bi-download"></i></button>
-                                    <button class="btn btn-outline-primary" @onclick="() => StartEdit(receipt)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-outline-secondary" @onclick="() => StartEdit(receipt)" title="@I18n[I18nKey.Ui.Common.Edit]"><i class="bi bi-pencil"></i></button>
                                     <button class="btn btn-outline-danger" @onclick="() => Delete(receipt)" title="@I18n[I18nKey.Ui.Common.Delete]"><i class="bi bi-trash"></i></button>
                                 </div>
                             </td>

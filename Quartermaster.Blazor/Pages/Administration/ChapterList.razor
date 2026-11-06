@@ -6,7 +6,7 @@
 <PageHeader Title="@I18n[I18nKey.Ui.ChapterList.PageTitle]">
     <Actions>
         <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
-            <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary btn-hover-scale1">
+            <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.ChapterList.NewChapter]
             </a>
         </RequirePermission>
@@ -34,7 +34,7 @@
     </div>
 
     <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>@I18n[I18nKey.Ui.Common.Name]</th>
@@ -51,13 +51,13 @@
                     <td>
                         <a href="/Administration/Chapters/@ch.Id">@ch.Name</a>
                         @if (ch.IsArchived) {
-                            <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
+                            <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]" Class="ms-1" />
                         }
                         <ChapterMarkBadges NoMemberAdministration="ch.NoMemberAdministration" UnableToAct="ch.UnableToAct" />
                     </td>
                     <td>
                         @if (!string.IsNullOrEmpty(ch.ShortCode)) {
-                            <span class="badge bg-secondary">@ch.ShortCode</span>
+                            <StatusBadge Tone="StatusTone.Neutral" Text="@ch.ShortCode" />
                         } else {
                             <span class="text-secondary">-</span>
                         }

@@ -5,7 +5,7 @@
 @inject I18nService I18n
 
 <div class="dropdown @(Open ? "show" : "")">
-    <button class="btn btn-hover-color-body-bg btn-hover-scale1 text-nowrap" type="button" @onclick="Toggle" title="@I18n[I18nKey.Ui.LanguageSwitcher.Tooltip]">
+    <button class="btn btn-hover-color-body-bg text-nowrap" type="button" @onclick="Toggle" title="@I18n[I18nKey.Ui.LanguageSwitcher.Tooltip]">
         <i class="bi bi-translate"></i>
         <span class="text-uppercase ms-1 small">@Language.CurrentLanguage</span>
         @if (Open) {
@@ -15,7 +15,7 @@
         }
     </button>
     @if (Open) {
-        <ul class="dropdown-menu dropdown-menu-end show" style="display: block; position: absolute; right: 0; z-index: 1050;">
+        <ul class="dropdown-menu dropdown-menu-end show" data-bs-popper="static">
             @foreach (var lang in LanguageService.AvailableLanguages) {
                 <li>
                     <button class="dropdown-item @(lang == Language.CurrentLanguage ? "active" : "")"
@@ -29,5 +29,5 @@
 </div>
 
 @if (Open) {
-    <div class="position-fixed top-0 start-0 w-100 h-100" style="z-index: 1040;" @onclick="Close"></div>
+    <div class="menu-backdrop" @onclick="Close"></div>
 }

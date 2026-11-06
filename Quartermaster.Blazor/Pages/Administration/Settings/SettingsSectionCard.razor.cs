@@ -32,17 +32,10 @@ public partial class SettingsSectionCard {
     private IReadOnlyList<string> CheckItems = [];
     private bool Busy;
 
-    private async Task Save() {
+    private async Task<bool> Save() {
         if (_editor == null)
-            return;
-
-        Busy = true;
-        try {
-            if (await _editor.SaveAsync())
-                ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
-        } finally {
-            Busy = false;
-        }
+            return false;
+        return await _editor.SaveAsync();
     }
 
     /// <summary>Checks run against the stored values, so pending edits are saved first.</summary>

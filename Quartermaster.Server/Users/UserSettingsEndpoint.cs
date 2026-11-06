@@ -99,14 +99,7 @@ public class UserSettingsEndpoint : EndpointWithoutRequest<UserSettingsDTO> {
         }
 
         await SendAsync(new UserSettingsDTO {
-            User = new LoginUserInfo {
-                Id = user.Id,
-                Username = user.Username ?? "",
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                DisplayName = user.DisplayName(),
-                Email = user.Email
-            },
+            User = user.ToLoginUserInfo(member),
             Member = memberInfo,
             GlobalPermissions = globalPerms,
             ChapterPermissions = chapterPerms,

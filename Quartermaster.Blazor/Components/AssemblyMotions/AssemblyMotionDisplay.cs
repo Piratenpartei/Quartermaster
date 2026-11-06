@@ -70,13 +70,13 @@ public static class AssemblyMotionDisplay {
         };
     }
 
-    public static string WikiSyncBadgeClass(WikiSyncState state) {
+    public static StatusTone WikiSyncTone(WikiSyncState state) {
         return state switch {
-            WikiSyncState.Pending => "border-info text-info-emphasis",
-            WikiSyncState.Synced => "border-success text-success-emphasis",
-            WikiSyncState.Failed => "border-danger text-danger-emphasis",
-            WikiSyncState.ProtectionFailed => "border-warning text-warning-emphasis",
-            _ => "border-secondary text-secondary-emphasis"
+            WikiSyncState.Pending => StatusTone.Info,
+            WikiSyncState.Synced => StatusTone.Success,
+            WikiSyncState.Failed => StatusTone.Danger,
+            WikiSyncState.ProtectionFailed => StatusTone.Warning,
+            _ => StatusTone.Neutral
         };
     }
 
@@ -90,13 +90,13 @@ public static class AssemblyMotionDisplay {
         };
     }
 
-    public static string ForumSyncBadgeClass(ForumSyncState state) {
+    public static StatusTone ForumSyncTone(ForumSyncState state) {
         return state switch {
-            ForumSyncState.Pending => "border-info text-info-emphasis",
-            ForumSyncState.Synced => "border-success text-success-emphasis",
-            ForumSyncState.Failed => "border-danger text-danger-emphasis",
-            ForumSyncState.Deleted => "border-warning text-warning-emphasis",
-            _ => "border-secondary text-secondary-emphasis"
+            ForumSyncState.Pending => StatusTone.Info,
+            ForumSyncState.Synced => StatusTone.Success,
+            ForumSyncState.Failed => StatusTone.Danger,
+            ForumSyncState.Deleted => StatusTone.Warning,
+            _ => StatusTone.Neutral
         };
     }
 

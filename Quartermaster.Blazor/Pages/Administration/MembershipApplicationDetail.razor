@@ -7,27 +7,41 @@
 @using Quartermaster.Blazor.Components.Inputs
 @using System.Globalization
 
-<PageBackLink Href="/Administration/MembershipApplications" />
+<PageBackLink Href="/Administration/MembershipApplications">
+    <Links>
+        @if (App?.ViewableMotionId != null) {
+            <a href="/Administration/Motions/@App.ViewableMotionId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.LinkedPages.Motion]
+            </a>
+        }
+        @if (App?.ViewableReductionId != null) {
+            <a href="/Administration/DueSelections/@App.ViewableReductionId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-currency-euro"></i> @I18n[I18nKey.Ui.LinkedPages.Reduction]
+            </a>
+        }
+    </Links>
+</PageBackLink>
 
 @if (Loading) {
     <LoadingSpinner />
 } else if (App == null) {
     <div class="alert alert-danger">@I18n[I18nKey.Ui.ApplicationDetail.NotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>@I18n[$"{I18nKey.Ui.ApplicationDetail.Heading}?first={App.FirstName}&last={App.LastName}"]</h3>
-        @if (App.Status == ApplicationStatus.Pending) {
-            <span class="badge border border-warning text-warning-emphasis fs-6">@I18n[I18nKey.Ui.ApplicationStatus.Pending]</span>
-        } else if (App.Status == ApplicationStatus.Approved) {
-            <span class="badge border border-success text-success-emphasis fs-6">@I18n[I18nKey.Ui.ApplicationStatus.Approved]</span>
-        } else if (App.Status == ApplicationStatus.PendingDivisionLinking) {
-            <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.ApplicationStatus.PendingDivisionLinking]</span>
-        } else if (App.Status == ApplicationStatus.PendingFederalApproval) {
-            <span class="badge border border-info text-info-emphasis fs-6">@I18n[I18nKey.Ui.ApplicationStatus.PendingFederalApproval]</span>
-        } else {
-            <span class="badge border border-danger text-danger-emphasis fs-6">@I18n[I18nKey.Ui.ApplicationStatus.Rejected]</span>
-        }
-    </div>
+    <PageHeader Title="@(I18n[$"{I18nKey.Ui.ApplicationDetail.Heading}?first={App.FirstName}&last={App.LastName}"])">
+        <Subtitle>
+            @if (App.Status == ApplicationStatus.Pending) {
+                <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.ApplicationStatus.Pending]" />
+            } else if (App.Status == ApplicationStatus.Approved) {
+                <StatusBadge Tone="StatusTone.Success" Text="@I18n[I18nKey.Ui.ApplicationStatus.Approved]" />
+            } else if (App.Status == ApplicationStatus.PendingDivisionLinking) {
+                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.ApplicationStatus.PendingDivisionLinking]" />
+            } else if (App.Status == ApplicationStatus.PendingFederalApproval) {
+                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.ApplicationStatus.PendingFederalApproval]" />
+            } else {
+                <StatusBadge Tone="StatusTone.Danger" Text="@I18n[I18nKey.Ui.ApplicationStatus.Rejected]" />
+            }
+        </Subtitle>
+    </PageHeader>
 
     @if (App.ApprovalMailState != ApprovalMailState.None) {
         <div class="alert @ApprovalMailClass mb-3">
@@ -69,7 +83,7 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 border-top pt-2 mt-2">
                             <div>
                                 <a href="/Administration/ApplicantRegister/@hit.EntryId" class="fw-semibold">@hit.FirstName @hit.LastName</a>
-                                <span class="badge text-bg-light border ms-1">@RegisterKindLabel(hit.Kind)</span>
+                                <span class="badge rounded-pill border bg-secondary-subtle text-secondary-emphasis border-secondary-subtle border ms-1">@RegisterKindLabel(hit.Kind)</span>
                                 <span class="small text-secondary ms-1"><LocalTime DateValue="hit.OccurredOn" /></span>
                                 <div class="small text-secondary">@I18n[I18nParams.With(I18nKey.Ui.ApplicationDetail.RegisterHitMatched, ("fields", MatchedFieldsText(hit.MatchedFields)))]</div>
                                 @if (hit.DismissedAt != null) {
@@ -106,7 +120,7 @@
                     <MunicipalityPicker InitialNameQuery="@App.AddressCity" OnSelect="OnDivisionSelected" />
 
                     @if (SelectedDivision != null) {
-                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <span>
                                 @I18n[I18nKey.Ui.ApplicationDetail.DivisionSelected]: <strong>@SelectedDivision.Name</strong>
                                 @if (!string.IsNullOrEmpty(SelectedChapterName)) {
@@ -115,7 +129,7 @@
                                     <span class="d-block text-body-secondary small">@I18n[I18nKey.Ui.ApplicationDetail.NoMatchingChapter]</span>
                                 }
                             </span>
-                            <button class="btn btn-success btn-hover-scale1" @onclick="ConfirmDivision" disabled="@Linking">
+                            <button class="btn btn-primary" @onclick="ConfirmDivision" disabled="@Linking">
                                 <i class="bi bi-check-circle me-1"></i> @I18n[I18nKey.Ui.ApplicationDetail.LinkAndForward]
                             </button>
                         </div>
@@ -130,127 +144,100 @@
         </RequirePermission>
     }
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.ApplicationDetail.PersonalDataSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.FirstNameLabel]</th><td>@App.FirstName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.LastNameLabel]</th><td>@App.LastName</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.DateOfBirthLabel]</th><td><LocalTime DateValue="App.DateOfBirth" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.CitizenshipLabel]</th><td>@App.Citizenship</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.Common.Email]</th><td>@App.Email</td></tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.ApplicationDetail.PhoneLabel]</th>
-                        <td>@(string.IsNullOrEmpty(App.PhoneNumber) ? "-" : App.PhoneNumber)</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.FirstNameLabel]</dt>
+                    <dd class="col-sm-8">@App.FirstName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.LastNameLabel]</dt>
+                    <dd class="col-sm-8">@App.LastName</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.DateOfBirthLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime DateValue="App.DateOfBirth" /></dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.CitizenshipLabel]</dt>
+                    <dd class="col-sm-8">@App.Citizenship</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.Common.Email]</dt>
+                    <dd class="col-sm-8">@App.Email</dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.PhoneLabel]</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(App.PhoneNumber) ? "-" : App.PhoneNumber)</dd>
+            </dl>
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.ApplicationDetail.AddressSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.StreetLabel]</th><td>@App.AddressStreet @App.AddressHouseNbr</td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.PostCodeCityLabel]</th><td>@App.AddressPostCode @App.AddressCity</td></tr>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.StreetLabel]</dt>
+                    <dd class="col-sm-8">@App.AddressStreet @App.AddressHouseNbr</dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.PostCodeCityLabel]</dt>
+                    <dd class="col-sm-8">@App.AddressPostCode @App.AddressCity</dd>
                     @if (!string.IsNullOrEmpty(App.AddressCountry)) {
-                        <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.CountryLabel]</th><td>@App.AddressCountry</td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.CountryLabel]</dt>
+                        <dd class="col-sm-8">@App.AddressCountry</dd>
                     }
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.ChapterLabel]</th><td>@(string.IsNullOrEmpty(App.ChapterName) ? "-" : App.ChapterName)</td></tr>
-                </tbody>
-            </table>
-            </div>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ChapterLabel]</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(App.ChapterName) ? "-" : App.ChapterName)</dd>
+            </dl>
         </div>
     </div>
 
     @if (App.DueSelection != null) {
         var ds = App.DueSelection;
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.ApplicationDetail.DuesSection]</h5>
-                <div class="table-responsive">
-                <table class="table table-borderless mb-0">
-                    <tbody>
-                        <tr>
-                            <th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.ValuationTypeLabel]</th>
-                            <td>@ValuationLabel(ds.SelectedValuation)</td>
-                        </tr>
-                        <tr>
-                            <th>@I18n[ds.SelectedValuation == SelectedValuation.Reduced ? I18nKey.Ui.ApplicationDetail.RejectedReductionDueLabel : I18nKey.Ui.ApplicationDetail.YearlyDueLabel]</th>
-                            <td>@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
-                        </tr>
+                <dl class="row mb-0">
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ValuationTypeLabel]</dt>
+                            <dd class="col-sm-8">@ValuationLabel(ds.SelectedValuation)</dd>
+                            <dt class="col-sm-4">@I18n[ds.SelectedValuation == SelectedValuation.Reduced ? I18nKey.Ui.ApplicationDetail.RejectedReductionDueLabel : I18nKey.Ui.ApplicationDetail.YearlyDueLabel]</dt>
+                            <dd class="col-sm-8">@ds.SelectedDue.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
                         @if (ds.SelectedValuation == SelectedValuation.Reduced) {
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.ApplicationDetail.ReducedAmountLabel]</th>
-                                <td>@ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</td>
-                            </tr>
-                            <tr>
-                                <th>@I18n[I18nKey.Ui.ApplicationDetail.ReducedJustificationLabel]</th>
-                                <td>@ds.ReducedJustification</td>
-                            </tr>
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ReducedAmountLabel]</dt>
+                                <dd class="col-sm-8">@ds.ReducedAmount.ToString("C2", CultureInfo.GetCultureInfo("de-de"))</dd>
+                                <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ReducedJustificationLabel]</dt>
+                                <dd class="col-sm-8">@ds.ReducedJustification</dd>
                         }
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.ApplicationDetail.DueStatusLabel]</th>
-                            <td>@DueStatusLabel(ds.Status)</td>
-                        </tr>
-                    </tbody>
-                </table>
-                </div>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.DueStatusLabel]</dt>
+                            <dd class="col-sm-8">@DueStatusLabel(ds.Status)</dd>
+                </dl>
             </div>
         </div>
     }
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.ApplicationDetail.DeclarationsSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr>
-                        <th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.ConformityLabel]</th>
-                        <td>
+            <dl class="row mb-0">
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ConformityLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (App.ConformityDeclarationAccepted) {
                                 <span><i class="bi bi-check-circle-fill text-success"></i> @I18n[I18nKey.Ui.ApplicationDetail.ConformityAccepted]</span>
                             } else {
                                 <span><i class="bi bi-x-circle-fill text-danger"></i> @I18n[I18nKey.Ui.ApplicationDetail.ConformityNotAccepted]</span>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.ApplicationDetail.PriorDeclinedLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.PriorDeclinedLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (App.HasPriorDeclinedApplication) {
                                 <span><i class="bi bi-exclamation-triangle-fill text-warning"></i> @I18n[I18nKey.Ui.Common.Yes]</span>
                             } else {
                                 <span>@I18n[I18nKey.Ui.Common.No]</span>
                             }
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>@I18n[I18nKey.Ui.ApplicationDetail.OtherPartyLabel]</th>
-                        <td>
+                        </dd>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.OtherPartyLabel]</dt>
+                        <dd class="col-sm-8">
                             @if (App.IsMemberOfAnotherParty) {
                                 <span><i class="bi bi-exclamation-triangle-fill text-warning"></i> @I18n[I18nKey.Ui.Common.Yes]</span>
                             } else {
                                 <span>@I18n[I18nKey.Ui.Common.No]</span>
                             }
-                        </td>
-                    </tr>
+                        </dd>
                     @if (App.IsMemberOfAnotherParty && !string.IsNullOrEmpty(App.OtherParties)) {
-                        <tr>
-                            <th>@I18n[I18nKey.Ui.ApplicationDetail.OtherPartiesLabel]</th>
-                            <td>@App.OtherParties</td>
-                        </tr>
+                            <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.OtherPartiesLabel]</dt>
+                            <dd class="col-sm-8">@App.OtherParties</dd>
                     }
-                </tbody>
-            </table>
-            </div>
+            </dl>
             @if (!string.IsNullOrEmpty(App.ApplicationText)) {
                 <hr />
                 <h6>@I18n[I18nKey.Ui.ApplicationDetail.MessageHeading]</h6>
@@ -259,26 +246,25 @@
         </div>
     </div>
 
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.ApplicationDetail.TimingSection]</h5>
-            <div class="table-responsive">
-            <table class="table table-borderless mb-0">
-                <tbody>
-                    <tr><th style="width:200px">@I18n[I18nKey.Ui.ApplicationDetail.EntryDateLabel]</th><td><LocalTime DateValue="App.EntryDate" /></td></tr>
-                    <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.SubmittedAtLabel]</th><td><LocalTime Value="App.SubmittedAt" /></td></tr>
+            <dl class="row mb-0">
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.EntryDateLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime DateValue="App.EntryDate" /></dd>
+                    <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.SubmittedAtLabel]</dt>
+                    <dd class="col-sm-8"><LocalTime Value="App.SubmittedAt" /></dd>
                     @if (App.ProcessedAt != null) {
-                        <tr><th>@I18n[I18nKey.Ui.ApplicationDetail.ProcessedAtLabel]</th><td><LocalTime Value="App.ProcessedAt" /></td></tr>
+                        <dt class="col-sm-4">@I18n[I18nKey.Ui.ApplicationDetail.ProcessedAtLabel]</dt>
+                        <dd class="col-sm-8"><LocalTime Value="App.ProcessedAt" /></dd>
                     }
-                </tbody>
-            </table>
-            </div>
+            </dl>
         </div>
     </div>
 
     @if (App.Status == ApplicationStatus.Approved) {
         <RequirePermission AnyOfPermissions="@WelcomePermissions">
-            <div class="card mb-3">
+            <div class="card mb-4">
                 <div class="card-body">
                     <h5>@I18n[I18nKey.Ui.ApplicationDetail.ActivateMemberSection]</h5>
                     @if (App.WelcomeSentAt != null) {
@@ -299,7 +285,7 @@
                                        @bind="WelcomeMemberNumber" />
                             </div>
                             <div class="col-sm-auto">
-                                <button class="btn btn-primary btn-hover-scale1" @onclick="SendWelcome"
+                                <button class="btn btn-primary" @onclick="SendWelcome"
                                         disabled="@(Sending || WelcomeMemberNumber == null || WelcomeMemberNumber <= 0)">
                                     <i class="bi bi-envelope-check"></i> @I18n[I18nKey.Ui.ApplicationDetail.SendWelcomeButton]
                                 </button>
@@ -309,13 +295,5 @@
                 </div>
             </div>
         </RequirePermission>
-    }
-
-    @if (App.LinkedMotionId != null) {
-        <div class="mb-3">
-            <a href="/Administration/Motions/@App.LinkedMotionId" class="btn btn-outline-primary">
-                <i class="bi bi-file-earmark-text"></i> @I18n[I18nKey.Ui.ApplicationDetail.LinkedMotionButton]
-            </a>
-        </div>
     }
 }

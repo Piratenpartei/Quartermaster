@@ -7,8 +7,9 @@
 <PageBackLink Href="/Administration/Settings" />
 
 <RequirePermission GlobalPermission="@PermissionIdentifier.EditOptions">
-    <h3 class="mb-1"><i class="bi @SettingsAssistantCatalog.Redmine.Icon me-2"></i>@I18n[SettingsAssistantCatalog.Redmine.TitleKey]</h3>
-    <p class="text-secondary">@I18n[I18nKey.Ui.RedmineSetup.Intro]</p>
+    <PageHeader Title="@I18n[SettingsAssistantCatalog.Redmine.TitleKey]" Icon="@SettingsAssistantCatalog.Redmine.Icon">
+        <Subtitle>@I18n[I18nKey.Ui.RedmineSetup.Intro]</Subtitle>
+    </PageHeader>
 
     @if (Loading) {
         <LoadingSpinner />
@@ -72,16 +73,18 @@
                                                    placeholder="@(connection.HasApiKey ? I18n[I18nKey.Ui.RedmineSetup.ApiKeyStored] : "")" aria-label="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" />
                                         </td>
                                         <td class="text-nowrap">
-                                            <button class="btn btn-sm btn-outline-primary" disabled="@Busy" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]"
-                                                    @onclick="() => SaveAsync(connection.ChapterId, EditUrls[connection.ChapterId], EditKeys[connection.ChapterId])">
-                                                <i class="bi bi-check-lg"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Check]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Check]" @onclick="() => CheckAsync(connection.ChapterId)">
-                                                <i class="bi bi-plug"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Remove]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Remove]" @onclick="() => RemoveAsync(connection.ChapterId)">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" title="@I18n[I18nKey.Ui.Common.Save]" aria-label="@I18n[I18nKey.Ui.Common.Save]"
+                                                        @onclick="() => SaveAsync(connection.ChapterId, EditUrls[connection.ChapterId], EditKeys[connection.ChapterId])">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Check]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Check]" @onclick="() => CheckAsync(connection.ChapterId)">
+                                                    <i class="bi bi-plug"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" disabled="@Busy" title="@I18n[I18nKey.Ui.RedmineSetup.Remove]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Remove]" @onclick="() => RemoveAsync(connection.ChapterId)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     @if (CheckResults.TryGetValue(connection.ChapterId, out var check)) {
@@ -109,7 +112,7 @@
                         <input type="password" class="form-control" autocomplete="new-password" @bind="NewKey" @bind:event="oninput" placeholder="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.ApiKey]" />
                     </div>
                     <div class="col-md-1">
-                        <button class="btn btn-outline-primary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="AddAsync" title="@I18n[I18nKey.Ui.RedmineSetup.Add]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Add]">
+                        <button class="btn btn-outline-secondary w-100" disabled="@(Busy || string.IsNullOrEmpty(NewChapterId))" @onclick="AddAsync" title="@I18n[I18nKey.Ui.RedmineSetup.Add]" aria-label="@I18n[I18nKey.Ui.RedmineSetup.Add]">
                             <i class="bi bi-plus-lg"></i>
                         </button>
                     </div>

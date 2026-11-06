@@ -18,7 +18,7 @@
 </PageHeader>
 
 @if (ShowingCreateForm) {
-    <div class="card mb-3">
+    <div class="card mb-4">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.RoleAssignments.NewAssignmentTitle]</h5>
             <div class="row g-3 align-items-end">
@@ -70,7 +70,7 @@
         <EmptyState Message="@I18n[I18nKey.Ui.RoleAssignments.EmptyMessage]" />
     } else {
         <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-hover">
             <thead>
                 <tr>
                     <th>@I18n[I18nKey.Ui.RoleAssignments.UserColumn]</th>
@@ -86,7 +86,7 @@
                         <td>
                             @a.RoleName
                             @if (a.RoleScope == RoleScope.Global) {
-                                <span class="badge border border-info text-info-emphasis ms-2">@I18n[I18nKey.Ui.RoleAssignments.GlobalBadge]</span>
+                                <StatusBadge Tone="StatusTone.Info" Text="@I18n[I18nKey.Ui.RoleAssignments.GlobalBadge]" Class="ms-2" />
                             }
                         </td>
                         <td>@(a.ChapterName ?? "-")</td>

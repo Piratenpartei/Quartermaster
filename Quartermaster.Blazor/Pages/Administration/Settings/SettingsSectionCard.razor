@@ -12,11 +12,9 @@
         <OptionGroupEditor @ref="_editor" Fields="@Section.Fields" ShowSaveButton="false" CheckItems="@CheckItems" OnSaved="OnSaved" />
 
         <div class="d-flex flex-wrap gap-2 mt-3">
-            <button type="button" class="btn btn-primary btn-hover-scale1" @onclick="Save" disabled="@Busy">
-                <i class="bi bi-check-circle me-1"></i>@I18n[I18nKey.Ui.Common.Save]
-            </button>
+            <AsyncButton Text="@I18n[I18nKey.Ui.Common.Save]" Icon="check-circle" Action="Save" Disabled="@Busy" />
             @if (Section.Check != null) {
-                <button type="button" class="btn btn-outline-primary btn-hover-scale1" @onclick="SaveAndCheck" disabled="@Busy">
+                <button type="button" class="btn btn-outline-secondary" @onclick="SaveAndCheck" disabled="@Busy">
                     @if (Busy) {
                         <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                     } else {

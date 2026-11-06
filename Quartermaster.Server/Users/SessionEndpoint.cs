@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api.Users;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.UserChapterPermissions;
 using Quartermaster.Data.UserGlobalPermissions;
 using Quartermaster.Data.Users;
@@ -12,16 +13,19 @@ namespace Quartermaster.Server.Users;
 
 public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
     private readonly UserRepository _userRepo;
+    private readonly MemberRepository _memberRepo;
     private readonly UserGlobalPermissionRepository _globalPermRepo;
     private readonly UserChapterPermissionRepository _chapterPermRepo;
     private readonly PermissionContext _perms;
 
     public SessionEndpoint(
         UserRepository userRepo,
+        MemberRepository memberRepo,
         UserGlobalPermissionRepository globalPermRepo,
         UserChapterPermissionRepository chapterPermRepo,
         PermissionContext perms) {
         _userRepo = userRepo;
+        _memberRepo = memberRepo;
         _globalPermRepo = globalPermRepo;
         _chapterPermRepo = chapterPermRepo;
         _perms = perms;
@@ -51,14 +55,7 @@ public class SessionEndpoint : EndpointWithoutRequest<LoginResponse> {
         var chapterPermissions = _chapterPermRepo.GetAllForUser(user.Id);
 
         await SendAsync(new LoginResponse {
-            User = new LoginUserInfo {
-                Id = user.Id,
-                Username = user.Username ?? "",
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                DisplayName = user.DisplayName(),
-                Email = user.Email
-            },
+            User = user.ToLoginUserInfo(_memberRepo.GetByUserId(user.Id)),
             Permissions = new LoginPermissions {
                 Global = globalPermissions,
                 Chapters = chapterPermissions.ToDictionary(

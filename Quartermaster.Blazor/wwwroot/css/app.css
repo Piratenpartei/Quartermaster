@@ -532,3 +532,22 @@ code {
     font-size: 1.15rem;
     margin-top: 1.25rem;
 }
+
+/* AsyncButton: all labels share one grid cell, so the button keeps the width of its widest state. */
+.async-button-label {
+    display: inline-grid;
+}
+
+.async-button-label > span {
+    grid-area: 1 / 1;
+}
+
+.async-button-label > span[aria-hidden="true"] {
+    visibility: hidden;
+}
+
+/* Visually hidden header text is positioned absolutely; without a positioned scroll container it escapes the
+   horizontal scroll and widens the whole page on a phone. */
+.table-responsive {
+    position: relative;
+}

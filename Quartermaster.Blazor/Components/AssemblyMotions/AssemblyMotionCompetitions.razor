@@ -2,13 +2,13 @@
 @using Quartermaster.Api.I18n
 
 @if (IsVisible) {
-    <div class="card mb-3" id="competitions">
+    <div class="card mb-4" id="competitions">
         <div class="card-body">
             <h5>@I18n[I18nKey.Ui.AssemblyMotion.Competitions]</h5>
 
             @if (Motion.IsCompetingMotion) {
                 <div class="mb-2">
-                    <span class="badge border border-warning text-warning-emphasis">@I18n[I18nKey.Ui.AssemblyMotion.CompetingBadge]</span>
+                    <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.AssemblyMotion.CompetingBadge]" />
                 </div>
             }
 
@@ -24,7 +24,7 @@
                                     @link.OtherTitle
                                 </a>
                                 @if (link.DeclaredByCommission) {
-                                    <span class="badge border border-secondary text-secondary-emphasis ms-1">@I18n[I18nKey.Ui.AssemblyMotion.CompetitionByCommission]</span>
+                                    <StatusBadge Tone="StatusTone.Neutral" Text="@I18n[I18nKey.Ui.AssemblyMotion.CompetitionByCommission]" Class="ms-1" />
                                 }
                             </div>
                             @if (link.CanRemove) {

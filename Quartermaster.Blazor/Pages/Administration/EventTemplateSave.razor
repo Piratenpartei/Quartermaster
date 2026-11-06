@@ -5,7 +5,7 @@
 
 <PageBackLink Href="@($"/Administration/Events/{EventId}")" Text="@I18n[I18nKey.Ui.EventTemplateSave.BackToEvent]" />
 
-<h3 class="mb-3">@I18n[I18nKey.Ui.EventTemplateSave.PageTitle]</h3>
+<PageHeader Title="@I18n[I18nKey.Ui.EventTemplateSave.PageTitle]" />
 
 @if (Loading) {
     <LoadingSpinner />

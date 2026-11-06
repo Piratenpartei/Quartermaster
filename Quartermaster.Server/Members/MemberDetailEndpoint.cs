@@ -20,16 +20,19 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
     private readonly ChapterRepository _chapterRepo;
     private readonly AdministrativeDivisionRepository _adminDivRepo;
     private readonly PermissionContext _perms;
+    private readonly DetailPageAccess _pageAccess;
 
     public MemberDetailEndpoint(
         MemberRepository memberRepo,
         ChapterRepository chapterRepo,
         AdministrativeDivisionRepository adminDivRepo,
-        PermissionContext perms) {
+        PermissionContext perms,
+        DetailPageAccess pageAccess) {
         _memberRepo = memberRepo;
         _chapterRepo = chapterRepo;
         _adminDivRepo = adminDivRepo;
         _perms = perms;
+        _pageAccess = pageAccess;
     }
 
     public override void Configure() {
@@ -48,12 +51,7 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
             return;
         }
 
-        if (!member.ChapterId.HasValue) {
-            if (!_perms.HasGlobal(PermissionIdentifier.ViewAllMembers)) {
-                await SendForbiddenAsync(ct);
-                return;
-            }
-        } else if (!_perms.Has(member.ChapterId.Value, PermissionIdentifier.ViewAllMembers, PermissionIdentifier.ViewMembers)) {
+        if (!_pageAccess.CanViewMember(member)) {
             await SendForbiddenAsync(ct);
             return;
         }
@@ -67,6 +65,8 @@ public class MemberDetailEndpoint : Endpoint<MemberDetailRequest, MemberDetailDT
         dto.ResidenceAdministrativeDivisionName = div?.Name ?? "";
         dto.ResidenceAdministrativeDivisionAdminCode = div?.AdminCode;
         dto.IsAdminDivisionOrphaned = div?.IsOrphaned ?? false;
+        if (member.UserId.HasValue && _pageAccess.CanViewUsers())
+            dto.ViewableUserId = member.UserId;
         await SendAsync(dto, cancellation: ct);
     }
 }

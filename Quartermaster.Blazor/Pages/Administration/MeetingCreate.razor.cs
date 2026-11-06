@@ -22,7 +22,7 @@ public partial class MeetingCreate {
 
     private string ChapterId { get; set; } = "";
     private string Title { get; set; } = "";
-    private DateTime? MeetingDate { get; set; }
+    private DateOnly? MeetingDate { get; set; }
     private string? Location { get; set; }
     private string? Description { get; set; }
     private MeetingVisibility Visibility { get; set; } = MeetingVisibility.Private;
@@ -43,7 +43,7 @@ public partial class MeetingCreate {
                 ChapterId = chapterId,
                 Title = Title,
                 Visibility = Visibility,
-                MeetingDate = MeetingDate.HasValue ? DateOnly.FromDateTime(MeetingDate.Value) : null,
+                MeetingDate = MeetingDate,
                 Location = Location,
                 Description = Description
             });

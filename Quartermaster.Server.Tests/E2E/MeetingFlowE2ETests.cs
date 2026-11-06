@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
+using Quartermaster.Api;
 using Quartermaster.Api.Meetings;
 using Quartermaster.Server.Tests.Infrastructure;
 
@@ -41,6 +43,24 @@ public class MeetingFlowE2ETests : E2ETestBase {
             new PageWaitForSelectorOptions { Timeout = 45000 });
         var bodyText = await Page.Locator("body").TextContentAsync();
         await Assert.That(bodyText ?? "").Contains("Detail-Sitzung");
+    }
+
+    /// <summary>A meeting carries a date only; its detail page crashed formatting that date with hours and minutes.</summary>
+    [Test]
+    public async Task Meeting_detail_page_shows_the_meeting_date_in_a_date_field() {
+        var chapter = Builder.SeedChapter("Test Chapter");
+        var meeting = Builder.SeedMeeting(chapter.Id, title: "Datum-Sitzung",
+            visibility: MeetingVisibility.Public, meetingDate: new DateTime(2026, 11, 20));
+        var (_, token) = Builder.SeedAuthenticatedUser(
+            chapterPermissions: new() { [chapter.Id] = new[] { PermissionIdentifier.EditMeetings } });
+
+        await InjectAuthTokenAsync(token);
+        await Page.GotoAsync($"/Administration/Meetings/{meeting.Id}");
+        var dateField = Page.Locator("input[type=date]");
+        await dateField.WaitForAsync(new LocatorWaitForOptions { Timeout = 45000 });
+
+        await Assert.That(await dateField.InputValueAsync()).IsEqualTo("2026-11-20");
+        await Assert.That(await Page.Locator(".blazor-error-boundary, .app-error-boundary").CountAsync()).IsEqualTo(0);
     }
 
     [Test]

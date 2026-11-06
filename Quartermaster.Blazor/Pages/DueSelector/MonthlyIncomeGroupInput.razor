@@ -6,7 +6,7 @@
     <div class="d-flex">
         <input class="form-range" type="range" min="0" step="500" max="6000" id="monthlyIncomeGroup"
                @bind="State.MonthlyIncomeGroup" @bind:event="oninput" @bind:after="State.RecalculateDue" />
-        <span style="min-width: 10em; text-align: right">@State.MonthlyIncomeGroup.ToString("C2", German)</span>
+        <span class="text-end" style="min-width: 10em;">@State.MonthlyIncomeGroup.ToString("C2", German)</span>
     </div>
     <div class="mt-3">
         @I18n[I18nParams.With(I18nKey.Ui.SelectByMonthlyPay.CalculatedDueText, ("amount", State.SelectedDue.ToString("C2", German)))]

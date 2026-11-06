@@ -6,7 +6,7 @@
 <PageHeader Title="@I18n[I18nKey.Ui.ChapterTree.PageTitle]">
     <Actions>
         <RequirePermission GlobalPermission="@PermissionIdentifier.CreateChapter">
-            <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary btn-hover-scale1">
+            <a href="/Administration/Chapters/Create" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg"></i> @I18n[I18nKey.Ui.ChapterTree.NewChapter]
             </a>
         </RequirePermission>
@@ -25,13 +25,13 @@
                 <ItemContent>
                     <span class="me-2">@context.Name</span>
                     @if (!string.IsNullOrEmpty(context.ShortCode)) {
-                        <span class="badge bg-secondary me-1">@context.ShortCode</span>
+                        <StatusBadge Tone="StatusTone.Neutral" Text="@context.ShortCode" Class="me-1" />
                     }
                     @if (context.ExternalCodes.Count > 0) {
                         <code class="small text-secondary">@string.Join(", ", context.ExternalCodes)</code>
                     }
                     @if (context.IsArchived) {
-                        <span class="badge text-bg-warning ms-1">@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]</span>
+                        <StatusBadge Tone="StatusTone.Warning" Text="@I18n[I18nKey.Ui.ChapterDetail.ArchivedBadge]" Class="ms-1" />
                     }
                     <ChapterMarkBadges NoMemberAdministration="context.NoMemberAdministration" UnableToAct="context.UnableToAct" />
                 </ItemContent>

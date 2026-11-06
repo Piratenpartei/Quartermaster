@@ -28,7 +28,7 @@
         <p class="text-secondary">@I18n[I18nKey.Ui.Mailings.NoMailings]</p>
     } else {
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>@I18n[I18nKey.Ui.Mailings.TitleColumn]</th>
@@ -59,7 +59,7 @@
 }
 
 @if (ShowNewDialog) {
-    <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal show d-block bg-dark bg-opacity-50" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -76,7 +76,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="CancelNewMail">@I18n[I18nKey.Ui.Confirm.DefaultCancel]</button>
+                    <button class="btn btn-outline-secondary" @onclick="CancelNewMail">@I18n[I18nKey.Ui.Confirm.DefaultCancel]</button>
                     <button class="btn btn-primary" @onclick="CreateNewMail"
                             disabled="@(string.IsNullOrWhiteSpace(NewMailChapterId) || string.IsNullOrWhiteSpace(NewMailTitle) || Creating)">
                         @I18n[I18nKey.Ui.Mailings.CreateButton]

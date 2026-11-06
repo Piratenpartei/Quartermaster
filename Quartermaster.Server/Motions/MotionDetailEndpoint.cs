@@ -5,10 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastEndpoints;
 using Quartermaster.Api;
+using Quartermaster.Api.DueSelector;
 using Quartermaster.Api.Motions;
 using Quartermaster.Data;
 using Quartermaster.Data.ChapterAssociates;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.DueSelector;
 using Quartermaster.Data.MembershipApplications;
 using Quartermaster.Data.Motions;
 using Quartermaster.Server.Authentication;
@@ -25,20 +27,24 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
     private readonly ChapterRepository _chapterRepo;
     private readonly ChapterOfficerRepository _officerRepo;
     private readonly MembershipApplicationRepository _applicationRepo;
+    private readonly DueSelectionRepository _dueSelectionRepo;
     private readonly TakeOverPlanner _planner;
     private readonly DbContext _context;
     private readonly PermissionContext _perms;
+    private readonly DetailPageAccess _pageAccess;
 
     public MotionDetailEndpoint(MotionRepository motionRepo, ChapterRepository chapterRepo,
-        ChapterOfficerRepository officerRepo, MembershipApplicationRepository applicationRepo, TakeOverPlanner planner, DbContext context,
-        PermissionContext perms) {
+        ChapterOfficerRepository officerRepo, MembershipApplicationRepository applicationRepo, DueSelectionRepository dueSelectionRepo,
+        TakeOverPlanner planner, DbContext context, PermissionContext perms, DetailPageAccess pageAccess) {
         _motionRepo = motionRepo;
         _chapterRepo = chapterRepo;
         _officerRepo = officerRepo;
         _applicationRepo = applicationRepo;
+        _dueSelectionRepo = dueSelectionRepo;
         _planner = planner;
         _context = context;
         _perms = perms;
+        _pageAccess = pageAccess;
     }
 
     public override void Configure() {
@@ -53,15 +59,9 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
             return;
         }
 
-        if (!motion.IsPublic) {
-            if (_perms.UserId == null) {
-                await SendNotFoundAsync(ct);
-                return;
-            }
-            if (!_perms.Has(motion.ChapterId, PermissionIdentifier.ViewMotions)) {
-                await SendNotFoundAsync(ct);
-                return;
-            }
+        if (!_pageAccess.CanViewMotion(motion)) {
+            await SendNotFoundAsync(ct);
+            return;
         }
 
         var chapter = _chapterRepo.Get(motion.ChapterId);
@@ -100,9 +100,36 @@ public class MotionDetailEndpoint : Endpoint<MotionDetailRequest, MotionDetailDT
         dto.Votes = voteDtos;
         dto.Officers = officerDtos;
         dto.TotalOfficers = officers.Count;
-        if (_perms.UserId != null)
+        if (_perms.UserId != null) {
             FillNotice(dto, motion);
+            FillLinkedPages(dto, motion);
+        }
         await SendAsync(dto, cancellation: ct);
+    }
+
+    /// <summary>An application motion leads to its application and the reduction that came with it; a reduction motion the other way round.</summary>
+    private void FillLinkedPages(MotionDetailDTO dto, Motion motion) {
+        var application = motion.LinkedMembershipApplicationId.HasValue ? _applicationRepo.Get(motion.LinkedMembershipApplicationId.Value) : null;
+        DueSelection? reduction;
+        if (motion.LinkedDueSelectionId.HasValue) {
+            reduction = _dueSelectionRepo.Get(motion.LinkedDueSelectionId.Value);
+            if (application == null && reduction != null)
+                application = _applicationRepo.GetByDueSelectionId(reduction.Id);
+        } else {
+            reduction = ReductionOf(application);
+        }
+
+        if (application != null && _pageAccess.CanViewApplication(application))
+            dto.ViewableApplicationId = application.Id;
+        if (reduction != null && _pageAccess.CanViewDueSelection(reduction, application))
+            dto.ViewableReductionId = reduction.Id;
+    }
+
+    private DueSelection? ReductionOf(MembershipApplication? application) {
+        if (application?.DueSelectionId == null)
+            return null;
+        var dueSelection = _dueSelectionRepo.Get(application.DueSelectionId.Value);
+        return dueSelection?.SelectedValuation == SelectedValuation.Reduced ? dueSelection : null;
     }
 
     private void FillNotice(MotionDetailDTO dto, Motion motion) {

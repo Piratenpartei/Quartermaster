@@ -15,13 +15,12 @@ public partial class MotionApprovalBadge {
     [Inject]
     public required I18nService I18n { get; set; }
 
-    private string CssClass => Status switch {
-        MotionApprovalStatus.Pending => "border-warning text-warning-emphasis",
-        MotionApprovalStatus.Approved => "border-success text-success-emphasis",
-        MotionApprovalStatus.Rejected => "border-danger text-danger-emphasis",
-        MotionApprovalStatus.FormallyRejected => "border-secondary text-secondary-emphasis",
-        MotionApprovalStatus.ClosedWithoutAction => "border-secondary text-secondary-emphasis",
-        _ => "border-secondary text-secondary-emphasis"
+    private StatusTone Tone => Status switch {
+        MotionApprovalStatus.Pending => StatusTone.Warning,
+        MotionApprovalStatus.Approved => StatusTone.Success,
+        MotionApprovalStatus.Rejected => StatusTone.Danger,
+        MotionApprovalStatus.FormallyRejected => StatusTone.Danger,
+        _ => StatusTone.Neutral
     };
 
     private string Label => Status switch {

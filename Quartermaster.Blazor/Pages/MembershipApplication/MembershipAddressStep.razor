@@ -14,7 +14,7 @@
     @if (ShowMunicipalitySearch()) {
         <MunicipalityPicker @ref="_picker" OnSelect="SelectDivision" />
         <div class="mt-3">
-            <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="EnterManually">
+            <a class="text-secondary text-decoration-underline" role="button" @onclick="EnterManually">
                 @I18n[I18nKey.Ui.MunicipalitySearch.EnterManuallyLink]
             </a>
         </div>
@@ -43,7 +43,7 @@
         }
         @if (State.IsGermany) {
             <p class="small mb-3">
-                <a class="text-secondary text-decoration-underline" style="cursor: pointer;" @onclick="SearchAgain">
+                <a class="text-secondary text-decoration-underline" role="button" @onclick="SearchAgain">
                     @I18n[I18nKey.Ui.PublicFormWizard.SearchMunicipalityAgain]
                 </a>
             </p>

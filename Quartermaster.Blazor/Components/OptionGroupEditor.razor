@@ -95,14 +95,7 @@
 
     @if (ShowSaveButton) {
         <div class="mt-3">
-            <button class="btn btn-primary btn-hover-scale1" @onclick="SaveClicked" disabled="@Saving">
-                @if (Saving) {
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                } else {
-                    <i class="bi bi-check-circle me-1"></i>
-                }
-                @I18n[I18nKey.Ui.Common.Save]
-            </button>
+            <AsyncButton Text="@I18n[I18nKey.Ui.Common.Save]" Icon="check-circle" Action="SaveAsync" />
         </div>
     }
 }

@@ -116,12 +116,12 @@ public partial class ForwardingCases {
         };
     }
 
-    private static string StatusClass(ForwardingCaseStatus status) {
+    private static StatusTone ToneOf(ForwardingCaseStatus status) {
         return status switch {
-            ForwardingCaseStatus.Done => "border-success text-success-emphasis",
-            ForwardingCaseStatus.Failed => "border-danger text-danger-emphasis",
-            ForwardingCaseStatus.ManuallyResolved => "border-secondary text-secondary-emphasis",
-            _ => "border-info text-info-emphasis"
+            ForwardingCaseStatus.Done => StatusTone.Success,
+            ForwardingCaseStatus.Failed => StatusTone.Danger,
+            ForwardingCaseStatus.ManuallyResolved => StatusTone.Neutral,
+            _ => StatusTone.Info
         };
     }
 
@@ -136,12 +136,12 @@ public partial class ForwardingCases {
         };
     }
 
-    private static string StepClass(ForwardingStepState state) {
+    private static StatusTone StepTone(ForwardingStepState state) {
         return state switch {
-            ForwardingStepState.Done => "border-success text-success-emphasis",
-            ForwardingStepState.Failed => "border-danger text-danger-emphasis",
-            ForwardingStepState.Skipped => "border-secondary text-secondary-emphasis",
-            _ => "border-info text-info-emphasis"
+            ForwardingStepState.Done => StatusTone.Success,
+            ForwardingStepState.Failed => StatusTone.Danger,
+            ForwardingStepState.Skipped => StatusTone.Neutral,
+            _ => StatusTone.Info
         };
     }
 

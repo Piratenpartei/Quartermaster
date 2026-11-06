@@ -21,6 +21,12 @@ public class MotionDetailDTO {
     public bool IsPublic { get; set; }
     public Guid? LinkedMembershipApplicationId { get; set; }
     public Guid? LinkedDueSelectionId { get; set; }
+
+    /// <summary>The membership application this motion decides or whose reduction it decides; set only when the viewer may open it.</summary>
+    public Guid? ViewableApplicationId { get; set; }
+
+    /// <summary>The reduction this motion decides or that came with its application; set only when the viewer may open it.</summary>
+    public Guid? ViewableReductionId { get; set; }
     public MotionApprovalStatus ApprovalStatus { get; set; }
     public bool IsRealized { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

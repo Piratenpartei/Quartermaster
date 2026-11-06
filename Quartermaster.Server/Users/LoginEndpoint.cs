@@ -2,6 +2,7 @@ using FastEndpoints;
 using Quartermaster.Api.Users;
 using Quartermaster.Data;
 using Quartermaster.Data.Chapters;
+using Quartermaster.Data.Members;
 using Quartermaster.Data.Options;
 using Quartermaster.Data.Tokens;
 using Quartermaster.Data.UserChapterPermissions;
@@ -23,13 +24,15 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
     private readonly LoginAttemptRepository _loginAttemptRepository;
     private readonly OptionRepository _optionRepository;
     private readonly ChapterRepository _chapterRepository;
+    private readonly MemberRepository _memberRepository;
 
     public LoginEndpoint(UserRepository userRepository, TokenRepository tokenRepository,
         UserGlobalPermissionRepository globalPermissionRepository,
         UserChapterPermissionRepository chapterPermissionRepository,
         LoginAttemptRepository loginAttemptRepository,
         OptionRepository optionRepository,
-        ChapterRepository chapterRepository) {
+        ChapterRepository chapterRepository,
+        MemberRepository memberRepository) {
         _userRepository = userRepository;
         _tokenRepository = tokenRepository;
         _globalPermissionRepository = globalPermissionRepository;
@@ -37,6 +40,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
         _loginAttemptRepository = loginAttemptRepository;
         _optionRepository = optionRepository;
         _chapterRepository = chapterRepository;
+        _memberRepository = memberRepository;
     }
 
     public override void Configure() {
@@ -82,14 +86,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse> {
             AuthCookie.Set(HttpContext, token.Content, token.Expires);
 
             var response = new LoginResponse {
-                User = new LoginUserInfo {
-                    Id = user.Id,
-                    Username = user.Username ?? "",
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    DisplayName = user.DisplayName(),
-                    Email = user.Email
-                },
+                User = user.ToLoginUserInfo(_memberRepository.GetByUserId(user.Id)),
                 Permissions = new LoginPermissions {
                     Global = globalPermissions,
                     Chapters = chapterPermissions.ToDictionary(

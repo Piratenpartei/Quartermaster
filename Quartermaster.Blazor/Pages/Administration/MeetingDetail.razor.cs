@@ -41,7 +41,6 @@ public partial class MeetingDetail {
     private DirtyForm _detailsForm = default!;
     private MeetingDetailDTO? Meeting;
     private bool Loading = true;
-    private bool SavingMeta;
     private List<AuditLogDTO>? AuditLogs;
     private bool AuditUnavailable;
     private string ActiveTab = "agenda";
@@ -135,13 +134,11 @@ public partial class MeetingDetail {
             Meeting.Visibility = (MeetingVisibility)v;
     }
 
-    private async Task SaveMeta() {
+    private async Task<bool> SaveMeta() {
         if (Meeting == null)
-            return;
-        SavingMeta = true;
-        StateHasChanged();
+            return false;
         try {
-            await MeetingsApi.UpdateAsync(new MeetingUpdateRequest {
+            using var response = await MeetingsApi.UpdateAsync(new MeetingUpdateRequest {
                 Id = Id,
                 Title = Meeting.Title,
                 Visibility = Meeting.Visibility,
@@ -149,13 +146,16 @@ public partial class MeetingDetail {
                 Location = Meeting.Location,
                 Description = Meeting.Description
             });
-            ToastService.ToastKey(I18nKey.Ui.Toast.Saved);
+            if (!response.IsSuccessStatusCode) {
+                await ToastService.ErrorAsync(response);
+                return false;
+            }
+            _detailsForm?.Reset();
+            return true;
         } catch (HttpRequestException ex) {
             ToastService.Error(ex);
+            return false;
         }
-        SavingMeta = false;
-        _detailsForm?.Reset();
-        StateHasChanged();
     }
 
     private async Task ChangeStatus(MeetingStatus target) {

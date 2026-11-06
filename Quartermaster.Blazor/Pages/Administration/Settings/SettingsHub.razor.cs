@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Quartermaster.Api.I18n;
 using Quartermaster.Api.Options;
+using Quartermaster.Blazor.Components;
 using Quartermaster.Blazor.Services;
 
 namespace Quartermaster.Blazor.Pages.Administration.Settings;
@@ -55,12 +56,12 @@ public partial class SettingsHub {
         };
     }
 
-    private static string StatusBadge(SettingsStatus status) {
+    private static StatusTone ToneOf(SettingsStatus status) {
         return status switch {
-            SettingsStatus.Configured => "border-success text-success-emphasis",
-            SettingsStatus.On => "border-success text-success-emphasis",
-            SettingsStatus.Partial => "border-warning text-warning-emphasis",
-            _ => "border-secondary text-secondary-emphasis"
+            SettingsStatus.Configured => StatusTone.Success,
+            SettingsStatus.On => StatusTone.Success,
+            SettingsStatus.Partial => StatusTone.Warning,
+            _ => StatusTone.Neutral
         };
     }
 }

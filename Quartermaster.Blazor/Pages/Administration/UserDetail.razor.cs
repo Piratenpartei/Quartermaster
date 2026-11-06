@@ -20,6 +20,9 @@ public class UserDetailResponse {
     public string Email { get; set; } = "";
     public string FirstName { get; set; } = "";
     public string LastName { get; set; } = "";
+
+    /// <summary>The member linked to this account; set only when the viewer may open it.</summary>
+    public Guid? ViewableMemberId { get; set; }
 }
 
 public partial class UserDetail {

@@ -15,7 +15,7 @@
     </Actions>
 </PageHeader>
 
-<div class="mb-3 d-flex gap-3">
+<div class="mb-3 d-flex flex-wrap gap-3">
     <div>
         <ChapterPicker Value="@SelectedChapterIdString" ValueChanged="OnChapterFilterChanged" AllowEmpty="true" />
     </div>
@@ -34,7 +34,7 @@
     </div>
 
     <div class="table-responsive">
-    <table class="table table-striped table-hover">
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>@I18n[I18nKey.Ui.EventList.PublicNameColumn]</th>

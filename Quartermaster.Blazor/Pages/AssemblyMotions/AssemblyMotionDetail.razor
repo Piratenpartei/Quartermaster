@@ -5,72 +5,76 @@
 
 <PageTitle>@I18n[I18nKey.Ui.AssemblyMotion.DetailPageTitle]</PageTitle>
 
-<PageBackLink Href="@BackHref" />
-
 @if (Loading) {
+    <PageBackLink Href="@BackHref" />
     <LoadingSpinner />
 } else if (Motion == null) {
+    <PageBackLink Href="@BackHref" />
     <div class="alert alert-warning">@I18n[I18nKey.Ui.AssemblyMotion.MotionNotFound]</div>
 } else {
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-        <div>
-            <div class="text-secondary">
+    <PageHeader Title="@Motion.Title" BackHref="@BackHref">
+        <Subtitle>
+            <span>
                 @Motion.TypeName (@Motion.TypeCode)
                 @if (Motion.NumberLabel != null) {
-                    <span> - @Motion.NumberLabel</span>
+                    <span>· @Motion.NumberLabel</span>
                 }
-            </div>
-            <h2 class="mb-0">@Motion.Title</h2>
-        </div>
-        <div class="d-flex gap-2 align-items-center">
-            <AssemblyMotionStatusBadge Status="@Motion.Status" IsInRevision="@Motion.IsInRevision" Class="fs-6" />
+            </span>
+            <AssemblyMotionStatusBadge Status="@Motion.Status" IsInRevision="@Motion.IsInRevision" />
             @if (Motion.Result != AssemblyMotionResult.None) {
-                <span class="badge border border-secondary text-secondary-emphasis fs-6">@AssemblyMotionDisplay.ResultLabel(I18n, Motion.Result)</span>
+                <StatusBadge Tone="StatusTone.Neutral" Text="@AssemblyMotionDisplay.ResultLabel(I18n, Motion.Result)" />
             }
-        </div>
-    </div>
+        </Subtitle>
+        <Actions>
+            @if (Member != null) {
+                @if (Member.CanRelease) {
+                    <button class="btn btn-primary" disabled="@Busy" @onclick="Release">
+                        <i class="bi bi-send"></i> @I18n[I18nKey.Ui.AssemblyMotion.Release]
+                    </button>
+                }
+                @if (Member.CanJoin) {
+                    <button class="btn btn-primary" disabled="@Busy" @onclick="Join">
+                        <i class="bi bi-person-plus"></i> @I18n[I18nKey.Ui.AssemblyMotion.Join]
+                    </button>
+                }
+                @if (Member.CanEdit) {
+                    <a href="/AssemblyMotions/@Id/Edit" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.Common.Edit]
+                    </a>
+                }
+                @if (Member.CanLeave) {
+                    <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="Leave">
+                        <i class="bi bi-person-dash"></i> @I18n[I18nKey.Ui.AssemblyMotion.Leave]
+                    </button>
+                }
+                @if (!string.IsNullOrEmpty(Member.ForumTopicUrl)) {
+                    <a href="@Member.ForumTopicUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+                        <i class="bi bi-chat-square-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumDiscussion]
+                    </a>
+                }
+                <AssemblyMotionSubscriptionToggle MotionId="Id" IsSubscribed="Member.IsSubscribed" CanSubscribe="Member.CanSubscribe" OnChanged="ReloadDetailAsync" />
+                @if (Member.CanWithdraw) {
+                    <button class="btn btn-outline-danger" disabled="@Busy" @onclick="Withdraw">
+                        <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.Withdraw]
+                    </button>
+                }
+                @if (Member.CanDelete) {
+                    <button class="btn btn-outline-danger" disabled="@Busy" @onclick="DeleteDraft">
+                        <i class="bi bi-trash"></i> @I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]
+                    </button>
+                }
+            }
+        </Actions>
+        <Links>
+            @if (Member?.Commission != null) {
+                <a href="/Administration/AssemblyMotions/@Id" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-clipboard-check"></i> @I18n[I18nKey.Ui.AssemblyMotion.CommissionButton]
+                </a>
+            }
+        </Links>
+    </PageHeader>
 
     @if (Member != null) {
-        <div class="d-flex gap-2 flex-wrap mb-3">
-            @if (Member.CanEdit) {
-                <a href="/AssemblyMotions/@Id/Edit" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil"></i> @I18n[I18nKey.Ui.Common.Edit]
-                </a>
-            }
-            @if (Member.CanRelease) {
-                <button class="btn btn-primary" disabled="@Busy" @onclick="Release">
-                    <i class="bi bi-send"></i> @I18n[I18nKey.Ui.AssemblyMotion.Release]
-                </button>
-            }
-            @if (Member.CanJoin) {
-                <button class="btn btn-success" disabled="@Busy" @onclick="Join">
-                    <i class="bi bi-person-plus"></i> @I18n[I18nKey.Ui.AssemblyMotion.Join]
-                </button>
-            }
-            @if (Member.CanLeave) {
-                <button class="btn btn-outline-secondary" disabled="@Busy" @onclick="Leave">
-                    <i class="bi bi-person-dash"></i> @I18n[I18nKey.Ui.AssemblyMotion.Leave]
-                </button>
-            }
-            @if (Member.CanWithdraw) {
-                <button class="btn btn-outline-danger" disabled="@Busy" @onclick="Withdraw">
-                    <i class="bi bi-x-circle"></i> @I18n[I18nKey.Ui.AssemblyMotion.Withdraw]
-                </button>
-            }
-            @if (Member.CanDelete) {
-                <button class="btn btn-outline-danger" disabled="@Busy" @onclick="DeleteDraft">
-                    <i class="bi bi-trash"></i> @I18n[I18nKey.Ui.AssemblyMotion.DeleteDraft]
-                </button>
-            }
-            @if (!string.IsNullOrEmpty(Member.ForumTopicUrl)) {
-                <a href="@Member.ForumTopicUrl" target="_blank" rel="noopener" class="btn btn-outline-secondary">
-                    <i class="bi bi-chat-square-text"></i> @I18n[I18nKey.Ui.AssemblyMotion.ForumDiscussion]
-                </a>
-            }
-        </div>
-
-        <AssemblyMotionSubscriptionToggle MotionId="Id" IsSubscribed="Member.IsSubscribed" CanSubscribe="Member.CanSubscribe" OnChanged="ReloadDetailAsync" />
-
         @if (ShowEditLockedHint()) {
             <div class="alert alert-secondary">
                 @I18n[I18nKey.Ui.AssemblyMotion.EditLockedHint]
@@ -90,11 +94,11 @@
                     @I18n[I18nKey.Ui.AssemblyMotion.ShareHint] <code>@ShareLink</code>
                 </div>
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                    <button class="btn btn-sm btn-outline-primary" @onclick="CopyShareLinkAsync">
+                    <button class="btn btn-outline-secondary" @onclick="CopyShareLinkAsync">
                         <i class="bi bi-clipboard"></i> @I18n[I18nKey.Ui.AssemblyMotion.CopyLink]
                     </button>
                     @if (CanShare) {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="ShareAsync">
+                        <button class="btn btn-outline-secondary" @onclick="ShareAsync">
                             <i class="bi bi-share"></i> @I18n[I18nKey.Ui.AssemblyMotion.Share]
                         </button>
                     }
@@ -120,7 +124,7 @@
     <AssemblyMotionContentCard Motion="@Motion" ShowCompetitions="@(Member == null)" />
 
     @if (ShowUpvote) {
-        <div class="card mb-3">
+        <div class="card mb-4">
             <div class="card-body">
                 <h5>@I18n[I18nKey.Ui.AssemblyMotion.PrioritizationTitle]</h5>
                 @if (Member != null && Member.HasUpvoted) {
