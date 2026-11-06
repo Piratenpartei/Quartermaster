@@ -68,6 +68,20 @@ public class AdministrativeDivisionSearchEndpointTests : IntegrationTestBase {
         await Assert.That(result.Items[0].Name).IsEqualTo("Hannover");
     }
 
+    /// <summary>German post codes may start with 0; a search with or without it finds the division.</summary>
+    [Test]
+    [Arguments("04289")]
+    [Arguments("4289")]
+    public async Task Post_code_search_finds_codes_with_a_leading_zero(string query) {
+        Builder.SeedAdminDivision("Leipzig", depth: 4, postCodes: "04288,04289");
+        Builder.SeedAdminDivision("Dortmund", depth: 4, postCodes: "44289");
+
+        var result = await Search(query);
+
+        await Assert.That(result.Items.Select(d => d.Name)).IsEquivalentTo(["Leipzig"]);
+        await Assert.That(result.Items[0].PrimaryPostCode).IsEqualTo("04288");
+    }
+
     [Test]
     public async Task Returns_empty_list_when_no_matches() {
         Builder.SeedAdminDivision("Hannover", depth: 1);

@@ -71,8 +71,8 @@ public static class AdministrativeDivisionLoader {
         // Pass 3: Collect post codes
         foreach (var line in File.ReadLines(postcodeFilePath)) {
             var split = line.Split('\t');
-            var postCodeStr = split[1];
-            if (!int.TryParse(postCodeStr, out var postCode) || postCode == 0)
+            var postCode = split[1];
+            if (!int.TryParse(postCode, out var postCodeValue) || postCodeValue == 0)
                 continue;
 
             var admin3Str = split[8];
@@ -172,7 +172,8 @@ internal class AdminDivision {
     public int GeoNameId { get; set; }
 
     public List<string> Names { get; internal set; } = [];
-    public HashSet<int> PostCodes { get; } = [];
+    /// <summary>Kept as text: German post codes may start with 0.</summary>
+    public HashSet<string> PostCodes { get; } = [];
 
     public AdminLevel Level { get; set; }
     public AdminLevel ParentLevel { get; set; }

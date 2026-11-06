@@ -269,6 +269,33 @@ public class MemberImportServiceTests : RepositoryTestBase {
         }
     }
 
+    /// <summary>A post code exported as a number has lost its leading zero; it still finds the division.</summary>
+    [Test]
+    public async Task ImportFromFile_ResolvesAdminDivision_PostcodeWithoutLeadingZero() {
+        var leipzigId = Guid.NewGuid();
+        _context.Insert(new AdministrativeDivision {
+            Id = leipzigId,
+            Name = "Leipzig",
+            Depth = 7,
+            AdminCode = "14713000",
+            PostCodes = "04288,04289"
+        });
+
+        var tempPath = Path.GetTempFileName();
+        try {
+            var header = "USER_Mitgliedsnummer;USER_refAufnahme;Name1;Name2;LieferStrasse;LieferLand;LieferPLZ;LieferOrt;Telefon;EMail;USER_LV;USER_Bezirk;USER_Kreis;USER_Beitrag;USER_redBeitrag;USER_Umfragen;USER_Aktionen;USER_Newsletter;USER_Geburtsdatum;USER_Postbounce;USER_Bundesland;USER_Eintrittsdatum;USER_Austrittsdatum;USER_Erstbeitrag;USER_Landkreis;USER_Gemeinde;USER_Staatsbuergerschaft;USER_zStimmberechtigung;USER_zoffenerbeitragtotal;USER_redBeitragEnde;USER_Schwebend";
+            var row = "6002;REF;Zero;Lost;NULL;NULL;4289;Leipzig;NULL;NULL;;;;48.00;0.00;0;0;0;NULL;0;NULL;NULL;NULL;NULL;NULL;NULL;NULL;0;NULL;NULL;0";
+            File.WriteAllText(tempPath, $"{header}\n{row}");
+
+            _service.ImportFromFile(tempPath);
+
+            var member = _context.Members.Where(m => m.MemberNumber == 6002).First();
+            await Assert.That(member.ResidenceAdministrativeDivisionId).IsEqualTo(leipzigId);
+        } finally {
+            File.Delete(tempPath);
+        }
+    }
+
     [Test]
     public async Task ImportFromFile_NoPostcode_AdminDivisionStaysNull() {
         // Lisa (member 1003) has no postcode in sample CSV

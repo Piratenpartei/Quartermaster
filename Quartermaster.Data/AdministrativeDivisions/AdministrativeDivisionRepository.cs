@@ -3,6 +3,7 @@ using LinqToDB.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Quartermaster.Api.AdministrativeDivisions;
 
 namespace Quartermaster.Data.AdministrativeDivisions;
 
@@ -161,7 +162,7 @@ public class AdministrativeDivisionRepository {
         var q = _context.AdministrativeDivisions.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(query)) {
-            var bounded = "," + query + ",";
+            var bounded = "," + GermanPostCode.Normalize(query) + ",";
             q = q.Where(ad => ad.Name.Contains(query)
                 || (ad.PostCodes != null && ("," + ad.PostCodes + ",").Contains(bounded)));
         }
@@ -175,12 +176,12 @@ public class AdministrativeDivisionRepository {
         return (items, totalCount);
     }
 
-    /// <summary>Returns every division whose comma-separated <see cref="AdministrativeDivision.PostCodes"/> contains the given code as a whole entry.</summary>
+    /// <summary>Returns every division whose comma-separated <see cref="AdministrativeDivision.PostCodes"/> contains the given code as a whole entry. A code that lost its leading zeros is matched with them restored.</summary>
     public List<AdministrativeDivision> FindByPostCode(string postCode) {
         if (string.IsNullOrWhiteSpace(postCode))
             return new List<AdministrativeDivision>();
 
-        var bounded = "," + postCode + ",";
+        var bounded = "," + GermanPostCode.Normalize(postCode) + ",";
         return _context.AdministrativeDivisions
             .Where(ad => ad.PostCodes != null && ("," + ad.PostCodes + ",").Contains(bounded))
             .ToList();

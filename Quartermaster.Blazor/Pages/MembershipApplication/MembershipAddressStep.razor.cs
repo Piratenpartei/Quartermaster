@@ -67,14 +67,14 @@ public partial class MembershipAddressStep {
 
     // The searched post code wins when the municipality has it, so applicants in multi-post-code towns keep theirs.
     private string ResolvePostCode(AdministrativeDivisionDTO division) {
-        var searched = _picker?.PostCodeQuery.Trim() ?? "";
-        if (!string.IsNullOrEmpty(searched) && division.PostCodes != null && division.PostCodes.Contains(searched))
+        var searched = GermanPostCode.Normalize(_picker?.PostCodeQuery ?? "");
+        var codes = division.PostCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+        if (!string.IsNullOrEmpty(searched) && codes.Contains(searched))
             return searched;
         if (!string.IsNullOrEmpty(division.PrimaryPostCode))
             return division.PrimaryPostCode;
 
-        var codes = division.PostCodes?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return codes != null && codes.Length > 0 ? codes[0] : searched;
+        return codes.Length > 0 ? codes[0] : searched;
     }
 
     private async Task LookupFederalChapter() {

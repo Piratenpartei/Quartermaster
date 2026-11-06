@@ -183,7 +183,23 @@ public class AdminDivisionImportServiceTests : RepositoryTestBase {
         await Assert.That(log.ErrorCount).IsEqualTo(0);
         await Assert.That(children.Select(d => d.Name)).IsEquivalentTo(["Pieschen", "Stadtbezirk Pieschen", "Bezirk Neustadt"]);
         await Assert.That(children.All(d => d.Depth == 8)).IsTrue();
-        await Assert.That(children.Single(d => d.Name == "Stadtbezirk Pieschen").PostCodes).IsEqualTo("1127");
+        await Assert.That(children.Single(d => d.Name == "Stadtbezirk Pieschen").PostCodes).IsEqualTo("01127");
+    }
+
+    [Test]
+    public async Task Import_keeps_the_leading_zero_of_post_codes() {
+        WriteFiles(
+            [
+                BaseLine(1, "Sachsen", "", "ADM1", 13),
+                BaseLine(2, "Kreisfreie Stadt Leipzig", "", "ADM3", 13, 0, 14713),
+                BaseLine(3, "Leipzig", "", "ADM4", 13, 0, 14713, 14713000),
+            ],
+            [PostcodeLine("04289", "Leipzig", 14713), PostcodeLine("04288", "Leipzig", 14713)]);
+
+        _service.Import(_tempDir);
+
+        var leipzig = _context.AdministrativeDivisions.Single(d => d.AdminCode == "14713000");
+        await Assert.That(leipzig.PostCodes).IsEqualTo("04289,04288");
     }
 
     [Test]
